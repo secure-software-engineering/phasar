@@ -78,21 +78,6 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
 
       auto Sat = Ctx.Solver.check();
       if (Sat == z3::check_result::unsat) {
-        // llvm::errs() << "> Unsat: " << Ctx.Solver.to_smt2() << '\n';
-        // llvm::errs() << ">> With X: " << X.to_string() << '\n';
-        // llvm::errs() << ">> With Y: " << Y.to_string() << '\n';
-        // llvm::errs() << ">> With NodeConstraints[" << Adj
-        //              << "]: " << Ctx.NodeConstraints[Adj].to_string() <<
-        //              '\n';
-        // if (auto Constr =
-        //         LPC.getConstraintFromEdge(PartialPath.front(), AdjPP.back()))
-        //         {
-        //   llvm::errs() << ">> With EdgeConstraint: " << Constr->to_string()
-        //                << '\n';
-        // } else {
-        //   llvm::errs() << ">> Without EdgeConstraint\n";
-        // }
-
         Iter = graph_traits_t::removeEdge(RevDAG, Vtx, It);
         Ctx.Ctr++;
       } else {
@@ -483,7 +468,7 @@ auto Z3BasedPathSensitivityManagerBase::filterAndFlattenRevDag(
   ///   that gets returned at the end
 
   /// Problem: We still have way too many Z3 solver invocations (> 900000 for
-  /// all teatcases)
+  /// some small test programs)
   /// Solution idea: In contrast to the context sensitivity check, the Path
   /// constraints are context-independent. So, it might be beneficial to
   /// compute the end-reachability constraints of each _node_ in a bottom-up

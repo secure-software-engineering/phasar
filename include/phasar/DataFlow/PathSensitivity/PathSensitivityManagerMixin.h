@@ -80,11 +80,6 @@ public:
 
       if (!Nod) {
 
-        // llvm::errs() << "At Inst " << llvmIRToString(Inst) << "; Fact: " <<
-        // Fact
-        //              << '\n';
-        // llvm::errs();
-
         {
           std::error_code EC;
           llvm::raw_fd_ostream ROS("explicitesg-err.dot", EC);
@@ -121,31 +116,6 @@ public:
                            "The DAG indeed has no circles");
     }
 
-    // {
-    //   std::error_code EC;
-    //   llvm::raw_fd_stream ROS(
-    //       "revdag-" +
-    //           std::filesystem::path(psr::getFilePathFromIR(Inst))
-    //               .filename()
-    //               .string() +
-    //           "-" + psr::getMetaDataID(Inst) + ".dot",
-    //       EC);
-    //   assert(!EC);
-    //   printGraph(Dag, ROS, "DAG", [](llvm::ArrayRef<n_t> PartialPath) {
-    //     std::string Buf;
-    //     llvm::raw_string_ostream ROS(Buf);
-    //     ROS << "[ ";
-    //     llvm::interleaveComma(PartialPath, ROS, [&ROS](const auto *Inst) {
-    //       ROS << psr::getMetaDataID(Inst);
-    //     });
-    //     ROS << " ]";
-    //     ROS.flush();
-    //     return Buf;
-    //   });
-
-    //   llvm::errs() << "Rev Paths DAG has " << Dag.Roots.size() << " roots\n";
-    // }
-
 #endif
 
     if (Config.DAGDepthThreshold != SIZE_MAX) {
@@ -155,53 +125,13 @@ public:
     }
 
     if (Config.MinimizeDAG) {
-      // {
-      //   std::error_code EC;
-      //   llvm::raw_fd_ostream ROS("unminimized_graph.dot", EC);
-      //   assert(!EC);
-      //   printGraph(Dag, ROS, "Unminimized DAG", [](const auto &Node) {
-      //     std::string Str;
-      //     llvm::raw_string_ostream StrStr(Str);
-      //     StrStr << "[";
-      //     llvm::interleaveComma(Node, StrStr, [&StrStr](const auto *Inst) {
-      //       StrStr << getMetaDataID(Inst);
-      //     });
-      //     StrStr << "]";
-      //     return Str;
-      //   });
-      // }
 
       auto Equiv = minimizeGraph(Dag);
 
-      // llvm::errs() << "Equiv:\n";
-      // llvm::errs() << "> Size: " << Equiv.getNumClasses() << '\n';
-      // for (size_t i = 0, end = Equiv.getNumClasses(); i < end; ++i) {
-      //   llvm::errs() << "[" << i << "] = " << Equiv[i] << '\n';
-      // }
-
       Dag = createEquivalentGraphFrom(std::move(Dag), Equiv);
-      // Dag = Derived::reverseDAG(
-      //     std::move(Dag), [&Equiv](vertex_t Vtx) { return Equiv[Vtx]; },
-      //     Equiv.getNumClasses(), Config.DAGDepthThreshold);
 
 #ifndef NDEBUG
       if (!static_cast<const Derived *>(this)->assertIsDAG(Dag)) {
-        // {
-        //   std::error_code EC;
-        //   llvm::raw_fd_ostream ROS("minimized_graph.dot", EC);
-        //   assert(!EC);
-        //   printGraph(Dag, ROS, "Minimized DAG", [](const auto &Node) {
-        //     std::string Str;
-        //     llvm::raw_string_ostream StrStr(Str);
-        //     StrStr << "[";
-        //     llvm::interleaveComma(Node, StrStr, [&StrStr](const auto *Inst) {
-        //       StrStr << getMetaDataID(Inst);
-        //     });
-        //     StrStr << "]";
-        //     return Str;
-        //   });
-        // }
-
         llvm::report_fatal_error("Invariant violated: DAG has a circle in it!");
       } else {
         PHASAR_LOG_LEVEL_CAT(DEBUG, "PathSensitivityManager",

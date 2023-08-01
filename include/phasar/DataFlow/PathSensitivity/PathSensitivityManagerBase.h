@@ -114,18 +114,19 @@ private:
     // it is small enough
     static constexpr size_t MaxNumBytesInStackBuf = 8192;
 
-    auto *Buf = NumBytes <= MaxNumBytesInStackBuf ? alloca(NumBytes)
-                                                  : new char[NumBytes];
-    std::unique_ptr<char[]> Owner;
+    auto *Buf = NumBytes <= MaxNumBytesInStackBuf
+                    ? reinterpret_cast<char *>(alloca(NumBytes))
+                    : new char[NumBytes];
+    std::unique_ptr<char[]> Owner; // NOLINT
     if (NumBytes > MaxNumBytesInStackBuf) {
-      Owner.reset((char *)Buf);
+      Owner.reset(Buf);
     }
 
-    auto Cache = (vertex_t *)Buf;
+    auto Cache = reinterpret_cast<vertex_t *>(Buf);
     std::uninitialized_fill_n(Cache, EquivSize, graph_traits_t::Invalid);
 
     auto *WLConsumeBegin =
-        (std::pair<vertex_t, vertex_t> *)((vertex_t *)Buf + EquivSize);
+        reinterpret_cast<std::pair<vertex_t, vertex_t> *>(Cache + EquivSize);
     auto *WLConsumeEnd = WLConsumeBegin;
     auto *WLInsertBegin = WLConsumeBegin + EquivSize;
     auto *WLInsertEnd = WLInsertBegin;
