@@ -92,8 +92,10 @@ private:
   bool isSanitizerCall(const llvm::CallBase *CB,
                        const llvm::Function *Callee) const;
 
-  void populateWithMayAliases(std::set<d_t> &Facts) const;
-  void populateWithMustAliases(std::set<d_t> &Facts) const;
+  void populateWithMayAliases(container_type &Facts,
+                              const llvm::Instruction *Context) const;
+  void populateWithMustAliases(container_type &Facts,
+                               const llvm::Instruction *Context) const;
 };
 } // namespace psr
 
