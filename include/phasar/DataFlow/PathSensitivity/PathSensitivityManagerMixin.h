@@ -79,17 +79,20 @@ public:
       auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
 
       if (!Nod) {
+        llvm::errs() << "Fatal eror occurred. Writing ESG to temp file...\n";
+        llvm::errs().flush();
+
+        auto FileName =
+            std::string(std::tmpnam(nullptr)) + "-explicitesg-err.dot";
 
         {
           std::error_code EC;
-          llvm::raw_fd_ostream ROS("explicitesg-err.dot", EC);
+          llvm::raw_fd_ostream ROS(FileName, EC);
           ESG.printAsDot(ROS);
         }
 
-        llvm::errs()
-            << "> ESG written to "
-            << std::filesystem::canonical("explicitesg-err.dot").string()
-            << '\n';
+        llvm::errs() << "> ESG written to "
+                     << std::filesystem::canonical(FileName).string() << '\n';
         llvm::errs().flush();
 
         llvm::report_fatal_error(

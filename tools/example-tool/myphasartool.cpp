@@ -28,6 +28,9 @@ int main(int Argc, const char **Argv) {
   std::vector EntryPoints = {"main"s};
 
   HelperAnalyses HA(Argv[1], EntryPoints);
+  if (!HA.getProjectIRDB().isValid()) {
+    return 1;
+  }
 
   if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
