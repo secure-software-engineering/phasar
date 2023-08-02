@@ -359,6 +359,11 @@ IDETypeStateAnalysis::getRetFlowFunction(
           RelAllocas.insert(Allocas.begin(), Allocas.end());
         }
         Res.insert(RelAllocas.begin(), RelAllocas.end());
+        if (llvm::isa<llvm::Constant>(Source)) {
+          const auto &SourceAndAliases =
+              Analysis->getWMAliasesAndAllocas(Source);
+          Res.insert(SourceAndAliases.begin(), SourceAndAliases.end());
+        };
         return Res;
       }
       return {Source};
@@ -414,6 +419,8 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
           return killManyFlows<d_t>(getWMAliasesAndAllocas(Arg.get()));
         }
       }
+      return killFlowIf<d_t>(
+          [](d_t Source) { return llvm::isa<llvm::Constant>(Source); });
     }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
