@@ -77,9 +77,10 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  explicit IDETabulationProblem(const ProjectIRDBBase<db_t> *IRDB,
-                                std::vector<std::string> EntryPoints,
-                                std::optional<d_t> ZeroValue)
+  explicit IDETabulationProblem(
+      const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
+      std::optional<d_t>
+          ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
         ZeroValue(std::move(ZeroValue)) {
     assert(IRDB != nullptr);
@@ -89,7 +90,7 @@ public:
 
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
-  [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const {
+  [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const noexcept {
     assert(ZeroValue.has_value());
     return FlowFact == *ZeroValue;
   }
@@ -99,7 +100,7 @@ public:
   [[nodiscard]] virtual InitialSeeds<n_t, d_t, l_t> initialSeeds() = 0;
 
   /// Returns the special tautological lambda (or zero) fact.
-  [[nodiscard]] d_t getZeroValue() const {
+  [[nodiscard]] ByConstRef<d_t> getZeroValue() const {
     assert(ZeroValue.has_value());
     return *ZeroValue;
   }
@@ -143,7 +144,8 @@ public:
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
   generateFromZero(d_t FactToGenerate) {
-    return generateFlow(std::move(FactToGenerate), getZeroValue());
+    return FlowFunctions<AnalysisDomainTy, Container>::generateFlow(
+        std::move(FactToGenerate), getZeroValue());
   }
 
   /// Seeds that just start with ZeroValue and bottomElement() at the starting

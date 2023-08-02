@@ -167,26 +167,24 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return lambdaFlow<IFDSUninitializedVariables::d_t>(
-        [Alloc, this](IFDSUninitializedVariables::d_t Source)
-            -> std::set<IFDSUninitializedVariables::d_t> {
-          if (isZeroValue(Source)) {
-            if (Alloc->getAllocatedType()->isIntegerTy() ||
-                Alloc->getAllocatedType()->isFloatingPointTy() ||
-                Alloc->getAllocatedType()->isPointerTy() ||
-                Alloc->getAllocatedType()->isArrayTy()) {
-              //------------------------------------------------------------
-              // Why not generate for structs, but for arrays? (would be
-              // consistent to generate either both or none of them)
-              //------------------------------------------------------------
+    return lambdaFlow([Alloc, this](d_t Source) -> std::set<d_t> {
+      if (isZeroValue(Source)) {
+        if (Alloc->getAllocatedType()->isIntegerTy() ||
+            Alloc->getAllocatedType()->isFloatingPointTy() ||
+            Alloc->getAllocatedType()->isPointerTy() ||
+            Alloc->getAllocatedType()->isArrayTy()) {
+          //------------------------------------------------------------
+          // Why not generate for structs, but for arrays? (would be
+          // consistent to generate either both or none of them)
+          //------------------------------------------------------------
 
-              // generate the alloca
-              return {Source, Alloc};
-            }
-          }
-          // otherwise propagate all facts
-          return {Source};
-        });
+          // generate the alloca
+          return {Source, Alloc};
+        }
+      }
+      // otherwise propagate all facts
+      return {Source};
+    });
   }
   // check if some instruction is using an undefined value (in)directly
   struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
@@ -303,7 +301,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
     };
     return std::make_shared<UVFF>(DestFun, CS, getZeroValue());
   }
-  return Identity<IFDSUninitializedVariables::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -348,7 +346,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
     return std::make_shared<UVFF>(CS, ExitStmt);
   }
   // kill everything else
-  return killAllFlows<d_t>();
+  return killAllFlows();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -360,23 +358,21 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-    return lambdaFlow<IFDSUninitializedVariables::d_t>(
-        [CS](IFDSUninitializedVariables::d_t Source)
-            -> std::set<IFDSUninitializedVariables::d_t> {
-          if (Source->getType()->isPointerTy()) {
-            for (const auto &Arg : CS->args()) {
-              if (Arg.get() == Source) {
-                // do not propagate pointer arguments, since the function may
-                // initialize them (would be much more precise with
-                // field-sensitivity)
-                return {};
-              }
-            }
+    return lambdaFlow([CS](d_t Source) -> std::set<d_t> {
+      if (Source->getType()->isPointerTy()) {
+        for (const auto &Arg : CS->args()) {
+          if (Arg.get() == Source) {
+            // do not propagate pointer arguments, since the function may
+            // initialize them (would be much more precise with
+            // field-sensitivity)
+            return {};
           }
-          return {Source};
-        });
+        }
+      }
+      return {Source};
+    });
   }
-  return Identity<IFDSUninitializedVariables::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -401,7 +397,7 @@ IFDSUninitializedVariables::createZeroValue() const {
 }
 
 bool IFDSUninitializedVariables::isZeroValue(
-    IFDSUninitializedVariables::d_t Fact) const {
+    IFDSUninitializedVariables::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 

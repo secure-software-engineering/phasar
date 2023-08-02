@@ -211,7 +211,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return lambdaFlow<d_t>([=](d_t Source) -> std::set<d_t> {
+      return lambdaFlow([=](d_t Source) -> std::set<d_t> {
         // if (Source == Gep->getPointerOperand()) {
         //  return {Source, Gep};
         //}
@@ -257,7 +257,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(
       return std::make_shared<TSFlowFunction>(Store, RelevantAliasesAndAllocas);
     }
   }
-  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
@@ -266,7 +266,7 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallSite,
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
   if (TSD->isAPIFunction(llvm::demangle(DestFun->getName().str()))) {
-    return killAllFlows<d_t>();
+    return killAllFlows();
   }
   // Otherwise, if we have an ordinary function call, we can just use the
   // standard mapping.
@@ -411,12 +411,12 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     if (!TSD->isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
       for (const auto &Arg : CS->args()) {
         if (hasMatchingType(Arg)) {
-          return killManyFlows<d_t>(getWMAliasesAndAllocas(Arg.get()));
+          return killManyFlows(getWMAliasesAndAllocas(Arg.get()));
         }
       }
     }
   }
-  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDETypeStateAnalysis::FlowFunctionPtrType
@@ -438,7 +438,8 @@ IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t Fact) const {
+bool IDETypeStateAnalysis::isZeroValue(
+    IDETypeStateAnalysis::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 

@@ -77,7 +77,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  bool isZeroValue(d_t FlowFact) const override;
+  bool isZeroValue(d_t FlowFact) const noexcept override;
 
   void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
 

@@ -270,7 +270,7 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return generateFromZero(Alloca);
+      return this->generateFromZero(Alloca);
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -293,7 +293,7 @@ public:
         //                                          v  v  v  v
         //                                          0  c  x  I
         //
-        return lambdaFlow<d_t>([Br](d_t Src) {
+        return this->lambdaFlow([Br](d_t Src) {
           container_type Facts;
           Facts.insert(Src);
           if (Src == Br->getCondition()) {
@@ -329,7 +329,7 @@ public:
         //              v  v  v
         //              0  Y  x
         //
-        return generateFlowIf<d_t>(
+        return this->generateFlowIf(
             Load, [PointerOp = Load->getPointerOperand(),
                    PTS = PT.getReachableAllocationSites(
                        Load->getPointerOperand(), OnlyConsiderLocalAliases)](
@@ -355,7 +355,7 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        return lambdaFlow<d_t>(
+        return this->lambdaFlow(
             [Store, PointerPTS = PT.getReachableAllocationSites(
                         Store->getPointerOperand(), OnlyConsiderLocalAliases,
                         Store)](d_t Src) -> container_type {
@@ -396,7 +396,7 @@ public:
     //              0  y  x
     //
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return generateFlow<d_t>(Load, Load->getPointerOperand());
+      return this->generateFlow(Load, Load->getPointerOperand());
     }
     // Handle store instructions
     //
@@ -409,7 +409,7 @@ public:
     //             0  x  y
     //
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
+      return this->lambdaFlow([Store](d_t Src) -> container_type {
         // Override old value, i.e., kill value that is written to and
         // generate from value that is stored.
         if (Store->getPointerOperand() == Src) {
@@ -448,7 +448,7 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-    return lambdaFlow<d_t>([Inst = Curr](d_t Src) {
+    return this->lambdaFlow([Inst = Curr](d_t Src) {
       container_type Facts;
       if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
         // keep the zero flow fact
@@ -483,11 +483,11 @@ public:
                                                  f_t DestFun) override {
     if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     if (DestFun->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
@@ -509,9 +509,9 @@ public:
     auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
 
     if (SRetFormal) {
-      return unionFlows(
+      return this->unionFlows(
           std::move(MapFactsToCalleeFF),
-          generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
+          this->generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
     }
 
     return MapFactsToCalleeFF;
@@ -582,9 +582,9 @@ public:
       }
     }
 
-    return lambdaFlow<d_t>([CallSite = llvm::cast<llvm::CallBase>(CallSite),
-                            OnlyDecls,
-                            AllVoidRetTys](d_t Source) -> container_type {
+    return this->lambdaFlow([CallSite = llvm::cast<llvm::CallBase>(CallSite),
+                             OnlyDecls,
+                             AllVoidRetTys](d_t Source) -> container_type {
       // There are a few things to consider, in case only declarations of
       // callee targets are available.
       if (OnlyDecls) {
@@ -659,7 +659,9 @@ public:
     return LLVMZeroValue::getInstance();
   }
 
-  inline bool isZeroValue(d_t d) const override { return isZeroValueImpl(d); }
+  inline bool isZeroValue(d_t d) const noexcept override {
+    return isZeroValueImpl(d);
+  }
 
   // In addition provide specifications for the IDE parts.
 

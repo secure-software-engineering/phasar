@@ -42,26 +42,26 @@ IDESolverTest::IDESolverTest(const LLVMProjectIRDB *IRDB,
 IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t /*Curr*/,
                                      IDESolverTest::n_t /*Succ*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getCallFlowFunction(IDESolverTest::n_t /*CallSite*/,
                                    IDESolverTest::f_t /*DestFun*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
     IDESolverTest::n_t /*CallSite*/, IDESolverTest::f_t /*CalleeFun*/,
     IDESolverTest::n_t /*ExitStmt*/, IDESolverTest::n_t /*RetSite*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t /*CallSite*/,
                                         IDESolverTest::n_t /*RetSite*/,
                                         llvm::ArrayRef<f_t> /*Callees*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType
@@ -82,7 +82,7 @@ IDESolverTest::d_t IDESolverTest::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const {
+bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 

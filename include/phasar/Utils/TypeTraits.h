@@ -66,6 +66,12 @@ template <typename T>
 struct has_str<T, decltype(std::declval<T>().str())> : std::true_type {
 }; // NOLINT
 
+template <typename T, typename = void> struct has_reserve : std::false_type {};
+template <typename T>
+struct has_reserve<
+    T, std::void_t<decltype(std::declval<T &>().reserve(size_t(0)))>>
+    : std::true_type {};
+
 template <typename T, typename = void>
 struct has_erase_iterator : std::false_type {}; // NOLINT
 template <typename T>
@@ -232,6 +238,12 @@ template <typename T> struct DefaultConstruct {
     return T(std::forward<U>(Val)...);
   }
 };
+
+template <typename T> void reserveIfPossible(T &Container, size_t Capacity) {
+  if constexpr (detail::has_reserve<T>::value) {
+    Container.reserve(Capacity);
+  }
+}
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

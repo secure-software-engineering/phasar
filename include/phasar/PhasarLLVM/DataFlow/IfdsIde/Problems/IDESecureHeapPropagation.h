@@ -80,7 +80,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
 
