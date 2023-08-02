@@ -946,8 +946,6 @@ public:
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
-  inline EdgeFunctionType allTopFunction() override { return AllTop<l_t>(); }
-
   // Provide some handy helper edge functions to improve reuse.
 
   // Edge function that kills all labels in a set (and may replaces them with

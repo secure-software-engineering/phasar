@@ -12,6 +12,7 @@
 
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
@@ -36,6 +37,23 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
+template <typename AnalysisDomainTy, typename = void> class AllTopFnProvider {
+public:
+  /// Returns an edge function that represents the top element of the analysis.
+  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() = 0;
+};
+
+template <typename AnalysisDomainTy>
+class AllTopFnProvider<
+    AnalysisDomainTy,
+    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
+public:
+  /// Returns an edge function that represents the top element of the analysis.
+  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() {
+    return AllTop<typename AnalysisDomainTy::l_t>{};
+  }
+};
+
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
@@ -44,7 +62,8 @@ class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
                              public FunctionPrinter<AnalysisDomainTy>,
                              public EdgeFunctions<AnalysisDomainTy>,
                              public JoinLattice<AnalysisDomainTy>,
-                             public EdgeFactPrinter<AnalysisDomainTy> {
+                             public EdgeFactPrinter<AnalysisDomainTy>,
+                             public AllTopFnProvider<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -68,9 +87,6 @@ public:
 
   ~IDETabulationProblem() override = default;
 
-  /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunction<l_t> allTopFunction() = 0;
-
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
   [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const {
@@ -88,18 +104,19 @@ public:
     return *ZeroValue;
   }
 
-  void initializeZeroValue(d_t Zero) {
+  void initializeZeroValue(d_t Zero) noexcept(
+      std::is_nothrow_assignable_v<std::optional<d_t> &, d_t &&>) {
     assert(!ZeroValue.has_value());
     ZeroValue = std::move(Zero);
   }
 
   /// Sets the configuration to be used by the IFDS/IDE solver.
-  void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
+  void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) noexcept {
     SolverConfig = Config;
   }
 
   /// Returns the configuration of the IFDS/IDE solver.
-  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() {
+  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() noexcept {
     return SolverConfig;
   }
 

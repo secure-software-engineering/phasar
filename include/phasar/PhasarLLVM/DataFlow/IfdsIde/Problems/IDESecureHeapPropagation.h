@@ -110,14 +110,6 @@ public:
                                            n_t RetSite,
                                            d_t RetSiteNode) override;
 
-  l_t topElement() override;
-
-  l_t bottomElement() override;
-
-  l_t join(l_t Lhs, l_t Rhs) override;
-
-  EdgeFunction<l_t> allTopFunction() override;
-
   void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,

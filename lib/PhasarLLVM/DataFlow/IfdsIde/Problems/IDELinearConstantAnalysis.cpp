@@ -564,10 +564,6 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
   return EdgeIdentity<l_t>{};
 }
 
-EdgeFunction<lca::l_t> IDELinearConstantAnalysis::allTopFunction() {
-  return AllTop<l_t>{};
-}
-
 void IDELinearConstantAnalysis::printNode(llvm::raw_ostream &OS,
                                           n_t Stmt) const {
   OS << llvmIRToString(Stmt);

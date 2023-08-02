@@ -69,11 +69,6 @@ bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const {
   return Fact->isZero();
 }
 
-IDEExtendedTaintAnalysis::EdgeFunctionType
-IDEExtendedTaintAnalysis::allTopFunction() {
-  return AllTop<l_t>{};
-}
-
 // Flow functions:
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
@@ -784,16 +779,6 @@ void IDEExtendedTaintAnalysis::emitTextReport(
     }
   }
   OS << '\n';
-}
-
-// JoinLattice
-
-auto IDEExtendedTaintAnalysis::topElement() -> l_t { return Top{}; }
-
-auto IDEExtendedTaintAnalysis::bottomElement() -> l_t { return Bottom{}; }
-
-auto IDEExtendedTaintAnalysis::join(l_t LHS, l_t RHS) -> l_t {
-  return LHS.join(RHS, &BBO);
 }
 
 // Helpers:

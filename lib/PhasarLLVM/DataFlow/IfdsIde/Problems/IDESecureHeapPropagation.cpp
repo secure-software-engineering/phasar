@@ -187,32 +187,6 @@ IDESecureHeapPropagation::getSummaryEdgeFunction(n_t /*CallSite*/,
   return nullptr;
 }
 
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::topElement() {
-  return l_t::TOP;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::bottomElement() {
-  return l_t::BOT;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::join(l_t Lhs, l_t Rhs) {
-  if (Lhs == Rhs) {
-    return Lhs;
-  }
-  if (Lhs == l_t::TOP) {
-    return Rhs;
-  }
-  if (Rhs == l_t::TOP) {
-    return Lhs;
-  }
-  return l_t::BOT;
-}
-
-EdgeFunction<IDESecureHeapPropagation::l_t>
-IDESecureHeapPropagation::allTopFunction() {
-  return AllTop<l_t>{};
-}
-
 void IDESecureHeapPropagation::printEdgeFact(llvm::raw_ostream &Os,
                                              l_t L) const {
   switch (L) {

@@ -248,16 +248,6 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  EdgeFunctionType allTopFunction() override;
-
-  // JoinLattice
-
-  l_t topElement() override;
-
-  l_t bottomElement() override;
-
-  l_t join(l_t LHS, l_t RHS) override;
-
   // Printing functions
 
   void printNode(llvm::raw_ostream &OS, n_t Inst) const override;

@@ -117,8 +117,6 @@ public:
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                            d_t SuccNode) override;
 
-  EdgeFunction<l_t> allTopFunction() override;
-
   // Helper functions
 
   void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
