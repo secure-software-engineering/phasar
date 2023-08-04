@@ -7,9 +7,6 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "nlohmann/json-schema.hpp"
-#include "nlohmann/json.hpp"
-
 #include <optional>
 
 llvm::StringRef psr::to_string(TaintCategory Cat) noexcept {
@@ -34,46 +31,10 @@ psr::TaintCategory psr::toTaintCategory(llvm::StringRef Str) noexcept {
       .Default(TaintCategory::None);
 }
 
-nlohmann::json psr::parseTaintConfig(const llvm::Twine &Path) {
+psr::TaintConfigData psr::parseTaintConfig(const llvm::Twine &Path) {
   auto Ret = parseTaintConfigOrNull(Path);
   if (!Ret) {
     return {};
   }
   return std::move(*Ret);
-}
-
-std::optional<nlohmann::json>
-psr::parseTaintConfigOrNull(const llvm::Twine &Path) {
-  std::optional<nlohmann::json> TaintConfig = readJsonFile(Path);
-  nlohmann::json_schema::json_validator Validator;
-  try {
-    static const nlohmann::json TaintConfigSchema =
-#include "../config/TaintConfigSchema.json"
-        ;
-
-    Validator.set_root_schema(TaintConfigSchema); // insert root-schema
-  } catch (const std::exception &E) {
-    PHASAR_LOG_LEVEL(ERROR,
-                     "Validation of schema failed, here is why: " << E.what());
-    return std::nullopt;
-  }
-
-  // a custom error handler
-  class CustomJsonErrorHandler
-      : public nlohmann::json_schema::basic_error_handler {
-    void error(const nlohmann::json::json_pointer &Pointer,
-               const nlohmann::json &Instance,
-               const std::string &Message) override {
-      nlohmann::json_schema::basic_error_handler::error(Pointer, Instance,
-                                                        Message);
-      PHASAR_LOG_LEVEL(ERROR, Pointer.to_string()
-                                  << "' - '" << Instance << "': " << Message);
-    }
-  };
-  CustomJsonErrorHandler Err;
-  Validator.validate(*TaintConfig, Err);
-  if (Err) {
-    TaintConfig.reset();
-  }
-  return TaintConfig;
 }

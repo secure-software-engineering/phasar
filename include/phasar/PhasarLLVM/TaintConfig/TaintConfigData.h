@@ -10,15 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
-
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
-
+#include <string>
 #include <unordered_set>
-
-#include <nlohmann/json_fwd.hpp>
 
 namespace psr {
 class TaintConfigData;
@@ -26,33 +19,35 @@ class LLVMProjectIRDB;
 
 class TaintConfigData {
 public:
-  explicit TaintConfigData(const psr::LLVMProjectIRDB &IRDB,
-                           const nlohmann::json &Config);
+  TaintConfigData() = default;
+  explicit TaintConfigData(const std::string &Filepath);
 
-  void addSourceValue(const llvm::Value *V);
-  void addSinkValue(const llvm::Value *V);
-  void addSanitizerValue(const llvm::Value *V);
-  void addTaintCategory(const llvm::Value *Val, llvm::StringRef AnnotationStr);
-  void addTaintCategory(const llvm::Value *Val, TaintCategory Annotation);
-  // --- utilities
+  const std::unordered_set<std::string> &getAllFunctionRets() const;
+  const std::unordered_set<std::string> &getAllFunctionParamsSources() const;
+  const std::unordered_set<std::string> &getAllFunctionParamsSinks() const;
+  const std::unordered_set<std::string> &getAllFunctionParamsSanitizers() const;
 
-  void addAllFunctions(const LLVMProjectIRDB &IRDB,
-                       const nlohmann::json &Config);
+  const std::unordered_set<std::string> &getAllVariableScopes() const;
+  const std::unordered_set<std::string> &getAllVariableLines() const;
+  const std::unordered_set<std::string> &getAllVariableCats() const;
+  const std::unordered_set<std::string> &getAllVariableNames() const;
 
-  inline std::unordered_set<const llvm::Value *> getAllSourceValues() const {
-    return SourceValues;
-  }
-  inline std::unordered_set<const llvm::Value *> getAllSinkValues() const {
-    return SinkValues;
-  }
-  inline std::unordered_set<const llvm::Value *> getAllSanitizerValues() const {
-    return SanitizerValues;
-  }
+  const std::unordered_set<std::string> &getAllFunctions() const;
+  const std::unordered_set<std::string> &getAllVariables() const;
 
 private:
-  std::unordered_set<const llvm::Value *> SourceValues;
-  std::unordered_set<const llvm::Value *> SinkValues;
-  std::unordered_set<const llvm::Value *> SanitizerValues;
+  std::unordered_set<std::string> Functions;
+  std::unordered_set<std::string> Variables;
+
+  std::unordered_set<std::string> FunctionRets;
+  std::unordered_set<std::string> FunctionParamsSources;
+  std::unordered_set<std::string> FunctionParamsSinks;
+  std::unordered_set<std::string> FunctionParamsSanitizers;
+
+  std::unordered_set<std::string> VariableScopes;
+  std::unordered_set<std::string> VariableLines;
+  std::unordered_set<std::string> VariableCats;
+  std::unordered_set<std::string> VariableNames;
 };
 
 } // namespace psr

@@ -195,19 +195,6 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     const auto &Stats = GSA.runOnModule(*IRDB.getModule());
 
     if (EmitterOptions &
-        AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
-      llvm::outs() << "Module " << IRDB.getModule()->getName() << ":\n";
-      llvm::outs() << "> LLVM IR instructions:\t" << IRDB.getNumInstructions()
-                   << "\n";
-      llvm::outs() << "> Functions:\t\t" << IRDB.getModule()->size() << "\n";
-      llvm::outs() << "> Global variables:\t" << IRDB.getModule()->global_size()
-                   << "\n";
-      llvm::outs() << "> Alloca instructions:\t"
-                   << Stats.getAllocaInstructions().size() << "\n";
-      llvm::outs() << "> Call Sites:\t\t" << Stats.getFunctioncalls() << "\n";
-    }
-
-    if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
       WithResultFileOrStdout("/psr-IrStatistics.json",
                              [&Stats](auto &OS) { Stats.printAsJson(OS); });

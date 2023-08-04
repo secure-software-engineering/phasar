@@ -10,14 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGBASE_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGBASE_H
 
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/Utils/Nullable.h"
 
 #include "llvm/ADT/FunctionExtras.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include "nlohmann/json.hpp"
 
 #include <map>
 #include <set>
@@ -159,8 +158,8 @@ protected:
 //===----------------------------------------------------------------------===//
 // Miscellaneous helper functions
 
-nlohmann::json parseTaintConfig(const llvm::Twine &Path);
-std::optional<nlohmann::json> parseTaintConfigOrNull(const llvm::Twine &Path);
+TaintConfigData parseTaintConfig(const llvm::Twine &Path);
+std::optional<TaintConfigData> parseTaintConfigOrNull(const llvm::Twine &Path);
 
 } // namespace psr
 
