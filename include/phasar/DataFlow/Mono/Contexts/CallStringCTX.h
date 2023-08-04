@@ -71,7 +71,7 @@ public:
   llvm::raw_ostream &print(llvm::raw_ostream &OS) const {
     OS << "Call string: [ ";
     for (auto C : CallString) {
-      OS << NToString((C));
+      OS << NToString(C);
       if (C != CallString.back()) {
         OS << " * ";
       }
