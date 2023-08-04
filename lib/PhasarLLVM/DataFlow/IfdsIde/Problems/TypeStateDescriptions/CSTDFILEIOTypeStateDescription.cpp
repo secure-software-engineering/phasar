@@ -25,14 +25,14 @@ namespace psr {
  *
  *                TOP = no information
  */
-enum class CSTDFILEIOState {
-  TOP = 42,
-  UNINIT = 0,
-  OPENED = 1,
-  CLOSED = 2,
-  ERROR = 3,
-  BOT = 4
-};
+// enum class CSTDFILEIOState {
+//   TOP = 42,
+//   UNINIT = 0,
+//   OPENED = 1,
+//   CLOSED = 2,
+//   ERROR = 3,
+//   BOT = 4
+// };
 
 namespace {
 

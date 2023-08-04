@@ -19,8 +19,33 @@
 
 namespace psr {
 
-enum class CSTDFILEIOState;
+enum class CSTDFILEIOState {
+  TOP = 42,
+  UNINIT = 0,
+  OPENED = 1,
+  CLOSED = 2,
+  ERROR = 3,
+  BOT = 4
+};
 llvm::StringRef to_string(CSTDFILEIOState State) noexcept;
+template <> struct JoinLatticeTraits<CSTDFILEIOState> {
+  static constexpr CSTDFILEIOState top() noexcept {
+    return CSTDFILEIOState::TOP;
+  }
+  static constexpr CSTDFILEIOState bottom() noexcept {
+    return CSTDFILEIOState::BOT;
+  }
+  static constexpr CSTDFILEIOState join(CSTDFILEIOState L,
+                                        CSTDFILEIOState R) noexcept {
+    if (L == top() || R == bottom()) {
+      return R;
+    }
+    if (L == bottom() || R == top()) {
+      return L;
+    }
+    return bottom();
+  }
+};
 
 /**
  * A type state description for C's file I/O API. The finite state machine
