@@ -11,16 +11,17 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/IntrinsicInst.h"
-#include "llvm/IR/Value.h"
+
+#include <string>
 
 namespace psr {
 
@@ -60,145 +61,75 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
 
 void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
                                       const TaintConfigData &Config) {
-  for (const auto &Source : Config.getAllFunctionParamsSources()) {
-    auto FnDefs = findAllFunctionDefs(IRDB, Source);
-  }
-
+  int Counter = -1;
   for (const auto &FunDesc : Config.getAllFunctions()) {
-    auto FnDefs = findAllFunctionDefs(IRDB, FunDesc);
+    Counter++;
+    auto Name = Config.getAllFunctionNames()[Counter];
+
+    auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
     if (FnDefs.empty()) {
-      llvm::errs() << "WARNING: Cannot retrieve function " << FunDesc << "\n";
+      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
       continue;
     }
 
     const auto *Fun = FnDefs[0];
 
-    // handle a function's parameters
-    if (FunDesc.contains("params")) {
-      auto Params = FunDesc["params"];
-      if (Params.contains("source")) {
-        for (unsigned Idx : Params["source"]) {
-          if (Idx >= Fun->arg_size()) {
-            llvm::errs()
-                << "ERROR: The source-function parameter index is out of "
-                   "bounds: "
-                << Idx << "\n";
-            // Use 'continue' instead of 'break' to get error messages for the
-            // remaining parameters as well
-            continue;
-          }
-          addTaintCategory(Fun->getArg(Idx), TaintCategory::Source);
-        }
+    // handle a function's source parameters
+    for (const auto &Param : Config.getAllFunctionParamsSources()) {
+      unsigned Idx = std::stoi(Param);
+
+      if (Idx >= Fun->arg_size()) {
+        llvm::errs() << "ERROR: The source-function parameter index is out of "
+                        "bounds: "
+                     << Idx << "\n";
+        // Use 'continue' instead of 'break' to get error messages for the
+        // remaining parameters as well
+        continue;
       }
-      if (Params.contains("sink")) {
-        for (const auto &Idx : Params["sink"]) {
-          if (Idx.is_number()) {
-            if (Idx >= Fun->arg_size()) {
-              llvm::errs()
-                  << "ERROR: The source-function parameter index is out of "
-                     "bounds: "
-                  << Idx << "\n";
-              continue;
-            }
-            addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
-          } else if (Idx.is_string()) {
-            const auto Sinks = Idx.get<std::string>();
-            if (Sinks == "all") {
-              for (const auto &Arg : Fun->args()) {
-                addTaintCategory(&Arg, TaintCategory::Sink);
-              }
-            }
+      addTaintCategory(Fun->getArg(Idx), TaintCategory::Source);
+    }
+    for (const auto &Param : Config.getAllFunctionParamsSinks()) {
+      char *Check;
+      long Converted = strtol(Param.c_str(), &Check, Param.size());
+
+      if (!Check) {
+        unsigned Idx = std::stoi(Param);
+        if (Idx >= Fun->arg_size()) {
+          llvm::errs()
+              << "ERROR: The source-function parameter index is out of "
+                 "bounds: "
+              << Idx << "\n";
+          continue;
+        }
+        addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
+      } else {
+        if (Param == "all") {
+          for (const auto &Arg : Fun->args()) {
+            addTaintCategory(&Arg, TaintCategory::Sink);
           }
         }
       }
-      if (Params.contains("sanitizer")) {
-        for (unsigned Idx : Params["sanitizer"]) {
-          if (Idx >= Fun->arg_size()) {
-            llvm::errs()
-                << "ERROR: The source-function parameter index is out of "
-                   "bounds: "
-                << Idx << "\n";
-            continue;
-          }
-          addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
+    }
+    for (const auto &Param : Config.getAllFunctionParamsSanitizers()) {
+      char *Check;
+      long Converted = strtol(Param.c_str(), &Check, Param.size());
+      unsigned Idx = std::stoi(Param);
+
+      if (!Check) {
+        if (Idx >= Fun->arg_size()) {
+          llvm::errs()
+              << "ERROR: The source-function parameter index is out of "
+                 "bounds: "
+              << Idx << "\n";
+          continue;
         }
+        addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
       }
     }
     // handle a function's return value
-    if (FunDesc.contains("ret")) {
-      for (const auto &User : Fun->users()) {
-        addTaintCategory(User, FunDesc["ret"].get<std::string>());
-      }
-    }
-  }
-}
-
-LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                                 const psr::TaintConfigData &Config) {
-  // handle functions
-  if (Config.hasFunctions()) {
-    addAllFunctions(Code, Config);
-  }
-
-  // handle variables
-  if (Config.hasVariables()) {
-    // scope can be a function name or a struct.
-    std::unordered_map<const llvm::Type *, const TaintConfigData>
-        StructConfigMap;
-
-    // read all struct types from config
-    for (const auto &VarDesc : Config.getAllVariables()) {
-      llvm::DebugInfoFinder DIF;
-      const auto *M = Code.getModule();
-
-      DIF.processModule(*M);
-      for (const auto &Ty : DIF.types()) {
-        if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-            Ty->getName().equals(VarDesc["scope"].get<std::string>())) {
-          for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
-            StructConfigMap.insert(
-                std::pair<const llvm::Type *, const nlohmann::json>(
-                    LlvmStructTy, VarDesc));
-          }
-        }
-      }
-      DIF.reset();
-    }
-
-    // add corresponding Allocas or getElementPtr instructions to the taint
-    // category
-    for (const auto &VarDesc : Config.getAllVariables()) {
-      for (const auto &Fun : Code.getAllFunctions()) {
-        for (const auto &I : llvm::instructions(Fun)) {
-          if (const auto *DbgDeclare =
-                  llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-            const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
-            // matching line number with for Allocas
-            if (LocalVar->getName().equals(VarDesc) &&
-                LocalVar->getLine() == VarDesc["line"].get<unsigned int>()) {
-              addTaintCategory(DbgDeclare->getAddress(),
-                               VarDesc["cat"].get<std::string>());
-            }
-          } else if (!StructConfigMap.empty()) {
-            // Ignorning line numbers for getElementPtr instructions
-            if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
-              const auto *StType = llvm::dyn_cast<llvm::StructType>(
-                  Gep->getPointerOperandType()->getPointerElementType());
-              if (StType && StructConfigMap.count(StType)) {
-                const auto VarDesc = StructConfigMap.at(StType);
-                auto VarName = VarDesc["name"].get<std::string>();
-                // using substr to cover the edge case in which same variable
-                // name is present as a local variable and also as a struct
-                // member variable. (Ex. JsonConfig/fun_member_02.cpp)
-                if (Gep->getName().substr(0, VarName.size()).equals(VarName)) {
-                  addTaintCategory(Gep, VarDesc["cat"].get<std::string>());
-                }
-              }
-            }
-          }
-        }
-      }
+    for (const auto &User : Fun->users()) {
+      addTaintCategory(User, Config.getAllFunctionRets()[Counter]);
     }
   }
 }

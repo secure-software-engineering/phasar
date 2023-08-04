@@ -55,52 +55,42 @@ parseTaintConfigOrNull(const llvm::Twine &Path) {
 }
 
 void findAndAddValue(const nlohmann::json &Config, const std::string &Value,
-                     std::unordered_set<std::string> &Container) {
+                     std::vector<std::string> &Container) {
   if (Config.contains(Value)) {
     for (const auto &Curr : Config[Value]) {
-      Container.insert(Curr);
+      Container.push_back(Curr);
     }
   }
 }
 
+void addAllFunctions(const nlohmann::json &Config,
+                     std::vector<std::string> &Container) {
+  findAndAddValue(Config, "functions", Container);
+}
+
+void addAllFunctionNames(const nlohmann::json &Function,
+                         std::vector<std::string> &Container) {
+  findAndAddValue(Function, "name", Container);
+}
+
 void addAllFunctionRets(const nlohmann::json &Function,
-                        std::unordered_set<std::string> &Container) {
+                        std::vector<std::string> &Container) {
   findAndAddValue(Function, "ret", Container);
 }
 
 void addAllFunctionParamsSources(const nlohmann::json &Param,
-                                 std::unordered_set<std::string> &Container) {
+                                 std::vector<std::string> &Container) {
   findAndAddValue(Param, "source", Container);
 }
 
 void addAllFunctionParamsSinks(const nlohmann::json &Param,
-                               std::unordered_set<std::string> &Container) {
+                               std::vector<std::string> &Container) {
   findAndAddValue(Param, "sink", Container);
 }
 
-void addAllFunctionParamsSanitizers(
-    const nlohmann::json &Param, std::unordered_set<std::string> &Container) {
+void addAllFunctionParamsSanitizers(const nlohmann::json &Param,
+                                    std::vector<std::string> &Container) {
   findAndAddValue(Param, "sanitizer", Container);
-}
-
-void addAllVariableScopes(const nlohmann::json &Variable,
-                          std::unordered_set<std::string> &Container) {
-  findAndAddValue(Variable, "scope", Container);
-}
-
-void addAllVariableLines(const nlohmann::json &Variable,
-                         std::unordered_set<std::string> &Container) {
-  findAndAddValue(Variable, "line", Container);
-}
-
-void addAllVariableCats(const nlohmann::json &Variable,
-                        std::unordered_set<std::string> &Container) {
-  findAndAddValue(Variable, "cat", Container);
-}
-
-void addAllVariableNames(const nlohmann::json &Variable,
-                         std::unordered_set<std::string> &Container) {
-  findAndAddValue(Variable, "name", Container);
 }
 
 TaintConfigData::TaintConfigData(const std::string &Filepath) {
@@ -109,67 +99,68 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
 
   // handle functions
   if (Config.contains("functions")) {
-    for (auto &Function : Config["functions"]) {
-      addAllFunctionRets(Function, FunctionRets);
+    for (const auto &Func : Config["functions"]) {
+      // A functions name should be at the same index in the names array and the
+      // functions array
+      Functions.push_back(Func);
 
-      if (Function.contains("params")) {
-        addAllFunctionParamsSources(Function["params"], FunctionParamsSources);
-        addAllFunctionParamsSinks(Function["params"], FunctionParamsSinks);
-        addAllFunctionParamsSanitizers(Function["params"],
-                                       FunctionParamsSanitizers);
-      }
+      findAndAddValue(Func, "name", FunctionNames);
+      findAndAddValue(Func, "ret", FunctionRets);
+      findAndAddValue(Func["params"], "source", FunctionParamSources);
+      findAndAddValue(Func["params"], "sink", FunctionParamSinks);
+      findAndAddValue(Func["params"], "sanitizer", FunctionParamSanitizers);
     }
   }
 
   // handle variables
   if (Config.contains("variables")) {
-    for (auto &Variable : Config["variables"]) {
-      addAllVariableScopes(Variable, VariableScopes);
-      addAllVariableLines(Variable, VariableLines);
-      addAllVariableCats(Variable, VariableCats);
-      addAllVariableNames(Variable, VariableNames);
+    for (const auto &Var : Config["variables"]) {
+      // A variables name should be at the same index in the names array and the
+      // variables array
+      Variables.push_back(Var);
+
+      findAndAddValue(Config["variables"], "name", VariableNames);
+      findAndAddValue(Config["variables"], "scope", Variables);
+      findAndAddValue(Config["variables"], "line", VariableLines);
+      findAndAddValue(Config["variables"], "cat", VariableCats);
     }
   }
 }
 
-const std::unordered_set<std::string> &
-TaintConfigData::getAllFunctions() const {
+const std::vector<std::string> &TaintConfigData::getAllFunctions() const {
   return Functions;
 }
-const std::unordered_set<std::string> &
-TaintConfigData::getAllFunctionRets() const {
+const std::vector<std::string> &TaintConfigData::getAllFunctionNames() const {
+  return FunctionNames;
+}
+const std::vector<std::string> &TaintConfigData::getAllFunctionRets() const {
   return FunctionRets;
 }
-const std::unordered_set<std::string> &
+const std::vector<std::string> &
 TaintConfigData::getAllFunctionParamsSources() const {
-  return FunctionParamsSources;
+  return FunctionParamSources;
 }
-const std::unordered_set<std::string> &
+const std::vector<std::string> &
 TaintConfigData::getAllFunctionParamsSinks() const {
-  return FunctionParamsSinks;
+  return FunctionParamSinks;
 }
-const std::unordered_set<std::string> &
+const std::vector<std::string> &
 TaintConfigData::getAllFunctionParamsSanitizers() const {
-  return FunctionParamsSanitizers;
+  return FunctionParamSanitizers;
 }
-const std::unordered_set<std::string> &
-TaintConfigData::getAllVariables() const {
+const std::vector<std::string> &TaintConfigData::getAllVariables() const {
   return Variables;
 }
-const std::unordered_set<std::string> &
-TaintConfigData::getAllVariableScopes() const {
+const std::vector<std::string> &TaintConfigData::getAllVariableScopes() const {
   return VariableScopes;
 }
-const std::unordered_set<std::string> &
-TaintConfigData::getAllVariableLines() const {
+const std::vector<std::string> &TaintConfigData::getAllVariableLines() const {
   return VariableLines;
 }
-const std::unordered_set<std::string> &
-TaintConfigData::getAllVariableCats() const {
+const std::vector<std::string> &TaintConfigData::getAllVariableCats() const {
   return VariableCats;
 }
-const std::unordered_set<std::string> &
-TaintConfigData::getAllVariableNames() const {
+const std::vector<std::string> &TaintConfigData::getAllVariableNames() const {
   return VariableNames;
 }
 
