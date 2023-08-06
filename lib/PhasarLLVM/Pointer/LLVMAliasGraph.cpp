@@ -205,7 +205,7 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
     }
   }
 
-  INC_COUNTER("GS Pointer", Pointers.size(), PAMM_SEVERITY_LEVEL::Core);
+  INC_COUNTER("GS Pointer", Pointers.size(), Core);
 
   // make vertices for all pointers
   for (auto *P : Pointers) {
@@ -363,8 +363,8 @@ auto LLVMAliasGraph::getAliasSet(const llvm::Value *V,
                                  const llvm::Instruction * /*I*/)
     -> AliasSetPtrTy {
   PAMM_GET_INSTANCE;
-  INC_COUNTER("[Calls] getAliasSet", 1, PAMM_SEVERITY_LEVEL::Full);
-  START_TIMER("Alias-Set Computation", PAMM_SEVERITY_LEVEL::Full);
+  INC_COUNTER("[Calls] getAliasSet", 1, Full);
+  START_TIMER("Alias-Set Computation", Full);
   const auto *VF = retrieveFunction(V);
   computeAliasGraph(VF);
   // check if the graph contains a corresponding vertex
@@ -388,9 +388,8 @@ auto LLVMAliasGraph::getAliasSet(const llvm::Value *V,
   for (auto Vertex : ReachableVertices) {
     ResultSet->insert(PAG[Vertex].V);
   }
-  PAUSE_TIMER("Alias-Set Computation", PAMM_SEVERITY_LEVEL::Full);
-  ADD_TO_HISTOGRAM("Points-to", ResultSet->size(), 1,
-                   PAMM_SEVERITY_LEVEL::Full);
+  PAUSE_TIMER("Alias-Set Computation", Full);
+  ADD_TO_HISTOGRAM("Points-to", ResultSet->size(), 1, Full);
   return ResultSet;
 }
 

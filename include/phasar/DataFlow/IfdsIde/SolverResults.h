@@ -138,7 +138,7 @@ public:
     using f_t = typename ICFGTy::f_t;
 
     PAMM_GET_INSTANCE;
-    START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+    START_TIMER("DFA IDE Result Dumping", Full);
     OS << "\n***************************************************************\n"
        << "*                  Raw IDESolver results                      *\n"
        << "***************************************************************\n";
@@ -179,7 +179,7 @@ public:
       }
     }
     OS << '\n';
-    STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+    STOP_TIMER("DFA IDE Result Dumping", Full);
   }
 
   template <typename ICFGTy, typename ProblemTy>
