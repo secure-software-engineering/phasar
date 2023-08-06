@@ -17,6 +17,19 @@
 
 namespace psr {
 
+struct TypeStateDescriptionBase {
+  virtual ~TypeStateDescriptionBase() = default;
+
+  [[nodiscard]] virtual bool isFactoryFunction(llvm::StringRef F) const = 0;
+  [[nodiscard]] virtual bool isConsumingFunction(llvm::StringRef F) const = 0;
+  [[nodiscard]] virtual bool isAPIFunction(llvm::StringRef F) const = 0;
+  [[nodiscard]] virtual std::string getTypeNameOfInterest() const = 0;
+  [[nodiscard]] virtual std::set<int>
+  getConsumerParamIdx(llvm::StringRef F) const = 0;
+  [[nodiscard]] virtual std::set<int>
+  getFactoryParamIdx(llvm::StringRef F) const = 0;
+};
+
 /**
  * Interface for a type state problem to be used with the IDETypeStateAnalysis.
  * It needs to provide a finite state machine to handle state changes and a list
@@ -31,13 +44,11 @@ namespace psr {
  *
  * @see CSTDFILEIOTypeStateDescription as an example of type state description.
  */
-template <typename StateTy> struct TypeStateDescription {
+template <typename StateTy>
+struct TypeStateDescription : public TypeStateDescriptionBase {
   /// Type for states of the finite state machine
   using State = StateTy;
-  virtual ~TypeStateDescription() = default;
-  [[nodiscard]] virtual bool isFactoryFunction(llvm::StringRef F) const = 0;
-  [[nodiscard]] virtual bool isConsumingFunction(llvm::StringRef F) const = 0;
-  [[nodiscard]] virtual bool isAPIFunction(llvm::StringRef F) const = 0;
+  ~TypeStateDescription() override = default;
 
   /**
    * @brief For a given function name (as a string token) and a state, this
@@ -50,11 +61,7 @@ template <typename StateTy> struct TypeStateDescription {
                const llvm::CallBase * /*CallSite*/) const {
     return getNextState(Tok, S);
   }
-  [[nodiscard]] virtual std::string getTypeNameOfInterest() const = 0;
-  [[nodiscard]] virtual std::set<int>
-  getConsumerParamIdx(llvm::StringRef F) const = 0;
-  [[nodiscard]] virtual std::set<int>
-  getFactoryParamIdx(llvm::StringRef F) const = 0;
+
   [[nodiscard]] virtual State bottom() const = 0;
   [[nodiscard]] virtual State top() const = 0;
 

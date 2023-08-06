@@ -45,16 +45,37 @@ class LLVMTypeHierarchy;
 
 namespace detail {
 class IDETypeStateAnalysisBase {
+public:
+  virtual ~IDETypeStateAnalysisBase() = default;
+
 protected:
-  template <typename IsTypeNameOfInterestFn>
-  IDETypeStateAnalysisBase(
-      LLVMAliasInfoRef PT,
-      IsTypeNameOfInterestFn &&IsTypeNameOfInterest) noexcept
-      : PT(PT), IsTypeNameOfInterest(std::forward<IsTypeNameOfInterestFn>(
-                    IsTypeNameOfInterest)) {}
+  IDETypeStateAnalysisBase(LLVMAliasInfoRef PT) noexcept : PT(PT) {}
 
   using d_t = const llvm::Value *;
+  using n_t = const llvm::Instruction *;
+  using f_t = const llvm::Function *;
   using container_type = std::set<d_t>;
+  using FlowFunctionPtrType = FlowFunctionPtrType<d_t, container_type>;
+
+  // --- Flow Functions
+
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ);
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun);
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitStmt, n_t RetSite);
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               llvm::ArrayRef<f_t> Callees);
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun);
+
+  // --- Utilities
+
+  [[nodiscard]] virtual bool
+  isAPIFunction(llvm::StringRef Name) const noexcept = 0;
+  [[nodiscard]] virtual bool
+  isFactoryFunction(llvm::StringRef Name) const noexcept = 0;
+  [[nodiscard]] virtual bool
+  isTypeNameOfInterest(llvm::StringRef Name) const noexcept = 0;
+
   /**
    * @brief Returns all alloca's that are (indirect) aliases of V.
    *
@@ -93,11 +114,16 @@ protected:
   bool hasMatchingType(d_t V);
 
 private:
+  FlowFunctionPtrType generateFromZero(d_t FactToGenerate) {
+    return generateFlow<d_t>(FactToGenerate, LLVMZeroValue::getInstance());
+  }
+
+  bool hasMatchingTypeName(const llvm::Type *Ty);
+
   std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
   LLVMAliasInfoRef PT{};
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
-  std::function<bool(llvm::StringRef)> IsTypeNameOfInterest;
 };
 } // namespace detail
 
@@ -137,7 +163,7 @@ private:
   }
   template <typename LL = l_t,
             typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
-  static AllBottom<l_t> makeAllBottom(EmptyType) noexcept {
+  static AllBottom<l_t> makeAllBottom(EmptyType /*unused*/) noexcept {
     return AllBottom<l_t>{};
   }
   static bool isBottom(l_t State, const TypeStateDescriptionTy *TSD) noexcept {
@@ -149,7 +175,7 @@ private:
   }
   template <typename LL = l_t,
             typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
-  static bool isBottom(l_t State, EmptyType) noexcept {
+  static bool isBottom(l_t State, EmptyType /*unused*/) noexcept {
     return State == JoinLatticeTraits<l_t>::bottom();
   }
 
@@ -243,7 +269,7 @@ private:
 
     template <typename LL = l_t,
               typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
-    TSConstant(l_t Value, EmptyType = {}) noexcept
+    TSConstant(l_t Value, EmptyType /*unused*/ = {}) noexcept
         : ConstantEdgeFunction<l_t>{Value} {
       if constexpr (!HasJoinLatticeTraits<l_t>) {
         this->TSD = TSD;
@@ -311,12 +337,7 @@ public:
                        const TypeStateDescriptionTy *TSD,
                        std::vector<std::string> EntryPoints = {"main"})
       : IDETabProblemType(IRDB, std::move(EntryPoints), createZeroValue()),
-        IDETypeStateAnalysisBase(PT,
-                                 [TSD](llvm::StringRef Name) {
-                                   return Name.contains(
-                                       TSD->getTypeNameOfInterest());
-                                 }),
-        TSD(TSD) {
+        IDETypeStateAnalysisBase(PT), TSD(TSD) {
     assert(TSD != nullptr);
     assert(PT);
   }
@@ -326,183 +347,32 @@ public:
   // start formulating our analysis by specifying the parts required for IFDS
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
-    // Check if Alloca's type matches the target type. If so, generate from zero
-    // value.
-    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-      if (hasMatchingType(Alloca)) {
-        return this->generateFromZero(Alloca);
-      }
-    }
-    // Check load instructions for target type. Generate from the loaded value
-    // and kill the load instruction if it was generated previously (strong
-    // update!).
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      if (hasMatchingType(Load)) {
-        return transferFlow(Load, Load->getPointerOperand());
-      }
-    }
-    if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-      if (hasMatchingType(Gep->getPointerOperand())) {
-        return identityFlow<d_t>();
-        // return lambdaFlow<d_t>([=](d_t Source) -> std::set<d_t> {
-        //   // if (Source == Gep->getPointerOperand()) {
-        //   //  return {Source, Gep};
-        //   //}
-        //   return {Source};
-        // });
-      }
-    }
-    // Check store instructions for target type. Perform a strong update, i.e.
-    // kill the alloca pointed to by the pointer-operand and all alloca's
-    // related to the value-operand and then generate them from the
-    // value-operand.
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      if (hasMatchingType(Store)) {
-        auto RelevantAliasesAndAllocas = getLocalAliasesAndAllocas(
-            Store->getPointerOperand(), // pointer- or value operand???
-            // Store->getValueOperand(),
-            Curr->getFunction()->getName().str());
-
-        RelevantAliasesAndAllocas.insert(Store->getValueOperand());
-        return lambdaFlow<d_t>(
-            [Store, AliasesAndAllocas = std::move(RelevantAliasesAndAllocas)](
-                d_t Source) -> container_type {
-              // We kill all relevant loacal aliases and alloca's
-              if (Source == Store->getPointerOperand()) {
-                // XXX: later kill must-aliases too
-                return {};
-              }
-              // Generate all local aliases and relevant alloca's from the
-              // stored value
-              if (Source == Store->getValueOperand()) {
-                return AliasesAndAllocas;
-              }
-              return {Source};
-            });
-      }
-    }
-    return identityFlow<d_t>();
+    return detail::IDETypeStateAnalysisBase::getNormalFlowFunction(Curr, Succ);
   }
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override {
-    // Kill all data-flow facts if we hit a function of the target API.
-    // Those functions are modled within Call-To-Return.
-    if (TSD->isAPIFunction(llvm::demangle(DestFun->getName().str()))) {
-      return killAllFlows<d_t>();
-    }
-    // Otherwise, if we have an ordinary function call, we can just use the
-    // standard mapping.
-    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-      return mapFactsToCallee(Call, DestFun);
-    }
-    llvm::report_fatal_error("callSite not a CallInst nor a InvokeInst");
+    return detail::IDETypeStateAnalysisBase::getCallFlowFunction(CallSite,
+                                                                 DestFun);
   }
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitStmt, n_t RetSite) override {
 
-    /// TODO: Implement return-POI in LLVMFlowFunctions.h
-    return lambdaFlow<d_t>([this, CalleeFun,
-                            CS = llvm::cast<llvm::CallBase>(CallSite),
-                            Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)](
-                               d_t Source) -> container_type {
-      if (LLVMZeroValue::isLLVMZeroValue(Source)) {
-        return {Source};
-      }
-      container_type Res;
-      // Handle C-style varargs functions
-      if (CalleeFun->isVarArg() && !CalleeFun->isDeclaration()) {
-        const llvm::Instruction *AllocVarArg;
-        // Find the allocation of %struct.__va_list_tag
-        for (const auto &BB : *CalleeFun) {
-          for (const auto &I : BB) {
-            if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-              if (Alloc->getAllocatedType()->isArrayTy() &&
-                  Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                  Alloc->getAllocatedType()
-                      ->getArrayElementType()
-                      ->isStructTy() &&
-                  Alloc->getAllocatedType()
-                          ->getArrayElementType()
-                          ->getStructName() == "struct.__va_list_tag") {
-                AllocVarArg = Alloc;
-                // TODO break out this nested loop earlier (without goto ;-)
-              }
-            }
-          }
-        }
-        // Generate the varargs things by using an over-approximation
-        if (Source == AllocVarArg) {
-          for (unsigned Idx = CalleeFun->arg_size(); Idx < CS->arg_size();
-               ++Idx) {
-            Res.insert(CS->getArgOperand(Idx));
-          }
-        }
-      }
-      // Handle ordinary case
-      // Map formal parameter into corresponding actual parameter.
-      for (auto [Formal, Actual] : llvm::zip(CalleeFun->args(), CS->args())) {
-        if (Source == &Formal) {
-          Res.insert(Actual); // corresponding actual
-        }
-      }
-
-      // Collect the return value
-      if (Ret && Source == Ret->getReturnValue()) {
-        Res.insert(CS);
-      }
-
-      // Collect all relevant alloca's to map into caller context
-      {
-        container_type RelAllocas;
-        for (const auto *Fact : Res) {
-          const auto &Allocas = getRelevantAllocas(Fact);
-          RelAllocas.insert(Allocas.begin(), Allocas.end());
-        }
-        Res.insert(RelAllocas.begin(), RelAllocas.end());
-      }
-
-      return Res;
-    });
+    return detail::IDETypeStateAnalysisBase::getRetFlowFunction(
+        CallSite, CalleeFun, ExitStmt, RetSite);
   }
 
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) override {
-    const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-    for (const auto *Callee : Callees) {
-      std::string DemangledFname = llvm::demangle(Callee->getName().str());
-      // Generate the return value of factory functions from zero value
-      if (TSD->isFactoryFunction(DemangledFname)) {
-        return this->generateFromZero(CS);
-      }
-
-      /// XXX: Revisit this:
-
-      // Handle all functions that are not modeld with special semantics.
-      // Kill actual parameters of target type and all its aliases
-      // and the corresponding alloca(s) as these data-flow facts are
-      // (inter-procedurally) propagated via Call- and the corresponding
-      // Return-Flow. Otherwise we might propagate facts with not updated
-      // states.
-      // Alloca's related to the return value of non-api functions will
-      // not be killed during call-to-return, since it is not safe to assume
-      // that the return value will be used afterwards, i.e. is stored to memory
-      // pointed to by related alloca's.
-      if (!TSD->isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
-        for (const auto &Arg : CS->args()) {
-          if (hasMatchingType(Arg)) {
-            return killManyFlows<d_t>(getWMAliasesAndAllocas(Arg.get()));
-          }
-        }
-      }
-    }
-    return identityFlow<d_t>();
+    return detail::IDETypeStateAnalysisBase::getCallToRetFlowFunction(
+        CallSite, RetSite, Callees);
   }
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                              f_t DestFun) override {
-    return nullptr;
+    return detail::IDETypeStateAnalysisBase::getSummaryFlowFunction(CallSite,
+                                                                    DestFun);
   }
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
@@ -519,7 +389,7 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t /*Succ*/,
                                           d_t SuccNode) override {
     // Set alloca instructions of target type to uninitialized.
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
@@ -532,20 +402,22 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                        f_t DestinationFunction,
-                                        d_t DestNode) override {
+  EdgeFunction<l_t> getCallEdgeFunction(n_t /*CallSite*/, d_t /*SrcNode*/,
+                                        f_t /*DestinationFunction*/,
+                                        d_t /*DestNode*/) override {
     return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
-                                          n_t ExitInst, d_t ExitNode,
-                                          n_t RetSite, d_t RetNode) override {
+  EdgeFunction<l_t> getReturnEdgeFunction(n_t /*CallSite*/,
+                                          f_t /*CalleeFunction*/,
+                                          n_t /*ExitInst*/, d_t /*ExitNode*/,
+                                          n_t /*RetSite*/,
+                                          d_t /*RetNode*/) override {
     return EdgeIdentity<l_t>{};
   }
 
   EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t /*RetSite*/,
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
@@ -579,9 +451,9 @@ public:
     return EdgeIdentity<l_t>{};
   }
 
-  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
-                                           n_t RetSite,
-                                           d_t RetSiteNode) override {
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/,
+                                           n_t /*RetSite*/,
+                                           d_t /*RetSiteNode*/) override {
     return nullptr;
   }
 
@@ -616,6 +488,21 @@ public:
     } else {
       return AllTop<l_t>{topElement()};
     }
+  }
+
+  [[nodiscard]] bool
+  isAPIFunction(llvm::StringRef Name) const noexcept override {
+    return TSD->isAPIFunction(Name);
+  }
+
+  [[nodiscard]] bool
+  isFactoryFunction(llvm::StringRef Name) const noexcept override {
+    return TSD->isFactoryFunction(Name);
+  }
+
+  [[nodiscard]] bool
+  isTypeNameOfInterest(llvm::StringRef Name) const noexcept override {
+    return Name.contains(TSD->getTypeNameOfInterest());
   }
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
