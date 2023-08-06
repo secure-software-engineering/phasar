@@ -27,6 +27,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <system_error>
 #include <type_traits>
@@ -78,12 +79,13 @@ public:
     for (const d_t &Fact : FactsRange) {
       auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
 
-      if (!Nod) {
-        llvm::errs() << "Fatal eror occurred. Writing ESG to temp file...\n";
+      if (LLVM_UNLIKELY(!Nod)) {
+        llvm::errs() << "Invalid Instruction-FlowFact pair. Only use those "
+                        "pairs that are part of the IDE analysis results!\n";
+        llvm::errs() << "Fatal error occurred. Writing ESG to temp file...\n";
         llvm::errs().flush();
 
-        auto FileName =
-            std::string(std::tmpnam(nullptr)) + "-explicitesg-err.dot";
+        auto FileName = std::string(tmpnam(nullptr)) + "-explicitesg-err.dot";
 
         {
           std::error_code EC;
@@ -91,13 +93,10 @@ public:
           ESG.printAsDot(ROS);
         }
 
-        llvm::errs() << "> ESG written to "
-                     << std::filesystem::canonical(FileName).string() << '\n';
+        llvm::errs() << "> ESG written to " << FileName << '\n';
         llvm::errs().flush();
 
-        llvm::report_fatal_error(
-            "Invalid Instruction-FlowFact pair. Only use those pairs that are "
-            "part of the IDE analysis results!");
+        abort();
       }
 
       /// NOTE: We don't need to check that Nod has not been processed yet,
