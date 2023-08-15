@@ -9,14 +9,14 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+
 #include "llvm/ADT/StringMap.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <string>
 
 namespace psr {
-
-namespace {
 /**
  * We use the following lattice
  *                BOT = all information
@@ -25,14 +25,16 @@ namespace {
  *
  *                TOP = no information
  */
-enum CSTDFILEIOState {
-  TOP = 42,
-  UNINIT = 0,
-  OPENED = 1,
-  CLOSED = 2,
-  ERROR = 3,
-  BOT = 4
-};
+// enum class CSTDFILEIOState {
+//   TOP = 42,
+//   UNINIT = 0,
+//   OPENED = 1,
+//   CLOSED = 2,
+//   ERROR = 3,
+//   BOT = 4
+// };
+
+namespace {
 
 /**
  * The STAR token represents all API functions besides fopen(), fdopen() and
@@ -71,7 +73,7 @@ const llvm::StringMap<std::set<int>> &getStdFileIOFuncs() noexcept {
   return StdFileIOFuncs;
 }
 
-CSTDFILEIOToken funcNameToToken(const std::string &F) {
+CSTDFILEIOToken funcNameToToken(llvm::StringRef F) {
   if (F == "fopen" || F == "fdopen") {
     return CSTDFILEIOToken::FOPEN;
   }
@@ -88,7 +90,7 @@ CSTDFILEIOToken funcNameToToken(const std::string &F) {
 // States: UNINIT = 0, OPENED = 1, CLOSED = 2, ERROR = 3, BOT = 4
 
 bool CSTDFILEIOTypeStateDescription::isFactoryFunction(
-    const std::string &F) const {
+    llvm::StringRef F) const {
   if (isAPIFunction(F)) {
     return getStdFileIOFuncs().lookup(F).count(-1);
   }
@@ -96,24 +98,25 @@ bool CSTDFILEIOTypeStateDescription::isFactoryFunction(
 }
 
 bool CSTDFILEIOTypeStateDescription::isConsumingFunction(
-    const std::string &F) const {
+    llvm::StringRef F) const {
   if (isAPIFunction(F)) {
     return !getStdFileIOFuncs().lookup(F).count(-1);
   }
   return false;
 }
 
-bool CSTDFILEIOTypeStateDescription::isAPIFunction(const std::string &F) const {
+bool CSTDFILEIOTypeStateDescription::isAPIFunction(llvm::StringRef F) const {
   return getStdFileIOFuncs().count(F);
 }
 
-TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
-    std::string Tok, TypeStateDescription::State S) const {
+CSTDFILEIOState
+CSTDFILEIOTypeStateDescription::getNextState(llvm::StringRef Tok,
+                                             State S) const {
   if (isAPIFunction(Tok)) {
     auto X = static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
         funcNameToToken(Tok));
 
-    auto Ret = Delta[X][S];
+    auto Ret = Delta[X][int(S)];
     // if (ret == error()) {
     //  std::cerr << "getNextState(" << Tok << ", " << stateToString(S)
     //            << ") = " << stateToString(Ret) << std::endl;
@@ -127,8 +130,8 @@ std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
   return "struct._IO_FILE";
 }
 
-std::set<int> CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
-    const std::string &F) const {
+std::set<int>
+CSTDFILEIOTypeStateDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (isConsumingFunction(F)) {
     return getStdFileIOFuncs().lookup(F);
   }
@@ -136,7 +139,7 @@ std::set<int> CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
 }
 
 std::set<int>
-CSTDFILEIOTypeStateDescription::getFactoryParamIdx(const std::string &F) const {
+CSTDFILEIOTypeStateDescription::getFactoryParamIdx(llvm::StringRef F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value
     return {-1};
@@ -144,53 +147,51 @@ CSTDFILEIOTypeStateDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-auto CSTDFILEIOTypeStateDescription::getStateToString() const
-    -> std::string (*)(int) {
-  return [](TypeStateDescription::State S) -> std::string {
-    switch (S) {
-    case CSTDFILEIOState::TOP:
-      return "TOP";
-      break;
-    case CSTDFILEIOState::UNINIT:
-      return "UNINIT";
-      break;
-    case CSTDFILEIOState::OPENED:
-      return "OPENED";
-      break;
-    case CSTDFILEIOState::CLOSED:
-      return "CLOSED";
-      break;
-    case CSTDFILEIOState::ERROR:
-      return "ERROR";
-      break;
-    case CSTDFILEIOState::BOT:
-      return "BOT";
-      break;
-    default:
-      llvm::report_fatal_error("received unknown state!");
-      break;
-    }
-  };
+llvm::StringRef to_string(CSTDFILEIOState State) noexcept {
+  switch (State) {
+  case CSTDFILEIOState::TOP:
+    return "TOP";
+    break;
+  case CSTDFILEIOState::UNINIT:
+    return "UNINIT";
+    break;
+  case CSTDFILEIOState::OPENED:
+    return "OPENED";
+    break;
+  case CSTDFILEIOState::CLOSED:
+    return "CLOSED";
+    break;
+  case CSTDFILEIOState::ERROR:
+    return "ERROR";
+    break;
+  case CSTDFILEIOState::BOT:
+    return "BOT";
+    break;
+  }
+
+  llvm::report_fatal_error("received unknown state!");
 }
 
-TypeStateDescription::State CSTDFILEIOTypeStateDescription::bottom() const {
+CSTDFILEIOState CSTDFILEIOTypeStateDescription::bottom() const {
   return CSTDFILEIOState::BOT;
 }
 
-TypeStateDescription::State CSTDFILEIOTypeStateDescription::top() const {
+CSTDFILEIOState CSTDFILEIOTypeStateDescription::top() const {
   return CSTDFILEIOState::TOP;
 }
 
-TypeStateDescription::State CSTDFILEIOTypeStateDescription::uninit() const {
+CSTDFILEIOState CSTDFILEIOTypeStateDescription::uninit() const {
   return CSTDFILEIOState::UNINIT;
 }
 
-TypeStateDescription::State CSTDFILEIOTypeStateDescription::start() const {
+CSTDFILEIOState CSTDFILEIOTypeStateDescription::start() const {
   return CSTDFILEIOState::OPENED;
 }
 
-TypeStateDescription::State CSTDFILEIOTypeStateDescription::error() const {
+CSTDFILEIOState CSTDFILEIOTypeStateDescription::error() const {
   return CSTDFILEIOState::ERROR;
 }
+
+template class IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>;
 
 } // namespace psr

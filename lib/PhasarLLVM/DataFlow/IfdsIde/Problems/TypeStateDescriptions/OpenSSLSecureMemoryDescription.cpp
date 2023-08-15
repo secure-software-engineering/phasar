@@ -21,9 +21,7 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
-
-namespace {
-enum OpenSSLSecureMemoryState {
+enum class OpenSSLSecureMemoryState {
   TOP = 42,
   BOT = 0,
   ZEROED = 1,
@@ -31,6 +29,8 @@ enum OpenSSLSecureMemoryState {
   ERROR = 3,
   ALLOCATED = 4
 };
+
+namespace {
 
 enum class OpenSSLSecureMemoryToken {
   CRYPTO_MALLOC = 0,
@@ -73,7 +73,7 @@ constexpr OpenSSLSecureMemoryState Delta[6][7] = {
      OpenSSLSecureMemoryState::FREED, OpenSSLSecureMemoryState::ERROR,
      OpenSSLSecureMemoryState::ALLOCATED}};
 
-OpenSSLSecureMemoryToken funcNameToToken(const std::string &F) {
+OpenSSLSecureMemoryToken funcNameToToken(llvm::StringRef F) {
   return llvm::StringSwitch<OpenSSLSecureMemoryToken>(F)
       .Case("CRYPTO_malloc", OpenSSLSecureMemoryToken::CRYPTO_MALLOC)
       .Case("CRYPTO_zalloc", OpenSSLSecureMemoryToken::CRYPTO_ZALLOC)
@@ -85,27 +85,27 @@ OpenSSLSecureMemoryToken funcNameToToken(const std::string &F) {
 } // namespace
 
 bool OpenSSLSecureMemoryDescription::isFactoryFunction(
-    const std::string &F) const {
+    llvm::StringRef F) const {
   return llvm::is_contained(FactoryFuncs, F);
 }
 
 bool OpenSSLSecureMemoryDescription::isConsumingFunction(
-    const std::string &F) const {
+    llvm::StringRef F) const {
   return llvm::find_if(ConsumingFuncs, [&F](const auto &Pair) {
            return F == Pair.first;
          }) != ConsumingFuncs.end();
 }
 
-bool OpenSSLSecureMemoryDescription::isAPIFunction(const std::string &F) const {
+bool OpenSSLSecureMemoryDescription::isAPIFunction(llvm::StringRef F) const {
   return funcNameToToken(F) != OpenSSLSecureMemoryToken::STAR;
 }
 
-TypeStateDescription::State OpenSSLSecureMemoryDescription::getNextState(
-    std::string Tok, TypeStateDescription::State S) const {
+OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::getNextState(
+    llvm::StringRef Tok, TypeStateDescription::State S) const {
   auto Token = funcNameToToken(Tok);
   if (Token != OpenSSLSecureMemoryToken::STAR) {
     return Delta[static_cast<std::underlying_type_t<OpenSSLSecureMemoryToken>>(
-        Token)][S];
+        Token)][int(S)];
   }
   return OpenSSLSecureMemoryState::BOT;
 }
@@ -114,8 +114,8 @@ std::string OpenSSLSecureMemoryDescription::getTypeNameOfInterest() const {
   return "i8"; // NOT SURE WHAT TO DO WITH THIS
 }
 
-set<int> OpenSSLSecureMemoryDescription::getConsumerParamIdx(
-    const std::string &F) const {
+set<int>
+OpenSSLSecureMemoryDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (const auto *It = llvm::find_if(
           ConsumingFuncs, [&F](const auto &Pair) { return F == Pair.first; });
       It != ConsumingFuncs.end()) {
@@ -125,7 +125,7 @@ set<int> OpenSSLSecureMemoryDescription::getConsumerParamIdx(
 }
 
 set<int>
-OpenSSLSecureMemoryDescription::getFactoryParamIdx(const std::string &F) const {
+OpenSSLSecureMemoryDescription::getFactoryParamIdx(llvm::StringRef F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value
     return {-1};
@@ -133,46 +133,41 @@ OpenSSLSecureMemoryDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-auto OpenSSLSecureMemoryDescription::getStateToString() const
-    -> std::string (*)(int) {
-  return [](TypeStateDescription::State S) -> std::string {
-    switch (S) {
-    case OpenSSLSecureMemoryState::TOP:
-      return "TOP";
-    case OpenSSLSecureMemoryState::BOT:
-      return "BOT";
-    case OpenSSLSecureMemoryState::ALLOCATED:
-      return "ALLOCATED";
-    case OpenSSLSecureMemoryState::FREED:
-      return "FREED";
-    case OpenSSLSecureMemoryState::ZEROED:
-      return "ZEROED";
-    case OpenSSLSecureMemoryState::ERROR:
-      return "ERROR";
-    default:
-      llvm::report_fatal_error("received unknown state!");
-      break;
-    }
-  };
+llvm::StringRef to_string(OpenSSLSecureMemoryState State) noexcept {
+  switch (State) {
+  case OpenSSLSecureMemoryState::TOP:
+    return "TOP";
+  case OpenSSLSecureMemoryState::BOT:
+    return "BOT";
+  case OpenSSLSecureMemoryState::ALLOCATED:
+    return "ALLOCATED";
+  case OpenSSLSecureMemoryState::FREED:
+    return "FREED";
+  case OpenSSLSecureMemoryState::ZEROED:
+    return "ZEROED";
+  case OpenSSLSecureMemoryState::ERROR:
+    return "ERROR";
+  }
+  llvm::report_fatal_error("received unknown state!");
 }
 
-TypeStateDescription::State OpenSSLSecureMemoryDescription::bottom() const {
+OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::bottom() const {
   return OpenSSLSecureMemoryState::BOT;
 }
 
-TypeStateDescription::State OpenSSLSecureMemoryDescription::top() const {
+OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::top() const {
   return OpenSSLSecureMemoryState::TOP;
 }
 
-TypeStateDescription::State OpenSSLSecureMemoryDescription::start() const {
+OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::start() const {
   return OpenSSLSecureMemoryState::ALLOCATED;
 }
 
-TypeStateDescription::State OpenSSLSecureMemoryDescription::uninit() const {
+OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::uninit() const {
   return OpenSSLSecureMemoryState::BOT;
 }
 
-TypeStateDescription::State OpenSSLSecureMemoryDescription::error() const {
+OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::error() const {
   return OpenSSLSecureMemoryState::ERROR;
 }
 
