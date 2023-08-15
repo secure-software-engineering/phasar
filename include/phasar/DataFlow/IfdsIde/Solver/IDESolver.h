@@ -392,7 +392,8 @@ protected:
                 INC_COUNTER("FF Queries", 1, Full);
                 const container_type ReturnedFacts = computeReturnFlowFunction(
                     RetFunction, d3, d4, n, Container{d2});
-                ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1, Full);
+                ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1, 
+                                 Full);
                 saveEdges(eP, RetSiteN, d4, ReturnedFacts, ESGEdgeKind::Ret);
                 // for each target value of the function
                 for (d_t d5 : ReturnedFacts) {
