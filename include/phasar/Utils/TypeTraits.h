@@ -72,6 +72,19 @@ struct has_reserve<
     T, std::void_t<decltype(std::declval<T &>().reserve(size_t(0)))>>
     : std::true_type {};
 
+template <typename T> struct has_adl_to_string {
+  template <typename TT = T, typename = decltype(std::string_view(
+                                 to_string(std::declval<TT>())))>
+  static std::true_type test(int);
+  template <typename TT = T,
+            typename = decltype(std::to_string(std::declval<TT>()))>
+  static std::true_type test(long);
+  template <typename TT = T> static std::false_type test(...);
+
+  static constexpr bool value =
+      std::is_same_v<std::true_type, decltype(test(0))>;
+};
+
 template <typename T, typename = void>
 struct has_erase_iterator : std::false_type {}; // NOLINT
 template <typename T>
@@ -162,6 +175,9 @@ template <typename T>
 constexpr bool has_str_v = detail::has_str<T>::value; // NOLINT
 
 template <typename T>
+constexpr bool has_adl_to_string_v = detail::has_adl_to_string<T>::value;
+
+template <typename T>
 constexpr bool has_erase_iterator_v = // NOLINT
     detail::has_erase_iterator<T>::value;
 
@@ -239,10 +255,17 @@ template <typename T> struct DefaultConstruct {
   }
 };
 
+
 template <typename T> void reserveIfPossible(T &Container, size_t Capacity) {
   if constexpr (detail::has_reserve<T>::value) {
     Container.reserve(Capacity);
   }
+}
+
+template <typename T, typename = std::enable_if_t<has_adl_to_string_v<T>>>
+[[nodiscard]] decltype(auto) adl_to_string(const T &Val) {
+  using std::to_string;
+  return to_string(Val);
 }
 
 // NOLINTEND(readability-identifier-naming)

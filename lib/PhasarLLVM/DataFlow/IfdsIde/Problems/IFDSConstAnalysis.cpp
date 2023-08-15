@@ -40,9 +40,8 @@ IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
       PT(PT) {
   assert(PT);
   PAMM_GET_INSTANCE;
-  REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("[Calls] getContextRelevantAliasSet", 0,
-              PAMM_SEVERITY_LEVEL::Full);
+  REG_HISTOGRAM("Context-relevant Pointer", Full);
+  REG_COUNTER("[Calls] getContextRelevantAliasSet", 0, Full);
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -208,10 +207,8 @@ std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
     std::set<IFDSConstAnalysis::d_t> &AliasSet,
     IFDSConstAnalysis::f_t CurrentContext) {
   PAMM_GET_INSTANCE;
-  INC_COUNTER("[Calls] getContextRelevantAliasSet", 1,
-              PAMM_SEVERITY_LEVEL::Full);
-  START_TIMER("Context-Relevant-Alias-Set Computation",
-              PAMM_SEVERITY_LEVEL::Full);
+  INC_COUNTER("[Calls] getContextRelevantAliasSet", 1, Full);
+  START_TIMER("Context-Relevant-Alias-Set Computation", Full);
   std::set<IFDSConstAnalysis::d_t> ToGenerate;
   for (const auto *Alias : AliasSet) {
     PHASAR_LOG_LEVEL(DEBUG, "Alias: " << llvmIRToString(Alias));
@@ -239,10 +236,8 @@ std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
       }
     } // ignore everything else
   }
-  PAUSE_TIMER("Context-Relevant-Alias-Set Computation",
-              PAMM_SEVERITY_LEVEL::Full);
-  ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1,
-                   PAMM_SEVERITY_LEVEL::Full);
+  PAUSE_TIMER("Context-Relevant-Alias-Set Computation", Full);
+  ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1, Full);
   return ToGenerate;
 }
 

@@ -2,6 +2,7 @@
 
 #include "phasar/Config/Configuration.h"
 
+#include "llvm/ADT/StringMap.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "gtest/gtest.h"
@@ -29,9 +30,11 @@ protected:
 TEST_F(PAMMTest, HandleTimer) {
   //   PAMM &pamm = PAMM::getInstance();
   PAMM::getInstance().startTimer("timer1");
-  std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(120));
   PAMM::getInstance().stopTimer("timer1");
-  EXPECT_GE(PAMM::getInstance().elapsedTime("timer1"), 1200U);
+  auto Elapsed = PAMM::getInstance().elapsedTime("timer1");
+  EXPECT_GE(Elapsed, 120U) << "Bad time measurement";
+  EXPECT_LT(Elapsed, 240U) << "Too much tolerance";
 }
 
 TEST_F(PAMMTest, HandleCounter) {
@@ -72,7 +75,7 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   Pamm.addToHistogram("Test-Set", "42");
   Pamm.incCounter("setOpCount", 11);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1800));
+  std::this_thread::sleep_for(std::chrono::milliseconds(180));
   Pamm.stopTimer("timer2");
 
   Pamm.addToHistogram("Test-Set", "42");
@@ -90,7 +93,7 @@ TEST_F(PAMMTest, HandleJSONOutput) {
 
   Pamm.startTimer("timer3");
   Pamm.incCounter("timerCount");
-  std::this_thread::sleep_for(std::chrono::milliseconds(2300));
+  std::this_thread::sleep_for(std::chrono::milliseconds(230));
 
   Pamm.addToHistogram("Test-Set", "1");
   Pamm.addToHistogram("Test-Set", "1");
@@ -105,99 +108,31 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   Pamm.incCounter("setOpCount", 9);
   Pamm.stopTimer("timer3");
   Pamm.exportMeasuredData("HandleJSONOutputTest");
-}
 
-TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
-  time_point Start1 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  time_point End1 = std::chrono::high_resolution_clock::now();
-  time_point Start2 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  time_point End2 = std::chrono::high_resolution_clock::now();
-  time_point Start3 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(30));
-  time_point End3 = std::chrono::high_resolution_clock::now();
-  time_point Start4 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(40));
-  time_point End4 = std::chrono::high_resolution_clock::now();
-  time_point Start5 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  time_point End5 = std::chrono::high_resolution_clock::now();
-  time_point Start6 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  time_point End6 = std::chrono::high_resolution_clock::now();
-  time_point Start7 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(150));
-  time_point End7 = std::chrono::high_resolution_clock::now();
-  time_point Start8 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  time_point End8 = std::chrono::high_resolution_clock::now();
-  time_point Start9 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  time_point End9 = std::chrono::high_resolution_clock::now();
-  time_point Start10 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  time_point End10 = std::chrono::high_resolution_clock::now();
-  time_point Start11 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  time_point End11 = std::chrono::high_resolution_clock::now();
-  time_point Start12 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-  time_point End12 = std::chrono::high_resolution_clock::now();
-  time_point Start13 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-  time_point End13 = std::chrono::high_resolution_clock::now();
-  time_point Start14 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-  time_point End14 = std::chrono::high_resolution_clock::now();
-  time_point Start15 = std::chrono::high_resolution_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(20000));
-  time_point End15 = std::chrono::high_resolution_clock::now();
-  auto Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End1 - Start1);
-  llvm::outs() << "timer_1 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End2 - Start2);
-  llvm::outs() << "timer_2 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End3 - Start3);
-  llvm::outs() << "timer_3 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End4 - Start4);
-  llvm::outs() << "timer_4 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End5 - Start5);
-  llvm::outs() << "timer_5 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End6 - Start6);
-  llvm::outs() << "timer_6 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End7 - Start7);
-  llvm::outs() << "timer_7 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End8 - Start8);
-  llvm::outs() << "timer_8 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End9 - Start9);
-  llvm::outs() << "timer_9 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End10 - Start10);
-  llvm::outs() << "timer_10 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End11 - Start11);
-  llvm::outs() << "timer_11 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End12 - Start12);
-  llvm::outs() << "timer_12 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End13 - Start13);
-  llvm::outs() << "timer_13 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End14 - Start14);
-  llvm::outs() << "timer_14 : " << Duration.count() << '\n';
-  Duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(End15 - Start15);
-  llvm::outs() << "timer_15 : " << Duration.count() << '\n';
+  EXPECT_EQ(30, Pamm.getCounter("setOpCount"));
+  EXPECT_EQ(3, Pamm.getCounter("timerCount"));
+
+  auto Timer1Elapsed = Pamm.elapsedTime("timer1");
+  auto Timer2Elapsed = Pamm.elapsedTime("timer2");
+  auto Timer3Elapsed = Pamm.elapsedTime("timer3");
+
+  EXPECT_GE(Timer1Elapsed, 410); // 180+230
+  EXPECT_LT(Timer1Elapsed, 820); // 180+230
+
+  EXPECT_GE(Timer2Elapsed, 180);
+  EXPECT_LT(Timer2Elapsed, 360);
+
+  EXPECT_GE(Timer3Elapsed, 230);
+  EXPECT_LT(Timer3Elapsed, 460);
+
+  EXPECT_EQ(1, Pamm.getHistogram().size());
+  EXPECT_EQ("Test-Set", Pamm.getHistogram().begin()->first());
+
+  llvm::StringMap<uint64_t> Gt = {
+      {"1", 10}, {"2", 4}, {"13", 3}, {"42", 13}, {"54", 3},
+  };
+  const auto &Hist = Pamm.getHistogram().begin()->second;
+  EXPECT_EQ(Hist, Gt);
 }
 
 // main function for the test case
