@@ -15,6 +15,7 @@
 
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <set>
 #include <string>
@@ -253,6 +254,7 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
 }
 
+
 /// See https://en.cppreference.com/w/cpp/utility/forward_like
 template <class T, class U>
 [[nodiscard]] constexpr auto &&forward_like(U &&X) noexcept { // NOLINT
@@ -278,6 +280,18 @@ struct identity {
     return std::forward<T>(Val);
   }
 };
+
+template <typename T, typename = std::enable_if_t<is_llvm_printable_v<T>>>
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const std::optional<T> &Opt) {
+  if (Opt) {
+    OS << *Opt;
+  } else {
+    OS << "<none>";
+  }
+
+  return OS;
+}
 
 } // namespace psr
 
