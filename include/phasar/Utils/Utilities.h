@@ -15,6 +15,7 @@
 
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <set>
 #include <string>
@@ -259,6 +260,18 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   using std::end;
 
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
+}
+
+template <typename T, typename = std::enable_if_t<is_llvm_printable_v<T>>>
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const std::optional<T> &Opt) {
+  if (Opt) {
+    OS << *Opt;
+  } else {
+    OS << "<none>";
+  }
+
+  return OS;
 }
 
 } // namespace psr
