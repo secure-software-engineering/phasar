@@ -15,6 +15,7 @@
 #include "llvm/IR/Instruction.h"
 
 #include <unordered_set>
+#include <vector>
 
 namespace psr {
 class LLVMTaintConfig;

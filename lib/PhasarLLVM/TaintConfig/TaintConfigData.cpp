@@ -100,68 +100,62 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
   // handle functions
   if (Config.contains("functions")) {
     for (const auto &Func : Config["functions"]) {
-      // A functions name should be at the same index in the names array and the
-      // functions array
-      Functions.push_back(Func);
+      FunctionData Data = FunctionData();
 
-      findAndAddValue(Func, "name", FunctionNames);
-      findAndAddValue(Func, "ret", FunctionRets);
-      findAndAddValue(Func["params"], "source", FunctionParamSources);
-      findAndAddValue(Func["params"], "sink", FunctionParamSinks);
-      findAndAddValue(Func["params"], "sanitizer", FunctionParamSanitizers);
+      if (Func.contains("name")) {
+        Data.Name = Func["name"];
+      }
+
+      if (Func.contains("ret")) {
+        Data.ReturnType = Func["ret"];
+      }
+
+      if (Func.contains("params") && Func["params"].contains("source")) {
+        for (const auto &Curr : Func["params"]["source"]) {
+          Data.SourceValues.push_back(Curr);
+        }
+      }
+
+      if (Func.contains("params") && Func["params"].contains("sink")) {
+        for (const auto &Curr : Func["params"]["sink"]) {
+          Data.SinkValues.push_back(Curr);
+        }
+      }
+
+      if (Func.contains("params") && Func["params"].contains("sanitizer")) {
+        for (const auto &Curr : Func["params"]["sanitizer"]) {
+          Data.SanitizerValues.push_back(Curr);
+        }
+      }
+
+      Functions.push_back(std::move(Data));
     }
   }
 
   // handle variables
   if (Config.contains("variables")) {
     for (const auto &Var : Config["variables"]) {
-      // A variables name should be at the same index in the names array and the
-      // variables array
-      Variables.push_back(Var);
+      VariableData Data = VariableData();
 
-      findAndAddValue(Config["variables"], "name", VariableNames);
-      findAndAddValue(Config["variables"], "scope", Variables);
-      findAndAddValue(Config["variables"], "line", VariableLines);
-      findAndAddValue(Config["variables"], "cat", VariableCats);
+      if (Var.contains("line")) {
+        Data.Line = Var["line"];
+      }
+
+      if (Var.contains("name")) {
+        Data.Line = Var["name"];
+      }
+
+      if (Var.contains("scope")) {
+        Data.Line = Var["scope"];
+      }
+
+      if (Var.contains("cat")) {
+        Data.Line = Var["cat"];
+      }
+
+      Variables.push_back(std::move(Data));
     }
   }
-}
-
-const std::vector<std::string> &TaintConfigData::getAllFunctions() const {
-  return Functions;
-}
-const std::vector<std::string> &TaintConfigData::getAllFunctionNames() const {
-  return FunctionNames;
-}
-const std::vector<std::string> &TaintConfigData::getAllFunctionRets() const {
-  return FunctionRets;
-}
-const std::vector<std::string> &
-TaintConfigData::getAllFunctionParamsSources() const {
-  return FunctionParamSources;
-}
-const std::vector<std::string> &
-TaintConfigData::getAllFunctionParamsSinks() const {
-  return FunctionParamSinks;
-}
-const std::vector<std::string> &
-TaintConfigData::getAllFunctionParamsSanitizers() const {
-  return FunctionParamSanitizers;
-}
-const std::vector<std::string> &TaintConfigData::getAllVariables() const {
-  return Variables;
-}
-const std::vector<std::string> &TaintConfigData::getAllVariableScopes() const {
-  return VariableScopes;
-}
-const std::vector<std::string> &TaintConfigData::getAllVariableLines() const {
-  return VariableLines;
-}
-const std::vector<std::string> &TaintConfigData::getAllVariableCats() const {
-  return VariableCats;
-}
-const std::vector<std::string> &TaintConfigData::getAllVariableNames() const {
-  return VariableNames;
 }
 
 } // namespace psr

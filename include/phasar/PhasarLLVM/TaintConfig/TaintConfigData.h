@@ -14,45 +14,34 @@
 #include <vector>
 
 namespace psr {
-class TaintConfigData;
+struct TaintConfigData;
 class LLVMProjectIRDB;
 
-class TaintConfigData {
-public:
+struct FunctionData {
+  FunctionData() = default;
+
+  std::string Name;
+  std::string ReturnType;
+  std::vector<int> SourceValues;
+  std::vector<int> SinkValues;
+  std::vector<int> SanitizerValues;
+};
+
+struct VariableData {
+  VariableData() = default;
+
+  size_t Line{};
+  std::string Name;
+  std::string Scope;
+  std::string Cat;
+};
+
+struct TaintConfigData {
   TaintConfigData() = default;
   explicit TaintConfigData(const std::string &Filepath);
 
-  [[nodiscard]] const std::vector<std::string> &getAllFunctionNames() const;
-  [[nodiscard]] const std::vector<std::string> &getAllFunctionRets() const;
-  [[nodiscard]] const std::vector<std::string> &
-  getAllFunctionParamsSources() const;
-  [[nodiscard]] const std::vector<std::string> &
-  getAllFunctionParamsSinks() const;
-  [[nodiscard]] const std::vector<std::string> &
-  getAllFunctionParamsSanitizers() const;
-
-  [[nodiscard]] const std::vector<std::string> &getAllVariableScopes() const;
-  [[nodiscard]] const std::vector<std::string> &getAllVariableLines() const;
-  [[nodiscard]] const std::vector<std::string> &getAllVariableCats() const;
-  [[nodiscard]] const std::vector<std::string> &getAllVariableNames() const;
-
-  [[nodiscard]] const std::vector<std::string> &getAllFunctions() const;
-  [[nodiscard]] const std::vector<std::string> &getAllVariables() const;
-
-private:
-  std::vector<std::string> Functions;
-  std::vector<std::string> Variables;
-
-  std::vector<std::string> FunctionNames;
-  std::vector<std::string> FunctionRets;
-  std::vector<std::string> FunctionParamSources;
-  std::vector<std::string> FunctionParamSinks;
-  std::vector<std::string> FunctionParamSanitizers;
-
-  std::vector<std::string> VariableScopes;
-  std::vector<std::string> VariableLines;
-  std::vector<std::string> VariableCats;
-  std::vector<std::string> VariableNames;
+  std::vector<FunctionData> Functions;
+  std::vector<VariableData> Variables;
 };
 
 } // namespace psr

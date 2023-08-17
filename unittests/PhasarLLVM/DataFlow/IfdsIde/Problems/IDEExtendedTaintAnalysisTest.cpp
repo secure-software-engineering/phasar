@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
@@ -65,7 +66,7 @@ protected:
                               },
                               [&](json *JS) {
                                 TaintConfigData Data = TaintConfigData(*JS);
-                                auto Ret =
+                                LLVMTaintConfig Ret =
                                     LLVMTaintConfig(HA.getProjectIRDB(), Data);
                                 if (DumpResults) {
                                   llvm::errs() << Ret << "\n";
