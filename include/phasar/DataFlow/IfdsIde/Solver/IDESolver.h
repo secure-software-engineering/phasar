@@ -320,7 +320,7 @@ protected:
         for (n_t ReturnSiteN : ReturnSiteNs) {
           container_type Res = computeSummaryFlowFunction(SpecialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1, Full);
-          ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1, Full);
+          ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
           saveEdges(n, ReturnSiteN, d2, Res, ESGEdgeKind::Summary);
           for (d_t d3 : Res) {
             EdgeFunction<l_t> SumEdgFnE =
@@ -392,7 +392,7 @@ protected:
                 INC_COUNTER("FF Queries", 1, Full);
                 const container_type ReturnedFacts = computeReturnFlowFunction(
                     RetFunction, d3, d4, n, Container{d2});
-                ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
+                ADD_TO_HISTOGRAM("Data-flow facts", ReturnedFacts.size(), 1,
                                  Full);
                 saveEdges(eP, RetSiteN, d4, ReturnedFacts, ESGEdgeKind::Ret);
                 // for each target value of the function
@@ -450,7 +450,7 @@ protected:
       INC_COUNTER("FF Queries", 1, Full);
       container_type ReturnFacts =
           computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
-      ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1, Full);
+      ADD_TO_HISTOGRAM("Data-flow facts", ReturnFacts.size(), 1, Full);
       saveEdges(n, ReturnSiteN, d2, ReturnFacts,
                 HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
                                        : ESGEdgeKind::CallToRet);
@@ -491,7 +491,7 @@ protected:
           CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
       INC_COUNTER("FF Queries", 1, Full);
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
-      ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1, Full);
+      ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
       saveEdges(n, nPrime, d2, Res, ESGEdgeKind::Normal);
       for (d_t d3 : Res) {
         EdgeFunction<l_t> g =
@@ -851,7 +851,7 @@ protected:
         for (d_t d4 : Entry.second) {
           const container_type Targets =
               computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
-          ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1, Full);
+          ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
           saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           // for each target value at the return site
           // line 23
@@ -919,7 +919,7 @@ protected:
           INC_COUNTER("FF Queries", 1, Full);
           const container_type Targets = computeReturnFlowFunction(
               RetFunction, d1, d2, Caller, Container{ZeroValue});
-          ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1, Full);
+          ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
           saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           for (d_t d5 : Targets) {
             EdgeFunction<l_t> f5 =
