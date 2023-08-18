@@ -13,7 +13,10 @@ __attribute__((always_inline)) constexpr decltype(auto) move(T &Obj) noexcept {
   return static_cast<typename RemoveReference<T>::type &&>(Obj);
 }
 
-template <typename T> constexpr void defaultSwap(T &L, T &R) {
+template <typename T> T &&declval() noexcept;
+
+template <typename T>
+constexpr void defaultSwap(T &L, T &R) noexcept(noexcept(T(declval<T>()))) {
   if (&L == &R) [[unlikely]]
     return;
 
@@ -28,7 +31,7 @@ public:
 
   String(const char *CStr) : String(CStr, CStr ? strlen(CStr) : 0) {}
   ~String() { delete[] Data; }
-  String(const String &Other) : String(Other.Data, Other.Length) {}
+  explicit String(const String &Other) : String(Other.Data, Other.Length) {}
   constexpr String(String &&Other) noexcept
       : Data(Other.Data), Length(Other.Length) {
     Other.Data = nullptr;
@@ -47,7 +50,7 @@ public:
   }
 
   [[nodiscard]] constexpr size_t size() const noexcept { return Length; }
-  [[nodiscard]] constexpr bool lempty() const noexcept { return Length == 0; }
+  [[nodiscard]] constexpr bool empty() const noexcept { return Length == 0; }
 
 private:
   explicit String(const char *Buf, size_t Len) : Length(Len) {
