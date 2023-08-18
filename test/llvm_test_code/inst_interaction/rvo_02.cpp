@@ -27,7 +27,7 @@ public:
   constexpr String() noexcept = default;
 
   String(const char *CStr) : String(CStr, CStr ? strlen(CStr) : 0) {}
-  ~String() { delete Data; }
+  ~String() { delete[] Data; }
   String(const String &Other) : String(Other.Data, Other.Length) {}
   constexpr String(String &&Other) noexcept
       : Data(Other.Data), Length(Other.Length) {
