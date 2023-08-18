@@ -43,10 +43,14 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("inst_interaction/");
 
-  // Function - Line Nr - Variable - Values
-  using IIACompactResult_t =
-      std::tuple<std::string, std::size_t, std::string,
-                 IDEInstInteractionAnalysisT<std::string, true>::l_t>;
+  using IIAProblemTy = IDEInstInteractionAnalysisT<std::string>;
+  using BVSet = BitVectorSet<std::string>;
+  using IIACompactResult_t = std::tuple< //
+      std::string,                       // Function
+      std::size_t,                       // Nth instruction in fun
+      std::string,                       // Variable
+      IIAProblemTy::l_t                  // Values
+      >;
 
   std::optional<HelperAnalyses> HA;
   LLVMProjectIRDB *IRDB{};
@@ -74,9 +78,7 @@ protected:
     // &PT,
     //                                                           EntryPoints);
     assert(HA);
-    auto IIAProblem =
-        createAnalysisProblem<IDEInstInteractionAnalysisT<std::string>>(
-            *HA, EntryPoints);
+    auto IIAProblem = createAnalysisProblem<IIAProblemTy>(*HA, EntryPoints);
     // use Phasar's instruction ids as testing labels
     auto Generator =
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
@@ -105,13 +107,13 @@ protected:
       IIASolver.dumpResults();
     }
     // do the comparison
-    for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
+    for (const auto &[FunName, SrcLine, VarName, ExpectedVal] : GroundTruth) {
       const auto *Fun = IRDB->getFunctionDefinition(FunName);
       const auto *IRLine = getNthInstruction(Fun, SrcLine);
       auto ResultMap = IIASolver.resultsAt(IRLine);
       assert(IRLine && "Could not retrieve IR line!");
       bool FactFound = false;
-      for (auto &[Fact, Value] : ResultMap) {
+      for (auto &[Fact, ComputedVal] : ResultMap) {
         std::string FactStr;
         llvm::raw_string_ostream RSO(FactStr);
         RSO << *Fact.getBase();
@@ -119,7 +121,8 @@ protected:
         if (FactRef.ltrim().startswith("%" + VarName + " ") ||
             FactRef.ltrim().startswith("@" + VarName + " ")) {
           PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
-          EXPECT_EQ(LatticeVal, Value);
+          EXPECT_EQ(ExpectedVal, ComputedVal)
+              << "Checking variable: " << FactStr;
           FactFound = true;
         }
       }
@@ -855,8 +858,8 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-  GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
-                  "add a better one";
+  GTEST_SKIP() << "This test heavily depends on the used stdlib version. "
+                  "HandleRVOTest_02 is a better equivalent";
 
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
@@ -870,6 +873,17 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
           "main", 16, "ref.tmp", {"66", "9", "72", "73", "71"}));
   doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
 })
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_02) {
+  std::set<IIACompactResult_t> GroundTruth = {
+      {"main", 16, "retval",
+       BVSet{"84", "86", "23", "83", "85", "34", "28", "30", "33", "56"}},
+      {"main", 16, "str", BVSet{"23", "32", "35", "28", "30", "56"}},
+      {"main", 16, "ref.tmp", BVSet{"31", "24", "30", "29", "4"}},
+  };
+
+  doAnalysisAndCompareResults("rvo_02_cpp.ll", {"main"}, GroundTruth, false);
+}
 
 // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
 //   std::set<IIACompactResult_t> GroundTruth;

@@ -27,6 +27,7 @@ set(Sources
   KillTest_02.cpp
   return_01.cpp
   rvo_01.cpp
+  rvo_02.cpp
   struct_01.cpp
   struct_02.cpp
 )
