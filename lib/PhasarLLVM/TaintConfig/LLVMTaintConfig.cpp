@@ -143,7 +143,6 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
 
   // add corresponding Allocas or getElementPtr instructions to the taint
   // category
-  const auto &ConfigFunctions = Config.getAllFunctions();
   const auto &ConfigFunctionNames = Config.getAllFunctionNames();
   const auto &ConfigVariableLine = Config.getAllVariableLines();
   const auto &ConfigVariableCat = Config.getAllVariableCats();

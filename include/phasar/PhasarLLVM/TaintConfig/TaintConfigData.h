@@ -42,6 +42,10 @@ struct TaintConfigData {
 
   std::vector<FunctionData> Functions;
   std::vector<VariableData> Variables;
+
+  [[nodiscard]] std::vector<std::string> getAllFunctionNames() const;
+  [[nodiscard]] std::vector<std::string> getAllVariableLines() const;
+  [[nodiscard]] std::vector<std::string> getAllVariableCats() const;
 };
 
 } // namespace psr

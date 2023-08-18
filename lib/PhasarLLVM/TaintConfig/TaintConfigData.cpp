@@ -158,4 +158,36 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
   }
 }
 
+std::vector<std::string> TaintConfigData::getAllFunctionNames() const {
+  std::vector<std::string> FunctionNames;
+  FunctionNames.reserve(Functions.size());
+
+  for (const auto &Func : Functions) {
+    FunctionNames.push_back(Func.Name);
+  }
+
+  return FunctionNames;
+}
+
+std::vector<std::string> TaintConfigData::getAllVariableLines() const {
+  std::vector<std::string> VariableLines;
+  VariableLines.reserve(Variables.size());
+
+  for (const auto &Var : Variables) {
+    VariableLines.push_back(Var.Name);
+  }
+
+  return VariableLines;
+}
+std::vector<std::string> TaintConfigData::getAllVariableCats() const {
+  std::vector<std::string> VariableCats;
+  VariableCats.reserve(Variables.size());
+
+  for (const auto &Var : Variables) {
+    VariableCats.push_back(Var.Name);
+  }
+
+  return VariableCats;
+}
+
 } // namespace psr
