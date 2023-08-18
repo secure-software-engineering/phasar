@@ -210,7 +210,9 @@ static inline constexpr bool AreEqualityComparable =
     detail::AreEqualityComparable<T, U>::value;
 
 #if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; };
+template <typename T> struct type_identity {
+  using type = T;
+};
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif
@@ -247,6 +249,10 @@ template <typename T> struct DefaultConstruct {
   operator()(U &&...Val) noexcept(std::is_nothrow_constructible_v<T, U...>) {
     return T(std::forward<U>(Val)...);
   }
+};
+
+struct IgnoreArgs {
+  template <typename... U> void operator()(U &&.../*Val*/) noexcept {}
 };
 
 template <typename T, typename = std::enable_if_t<has_adl_to_string_v<T>>>
