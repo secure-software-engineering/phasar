@@ -126,9 +126,49 @@ TEST(DBTHTest, BasicTHReconstruction_5) {
   EXPECT_TRUE(BaseSubTypes.find(DBTH.getType("Child")) != BaseSubTypes.end());
   EXPECT_TRUE(Base2SubTypes.find(DBTH.getType("Child2")) !=
               Base2SubTypes.end());
+}
 
+TEST(DBTHTest, BasicTHReconstruction_6) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_21_cpp_dbg.ll"});
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Base")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Base2")));
   EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
   EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child2")));
+
+  // ZN5Base24foo2Ev
+  // ZN5Child4bar2Ev
+  // ZN5Child3fooEv
+  // ZN5Base36foobarEv
+
+  const auto &VTableForBase = DBTH.getVFTable(DBTH.getType("Base"));
+  if (VTableForBase->empty()) {
+    EXPECT_TRUE(false);
+  }
+  llvm::outs() << VTableForBase->getFunction(0)->getName();
+  llvm::outs().flush();
+  EXPECT_TRUE(VTableForBase->getFunction(0)->getName() == "_ZN5Base24foo2Ev");
+
+  const auto &VTableForChild = DBTH.getVFTable(DBTH.getType("Child"));
+  if (VTableForChild->empty()) {
+    EXPECT_TRUE(false);
+  }
+  llvm::outs() << VTableForChild->getFunction(0)->getName();
+  llvm::outs().flush();
+  EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "ZN5Child3fooEv");
+  llvm::outs() << VTableForChild->getFunction(1)->getName();
+  llvm::outs().flush();
+  EXPECT_TRUE(VTableForChild->getFunction(1)->getName() == "ZN5Child4bar2Ev");
+
+  const auto &VTableForBase2 = DBTH.getVFTable(DBTH.getType("Base2"));
+  if (VTableForBase2->empty()) {
+    EXPECT_TRUE(false);
+  }
+  llvm::outs() << VTableForBase2->getFunction(0)->getName();
+  llvm::outs().flush();
+  EXPECT_TRUE(VTableForBase2->getFunction(0)->getName() == "ZN5Base36foobarEv");
 }
 
 } // namespace psr
