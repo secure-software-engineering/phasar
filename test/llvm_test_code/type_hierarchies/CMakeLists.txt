@@ -20,6 +20,8 @@ set(NoMem2RegSources
   type_hierarchy_16.cpp
   type_hierarchy_17.cpp
   type_hierarchy_18.cpp
+  type_hierarchy_20.cpp
+  type_hierarchy_21.cpp
 )
 foreach(TEST_SRC ${NoMem2RegSources})
   generate_ll_file(FILE ${TEST_SRC})

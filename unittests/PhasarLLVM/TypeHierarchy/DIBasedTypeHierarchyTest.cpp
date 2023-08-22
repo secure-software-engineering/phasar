@@ -91,6 +91,46 @@ TEST(DBTHTest, BasicTHReconstruction_3) {
   EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
 }
 
+TEST(DBTHTest, BasicTHReconstruction_4) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_20_cpp_dbg.ll"});
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base2")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Child")));
+
+  const auto &BaseSubTypes = DBTH.getSubTypes(DBTH.getType("Base"));
+  const auto &Base2SubTypes = DBTH.getSubTypes(DBTH.getType("Base"));
+
+  EXPECT_TRUE(BaseSubTypes.find(DBTH.getType("Child")) != BaseSubTypes.end());
+  EXPECT_TRUE(Base2SubTypes.find(DBTH.getType("Child")) != Base2SubTypes.end());
+
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
+}
+
+TEST(DBTHTest, BasicTHReconstruction_5) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_21_cpp_dbg.ll"});
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base2")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Base3")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Child")));
+  EXPECT_TRUE(DBTH.hasType(DBTH.getType("Child2")));
+
+  const auto &BaseSubTypes = DBTH.getSubTypes(DBTH.getType("Base"));
+  const auto &Base2SubTypes = DBTH.getSubTypes(DBTH.getType("Base"));
+
+  EXPECT_TRUE(BaseSubTypes.find(DBTH.getType("Child")) != BaseSubTypes.end());
+  EXPECT_TRUE(Base2SubTypes.find(DBTH.getType("Child2")) !=
+              Base2SubTypes.end());
+
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
+  EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child2")));
+}
+
 } // namespace psr
 
 int main(int Argc, char **Argv) {
