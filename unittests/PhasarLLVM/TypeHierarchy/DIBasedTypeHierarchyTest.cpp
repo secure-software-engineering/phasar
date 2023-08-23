@@ -135,40 +135,48 @@ TEST(DBTHTest, BasicTHReconstruction_6) {
 
   EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Base")));
   EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Base2")));
+  EXPECT_FALSE(DBTH.hasVFTable(DBTH.getType("Base3")));
   EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child")));
   EXPECT_TRUE(DBTH.hasVFTable(DBTH.getType("Child2")));
 
-  // ZN5Base24foo2Ev
-  // ZN5Child4bar2Ev
-  // ZN5Child3fooEv
-  // ZN5Base36foobarEv
+  // _ZN4Base3barEv
+  // _ZN5Base24foo2Ev
+  // _ZN5Child4bar2Ev
+  // _ZN5Child3fooEv
+  //
 
+  //
   const auto &VTableForBase = DBTH.getVFTable(DBTH.getType("Base"));
   if (VTableForBase->empty()) {
     EXPECT_TRUE(false);
+  } else {
+    EXPECT_TRUE(VTableForBase->getFunction(0)->getName() == "_ZN4Base3barEv");
   }
-  llvm::outs() << VTableForBase->getFunction(0)->getName();
-  llvm::outs().flush();
-  EXPECT_TRUE(VTableForBase->getFunction(0)->getName() == "_ZN5Base24foo2Ev");
-
-  const auto &VTableForChild = DBTH.getVFTable(DBTH.getType("Child"));
-  if (VTableForChild->empty()) {
-    EXPECT_TRUE(false);
-  }
-  llvm::outs() << VTableForChild->getFunction(0)->getName();
-  llvm::outs().flush();
-  EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "ZN5Child3fooEv");
-  llvm::outs() << VTableForChild->getFunction(1)->getName();
-  llvm::outs().flush();
-  EXPECT_TRUE(VTableForChild->getFunction(1)->getName() == "ZN5Child4bar2Ev");
 
   const auto &VTableForBase2 = DBTH.getVFTable(DBTH.getType("Base2"));
   if (VTableForBase2->empty()) {
     EXPECT_TRUE(false);
+  } else {
+    EXPECT_TRUE(VTableForBase2->getFunction(0)->getName() ==
+                "_ZN5Base24foo2Ev");
   }
-  llvm::outs() << VTableForBase2->getFunction(0)->getName();
-  llvm::outs().flush();
-  EXPECT_TRUE(VTableForBase2->getFunction(0)->getName() == "ZN5Base36foobarEv");
+
+  const auto &VTableForChild = DBTH.getVFTable(DBTH.getType("Child"));
+  if (VTableForChild->empty()) {
+    EXPECT_TRUE(false);
+  } else {
+    EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
+    EXPECT_TRUE(VTableForChild->getFunction(1)->getName() ==
+                "_ZN5Child4bar2Ev");
+  }
+
+  const auto &VTableForChild2 = DBTH.getVFTable(DBTH.getType("Child2"));
+  if (VTableForChild2->empty()) {
+    EXPECT_TRUE(false);
+  } else {
+    EXPECT_TRUE(VTableForChild2->getFunction(0)->getName() ==
+                "_ZN6Child26foobarEv");
+  }
 }
 
 } // namespace psr
