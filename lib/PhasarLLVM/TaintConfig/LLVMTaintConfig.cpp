@@ -88,7 +88,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
     }
     for (const auto &Idx : FunDesc.SinkValues) {
       if (Idx >= Fun->arg_size()) {
-        llvm::errs() << "ERROR: The source-function parameter index is out of "
+        llvm::errs() << "ERROR: The sink-function parameter index is out of "
                         "bounds: "
                      << Idx << "\n";
         continue;
@@ -98,9 +98,10 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
 
     for (const auto &Idx : FunDesc.SanitizerValues) {
       if (Idx >= Fun->arg_size()) {
-        llvm::errs() << "ERROR: The source-function parameter index is out of "
-                        "bounds: "
-                     << Idx << "\n";
+        llvm::errs()
+            << "ERROR: The sanitizer-function parameter index is out of "
+               "bounds: "
+            << Idx << "\n";
         continue;
       }
       addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);
@@ -140,37 +141,32 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
     }
     DIF.reset();
   }
-
   // add corresponding Allocas or getElementPtr instructions to the taint
   // category
-  const auto &ConfigFunctionNames = Config.getAllFunctionNames();
-  const auto &ConfigVariableLine = Config.getAllVariableLines();
-  const auto &ConfigVariableCat = Config.getAllVariableCats();
-  int Iter = -1;
-  for (const auto &Fun : Code.getAllFunctions()) {
-    Iter++;
-    for (const auto &I : llvm::instructions(Fun)) {
-      if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-        const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
-        // matching line number with for Allocas
-        if (LocalVar->getName().str() == ConfigFunctionNames.at(Iter) &&
-            (std::to_string(LocalVar->getLine()) ==
-             ConfigVariableLine.at(Iter))) {
-          addTaintCategory(DbgDeclare->getAddress(),
-                           ConfigVariableCat.at(Iter));
-        }
-      } else if (!StructConfigMap.empty()) {
-        // Ignorning line numbers for getElementPtr instructions
-        if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
-          const auto *StType = llvm::dyn_cast<llvm::StructType>(
-              Gep->getPointerOperandType()->getPointerElementType());
-          if (StType && StructConfigMap.count(StType)) {
-            const auto VarDesc = StructConfigMap.at(StType);
-            // using substr to cover the edge case in which same variable
-            // name is present as a local variable and also as a struct
-            // member variable. (Ex. JsonConfig/fun_member_02.cpp)
-            if (Gep->getName().substr(0, VarDesc.size()).equals(VarDesc)) {
-              addTaintCategory(Gep, VarDesc);
+  for (const auto &VarDesc : Config.Variables) {
+    for (const auto &Fun : Code.getAllFunctions()) {
+      for (const auto &I : llvm::instructions(Fun)) {
+        if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
+          const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
+          // matching line number with for Allocas
+          if (LocalVar->getName().equals(VarDesc.Name) &&
+              LocalVar->getLine() == VarDesc.Line) {
+            addTaintCategory(DbgDeclare->getAddress(), VarDesc.Cat);
+          }
+        } else if (!StructConfigMap.empty()) {
+          // Ignorning line numbers for getElementPtr instructions
+          if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
+            const auto *StType = llvm::dyn_cast<llvm::StructType>(
+                Gep->getPointerOperandType()->getPointerElementType());
+            if (StType && StructConfigMap.count(StType)) {
+              // const auto VarDesc = StructConfigMap.at(StType);
+              auto VarName = VarDesc.Name;
+              // using substr to cover the edge case in which same variable
+              // name is present as a local variable and also as a struct
+              // member variable. (Ex. JsonConfig/fun_member_02.cpp)
+              if (Gep->getName().substr(0, VarName.size()).equals(VarName)) {
+                addTaintCategory(Gep, VarDesc.Cat);
+              }
             }
           }
         }

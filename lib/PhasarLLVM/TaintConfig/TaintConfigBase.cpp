@@ -9,6 +9,8 @@
 
 #include <optional>
 
+#include <nlohmann/json-schema.hpp>
+
 llvm::StringRef psr::to_string(TaintCategory Cat) noexcept {
   switch (Cat) {
   case TaintCategory::Source:
@@ -37,4 +39,9 @@ psr::TaintConfigData psr::parseTaintConfig(const llvm::Twine &Path) {
     return {};
   }
   return std::move(*Ret);
+}
+
+std::optional<psr::TaintConfigData>
+psr::parseTaintConfigOrNull(const llvm::Twine &Path) {
+  return TaintConfigData(Path.str());
 }

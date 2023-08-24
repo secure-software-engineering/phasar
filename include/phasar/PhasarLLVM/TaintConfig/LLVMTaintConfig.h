@@ -15,12 +15,11 @@
 #include "llvm/IR/Instruction.h"
 
 #include <unordered_set>
-#include <vector>
 
 namespace psr {
 class LLVMTaintConfig;
 class LLVMProjectIRDB;
-struct TaintConfigData;
+class TaintConfigData;
 
 template <> struct TaintConfigTraits<LLVMTaintConfig> {
   using n_t = const llvm::Instruction *;

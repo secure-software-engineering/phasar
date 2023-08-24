@@ -15,44 +15,31 @@
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
-  using namespace std::string_literals;
+  std::string File =
+      "/home/max/Desktop/Arbeit/phasar-f-TaintConfigSer/phasar/build/test/"
+      "llvm_test_code/TaintConfig/JsonConfig/array_01_c_dbg.ll";
+  std::string Config =
+      "/home/max/Desktop/Arbeit/phasar-f-TaintConfigSer/phasar/build/test/"
+      "llvm_test_code/TaintConfig/JsonConfig/array_01_config.json";
+  llvm::outs() << "Test 0\n";
+  llvm::outs().flush();
+  llvm::outs() << Config << "\n";
+  llvm::outs() << File << "\n";
+  llvm::outs().flush();
+  auto JsonConfig = psr::TaintConfigData({Config});
+  llvm::outs() << "Test 1\n";
+  llvm::outs().flush();
 
-  if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
-      std::filesystem::is_directory(Argv[1])) {
-    llvm::errs() << "myphasartool\n"
-                    "A small PhASAR-based example program\n\n"
-                    "Usage: myphasartool <LLVM IR file>\n";
-    return 1;
-  }
-
-  std::vector EntryPoints = {"main"s};
-
-  HelperAnalyses HA(Argv[1], EntryPoints);
-
-  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
-    // print type hierarchy
-    HA.getTypeHierarchy().print();
-    // print points-to information
-    HA.getAliasInfo().print();
-    // print inter-procedural control-flow graph
-    HA.getICFG().print();
-
-    // IFDS template parametrization test
-    llvm::outs() << "Testing IFDS:\n";
-    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
-    IFDSSolver S(L, &HA.getICFG());
-    auto IFDSResults = S.solve();
-    IFDSResults.dumpResults(HA.getICFG(), L);
-
-    // IDE template parametrization test
-    llvm::outs() << "Testing IDE:\n";
-    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
-    // Alternative way of solving an IFDS/IDEProblem:
-    auto IDEResults = solveIDEProblem(M, HA.getICFG());
-    IDEResults.dumpResults(HA.getICFG(), M);
-
-  } else {
-    llvm::errs() << "error: file does not contain a 'main' function!\n";
-  }
-  return 0;
+  psr::LLVMProjectIRDB IR({File});
+  llvm::outs() << "Test 2\n";
+  llvm::outs().flush();
+  //   IR.emitPreprocessedIR(llvm::outs(), false);
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
+  llvm::outs() << "Test 3\n";
+  llvm::outs().flush();
+  llvm::outs() << TConfig << '\n';
+  const llvm::Value *I = IR.getInstruction(3);
+  // ASSERT_TRUE(TConfig.isSource(I));
+  llvm::outs() << "Test 4\n";
+  llvm::outs().flush();
 }

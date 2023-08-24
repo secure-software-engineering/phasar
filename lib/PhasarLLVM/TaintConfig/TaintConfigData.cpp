@@ -16,12 +16,19 @@
 
 #include <system_error>
 
+#include <nlohmann/json_fwd.hpp>
+
 namespace psr {
 
-std::optional<psr::TaintConfigData>
-parseTaintConfigOrNull(const llvm::Twine &Path) {
-  std::optional<nlohmann::json> TaintConfig = readJsonFile(Path);
+TaintConfigData::TaintConfigData(const std::string &Filepath) {
+  llvm::outs() << "Constructor 0\n";
+  llvm::outs().flush();
+  std::optional<nlohmann::json> TaintConfig = readJsonFile(Filepath);
+  llvm::outs() << "Constructor 1\n";
+  llvm::outs().flush();
   nlohmann::json_schema::json_validator Validator;
+  llvm::outs() << "Constructor 2\n";
+  llvm::outs().flush();
   try {
     static const nlohmann::json TaintConfigSchema =
 #include "../config/TaintConfigSchema.json"
@@ -31,8 +38,10 @@ parseTaintConfigOrNull(const llvm::Twine &Path) {
   } catch (const std::exception &E) {
     PHASAR_LOG_LEVEL(ERROR,
                      "Validation of schema failed, here is why: " << E.what());
-    return std::nullopt;
+    return;
   }
+  llvm::outs() << "Constructor 3\n";
+  llvm::outs().flush();
 
   // a custom error handler
   class CustomJsonErrorHandler
@@ -46,89 +55,91 @@ parseTaintConfigOrNull(const llvm::Twine &Path) {
                                   << "' - '" << Instance << "': " << Message);
     }
   };
+
+  llvm::outs() << "Constructor 4\n";
+  llvm::outs().flush();
   CustomJsonErrorHandler Err;
   Validator.validate(*TaintConfig, Err);
+  llvm::outs() << "Constructor 5\n";
+  llvm::outs().flush();
   if (Err) {
+    llvm::outs() << "[TaintConfigData::TaintConfigData()]: if (Err) {\n";
+    llvm::outs().flush();
     TaintConfig.reset();
+    return;
   }
-  return std::optional<TaintConfigData>(Path.str());
-}
 
-void findAndAddValue(const nlohmann::json &Config, const std::string &Value,
-                     std::vector<std::string> &Container) {
-  if (Config.contains(Value)) {
-    for (const auto &Curr : Config[Value]) {
-      Container.push_back(Curr);
-    }
-  }
-}
+  llvm::outs() << "Constructor 6\n";
+  llvm::outs().flush();
+  if (!TaintConfig) {
+    llvm::outs()
+        << "[TaintConfigData::TaintConfigData()]: TaintConfigData is null";
+    llvm::outs().flush();
+    return;
+  };
 
-void addAllFunctions(const nlohmann::json &Config,
-                     std::vector<std::string> &Container) {
-  findAndAddValue(Config, "functions", Container);
-}
+  llvm::outs() << "Constructor 7\n";
+  llvm::outs().flush();
+  nlohmann::json Config = *TaintConfig;
+  // llvm::outs() << Config;
+  // llvm::outs().flush();
 
-void addAllFunctionNames(const nlohmann::json &Function,
-                         std::vector<std::string> &Container) {
-  findAndAddValue(Function, "name", Container);
-}
-
-void addAllFunctionRets(const nlohmann::json &Function,
-                        std::vector<std::string> &Container) {
-  findAndAddValue(Function, "ret", Container);
-}
-
-void addAllFunctionParamsSources(const nlohmann::json &Param,
-                                 std::vector<std::string> &Container) {
-  findAndAddValue(Param, "source", Container);
-}
-
-void addAllFunctionParamsSinks(const nlohmann::json &Param,
-                               std::vector<std::string> &Container) {
-  findAndAddValue(Param, "sink", Container);
-}
-
-void addAllFunctionParamsSanitizers(const nlohmann::json &Param,
-                                    std::vector<std::string> &Container) {
-  findAndAddValue(Param, "sanitizer", Container);
-}
-
-TaintConfigData::TaintConfigData(const std::string &Filepath) {
-
-  nlohmann::json Config(Filepath);
-
+  llvm::outs() << "Constructor 8\n";
+  llvm::outs().flush();
   // handle functions
   if (Config.contains("functions")) {
     for (const auto &Func : Config["functions"]) {
       FunctionData Data = FunctionData();
+      bool FuncPushBackFlag = false;
 
       if (Func.contains("name")) {
+        llvm::outs() << "[TaintConfigData::TaintConfigData()]: name test\n";
+        llvm::outs().flush();
         Data.Name = Func["name"];
+        FuncPushBackFlag = true;
       }
 
       if (Func.contains("ret")) {
+        llvm::outs() << "[TaintConfigData::TaintConfigData()]: ret test\n";
+        llvm::outs().flush();
         Data.ReturnType = Func["ret"];
+        FuncPushBackFlag = true;
       }
 
       if (Func.contains("params") && Func["params"].contains("source")) {
         for (const auto &Curr : Func["params"]["source"]) {
-          Data.SourceValues.push_back(Curr);
+          llvm::outs() << "[TaintConfigData::TaintConfigData()]: source test: "
+                       << Curr.get<int>() << "\n";
+          llvm::outs().flush();
+          Data.SourceValues.push_back(Curr.get<int>());
         }
+        FuncPushBackFlag = true;
       }
 
       if (Func.contains("params") && Func["params"].contains("sink")) {
         for (const auto &Curr : Func["params"]["sink"]) {
-          Data.SinkValues.push_back(Curr);
+          Data.SinkValues.push_back(Curr.get<int>());
+          llvm::outs() << "[TaintConfigData::TaintConfigData()]: sink test"
+                       << Curr.get<int>() << "\n";
+          llvm::outs().flush();
         }
+        FuncPushBackFlag = true;
       }
 
       if (Func.contains("params") && Func["params"].contains("sanitizer")) {
         for (const auto &Curr : Func["params"]["sanitizer"]) {
-          Data.SanitizerValues.push_back(Curr);
+          llvm::outs()
+              << "[TaintConfigData::TaintConfigData()]: sanitizer test: "
+              << Curr.get<int>() << "\n";
+          llvm::outs().flush();
+          Data.SanitizerValues.push_back(Curr.get<int>());
         }
+        FuncPushBackFlag = true;
       }
 
-      Functions.push_back(std::move(Data));
+      if (FuncPushBackFlag) {
+        Functions.push_back(std::move(Data));
+      }
     }
   }
 
@@ -136,26 +147,45 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
   if (Config.contains("variables")) {
     for (const auto &Var : Config["variables"]) {
       VariableData Data = VariableData();
+      bool VarPushBackFlag = false;
 
       if (Var.contains("line")) {
-        Data.Line = Var["line"];
+        Data.Line = Var["line"].get<int>();
+        VarPushBackFlag = true;
+        llvm::outs() << "line test: " << Var["line"].get<int>() << "\n";
+        llvm::outs().flush();
       }
 
       if (Var.contains("name")) {
-        Data.Line = Var["name"];
+        Data.Name = Var["name"].get<std::string>();
+        VarPushBackFlag = true;
+        llvm::outs() << "name test: " << Var.contains("name") << "\n";
+        llvm::outs().flush();
       }
 
       if (Var.contains("scope")) {
-        Data.Line = Var["scope"];
+        Data.Scope = Var["scope"].get<std::string>();
+        VarPushBackFlag = true;
+        llvm::outs() << "scope test: " << Var["scope"].get<std::string>()
+                     << "\n";
+        llvm::outs().flush();
       }
 
       if (Var.contains("cat")) {
-        Data.Line = Var["cat"];
+        Data.Cat = Var["cat"].get<std::string>();
+        VarPushBackFlag = true;
+        llvm::outs() << "cat test: " << Var["cat"].get<std::string>() << "\n";
+        llvm::outs().flush();
       }
-
-      Variables.push_back(std::move(Data));
+      if (VarPushBackFlag) {
+        Variables.push_back(std::move(Data));
+      }
     }
   }
+
+  llvm::outs() << "Funcsize: " << Functions.size()
+               << " - Varsize: " << Variables.size() << "\n";
+  llvm::outs().flush();
 }
 
 std::vector<std::string> TaintConfigData::getAllFunctionNames() const {
