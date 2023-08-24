@@ -23,6 +23,7 @@
 #include "phasar/Pointer/PointsToInfo.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/SmallSet.h"
@@ -324,7 +325,7 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
     ParamIterator FEnd = DestFun->arg_end();
 
     PHASAR_LOG_LEVEL(DEBUG, "##Call-FF at: " << psr::llvmIRToString(Call)
-                                             << " to: " << FtoString(DestFun));
+                                             << " to: " << FToString(DestFun));
     for (; FIt != FEnd && It != End; ++FIt, ++It) {
       auto From = makeFlowFact(It->get());
       /// Pointer-Arithetics in the last indirection are irrelevant for
@@ -747,26 +748,6 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 
 // Printing functions:
 
-void IDEExtendedTaintAnalysis::printNode(llvm::raw_ostream &OS,
-                                         n_t Inst) const {
-  OS << llvmIRToString(Inst);
-}
-
-void IDEExtendedTaintAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                                 d_t Fact) const {
-  OS << Fact;
-}
-
-void IDEExtendedTaintAnalysis::printEdgeFact(llvm::raw_ostream &OS,
-                                             l_t Fact) const {
-  OS << Fact;
-}
-
-void IDEExtendedTaintAnalysis::printFunction(llvm::raw_ostream &OS,
-                                             f_t Fun) const {
-  OS << (Fun && Fun->hasName() ? Fun->getName() : "<anon>");
-}
-
 void IDEExtendedTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
   OS << "===== IDEExtendedTaintAnalysis-Results =====\n";
@@ -776,9 +757,7 @@ void IDEExtendedTaintAnalysis::emitTextReport(
   }
 
   for (auto &[Inst, LeakSet] : Leaks) {
-    OS << "At ";
-    printNode(OS, Inst);
-    OS << "\n";
+    OS << "At " << NToString(Inst) << '\n';
     for (const auto &Leak : LeakSet) {
       OS << "\t" << llvmIRToShortString(Leak) << "\n";
     }
