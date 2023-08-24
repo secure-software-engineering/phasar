@@ -82,8 +82,7 @@ public:
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
-        JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>(
-            IDEProblem)),
+        JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>()),
         Seeds(Problem.initialSeeds()) {
     assert(ICF != nullptr);
   }
@@ -110,21 +109,16 @@ public:
       n_t Curr;
       for (unsigned I = 0; I < Cells.size(); ++I) {
         Curr = Cells[I].getRowKey();
-        auto NStr = llvm::StringRef(IDEProblem.NtoString(Cells[I].getRowKey()))
-                        .trim()
-                        .str();
+        auto NStr =
+            llvm::StringRef(NToString(Cells[I].getRowKey())).trim().str();
 
         std::string NodeStr =
             ICF->getFunctionName(ICF->getFunctionOf(Curr)) + "::" + NStr;
         J[DataFlowID][NodeStr];
         std::string FactStr =
-            llvm::StringRef(IDEProblem.DtoString(Cells[I].getColumnKey()))
-                .trim()
-                .str();
+            llvm::StringRef(DToString(Cells[I].getColumnKey())).trim().str();
         std::string ValueStr =
-            llvm::StringRef(IDEProblem.LtoString(Cells[I].getValue()))
-                .trim()
-                .str();
+            llvm::StringRef(LToString(Cells[I].getValue())).trim().str();
         J[DataFlowID][NodeStr]["Facts"] += {FactStr, ValueStr};
       }
     }
@@ -198,7 +192,7 @@ public:
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
-    getSolverResults().dumpResults(*ICF, IDEProblem, OS);
+    getSolverResults().dumpResults(*ICF, OS);
   }
 
   void dumpAllInterPathEdges() {
@@ -282,8 +276,8 @@ protected:
   virtual void processCall(const PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, Full);
-    PHASAR_LOG_LEVEL(DEBUG, "Process call at target: "
-                                << IDEProblem.NtoString(Edge.getTarget()));
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Process call at target: " << NToString(Edge.getTarget()));
     d_t d1 = Edge.factAtSource();
     n_t n = Edge.getTarget();
     // a call node; line 14...
@@ -299,7 +293,7 @@ protected:
         } PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
         for (auto ret
              : ReturnSiteNs) {
-          PHASAR_LOG_LEVEL(DEBUG, "  " << IDEProblem.NtoString(ret));
+          PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(ret));
         });
 
     // for each possible callee
@@ -351,8 +345,8 @@ protected:
           for (d_t d3 : Res) {
             using TableCell = typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell;
             // create initial self-loop
-            PHASAR_LOG_LEVEL(DEBUG, "Create initial self-loop with D: "
-                                        << IDEProblem.DtoString(d3));
+            PHASAR_LOG_LEVEL(
+                DEBUG, "Create initial self-loop with D: " << DToString(d3));
             WorkList.emplace_back(PathEdge(d3, SP, d3),
                                   EdgeIdentity<l_t>{}); // line 15
             //  register the fact that <sp,d3> has an incoming edge from <n,d2>
@@ -363,8 +357,8 @@ protected:
             // const std::set<TableCell> endSumm(endSummary(sP, d3));
             // llvm::outs() << "ENDSUMM" << '\n';
             // llvm::outs() << "Size: " << endSumm.size() << '\n';
-            // llvm::outs() << "sP: " << IDEProblem.NtoString(sP)
-            //           << "\nd3: " << IDEProblem.DtoString(d3)
+            // llvm::outs() << "sP: " << NToString(sP)
+            //           << "\nd3: " << DToString(d3)
             //           << '\n';
             // printEndSummaryTab();
             // still line 15.2 of Naeem/Lhotak/Rodriguez
@@ -472,8 +466,8 @@ protected:
   virtual void processNormalFlow(PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, Full);
-    PHASAR_LOG_LEVEL(DEBUG, "Process normal at target: "
-                                << IDEProblem.NtoString(Edge.getTarget()));
+    PHASAR_LOG_LEVEL(
+        DEBUG, "Process normal at target: " << NToString(Edge.getTarget()));
     EdgeFunction<l_t> f = jumpFunction(Edge);
     auto [d1, n, d2] = Edge.consume();
 
@@ -571,9 +565,9 @@ protected:
     IF_LOG_ENABLED({
       PHASAR_LOG_LEVEL(DEBUG,
                        "Function : " << ICF->getFunctionOf(NHashN)->getName());
-      PHASAR_LOG_LEVEL(DEBUG, "Inst.    : " << IDEProblem.NtoString(NHashN));
-      PHASAR_LOG_LEVEL(DEBUG, "Fact     : " << IDEProblem.DtoString(NHashD));
-      PHASAR_LOG_LEVEL(DEBUG, "Value    : " << IDEProblem.LtoString(L));
+      PHASAR_LOG_LEVEL(DEBUG, "Inst.    : " << NToString(NHashN));
+      PHASAR_LOG_LEVEL(DEBUG, "Fact     : " << DToString(NHashD));
+      PHASAR_LOG_LEVEL(DEBUG, "Value    : " << LToString(L));
       PHASAR_LOG_LEVEL(DEBUG, ' ');
     });
     // TOP is the implicit default value which we do not need to store.
@@ -588,12 +582,11 @@ protected:
   EdgeFunction<l_t> jumpFunction(const PathEdge<n_t, d_t> Edge) {
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "JumpFunctions Forward-Lookup:");
-        PHASAR_LOG_LEVEL(DEBUG, "   Source D: " << IDEProblem.DtoString(
-                                    Edge.factAtSource()));
-        PHASAR_LOG_LEVEL(
-            DEBUG, "   Target N: " << IDEProblem.NtoString(Edge.getTarget()));
-        PHASAR_LOG_LEVEL(DEBUG, "   Target D: " << IDEProblem.DtoString(
-                                    Edge.factAtTarget())));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "   Source D: " << DToString(Edge.factAtSource()));
+        PHASAR_LOG_LEVEL(DEBUG, "   Target N: " << NToString(Edge.getTarget()));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "   Target D: " << DToString(Edge.factAtTarget())));
 
     auto FwdLookupRes =
         JumpFn->forwardLookup(Edge.factAtSource(), Edge.getTarget());
@@ -632,15 +625,12 @@ protected:
                 << ". Path Edge --------------------------------------------");
         PHASAR_LOG_LEVEL(DEBUG, ' ');
         PHASAR_LOG_LEVEL(DEBUG, "Process " << PathEdgeCount << ". path edge:");
-        PHASAR_LOG_LEVEL(DEBUG, "< D source: "
-                                    << IDEProblem.DtoString(Edge.factAtSource())
-                                    << " ;");
-        PHASAR_LOG_LEVEL(DEBUG, "  N target: "
-                                    << IDEProblem.NtoString(Edge.getTarget())
-                                    << " ;");
-        PHASAR_LOG_LEVEL(DEBUG, "  D target: "
-                                    << IDEProblem.DtoString(Edge.factAtTarget())
-                                    << " >");
+        PHASAR_LOG_LEVEL(DEBUG, "< D source: " << DToString(Edge.factAtSource())
+                                               << " ;");
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "  N target: " << NToString(Edge.getTarget()) << " ;");
+        PHASAR_LOG_LEVEL(DEBUG, "  D target: " << DToString(Edge.factAtTarget())
+                                               << " >");
         PHASAR_LOG_LEVEL(DEBUG, ' '));
 
     if (!ICF->isCallSite(Edge.getTarget())) {
@@ -717,11 +707,10 @@ protected:
     // do processing
     for (const auto &[StartPoint, Facts] : AllSeeds) {
       for (auto &[Fact, Value] : Facts) {
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "set initial seed at: "
-                             << IDEProblem.NtoString(StartPoint)
-                             << ", fact: " << IDEProblem.DtoString(Fact)
-                             << ", value: " << IDEProblem.LtoString(Value));
+        PHASAR_LOG_LEVEL(DEBUG, "set initial seed at: "
+                                    << NToString(StartPoint)
+                                    << ", fact: " << DToString(Fact)
+                                    << ", value: " << LToString(Value));
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
         setVal(StartPoint, Fact, Value);
@@ -762,7 +751,7 @@ protected:
         // Add zero value if it's not in the set of facts.
         PHASAR_LOG_LEVEL(
             DEBUG, "Zero-Value has been added automatically to start point: "
-                       << IDEProblem.NtoString(StartPoint));
+                       << NToString(StartPoint));
         Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.bottomElement());
       }
     }
@@ -770,22 +759,20 @@ protected:
                      "Number of initial seeds: " << Seeds.countInitialSeeds());
     PHASAR_LOG_LEVEL(DEBUG, "List of initial seeds: ");
     for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
-      PHASAR_LOG_LEVEL(DEBUG,
-                       "Start point: " << IDEProblem.NtoString(StartPoint));
+      PHASAR_LOG_LEVEL(DEBUG, "Start point: " << NToString(StartPoint));
       /// If statically disabling the logger, Fact and Value are unused. To
       /// prevent the copilation to fail with -Werror, add the [[maybe_unused]]
       /// attribute
       for ([[maybe_unused]] const auto &[Fact, Value] : Facts) {
-        PHASAR_LOG_LEVEL(DEBUG, "\tFact: " << IDEProblem.DtoString(Fact));
-        PHASAR_LOG_LEVEL(DEBUG, "\tValue: " << IDEProblem.LtoString(Value));
+        PHASAR_LOG_LEVEL(DEBUG, "\tFact: " << DToString(Fact));
+        PHASAR_LOG_LEVEL(DEBUG, "\tValue: " << LToString(Value));
       }
     }
     for (const auto &[StartPoint, Facts] : Seeds.getSeeds()) {
       for (const auto &[Fact, Value] : Facts) {
-        PHASAR_LOG_LEVEL(
-            DEBUG, "Submit seed at: " << IDEProblem.NtoString(StartPoint));
-        PHASAR_LOG_LEVEL(DEBUG, "\tFact: " << IDEProblem.DtoString(Fact));
-        PHASAR_LOG_LEVEL(DEBUG, "\tValue: " << IDEProblem.LtoString(Value));
+        PHASAR_LOG_LEVEL(DEBUG, "Submit seed at: " << NToString(StartPoint));
+        PHASAR_LOG_LEVEL(DEBUG, "\tFact: " << DToString(Fact));
+        PHASAR_LOG_LEVEL(DEBUG, "\tValue: " << LToString(Value));
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, Core);
         }
@@ -806,8 +793,8 @@ protected:
   virtual void processExit(const PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, Full);
-    PHASAR_LOG_LEVEL(DEBUG, "Process exit at target: "
-                                << IDEProblem.NtoString(Edge.getTarget()));
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Process exit at target: " << NToString(Edge.getTarget()));
     n_t n = Edge.getTarget(); // an exit node; line 21...
     EdgeFunction<l_t> f = jumpFunction(Edge);
     f_t FunctionThatNeedsSummary = ICF->getFunctionOf(n);
@@ -1054,11 +1041,9 @@ protected:
   void propagate(d_t SourceVal, n_t Target, d_t TargetVal,
                  EdgeFunction<l_t> f) {
     PHASAR_LOG_LEVEL(DEBUG, "Propagate flow");
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Source value  : " << IDEProblem.DtoString(SourceVal));
-    PHASAR_LOG_LEVEL(DEBUG, "Target        : " << IDEProblem.NtoString(Target));
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Target value  : " << IDEProblem.DtoString(TargetVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Source value  : " << DToString(SourceVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Target        : " << NToString(Target));
+    PHASAR_LOG_LEVEL(DEBUG, "Target value  : " << DToString(TargetVal));
     PHASAR_LOG_LEVEL(
         DEBUG, "Edge function : " << f << " (result of previous compose)");
 
@@ -1095,13 +1080,11 @@ protected:
       pathEdgeProcessingTask(std::move(Edge));
 
       IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
-        PHASAR_LOG_LEVEL(
-            DEBUG, "EDGE: <F: " << Target->getFunction()->getName() << ", D: "
-                                << IDEProblem.DtoString(SourceVal) << '>');
-        PHASAR_LOG_LEVEL(DEBUG,
-                         " ---> <N: " << IDEProblem.NtoString(Target) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "       D: " << IDEProblem.DtoString(TargetVal)
-                                             << ',');
+        PHASAR_LOG_LEVEL(DEBUG, "EDGE: <F: " << Target->getFunction()->getName()
+                                             << ", D: " << DToString(SourceVal)
+                                             << '>');
+        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
+        PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
         PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
         PHASAR_LOG_LEVEL(DEBUG, ' ');
       });
@@ -1141,15 +1124,12 @@ protected:
         PHASAR_LOG_LEVEL(DEBUG, "Start of incomingtab entry");
         for (const auto &Cell
              : IncomingTab.cellSet()) {
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "sP: " << IDEProblem.NtoString(Cell.getRowKey()));
-          PHASAR_LOG_LEVEL(DEBUG,
-                           "d3: " << IDEProblem.DtoString(Cell.getColumnKey()));
+          PHASAR_LOG_LEVEL(DEBUG, "sP: " << NToString(Cell.getRowKey()));
+          PHASAR_LOG_LEVEL(DEBUG, "d3: " << DToString(Cell.getColumnKey()));
           for (const auto &Entry : Cell.getValue()) {
-            PHASAR_LOG_LEVEL(DEBUG,
-                             "  n: " << IDEProblem.NtoString(Entry.first));
+            PHASAR_LOG_LEVEL(DEBUG, "  n: " << NToString(Entry.first));
             for (const auto &Fact : Entry.second) {
-              PHASAR_LOG_LEVEL(DEBUG, "  d2: " << IDEProblem.DtoString(Fact));
+              PHASAR_LOG_LEVEL(DEBUG, "  d2: " << DToString(Fact));
             }
           }
           PHASAR_LOG_LEVEL(DEBUG, "---------------");
@@ -1160,19 +1140,19 @@ protected:
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Start of endsummarytab entry");
 
-        EndsummaryTab.foreachCell([this](const auto &Row, const auto &Col,
-                                         const auto &Val) {
-          PHASAR_LOG_LEVEL(DEBUG, "sP: " << IDEProblem.NtoString(Row));
-          PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(Col));
+        EndsummaryTab.foreachCell(
+            [](const auto &Row, const auto &Col, const auto &Val) {
+              PHASAR_LOG_LEVEL(DEBUG, "sP: " << NToString(Row));
+              PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(Col));
 
-          Val.foreachCell([this](const auto &InnerRow, const auto &InnerCol,
+              Val.foreachCell([](const auto &InnerRow, const auto &InnerCol,
                                  const auto &InnerVal) {
-            PHASAR_LOG_LEVEL(DEBUG, "  eP: " << IDEProblem.NtoString(InnerRow));
-            PHASAR_LOG_LEVEL(DEBUG, "  d2: " << IDEProblem.DtoString(InnerCol));
-            PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerVal);
-          });
-          PHASAR_LOG_LEVEL(DEBUG, "---------------");
-        });
+                PHASAR_LOG_LEVEL(DEBUG, "  eP: " << NToString(InnerRow));
+                PHASAR_LOG_LEVEL(DEBUG, "  d2: " << DToString(InnerCol));
+                PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerVal);
+              });
+              PHASAR_LOG_LEVEL(DEBUG, "---------------");
+            });
 
         PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");)
   }
@@ -1193,15 +1173,15 @@ protected:
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
-      std::string N2Label = IDEProblem.NtoString(Edge.second);
-      llvm::outs() << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
+      std::string N2Label = NToString(Edge.second);
+      llvm::outs() << "\nN1: " << NToString(Edge.first) << '\n'
                    << "N2: " << N2Label << "\n----"
                    << std::string(N2Label.size(), '-') << '\n';
       for (auto D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        llvm::outs() << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
+        llvm::outs() << "D1: " << DToString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
-          llvm::outs() << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
+          llvm::outs() << "\tD2: " << DToString(D2Fact) << '\n';
         }
         llvm::outs() << '\n';
       }
@@ -1221,15 +1201,15 @@ protected:
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
-      std::string N2Label = IDEProblem.NtoString(Edge.second);
-      llvm::outs() << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
+      std::string N2Label = NToString(Edge.second);
+      llvm::outs() << "\nN1: " << NToString(Edge.first) << '\n'
                    << "N2: " << N2Label << "\n----"
                    << std::string(N2Label.size(), '-') << '\n';
       for (auto D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        llvm::outs() << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
+        llvm::outs() << "D1: " << DToString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
-          llvm::outs() << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
+          llvm::outs() << "\tD2: " << DToString(D2Fact) << '\n';
         }
         llvm::outs() << '\n';
       }
@@ -1264,10 +1244,10 @@ protected:
     // Case 2: d1 not in d2-Set, i.e., d1 was killed. d2-Set could be empty.
     for (const auto &Cell : ComputedIntraPathEdges.cellSet()) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
-      PHASAR_LOG_LEVEL(DEBUG, "N1: " << IDEProblem.NtoString(Edge.first));
-      PHASAR_LOG_LEVEL(DEBUG, "N2: " << IDEProblem.NtoString(Edge.second));
+      PHASAR_LOG_LEVEL(DEBUG, "N1: " << NToString(Edge.first));
+      PHASAR_LOG_LEVEL(DEBUG, "N2: " << NToString(Edge.second));
       for (auto &[D1, D2s] : Cell.getValue()) {
-        PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(D1));
+        PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1));
         NumIntraPathEdges += D2s.size();
         // Case 1
         if (D2s.find(D1) != D2s.end()) {
@@ -1283,7 +1263,7 @@ protected:
         }
         IF_LOG_ENABLED([this](const auto &D2s) {
           for (auto D2 : D2s) {
-            PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2));
+            PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2));
           }
           PHASAR_LOG_LEVEL(DEBUG, "----");
         }(D2s));
@@ -1296,8 +1276,8 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG, "INTER PATH EDGES");
     for (const auto &Cell : ComputedInterPathEdges.cellSet()) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
-      PHASAR_LOG_LEVEL(DEBUG, "N1: " << IDEProblem.NtoString(Edge.first));
-      PHASAR_LOG_LEVEL(DEBUG, "N2: " << IDEProblem.NtoString(Edge.second));
+      PHASAR_LOG_LEVEL(DEBUG, "N1: " << NToString(Edge.first));
+      PHASAR_LOG_LEVEL(DEBUG, "N2: " << NToString(Edge.second));
       // --- Call-flow Path Edges ---
       // Case 1: d1 --> empty set
       //   Can be ignored, since killing a fact in the caller context will
@@ -1314,7 +1294,7 @@ protected:
       //   Process the summary's #gen and #kill.
       if (ICF->isCallSite(Edge.first)) {
         for (auto &[D1, D2s] : Cell.getValue()) {
-          PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(D1));
+          PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1));
           NumInterPathEdges += D2s.size();
           for (auto D2 : D2s) {
             if (!IDEProblem.isZeroValue(D2)) {
@@ -1340,7 +1320,7 @@ protected:
             } else {
               ProcessSummaryFacts.emplace(Edge.second, D2);
             }
-            PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2));
+            PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2));
           }
           PHASAR_LOG_LEVEL(DEBUG, "----");
         }
@@ -1354,7 +1334,7 @@ protected:
       // Zero value does not count towards generated/killed facts.
       if (ICF->isExitInst(Cell.getRowKey())) {
         for (auto &[D1, D2s] : Cell.getValue()) {
-          PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(D1));
+          PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1));
           NumInterPathEdges += D2s.size();
           auto CallerFacts = ValidInCallerContext[Edge.second];
           for (auto D2 : D2s) {
@@ -1362,7 +1342,7 @@ protected:
             if (CallerFacts.find(D2) == CallerFacts.end()) {
               NumGenFacts++;
             }
-            PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2));
+            PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2));
           }
           PHASAR_LOG_LEVEL(DEBUG, "----");
         }
@@ -1372,10 +1352,8 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG, "SUMMARY REUSE");
     std::size_t TotalSummaryReuse = 0;
     for (const auto &Entry : FSummaryReuse) {
-      PHASAR_LOG_LEVEL(DEBUG,
-                       "N1: " << IDEProblem.NtoString(Entry.first.first));
-      PHASAR_LOG_LEVEL(DEBUG,
-                       "D1: " << IDEProblem.DtoString(Entry.first.second));
+      PHASAR_LOG_LEVEL(DEBUG, "N1: " << NToString(Entry.first.first));
+      PHASAR_LOG_LEVEL(DEBUG, "D1: " << DToString(Entry.first.second));
       PHASAR_LOG_LEVEL(DEBUG, "#Reuse: " << Entry.second);
       TotalSummaryReuse += Entry.second;
     }
@@ -1438,8 +1416,8 @@ public:
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
-      std::string N1Label = IDEProblem.NtoString(Edge.first);
-      std::string N2Label = IDEProblem.NtoString(Edge.second);
+      std::string N1Label = NToString(Edge.first);
+      std::string N2Label = NToString(Edge.second);
       PHASAR_LOG_LEVEL(DEBUG, "N1: " << N1Label);
       PHASAR_LOG_LEVEL(DEBUG, "N2: " << N2Label);
       std::string N1StmtId = ICF->getStatementId(Edge.first);
@@ -1468,7 +1446,7 @@ public:
       unsigned D2FactId = 0;
       for (const auto &D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(D1Fact));
+        PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1Fact));
 
         DOTNode D1;
         if (IDEProblem.isZeroValue(D1Fact)) {
@@ -1477,7 +1455,7 @@ public:
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string D1Label = IDEProblem.DtoString(D1Fact);
+          std::string D1Label = DToString(D1Fact);
 
           // Get or create the fact subgraph
           D1FSG = FG->getOrCreateFactSG(D1FactId, D1Label);
@@ -1489,13 +1467,13 @@ public:
 
         DOTFactSubGraph *D2FSG = nullptr;
         for (const auto &D2Fact : D1ToD2Set.second) {
-          PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2Fact));
+          PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2Fact));
           // We do not need to generate any intra-procedural nodes and edges
           // for the zero value since they will be auto-generated
           if (!IDEProblem.isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string D2Label = IDEProblem.DtoString(D2Fact);
+            std::string D2Label = DToString(D2Fact);
             DOTNode D2 = {FuncName, D2Label, N2StmtId, D2FactId, false, true};
             std::string EFLabel;
             auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
@@ -1531,8 +1509,8 @@ public:
     });
     for (const auto &Cell : Cells) {
       auto Edge = std::make_pair(Cell.getRowKey(), Cell.getColumnKey());
-      std::string N1Label = IDEProblem.NtoString(Edge.first);
-      std::string N2Label = IDEProblem.NtoString(Edge.second);
+      std::string N1Label = NToString(Edge.first);
+      std::string N2Label = NToString(Edge.second);
       std::string FNameOfN1 = ICF->getFunctionOf(Edge.first)->getName().str();
       std::string FNameOfN2 = ICF->getFunctionOf(Edge.second)->getName().str();
       std::string N1StmtId = ICF->getStatementId(Edge.first);
@@ -1573,14 +1551,14 @@ public:
       unsigned D2FactId = 0;
       for (const auto &D1ToD2Set : Cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        PHASAR_LOG_LEVEL(DEBUG, "d1: " << IDEProblem.DtoString(D1Fact));
+        PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1Fact));
         DOTNode D1;
         if (IDEProblem.isZeroValue(D1Fact)) {
           D1 = {FNameOfN1, "Λ", N1StmtId, 0, false, true};
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string D1Label = IDEProblem.DtoString(D1Fact);
+          std::string D1Label = DToString(D1Fact);
           D1 = {FNameOfN1, D1Label, N1StmtId, D1FactId, false, true};
           // FG should already exist even for single statement functions
           if (!G.containsFactSG(FNameOfN1, D1FactId)) {
@@ -1592,14 +1570,14 @@ public:
 
         auto D2Set = D1ToD2Set.second;
         for (const auto &D2Fact : D2Set) {
-          PHASAR_LOG_LEVEL(DEBUG, "d2: " << IDEProblem.DtoString(D2Fact));
+          PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2Fact));
           DOTNode D2;
           if (IDEProblem.isZeroValue(D2Fact)) {
             D2 = {FNameOfN2, "Λ", N2StmtId, 0, false, true};
           } else {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string D2Label = IDEProblem.DtoString(D2Fact);
+            std::string D2Label = DToString(D2Fact);
             D2 = {FNameOfN2, D2Label, N2StmtId, D2FactId, false, true};
             // FG should already exist even for single statement functions
             if (!G.containsFactSG(FNameOfN2, D2FactId)) {

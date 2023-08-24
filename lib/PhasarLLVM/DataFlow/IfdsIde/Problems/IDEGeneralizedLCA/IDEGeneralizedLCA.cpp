@@ -258,14 +258,10 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getNormalEdgeFunction(
     IDEGeneralizedLCA::n_t Curr, IDEGeneralizedLCA::d_t CurrNode,
     IDEGeneralizedLCA::n_t Succ, IDEGeneralizedLCA::d_t SuccNode) {
   PHASAR_LOG_LEVEL(DEBUG, "IDEGeneralizedLCA::getNormalEdgeFunction()");
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "(N) Curr Inst : " << IDEGeneralizedLCA::NtoString(Curr));
-  PHASAR_LOG_LEVEL(
-      DEBUG, "(D) Curr Node :   " << IDEGeneralizedLCA::DtoString(CurrNode));
-  PHASAR_LOG_LEVEL(DEBUG,
-                   "(N) Succ Inst : " << IDEGeneralizedLCA::NtoString(Succ));
-  PHASAR_LOG_LEVEL(
-      DEBUG, "(D) Succ Node :   " << IDEGeneralizedLCA::DtoString(SuccNode));
+  PHASAR_LOG_LEVEL(DEBUG, "(N) Curr Inst : " << NToString(Curr));
+  PHASAR_LOG_LEVEL(DEBUG, "(D) Curr Node :   " << DToString(CurrNode));
+  PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << NToString(Succ));
+  PHASAR_LOG_LEVEL(DEBUG, "(D) Succ Node :   " << DToString(SuccNode));
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
       isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
@@ -479,27 +475,6 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::allTopFunction() {
   return AlltopFn;
 }
 
-void IDEGeneralizedLCA::printNode(llvm::raw_ostream &Os,
-                                  IDEGeneralizedLCA::n_t Stmt) const {
-  Os << llvmIRToString(Stmt);
-}
-
-void IDEGeneralizedLCA::printDataFlowFact(llvm::raw_ostream &Os,
-                                          IDEGeneralizedLCA::d_t Fact) const {
-  assert(Fact && "Invalid dataflow fact");
-  Os << llvmIRToString(Fact);
-}
-
-void IDEGeneralizedLCA::printFunction(llvm::raw_ostream &Os,
-                                      IDEGeneralizedLCA::f_t Func) const {
-  Os << Func->getName();
-}
-
-void IDEGeneralizedLCA::printEdgeFact(llvm::raw_ostream &Os,
-                                      IDEGeneralizedLCA::l_t L) const {
-  Os << L;
-}
-
 /*void IDEGeneralizedLCA::printIDEReport(
     llvm::raw_ostream &os,
     SolverResults<IDEGeneralizedLCA::n_t,
@@ -546,11 +521,11 @@ void IDEGeneralizedLCA::emitTextReport(
         auto Results = SR.resultsAt(Stmt, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
-          Os << "At IR statement: " << NtoString(Stmt) << '\n';
+          Os << "At IR statement: " << NToString(Stmt) << '\n';
           for (const auto &Res : Results) {
             if (Res.second != bottomElement()) {
-              Os << "   Fact: " << DtoString(Res.first)
-                 << "\n  Value: " << VtoString(Res.second) << '\n';
+              Os << "   Fact: " << DToString(Res.first)
+                 << "\n  Value: " << LToString(Res.second) << '\n';
             }
           }
           Os << '\n';
@@ -596,7 +571,7 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
     std::set<std::string> AllocatedVars;
     for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
-      llvm::outs() << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
+      llvm::outs() << "\nIR : " << NToString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping
       if (Lnr == 0) {
         llvm::outs() << "Skipping this stmt!\n";
@@ -627,15 +602,15 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
         } else {
           // It's not a terminator inst, hence it has only a single successor
           const auto *Succ = ICF->getSuccsOf(Stmt)[0];
-          llvm::outs() << "Succ stmt: " << NtoString(Succ) << '\n';
+          llvm::outs() << "Succ stmt: " << NToString(Succ) << '\n';
           Results = SR.resultsAt(Succ, true);
         }
         // stripBottomResults(results);
         std::set<std::string> ValidVarsAtStmt;
         for (const auto &Res : Results) {
           auto VarName = getVarNameFromIR(Res.first);
-          llvm::outs() << "  D: " << DtoString(Res.first)
-                       << " | V: " << VtoString(Res.second)
+          llvm::outs() << "  D: " << DToString(Res.first)
+                       << " | V: " << LToString(Res.second)
                        << " | Var: " << VarName << '\n';
           if (!VarName.empty()) {
             // Only store/overwrite values of variables from allocas or
@@ -696,13 +671,6 @@ void IDEGeneralizedLCA::LCAResult::print(llvm::raw_ostream &Os) {
 bool IDEGeneralizedLCA::isEntryPoint(const std::string &Name) const {
   // For now, the only entrypoint is main
   return Name == "main";
-}
-
-template <typename V> std::string IDEGeneralizedLCA::VtoString(V Val) {
-  std::string Buffer;
-  llvm::raw_string_ostream Ss(Buffer);
-  Ss << Val;
-  return Ss.str();
 }
 
 bool IDEGeneralizedLCA::isStringConstructor(const llvm::Function *F) {

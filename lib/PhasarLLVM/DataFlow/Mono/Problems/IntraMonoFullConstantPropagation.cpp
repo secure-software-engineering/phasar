@@ -20,6 +20,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
 #include <ostream>
@@ -222,30 +223,11 @@ IntraMonoFullConstantPropagation::executeBinOperation(
   return Res;
 }
 
-void IntraMonoFullConstantPropagation::printNode(
-    llvm::raw_ostream &OS, IntraMonoFullConstantPropagation::n_t Inst) const {
-  OS << llvmIRToString(Inst);
-}
-
-void IntraMonoFullConstantPropagation::printDataFlowFact(
-    llvm::raw_ostream &OS, IntraMonoFullConstantPropagation::d_t Fact) const {
-  OS << "< " + llvmIRToString(Fact.first) << ", ";
-  if (std::holds_alternative<Top>(Fact.second)) {
-    OS << std::get<Top>(Fact.second);
-  }
-  if (std::holds_alternative<Bottom>(Fact.second)) {
-    OS << std::get<Bottom>(Fact.second);
-  }
-  if (std::holds_alternative<IntraMonoFullConstantPropagation::plain_d_t>(
-          Fact.second)) {
-    OS << std::get<IntraMonoFullConstantPropagation::plain_d_t>(Fact.second);
-  }
-  OS << " >\n";
-}
-
-void IntraMonoFullConstantPropagation::printFunction(
-    llvm::raw_ostream &OS, IntraMonoFullConstantPropagation::f_t Fun) const {
-  OS << Fun->getName();
-}
-
 } // namespace psr
+
+std::string psr::DToString(const IntraMonoFCAFact &Fact) {
+  std::string Ret;
+  llvm::raw_string_ostream OS(Ret);
+  OS << "< " << llvmIRToString(Fact.Fact) << ", " << Fact.Value << " >\n";
+  return Ret;
+}

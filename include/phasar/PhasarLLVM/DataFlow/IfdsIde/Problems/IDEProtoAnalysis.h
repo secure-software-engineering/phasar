@@ -97,14 +97,6 @@ public:
   l_t join(l_t Lhs, l_t Rhs) override;
 
   EdgeFunction<l_t> allTopFunction() override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
-
-  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 };
 
 } // namespace psr
