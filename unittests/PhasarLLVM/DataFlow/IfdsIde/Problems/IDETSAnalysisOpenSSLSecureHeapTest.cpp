@@ -22,6 +22,7 @@
 
 #include "llvm/ADT/Twine.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
@@ -33,17 +34,18 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureHeapTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::PhasarDirectory() +
-      "build/test/llvm_test_code/openssl/secure_heap/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("openssl/secure_heap/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::optional<HelperAnalyses> HA;
 
   std::optional<OpenSSLSecureHeapDescription> Desc;
-  std::optional<IDETypeStateAnalysis> TSProblem;
+  std::optional<IDETypeStateAnalysis<OpenSSLSecureHeapDescription>> TSProblem;
   std::optional<IDESecureHeapPropagation> SecureHeapPropagationProblem;
-  unique_ptr<IDESolver<IDETypeStateAnalysisDomain>> Llvmtssolver;
+  unique_ptr<
+      IDESolver<IDETypeStateAnalysisDomain<OpenSSLSecureHeapDescription>>>
+      Llvmtssolver;
   unique_ptr<IDESolver<IDESecureHeapPropagationAnalysisDomain>>
       SecureHeapPropagationResults;
   enum OpenSSLSecureHeapState {
@@ -58,7 +60,7 @@ protected:
   IDETSAnalysisOpenSSLSecureHeapTest() = default;
   ~IDETSAnalysisOpenSSLSecureHeapTest() override = default;
 
-  void initialize(const std::string &IRFile) {
+  void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
     SecureHeapPropagationProblem =
@@ -68,9 +70,11 @@ protected:
             *SecureHeapPropagationProblem, &HA->getICFG());
 
     Desc.emplace(*SecureHeapPropagationResults);
-    TSProblem =
-        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &*Desc, EntryPoints);
-    Llvmtssolver = make_unique<IDESolver<IDETypeStateAnalysisDomain>>(
+    TSProblem = createAnalysisProblem<
+        IDETypeStateAnalysis<OpenSSLSecureHeapDescription>>(*HA, &*Desc,
+                                                            EntryPoints);
+    Llvmtssolver = make_unique<
+        IDESolver<IDETypeStateAnalysisDomain<OpenSSLSecureHeapDescription>>>(
         *TSProblem, &HA->getICFG());
 
     SecureHeapPropagationResults->solve();
@@ -97,7 +101,7 @@ protected:
       for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
           Results.insert(std::pair<std::string, int>(
-              getMetaDataID(Result.first), Result.second));
+              getMetaDataID(Result.first), int(Result.second)));
         } // else {
         //   std::cout << "Unused result at " << InstToGroundTruth.first << ": "
         //             << llvmIRToShortString(Result.first) << " => "

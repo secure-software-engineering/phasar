@@ -115,14 +115,12 @@ public:
     OS << "Intra-Monotone solver results:\n"
           "------------------------------\n";
     for (auto &[Node, FlowFacts] : this->Analysis) {
-      OS << "Instruction:\n" << this->IMProblem.NtoString(Node);
+      OS << "Instruction:\n" << NToString(Node);
       OS << "\nFacts:\n";
       if (FlowFacts.empty()) {
         OS << "\tEMPTY\n";
       } else {
-        for (auto FlowFact : FlowFacts) {
-          OS << this->IMProblem.DtoString(FlowFact) << '\n';
-        }
+        IMProblem.printContainer(OS, FlowFacts);
       }
       OS << "\n\n";
     }

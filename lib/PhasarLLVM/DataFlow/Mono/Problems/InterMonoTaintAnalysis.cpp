@@ -181,20 +181,6 @@ InterMonoTaintAnalysis::initialSeeds() {
   return Seeds;
 }
 
-void InterMonoTaintAnalysis::printNode(llvm::raw_ostream &OS,
-                                       InterMonoTaintAnalysis::n_t Inst) const {
-  OS << llvmIRToString(Inst);
-}
-
-void InterMonoTaintAnalysis::printDataFlowFact(
-    llvm::raw_ostream &OS, InterMonoTaintAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact) << '\n';
-}
-
-void InterMonoTaintAnalysis::printFunction(llvm::raw_ostream &OS,
-                                           const llvm::Function *Fun) const {
-  OS << Fun->getName();
-}
 const std::map<InterMonoTaintAnalysis::n_t,
                std::set<InterMonoTaintAnalysis::d_t>> &
 InterMonoTaintAnalysis::getAllLeaks() const {

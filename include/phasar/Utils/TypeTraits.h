@@ -13,6 +13,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -20,6 +21,7 @@
 #include <variant>
 
 namespace psr {
+
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
 
