@@ -96,6 +96,14 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
       addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
     }
 
+    for (const auto &Idx : FunDesc.SinkStringValues) {
+      if (Idx == "all") {
+        for (const auto &Arg : Fun->args()) {
+          addTaintCategory(&Arg, TaintCategory::Sink);
+        }
+      }
+    }
+
     for (const auto &Idx : FunDesc.SanitizerValues) {
       if (Idx >= Fun->arg_size()) {
         llvm::errs()
@@ -159,8 +167,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
             const auto *StType = llvm::dyn_cast<llvm::StructType>(
                 Gep->getPointerOperandType()->getPointerElementType());
             if (StType && StructConfigMap.count(StType)) {
-              // const auto VarDesc = StructConfigMap.at(StType);
-              auto VarName = VarDesc.Name;
+              auto VarName = StructConfigMap.at(StType);
               // using substr to cover the edge case in which same variable
               // name is present as a local variable and also as a struct
               // member variable. (Ex. JsonConfig/fun_member_02.cpp)

@@ -21,14 +21,8 @@
 namespace psr {
 
 TaintConfigData::TaintConfigData(const std::string &Filepath) {
-  llvm::outs() << "Constructor 0\n";
-  llvm::outs().flush();
   std::optional<nlohmann::json> TaintConfig = readJsonFile(Filepath);
-  llvm::outs() << "Constructor 1\n";
-  llvm::outs().flush();
   nlohmann::json_schema::json_validator Validator;
-  llvm::outs() << "Constructor 2\n";
-  llvm::outs().flush();
   try {
     static const nlohmann::json TaintConfigSchema =
 #include "../config/TaintConfigSchema.json"
@@ -40,8 +34,6 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
                      "Validation of schema failed, here is why: " << E.what());
     return;
   }
-  llvm::outs() << "Constructor 3\n";
-  llvm::outs().flush();
 
   // a custom error handler
   class CustomJsonErrorHandler
@@ -56,36 +48,22 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
     }
   };
 
-  llvm::outs() << "Constructor 4\n";
-  llvm::outs().flush();
   CustomJsonErrorHandler Err;
   Validator.validate(*TaintConfig, Err);
-  llvm::outs() << "Constructor 5\n";
-  llvm::outs().flush();
   if (Err) {
-    llvm::outs() << "[TaintConfigData::TaintConfigData()]: if (Err) {\n";
-    llvm::outs().flush();
     TaintConfig.reset();
     return;
   }
 
-  llvm::outs() << "Constructor 6\n";
-  llvm::outs().flush();
   if (!TaintConfig) {
     llvm::outs()
-        << "[TaintConfigData::TaintConfigData()]: TaintConfigData is null";
+        << "[TaintConfigData::TaintConfigData()]: TaintConfigData is null!";
     llvm::outs().flush();
     return;
   };
 
-  llvm::outs() << "Constructor 7\n";
-  llvm::outs().flush();
   nlohmann::json Config = *TaintConfig;
-  // llvm::outs() << Config;
-  // llvm::outs().flush();
 
-  llvm::outs() << "Constructor 8\n";
-  llvm::outs().flush();
   // handle functions
   if (Config.contains("functions")) {
     for (const auto &Func : Config["functions"]) {
@@ -93,50 +71,62 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
       bool FuncPushBackFlag = false;
 
       if (Func.contains("name")) {
-        llvm::outs() << "[TaintConfigData::TaintConfigData()]: name test\n";
-        llvm::outs().flush();
-        Data.Name = Func["name"];
+        Data.Name = Func["name"].get<std::string>();
         FuncPushBackFlag = true;
       }
 
       if (Func.contains("ret")) {
-        llvm::outs() << "[TaintConfigData::TaintConfigData()]: ret test\n";
-        llvm::outs().flush();
         Data.ReturnType = Func["ret"];
         FuncPushBackFlag = true;
       }
 
       if (Func.contains("params") && Func["params"].contains("source")) {
         for (const auto &Curr : Func["params"]["source"]) {
-          llvm::outs() << "[TaintConfigData::TaintConfigData()]: source test: "
-                       << Curr.get<int>() << "\n";
-          llvm::outs().flush();
           Data.SourceValues.push_back(Curr.get<int>());
         }
         FuncPushBackFlag = true;
       }
 
+      /*if (Params.contains("sink")) {
+        for (const auto &Idx : Params["sink"]) {
+          if (Idx.is_number()) {
+            if (Idx >= Fun->arg_size()) {
+              llvm::errs()
+                  << "ERROR: The source-function parameter index is out of "
+                     "bounds: "
+                  << Idx << "\n";
+              continue;
+            }
+            addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
+          } else if (Idx.is_string()) {
+            const auto Sinks = Idx.get<std::string>();
+            if (Sinks == "all") {
+              for (const auto &Arg : Fun->args()) {
+                addTaintCategory(&Arg, TaintCategory::Sink);
+              }
+            }
+          }
+        }
+      }*/
+
       if (Func.contains("params") && Func["params"].contains("sink")) {
         for (const auto &Curr : Func["params"]["sink"]) {
-          Data.SinkValues.push_back(Curr.get<int>());
-          llvm::outs() << "[TaintConfigData::TaintConfigData()]: sink test"
-                       << Curr.get<int>() << "\n";
-          llvm::outs().flush();
+          if (Curr.is_string()) {
+            Data.SinkStringValues.push_back(Curr.get<std::string>());
+          } else {
+            Data.SinkValues.push_back(Curr.get<int>());
+          }
         }
         FuncPushBackFlag = true;
       }
 
       if (Func.contains("params") && Func["params"].contains("sanitizer")) {
         for (const auto &Curr : Func["params"]["sanitizer"]) {
-          llvm::outs()
-              << "[TaintConfigData::TaintConfigData()]: sanitizer test: "
-              << Curr.get<int>() << "\n";
-          llvm::outs().flush();
+
           Data.SanitizerValues.push_back(Curr.get<int>());
         }
         FuncPushBackFlag = true;
       }
-
       if (FuncPushBackFlag) {
         Functions.push_back(std::move(Data));
       }
@@ -148,44 +138,30 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
     for (const auto &Var : Config["variables"]) {
       VariableData Data = VariableData();
       bool VarPushBackFlag = false;
-
       if (Var.contains("line")) {
         Data.Line = Var["line"].get<int>();
         VarPushBackFlag = true;
-        llvm::outs() << "line test: " << Var["line"].get<int>() << "\n";
-        llvm::outs().flush();
       }
 
       if (Var.contains("name")) {
         Data.Name = Var["name"].get<std::string>();
         VarPushBackFlag = true;
-        llvm::outs() << "name test: " << Var.contains("name") << "\n";
-        llvm::outs().flush();
       }
 
       if (Var.contains("scope")) {
         Data.Scope = Var["scope"].get<std::string>();
         VarPushBackFlag = true;
-        llvm::outs() << "scope test: " << Var["scope"].get<std::string>()
-                     << "\n";
-        llvm::outs().flush();
       }
 
       if (Var.contains("cat")) {
         Data.Cat = Var["cat"].get<std::string>();
         VarPushBackFlag = true;
-        llvm::outs() << "cat test: " << Var["cat"].get<std::string>() << "\n";
-        llvm::outs().flush();
       }
       if (VarPushBackFlag) {
         Variables.push_back(std::move(Data));
       }
     }
   }
-
-  llvm::outs() << "Funcsize: " << Functions.size()
-               << " - Varsize: " << Variables.size() << "\n";
-  llvm::outs().flush();
 }
 
 std::vector<std::string> TaintConfigData::getAllFunctionNames() const {

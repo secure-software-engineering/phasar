@@ -24,6 +24,7 @@ struct FunctionData {
   std::string ReturnType;
   std::vector<int> SourceValues;
   std::vector<int> SinkValues;
+  std::vector<std::string> SinkStringValues;
   std::vector<int> SanitizerValues;
 };
 
