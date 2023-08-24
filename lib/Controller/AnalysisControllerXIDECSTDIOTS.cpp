@@ -15,7 +15,8 @@ namespace psr {
 
 void AnalysisController::executeIDECSTDIOTS() {
   CSTDFILEIOTypeStateDescription TSDesc;
-  executeIDEAnalysis<IDETypeStateAnalysis>(&TSDesc, EntryPoints);
+  executeIDEAnalysis<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>(
+      &TSDesc, EntryPoints);
 }
 
 } // namespace psr

@@ -102,19 +102,4 @@ InterMonoSolverTest::initialSeeds() {
   return Seeds;
 }
 
-void InterMonoSolverTest::printNode(llvm::raw_ostream &OS,
-                                    InterMonoSolverTest::n_t Inst) const {
-  OS << llvmIRToString(Inst);
-}
-
-void InterMonoSolverTest::printDataFlowFact(
-    llvm::raw_ostream &OS, InterMonoSolverTest::d_t Fact) const {
-  OS << llvmIRToString(Fact) << '\n';
-}
-
-void InterMonoSolverTest::printFunction(llvm::raw_ostream &OS,
-                                        InterMonoSolverTest::f_t Fun) const {
-  OS << Fun->getName();
-}
-
 } // namespace psr

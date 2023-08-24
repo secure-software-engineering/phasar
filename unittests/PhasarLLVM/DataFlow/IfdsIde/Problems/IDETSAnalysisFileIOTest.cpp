@@ -37,7 +37,7 @@ protected:
 
   std::optional<HelperAnalyses> HA;
   CSTDFILEIOTypeStateDescription CSTDFILEIODesc{};
-  std::optional<IDETypeStateAnalysis> TSProblem;
+  std::optional<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>> TSProblem;
   enum IOSTATE {
     TOP = 42,
     UNINIT = 0,
@@ -53,7 +53,8 @@ protected:
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
-    TSProblem = createAnalysisProblem<IDETypeStateAnalysis>(
+    TSProblem = createAnalysisProblem<
+        IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>(
         *HA, &CSTDFILEIODesc, EntryPoints);
   }
 
@@ -69,7 +70,8 @@ protected:
    */
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth,
-      IDESolver_P<IDETypeStateAnalysis> &Solver) {
+      IDESolver_P<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>
+          &Solver) {
     for (const auto &InstToGroundTruth : GroundTruth) {
       const auto *Inst =
           HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
@@ -80,7 +82,7 @@ protected:
       for (auto Result : Solver.resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
           Results.insert(std::pair<std::string, int>(
-              getMetaDataID(Result.first), Result.second));
+              getMetaDataID(Result.first), int(Result.second)));
         }
       }
       EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(Inst);

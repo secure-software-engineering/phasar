@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -82,12 +83,6 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const override;
 
-  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
-
   // in addition provide specifications for the IDE parts
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
@@ -118,11 +113,12 @@ public:
 
   EdgeFunction<l_t> allTopFunction() override;
 
-  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
-
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS) override;
 };
+
+llvm::StringRef DToString(SecureHeapFact Fact) noexcept;
+llvm::StringRef LToString(SecureHeapValue Val) noexcept;
 } // namespace psr
 
 #endif
