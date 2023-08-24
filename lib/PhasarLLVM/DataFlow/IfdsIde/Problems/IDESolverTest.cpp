@@ -143,24 +143,4 @@ EdgeFunction<IDESolverTest::l_t> IDESolverTest::allTopFunction() {
   return AllTop<l_t>{nullptr};
 }
 
-void IDESolverTest::printNode(llvm::raw_ostream &OS,
-                              IDESolverTest::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IDESolverTest::printDataFlowFact(llvm::raw_ostream &OS,
-                                      IDESolverTest::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IDESolverTest::printFunction(llvm::raw_ostream &OS,
-                                  IDESolverTest::f_t Func) const {
-  OS << Func->getName();
-}
-
-void IDESolverTest::printEdgeFact(llvm::raw_ostream &OS,
-                                  IDESolverTest::l_t /*L*/) const {
-  OS << "empty V test";
-}
-
 } // namespace psr

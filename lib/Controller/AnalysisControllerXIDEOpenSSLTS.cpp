@@ -15,7 +15,8 @@ namespace psr {
 
 void AnalysisController::executeIDEOpenSSLTS() {
   OpenSSLEVPKDFDescription TSDesc;
-  executeIDEAnalysis<IDETypeStateAnalysis>(&TSDesc, EntryPoints);
+  executeIDEAnalysis<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>(
+      &TSDesc, EntryPoints);
 }
 
 } // namespace psr

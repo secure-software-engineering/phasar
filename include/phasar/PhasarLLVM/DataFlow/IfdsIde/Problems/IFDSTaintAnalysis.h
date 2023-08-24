@@ -79,12 +79,6 @@ public:
 
   bool isZeroValue(d_t FlowFact) const noexcept override;
 
-  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
-
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 

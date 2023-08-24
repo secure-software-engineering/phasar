@@ -57,12 +57,8 @@ public:
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
-                             public NodePrinter<AnalysisDomainTy>,
-                             public DataFlowFactPrinter<AnalysisDomainTy>,
-                             public FunctionPrinter<AnalysisDomainTy>,
                              public EdgeFunctions<AnalysisDomainTy>,
                              public JoinLattice<AnalysisDomainTy>,
-                             public EdgeFactPrinter<AnalysisDomainTy>,
                              public AllTopFnProvider<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;

@@ -178,21 +178,6 @@ bool IFDSConstAnalysis::isZeroValue(
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
-void IFDSConstAnalysis::printNode(llvm::raw_ostream &OS,
-                                  IFDSConstAnalysis::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSConstAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                          IFDSConstAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IFDSConstAnalysis::printFunction(llvm::raw_ostream &OS,
-                                      IFDSConstAnalysis::f_t Func) const {
-  OS << Func->getName();
-}
-
 void IFDSConstAnalysis::printInitMemoryLocations() {
   PHASAR_LOG_LEVEL(
       DEBUG, "Printing all initialized memory location (or one of its alias)");

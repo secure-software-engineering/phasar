@@ -76,10 +76,6 @@ public:
                                            d_t /*SuccNode*/) final {
     return EdgeIdentity<l_t>{};
   }
-
-  void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const final {
-    OS << Val;
-  }
 };
 } // namespace psr
 

@@ -79,19 +79,4 @@ bool IFDSProtoAnalysis::isZeroValue(
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
-void IFDSProtoAnalysis::printNode(llvm::raw_ostream &OS,
-                                  IFDSProtoAnalysis::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                          IFDSProtoAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IFDSProtoAnalysis::printFunction(llvm::raw_ostream &OS,
-                                      IFDSProtoAnalysis::f_t Func) const {
-  OS << Func->getName();
-}
-
 } // namespace psr
