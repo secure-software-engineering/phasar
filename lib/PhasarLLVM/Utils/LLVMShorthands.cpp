@@ -57,6 +57,15 @@ namespace psr {
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
 
+bool isDefiniteLastUse(const llvm::Use &Use) noexcept {
+  // TODO: Be more precise here
+  return isDefiniteLastUse(Use.get());
+}
+
+bool isDefiniteLastUse(const llvm::Value *Use) noexcept {
+  return Use->hasNUses(1);
+}
+
 bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {
     return V->getType()->isPointerTy() &&
