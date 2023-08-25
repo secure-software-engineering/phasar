@@ -1,8 +1,8 @@
-file(GLOB lca_files *.swift)
+file(GLOB taint_files *.swift)
 
 set(SWIFT_COMPILE_IR_FLAGS -emit-ir -suppress-warnings -g -parse-as-library -Onone)
 
-foreach(TEST_SRC ${lca_files})
+foreach(TEST_SRC ${taint_files})
   get_filename_component(TEST_SRC_FILE ${TEST_SRC} NAME_WE)
   set(TEST_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${TEST_SRC_FILE}.ll")
   add_custom_command(

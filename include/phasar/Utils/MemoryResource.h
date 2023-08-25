@@ -2,7 +2,7 @@
 /// a workaround here
 
 #ifndef HAS_MEMORY_RESOURCE
-#if !defined(__has_include) || __has_include(<memory_resource>)
+#if !defined(__has_include) || __has_include(<memory_resource>) && !defined(__APPLE__)
 #define HAS_MEMORY_RESOURCE 1
 #include <memory_resource>
 #else

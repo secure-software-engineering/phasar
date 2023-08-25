@@ -203,6 +203,10 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
     return transferFlow<d_t>(Cast, Cast->getOperand(0));
   }
 
+  if (const auto *Insert = llvm::dyn_cast<llvm::InsertValueInst>(Curr)) {
+    return generateFlow(Insert, Insert->getInsertedValueOperand());
+  }
+
   // Otherwise we do not care and leave everything as it is
   return Identity<d_t>::getInstance();
 }
@@ -261,7 +265,6 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   // result should be tainted
   if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-
     return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
       return ((Source == CS->getArgOperand(1)) ||
               (Source == CS->getArgOperand(3)));
