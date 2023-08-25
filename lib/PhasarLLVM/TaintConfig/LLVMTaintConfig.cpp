@@ -60,9 +60,7 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
 
 void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
                                       const TaintConfigData &Config) {
-  int Counter = -1;
   for (const auto &FunDesc : Config.Functions) {
-    Counter++;
     auto Name = FunDesc.Name;
 
     auto FnDefs = findAllFunctionDefs(IRDB, Name);
@@ -84,6 +82,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
         // remaining parameters as well
         continue;
       }
+
       addTaintCategory(Fun->getArg(Idx), TaintCategory::Source);
     }
     for (const auto &Idx : FunDesc.SinkValues) {
@@ -139,7 +138,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
     DIF.processModule(*M);
     for (const auto &Ty : DIF.types()) {
       if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-          Ty->getName().equals(VarDesc.Name)) {
+          Ty->getName().equals(VarDesc.Scope)) {
         for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
           StructConfigMap.insert(
               std::pair<const llvm::Type *, const std::string>(LlvmStructTy,

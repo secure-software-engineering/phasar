@@ -14,10 +14,6 @@
 #include "nlohmann/json-schema.hpp"
 #include "nlohmann/json.hpp"
 
-#include <system_error>
-
-#include <nlohmann/json_fwd.hpp>
-
 namespace psr {
 
 TaintConfigData::TaintConfigData(const std::string &Filepath) {
@@ -76,7 +72,7 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
       }
 
       if (Func.contains("ret")) {
-        Data.ReturnType = Func["ret"];
+        Data.ReturnType = Func["ret"].get<std::string>();
         FuncPushBackFlag = true;
       }
 
@@ -86,28 +82,6 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
         }
         FuncPushBackFlag = true;
       }
-
-      /*if (Params.contains("sink")) {
-        for (const auto &Idx : Params["sink"]) {
-          if (Idx.is_number()) {
-            if (Idx >= Fun->arg_size()) {
-              llvm::errs()
-                  << "ERROR: The source-function parameter index is out of "
-                     "bounds: "
-                  << Idx << "\n";
-              continue;
-            }
-            addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
-          } else if (Idx.is_string()) {
-            const auto Sinks = Idx.get<std::string>();
-            if (Sinks == "all") {
-              for (const auto &Arg : Fun->args()) {
-                addTaintCategory(&Arg, TaintCategory::Sink);
-              }
-            }
-          }
-        }
-      }*/
 
       if (Func.contains("params") && Func["params"].contains("sink")) {
         for (const auto &Curr : Func["params"]["sink"]) {
@@ -122,11 +96,11 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
 
       if (Func.contains("params") && Func["params"].contains("sanitizer")) {
         for (const auto &Curr : Func["params"]["sanitizer"]) {
-
           Data.SanitizerValues.push_back(Curr.get<int>());
         }
         FuncPushBackFlag = true;
       }
+
       if (FuncPushBackFlag) {
         Functions.push_back(std::move(Data));
       }
