@@ -39,12 +39,8 @@ struct HasNoConfigurationType;
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
-                             public NodePrinter<AnalysisDomainTy>,
-                             public DataFlowFactPrinter<AnalysisDomainTy>,
-                             public FunctionPrinter<AnalysisDomainTy>,
                              public EdgeFunctions<AnalysisDomainTy>,
-                             public JoinLattice<AnalysisDomainTy>,
-                             public EdgeFactPrinter<AnalysisDomainTy> {
+                             public JoinLattice<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
