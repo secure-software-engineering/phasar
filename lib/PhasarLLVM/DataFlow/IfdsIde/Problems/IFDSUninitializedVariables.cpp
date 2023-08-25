@@ -18,6 +18,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/Demangle/Demangle.h"
@@ -251,21 +252,6 @@ bool IFDSUninitializedVariables::isZeroValue(d_t Fact) const {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
-void IFDSUninitializedVariables::printNode(llvm::raw_ostream &OS,
-                                           n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSUninitializedVariables::printDataFlowFact(llvm::raw_ostream &OS,
-                                                   d_t Fact) const {
-  OS << llvmIRToShortString(Fact);
-}
-
-void IFDSUninitializedVariables::printFunction(llvm::raw_ostream &OS,
-                                               f_t Func) const {
-  OS << Func->getName();
-}
-
 void IFDSUninitializedVariables::emitTextReport(
     const SolverResults<n_t, d_t, l_t> & /*Result*/, llvm::raw_ostream &OS) {
   OS << "====================== IFDS-Uninitialized-Analysis Report "
@@ -283,13 +269,11 @@ void IFDSUninitializedVariables::emitTextReport(
       for (const auto &User : UndefValueUses) {
         OS << "\n---------------------------------  " << ++Count
            << ". Use  ---------------------------------\n\n";
-        OS << "At IR statement: ";
-        printNode(OS, User.first);
+        OS << "At IR statement: " << NToString(User.first);
         OS << "\n    in function: " << getFunctionNameFromIR(User.first);
         OS << "\n    in module  : " << getModuleIDFromIR(User.first) << "\n\n";
         for (const auto *UndefV : User.second) {
-          OS << "   Uninit Value: ";
-          printDataFlowFact(OS, UndefV);
+          OS << "   Uninit Value: " << DToString(UndefV);
           OS << '\n';
         }
       }

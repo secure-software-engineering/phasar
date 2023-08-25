@@ -78,10 +78,6 @@ public:
   }
 
   EdgeFunction<l_t> allTopFunction() final { return AllTop<l_t>{}; }
-
-  void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const final {
-    OS << Val;
-  }
 };
 } // namespace psr
 

@@ -121,14 +121,6 @@ public:
 
   // Helper functions
 
-  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
-
-  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
-
   [[nodiscard]] lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
