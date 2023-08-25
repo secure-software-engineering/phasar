@@ -154,21 +154,6 @@ InterMonoFullConstantPropagation::callToRetFlow(
   return In;
 }
 
-void InterMonoFullConstantPropagation::printNode(
-    llvm::raw_ostream &OS, InterMonoFullConstantPropagation::n_t Inst) const {
-  IntraMonoFullConstantPropagation::printNode(OS, Inst);
-}
-
-void InterMonoFullConstantPropagation::printDataFlowFact(
-    llvm::raw_ostream &OS, InterMonoFullConstantPropagation::d_t Fact) const {
-  IntraMonoFullConstantPropagation::printDataFlowFact(OS, Fact);
-}
-
-void InterMonoFullConstantPropagation::printFunction(
-    llvm::raw_ostream &OS, InterMonoFullConstantPropagation::f_t Fun) const {
-  IntraMonoFullConstantPropagation::printFunction(OS, Fun);
-}
-
 void InterMonoFullConstantPropagation::printContainer(
     llvm::raw_ostream &OS,
     InterMonoFullConstantPropagation::mono_container_t Con) const {

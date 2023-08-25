@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHBASE_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHBASE_H
+#ifndef PHASAR_CONTROLFLOW_CALLGRAPHBASE_H
+#define PHASAR_CONTROLFLOW_CALLGRAPHBASE_H
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -56,4 +56,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHBASE_H
+#endif // PHASAR_CONTROLFLOW_CALLGRAPHBASE_H

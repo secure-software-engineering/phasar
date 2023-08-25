@@ -14,10 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
 
@@ -43,9 +43,6 @@ public:
   using d_t = typename AnalysisDomainTy::d_t;
   using n_t = typename AnalysisDomainTy::n_t;
 
-private:
-  const IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
-
 protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
@@ -64,10 +61,7 @@ protected:
       NonEmptyLookupByTargetNode;
 
 public:
-  JumpFunctions(
-      const IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
-      : Problem(Problem) {}
-
+  JumpFunctions() noexcept = default;
   ~JumpFunctions() = default;
 
   JumpFunctions(const JumpFunctions &JFs) = default;
@@ -82,11 +76,9 @@ public:
   void addFunction(d_t SourceVal, n_t Target, d_t TargetVal,
                    EdgeFunction<l_t> EdgeFunc) {
     PHASAR_LOG_LEVEL(DEBUG, "Start adding new jump function");
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Fact at source : " << Problem.DtoString(SourceVal));
-    PHASAR_LOG_LEVEL(DEBUG,
-                     "Fact at target : " << Problem.DtoString(TargetVal));
-    PHASAR_LOG_LEVEL(DEBUG, "Destination    : " << Problem.NtoString(Target));
+    PHASAR_LOG_LEVEL(DEBUG, "Fact at source : " << DToString(SourceVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Fact at target : " << DToString(TargetVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Destination    : " << NToString(Target));
     PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EdgeFunc);
     // we do not store the default function (all-top)
     if (llvm::isa<AllTop<l_t>>(EdgeFunc)) {
@@ -207,12 +199,12 @@ public:
     OS << "\n*              Print all Jump Functions              *";
     OS << "\n******************************************************\n";
     for (auto &Entry : NonEmptyLookupByTargetNode) {
-      std::string NLabel = Problem.NtoString(Entry.first);
+      std::string NLabel = NToString(Entry.first);
       OS << "\nN: " << NLabel << "\n---" << std::string(NLabel.size(), '-')
          << '\n';
       for (auto Cell : Entry.second.cellSet()) {
-        OS << "D1: " << Problem.DtoString(Cell.r) << '\n'
-           << "\tD2: " << Problem.DtoString(Cell.c) << '\n'
+        OS << "D1: " << DToString(Cell.r) << '\n'
+           << "\tD2: " << DToString(Cell.c) << '\n'
            << "\tEF: " << Cell.v << "\n\n";
       }
     }
@@ -223,11 +215,11 @@ public:
           "EdgeFunctionPtrType>>\n";
     auto CellVec = NonEmptyReverseLookup.cellVec();
     for (auto Cell : CellVec) {
-      OS << "N : " << Problem.NtoString(Cell.r)
-         << "\nD1: " << Problem.DtoString(Cell.c) << '\n';
+      OS << "N : " << NToString(Cell.r) << "\nD1: " << DToString(Cell.c)
+         << '\n';
       for (auto D2ToEF : Cell.v) {
-        OS << "D2: " << Problem.DtoString(D2ToEF.first)
-           << "\nEF: " << D2ToEF.second << '\n';
+        OS << "D2: " << DToString(D2ToEF.first) << "\nEF: " << D2ToEF.second
+           << '\n';
       }
       OS << '\n';
     }
@@ -238,11 +230,11 @@ public:
           "EdgeFunctionPtrType>>\n";
     auto CellVec = NonEmptyForwardLookup.cellVec();
     for (auto Cell : CellVec) {
-      OS << "D1: " << Problem.DtoString(Cell.r)
-         << "\nN : " << Problem.NtoString(Cell.c) << '\n';
+      OS << "D1: " << DToString(Cell.r) << "\nN : " << NToString(Cell.c)
+         << '\n';
       for (auto D2ToEF : Cell.v) {
-        OS << "D2: " << Problem.DtoString(D2ToEF.first)
-           << "\nEF: " << D2ToEF.second << '\n';
+        OS << "D2: " << DToString(D2ToEF.first) << "\nEF: " << D2ToEF.second
+           << '\n';
       }
       OS << '\n';
     }
@@ -252,13 +244,12 @@ public:
     OS << "DUMP nonEmptyLookupByTargetNode\nstd::unordered_map<N, Table<D, D, "
           "EdgeFunctionPtrType>>\n";
     for (auto Node : NonEmptyLookupByTargetNode) {
-      OS << "\nN : " << Problem.NtoString(Node.first) << '\n';
+      OS << "\nN : " << NToString(Node.first) << '\n';
       auto Table = NonEmptyLookupByTargetNode[Node.first];
       auto CellVec = Table.cellVec();
       for (auto Cell : CellVec) {
-        OS << "D1: " << Problem.DtoString(Cell.r)
-           << "\nD2: " << Problem.DtoString(Cell.c) << "\nEF: " << Cell.v
-           << '\n';
+        OS << "D1: " << DToString(Cell.r) << "\nD2: " << DToString(Cell.c)
+           << "\nEF: " << Cell.v << '\n';
       }
       OS << '\n';
     }

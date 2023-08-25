@@ -73,19 +73,4 @@ bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t Fact) const {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
-void IFDSSignAnalysis::printNode(llvm::raw_ostream &OS,
-                                 IFDSSignAnalysis::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSSignAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                         IFDSSignAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IFDSSignAnalysis::printFunction(llvm::raw_ostream &OS,
-                                     IFDSSignAnalysis::f_t Func) const {
-  OS << Func->getName();
-}
-
 } // namespace psr

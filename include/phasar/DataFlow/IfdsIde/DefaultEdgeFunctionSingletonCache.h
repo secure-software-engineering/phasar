@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_DEFAULTEDGEFUNCTIONSINGLETONCACHE_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_DEFAULTEDGEFUNCTIONSINGLETONCACHE_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_DEFAULTEDGEFUNCTIONSINGLETONCACHE_H
+#define PHASAR_DATAFLOW_IFDSIDE_DEFAULTEDGEFUNCTIONSINGLETONCACHE_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
@@ -68,8 +68,9 @@ private:
       if (LHS == RHS) {
         return true;
       }
-      auto Empty = llvm::DenseMapInfo<const EdgeFunctionTy *>::getEmptyKey();
-      auto Tombstone =
+      const auto *Empty =
+          llvm::DenseMapInfo<const EdgeFunctionTy *>::getEmptyKey();
+      const auto *Tombstone =
           llvm::DenseMapInfo<const EdgeFunctionTy *>::getTombstoneKey();
       if (LHS == Empty || LHS == Tombstone || RHS == Empty ||
           RHS == Tombstone) {
@@ -114,4 +115,4 @@ public:
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_DEFAULTEDGEFUNCTIONSINGLETONCACHE_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_DEFAULTEDGEFUNCTIONSINGLETONCACHE_H

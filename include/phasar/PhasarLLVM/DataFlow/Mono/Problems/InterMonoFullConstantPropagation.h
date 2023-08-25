@@ -7,8 +7,8 @@
  *     Philipp Schubert, Linus Jungemann, and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
+#define PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTERMONOFULLCONSTANTPROPAGATION_H
 
 #include "phasar/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
@@ -74,12 +74,6 @@ public:
                 const mono_container_t &Rhs) override;
 
   std::unordered_map<n_t, mono_container_t> initialSeeds() override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
 
   void printContainer(llvm::raw_ostream &OS,
                       mono_container_t Con) const override;

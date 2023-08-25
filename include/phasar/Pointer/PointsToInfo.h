@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H
+#ifndef PHASAR_POINTER_POINTSTOINFO_H
+#define PHASAR_POINTER_POINTSTOINFO_H
 
 #include "phasar/Pointer/PointsToInfoBase.h"
 #include "phasar/Utils/ByRef.h"
@@ -264,4 +264,4 @@ public:
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H
+#endif // PHASAR_POINTER_POINTSTOINFO_H

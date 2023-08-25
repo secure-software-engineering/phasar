@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFLOWFUNCTIONS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFLOWFUNCTIONS_H
 
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
@@ -178,6 +178,12 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
       llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
       llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
+
+      if (ParamIt != ParamEnd && (*ParamIt).hasStructRetAttr()) {
+        // sret parameters are writeonly
+        ++ParamIt;
+        ++ArgIt;
+      }
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, ArgIt->get(), Source)) {

@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
+#define PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
@@ -69,13 +69,6 @@ public:
   mono_container_t normalFlow(n_t Inst, const mono_container_t &In) override;
 
   std::unordered_map<n_t, mono_container_t> initialSeeds() override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS,
-                     const llvm::Function *Fun) const override;
 };
 
 } // namespace psr

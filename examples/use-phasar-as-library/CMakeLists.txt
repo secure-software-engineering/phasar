@@ -19,7 +19,6 @@ link_directories(${PHASAR_LIBRARY_DIR})
 
 phasar_config(myphasartool)
 
-
 install(TARGETS myphasartool
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

@@ -95,7 +95,7 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation)
 
 LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
                            const nlohmann::json &SerializedPTS)
-    : PTA(*IRDB) {
+    : PTA(*IRDB, true) {
   assert(IRDB != nullptr);
   // Assume, we already have validated the json schema
 

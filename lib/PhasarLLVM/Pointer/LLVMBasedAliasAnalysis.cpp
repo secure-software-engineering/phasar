@@ -41,19 +41,20 @@ bool LLVMBasedAliasAnalysis::hasAliasInfo(const llvm::Function &Fun) const {
 }
 
 void LLVMBasedAliasAnalysis::computeAliasInfo(llvm::Function &Fun) {
+  assert(PImpl != nullptr);
   llvm::PreservedAnalyses PA = PImpl->FPM.run(Fun, PImpl->FAM);
   llvm::AAResults &AAR = PImpl->FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-void LLVMBasedAliasAnalysis::erase(llvm::Function *F) {
+void LLVMBasedAliasAnalysis::erase(llvm::Function *F) noexcept {
   // after we clear all stuff, we need to set it up for the next function-wise
   // analysis
   AAInfos.erase(F);
   PImpl->FAM.clear(*F, F->getName());
 }
 
-void LLVMBasedAliasAnalysis::clear() {
+void LLVMBasedAliasAnalysis::clear() noexcept {
   AAInfos.clear();
   PImpl->FAM.clear();
 }

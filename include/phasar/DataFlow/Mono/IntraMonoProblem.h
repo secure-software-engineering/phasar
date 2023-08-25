@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_INTRAMONOPROBLEM_H
+#ifndef PHASAR_DATAFLOW_MONO_INTRAMONOPROBLEM_H
+#define PHASAR_DATAFLOW_MONO_INTRAMONOPROBLEM_H
 
 #include "phasar/ControlFlow/CFGBase.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -35,10 +35,7 @@ struct HasNoConfigurationType;
 template <typename T, typename F> class TypeHierarchy;
 template <typename N, typename F> class CFG;
 
-template <typename AnalysisDomainTy>
-class IntraMonoProblem : public NodePrinter<AnalysisDomainTy>,
-                         public DataFlowFactPrinter<AnalysisDomainTy>,
-                         public FunctionPrinter<AnalysisDomainTy> {
+template <typename AnalysisDomainTy> class IntraMonoProblem {
 public:
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -72,7 +69,7 @@ public:
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
 
-  ~IntraMonoProblem() override = default;
+  virtual ~IntraMonoProblem() = default;
 
   virtual mono_container_t normalFlow(n_t Inst, const mono_container_t &In) = 0;
 

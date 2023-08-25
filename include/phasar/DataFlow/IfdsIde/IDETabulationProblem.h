@@ -39,12 +39,8 @@ struct HasNoConfigurationType;
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
-                             public NodePrinter<AnalysisDomainTy>,
-                             public DataFlowFactPrinter<AnalysisDomainTy>,
-                             public FunctionPrinter<AnalysisDomainTy>,
                              public EdgeFunctions<AnalysisDomainTy>,
-                             public JoinLattice<AnalysisDomainTy>,
-                             public EdgeFactPrinter<AnalysisDomainTy> {
+                             public JoinLattice<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -66,7 +62,7 @@ public:
     assert(IRDB != nullptr);
   }
 
-  virtual ~IDETabulationProblem() = default;
+  ~IDETabulationProblem() override = default;
 
   /// Returns an edge function that represents the top element of the analysis.
   virtual EdgeFunction<l_t> allTopFunction() = 0;

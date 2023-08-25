@@ -73,19 +73,4 @@ bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
-void IFDSSolverTest::printNode(llvm::raw_ostream &OS,
-                               IFDSSolverTest::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSSolverTest::printDataFlowFact(llvm::raw_ostream &OS,
-                                       IFDSSolverTest::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IFDSSolverTest::printFunction(llvm::raw_ostream &OS,
-                                   IFDSSolverTest::f_t Func) const {
-  OS << Func->getName();
-}
-
 } // namespace psr

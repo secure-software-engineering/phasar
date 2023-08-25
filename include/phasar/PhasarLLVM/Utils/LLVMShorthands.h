@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
-#define PHASAR_UTILS_LLVMSHORTHANDS_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
+#define PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 
 #include "phasar/Utils/Utilities.h"
 

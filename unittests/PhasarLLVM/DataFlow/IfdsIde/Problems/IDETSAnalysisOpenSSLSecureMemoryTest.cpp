@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
@@ -30,15 +31,15 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureMemoryTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::PhasarDirectory() +
-      "build/test/llvm_test_code/openssl/secure_memory/";
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("openssl/secure_memory/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   std::optional<HelperAnalyses> HA;
   OpenSSLSecureMemoryDescription Desc{};
-  std::optional<IDETypeStateAnalysis> TSProblem;
-  unique_ptr<IDESolver_P<IDETypeStateAnalysis>> Llvmtssolver;
+  std::optional<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>> TSProblem;
+  unique_ptr<IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>
+      Llvmtssolver;
 
   enum OpenSSLSecureMemoryState {
     TOP = 42,
@@ -51,12 +52,14 @@ protected:
   IDETSAnalysisOpenSSLSecureMemoryTest() = default;
   ~IDETSAnalysisOpenSSLSecureMemoryTest() override = default;
 
-  void initialize(const std::string &IRFile) {
+  void initialize(const llvm::Twine &&IRFile) {
     HA.emplace(IRFile, EntryPoints);
 
-    TSProblem =
-        createAnalysisProblem<IDETypeStateAnalysis>(*HA, &Desc, EntryPoints);
-    Llvmtssolver = make_unique<IDESolver_P<IDETypeStateAnalysis>>(
+    TSProblem = createAnalysisProblem<
+        IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>(*HA, &Desc,
+                                                              EntryPoints);
+    Llvmtssolver = make_unique<
+        IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>(
         *TSProblem, &HA->getICFG());
 
     Llvmtssolver->solve();
@@ -82,7 +85,7 @@ protected:
       for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
           Results.insert(std::pair<std::string, int>(
-              getMetaDataID(Result.first), Result.second));
+              getMetaDataID(Result.first), int(Result.second)));
         } // else {
         //   std::cout << "Unused result at " << InstToGroundTruth.first << ": "
         //             << llvmIRToShortString(Result.first) << " => "

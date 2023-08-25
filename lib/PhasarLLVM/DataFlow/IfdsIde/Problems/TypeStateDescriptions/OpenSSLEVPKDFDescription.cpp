@@ -9,6 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
+
 #include "llvm/Support/ErrorHandling.h"
 
 #include <map>
@@ -16,9 +18,8 @@
 namespace psr {
 
 // Return value is modeled as -1
-const std::map<std::string, std::set<int>>
-    OpenSSLEVPKDFDescription::OpenSSLEVPKDFFuncs = {{"EVP_KDF_fetch", {-1}},
-                                                    {"EVP_KDF_free", {0}}
+static const std::map<llvm::StringRef, std::set<int>> OpenSSLEVPKDFFuncs = {
+    {"EVP_KDF_fetch", {-1}}, {"EVP_KDF_free", {0}}
 
 };
 
@@ -28,44 +29,43 @@ const std::map<std::string, std::set<int>>
 // STAR = 2
 //
 // States: UNINIT = 0, KDF_FETCHED = 1, ERROR = 2, BOT = 3
-const OpenSSLEVPKDFDescription::OpenSSLEVPKDFState
-    OpenSSLEVPKDFDescription::Delta[3][4] = {
-        /* EVP_KDF_FETCH */
-        {OpenSSLEVPKDFState::KDF_FETCHED, OpenSSLEVPKDFState::ERROR,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED},
-        /* EVP_KDF_CTX_FREE */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::UNINIT,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+const OpenSSLEVPKDFState OpenSSLEVPKDFDescription::Delta[3][4] = {
+    /* EVP_KDF_FETCH */
+    {OpenSSLEVPKDFState::KDF_FETCHED, OpenSSLEVPKDFState::ERROR,
+     OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED},
+    /* EVP_KDF_CTX_FREE */
+    {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::UNINIT,
+     OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
 
-        /* STAR */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+    /* STAR */
+    {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED,
+     OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
 };
 
-bool OpenSSLEVPKDFDescription::isFactoryFunction(const std::string &F) const {
+bool OpenSSLEVPKDFDescription::isFactoryFunction(llvm::StringRef F) const {
   if (isAPIFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F).find(-1) != OpenSSLEVPKDFFuncs.at(F).end();
   }
   return false;
 }
 
-bool OpenSSLEVPKDFDescription::isConsumingFunction(const std::string &F) const {
+bool OpenSSLEVPKDFDescription::isConsumingFunction(llvm::StringRef F) const {
   if (isAPIFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F).find(-1) == OpenSSLEVPKDFFuncs.at(F).end();
   }
   return false;
 }
 
-bool OpenSSLEVPKDFDescription::isAPIFunction(const std::string &F) const {
+bool OpenSSLEVPKDFDescription::isAPIFunction(llvm::StringRef F) const {
   return OpenSSLEVPKDFFuncs.find(F) != OpenSSLEVPKDFFuncs.end();
 }
 
-TypeStateDescription::State
-OpenSSLEVPKDFDescription::getNextState(std::string Tok,
+OpenSSLEVPKDFState
+OpenSSLEVPKDFDescription::getNextState(llvm::StringRef Tok,
                                        TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
     auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
-        funcNameToToken(Tok))][S];
+        funcNameToToken(Tok))][int(S)];
     // std::cout << "Delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
     return Ret;
@@ -78,7 +78,7 @@ std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
 }
 
 std::set<int>
-OpenSSLEVPKDFDescription::getConsumerParamIdx(const std::string &F) const {
+OpenSSLEVPKDFDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (isConsumingFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F);
   }
@@ -86,7 +86,7 @@ OpenSSLEVPKDFDescription::getConsumerParamIdx(const std::string &F) const {
 }
 
 std::set<int>
-OpenSSLEVPKDFDescription::getFactoryParamIdx(const std::string &F) const {
+OpenSSLEVPKDFDescription::getFactoryParamIdx(llvm::StringRef F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value
     return {-1};
@@ -94,9 +94,8 @@ OpenSSLEVPKDFDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-std::string
-OpenSSLEVPKDFDescription::stateToString(TypeStateDescription::State S) const {
-  switch (S) {
+llvm::StringRef to_string(OpenSSLEVPKDFState State) noexcept {
+  switch (State) {
   case OpenSSLEVPKDFState::TOP:
     return "TOP";
   case OpenSSLEVPKDFState::UNINIT:
@@ -107,34 +106,32 @@ OpenSSLEVPKDFDescription::stateToString(TypeStateDescription::State S) const {
     return "ERROR";
   case OpenSSLEVPKDFState::BOT:
     return "BOT";
-  default:
-    llvm::report_fatal_error("received unknown state!");
-    break;
   }
+  llvm::report_fatal_error("received unknown state!");
 }
 
-TypeStateDescription::State OpenSSLEVPKDFDescription::bottom() const {
+OpenSSLEVPKDFState OpenSSLEVPKDFDescription::bottom() const {
   return OpenSSLEVPKDFState::BOT;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFDescription::top() const {
+OpenSSLEVPKDFState OpenSSLEVPKDFDescription::top() const {
   return OpenSSLEVPKDFState::TOP;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFDescription::uninit() const {
+OpenSSLEVPKDFState OpenSSLEVPKDFDescription::uninit() const {
   return OpenSSLEVPKDFState::UNINIT;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFDescription::start() const {
+OpenSSLEVPKDFState OpenSSLEVPKDFDescription::start() const {
   return OpenSSLEVPKDFState::KDF_FETCHED;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFDescription::error() const {
+OpenSSLEVPKDFState OpenSSLEVPKDFDescription::error() const {
   return OpenSSLEVPKDFState::ERROR;
 }
 
 OpenSSLEVPKDFDescription::OpenSSLEVTKDFToken
-OpenSSLEVPKDFDescription::funcNameToToken(const std::string &FuncName) {
+OpenSSLEVPKDFDescription::funcNameToToken(llvm::StringRef FuncName) {
   if (FuncName == "EVP_KDF_fetch") {
     return OpenSSLEVTKDFToken::EVP_KDF_FETCH;
   }

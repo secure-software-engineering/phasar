@@ -5,6 +5,8 @@ set(PHASAR_LINK_LIBS
   phasar_db
   phasar_llvm_db
   phasar_llvm_utils
+  phasar_controlflow
+  phasar_llvm_controlflow
 )
 
 set(LLVM_LINK_COMPONENTS

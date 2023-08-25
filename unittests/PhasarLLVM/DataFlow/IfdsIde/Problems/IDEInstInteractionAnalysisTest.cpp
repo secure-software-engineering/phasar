@@ -855,12 +855,8 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-  GTEST_SKIP()
-      << "This test heavily relies on the used stdlib(even between different "
-         "versions of the same stdlib), so we cannot have portable tests here";
-
-  // If we use libcxx this won't work since internal implementation is different
-  LIBCPP_GTEST_SKIP;
+  GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
+                  "add a better one";
 
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(

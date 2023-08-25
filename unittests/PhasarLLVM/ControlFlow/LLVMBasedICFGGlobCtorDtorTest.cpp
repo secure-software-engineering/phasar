@@ -178,9 +178,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
   // Solver.dumpResults();
 
-  auto *FooInit = IRDB.getInstruction(6);
-  auto *LoadX = IRDB.getInstruction(11);
-  auto *End = IRDB.getInstruction(13);
+  const auto *FooInit = IRDB.getInstruction(6);
+  const auto *LoadX = IRDB.getInstruction(11);
+  const auto *End = IRDB.getInstruction(13);
   const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
 
   auto FooValueAfterInit = Solver.resultAt(FooInit, Foo);
@@ -213,11 +213,11 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
   // Solver.dumpResults();
 
-  auto *FooInit = IRDB.getInstruction(7);
-  auto *BarInit = IRDB.getInstruction(11);
-  auto *LoadX = IRDB.getInstruction(20);
-  auto *LoadY = IRDB.getInstruction(21);
-  auto *End = IRDB.getInstruction(23);
+  const auto *FooInit = IRDB.getInstruction(7);
+  const auto *BarInit = IRDB.getInstruction(11);
+  const auto *LoadX = IRDB.getInstruction(20);
+  const auto *LoadY = IRDB.getInstruction(21);
+  const auto *End = IRDB.getInstruction(23);
   const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
   const auto *Bar = IRDB.getGlobalVariableDefinition("bar");
 
@@ -255,12 +255,12 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
   // Solver.dumpResults();
 
-  auto *FooInit = IRDB.getInstruction(7);
+  const auto *FooInit = IRDB.getInstruction(7);
   // FIXME Why is 10 missing in the results set?
-  auto *BarInit = IRDB.getInstruction(11);
-  auto *LoadX = IRDB.getInstruction(18);
-  auto *LoadY = IRDB.getInstruction(19);
-  auto *End = IRDB.getInstruction(21);
+  const auto *BarInit = IRDB.getInstruction(11);
+  const auto *LoadX = IRDB.getInstruction(18);
+  const auto *LoadY = IRDB.getInstruction(19);
+  const auto *End = IRDB.getInstruction(21);
   const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
   const auto *Bar = IRDB.getGlobalVariableDefinition("bar");
 
@@ -300,10 +300,10 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
   // Solver.dumpResults();
 
-  auto *FooGet = IRDB.getInstruction(17);
-  auto *LoadFoo = IRDB.getInstruction(16);
-  auto *LoadX = IRDB.getInstruction(34);
-  auto *End = IRDB.getInstruction(36);
+  const auto *FooGet = IRDB.getInstruction(17);
+  const auto *LoadFoo = IRDB.getInstruction(16);
+  const auto *LoadX = IRDB.getInstruction(34);
+  const auto *End = IRDB.getInstruction(36);
 
   auto FooValueAfterGet = Solver.resultAt(FooGet, LoadFoo);
 
@@ -333,10 +333,10 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   Solver.dumpResults();
 
-  auto *FooGet = IRDB.getInstruction(15);
-  auto *LoadFoo = IRDB.getInstruction(14);
-  auto *LoadX = IRDB.getInstruction(20);
-  auto *End = IRDB.getInstruction(22);
+  const auto *FooGet = IRDB.getInstruction(15);
+  const auto *LoadFoo = IRDB.getInstruction(14);
+  const auto *LoadX = IRDB.getInstruction(20);
+  const auto *End = IRDB.getInstruction(22);
 
   auto FooValueAfterGet = Solver.resultAt(FooGet, LoadFoo);
 
@@ -373,8 +373,8 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
   Solver.dumpResults();
 
   // FIXME: Why is the 27 missing in the results set?
-  auto *AfterGlobalInit = IRDB.getInstruction(4);
-  auto *AtMainPrintF = IRDB.getInstruction(29);
+  const auto *AfterGlobalInit = IRDB.getInstruction(4);
+  const auto *AtMainPrintF = IRDB.getInstruction(29);
 
   const auto *Foo = IRDB.getGlobalVariableDefinition("foo");
 

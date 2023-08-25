@@ -73,19 +73,4 @@ IntraMonoSolverTest::initialSeeds() {
   return {};
 }
 
-void IntraMonoSolverTest::printNode(llvm::raw_ostream &OS,
-                                    IntraMonoSolverTest::n_t Inst) const {
-  OS << llvmIRToString(Inst);
-}
-
-void IntraMonoSolverTest::printDataFlowFact(
-    llvm::raw_ostream &OS, IntraMonoSolverTest::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IntraMonoSolverTest::printFunction(llvm::raw_ostream &OS,
-                                        IntraMonoSolverTest::f_t Fun) const {
-  OS << Fun->getName();
-}
-
 } // namespace psr

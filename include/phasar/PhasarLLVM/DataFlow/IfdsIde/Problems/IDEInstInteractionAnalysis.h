@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
@@ -1135,23 +1135,6 @@ public:
 
   // Provide functionalities for printing things and emitting text reports.
 
-  void printNode(llvm::raw_ostream &OS, n_t n) const override {
-    OS << llvmIRToString(n);
-  }
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
-    OS << llvmIRToString(FlowFact);
-  }
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
-    OS << Fun->getName();
-  }
-
-  inline void printEdgeFact(llvm::raw_ostream &OS,
-                            l_t EdgeFact) const override {
-    printEdgeFactImpl(OS, EdgeFact);
-  }
-
   static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
     for (auto It = Res.begin(); It != Res.end();) {
       if (It->second.isBottom()) {
@@ -1178,11 +1161,11 @@ public:
         auto Results = SR.resultsAt(Inst, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
-          OS << "At IR statement: " << this->NtoString(Inst) << '\n';
+          OS << "At IR statement: " << NToString(Inst) << '\n';
           for (auto Result : Results) {
             if (!Result.second.isBottom()) {
-              OS << "   Fact: " << this->DtoString(Result.first)
-                 << "\n  Value: " << this->LtoString(Result.second) << '\n';
+              OS << "   Fact: " << DToString(Result.first)
+                 << "\n  Value: " << LToString(Result.second) << '\n';
             }
           }
           OS << '\n';

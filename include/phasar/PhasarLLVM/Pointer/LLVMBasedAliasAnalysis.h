@@ -46,18 +46,20 @@ public:
     return AAInfos.lookup(F);
   };
 
-  void erase(llvm::Function *F);
+  void erase(llvm::Function *F) noexcept;
 
-  void clear();
+  void clear() noexcept;
 
 private:
-  struct Impl;
-  std::unique_ptr<Impl> PImpl;
-  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
-
   [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
 
   void computeAliasInfo(llvm::Function &Fun);
+
+  // -- data members
+
+  struct Impl;
+  std::unique_ptr<Impl> PImpl;
+  llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
 };
 
 } // namespace psr

@@ -21,12 +21,11 @@
 namespace psr {
 
 // Return value is modeled as -1
-const std::map<std::string, std::set<int>>
-    OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
-        {"EVP_KDF_CTX_new", {-1}},
-        {"EVP_KDF_CTX_set_params", {0}},
-        {"EVP_KDF_derive", {0}},
-        {"EVP_KDF_CTX_free", {0}}
+static const std::map<llvm::StringRef, std::set<int>> OpenSSLEVPKDFFuncs = {
+    {"EVP_KDF_CTX_new", {-1}},
+    {"EVP_KDF_CTX_set_params", {0}},
+    {"EVP_KDF_derive", {0}},
+    {"EVP_KDF_CTX_free", {0}}
 
 };
 
@@ -39,86 +38,82 @@ const std::map<std::string, std::set<int>>
 //
 // States: UNINIT = 5, CTX_ATTACHED =1, PARAM_INIT = 2,
 // DERIVED = 3, ERROR = 4, BOT = 0
-const OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFState
-    OpenSSLEVPKDFCTXDescription::Delta[5][6] = {
+const OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::Delta[5][6] = {
 
-        /* EVP_KDF_CTX_NEW */
-        {OpenSSLEVPKDFState::CTX_ATTACHED, OpenSSLEVPKDFState::CTX_ATTACHED,
-         OpenSSLEVPKDFState::CTX_ATTACHED, OpenSSLEVPKDFState::CTX_ATTACHED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::CTX_ATTACHED},
-        /* EVP_KDF_CTX_SET_PARAMS */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::PARAM_INIT,
-         OpenSSLEVPKDFState::PARAM_INIT, OpenSSLEVPKDFState::PARAM_INIT,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
-        /* DERIVE */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR,
-         OpenSSLEVPKDFState::DERIVED, OpenSSLEVPKDFState::DERIVED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
-        /* EVP_KDF_CTX_FREE */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::UNINIT,
-         OpenSSLEVPKDFState::UNINIT, OpenSSLEVPKDFState::UNINIT,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
+    /* EVP_KDF_CTX_NEW */
+    {OpenSSLEVPKDFCTXState::CTX_ATTACHED, OpenSSLEVPKDFCTXState::CTX_ATTACHED,
+     OpenSSLEVPKDFCTXState::CTX_ATTACHED, OpenSSLEVPKDFCTXState::CTX_ATTACHED,
+     OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::CTX_ATTACHED},
+    /* EVP_KDF_CTX_SET_PARAMS */
+    {OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::PARAM_INIT,
+     OpenSSLEVPKDFCTXState::PARAM_INIT, OpenSSLEVPKDFCTXState::PARAM_INIT,
+     OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::ERROR},
+    /* DERIVE */
+    {OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::ERROR,
+     OpenSSLEVPKDFCTXState::DERIVED, OpenSSLEVPKDFCTXState::DERIVED,
+     OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::ERROR},
+    /* EVP_KDF_CTX_FREE */
+    {OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::UNINIT,
+     OpenSSLEVPKDFCTXState::UNINIT, OpenSSLEVPKDFCTXState::UNINIT,
+     OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::ERROR},
 
-        /* STAR */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::CTX_ATTACHED,
-         OpenSSLEVPKDFState::PARAM_INIT, OpenSSLEVPKDFState::DERIVED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
+    /* STAR */
+    {OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::CTX_ATTACHED,
+     OpenSSLEVPKDFCTXState::PARAM_INIT, OpenSSLEVPKDFCTXState::DERIVED,
+     OpenSSLEVPKDFCTXState::ERROR, OpenSSLEVPKDFCTXState::ERROR},
 };
 
-bool OpenSSLEVPKDFCTXDescription::isFactoryFunction(
-    const std::string &F) const {
+bool OpenSSLEVPKDFCTXDescription::isFactoryFunction(llvm::StringRef F) const {
   if (isAPIFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F).find(-1) != OpenSSLEVPKDFFuncs.at(F).end();
   }
   return false;
 }
 
-bool OpenSSLEVPKDFCTXDescription::isConsumingFunction(
-    const std::string &F) const {
+bool OpenSSLEVPKDFCTXDescription::isConsumingFunction(llvm::StringRef F) const {
   if (isAPIFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F).find(-1) == OpenSSLEVPKDFFuncs.at(F).end();
   }
   return false;
 }
 
-bool OpenSSLEVPKDFCTXDescription::isAPIFunction(const std::string &F) const {
+bool OpenSSLEVPKDFCTXDescription::isAPIFunction(llvm::StringRef F) const {
   return OpenSSLEVPKDFFuncs.find(F) != OpenSSLEVPKDFFuncs.end();
 }
 
-TypeStateDescription::State
-OpenSSLEVPKDFCTXDescription::getNextState(std::string Tok,
+OpenSSLEVPKDFCTXState
+OpenSSLEVPKDFCTXDescription::getNextState(llvm::StringRef Tok,
                                           TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
     auto NameToTok = funcNameToToken(Tok);
     auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
-        NameToTok)][S];
+        NameToTok)][int(S)];
 
     // std::cout << "delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
     return Ret;
   }
-  return OpenSSLEVPKDFState::BOT;
+  return OpenSSLEVPKDFCTXState::BOT;
 }
-TypeStateDescription::State OpenSSLEVPKDFCTXDescription::getNextState(
-    const std::string &Tok, TypeStateDescription::State S,
+OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::getNextState(
+    llvm::StringRef Tok, TypeStateDescription::State S,
     const llvm::CallBase *CallSite) const {
   if (isAPIFunction(Tok)) {
     auto NameToTok = funcNameToToken(Tok);
     auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
-        NameToTok)][S];
+        NameToTok)][int(S)];
 
     if (NameToTok == OpenSSLEVTKDFToken::EVP_KDF_CTX_NEW) {
       // require the kdf here to be in KDF_FETCHED state
 
       // requiredKDFState[make_pair(CS.getInstruction(), CS.getArgOperand(0))] =
-      //     (OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED);
+      //     (OpenSSLEVPKDFDescription::OpenSSLEVPKDFCTXState::KDF_FETCHED);
       // cout << "## Factory-Call: ";
       // cout.flush();
       // cout << llvmIRToShortString(CS.getInstruction()) << endl;
       auto KdfState =
           KDFAnalysisResults.resultAt(CallSite, CallSite->getArgOperand(0));
-      if (KdfState !=
-          OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED) {
+      if (KdfState != OpenSSLEVPKDFState::KDF_FETCHED) {
         return error();
       }
     }
@@ -126,7 +121,7 @@ TypeStateDescription::State OpenSSLEVPKDFCTXDescription::getNextState(
     //           << "] = " << stateToString(ret) << std::endl;
     return Ret;
   }
-  return OpenSSLEVPKDFState::BOT;
+  return OpenSSLEVPKDFCTXState::BOT;
 }
 
 std::string OpenSSLEVPKDFCTXDescription::getTypeNameOfInterest() const {
@@ -134,7 +129,7 @@ std::string OpenSSLEVPKDFCTXDescription::getTypeNameOfInterest() const {
 }
 
 std::set<int>
-OpenSSLEVPKDFCTXDescription::getConsumerParamIdx(const std::string &F) const {
+OpenSSLEVPKDFCTXDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (isConsumingFunction(F)) {
     return OpenSSLEVPKDFFuncs.at(F);
   }
@@ -142,7 +137,7 @@ OpenSSLEVPKDFCTXDescription::getConsumerParamIdx(const std::string &F) const {
 }
 
 std::set<int>
-OpenSSLEVPKDFCTXDescription::getFactoryParamIdx(const std::string &F) const {
+OpenSSLEVPKDFCTXDescription::getFactoryParamIdx(llvm::StringRef F) const {
   if (isFactoryFunction(F)) {
     // Trivial here, since we only generate via return value
     return {-1};
@@ -150,59 +145,57 @@ OpenSSLEVPKDFCTXDescription::getFactoryParamIdx(const std::string &F) const {
   return {};
 }
 
-std::string OpenSSLEVPKDFCTXDescription::stateToString(
-    TypeStateDescription::State S) const {
-  switch (S) {
-  case OpenSSLEVPKDFState::TOP:
+llvm::StringRef to_string(OpenSSLEVPKDFCTXState State) noexcept {
+  switch (State) {
+  case OpenSSLEVPKDFCTXState::TOP:
     return "TOP";
     break;
-  case OpenSSLEVPKDFState::UNINIT:
+  case OpenSSLEVPKDFCTXState::UNINIT:
     return "UNINIT";
     break;
 
-  case OpenSSLEVPKDFState::CTX_ATTACHED:
+  case OpenSSLEVPKDFCTXState::CTX_ATTACHED:
     return "CTX_ATTACHED";
     break;
-  case OpenSSLEVPKDFState::PARAM_INIT:
+  case OpenSSLEVPKDFCTXState::PARAM_INIT:
     return "PARAM_INIT";
     break;
-  case OpenSSLEVPKDFState::DERIVED:
+  case OpenSSLEVPKDFCTXState::DERIVED:
     return "DERIVED";
     break;
-  case OpenSSLEVPKDFState::ERROR:
+  case OpenSSLEVPKDFCTXState::ERROR:
     return "ERROR";
     break;
-  case OpenSSLEVPKDFState::BOT:
+  case OpenSSLEVPKDFCTXState::BOT:
     return "BOT";
     break;
-  default:
-    llvm::report_fatal_error("received unknown state!");
-    break;
   }
+
+  llvm::report_fatal_error("received unknown state!");
 }
 
-TypeStateDescription::State OpenSSLEVPKDFCTXDescription::bottom() const {
-  return OpenSSLEVPKDFState::BOT;
+OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::bottom() const {
+  return OpenSSLEVPKDFCTXState::BOT;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFCTXDescription::top() const {
-  return OpenSSLEVPKDFState::TOP;
+OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::top() const {
+  return OpenSSLEVPKDFCTXState::TOP;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFCTXDescription::uninit() const {
-  return OpenSSLEVPKDFState::UNINIT;
+OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::uninit() const {
+  return OpenSSLEVPKDFCTXState::UNINIT;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFCTXDescription::start() const {
-  return OpenSSLEVPKDFState::CTX_ATTACHED;
+OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::start() const {
+  return OpenSSLEVPKDFCTXState::CTX_ATTACHED;
 }
 
-TypeStateDescription::State OpenSSLEVPKDFCTXDescription::error() const {
-  return OpenSSLEVPKDFState::ERROR;
+OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::error() const {
+  return OpenSSLEVPKDFCTXState::ERROR;
 }
 
 OpenSSLEVPKDFCTXDescription::OpenSSLEVTKDFToken
-OpenSSLEVPKDFCTXDescription::funcNameToToken(const std::string &F) {
+OpenSSLEVPKDFCTXDescription::funcNameToToken(llvm::StringRef F) {
   if (F == "EVP_KDF_CTX_new") {
     return OpenSSLEVTKDFToken::EVP_KDF_CTX_NEW;
   }
