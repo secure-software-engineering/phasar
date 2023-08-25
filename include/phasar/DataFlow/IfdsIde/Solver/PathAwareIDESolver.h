@@ -31,7 +31,7 @@ public:
 
   explicit PathAwareIDESolver(
       IDETabulationProblem<domain_t, container_type> &Problem, const i_t *ICF)
-      : base_t(Problem, ICF), ESG(Problem.getZeroValue(), Problem, Problem) {
+      : base_t(Problem, ICF), ESG(Problem.getZeroValue()) {
 
     if (Problem.getIFDSIDESolverConfig().autoAddZero()) {
       PHASAR_LOG_LEVEL(

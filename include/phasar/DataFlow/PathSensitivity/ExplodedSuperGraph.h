@@ -158,12 +158,9 @@ public:
     const ExplodedSuperGraph *Owner{};
   };
 
-  explicit ExplodedSuperGraph(
-      d_t ZeroValue, const psr::NodePrinter<AnalysisDomainTy> &NPrinter,
-      const psr::DataFlowFactPrinter<AnalysisDomainTy>
-          &DPrinter) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : ZeroValue(std::move(ZeroValue)), NPrinter(NPrinter),
-        DPrinter(DPrinter) {}
+  explicit ExplodedSuperGraph(d_t ZeroValue) noexcept(
+      std::is_nothrow_move_constructible_v<d_t>)
+      : ZeroValue(std::move(ZeroValue)) {}
 
   explicit ExplodedSuperGraph(const ExplodedSuperGraph &) = default;
   ExplodedSuperGraph &operator=(const ExplodedSuperGraph &) = delete;
@@ -239,11 +236,11 @@ public:
     for (size_t I = 0, End = NodeDataOwner.size(); I != End; ++I) {
       auto Nod = NodeRef(I, this);
       OS << I << "[label=\"";
-      OS.write_escaped(DPrinter.DtoString(Nod.value())) << "\"];\n";
+      OS.write_escaped(DToString(Nod.value())) << "\"];\n";
 
       OS << I << "->" << intptr_t(Nod.predecessor().id())
          << R"([style="bold" label=")";
-      OS.write_escaped(NPrinter.NtoString(Nod.source())) << "\"];\n";
+      OS.write_escaped(NToString(Nod.source())) << "\"];\n";
       for (auto NB : Nod.neighbors()) {
         OS << I << "->" << NB.id() << "[color=\"red\"];\n";
       }
@@ -257,8 +254,8 @@ public:
 
   void printESGNodes(llvm::raw_ostream &OS) const {
     for (const auto &[Node, _] : FlowFactVertexMap) {
-      OS << "( " << NPrinter.NtoString(Node.first) << "; "
-         << DPrinter.DtoString(Node.second) << " )\n";
+      OS << "( " << NToString(Node.first) << "; " << DToString(Node.second)
+         << " )\n";
     }
   }
 
@@ -355,12 +352,11 @@ private:
           abort();
         }
         if (Nod == SuccVtxIt->second) {
-          PHASAR_LOG_LEVEL_CAT(INFO, "PathSensitivityManager",
-                               "> saveEdge -- skip meaningless loop: ("
-                                   << NPrinter.NtoString(Curr) << ", "
-                                   << DPrinter.DtoString(CurrNode) << ") --> ("
-                                   << NPrinter.NtoString(Succ) << ", "
-                                   << DPrinter.DtoString(SuccNode) << ")");
+          PHASAR_LOG_LEVEL_CAT(
+              INFO, "PathSensitivityManager",
+              "> saveEdge -- skip meaningless loop: ("
+                  << NToString(Curr) << ", " << DToString(CurrNode) << ") --> ("
+                  << NToString(Succ) << ", " << DToString(SuccNode) << ")");
           return;
         }
         Nod = NodeAdjOwner[Nod].PredecessorIdx;
@@ -396,10 +392,6 @@ private:
 
   // ZeroValue
   d_t ZeroValue;
-  // References to Node and DataFlowFactPrinters required for visualizing the
-  // results
-  const psr::NodePrinter<AnalysisDomainTy> &NPrinter;
-  const psr::DataFlowFactPrinter<AnalysisDomainTy> &DPrinter;
 };
 
 } // namespace psr
