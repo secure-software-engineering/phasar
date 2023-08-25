@@ -288,10 +288,15 @@ private:
     auto [SuccVtxIt, Inserted] = FlowFactVertexMap.try_emplace(
         std::make_pair(Succ, SuccNode), Node::NoPredId);
 
+    // Save a reference into the FlowFactVertexMap before the SuccVtxIt gets
+    // invalidated
+    auto &SuccVtxNode = SuccVtxIt->second;
+
     // NOLINTNEXTLINE(readability-identifier-naming)
     auto makeNode = [this, PredId, Curr, &CurrNode, &SuccNode]() mutable {
       assert(NodeAdjOwner.size() == NodeDataOwner.size());
       auto Ret = NodeDataOwner.size();
+
       auto &NodData = NodeDataOwner.emplace_back();
       auto &NodAdj = NodeAdjOwner.emplace_back();
       NodData.Value = SuccNode;
@@ -313,7 +318,7 @@ private:
       // We still want to create the destination node for the ret-FF later
       assert(PredId);
       if (Inserted) {
-        SuccVtxIt->second = makeNode();
+        SuccVtxNode = makeNode();
         NodeAdjOwner.back().PredecessorIdx = Node::NoPredId;
       }
       return;
@@ -325,51 +330,28 @@ private:
 
       // Identity edge, we don't need a new node; just assign the Pred here
       if (Inserted) {
-        SuccVtxIt->second = *PredId;
+        SuccVtxNode = *PredId;
         return;
       }
 
       // This edge has already been here?!
-      if (*PredId == SuccVtxIt->second) {
+      if (*PredId == SuccVtxNode) {
         return;
       }
     }
 
     if (Inserted) {
-      SuccVtxIt->second = makeNode();
+      SuccVtxNode = makeNode();
       return;
-    }
-
-    /// Check for meaningless loop:
-    if (auto Br = llvm::dyn_cast<llvm::BranchInst>(Curr);
-        SuccNode != ZeroValue && Br && !Br->isConditional()) {
-      auto Nod = PredId.value_or(Node::NoPredId);
-      llvm::SmallPtrSet<size_t, 4> VisitedNodes;
-      while (Nod != Node::NoPredId && NodeDataOwner[Nod].Value == SuccNode) {
-        if (LLVM_UNLIKELY(!VisitedNodes.insert(Nod).second)) {
-          printAsDot(llvm::errs());
-          llvm::errs().flush();
-          abort();
-        }
-        if (Nod == SuccVtxIt->second) {
-          PHASAR_LOG_LEVEL_CAT(
-              INFO, "PathSensitivityManager",
-              "> saveEdge -- skip meaningless loop: ("
-                  << NToString(Curr) << ", " << DToString(CurrNode) << ") --> ("
-                  << NToString(Succ) << ", " << DToString(SuccNode) << ")");
-          return;
-        }
-        Nod = NodeAdjOwner[Nod].PredecessorIdx;
-      }
     }
 
     // Node has already been created, but MaySkipEdge above prevented us from
     // connecting with the pred. Now, we have a non-skippable edge to connect to
-    NodeRef SuccVtx(SuccVtxIt->second, this);
+    NodeRef SuccVtx(SuccVtxNode, this);
     if (!SuccVtx.predecessor()) {
-      NodeAdjOwner[SuccVtxIt->second].PredecessorIdx =
+      NodeAdjOwner[SuccVtxNode].PredecessorIdx =
           PredId.value_or(Node::NoPredId);
-      NodeDataOwner[SuccVtxIt->second].Source = Curr;
+      NodeDataOwner[SuccVtxNode].Source = Curr;
       return;
     }
 
@@ -379,8 +361,9 @@ private:
                       [Pred = PredId.value_or(Node::NoPredId)](NodeRef Nd) {
                         return Nd.predecessor().id() == Pred;
                       })) {
+
       auto NewNode = makeNode();
-      NodeAdjOwner[SuccVtxIt->second].Neighbors.push_back(NewNode);
+      NodeAdjOwner[SuccVtxNode].Neighbors.push_back(NewNode);
       return;
     }
   }
