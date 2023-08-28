@@ -66,7 +66,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  bool isZeroValue(d_t Fact) const override;
+  bool isZeroValue(d_t Fact) const noexcept override;
 
   // in addition provide specifications for the IDE parts
 
