@@ -142,7 +142,7 @@ public:
    */
   [[nodiscard]] d_t createZeroValue() const;
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;

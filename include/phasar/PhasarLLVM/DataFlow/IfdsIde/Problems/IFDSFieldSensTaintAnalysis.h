@@ -81,7 +81,7 @@ public:
     return ExtendedValue(LLVMZeroValue::getInstance());
   }
 
-  [[nodiscard]] bool isZeroValue(ExtendedValue EV) const override {
+  [[nodiscard]] bool isZeroValue(ExtendedValue EV) const noexcept override {
     return LLVMZeroValue::isLLVMZeroValue(EV.getValue());
   }
 

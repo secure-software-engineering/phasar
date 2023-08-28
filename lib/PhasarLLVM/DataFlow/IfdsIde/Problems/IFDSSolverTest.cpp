@@ -30,26 +30,26 @@ IFDSSolverTest::IFDSSolverTest(const LLVMProjectIRDB *IRDB,
 IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t /*Curr*/,
                                       IFDSSolverTest::n_t /*Succ*/) {
-  return Identity<IFDSSolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
                                     IFDSSolverTest::f_t /*DestFun*/) {
-  return Identity<IFDSSolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSolverTest::FlowFunctionPtrType IFDSSolverTest::getRetFlowFunction(
     IFDSSolverTest::n_t /*CallSite*/, IFDSSolverTest::f_t /*CalleeFun*/,
     IFDSSolverTest::n_t /*ExitStmt*/, IFDSSolverTest::n_t /*RetSite*/) {
-  return Identity<IFDSSolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSolverTest::FlowFunctionPtrType
 IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t /*CallSite*/,
                                          IFDSSolverTest::n_t /*RetSite*/,
                                          llvm::ArrayRef<f_t> /*Callees*/) {
-  return Identity<IFDSSolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSolverTest::FlowFunctionPtrType
@@ -69,7 +69,7 @@ IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const {
+bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 

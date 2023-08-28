@@ -81,7 +81,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
   // in addition provide specifications for the IDE parts
 
@@ -104,14 +104,6 @@ public:
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
                                            n_t RetSite,
                                            d_t RetSiteNode) override;
-
-  l_t topElement() override;
-
-  l_t bottomElement() override;
-
-  l_t join(l_t Lhs, l_t Rhs) override;
-
-  EdgeFunction<l_t> allTopFunction() override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS) override;

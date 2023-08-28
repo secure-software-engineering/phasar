@@ -66,13 +66,8 @@ auto IDEExtendedTaintAnalysis::createZeroValue() const -> d_t {
   return FactFactory.getOrCreateZero();
 }
 
-bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const {
+bool IDEExtendedTaintAnalysis::isZeroValue(d_t Fact) const noexcept {
   return Fact->isZero();
-}
-
-IDEExtendedTaintAnalysis::EdgeFunctionType
-IDEExtendedTaintAnalysis::allTopFunction() {
-  return AllTop<l_t>{};
 }
 
 // Flow functions:
@@ -101,7 +96,7 @@ IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
   }
 
   if (const auto *Phi = llvm::dyn_cast<llvm::PHINode>(Curr)) {
-    return lambdaFlow<d_t>([this, Phi](d_t Source) -> std::set<d_t> {
+    return lambdaFlow([this, Phi](d_t Source) -> std::set<d_t> {
       auto NumOps = Phi->getNumIncomingValues();
       for (unsigned I = 0; I < NumOps; ++I) {
         if (equivalent(Source, makeFlowFact(Phi->getIncomingValue(I)))) {
@@ -113,7 +108,7 @@ IDEExtendedTaintAnalysis::getNormalFlowFunction(n_t Curr,
     });
   }
 
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
@@ -128,8 +123,8 @@ IDEExtendedTaintAnalysis::getStoreFF(const llvm::Value *PointerOp,
   AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS = nullptr;
 
   auto Mem = makeFlowFact(PointerOp);
-  return lambdaFlow<d_t>([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
-                          PALevel](d_t Source) mutable -> std::set<d_t> {
+  return lambdaFlow([this, TV, Mem, PTS, PointerOp, ValueOp, Store,
+                     PALevel](d_t Source) mutable -> std::set<d_t> {
     if (Source->isZero()) {
       std::set<d_t> Ret = {Source};
       generateFromZero(Ret, Store, PointerOp, ValueOp,
@@ -273,8 +268,8 @@ auto IDEExtendedTaintAnalysis::handleConfig(const llvm::Instruction *Inst,
     populateWithMayAliases(SourceConfig);
   }
 
-  return lambdaFlow<d_t>([Inst, this, SourceConfig{std::move(SourceConfig)},
-                          SinkConfig{std::move(SinkConfig)}](d_t Source) {
+  return lambdaFlow([Inst, this, SourceConfig{std::move(SourceConfig)},
+                     SinkConfig{std::move(SinkConfig)}](d_t Source) {
     std::set<d_t> Ret = {Source};
 
     if (Source->isZero()) {
@@ -299,14 +294,13 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
   const auto *Call = llvm::cast<llvm::CallBase>(CallStmt);
   assert(Call);
   if (DestFun->isDeclaration()) {
-    return Identity<d_t>::getInstance();
+    return identityFlow();
   }
 
   bool HasVarargs = Call->arg_size() > DestFun->arg_size();
   const auto *const VA = HasVarargs ? getVAListTagOrNull(DestFun) : nullptr;
 
-  return lambdaFlow<d_t>([this, Call, DestFun,
-                          VA](d_t Source) -> std::set<d_t> {
+  return lambdaFlow([this, Call, DestFun, VA](d_t Source) -> std::set<d_t> {
     if (isZeroValue(Source)) {
       return {Source};
     }
@@ -394,7 +388,7 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   if (!CallSite) {
     /// In case of unbalanced return, we may reach the artificial Global Ctor
     /// caller that has no caller
-    return killFlowIf<d_t>([](d_t Source) {
+    return killFlowIf([](d_t Source) {
       return !llvm::isa_and_nonnull<llvm::GlobalValue>(Source->base());
     });
   }
@@ -421,11 +415,11 @@ IDEExtendedTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
   };
 
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
-  return lambdaFlow<d_t>([this, Call, CalleeFun,
-                          ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
-                          PTC{ArgAliasCache(PT, Call->arg_size(),
-                                            HasPreciseAliasInfo)}](
-                             d_t Source) mutable -> std::set<d_t> {
+  return lambdaFlow([this, Call, CalleeFun,
+                     ExitStmt{llvm::cast<llvm::ReturnInst>(ExitStmt)},
+                     PTC{ArgAliasCache(PT, Call->arg_size(),
+                                       HasPreciseAliasInfo)}](
+                        d_t Source) mutable -> std::set<d_t> {
     if (isZeroValue(Source)) {
       return {Source};
     }
@@ -497,7 +491,7 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
   //   into
   //   // that function
 
-  //   return lambdaFlow<d_t>([CallSite, this](d_t Source) -> std::set<d_t>
+  //   return lambdaFlow([CallSite, this](d_t Source) -> std::set<d_t>
   //   {
   //     if (isZeroValue(Source)) {
   //       return {};
@@ -538,7 +532,7 @@ IDEExtendedTaintAnalysis::getCallToRetFlowFunction(
                   [](const llvm::Function *F) { return F->isDeclaration(); });
 
   if (HasDeclaration) {
-    return Identity<d_t>::getInstance();
+    return identityFlow();
   }
 
   return killFlow(getZeroValue());
@@ -763,16 +757,6 @@ void IDEExtendedTaintAnalysis::emitTextReport(
     }
   }
   OS << '\n';
-}
-
-// JoinLattice
-
-auto IDEExtendedTaintAnalysis::topElement() -> l_t { return Top{}; }
-
-auto IDEExtendedTaintAnalysis::bottomElement() -> l_t { return Bottom{}; }
-
-auto IDEExtendedTaintAnalysis::join(l_t LHS, l_t RHS) -> l_t {
-  return LHS.join(RHS, &BBO);
 }
 
 // Helpers:
