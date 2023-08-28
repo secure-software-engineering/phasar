@@ -360,27 +360,6 @@ FlowFunctionPtrType<D, Container> mapFactsToCaller(
 }
 
 //===----------------------------------------------------------------------===//
-// Propagation flow functions
-
-/// Utility function to simplify writing a flow function of the form:
-/// generateFlow(Load, from: Load->getPointerOperand()).
-template <typename Container = std::set<const llvm::Value *>>
-FlowFunctionPtrType<const llvm::Value *, Container>
-propagateLoad(const llvm::LoadInst *Load) {
-  return generateFlow<const llvm::Value *, Container>(
-      Load, Load->getPointerOperand());
-}
-
-/// Utility function to simplify writing a flow function of the form:
-/// generateFlow(Store->getValueOperand(), from: Store->getPointerOperand()).
-template <typename Container = std::set<const llvm::Value *>>
-FlowFunctionPtrType<const llvm::Value *, Container>
-propagateStore(const llvm::StoreInst *Store) {
-  return generateFlow<const llvm::Value *, Container>(
-      Store->getValueOperand(), Store->getPointerOperand());
-}
-
-//===----------------------------------------------------------------------===//
 // Update flow functions
 
 /// A flow function that models a strong update on a memory location modified by

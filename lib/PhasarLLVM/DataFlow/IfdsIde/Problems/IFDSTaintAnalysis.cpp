@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -184,17 +185,18 @@ void IFDSTaintAnalysis::populateWithMustAliases(
 static IFDSTaintAnalysis::FlowFunctionPtrType transferAndKillFlow(d_t To,
                                                                   d_t From) {
   if (From->hasNUsesOrMore(2)) {
-    return psr::transferFlow<d_t>(To, From);
+    return FlowFunctionTemplates<d_t, container_type>::transferFlow(To, From);
   }
-  return psr::lambdaFlow<d_t>([To, From](d_t Source) -> container_type {
-    if (Source == From) {
-      return {To};
-    }
-    if (Source == To) {
-      return {};
-    }
-    return {Source};
-  });
+  return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+      [To, From](d_t Source) -> container_type {
+        if (Source == From) {
+          return {To};
+        }
+        if (Source == To) {
+          return {};
+        }
+        return {Source};
+      });
 }
 
 static IFDSTaintAnalysis::FlowFunctionPtrType
@@ -204,7 +206,7 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
 
   if (KillFrom1) {
     if (KillFrom2) {
-      return psr::lambdaFlow<d_t>(
+      return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
           [To, From1, From2](d_t Source) -> container_type {
             if (Source == From1 || Source == From2) {
               return {To};
@@ -216,7 +218,7 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
           });
     }
 
-    return psr::lambdaFlow<d_t>(
+    return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
         [To, From1, From2](d_t Source) -> container_type {
           if (Source == From1) {
             return {To};
@@ -232,7 +234,7 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
   }
 
   if (KillFrom2) {
-    return psr::lambdaFlow<d_t>(
+    return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
         [To, From1, From2](d_t Source) -> container_type {
           if (Source == From1) {
             return {Source, To};
@@ -247,15 +249,16 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
         });
   }
 
-  return psr::lambdaFlow<d_t>([To, From1, From2](d_t Source) -> container_type {
-    if (Source == From1 || Source == From2) {
-      return {Source, To};
-    }
-    if (Source == To) {
-      return {};
-    }
-    return {Source};
-  });
+  return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+      [To, From1, From2](d_t Source) -> container_type {
+        if (Source == From1 || Source == From2) {
+          return {Source, To};
+        }
+        if (Source == To) {
+          return {};
+        }
+        return {Source};
+      });
 }
 
 auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
@@ -270,7 +273,7 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
       Gen.insert(Store->getValueOperand());
     }
 
-    return lambdaFlow<d_t>(
+    return lambdaFlow(
         [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
           if (Store->getPointerOperand() == Source) {
             return {};
@@ -303,11 +306,11 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
   }
 
   if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr)) {
-    return transferFlow<d_t>(Cast, Cast->getOperand(0));
+    return transferFlow(Cast, Cast->getOperand(0));
   }
 
   // Otherwise we do not care and leave everything as it is
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
@@ -318,7 +321,7 @@ auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   // The respective taints or leaks are then generated in the corresponding
   // call to return flow function.
   if (isSourceCall(CS, DestFun) || isSinkCall(CS, DestFun)) {
-    return killAllFlows<d_t>();
+    return killAllFlows();
   }
 
   // Map the actual into the formal parameters
@@ -369,7 +372,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
-    return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
+    return generateFlowIf(CallSite, [CS](d_t Source) {
       return ((Source == CS->getArgOperand(1)) ||
               (Source == CS->getArgOperand(3)));
     });
@@ -402,8 +405,8 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
-      return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
-                              this, CallSite](d_t Source) -> container_type {
+      return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
+                         CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           Leaks[CallSite].insert(Source);
         }
@@ -423,8 +426,8 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   // Gen nonempty
 
   Gen.insert(LLVMZeroValue::getInstance());
-  return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
-                          CallSite](d_t Source) -> container_type {
+  return lambdaFlow([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
+                     CallSite](d_t Source) -> container_type {
     if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }
@@ -467,7 +470,7 @@ auto IFDSTaintAnalysis::createZeroValue() const -> d_t {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const {
+bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
