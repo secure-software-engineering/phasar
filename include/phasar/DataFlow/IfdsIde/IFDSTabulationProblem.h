@@ -76,8 +76,6 @@ public:
                                            d_t /*SuccNode*/) final {
     return EdgeIdentity<l_t>{};
   }
-
-  EdgeFunction<l_t> allTopFunction() final { return AllTop<l_t>{}; }
 };
 } // namespace psr
 

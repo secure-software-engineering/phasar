@@ -55,13 +55,12 @@ auto IDETypeStateAnalysisBase::getNormalFlowFunction(n_t Curr, n_t /*Succ*/)
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     if (hasMatchingType(Gep->getPointerOperand())) {
-      return identityFlow<d_t>();
-      // return lambdaFlow<d_t>([=](d_t Source) -> std::set<d_t> {
-      //   // if (Source == Gep->getPointerOperand()) {
-      //   //  return {Source, Gep};
-      //   //}
-      //   return {Source};
-      // });
+      return lambdaFlow([=](d_t Source) -> std::set<d_t> {
+        // if (Source == Gep->getPointerOperand()) {
+        //  return {Source, Gep};
+        //}
+        return {Source};
+      });
     }
   }
   // Check store instructions for target type. Perform a strong update, i.e.
@@ -76,7 +75,7 @@ auto IDETypeStateAnalysisBase::getNormalFlowFunction(n_t Curr, n_t /*Succ*/)
           Curr->getFunction()->getName().str());
 
       RelevantAliasesAndAllocas.insert(Store->getValueOperand());
-      return lambdaFlow<d_t>(
+      return lambdaFlow(
           [Store, AliasesAndAllocas = std::move(RelevantAliasesAndAllocas)](
               d_t Source) -> container_type {
             // We kill all relevant loacal aliases and alloca's
@@ -93,7 +92,7 @@ auto IDETypeStateAnalysisBase::getNormalFlowFunction(n_t Curr, n_t /*Succ*/)
           });
     }
   }
-  return identityFlow<d_t>();
+  return identityFlow();
 }
 
 auto IDETypeStateAnalysisBase::getCallFlowFunction(n_t CallSite, f_t DestFun)
@@ -101,7 +100,7 @@ auto IDETypeStateAnalysisBase::getCallFlowFunction(n_t CallSite, f_t DestFun)
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
   if (isAPIFunction(llvm::demangle(DestFun->getName().str()))) {
-    return killAllFlows<d_t>();
+    return killAllFlows();
   }
   // Otherwise, if we have an ordinary function call, we can just use the
   // standard mapping.
@@ -116,10 +115,9 @@ auto IDETypeStateAnalysisBase::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
     -> FlowFunctionPtrType {
 
   /// TODO: Implement return-POI in LLVMFlowFunctions.h
-  return lambdaFlow<d_t>([this, CalleeFun,
-                          CS = llvm::cast<llvm::CallBase>(CallSite),
-                          Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)](
-                             d_t Source) -> container_type {
+  return lambdaFlow([this, CalleeFun, CS = llvm::cast<llvm::CallBase>(CallSite),
+                     Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)](
+                        d_t Source) -> container_type {
     if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return {Source};
     }
@@ -206,12 +204,12 @@ auto IDETypeStateAnalysisBase::getCallToRetFlowFunction(
     if (!isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
       for (const auto &Arg : CS->args()) {
         if (hasMatchingType(Arg)) {
-          return killManyFlows<d_t>(getWMAliasesAndAllocas(Arg.get()));
+          return killManyFlows(getWMAliasesAndAllocas(Arg.get()));
         }
       }
     }
   }
-  return identityFlow<d_t>();
+  return identityFlow();
 }
 
 auto IDETypeStateAnalysisBase::getSummaryFlowFunction(n_t /*CallSite*/,

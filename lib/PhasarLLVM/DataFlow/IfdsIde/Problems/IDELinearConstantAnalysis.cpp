@@ -304,7 +304,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
     if (Load->getType()->isIntegerTy()) {
-      return generateFlowIf<d_t>(Load, [Load](d_t Source) {
+      return generateFlowIf(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });
     }
@@ -313,7 +313,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
   if (llvm::isa<llvm::BinaryOperator>(Curr)) {
     auto *Lop = Curr->getOperand(0);
     auto *Rop = Curr->getOperand(1);
-    return generateFlowIf<d_t>(Curr, [this, Lop, Rop](d_t Source) {
+    return generateFlowIf(Curr, [this, Lop, Rop](d_t Source) {
       /// Intentionally include nonlinear operations here for being able to
       /// explicitly set them to BOTTOM in the edge function
       return (Lop == Source) || (Rop == Source) ||
@@ -331,12 +331,12 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     if (const auto *BinIntrinsic =
             llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Agg)) {
       if (Extract->getType()->isIntegerTy()) {
-        return generateFlow<d_t>(Curr, Agg);
+        return generateFlow(Curr, Agg);
       }
     }
   }
 
-  return identityFlow<d_t>();
+  return identityFlow();
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
@@ -351,7 +351,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun) {
     }
   }
   // Pass everything else as identity
-  return identityFlow<d_t>();
+  return identityFlow();
 }
 
 IDELinearConstantAnalysis::FlowFunctionPtrType
@@ -372,7 +372,7 @@ IDELinearConstantAnalysis::FlowFunctionPtrType
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     n_t CallSite, n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees) {
   if (llvm::all_of(Callees, [](f_t Fun) { return Fun->isDeclaration(); })) {
-    return identityFlow<d_t>();
+    return identityFlow();
   }
 
   return mapFactsAlongsideCallSite(
@@ -413,7 +413,7 @@ IDELinearConstantAnalysis::getSummaryFlowFunction(n_t Curr, f_t /*CalleeFun*/) {
     auto *Lop = BinIntrinsic->getLHS();
     auto *Rop = BinIntrinsic->getRHS();
 
-    return generateFlowIf<d_t>(BinIntrinsic, [this, Lop, Rop](d_t Source) {
+    return generateFlowIf(BinIntrinsic, [this, Lop, Rop](d_t Source) {
       /// Intentionally include nonlinear operations here for being able to
       /// explicitly set them to BOTTOM in the edge function
       return (Lop == Source) || (Rop == Source) ||
@@ -430,7 +430,7 @@ IDELinearConstantAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDELinearConstantAnalysis::isZeroValue(d_t Fact) const {
+bool IDELinearConstantAnalysis::isZeroValue(d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
@@ -562,10 +562,6 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
     }
   }
   return EdgeIdentity<l_t>{};
-}
-
-EdgeFunction<lca::l_t> IDELinearConstantAnalysis::allTopFunction() {
-  return AllTop<l_t>{};
 }
 
 void IDELinearConstantAnalysis::emitTextReport(

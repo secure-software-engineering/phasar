@@ -94,7 +94,7 @@ IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t Fact) const {
+bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
