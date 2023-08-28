@@ -207,7 +207,7 @@ auto IDETypeStateAnalysisBase::getCallToRetFlowFunction(
           return killManyFlows(getWMAliasesAndAllocas(Arg.get()));
         }
       }
-      return killFlowIf<d_t>(
+      return killFlowIf(
           [](d_t Source) { return llvm::isa<llvm::Constant>(Source); });
     }
   }
