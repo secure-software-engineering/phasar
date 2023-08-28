@@ -886,8 +886,8 @@ protected:
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this
     // condition
-    if (SolverConfig.followReturnsPastSeeds() && Inc.empty() &&
-        IDEProblem.isZeroValue(d1)) {
+    if (SolverConfig.followReturnsPastSeeds() && Inc.empty() /*&&
+        IDEProblem.isZeroValue(d1)*/) {
       const auto &Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
       for (n_t Caller : Callers) {
         for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
