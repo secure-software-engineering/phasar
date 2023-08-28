@@ -63,13 +63,13 @@ IDESecureHeapPropagation::IDESecureHeapPropagation(
 
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getNormalFlowFunction(n_t /*Curr*/, n_t /*Succ*/) {
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallFlowFunction(n_t /*CallSite*/,
                                               f_t /*DestMthd*/) {
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
@@ -77,7 +77,7 @@ IDESecureHeapPropagation::getRetFlowFunction(n_t /*CallSite*/,
                                              f_t /*CalleeMthd*/,
                                              n_t /*ExitInst*/,
                                              n_t /*RetSite*/) {
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
@@ -91,7 +91,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(
   if (FName == InitializerFn) {
     return generateFromZero(SecureHeapFact::INITIALIZED);
   }
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getSummaryFlowFunction(n_t /*CallSite*/,
@@ -110,7 +110,7 @@ IDESecureHeapPropagation::createZeroValue() const {
   return SecureHeapFact::ZERO;
 }
 
-bool IDESecureHeapPropagation::isZeroValue(d_t Fact) const {
+bool IDESecureHeapPropagation::isZeroValue(d_t Fact) const noexcept {
   return Fact == SecureHeapFact::ZERO;
 }
 
@@ -161,32 +161,6 @@ IDESecureHeapPropagation::getSummaryEdgeFunction(n_t /*CallSite*/,
                                                  n_t /*RetSite*/,
                                                  d_t /*RetSiteNode*/) {
   return nullptr;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::topElement() {
-  return l_t::TOP;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::bottomElement() {
-  return l_t::BOT;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::join(l_t Lhs, l_t Rhs) {
-  if (Lhs == Rhs) {
-    return Lhs;
-  }
-  if (Lhs == l_t::TOP) {
-    return Rhs;
-  }
-  if (Rhs == l_t::TOP) {
-    return Lhs;
-  }
-  return l_t::BOT;
-}
-
-EdgeFunction<IDESecureHeapPropagation::l_t>
-IDESecureHeapPropagation::allTopFunction() {
-  return AllTop<l_t>{};
 }
 
 void IDESecureHeapPropagation::emitTextReport(

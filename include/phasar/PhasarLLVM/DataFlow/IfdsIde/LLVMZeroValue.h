@@ -53,7 +53,7 @@ public:
   static const LLVMZeroValue *getInstance();
 
   // NOLINTNEXTLINE(readability-identifier-naming)
-  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) {
+  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) noexcept {
     return V == getInstance();
   };
 };
