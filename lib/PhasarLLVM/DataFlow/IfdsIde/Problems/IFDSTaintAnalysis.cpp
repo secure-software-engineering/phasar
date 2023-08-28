@@ -158,7 +158,7 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
     populateWithMayAliases(Gen, Store);
     Gen.insert(Store->getValueOperand());
 
-    return lambdaFlow<d_t>(
+    return lambdaFlow(
         [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
           if (Store->getValueOperand() == Source) {
             return Gen;
@@ -185,7 +185,7 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
   }
 
   if (const auto *Insert = llvm::dyn_cast<llvm::InsertValueInst>(Curr)) {
-    return lambdaFlow<d_t>([Insert](d_t Source) -> container_type {
+    return lambdaFlow([Insert](d_t Source) -> container_type {
       if (Source == Insert->getAggregateOperand() ||
           Source == Insert->getInsertedValueOperand()) {
         return {Source, Insert};
@@ -200,11 +200,11 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
   }
 
   if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr)) {
-    return transferFlow<d_t>(Cast, Cast->getOperand(0));
+    return transferFlow(Cast, Cast->getOperand(0));
   }
 
   // Otherwise we do not care and leave everything as it is
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
@@ -215,7 +215,7 @@ auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   // The respective taints or leaks are then generated in the corresponding
   // call to return flow function.
   if (isSourceCall(CS, DestFun) || isSinkCall(CS, DestFun)) {
-    return killAllFlows<d_t>();
+    return killAllFlows();
   }
 
   // Map the actual into the formal parameters
@@ -262,7 +262,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
-    return generateFlowIf<d_t>(CallSite, [CS](d_t Source) {
+    return generateFlowIf(CallSite, [CS](d_t Source) {
       return ((Source == CS->getArgOperand(1)) ||
               (Source == CS->getArgOperand(3)));
     });
@@ -295,8 +295,8 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
-      return lambdaFlow<d_t>([Leak{std::move(Leak)}, Kill{std::move(Kill)},
-                              this, CallSite](d_t Source) -> container_type {
+      return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
+                         CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           Leaks[CallSite].insert(Source);
         }
@@ -316,8 +316,8 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   // Gen nonempty
 
   Gen.insert(LLVMZeroValue::getInstance());
-  return lambdaFlow<d_t>([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
-                          CallSite](d_t Source) -> container_type {
+  return lambdaFlow([Gen{std::move(Gen)}, Leak{std::move(Leak)}, this,
+                     CallSite](d_t Source) -> container_type {
     if (LLVMZeroValue::isLLVMZeroValue(Source)) {
       return Gen;
     }
@@ -355,7 +355,7 @@ auto IFDSTaintAnalysis::createZeroValue() const -> d_t {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const {
+bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
