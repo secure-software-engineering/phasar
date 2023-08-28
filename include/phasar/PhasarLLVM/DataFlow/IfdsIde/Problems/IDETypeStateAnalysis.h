@@ -44,18 +44,29 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
 namespace detail {
-class IDETypeStateAnalysisBase {
+
+class IDETypeStateAnalysisBaseCommon : public LLVMAnalysisDomainDefault {
+public:
+  using container_type = std::set<d_t>;
+  using FlowFunctionPtrType = FlowFunctionPtrType<d_t, container_type>;
+};
+
+class IDETypeStateAnalysisBase
+    : private IDETypeStateAnalysisBaseCommon,
+      private FlowFunctionTemplates<
+          IDETypeStateAnalysisBaseCommon::d_t,
+          IDETypeStateAnalysisBaseCommon::container_type> {
 public:
   virtual ~IDETypeStateAnalysisBase() = default;
 
 protected:
   IDETypeStateAnalysisBase(LLVMAliasInfoRef PT) noexcept : PT(PT) {}
 
-  using d_t = const llvm::Value *;
-  using n_t = const llvm::Instruction *;
-  using f_t = const llvm::Function *;
-  using container_type = std::set<d_t>;
-  using FlowFunctionPtrType = FlowFunctionPtrType<d_t, container_type>;
+  using typename IDETypeStateAnalysisBaseCommon::container_type;
+  using typename IDETypeStateAnalysisBaseCommon::d_t;
+  using typename IDETypeStateAnalysisBaseCommon::f_t;
+  using typename IDETypeStateAnalysisBaseCommon::FlowFunctionPtrType;
+  using typename IDETypeStateAnalysisBaseCommon::n_t;
 
   // --- Flow Functions
 
@@ -115,7 +126,7 @@ protected:
 
 private:
   FlowFunctionPtrType generateFromZero(d_t FactToGenerate) {
-    return generateFlow<d_t>(FactToGenerate, LLVMZeroValue::getInstance());
+    return generateFlow(FactToGenerate, LLVMZeroValue::getInstance());
   }
 
   bool hasMatchingTypeName(const llvm::Type *Ty);
@@ -383,7 +394,7 @@ public:
     return LLVMZeroValue::getInstance();
   }
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override {
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override {
     return LLVMZeroValue::isLLVMZeroValue(Fact);
   }
 

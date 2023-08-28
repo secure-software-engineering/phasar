@@ -52,7 +52,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     // If the store instruction sets up or updates the vtable, i.e. value
     // operand is vtable pointer, ignore it!
     if (isTouchVTableInst(Store)) {
-      return Identity<IFDSConstAnalysis::d_t>::getInstance();
+      return identityFlow();
     }
 
     IFDSConstAnalysis::d_t PointerOp = Store->getPointerOperand();
@@ -86,7 +86,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
   } /* end store instruction */
 
   // Pass everything else as identity
-  return Identity<IFDSConstAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -96,7 +96,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
   // memset)
   if (llvm::isa<llvm::MemIntrinsic>(CallSite)) {
     PHASAR_LOG_LEVEL(DEBUG, "Call statement is a LLVM MemIntrinsic!");
-    return killAllFlows<d_t>();
+    return killAllFlows();
   }
   // Check if its a Call Instruction or an Invoke Instruction. If so, we
   // need to map all actual parameters into formal parameters.
@@ -110,7 +110,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t CallSite,
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
-  return Identity<IFDSConstAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType IFDSConstAnalysis::getRetFlowFunction(
@@ -151,7 +151,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t CallSite,
   }
 
   // Pass everything else as identity
-  return Identity<IFDSConstAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -173,7 +173,8 @@ IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSConstAnalysis::isZeroValue(IFDSConstAnalysis::d_t Fact) const {
+bool IFDSConstAnalysis::isZeroValue(
+    IFDSConstAnalysis::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 

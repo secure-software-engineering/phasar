@@ -94,7 +94,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
   // in addition provide specifications for the IDE parts
 
@@ -116,8 +116,6 @@ public:
 
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                            d_t SuccNode) override;
-
-  EdgeFunction<l_t> allTopFunction() override;
 
   // Helper functions
 
