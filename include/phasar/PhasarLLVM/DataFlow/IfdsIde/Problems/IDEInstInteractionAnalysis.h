@@ -523,7 +523,7 @@ public:
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
     if (CallSite == nullptr) {
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     auto MapFactsToCallerFF =
         mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
