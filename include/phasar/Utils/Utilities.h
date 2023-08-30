@@ -14,9 +14,12 @@
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <optional>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -176,7 +179,9 @@ private:
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
 // Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> struct Overloaded : Ts... {
+  using Ts::operator()...;
+};
 
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
@@ -264,6 +269,26 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   }
 
   return OS;
+}
+
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE void assertNotNull(const T &Value) {}
+
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE void assertNotNull(const std::optional<T> &Value) {
+  assert(Value.has_value());
+}
+
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE void assertNotNull(const T *Value) {
+  assert(Value != nullptr);
+}
+
+template <typename T> void assertAllNotNull(const T &Range) {
+  assertNotNull(Range);
+  for (const auto &Elem : Range) {
+    assertNotNull(Elem);
+  }
 }
 
 } // namespace psr
