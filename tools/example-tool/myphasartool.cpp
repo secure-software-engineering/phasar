@@ -40,6 +40,9 @@ int main(int Argc, const char **Argv) {
 
   HelperAnalyses HA(Argv[1], EntryPoints);
   DIBasedTypeHierarchy Test(HA.getProjectIRDB());
+  // TODO: alle type_hierarchy tests printen.
+  // Dann myphasartool reverten
+  // git checkout von myphasartool damit nicht noch ne Änderung dazukommt
   Test.print();
   return 0;
 }

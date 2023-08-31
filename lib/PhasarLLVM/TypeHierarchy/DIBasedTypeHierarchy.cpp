@@ -48,10 +48,10 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   }
 
   // Initialize the transitive closure matrix with all positions as false
-  llvm::BitVector InitVector(VertexTypes.size(), false);
+  TransitiveClosure.resize(VertexTypes.size());
 
-  for (size_t I = 0; I < VertexTypes.size(); I++) {
-    TransitiveClosure.push_back(InitVector);
+  for (auto &Curr : TransitiveClosure) {
+    Curr.resize(VertexTypes.size());
   }
 
   // find and save all derived types
@@ -64,19 +64,21 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
             TypeToVertex.end());
         const size_t ActualDerivedType =
             TypeToVertex[NameToType[DerivedType->getScope()->getName()]];
+
         assert(TypeToVertex.find(DerivedType->getBaseType()) !=
                TypeToVertex.end());
         size_t BaseTypeVertex = TypeToVertex[DerivedType->getBaseType()];
 
+        llvm::outs().flush();
         assert(TransitiveClosure.size() >= BaseTypeVertex);
         assert(TransitiveClosure.size() >= ActualDerivedType);
+
         TransitiveClosure[BaseTypeVertex][ActualDerivedType] = true;
 
         continue;
       }
     }
   }
-
   // Add transitive edges
   bool Change = true;
   size_t TCSize = TransitiveClosure.size();
@@ -133,12 +135,10 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // size of 3 (Indices: 0, 1, 2)
   VTableSize++;
 
-  std::vector<const llvm::Function *> Init = {};
   std::vector<std::vector<const llvm::Function *>> IndexToFunctions;
-  for (size_t I = 0; I < VTableSize; I++) {
-    IndexToFunctions.push_back(Init);
-  }
-  // get VTables
+  IndexToFunctions.resize(VertexTypes.size());
+
+  //  get VTables
   for (auto *Subprogram : Finder.subprograms()) {
     if (!Subprogram->getVirtuality()) {
       continue;
@@ -157,7 +157,17 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
       continue;
     }
 
-    IndexToFunctions[TypeIndex->getSecond()].push_back(FunctionToAdd);
+    const auto &VirtualIndex = Subprogram->getVirtualIndex();
+
+    if (IndexToFunctions[TypeIndex->getSecond()].size() <= VirtualIndex) {
+      IndexToFunctions[TypeIndex->getSecond()].resize(VirtualIndex);
+    }
+
+    if (IndexToFunctions[TypeIndex->getSecond()].size() <= VirtualIndex) {
+      IndexToFunctions[TypeIndex->getSecond()].resize(VirtualIndex + 1);
+    }
+
+    IndexToFunctions[TypeIndex->getSecond()][VirtualIndex] = FunctionToAdd;
   }
 
   for (auto &ToAdd : IndexToFunctions) {
@@ -261,6 +271,8 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
     for (const auto &Function : VTable.getAllFunctions()) {
       if (Function) {
         Names.push_back(Function->getName().str());
+      } else {
+        Names.push_back("<none>");
       }
     }
     // prints out all function names, seperated by comma, without a trailing
@@ -301,7 +313,11 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   OS << "digraph TypeHierarchy{\n";
 
   if (TransitiveClosure.size() != VertexTypes.size()) {
-    llvm::report_fatal_error("TransitiveClosure and VertexType size not equal");
+    llvm::outs() << "TC.size(): " << TransitiveClosure.size()
+                 << " VT.size(): " << VertexTypes.size();
+    llvm::outs().flush();
+    llvm::report_fatal_error(
+        "TransitiveClosure and VertexType size not equal.");
     return;
   }
 
