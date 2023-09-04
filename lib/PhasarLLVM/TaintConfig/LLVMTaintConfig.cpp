@@ -103,8 +103,6 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
             const auto Sinks = Idx.get<std::string>();
             if (Sinks == "all") {
               for (const auto &Arg : Fun->args()) {
-                llvm::outs() << "Current arg: " << Arg << "\n";
-                llvm::outs().flush();
                 addTaintCategory(&Arg, TaintCategory::Sink);
               }
             }
