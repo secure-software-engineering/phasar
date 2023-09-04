@@ -194,6 +194,7 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
   }
 
   auto &CTX = M.getContext();
+  bool Inserted = M.getFunction("__psrCRuntimeGlobalDtorsModel") == nullptr;
   auto *Cleanup = llvm::cast<llvm::Function>(
       M.getOrInsertFunction("__psrCRuntimeGlobalDtorsModel",
                             llvm::Type::getVoidTy(CTX))
@@ -213,7 +214,7 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
 
   IRB.CreateRetVoid();
 
-  return {Cleanup, true};
+  return {Cleanup, Inserted};
 }
 
 llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
@@ -232,6 +233,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
   }
 
   auto &CTX = M.getContext();
+  const auto CRuntimeModelNameInserted = M.getFunction(GlobalCRuntimeModelName) == nullptr;
   auto *GlobModel = llvm::cast<llvm::Function>(
       M.getOrInsertFunction(GlobalCRuntimeModelName,
                             /*retTy*/
@@ -334,7 +336,9 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     IRB.CreateRetVoid();
   }
 
-  IRDB->insertFunction(GlobModel);
+  if (CRuntimeModelNameInserted){
+    IRDB->insertFunction(GlobModel);
+  }
   ModulesToSlotTracker::updateMSTForModule(&M);
 
   return GlobModel;
