@@ -368,27 +368,31 @@ TEST_F(TaintConfigTest, FunMember_01_Json) {
   for (const auto &F : IR.getAllFunctions()) {
     if (F->getName().contains("foo")) {
       assert(F);
-      for (const auto &User : F->users()) {
+      for (const auto *const User : F->users()) {
         if (llvm::isa<llvm::CallBase>(User)) {
           ASSERT_TRUE(TConfig.isSource(User));
         }
       }
     } else if (F->getName().contains("bar")) {
       assert(F);
-      ASSERT_TRUE(TConfig.isSink(F->getArg(0)));
+      ASSERT_TRUE(TConfig.isSink(F->getArg(1)));
     }
   }
 }
 
 TEST_F(TaintConfigTest, FunMember_02_Json) {
+  llvm::outs() << "start\n";
+  llvm::outs().flush();
+
   const std::string File = "fun_member_02_cpp_dbg.ll";
   const std::string Config = "fun_member_02_config.json";
+
   auto JsonConfig =
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
+
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  llvm::outs() << TConfig << '\n';
   const llvm::Value *I1 = IR.getInstruction(18);
   const llvm::Value *I2 = IR.getInstruction(54);
   const llvm::Value *I3 = IR.getInstruction(63);
@@ -397,6 +401,7 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
   ASSERT_TRUE(TConfig.isSource(I2));
   ASSERT_TRUE(TConfig.isSource(I3));
   ASSERT_TRUE(TConfig.isSource(I4));
+
   const auto *DestructorX = IR.getFunction("_ZN1XD2Ev");
   assert(DestructorX);
   for (const auto *Arg = DestructorX->arg_begin();
