@@ -61,7 +61,7 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
 void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
                                       const TaintConfigData &Config) {
   for (const auto &FunDesc : Config.Functions) {
-    auto Name = FunDesc.Name;
+    const auto &Name = FunDesc.Name;
 
     auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
@@ -95,11 +95,9 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
       addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
     }
 
-    for (const auto &Idx : FunDesc.SinkStringValues) {
-      if (Idx == "all") {
-        for (const auto &Arg : Fun->args()) {
-          addTaintCategory(&Arg, TaintCategory::Sink);
-        }
+    if (FunDesc.HasAllSinkParam) {
+      for (const auto &Arg : Fun->args()) {
+        addTaintCategory(&Arg, TaintCategory::Sink);
       }
     }
 

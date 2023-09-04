@@ -24,8 +24,8 @@ struct FunctionData {
   std::string ReturnType;
   std::vector<int> SourceValues;
   std::vector<int> SinkValues;
-  std::vector<std::string> SinkStringValues;
   std::vector<int> SanitizerValues;
+  bool HasAllSinkParam = false;
 };
 
 struct VariableData {
@@ -38,15 +38,10 @@ struct VariableData {
 };
 
 struct TaintConfigData {
-  TaintConfigData() = default;
   explicit TaintConfigData(const std::string &Filepath);
 
   std::vector<FunctionData> Functions;
   std::vector<VariableData> Variables;
-
-  [[nodiscard]] std::vector<std::string> getAllFunctionNames() const;
-  [[nodiscard]] std::vector<std::string> getAllVariableLines() const;
-  [[nodiscard]] std::vector<std::string> getAllVariableCats() const;
 };
 
 } // namespace psr

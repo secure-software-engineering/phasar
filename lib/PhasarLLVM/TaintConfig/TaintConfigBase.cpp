@@ -7,9 +7,9 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <optional>
+#include "nlohmann/json-schema.hpp"
 
-#include <nlohmann/json-schema.hpp>
+#include <optional>
 
 llvm::StringRef psr::to_string(TaintCategory Cat) noexcept {
   switch (Cat) {
@@ -36,7 +36,9 @@ psr::TaintCategory psr::toTaintCategory(llvm::StringRef Str) noexcept {
 psr::TaintConfigData psr::parseTaintConfig(const llvm::Twine &Path) {
   auto Ret = parseTaintConfigOrNull(Path);
   if (!Ret) {
-    return {};
+    /*TODO: assertion oder error thrown*/
+    llvm::errs() << "ERROR: TaintConfigData is null\n";
+    abort();
   }
   return std::move(*Ret);
 }
