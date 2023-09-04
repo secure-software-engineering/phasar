@@ -380,6 +380,20 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
 
+bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
+  if (F.hasName()) {
+    llvm::StringRef FunctionName = F.getName();
+    if (FunctionName.equals("__psrCRuntimeGlobalCtorsModel") ||
+        FunctionName.equals("__psrCRuntimeGlobalDtorsModel") ||
+        FunctionName.equals("__psrGlobalDtorsCaller") ||
+        FunctionName.equals("__psrCRuntimeUserEntrySelector")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 [[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
   return IRDB->getAllFunctions();
 }
