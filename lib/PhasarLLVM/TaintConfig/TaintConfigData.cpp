@@ -54,38 +54,29 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
   }
 
   if (!TaintConfig) {
-    llvm::outs()
+    llvm::errs()
         << "[TaintConfigData::TaintConfigData()]: TaintConfigData is null!";
-    llvm::outs().flush();
     return;
   };
 
   nlohmann::json Config = *TaintConfig;
 
-  llvm::outs() << "before functions\n";
-  llvm::outs().flush();
   // handle functions
   if (Config.contains("functions")) {
     for (const auto &Func : Config["functions"]) {
       FunctionData Data = FunctionData();
       bool FuncPushBackFlag = false;
 
-      llvm::outs() << "name\n";
-      llvm::outs().flush();
       if (Func.contains("name")) {
         Data.Name = Func["name"].get<std::string>();
         FuncPushBackFlag = true;
       }
 
-      llvm::outs() << "ret\n";
-      llvm::outs().flush();
       if (Func.contains("ret")) {
         Data.ReturnType = Func["ret"].get<std::string>();
         FuncPushBackFlag = true;
       }
 
-      llvm::outs() << "source\n";
-      llvm::outs().flush();
       if (Func.contains("params") && Func["params"].contains("source")) {
         for (const auto &Curr : Func["params"]["source"]) {
           Data.SourceValues.push_back(Curr.get<int>());
@@ -93,28 +84,20 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
         FuncPushBackFlag = true;
       }
 
-      llvm::outs() << "sink\n";
-      llvm::outs().flush();
       if (Func.contains("params") && Func["params"].contains("sink")) {
         for (const auto &Curr : Func["params"]["sink"]) {
           if (Curr.is_number()) {
-            llvm::outs() << "i am number " << std::to_string(Curr.get<int>())
-                         << "\n";
-            llvm::outs().flush();
             Data.SinkValues.push_back(Curr.get<int>());
           } else if (Curr.is_string() && Curr.get<std::string>() == "all") {
             Data.HasAllSinkParam = true;
           } else {
-            llvm::outs() << "[TaintConfigData::TaintConfigData()]: "
+            llvm::errs() << "[TaintConfigData::TaintConfigData()]: "
                             "Unknown sink string parameter!";
-            llvm::outs().flush();
           }
         }
         FuncPushBackFlag = true;
       }
 
-      llvm::outs() << "sanitizer\n";
-      llvm::outs().flush();
       if (Func.contains("params") && Func["params"].contains("sanitizer")) {
         for (const auto &Curr : Func["params"]["sanitizer"]) {
           Data.SanitizerValues.push_back(Curr.get<int>());
@@ -128,8 +111,6 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
     }
   }
 
-  llvm::outs() << "before variables\n";
-  llvm::outs().flush();
   // handle variables
   if (Config.contains("variables")) {
     for (const auto &Var : Config["variables"]) {
@@ -159,9 +140,6 @@ TaintConfigData::TaintConfigData(const std::string &Filepath) {
       }
     }
   }
-
-  llvm::outs() << "all done\n";
-  llvm::outs().flush();
 }
 
 } // namespace psr

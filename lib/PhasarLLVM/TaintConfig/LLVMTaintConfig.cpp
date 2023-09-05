@@ -93,10 +93,6 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
         continue;
       }
 
-      llvm::outs() << "\nInLLVMTC\nFun->getArg(Idx): " << Fun->getArg(Idx)
-                   << "\n";
-      llvm::outs().flush();
-
       addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
     }
 
@@ -308,12 +304,6 @@ bool LLVMTaintConfig::isSourceImpl(const llvm::Value *V) const {
   return SourceValues.count(V);
 }
 bool LLVMTaintConfig::isSinkImpl(const llvm::Value *V) const {
-  llvm::outs() << "V val: " << V << "\n";
-  llvm::outs().flush();
-  for (const auto &Test : SinkValues) {
-    llvm::outs() << "Test: " << Test << "\n";
-    llvm::outs().flush();
-  }
   return SinkValues.count(V);
 }
 bool LLVMTaintConfig::isSanitizerImpl(const llvm::Value *V) const {
