@@ -44,13 +44,13 @@ public:
   /// Reads and parses the given LLVM IR file and owns the resulting IR Module
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
-  /// ownership. The module is not being preprocessed.
+  /// ownership. The module is optionally being preprocessed.
   ///
   /// CAUTION: Do not manage the same LLVM Module with multiple LLVMProjectIRDB
   /// instances at the same time! This will confuse the ModulesToSlotTracker
-  explicit LLVMProjectIRDB(llvm::Module *Mod);
+  explicit LLVMProjectIRDB(llvm::Module *Mod, bool DoPreprocessing = true);
   /// Initializes the new ProjectIRDB with the given IR Module and takes
-  /// ownership of it
+  /// ownership of it. The module is optionally being preprocessed.
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
   /// Parses the given LLVM IR file and owns the resulting IR Module

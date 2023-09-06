@@ -87,10 +87,16 @@ void LLVMProjectIRDB::preprocessModule(llvm::Module *NonConstMod) {
   assert(InstToId.size() == IdToInst.size());
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::Module *Mod) : Mod(Mod) {
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::Module *Mod, bool DoPreprocessing)
+    : Mod(Mod) {
   assert(Mod != nullptr);
   ModulesToSlotTracker::setMSTForModule(Mod);
-  initInstructionIds();
+
+  if (DoPreprocessing) {
+    preprocessModule(Mod);
+  } else {
+    initInstructionIds();
+  }
 }
 
 LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
