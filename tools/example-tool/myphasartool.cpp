@@ -17,9 +17,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/Logger.h"
 
 #include <filesystem>
 #include <string>
@@ -40,41 +38,31 @@ int main(int Argc, const char **Argv) {
   std::vector EntryPoints = {"main"s};
 
   HelperAnalyses HA(Argv[1], EntryPoints);
-  DIBasedTypeHierarchy Test(HA.getProjectIRDB());
-  // TODO: alle type_hierarchy tests printen.
-  // Dann myphasartool reverten
-  // git checkout von myphasartool damit nicht noch ne Änderung dazukommt
-  std::string Start = "../../test/llvm_test_code/type_hierarchies/"
-                      "type_hierarchy_";
-  std::string End = "_cpp_dbg.ll";
 
-  for (int I = 1; I <= 18; I++) {
-    HelperAnalyses Curr(Start + std::to_string(I) + End, EntryPoints);
-    DIBasedTypeHierarchy CurrDI(Curr.getProjectIRDB());
-    llvm::outs() << "\n--------------------------------------------\n"
-                 << Start + std::to_string(I) + End
-                 << "\n--------------------------------------------\n";
-    llvm::outs().flush();
-    CurrDI.print();
+  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
+    // print type hierarchy
+    HA.getTypeHierarchy().print();
+    // print points-to information
+    HA.getAliasInfo().print();
+    // print inter-procedural control-flow graph
+    HA.getICFG().print();
+
+    // IFDS template parametrization test
+    llvm::outs() << "Testing IFDS:\n";
+    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
+    IFDSSolver S(L, &HA.getICFG());
+    S.solve();
+    S.dumpResults();
+    // IDE template parametrization test
+    llvm::outs() << "Testing IDE:\n";
+    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+
+    // Alternative way of solving an IFDS/IDEProblem:
+    auto IDEResults = solveIDEProblem(M, HA.getICFG());
+    IDEResults.dumpResults(HA.getICFG(), M);
+
+  } else {
+    llvm::errs() << "error: file does not contain a 'main' function!\n";
   }
-
-  HelperAnalyses Twenty(Start + std::to_string(20) + End, EntryPoints);
-  DIBasedTypeHierarchy Curr1DI(Twenty.getProjectIRDB());
-  llvm::outs() << "\n--------------------------------------------\n"
-               << Start + std::to_string(20) + End
-               << "\n--------------------------------------------\n";
-  llvm::outs().flush();
-  Curr1DI.print();
-  HelperAnalyses Curr2(Start + std::to_string(21) + End, EntryPoints);
-  DIBasedTypeHierarchy Curr2DI(Curr2.getProjectIRDB());
-  llvm::outs() << "\n--------------------------------------------\n"
-               << Start + std::to_string(21) + End << "\n"
-               << "\n--------------------------------------------\n";
-  llvm::outs().flush();
-  Curr2DI.print();
-
-  llvm::outs() << "All done\n";
-  llvm::outs().flush();
-
   return 0;
 }

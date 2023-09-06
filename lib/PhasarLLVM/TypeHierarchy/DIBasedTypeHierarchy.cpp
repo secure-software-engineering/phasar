@@ -292,7 +292,6 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   if (TransitiveClosure.size() != VertexTypes.size()) {
     llvm::errs() << "TC.size(): " << TransitiveClosure.size()
                  << " VT.size(): " << VertexTypes.size();
-    llvm::errs().flush();
     llvm::report_fatal_error(
         "TransitiveClosure and VertexType size not equal.");
     return;
