@@ -160,10 +160,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     const auto &VirtualIndex = Subprogram->getVirtualIndex();
 
     if (IndexToFunctions[TypeIndex->getSecond()].size() <= VirtualIndex) {
-      IndexToFunctions[TypeIndex->getSecond()].resize(VirtualIndex);
-    }
-
-    if (IndexToFunctions[TypeIndex->getSecond()].size() <= VirtualIndex) {
       IndexToFunctions[TypeIndex->getSecond()].resize(VirtualIndex + 1);
     }
 
@@ -281,26 +277,7 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
     OS << "\n";
     TypeIndex++;
   }
-  /*
-    for (const auto &VTable : VTables) {
-      if (VTable.empty()) {
-        continue;
-      }
 
-      // get all function names for the llvm::interleaveComma function
-      llvm::SmallVector<std::string, 6> Names;
-      for (const auto &Function : VTable.getAllFunctions()) {
-        if (Function) {
-          Names.push_back(Function->getName().str());
-        }
-      }
-
-      // prints out all function names, seperated by comma, without a trailing
-      // comma
-      llvm::interleaveComma(Names, OS);
-
-      OS << "\n";
-    };*/
   OS << "\n";
 }
 
@@ -313,9 +290,9 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   OS << "digraph TypeHierarchy{\n";
 
   if (TransitiveClosure.size() != VertexTypes.size()) {
-    llvm::outs() << "TC.size(): " << TransitiveClosure.size()
+    llvm::errs() << "TC.size(): " << TransitiveClosure.size()
                  << " VT.size(): " << VertexTypes.size();
-    llvm::outs().flush();
+    llvm::errs().flush();
     llvm::report_fatal_error(
         "TransitiveClosure and VertexType size not equal.");
     return;
