@@ -15,6 +15,7 @@
 #include "phasar/Utils/EquivalenceClassMap.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 
@@ -185,6 +186,8 @@ public:
   operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
+    assertNotNull(Curr);
+    assertNotNull(Succ);
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Normal flow function factory call");
@@ -217,6 +220,8 @@ public:
   }
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) {
+    assertNotNull(CallSite);
+    assertNotNull(DestFun);
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call flow function factory call");
@@ -241,6 +246,10 @@ public:
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitInst, n_t RetSite) {
+    assertNotNull(CallSite);
+    assertNotNull(CalleeFun);
+    assertNotNull(ExitInst);
+    assertNotNull(RetSite);
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Return flow function factory call");
@@ -270,6 +279,9 @@ public:
 
   FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                                                llvm::ArrayRef<f_t> Callees) {
+    assertNotNull(CallSite);
+    assertNotNull(RetSite);
+    assertAllNotNull(Callees);
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return flow function factory call");
@@ -300,6 +312,8 @@ public:
   }
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun) {
+    assertNotNull(CallSite);
+    assertNotNull(DestFun);
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, Full);
     IF_LOG_ENABLED(
@@ -313,6 +327,9 @@ public:
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                           d_t SuccNode) {
+    assertNotNull(Curr);
+    assertNotNull(Succ);
+
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Normal edge function factory call");
@@ -357,6 +374,10 @@ public:
 
   EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
                                         f_t DestinationFunction, d_t DestNode) {
+
+    assertNotNull(CallSite);
+    assertNotNull(DestinationFunction);
+
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call edge function factory call");
@@ -387,6 +408,11 @@ public:
   EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
                                           n_t ExitInst, d_t ExitNode,
                                           n_t RetSite, d_t RetNode) {
+    assertNotNull(CallSite);
+    assertNotNull(CalleeFunction);
+    assertNotNull(ExitInst);
+    assertNotNull(RetSite);
+
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Return edge function factory call");
@@ -419,6 +445,10 @@ public:
   EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
                                              n_t RetSite, d_t RetSiteNode,
                                              llvm::ArrayRef<f_t> Callees) {
+    assertNotNull(CallSite);
+    assertNotNull(RetSite);
+    assertAllNotNull(Callees);
+
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Call-to-Return edge function factory call");
@@ -472,6 +502,9 @@ public:
 
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
                                            n_t RetSite, d_t RetSiteNode) {
+    assertNotNull(CallSite);
+    assertNotNull(RetSite);
+
     PAMM_GET_INSTANCE;
     IF_LOG_ENABLED(
         PHASAR_LOG_LEVEL(DEBUG, "Summary edge function factory call");
