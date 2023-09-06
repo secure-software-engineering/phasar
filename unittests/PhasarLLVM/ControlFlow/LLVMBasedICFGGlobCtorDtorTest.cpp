@@ -93,9 +93,10 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   // GlobalCtor->print(llvm::outs());
 
-  ensureFunctionOrdering(GlobalCtor, ICFG,
-                         {{"_GLOBAL__sub_I_globals_ctor_1.cpp", "main"},
-                          {"main", "__psrCRuntimeGlobalDtorsModel"}});
+  ensureFunctionOrdering(
+      GlobalCtor, ICFG,
+      {{"_GLOBAL__sub_I_globals_ctor_1.cpp", "main"},
+       {"main", LLVMBasedICFG::GlobalCRuntimeDtorModelName.str()}});
 }
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
@@ -144,10 +145,12 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
   ensureFunctionOrdering(
       GlobalCtor, ICFG,
       {{"_GLOBAL__sub_I_globals_dtor_1.cpp", "main"},
-       {"main", "__psrGlobalDtorsCaller.globals_dtor_1_cpp.ll"}});
+       {"main", LLVMBasedICFG::GlobalCRuntimeDtorsCallerName.str() +
+                    ".globals_dtor_1_cpp.ll"}});
 
   auto *GlobalDtor =
-      IRDB.getFunction("__psrGlobalDtorsCaller.globals_dtor_1_cpp.ll");
+      IRDB.getFunction(LLVMBasedICFG::GlobalCRuntimeDtorsCallerName.str() +
+                       ".globals_dtor_1_cpp.ll");
 
   ASSERT_NE(nullptr, GlobalDtor);
 

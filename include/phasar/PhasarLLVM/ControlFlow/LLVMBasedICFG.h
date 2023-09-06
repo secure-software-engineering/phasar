@@ -55,6 +55,15 @@ public:
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
       "__psrCRuntimeGlobalCtorsModel";
 
+  static constexpr llvm::StringLiteral GlobalCRuntimeDtorModelName =
+      "__psrCRuntimeGlobalDtorsModel";
+
+  static constexpr llvm::StringLiteral GlobalCRuntimeDtorsCallerName =
+      "__psrGlobalDtorsCaller";
+
+  static constexpr llvm::StringLiteral GlobalCRuntimeUserEntrySelectorName =
+      "__psrCRuntimeUserEntrySelector";
+
   /// Constructs the ICFG based on the given IRDB and the entry-points using a
   /// fixpoint iteration. This may take a long time.
   ///

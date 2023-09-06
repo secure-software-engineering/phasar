@@ -29,6 +29,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -383,12 +384,12 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
 bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
   if (F.hasName()) {
     llvm::StringRef FunctionName = F.getName();
-    if (FunctionName.equals("__psrCRuntimeGlobalCtorsModel") ||
-        FunctionName.equals("__psrCRuntimeGlobalDtorsModel") ||
-        FunctionName.equals("__psrGlobalDtorsCaller") ||
-        FunctionName.equals("__psrCRuntimeUserEntrySelector")) {
-      return true;
-    }
+    return llvm::StringSwitch<bool>(FunctionName)
+        .Case(GlobalCRuntimeModelName, true)
+        .Case(GlobalCRuntimeDtorModelName, true)
+        .Case(GlobalCRuntimeDtorsCallerName, true)
+        .Case(GlobalCRuntimeUserEntrySelectorName, true)
+        .Default(false);
   }
 
   return false;
