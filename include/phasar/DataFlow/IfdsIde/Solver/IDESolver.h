@@ -886,8 +886,9 @@ protected:
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this
     // condition
-    if (SolverConfig.followReturnsPastSeeds() && Inc.empty() &&
-        IDEProblem.isZeroValue(d1)) {
+    /// TODO: Add a check for "d1 is seed in functionOf(n)"
+    if (SolverConfig.followReturnsPastSeeds() && Inc.empty() /*&&
+        IDEProblem.isZeroValue(d1)*/) {
       const auto &Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
       for (n_t Caller : Callers) {
         for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
@@ -922,11 +923,8 @@ protected:
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
       if (Callers.empty()) {
-        FlowFunctionPtrType RetFunction =
-            CachedFlowEdgeFunctions.getRetFlowFunction(
-                nullptr, FunctionThatNeedsSummary, n, nullptr);
-        INC_COUNTER("FF Queries", 1, Full);
-        RetFunction->computeTargets(d2);
+        IDEProblem.applyUnbalancedRetFlowFunctionSideEffects(
+            FunctionThatNeedsSummary, n, d2);
       }
     }
   }
