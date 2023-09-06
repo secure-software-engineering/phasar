@@ -230,7 +230,7 @@ TEST_F(TaintConfigTest, Array_01_Json) {
   const std::string Config = "array_01_config.json";
 
   auto JsonConfig =
-      psr::TaintConfigData({PathToJsonTaintConfigTestCode.str() + Config});
+      psr::parseTaintConfig({PathToJsonTaintConfigTestCode.str() + Config});
 
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
 

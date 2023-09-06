@@ -38,8 +38,6 @@ struct VariableData {
 };
 
 struct TaintConfigData {
-  explicit TaintConfigData(const std::string &Filepath);
-
   std::vector<FunctionData> Functions;
   std::vector<VariableData> Variables;
 };

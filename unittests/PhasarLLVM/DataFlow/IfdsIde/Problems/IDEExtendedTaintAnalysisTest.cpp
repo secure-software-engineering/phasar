@@ -54,20 +54,19 @@ protected:
   IDETaintAnalysisTest() = default;
   ~IDETaintAnalysisTest() override = default;
 
-  void doAnalysis(const llvm::Twine &IRFile,
-                  const map<int, set<string>> &GroundTruth,
-                  std::variant<std::monostate, json *, CallBackPairTy> Config,
-                  bool DumpResults = false) {
+  void doAnalysis(
+      const llvm::Twine &IRFile, const map<int, set<string>> &GroundTruth,
+      std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
+      bool DumpResults = false) {
     HelperAnalyses HA(IRFile, EntryPoints);
 
     auto TC =
         std::visit(Overloaded{[&](std::monostate) {
                                 return LLVMTaintConfig(HA.getProjectIRDB());
                               },
-                              [&](json *JS) {
-                                TaintConfigData Data = TaintConfigData(*JS);
+                              [&](TaintConfigData *JS) {
                                 LLVMTaintConfig Ret =
-                                    LLVMTaintConfig(HA.getProjectIRDB(), Data);
+                                    LLVMTaintConfig(HA.getProjectIRDB(), *JS);
                                 if (DumpResults) {
                                   llvm::errs() << Ret << "\n";
                                 }
@@ -122,7 +121,20 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
 
   Gt[7] = {"6"};
 
-  json Config = R"!({
+  TaintConfigData Config;
+
+  FunctionData FuncDataMain;
+  FuncDataMain.Name = "main";
+  FuncDataMain.SourceValues.push_back(0);
+
+  FunctionData FuncDataPrint;
+  FuncDataPrint.Name = "_Z5printi";
+  FuncDataPrint.SinkValues.push_back(0);
+
+  Config.Functions.push_back(FuncDataMain);
+  Config.Functions.push_back(FuncDataPrint);
+
+  json Old = R"!({
     "name": "XTaintTest",
     "version": 1.0,
     "functions": [
