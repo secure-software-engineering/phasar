@@ -558,6 +558,12 @@ public:
   inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                                 n_t ExitInst,
                                                 n_t /* RetSite */) override {
+    // Unbalanced return handling.
+    // FIXME remove this when merged change to IDE solver
+    if (CallSite == nullptr) {
+      return killAllFlows<d_t>();
+    }
+
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
 
