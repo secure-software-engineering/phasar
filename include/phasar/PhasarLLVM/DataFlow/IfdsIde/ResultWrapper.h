@@ -17,9 +17,9 @@ template <typename n_t, typename d_t, typename l_t, typename ProblemTy>
 l_t resultAt(ProblemTy &Problem,
              const SolverResults<n_t, d_t, l_t> &Results,
              const llvm::Instruction *Stmt, const llvm::Value *RequestedVal,
-             bool InLLVMSSA) {
+             bool InLLVMSSA, bool AllowOverapproximation = false) {
   const auto &ResultsAtStmt =
-      InLLVMSSA ? Results.resultsAtInLLVMSSA(Stmt) : Results.resultsAt(Stmt);
+      InLLVMSSA ? Results.resultsAtInLLVMSSA(Stmt, AllowOverapproximation) : Results.resultsAt(Stmt);
   l_t Result{};
   for (const auto &[ResultFact, ResultVal] : ResultsAtStmt) {
     if (factMatchesLLVMValue(ResultFact, RequestedVal)) {
