@@ -15,6 +15,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -31,10 +32,22 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/OperandTraits.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <cstdint>
+#include <memory>
+#include <new>
 #include <utility>
+
+namespace llvm {
+
+template <>
+struct OperandTraits<psr::LLVMBasedICFG::FakeTerminatorInst>
+    : public FixedNumOperandTraits<psr::LLVMBasedICFG::FakeTerminatorInst, 0> {
+};
+} // namespace llvm
 
 namespace psr {
 struct LLVMBasedICFG::Builder {
@@ -349,17 +362,20 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
       "Starting ICFG construction "
           << std::chrono::steady_clock::now().time_since_epoch().count());
 
-  this->CG = B.buildCallGraph(S);
+  CG = B.buildCallGraph(S);
 
   PHASAR_LOG_LEVEL_CAT(
       INFO, "LLVMBasedICFG",
       "Finished ICFG construction "
           << std::chrono::steady_clock::now().time_since_epoch().count());
+
+  FakeInstructions = createFakeInstructions(CG);
 }
 
 LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
                              LLVMTypeHierarchy *TH)
-    : CG(std::move(CG)), IRDB(IRDB), TH(TH) {
+    : CG(std::move(CG)), IRDB(IRDB), TH(TH),
+      FakeInstructions(createFakeInstructions(this->CG)) {
   if (!TH) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
@@ -372,7 +388,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
           SerializedCG,
           [IRDB](llvm::StringRef Name) { return IRDB->getFunction(Name); },
           [IRDB](size_t Id) { return IRDB->getInstruction(Id); })),
-      IRDB(IRDB) {
+      IRDB(IRDB), FakeInstructions{createFakeInstructions(CG)} {
   if (!TH) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
   }
@@ -442,5 +458,59 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
 }
+
+// ------------------------------------------------
+//  Fake Instructions
+//
+
+LLVMBasedICFG::FakeTerminatorInst::FakeTerminatorInst(
+    llvm::LLVMContext &Ctx, const llvm::Instruction *OrigTerminator)
+    : llvm::Instruction(
+          llvm::Type::getVoidTy(Ctx), llvm::Instruction::OtherOpsEnd,
+          llvm::OperandTraits<FakeTerminatorInst>::op_end(this), 0),
+      OrigTerminator(OrigTerminator) {
+  assert(OrigTerminator != nullptr);
+}
+
+void LLVMBasedICFG::FakeTerminatorInstHolder::Deleter::operator()(
+    FakeTerminatorInst *Begin) const noexcept {
+  std::destroy_n(Begin, Sz);
+  ::operator delete (Begin, std::align_val_t{alignof(FakeTerminatorInst)});
+};
+
+auto LLVMBasedICFG::createFakeInstructions(const CallGraph<n_t, f_t> &CG)
+    -> FakeTerminatorInstHolder {
+  FakeTerminatorInstHolder Holder;
+
+  auto &Ctx = IRDB->getModule()->getContext();
+
+  llvm::SmallVector<const llvm::Instruction *> InvokeInsts;
+
+  for (const auto *Inst : CG.getAllVertexCallSites()) {
+    if (const auto *Invk = llvm::dyn_cast<llvm::InvokeInst>(Inst);
+        Invk && !Invk->getType()->isVoidTy()) {
+      InvokeInsts.push_back(Invk);
+    }
+  }
+
+  auto *RawData =
+      ::operator new (InvokeInsts.size() * sizeof(FakeTerminatorInst),
+                      std::align_val_t{alignof(FakeTerminatorInst)});
+
+  auto *RawInstData = static_cast<FakeTerminatorInst *>(RawData);
+  Holder.Data = FakeTerminatorInstHolder::UniquePtrTy(
+      RawInstData, FakeTerminatorInstHolder::Deleter(InvokeInsts.size()));
+
+  for (const auto *Invk : InvokeInsts) {
+    ::new (RawInstData) FakeTerminatorInst(Ctx, Invk);
+    ++RawInstData;
+  }
+
+  return Holder;
+}
+
+using namespace llvm;
+DEFINE_TRANSPARENT_OPERAND_ACCESSORS(LLVMBasedICFG::FakeTerminatorInst,
+                                     llvm::Value)
 
 } // namespace psr

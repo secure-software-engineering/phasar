@@ -32,7 +32,9 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/OperandTraits.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
@@ -52,6 +54,35 @@ class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   struct Builder;
 
 public:
+  class FakeTerminatorInst : public llvm::Instruction {
+  public:
+    [[nodiscard]] const auto *getOriginalTerminator() const noexcept {
+      return OrigTerminator;
+    }
+
+    static bool classof(const llvm::Instruction * /*Inst*/) noexcept {
+      llvm::report_fatal_error(
+          "The FakeTerminatorInst is not embedded within "
+          "the llvm::Instruction hierarchy! To perform a runtime typecheck "
+          "regarding FakeTerminatorInst, use the isFakeNode() and "
+          "getFakeNodeOrNull() APIs from your respective LLVMBasedICFG "
+          "instead!");
+      return false;
+    }
+
+    using Use = llvm::Use;
+
+    DECLARE_TRANSPARENT_OPERAND_ACCESSORS(Value);
+
+    FakeTerminatorInst(llvm::LLVMContext &Ctx,
+                       const llvm::Instruction *OrigTerminator);
+
+  private:
+    // friend LLVMBasedICFG;
+
+    const llvm::Instruction *OrigTerminator{};
+  };
+
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
       "__psrCRuntimeGlobalCtorsModel";
 
@@ -119,6 +150,17 @@ public:
   /// Gets the underlying IRDB
   [[nodiscard]] LLVMProjectIRDB *getIRDB() const noexcept { return IRDB; }
 
+  [[nodiscard]] bool isFakeNode(n_t Node) const noexcept {
+    return FakeInstructions.member(Node);
+  }
+
+  [[nodiscard]] const FakeTerminatorInst *
+  getFakeNodeOrNull(n_t Node) const noexcept {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+    return isFakeNode(Node) ? static_cast<const FakeTerminatorInst *>(Node)
+                            : nullptr;
+  }
+
   using CFGBase::print;
   using ICFGBase::print;
 
@@ -126,6 +168,37 @@ public:
   using ICFGBase::getAsJson;
 
 private:
+  struct FakeTerminatorInstHolder {
+    // Note: Really wish being able to store a vector<FakeTerminatorInst>, but
+    // LLVM Instructions are not copyable/moveable and we need them to be
+    // contiguous for an efficient member() check
+
+    struct Deleter {
+      size_t Sz{};
+
+      Deleter() noexcept = default;
+      Deleter(size_t Sz) noexcept : Sz(Sz){};
+
+      void operator()(FakeTerminatorInst *Begin) const noexcept;
+    };
+
+    using UniquePtrTy = std::unique_ptr<FakeTerminatorInst, Deleter>;
+
+    UniquePtrTy Data{};
+
+    bool member(const llvm::Instruction *Inst) const noexcept {
+      if (!Inst) {
+        return false;
+      }
+      // Just to be sure, we are operating in the right domain...
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+      const auto *Cast = static_cast<const FakeTerminatorInst *>(Inst);
+      const auto *Begin = Data.get();
+      const auto *End = Begin + Data.get_deleter().Sz;
+      return Cast >= Begin && Cast < End;
+    }
+  };
+
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
 
@@ -144,11 +217,15 @@ private:
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
+  [[nodiscard]] FakeTerminatorInstHolder
+  createFakeInstructions(const CallGraph<n_t, f_t> &CG);
+
   // ---
 
   CallGraph<const llvm::Instruction *, const llvm::Function *> CG;
   LLVMProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
+  FakeTerminatorInstHolder FakeInstructions;
 };
 } // namespace psr
 
