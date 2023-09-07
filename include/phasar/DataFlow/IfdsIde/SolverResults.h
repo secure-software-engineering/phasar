@@ -14,8 +14,8 @@
  *      Author: rleer
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_SOLVERRESULTS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVERRESULTS_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVERRESULTS_H
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
@@ -51,13 +51,18 @@ public:
     return self().Results.get(Stmt, Node);
   }
 
-  [[nodiscard]] std::unordered_map<d_t, l_t>
-  resultsAt(ByConstRef<n_t> Stmt, bool StripZero = false) const {
+  [[nodiscard]] std::unordered_map<d_t, l_t> resultsAt(ByConstRef<n_t> Stmt,
+                                                       bool StripZero) const {
     std::unordered_map<d_t, l_t> Result = self().Results.row(Stmt);
     if (StripZero) {
       Result.erase(self().ZV);
     }
     return Result;
+  }
+
+  [[nodiscard]] const std::unordered_map<d_t, l_t> &
+  resultsAt(ByConstRef<n_t> Stmt) const {
+    return self().Results.row(Stmt);
   }
 
   // this function only exists for IFDS problems which use BinaryDomain as their
@@ -126,14 +131,12 @@ public:
   }
 
   template <typename ICFGTy>
-  void dumpResults(const ICFGTy &ICF, const NodePrinterBase<n_t> &NP,
-                   const DataFlowFactPrinterBase<d_t> &DP,
-                   const EdgeFactPrinterBase<l_t> &LP,
+  void dumpResults(const ICFGTy &ICF,
                    llvm::raw_ostream &OS = llvm::outs()) const {
     using f_t = typename ICFGTy::f_t;
 
     PAMM_GET_INSTANCE;
-    START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+    START_TIMER("DFA IDE Result Dumping", Full);
     OS << "\n***************************************************************\n"
        << "*                  Raw IDESolver results                      *\n"
        << "***************************************************************\n";
@@ -165,22 +168,16 @@ public:
         }
         if (Prev != Curr) {
           Prev = Curr;
-          std::string NString = NP.NtoString(Curr);
+          std::string NString = NToString(Curr);
           std::string Line(NString.size(), '-');
           OS << "\n\nN: " << NString << "\n---" << Line << '\n';
         }
-        OS << "\tD: " << DP.DtoString(Cells[I].getColumnKey())
-           << " | V: " << LP.LtoString(Cells[I].getValue()) << '\n';
+        OS << "\tD: " << DToString(Cells[I].getColumnKey())
+           << " | V: " << LToString(Cells[I].getValue()) << '\n';
       }
     }
     OS << '\n';
-    STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-  }
-
-  template <typename ICFGTy, typename ProblemTy>
-  void dumpResults(const ICFGTy &ICF, const ProblemTy &IDEProblem,
-                   llvm::raw_ostream &OS = llvm::outs()) const {
-    dumpResults(ICF, IDEProblem, IDEProblem, IDEProblem, OS);
+    STOP_TIMER("DFA IDE Result Dumping", Full);
   }
 
 private:

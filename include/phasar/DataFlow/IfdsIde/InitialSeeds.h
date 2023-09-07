@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_INITIALSEEDS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_INITIALSEEDS_H
+#define PHASAR_DATAFLOW_IFDSIDE_INITIALSEEDS_H
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -46,7 +46,7 @@ public:
   }
 
   void addSeed(N Node, D Fact, L Value) {
-    Seeds[Node][Fact] = std::move(Value);
+    Seeds[std::move(Node)].insert_or_assign(std::move(Fact), std::move(Value));
   }
 
   [[nodiscard]] size_t countInitialSeeds() const {

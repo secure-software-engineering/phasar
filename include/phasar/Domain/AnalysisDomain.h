@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
-#define PHASAR_PHASARLLVM_DOMAIN_ANALYSISDOMAIN_H
+#ifndef PHASAR_DOMAIN_ANALYSISDOMAIN_H
+#define PHASAR_DOMAIN_ANALYSISDOMAIN_H
 
 #include <type_traits>
 

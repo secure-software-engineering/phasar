@@ -144,9 +144,12 @@ auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
                                     << llvmIRToString(IndirectCall));
     }
   }
-  REG_COUNTER("CG Vertices", boost::num_vertices(ret),
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("CG Edges", boost::num_edges(ret), PAMM_SEVERITY_LEVEL::Full);
+
+  PAMM_GET_INSTANCE;
+  REG_COUNTER("CG Functions", CGBuilder.viewCallGraph().getNumVertexFunctions(),
+              Full);
+  REG_COUNTER("CG CallSites", CGBuilder.viewCallGraph().getNumVertexCallSites(),
+              Full);
   PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
                        "Call graph has been constructed");
   return CGBuilder.consumeCallGraph();

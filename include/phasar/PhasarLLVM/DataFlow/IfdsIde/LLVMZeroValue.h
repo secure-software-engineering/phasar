@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMZEROVALUE_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMZEROVALUE_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMZEROVALUE_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMZEROVALUE_H
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -53,7 +53,7 @@ public:
   static const LLVMZeroValue *getInstance();
 
   // NOLINTNEXTLINE(readability-identifier-naming)
-  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) {
+  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) noexcept {
     return V == getInstance();
   };
 };

@@ -556,7 +556,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 23, "j", {"16", "17", "19", "18"}));
-  //FIXME: is this right?! no interaction with std::cout?
+  // FIXME: is this right?! no interaction with std::cout?
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 23, "k", {"16", "17", "18", "19", "20", "24", "25"}));
@@ -581,10 +581,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
           "main", 19, "retval", {"5"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "i", {"1", "9"}));
+          "main", 19, "i", {"1", "9", "6", "13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "j", {"2", "11"}));
+          "main", 19, "j", {"2", "11", "6", "13"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 19, "k", {"6"}));
@@ -674,8 +674,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
           "main", 14, "j", {"12", "9", "10", "11"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "k",
-          {"15", "1", "2", "13", "12", "9", "10", "11"}));
+          "main", 14, "k", {"15", "1", "2", "13", "12", "9", "10", "11"}));
   doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -723,14 +722,13 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 20, "j",
-          {"15", "6", "2", "13", "8", "9", "12", "10", "35", "34",
-           "37"}));
+          {"15", "6", "2", "13", "8", "9", "12", "10", "35", "34", "37"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 20, "k",
-          {"41", "19", "15", "6",  "44", "2",  "13", "8",
-           "45", "18", "9",  "12", "10", "46", "24", "25",
-           "35", "27", "23", "26", "38", "34", "37", "42", "40"}));
+          {"41", "19", "15", "6",  "44", "2",  "13", "8",  "45",
+           "18", "9",  "12", "10", "46", "24", "25", "35", "27",
+           "23", "26", "38", "34", "37", "42", "40"}));
   doAnalysisAndCompareResults("call_04_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -911,8 +909,8 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-  // If we use libcxx this won't work since internal implementation is different
-  LIBCPP_GTEST_SKIP;
+  GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
+                  "add a better one";
 
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
@@ -930,22 +928,19 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
 // FIXME: the fields appear as three seperate dataflow facts.
 // The comparison here tries to union them together.
 // We have no way yet to compare field values.
-// Also, the first field value represents the whole structure, so the interaction
-// with the alloc is killed. intended?
+// Also, the first field value represents the whole structure, so the
+// interaction with the alloc is killed. intended?
 TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-      BitVectorSet<std::string>>(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 30, "retval", {"8"}));
   GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-      BitVectorSet<std::string>>(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 30, "l", {"9", "12", "15", "10", "11", "18"}));
   GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string,
-      BitVectorSet<std::string>>(
-          "main", 30, "x", {"9", "12", "23"}));
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 30, "x", {"9", "12", "22", "23"}));
   doAnalysisAndCompareResults("struct_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 

@@ -14,8 +14,8 @@
  *      Author: rleer
  */
 
-#ifndef PHASAR_UTILS_LLVMIRTOSRC_H_
-#define PHASAR_UTILS_LLVMIRTOSRC_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
+#define PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 
 #include "nlohmann/json.hpp"
 

@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H
+#define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/Utils/ByRef.h"
@@ -263,7 +263,7 @@ public:
       : EdgeFunction(
             [](auto &&...Args) {
               if constexpr (IsSOOCandidate<std::decay_t<ConcreteEF>>) {
-                void *Ret;
+                void *Ret = nullptr;
                 new (&Ret) ConcreteEF(std::forward<ArgTys>(Args)...);
                 return Ret;
               } else {
@@ -300,7 +300,7 @@ public:
                 new (&Ret) ConcreteEF(std::move(EF.EF));
                 return Ret;
               } else {
-                if (auto Mem = EF.Cache->lookup(EF.EF)) {
+                if (const auto *Mem = EF.Cache->lookup(EF.EF)) {
                   return static_cast<const RefCounted<ConcreteEF> *>(Mem);
                 }
 
@@ -804,4 +804,4 @@ struct CastInfo<To, const psr::EdgeFunction<L>>
 #endif
 } // namespace llvm
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H

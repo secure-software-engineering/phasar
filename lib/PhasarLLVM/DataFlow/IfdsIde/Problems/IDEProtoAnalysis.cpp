@@ -38,26 +38,26 @@ IDEProtoAnalysis::IDEProtoAnalysis(const LLVMProjectIRDB *IRDB,
 IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getNormalFlowFunction(IDEProtoAnalysis::n_t /*Curr*/,
                                         IDEProtoAnalysis::n_t /*Succ*/) {
-  return Identity<IDEProtoAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallFlowFunction(IDEProtoAnalysis::n_t /*CallSite*/,
                                       IDEProtoAnalysis::f_t /*DestFun*/) {
-  return Identity<IDEProtoAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType IDEProtoAnalysis::getRetFlowFunction(
     IDEProtoAnalysis::n_t /*CallSite*/, IDEProtoAnalysis::f_t /*CalleeFun*/,
     IDEProtoAnalysis::n_t /*ExitSite*/, IDEProtoAnalysis::n_t /*RetSite*/) {
-  return Identity<IDEProtoAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
 IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t /*CallSite*/,
                                            IDEProtoAnalysis::n_t /*RetSite*/,
                                            llvm::ArrayRef<f_t> /*Callees*/) {
-  return Identity<IDEProtoAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDEProtoAnalysis::FlowFunctionPtrType
@@ -79,7 +79,7 @@ IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t Fact) const {
+bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
@@ -139,26 +139,6 @@ IDEProtoAnalysis::l_t IDEProtoAnalysis::join(IDEProtoAnalysis::l_t /*Lhs*/,
 EdgeFunction<IDEProtoAnalysis::l_t> IDEProtoAnalysis::allTopFunction() {
   PHASAR_LOG_LEVEL(DEBUG, "IDEProtoAnalysis::allTopFunction()");
   return AllTop<l_t>{nullptr};
-}
-
-void IDEProtoAnalysis::printNode(llvm::raw_ostream &OS,
-                                 IDEProtoAnalysis::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IDEProtoAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                         IDEProtoAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IDEProtoAnalysis::printFunction(llvm::raw_ostream &OS,
-                                     IDEProtoAnalysis::f_t Func) const {
-  OS << Func->getName();
-}
-
-void IDEProtoAnalysis::printEdgeFact(llvm::raw_ostream &OS,
-                                     IDEProtoAnalysis::l_t L) const {
-  OS << llvmIRToString(L);
 }
 
 } // namespace psr

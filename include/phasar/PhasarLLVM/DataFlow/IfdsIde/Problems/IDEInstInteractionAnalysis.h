@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
@@ -241,7 +241,7 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return lambdaFlow<d_t>([Alloca, this](d_t Src) -> container_type {
+      return this->lambdaFlow([Alloca, this](d_t Src) -> container_type {
         container_type Facts = {Src};
         if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
           if (FlowFactGen) {
@@ -303,7 +303,7 @@ public:
         //                                          v  v  v  v
         //                                          0  c  x  I
         //
-        return lambdaFlow<d_t>([Br](d_t Src) {
+        return this->lambdaFlow([Br](d_t Src) {
           container_type Facts;
           Facts.insert(Src);
           if (Src == Br->getCondition()) {
@@ -333,7 +333,7 @@ public:
       //              v  v  v
       //              0  Y  x
       //
-      return lambdaFlow<d_t>([Load](d_t Source) -> container_type {
+      return this->lambdaFlow([Load](d_t Source) -> container_type {
         if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                 Load->getPointerOperand())) {
           const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
@@ -383,7 +383,7 @@ public:
       //             v  v  v
       //             0  x  Y
       //
-      return lambdaFlow<d_t>([Store, this](d_t Src) -> container_type {
+      return this->lambdaFlow([Store, this](d_t Src) -> container_type {
         if (Store->getPointerOperand() == Src) {
           if (Src.overwrittenByStore(Store, Store->getPointerOperand(), 0)) {
             return {};
@@ -453,7 +453,7 @@ public:
 
     // FIXME: handle gep here.
     if (llvm::isa<llvm::GetElementPtrInst>(Curr)) {
-      return lambdaFlow<d_t>([](d_t Src) -> container_type { return {Src}; });
+      return this->lambdaFlow([](d_t Src) -> container_type { return {Src}; });
     }
 
     // At last, we can handle all other (unary/binary) instructions.
@@ -468,7 +468,7 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-    return lambdaFlow<d_t>([Inst = Curr](d_t Src) {
+    return this->lambdaFlow([Inst = Curr](d_t Src) {
       container_type Facts;
       if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
         // keep the zero flow fact
@@ -502,11 +502,11 @@ public:
                                                  f_t DestFun) override {
     if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     if (DestFun->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
@@ -547,9 +547,9 @@ public:
     auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
 
     if (SRetFormal) {
-      return unionFlows(std::move(MapFactsToCalleeFF),
-                        generateFlowAndKillAllOthers(
-                            SRetFormal, this->getZeroValue())); // FIXMEMM
+      return this->unionFlows(std::move(MapFactsToCalleeFF),
+                              generateFlowAndKillAllOthers(
+                                  SRetFormal, this->getZeroValue())); // FIXMEMM
     }
 
     return MapFactsToCalleeFF;
@@ -558,12 +558,6 @@ public:
   inline FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                                 n_t ExitInst,
                                                 n_t /* RetSite */) override {
-    // Unbalanced return handling.
-    // FIXME remove this when merged change to IDE solver
-    if (CallSite == nullptr) {
-      return killAllFlows<d_t>();
-    }
-
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
 
@@ -632,9 +626,9 @@ public:
       }
     }
 
-    return lambdaFlow<d_t>([CallSite = llvm::cast<llvm::CallBase>(CallSite),
-                            OnlyDecls,
-                            AllVoidRetTys](d_t Source) -> container_type {
+    return this->lambdaFlow([CallSite = llvm::cast<llvm::CallBase>(CallSite),
+                             OnlyDecls,
+                             AllVoidRetTys](d_t Source) -> container_type {
       // There are a few things to consider, in case only declarations of
       // callee targets are available.
       if (OnlyDecls) {
@@ -713,7 +707,9 @@ public:
     return d_t::getNonIndirectionValue(LLVMZeroValue::getInstance()); // FIXMEMM
   }
 
-  inline bool isZeroValue(d_t d) const override { return isZeroValueImpl(d); }
+  inline bool isZeroValue(d_t d) const noexcept override {
+    return isZeroValueImpl(d);
+  }
 
   // In addition provide specifications for the IDE parts.
 
@@ -1107,8 +1103,6 @@ public:
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
-  inline EdgeFunctionType allTopFunction() override { return AllTop<l_t>(); }
-
   // Provide some handy helper edge functions to improve reuse.
 
   // Edge function that kills all labels in a set (and may replaces them with
@@ -1296,23 +1290,6 @@ public:
 
   // Provide functionalities for printing things and emitting text reports.
 
-  void printNode(llvm::raw_ostream &OS, n_t n) const override {
-    OS << llvmIRToString(n);
-  }
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
-    FlowFact.print(OS);
-  }
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
-    OS << Fun->getName();
-  }
-
-  inline void printEdgeFact(llvm::raw_ostream &OS,
-                            l_t EdgeFact) const override {
-    printEdgeFactImpl(OS, EdgeFact);
-  }
-
   static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
     for (auto It = Res.begin(); It != Res.end();) {
       if (It->second.isBottom()) {
@@ -1339,11 +1316,11 @@ public:
         auto Results = SR.resultsAt(Inst, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
-          OS << "At IR statement: " << this->NtoString(Inst) << '\n';
+          OS << "At IR statement: " << NToString(Inst) << '\n';
           for (auto Result : Results) {
             if (!Result.second.isBottom()) {
-              OS << "   Fact: " << this->DtoString(Result.first)
-                 << "\n  Value: " << this->LtoString(Result.second) << '\n';
+              OS << "   Fact: " << DToString(Result.first)
+                 << "\n  Value: " << LToString(Result.second) << '\n';
             }
           }
           OS << '\n';

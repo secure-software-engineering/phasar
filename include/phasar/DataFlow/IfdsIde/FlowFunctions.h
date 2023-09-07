@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_FLOWFUNCTIONS_H_
+#ifndef PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
+#define PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 
 #include "phasar/Utils/TypeTraits.h"
 
@@ -97,501 +97,6 @@ using FlowFunctionPtrTypeOf = std::shared_ptr<FF>;
 template <typename D, typename Container = std::set<D>>
 using FlowFunctionPtrType = FlowFunctionPtrTypeOf<FlowFunction<D, Container>>;
 
-/// A flow function that propagates all incoming facts unchanged.
-///
-/// Given a flow-function f = identityFlow(), then for all incoming
-/// dataflow-facts x, f(x) = {x}.
-///
-/// In the exploded supergraph it may look as follows:
-///
-///                   x1  x1  x3 ...
-///                   |   |   |  ...
-///  id-instruction   |   |   |  ...
-///                   v   v   v  ...
-///                   x1  x2  x3 ...
-///
-template <typename D, typename Container = std::set<D>> auto identityFlow() {
-  struct IdFF final : public FlowFunction<D, Container> {
-    Container computeTargets(D Source) override { return {std::move(Source)}; }
-  };
-  static auto TheIdentity = std::make_shared<IdFF>();
-
-  return TheIdentity;
-}
-
-/// The most generic flow function. Invokes the passed function object F to
-/// retrieve the desired data-flows.
-///
-/// So, given a flow function f = lambdaFlow(F), then for all incoming
-/// dataflow-facts x, f(x) = F(x).
-///
-/// In the exploded supergraph it may look as follows:
-///
-///                 x
-///                 |
-///  inst           F
-///           /  /  |  \  \  ...
-///          v  v   v   v  v
-///          x1 x2  x  x3 x4
-///
-template <typename D, typename Fn> auto lambdaFlow(Fn &&F) {
-  using Container = std::invoke_result_t<Fn, D>;
-  struct LambdaFlow final : public FlowFunction<D, Container> {
-    LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
-    Container computeTargets(D Source) override {
-      return std::invoke(Flow, std::move(Source));
-    }
-
-    [[no_unique_address]] std::decay_t<Fn> Flow;
-  };
-
-  return std::make_shared<LambdaFlow>(std::forward<Fn>(F));
-}
-
-//===----------------------------------------------------------------------===//
-// Gen flow functions
-
-/// A flow function that generates a new dataflow fact (FactToGenerate) if
-/// called with an already known dataflow fact (From). All other facts are
-/// propagated like with the identityFlow.
-///
-/// Given a flow function f = generateFlow(v, w), then for all incoming dataflow
-/// facts x:
-///   f(w) = {v, w},
-///   f(x) = {x}.
-///
-/// In the exploded supergraph it may look as follows:
-///
-///       x  w     u ...
-///       |  |\    | ...
-///  inst |  | \   | ...
-///       v  v  v  v ...
-///       x  w  v  u
-///
-/// \note If the FactToGenerate already holds at the beginning of the statement,
-/// this flow function does not kill it. For IFDS analysis it makes no
-/// difference, but in the case of IDE, the corresponding edge functions are
-/// being joined together potentially lowing precition. If that is an issue, use
-/// transferFlow instead.
-template <typename D, typename Container = std::set<D>>
-auto generateFlow(psr::type_identity_t<D> FactToGenerate, D From) {
-  struct GenFrom final : public FlowFunction<D, Container> {
-    GenFrom(D GenValue, D FromValue)
-        : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
-
-    Container computeTargets(D Source) override {
-      if (Source == FromValue) {
-        return {std::move(Source), GenValue};
-      }
-      return {std::move(Source)};
-    }
-
-    D GenValue;
-    D FromValue;
-  };
-
-  return std::make_shared<GenFrom>(std::move(FactToGenerate), std::move(From));
-}
-
-/// A flow function similar to generateFlow, that generates a new dataflow fact
-/// (FactToGenerate), if the given Predicate evaluates to true on an incoming
-/// dataflow fact
-///
-/// So, given a flow function f = generateFlowIf(v, p), for all incoming
-/// dataflow facts x:
-///   f(x) = {v, x}   if p(x) == true
-///   f(x) = {x}      else.
-///
-template <typename D, typename Container = std::set<D>,
-          typename Fn = psr::TrueFn,
-          typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, D>>>
-auto generateFlowIf(D FactToGenerate, Fn Predicate) {
-  struct GenFlowIf final : public FlowFunction<D, Container> {
-    GenFlowIf(D GenValue, Fn &&Predicate)
-        : GenValue(std::move(GenValue)),
-          Predicate(std::forward<Fn>(Predicate)) {}
-
-    Container computeTargets(D Source) override {
-      if (std::invoke(Predicate, Source)) {
-        return {std::move(Source), GenValue};
-      }
-      return {std::move(Source)};
-    }
-
-    D GenValue;
-    [[no_unique_address]] std::decay_t<Fn> Predicate;
-  };
-
-  return std::make_shared<GenFlowIf>(std::move(FactToGenerate),
-                                     std::forward<Fn>(Predicate));
-}
-
-/// A flow function that generates multiple new dataflow facts (FactsToGenerate)
-/// if called from an already known dataflow fact (From).
-///
-/// Given a flow function f = generateManyFlows({v1, v2, ..., vN}, w), for all
-/// incoming dataflow facts x:
-///   f(w) = {v1, v2, ..., vN, w}
-///   f(x) = {x}.
-///
-/// In the exploded supergraph it may look as follows:
-///
-///       x  w                u ...
-///       |  |\  \ ... \      | ...
-///  inst |  | \  \ ... \     | ...
-///       v  v  v  v ... \    v ...
-///       x  w  v1 v2 ... vN  u
-///
-template <typename D, typename Container = std::set<D>,
-          typename Range = std::initializer_list<D>,
-          typename = std::enable_if_t<is_iterable_over_v<Range, D>>>
-auto generateManyFlows(Range &&FactsToGenerate, D From) {
-  struct GenMany final : public FlowFunction<D, Container> {
-    GenMany(Container &&GenValues, D FromValue)
-        : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
-
-    Container computeTargets(D Source) override {
-      if (Source == FromValue) {
-        auto Ret = GenValues;
-        Ret.insert(std::move(Source));
-        return Ret;
-      }
-      return {std::move(Source)};
-    }
-
-    Container GenValues;
-    D FromValue;
-  };
-
-  auto MakeContainer = [](Range &&Rng) -> Container {
-    if constexpr (std::is_convertible_v<std::decay_t<Range>, Container>) {
-      return std::forward<Range>(Rng);
-    } else {
-      Container C;
-      for (auto &&Fact : Rng) {
-        C.insert(std::forward<decltype(Fact)>(Fact));
-      }
-      return C;
-    }
-  };
-  return std::make_shared<GenMany>(
-      MakeContainer(std::forward<Range>(FactsToGenerate)), std::move(From));
-}
-
-//===----------------------------------------------------------------------===//
-// Kill flow functions
-
-/// A flow function that stops propagating a specific dataflow fact
-/// (FactToKill).
-///
-/// Given a flow function f = killFlow(v), for all incoming dataflow facts x:
-///   f(v) = {}
-///   f(x) = {x}
-///
-/// In the exploded supergraph it may look as follows:
-///
-///           u  v  w ...
-///           |  |  |
-///  inst     |     |
-///           v     v
-///           u  v  w ...
-///
-template <typename D, typename Container = std::set<D>>
-auto killFlow(D FactToKill) {
-  struct KillFlow final : public FlowFunction<D, Container> {
-    KillFlow(D KillValue) : KillValue(std::move(KillValue)) {}
-    Container computeTargets(D Source) override {
-      if (Source == KillValue) {
-        return {};
-      }
-      return {std::move(Source)};
-    }
-    D KillValue;
-  };
-
-  return std::make_shared<KillFlow>(std::move(FactToKill));
-}
-
-/// A flow function similar to killFlow that stops propagating all dataflow
-/// facts for that the given Predicate evaluates to true.
-///
-/// Given a flow function f = killFlowIf(p), for all incoming dataflow facts x:
-///   f(x) = {}   if p(x) == true
-///   f(x) = {x}  else.
-///
-template <typename D, typename Container = std::set<D>,
-          typename Fn = psr::TrueFn,
-          typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, D>>>
-auto killFlowIf(Fn Predicate) {
-  struct KillFlowIf final : public FlowFunction<D, Container> {
-    KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
-
-    Container computeTargets(D Source) override {
-      if (std::invoke(Predicate, Source)) {
-        return {};
-      }
-      return {std::move(Source)};
-    }
-
-    [[no_unique_address]] std::decay_t<Fn> Predicate;
-  };
-
-  return std::make_shared<KillFlowIf>(std::forward<Fn>(Predicate));
-}
-
-/// A flow function that stops propagating a specific set of dataflow facts
-/// (FactsToKill).
-///
-/// Given a flow function f = killManyFlows({v1, v2, ..., vN}), for all incoming
-/// dataflow facts x:
-///   f(v1) = {}
-///   f(v2) = {}
-///   ...
-///   f(vN) = {}
-///   f(x)  = {x}.
-///
-/// In the exploded supergraph it may look as follows:
-///
-///           u  v1  v2 ... vN  w ...
-///           |  |   |       |  |
-///  inst     |                 |
-///           v                 v
-///           u  v1  v2 ... vN  w ...
-///
-template <typename D, typename Container = std::set<D>,
-          typename Range = std::initializer_list<D>,
-          typename = std::enable_if_t<is_iterable_over_v<Range, D>>>
-auto killManyFlows(Range &&FactsToKill) {
-  struct KillMany final : public FlowFunction<D, Container> {
-    KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
-
-    Container computeTargets(D Source) override {
-      if (KillValues.count(Source)) {
-        return {};
-      }
-      return {std::move(Source)};
-    }
-
-    Container KillValues;
-  };
-
-  auto MakeContainer = [](Range &&Rng) -> Container {
-    if constexpr (std::is_convertible_v<std::decay_t<Range>, Container>) {
-      return std::forward<Range>(Rng);
-    } else {
-      Container C;
-      for (auto &&Fact : Rng) {
-        C.insert(std::forward<decltype(Fact)>(Fact));
-      }
-      return C;
-    }
-  };
-  return std::make_shared<KillMany>(
-      MakeContainer(std::forward<Range>(FactsToKill)));
-}
-
-/// A flow function that stops propagating *all* incoming dataflow facts.
-///
-/// Given a flow function f = killAllFlows(), for all incoming dataflow facts x,
-/// f(x) = {}.
-///
-template <typename D, typename Container = std::set<D>> auto killAllFlows() {
-  struct KillAllFF final : public FlowFunction<D, Container> {
-    Container computeTargets(D Source) override { return {std::move(Source)}; }
-  };
-  static auto TheKillAllFlow = std::make_shared<KillAllFF>();
-
-  return TheKillAllFlow;
-}
-
-//===----------------------------------------------------------------------===//
-// Gen-and-kill flow functions
-
-/// A flow function that composes kill and generate flow functions.
-/// Like generateFlow it generates a new dataflow fact (FactToGenerate), if
-/// called with a specific dataflow fact (From).
-/// However, like killFlowIf it stops propagating all other dataflow facts.
-///
-/// Given a flow function f = generateFlowAndKillAllOthers(v, w), for all
-/// incoming dataflow facts x:
-///   f(w) = {v, w}
-///   f(x) = {}.
-///
-/// Equivalent to: killFlowIf(λz.z!=w) o generateFlow(v, w) (where o denotes
-/// function composition)
-///
-/// In the exploded supergraph it may look as follows:
-///
-///         x  w     u ...
-///         |  |\    |
-///  inst      | \     ...
-///            v  v
-///         x  w  v  u
-///
-template <typename D, typename Container = std::set<D>>
-auto generateFlowAndKillAllOthers(psr::type_identity_t<D> FactToGenerate,
-                                  D From) {
-  struct GenFlowAndKillAllOthers final : public FlowFunction<D, Container> {
-    GenFlowAndKillAllOthers(D GenValue, D FromValue)
-        : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
-
-    Container computeTargets(D Source) override {
-      if (Source == FromValue) {
-        return {std::move(Source), GenValue};
-      }
-      return {};
-    }
-
-    D GenValue;
-    D FromValue;
-  };
-
-  return std::make_shared<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
-                                                   std::move(From));
-}
-
-/// A flow function similar to generateFlowAndKillAllOthers that may generate
-/// multiple dataflow facts (FactsToGenerate) is called with a specific fact
-/// (From) and stops propagating all other dataflow facts.
-///
-/// Given a flow function f = generateManyFlowsAndKillAllOthers({v1, v2, ...,
-/// vN}, w), for all incoming dataflow facts x:
-///   f(w) = {v1, v2, ..., vN, w}
-///   f(x) = {}.
-///
-/// In the exploded supergraph it may look as follows:
-///
-///       x  w                u ...
-///       |  |\  \ ... \      | ...
-///  inst    | \  \ ... \       ...
-///          v  v  v ... \      ...
-///       x  w  v1 v2 ... vN  u
-///
-template <typename D, typename Container = std::set<D>,
-          typename Range = std::initializer_list<D>,
-          typename = std::enable_if_t<is_iterable_over_v<Range, D>>>
-auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, D From) {
-  struct GenManyAndKillAllOthers final : public FlowFunction<D, Container> {
-    GenManyAndKillAllOthers(Container &&GenValues, D FromValue)
-        : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
-
-    Container computeTargets(D Source) override {
-      if (Source == FromValue) {
-        auto Ret = GenValues;
-        Ret.insert(std::move(Source));
-        return Ret;
-      }
-      return {};
-    }
-
-    Container GenValues;
-    D FromValue;
-  };
-
-  auto MakeContainer = [](Range &&Rng) -> Container {
-    if constexpr (std::is_convertible_v<std::decay_t<Range>, Container>) {
-      return std::forward<Range>(Rng);
-    } else {
-      Container C;
-      for (auto &&Fact : Rng) {
-        C.insert(std::forward<decltype(Fact)>(Fact));
-      }
-      return C;
-    }
-  };
-  return std::make_shared<GenManyAndKillAllOthers>(
-      MakeContainer(std::forward<Range>(FactsToGenerate)), std::move(From));
-}
-
-//===----------------------------------------------------------------------===//
-// Miscellaneous flow functions
-
-/// A flow function that, similar to generateFlow, generates a new dataflow fact
-/// (FactsToGenerate) when called with a specific dataflow fact (From).
-/// Unlike generateFlow, it kills FactToGenerate if it is part of the incoming
-/// facts. THis has no additional effect for IFDS analyses (which in fact should
-/// use generateFlow instead), but for IDE analyses it may avoid joining the
-/// edge functions reaching the FactToGenerate together which may improve the
-/// analysis' precision.
-///
-/// Given a flow function f = transferFlow(v, w), for all incoming dataflow
-/// facts x:
-///   f(v) = {}
-///   f(w) = {v, w}
-///   f(x) = {x}.
-///
-/// In the exploded supergraph it may look as follows:
-///
-///       x  w   v  u ...
-///       |  |\  |  | ...
-///       |  | \    | ...
-///  inst |  |  \   | ...
-///       v  v   v  v ...
-///       x  w   v  u
-///
-template <typename D, typename Container = std::set<D>>
-auto transferFlow(psr::type_identity_t<D> FactToGenerate, D From) {
-  struct TransferFlow final : public FlowFunction<D, Container> {
-    TransferFlow(D GenValue, D FromValue)
-        : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
-
-    Container computeTargets(D Source) override {
-      if (Source == FromValue) {
-        return {std::move(Source), GenValue};
-      }
-      if (Source == GenValue) {
-        return {};
-      }
-      return {std::move(Source)};
-    }
-
-    D GenValue;
-    D FromValue;
-  };
-
-  return std::make_shared<TransferFlow>(std::move(FactToGenerate),
-                                        std::move(From));
-}
-
-/// A flow function that takes two other flow functions OneFF and OtherFF and
-/// applies both flow functions on each input merging the results together with
-/// set-union.
-///
-/// Given a flow function f = unionFlows(g, h), for all incoming dataflow facts
-/// x:
-///   f(x) = g(x) u h(x).     (where u denotes set-union)
-///
-template <typename F1, typename F2, typename D = typename F1::value_type,
-          typename Container = typename F1::container_type,
-          typename = std::enable_if_t<
-              std::is_same_v<D, typename F2::value_type> &&
-              std::is_same_v<Container, typename F2::container_type>>>
-auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
-                FlowFunctionPtrTypeOf<F2> OtherFF) {
-  struct UnionFlow final : public FlowFunction<D, Container> {
-    UnionFlow(FlowFunctionPtrTypeOf<F1> OneFF,
-              FlowFunctionPtrTypeOf<F2> OtherFF) noexcept
-        : OneFF(std::move(OneFF)), OtherFF(std::move(OtherFF)) {}
-
-    Container computeTargets(D Source) override {
-      auto OneRet = OneFF->computeTargets(Source);
-      auto OtherRet = OtherFF->computeTargets(std::move(Source));
-      if (OneRet.size() < OtherRet.size()) {
-        std::swap(OneRet, OtherRet);
-      }
-
-      OneRet.insert(std::make_move_iterator(OtherRet.begin()),
-                    std::make_move_iterator(OtherRet.end()));
-      return OneRet;
-    }
-
-    FlowFunctionPtrTypeOf<F1> OneFF;
-    FlowFunctionPtrTypeOf<F2> OtherFF;
-  };
-
-  return std::make_shared<UnionFlow>(std::move(OneFF), std::move(OtherFF));
-}
-
 /// Wrapper flow function that is automatically used by the IDESolver if the
 /// autoAddZero configuration option is set to true (default).
 /// Ensures that the tautological zero-flow fact (Λ) does not get killed.
@@ -617,13 +122,504 @@ private:
   D ZeroValue;
 };
 
+namespace detail {
+template <typename Container, typename Range>
+Container makeContainer(Range &&Rng) {
+  if constexpr (std::is_convertible_v<std::decay_t<Range>, Container>) {
+    return std::forward<Range>(Rng);
+  } else {
+    Container C;
+    reserveIfPossible(C, Rng.size());
+    for (auto &&Fact : Rng) {
+      C.insert(std::forward<decltype(Fact)>(Fact));
+    }
+    return C;
+  }
+};
+} // namespace detail
+
+//===----------------------------------------------------------------------===//
+//                           Flow Function Templates
+//===----------------------------------------------------------------------===//
+
+template <typename D, typename Container> class FlowFunctionTemplates {
+public:
+  using d_t = D;
+  using container_type = Container;
+
+  /// A flow function that propagates all incoming facts unchanged.
+  ///
+  /// Given a flow-function f = identityFlow(), then for all incoming
+  /// dataflow-facts x, f(x) = {x}.
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///                   x1  x1  x3 ...
+  ///                   |   |   |  ...
+  ///  id-instruction   |   |   |  ...
+  ///                   v   v   v  ...
+  ///                   x1  x2  x3 ...
+  ///
+  static auto identityFlow() {
+    struct IdFF final : public FlowFunction<d_t, container_type> {
+      container_type computeTargets(d_t Source) override {
+        return {std::move(Source)};
+      }
+    };
+    static auto TheIdentity = std::make_shared<IdFF>();
+
+    return TheIdentity;
+  }
+
+  /// The most generic flow function. Invokes the passed function object F to
+  /// retrieve the desired data-flows.
+  ///
+  /// So, given a flow function f = lambdaFlow(F), then for all incoming
+  /// dataflow-facts x, f(x) = F(x).
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///                 x
+  ///                 |
+  ///  inst           F
+  ///           /  /  |  \  \  ...
+  ///          v  v   v   v  v
+  ///          x1 x2  x  x3 x4
+  ///
+  template <typename Fn> static auto lambdaFlow(Fn &&F) {
+    struct LambdaFlow final : public FlowFunction<d_t, container_type> {
+      LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
+      container_type computeTargets(d_t Source) override {
+        return std::invoke(Flow, std::move(Source));
+      }
+
+      [[no_unique_address]] std::decay_t<Fn> Flow;
+    };
+
+    return std::make_shared<LambdaFlow>(std::forward<Fn>(F));
+  }
+
+  //===----------------------------------------------------------------------===//
+  // Gen flow functions
+
+  /// A flow function that generates a new dataflow fact (FactToGenerate) if
+  /// called with an already known dataflow fact (From). All other facts are
+  /// propagated like with the identityFlow.
+  ///
+  /// Given a flow function f = generateFlow(v, w), then for all incoming
+  /// dataflow facts x:
+  ///   f(w) = {v, w},
+  ///   f(x) = {x}.
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///       x  w     u ...
+  ///       |  |\    | ...
+  ///  inst |  | \   | ...
+  ///       v  v  v  v ...
+  ///       x  w  v  u
+  ///
+  /// \note If the FactToGenerate already holds at the beginning of the
+  /// statement, this flow function does not kill it. For IFDS analysis it makes
+  /// no difference, but in the case of IDE, the corresponding edge functions
+  /// are being joined together potentially lowing precition. If that is an
+  /// issue, use transferFlow instead.
+  static auto generateFlow(d_t FactToGenerate, d_t From) {
+    struct GenFrom final : public FlowFunction<d_t, container_type> {
+      GenFrom(d_t GenValue, d_t FromValue)
+          : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          return {std::move(Source), GenValue};
+        }
+        return {std::move(Source)};
+      }
+
+      d_t GenValue;
+      d_t FromValue;
+    };
+
+    return std::make_shared<GenFrom>(std::move(FactToGenerate),
+                                     std::move(From));
+  }
+
+  /// A flow function similar to generateFlow, that generates a new dataflow
+  /// fact (FactToGenerate), if the given Predicate evaluates to true on an
+  /// incoming dataflow fact
+  ///
+  /// So, given a flow function f = generateFlowIf(v, p), for all incoming
+  /// dataflow facts x:
+  ///   f(x) = {v, x}   if p(x) == true
+  ///   f(x) = {x}      else.
+  ///
+  template <typename Fn = psr::TrueFn,
+            typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, d_t>>>
+  static auto generateFlowIf(d_t FactToGenerate, Fn Predicate) {
+    struct GenFlowIf final : public FlowFunction<d_t, container_type> {
+      GenFlowIf(d_t GenValue, Fn &&Predicate)
+          : GenValue(std::move(GenValue)),
+            Predicate(std::forward<Fn>(Predicate)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (std::invoke(Predicate, Source)) {
+          return {std::move(Source), GenValue};
+        }
+        return {std::move(Source)};
+      }
+
+      d_t GenValue;
+      [[no_unique_address]] std::decay_t<Fn> Predicate;
+    };
+
+    return std::make_shared<GenFlowIf>(std::move(FactToGenerate),
+                                       std::forward<Fn>(Predicate));
+  }
+
+  /// A flow function that generates multiple new dataflow facts
+  /// (FactsToGenerate) if called from an already known dataflow fact (From).
+  ///
+  /// Given a flow function f = generateManyFlows({v1, v2, ..., vN}, w), for all
+  /// incoming dataflow facts x:
+  ///   f(w) = {v1, v2, ..., vN, w}
+  ///   f(x) = {x}.
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///       x  w                u ...
+  ///       |  |\  \ ... \      | ...
+  ///  inst |  | \  \ ... \     | ...
+  ///       v  v  v  v ... \    v ...
+  ///       x  w  v1 v2 ... vN  u
+  ///
+  template <typename Range = std::initializer_list<d_t>,
+            typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
+  static auto generateManyFlows(Range &&FactsToGenerate, d_t From) {
+    struct GenMany final : public FlowFunction<d_t, container_type> {
+      GenMany(container_type &&GenValues, d_t FromValue)
+          : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          auto Ret = GenValues;
+          Ret.insert(std::move(Source));
+          return Ret;
+        }
+        return {std::move(Source)};
+      }
+
+      container_type GenValues;
+      d_t FromValue;
+    };
+
+    return std::make_shared<GenMany>(detail::makeContainer<container_type>(
+                                         std::forward<Range>(FactsToGenerate)),
+                                     std::move(From));
+  }
+
+  //===----------------------------------------------------------------------===//
+  // Kill flow functions
+
+  /// A flow function that stops propagating a specific dataflow fact
+  /// (FactToKill).
+  ///
+  /// Given a flow function f = killFlow(v), for all incoming dataflow facts x:
+  ///   f(v) = {}
+  ///   f(x) = {x}
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///           u  v  w ...
+  ///           |  |  |
+  ///  inst     |     |
+  ///           v     v
+  ///           u  v  w ...
+  ///
+  static auto killFlow(d_t FactToKill) {
+    struct KillFlow final : public FlowFunction<d_t, container_type> {
+      KillFlow(d_t KillValue) : KillValue(std::move(KillValue)) {}
+      container_type computeTargets(d_t Source) override {
+        if (Source == KillValue) {
+          return {};
+        }
+        return {std::move(Source)};
+      }
+      d_t KillValue;
+    };
+
+    return std::make_shared<KillFlow>(std::move(FactToKill));
+  }
+
+  /// A flow function similar to killFlow that stops propagating all dataflow
+  /// facts for that the given Predicate evaluates to true.
+  ///
+  /// Given a flow function f = killFlowIf(p), for all incoming dataflow facts
+  /// x:
+  ///   f(x) = {}   if p(x) == true
+  ///   f(x) = {x}  else.
+  ///
+  template <typename Fn = psr::TrueFn,
+            typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, d_t>>>
+  static auto killFlowIf(Fn Predicate) {
+    struct KillFlowIf final : public FlowFunction<d_t, container_type> {
+      KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (std::invoke(Predicate, Source)) {
+          return {};
+        }
+        return {std::move(Source)};
+      }
+
+      [[no_unique_address]] std::decay_t<Fn> Predicate;
+    };
+
+    return std::make_shared<KillFlowIf>(std::forward<Fn>(Predicate));
+  }
+
+  /// A flow function that stops propagating a specific set of dataflow facts
+  /// (FactsToKill).
+  ///
+  /// Given a flow function f = killManyFlows({v1, v2, ..., vN}), for all
+  /// incoming dataflow facts x:
+  ///   f(v1) = {}
+  ///   f(v2) = {}
+  ///   ...
+  ///   f(vN) = {}
+  ///   f(x)  = {x}.
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///           u  v1  v2 ... vN  w ...
+  ///           |  |   |       |  |
+  ///  inst     |                 |
+  ///           v                 v
+  ///           u  v1  v2 ... vN  w ...
+  ///
+  template <typename Range = std::initializer_list<d_t>,
+            typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
+  static auto killManyFlows(Range &&FactsToKill) {
+    struct KillMany final : public FlowFunction<d_t, container_type> {
+      KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (KillValues.count(Source)) {
+          return {};
+        }
+        return {std::move(Source)};
+      }
+
+      container_type KillValues;
+    };
+
+    return std::make_shared<KillMany>(detail::makeContainer<container_type>(
+        std::forward<Range>(FactsToKill)));
+  }
+
+  /// A flow function that stops propagating *all* incoming dataflow facts.
+  ///
+  /// Given a flow function f = killAllFlows(), for all incoming dataflow facts
+  /// x, f(x) = {}.
+  ///
+  static auto killAllFlows() {
+    struct KillAllFF final : public FlowFunction<d_t, container_type> {
+      Container computeTargets(d_t Source) override {
+        return {std::move(Source)};
+      }
+    };
+    static auto TheKillAllFlow = std::make_shared<KillAllFF>();
+
+    return TheKillAllFlow;
+  }
+
+  //===----------------------------------------------------------------------===//
+  // Gen-and-kill flow functions
+
+  /// A flow function that composes kill and generate flow functions.
+  /// Like generateFlow it generates a new dataflow fact (FactToGenerate), if
+  /// called with a specific dataflow fact (From).
+  /// However, like killFlowIf it stops propagating all other dataflow facts.
+  ///
+  /// Given a flow function f = generateFlowAndKillAllOthers(v, w), for all
+  /// incoming dataflow facts x:
+  ///   f(w) = {v, w}
+  ///   f(x) = {}.
+  ///
+  /// Equivalent to: killFlowIf(λz.z!=w) o generateFlow(v, w) (where o denotes
+  /// function composition)
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///         x  w     u ...
+  ///         |  |\    |
+  ///  inst      | \     ...
+  ///            v  v
+  ///         x  w  v  u
+  ///
+  static auto generateFlowAndKillAllOthers(d_t FactToGenerate, d_t From) {
+    struct GenFlowAndKillAllOthers final
+        : public FlowFunction<d_t, container_type> {
+      GenFlowAndKillAllOthers(d_t GenValue, d_t FromValue)
+          : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          return {std::move(Source), GenValue};
+        }
+        return {};
+      }
+
+      d_t GenValue;
+      d_t FromValue;
+    };
+
+    return std::make_shared<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
+                                                     std::move(From));
+  }
+
+  /// A flow function similar to generateFlowAndKillAllOthers that may generate
+  /// multiple dataflow facts (FactsToGenerate) is called with a specific fact
+  /// (From) and stops propagating all other dataflow facts.
+  ///
+  /// Given a flow function f = generateManyFlowsAndKillAllOthers({v1, v2, ...,
+  /// vN}, w), for all incoming dataflow facts x:
+  ///   f(w) = {v1, v2, ..., vN, w}
+  ///   f(x) = {}.
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///       x  w                u ...
+  ///       |  |\  \ ... \      | ...
+  ///  inst    | \  \ ... \       ...
+  ///          v  v  v ... \      ...
+  ///       x  w  v1 v2 ... vN  u
+  ///
+  template <typename Range = std::initializer_list<d_t>,
+            typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
+  static auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate,
+                                                d_t From) {
+    struct GenManyAndKillAllOthers final
+        : public FlowFunction<d_t, container_type> {
+      GenManyAndKillAllOthers(Container &&GenValues, d_t FromValue)
+          : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          auto Ret = GenValues;
+          Ret.insert(std::move(Source));
+          return Ret;
+        }
+        return {};
+      }
+
+      container_type GenValues;
+      d_t FromValue;
+    };
+
+    return std::make_shared<GenManyAndKillAllOthers>(
+        detail::makeContainer<container_type>(
+            std::forward<Range>(FactsToGenerate)),
+        std::move(From));
+  }
+
+  //===----------------------------------------------------------------------===//
+  // Miscellaneous flow functions
+
+  /// A flow function that, similar to generateFlow, generates a new dataflow
+  /// fact (FactsToGenerate) when called with a specific dataflow fact (From).
+  /// Unlike generateFlow, it kills FactToGenerate if it is part of the incoming
+  /// facts. THis has no additional effect for IFDS analyses (which in fact
+  /// should use generateFlow instead), but for IDE analyses it may avoid
+  /// joining the edge functions reaching the FactToGenerate together which may
+  /// improve the analysis' precision.
+  ///
+  /// Given a flow function f = transferFlow(v, w), for all incoming dataflow
+  /// facts x:
+  ///   f(v) = {}
+  ///   f(w) = {v, w}
+  ///   f(x) = {x}.
+  ///
+  /// In the exploded supergraph it may look as follows:
+  ///
+  ///       x  w   v  u ...
+  ///       |  |\  |  | ...
+  ///       |  | \    | ...
+  ///  inst |  |  \   | ...
+  ///       v  v   v  v ...
+  ///       x  w   v  u
+  ///
+  static auto transferFlow(d_t FactToGenerate, d_t From) {
+    struct TransferFlow final : public FlowFunction<d_t, container_type> {
+      TransferFlow(d_t GenValue, d_t FromValue)
+          : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
+
+      container_type computeTargets(d_t Source) override {
+        if (Source == FromValue) {
+          return {std::move(Source), GenValue};
+        }
+        if (Source == GenValue) {
+          return {};
+        }
+        return {std::move(Source)};
+      }
+
+      d_t GenValue;
+      d_t FromValue;
+    };
+
+    return std::make_shared<TransferFlow>(std::move(FactToGenerate),
+                                          std::move(From));
+  }
+
+  /// A flow function that takes two other flow functions OneFF and OtherFF and
+  /// applies both flow functions on each input merging the results together
+  /// with set-union.
+  ///
+  /// Given a flow function f = unionFlows(g, h), for all incoming dataflow
+  /// facts x:
+  ///   f(x) = g(x) u h(x).     (where u denotes set-union)
+  ///
+  template <typename F1, typename F2,
+            typename = std::enable_if_t<
+                std::is_same_v<d_t, typename F2::value_type> &&
+                std::is_same_v<container_type, typename F2::container_type> &&
+                std::is_same_v<typename F1::container_type,
+                               typename F2::container_type>>>
+  auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
+                  FlowFunctionPtrTypeOf<F2> OtherFF) {
+    struct UnionFlow final : public FlowFunction<d_t, container_type> {
+      UnionFlow(FlowFunctionPtrTypeOf<F1> OneFF,
+                FlowFunctionPtrTypeOf<F2> OtherFF) noexcept
+          : OneFF(std::move(OneFF)), OtherFF(std::move(OtherFF)) {}
+
+      container_type computeTargets(d_t Source) override {
+        auto OneRet = OneFF->computeTargets(Source);
+        auto OtherRet = OtherFF->computeTargets(std::move(Source));
+        if (OneRet.size() < OtherRet.size()) {
+          std::swap(OneRet, OtherRet);
+        }
+
+        OneRet.insert(std::make_move_iterator(OtherRet.begin()),
+                      std::make_move_iterator(OtherRet.end()));
+        return OneRet;
+      }
+
+      FlowFunctionPtrTypeOf<F1> OneFF;
+      FlowFunctionPtrTypeOf<F2> OtherFF;
+    };
+
+    return std::make_shared<UnionFlow>(std::move(OneFF), std::move(OtherFF));
+  }
+};
+
 //===----------------------------------------------------------------------===//
 //                             FlowFunctions Class
 //===----------------------------------------------------------------------===//
 
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class FlowFunctions {
+template <typename AnalysisDomainTy, typename Container>
+class FlowFunctions
+    : protected FlowFunctionTemplates<typename AnalysisDomainTy::d_t,
+                                      Container> {
   static_assert(
       std::is_same<typename Container::value_type,
                    typename AnalysisDomainTy::d_t>::value,
@@ -798,6 +794,19 @@ public:
   virtual FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                                  n_t ExitInst, n_t RetSite) = 0;
 
+  // Performs any side-effects of a return-flow-function
+  //
+  // In case of unbalanced returns (if the option `followReturnsPastSeeds` is
+  // activated in the IfdsIdeSolverConfig), we will eventually reach a function
+  // that is not called from other functions. Still, we may want to apply a
+  // return-flow-function -- just for its side-effects, such as registering a
+  // taint
+  virtual void applyUnbalancedRetFlowFunctionSideEffects(f_t CalleeFun,
+                                                         n_t ExitInst,
+                                                         d_t Source) {
+    // By default, do nothing
+  }
+
   //
   // Describes the data-flows alongsite a CallSite.
   //
@@ -858,7 +867,8 @@ public:
   // The default implementation returns a nullptr to indicate that the mechanism
   // should not be used.
   //
-  virtual FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t CalleeFun) {
+  virtual FlowFunctionPtrType getSummaryFlowFunction(n_t /*Curr*/,
+                                                     f_t /*CalleeFun*/) {
     return nullptr;
   }
 };
@@ -868,7 +878,8 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename D, typename Container = std::set<D>>
-class Identity : public FlowFunction<D, Container> {
+class [[deprecated("Use identityFlow() instead")]] Identity
+    : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::FlowFunctionType;
   using typename FlowFunction<D, Container>::FlowFunctionPtrType;
@@ -913,7 +924,7 @@ typename FlowFunction<D>::FlowFunctionPtrType makeLambdaFlow(Fn &&F) {
 }
 
 template <typename D, typename Container = std::set<D>>
-class Compose : public FlowFunction<D, Container> {
+class [[deprecated]] Compose : public FlowFunction<D, Container> {
 public:
   using typename FlowFunction<D, Container>::FlowFunctionType;
   using typename FlowFunction<D, Container>::FlowFunctionPtrType;
