@@ -385,10 +385,9 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
   if (F.hasName()) {
     llvm::StringRef FunctionName = F.getName();
     return llvm::StringSwitch<bool>(FunctionName)
-        .Case(GlobalCRuntimeModelName, true)
-        .Case(GlobalCRuntimeDtorModelName, true)
-        .Case(GlobalCRuntimeDtorsCallerName, true)
-        .Case(GlobalCRuntimeUserEntrySelectorName, true)
+        .Cases(GlobalCRuntimeModelName, GlobalCRuntimeDtorModelName,
+               GlobalCRuntimeDtorsCallerName,
+               GlobalCRuntimeUserEntrySelectorName, true)
         .Default(false);
   }
 

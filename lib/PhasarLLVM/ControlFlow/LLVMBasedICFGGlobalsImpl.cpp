@@ -196,7 +196,7 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
 
   auto &CTX = M.getContext();
   auto *Cleanup = llvm::cast<llvm::Function>(
-      M.getOrInsertFunction(LLVMBasedICFG::GlobalCRuntimeDtorModelName.str(),
+      M.getOrInsertFunction(LLVMBasedICFG::GlobalCRuntimeDtorModelName,
                             llvm::Type::getVoidTy(CTX))
           .getCallee());
 
@@ -302,7 +302,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
   } else {
 
     auto UEntrySelectorFn = M.getOrInsertFunction(
-        GlobalCRuntimeUserEntrySelectorName.str(), llvm::Type::getInt32Ty(CTX));
+        GlobalCRuntimeUserEntrySelectorName, llvm::Type::getInt32Ty(CTX));
 
     auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn);
 

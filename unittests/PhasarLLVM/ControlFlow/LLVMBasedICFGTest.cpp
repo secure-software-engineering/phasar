@@ -83,9 +83,9 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
   const llvm::Function *FOO = IRDB.getFunctionDefinition("foo");
   const llvm::Function *BAR = IRDB.getFunctionDefinition("bar");
   const llvm::Function *CTOR =
-      IRDB.getFunctionDefinition(LLVMBasedICFG::GlobalCRuntimeModelName.str());
-  const llvm::Function *DTOR = IRDB.getFunctionDefinition(
-      LLVMBasedICFG::GlobalCRuntimeDtorModelName.str());
+      IRDB.getFunctionDefinition(LLVMBasedICFG::GlobalCRuntimeModelName);
+  const llvm::Function *DTOR =
+      IRDB.getFunctionDefinition(LLVMBasedICFG::GlobalCRuntimeDtorModelName);
   ASSERT_TRUE(F);
   ASSERT_TRUE(FOO);
   ASSERT_TRUE(BAR);

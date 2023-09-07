@@ -96,7 +96,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
   ensureFunctionOrdering(
       GlobalCtor, ICFG,
       {{"_GLOBAL__sub_I_globals_ctor_1.cpp", "main"},
-       {"main", LLVMBasedICFG::GlobalCRuntimeDtorModelName.str()}});
+       {"main", LLVMBasedICFG::GlobalCRuntimeDtorModelName}});
 }
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
