@@ -44,8 +44,8 @@ psr::TaintConfigData psr::parseTaintConfig(const llvm::Twine &Path) {
   return std::move(*Ret);
 }
 
-void handleFunctions(const nlohmann::json &JSON,
-                     std::vector<psr::FunctionData> &Container) {
+static void handleFunctions(const nlohmann::json &JSON,
+                            std::vector<psr::FunctionData> &Container) {
   if (JSON.contains("functions")) {
     for (const auto &Func : JSON["functions"]) {
       psr::FunctionData Data = psr::FunctionData();
@@ -96,8 +96,8 @@ void handleFunctions(const nlohmann::json &JSON,
   }
 }
 
-void handleVariables(const nlohmann::json &JSON,
-                     std::vector<psr::VariableData> &Container) {
+static void handleVariables(const nlohmann::json &JSON,
+                            std::vector<psr::VariableData> &Container) {
   if (JSON.contains("variables")) {
     for (const auto &Var : JSON["variables"]) {
       psr::VariableData Data = psr::VariableData();
