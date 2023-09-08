@@ -135,7 +135,8 @@ public:
                                        std::optional<int64_t> FollowedOffset) {
     if (!FollowedOffset.has_value()) {
       return LLVMKFieldSensFlowFact(
-          KFieldSensFlowFact<d_t, K, OffsetLimit>::getFirstOverapproximated());
+          KFieldSensFlowFact<d_t, K, OffsetLimit>::getFirstOverapproximated(
+              NewBase));
     }
     // The lhs offset is calculating by subtracting the gep offset from the
     // rhs, thus we need the minus here.
@@ -160,7 +161,7 @@ public:
   //           -AccumulatedOffset.getSExtValue()));
   // }
 
-  LLVMKFieldSensFlowFact getFirstOverapproximated();
+
   void print(llvm::raw_ostream &OS) const {
     KFieldSensFlowFact<d_t, K, OffsetLimit>::print(OS);
   }

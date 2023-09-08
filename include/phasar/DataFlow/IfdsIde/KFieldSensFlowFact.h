@@ -89,9 +89,12 @@ public:
     return Result;
   }
 
-  KFieldSensFlowFact getFirstOverapproximated() {
+  KFieldSensFlowFact getFirstOverapproximated(d_t NewBase) {
     auto Result = *this;
-    Result.AccessPath.back() = OffsetLimit;
+    if (!AccessPath.empty()) {
+      Result.AccessPath.back() = OffsetLimit;
+    }
+    Result.BaseValue = NewBase;
     return Result;
   }
 
