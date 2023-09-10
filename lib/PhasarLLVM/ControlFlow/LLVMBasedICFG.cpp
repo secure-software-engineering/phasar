@@ -29,6 +29,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -379,6 +380,19 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
 }
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
+
+bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
+  if (F.hasName()) {
+    llvm::StringRef FunctionName = F.getName();
+    return llvm::StringSwitch<bool>(FunctionName)
+        .Cases(GlobalCRuntimeModelName, GlobalCRuntimeDtorModelName,
+               GlobalCRuntimeDtorsCallerName,
+               GlobalCRuntimeUserEntrySelectorName, true)
+        .Default(false);
+  }
+
+  return false;
+}
 
 [[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
   return IRDB->getAllFunctions();
