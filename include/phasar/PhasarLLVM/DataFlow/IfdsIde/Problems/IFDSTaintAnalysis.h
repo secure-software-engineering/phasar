@@ -77,13 +77,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  bool isZeroValue(d_t FlowFact) const override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
+  bool isZeroValue(d_t FlowFact) const noexcept override;
 
   void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
@@ -98,8 +92,10 @@ private:
   bool isSanitizerCall(const llvm::CallBase *CB,
                        const llvm::Function *Callee) const;
 
-  void populateWithMayAliases(std::set<d_t> &Facts) const;
-  void populateWithMustAliases(std::set<d_t> &Facts) const;
+  void populateWithMayAliases(container_type &Facts,
+                              const llvm::Instruction *Context) const;
+  void populateWithMustAliases(container_type &Facts,
+                               const llvm::Instruction *Context) const;
 };
 } // namespace psr
 

@@ -42,26 +42,26 @@ IDESolverTest::IDESolverTest(const LLVMProjectIRDB *IRDB,
 IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t /*Curr*/,
                                      IDESolverTest::n_t /*Succ*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getCallFlowFunction(IDESolverTest::n_t /*CallSite*/,
                                    IDESolverTest::f_t /*DestFun*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType IDESolverTest::getRetFlowFunction(
     IDESolverTest::n_t /*CallSite*/, IDESolverTest::f_t /*CalleeFun*/,
     IDESolverTest::n_t /*ExitStmt*/, IDESolverTest::n_t /*RetSite*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType
 IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t /*CallSite*/,
                                         IDESolverTest::n_t /*RetSite*/,
                                         llvm::ArrayRef<f_t> /*Callees*/) {
-  return Identity<IDESolverTest::d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESolverTest::FlowFunctionPtrType
@@ -82,7 +82,7 @@ IDESolverTest::d_t IDESolverTest::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const {
+bool IDESolverTest::isZeroValue(IDESolverTest::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
 }
 
@@ -141,26 +141,6 @@ IDESolverTest::l_t IDESolverTest::join(IDESolverTest::l_t /*Lhs*/,
 EdgeFunction<IDESolverTest::l_t> IDESolverTest::allTopFunction() {
   PHASAR_LOG_LEVEL(DEBUG, "IDESolverTest::allTopFunction()");
   return AllTop<l_t>{nullptr};
-}
-
-void IDESolverTest::printNode(llvm::raw_ostream &OS,
-                              IDESolverTest::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IDESolverTest::printDataFlowFact(llvm::raw_ostream &OS,
-                                      IDESolverTest::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IDESolverTest::printFunction(llvm::raw_ostream &OS,
-                                  IDESolverTest::f_t Func) const {
-  OS << Func->getName();
-}
-
-void IDESolverTest::printEdgeFact(llvm::raw_ostream &OS,
-                                  IDESolverTest::l_t /*L*/) const {
-  OS << "empty V test";
 }
 
 } // namespace psr

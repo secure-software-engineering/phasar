@@ -17,12 +17,18 @@
 #ifndef PHASAR_UTILS_PAMM_H_
 #define PHASAR_UTILS_PAMM_H_
 
+#include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/StringRef.h"
+
 #include <chrono> // high_resolution_clock::time_point, milliseconds
+#include <initializer_list>
 #include <optional>
-#include <set>           // set
-#include <string>        // string
-#include <unordered_map> // unordered_map
-#include <vector>        // vector
+#include <set>    // set
+#include <string> // string
+#include <vector> // vector
 
 namespace llvm {
 class raw_ostream;
@@ -50,24 +56,13 @@ namespace psr {
 /// @note This class implements the Singleton Pattern - use the
 /// PAMM_GET_INSTANCE macro to retrieve an instance of PAMM before you use any
 /// other macro from this class.
-class PAMM {
-private:
-  PAMM() = default;
-  ~PAMM() = default;
+class PAMM final {
+public:
   using TimePoint_t = std::chrono::high_resolution_clock::time_point;
   using Duration_t = std::chrono::milliseconds;
-  std::unordered_map<std::string, TimePoint_t> RunningTimer;
-  std::unordered_map<std::string, std::pair<TimePoint_t, TimePoint_t>>
-      StoppedTimer;
-  std::unordered_map<std::string,
-                     std::vector<std::pair<TimePoint_t, TimePoint_t>>>
-      RepeatingTimer;
-  std::unordered_map<std::string, unsigned> Counter;
-  std::unordered_map<std::string,
-                     std::unordered_map<std::string, unsigned long>>
-      Histogram;
 
-public:
+  PAMM() noexcept = default;
+  ~PAMM() = default;
   // PAMM is used as singleton.
   PAMM(const PAMM &PM) = delete;
   PAMM(PAMM &&PM) = delete;
@@ -76,7 +71,7 @@ public:
 
   /// \brief Returns a reference to the PAMM object (singleton) - associated
   /// macro: PAMM_GET_INSTANCE.
-  static PAMM &getInstance();
+  [[nodiscard]] static PAMM &getInstance();
 
   /// \brief Resets PAMM, i.e. discards all gathered information (timer, counter
   /// etc.) - associated macro: RESET_PAMM.
@@ -86,12 +81,12 @@ public:
   /// \brief Starts a timer under the given timer id - associated macro:
   /// START_TIMER(TIMER_ID, SEV_LVL).
   /// \param TimerId Unique timer id.
-  void startTimer(const std::string &TimerId);
+  void startTimer(llvm::StringRef TimerId);
 
   /// \brief Resets timer under the given timer id - associated macro:
   /// RESET_TIMER(TIMER_ID, SEV_LVL).
   /// \param TimerId Unique timer id.
-  void resetTimer(const std::string &TimerId);
+  void resetTimer(llvm::StringRef TimerId);
 
   /// If pauseTimer is true, a running timer gets paused, its start time point
   /// will paired with a current time point, and stored as an accumulated timer.
@@ -107,18 +102,18 @@ public:
   /// \brief Stops or pauses a timer under the given timer id.
   /// \param TimerId Unique timer id.
   /// \param PauseTimer If true, timer will be paused instead of stopped.
-  void stopTimer(const std::string &TimerId, bool PauseTimer = false);
+  void stopTimer(llvm::StringRef TimerId, bool PauseTimer = false);
 
   /// \brief Computes the elapsed time of the given timer up until now or up to
   /// the moment the timer was stopped - associated macro: GET_TIMER(TIMERID)
   /// \param TimerId Unique timer id.
   /// \return Timer duration.
-  unsigned long elapsedTime(const std::string &TimerId);
+  uint64_t elapsedTime(llvm::StringRef TimerId);
 
   /// For each accumulated timer a vector holds all recorded durations.
   /// \brief Computes the elapsed time for all accumulated timer being used.
   /// \return Map containing measured durations of all accumulated timer.
-  std::unordered_map<std::string, std::vector<unsigned long>>
+  [[nodiscard]] llvm::StringMap<std::vector<uint64_t>>
   elapsedTimeOfRepeatingTimer();
 
   /// A running timer will not be stopped. The precision for time computation
@@ -129,42 +124,46 @@ public:
   /// explicitly.
   /// \brief Returns the elapsed time for a given timer id.
   /// \param timerId Unique timer id.
-  static std::string getPrintableDuration(unsigned long Duration);
+  [[nodiscard]] static std::string getPrintableDuration(uint64_t Duration);
 
   /// \brief Registers a new counter under the given counter id - associated
   /// macro: REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL).
   /// \param CounterId Unique counter id.
-  void regCounter(const std::string &CounterId, unsigned IntialValue = 0);
+  void regCounter(llvm::StringRef CounterId, unsigned IntialValue = 0);
 
   /// \brief Increases the count for the given counter - associated macro:
   /// INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
   /// \param CounterId Unique counter id.
   /// \param CValue to be added to the current counter.
-  void incCounter(const std::string &CounterId, unsigned CValue = 1);
+  void incCounter(llvm::StringRef CounterId, unsigned CValue = 1);
 
   /// \brief Decreases the count for the given counter - associated macro:
   /// DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
   /// \param CounterId Unique counter id.
   /// \param CValue to be subtracted from the current counter.
-  void decCounter(const std::string &CounterId, unsigned CValue = 1);
+  void decCounter(llvm::StringRef CounterId, unsigned CValue = 1);
 
   /// The associated macro does not check PAMM's severity level explicitly.
   /// \brief Returns the current count for the given counter - associated macro:
   /// GET_COUNTER(COUNTER_ID).
   /// \param CounterId Unique counter id.
-  int getCounter(const std::string &CounterId);
+  std::optional<unsigned> getCounter(llvm::StringRef CounterId);
 
   /// The associated macro does not check PAMM's severity level explicitly.
   /// \brief Sums the counts for the given counter ids - associated macro:
   /// GET_SUM_COUNT(...).
   /// \param CounterIds Unique counter ids.
   /// \note Macro uses variadic parameters, e.g. GET_SUM_COUNT({"foo", "bar"}).
-  int getSumCount(const std::set<std::string> &CounterIds);
+  std::optional<uint64_t> getSumCount(const std::set<std::string> &CounterIds);
+  std::optional<uint64_t>
+  getSumCount(llvm::ArrayRef<llvm::StringRef> CounterIds);
+  std::optional<uint64_t>
+  getSumCount(std::initializer_list<llvm::StringRef> CounterIds);
 
   /// \brief Registers a new histogram - associated macro:
   /// REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL).
   /// \param HistogramId Unique hitogram id.
-  void regHistogram(const std::string &HistogramId);
+  void regHistogram(llvm::StringRef HistogramId);
 
   /// \brief Adds a new observed data point to the corresponding histogram -
   /// associated macro: ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID,
@@ -172,9 +171,10 @@ public:
   /// \param HistogramId ID of the histogram that tracks given data points.
   /// \param DataPointId ID of the given data point.
   /// \param DataPointValue Value of the given data point.
-  void addToHistogram(const std::string &HistogramId,
-                      const std::string &DataPointId,
-                      unsigned long DataPointValue = 1);
+  void addToHistogram(llvm::StringRef HistogramId, llvm::StringRef DataPointId,
+                      uint64_t DataPointValue = 1);
+
+  void stopAllTimers();
 
   void printTimers(llvm::raw_ostream &OS);
 
@@ -190,11 +190,20 @@ public:
   /// EXPORT_MEASURED_DATA(PATH).
   /// \param OutputPath to exported JSON file.
   void exportMeasuredData(
-      const std::string &OutputPath,
-      const std::string &ProjectId = "default-phasar-project",
-      const std::optional<std::vector<std::string>> &Modules = std::nullopt,
-      const std::optional<std::vector<std::string>> &DataFlowAnalyses =
-          std::nullopt);
+      const llvm::Twine &OutputPath,
+      llvm::StringRef ProjectId = "default-phasar-project",
+      const std::vector<std::string> *Modules = nullptr,
+      const std::vector<std::string> *DataFlowAnalyses = nullptr);
+
+  [[nodiscard]] const auto &getHistogram() const noexcept { return Histogram; }
+
+private:
+  llvm::StringMap<TimePoint_t> RunningTimer;
+  llvm::StringMap<std::pair<TimePoint_t, TimePoint_t>> StoppedTimer;
+  llvm::StringMap<std::vector<std::pair<TimePoint_t, TimePoint_t>>>
+      RepeatingTimer;
+  llvm::StringMap<unsigned> Counter;
+  llvm::StringMap<llvm::StringMap<uint64_t>> Histogram;
 };
 
 } // namespace psr

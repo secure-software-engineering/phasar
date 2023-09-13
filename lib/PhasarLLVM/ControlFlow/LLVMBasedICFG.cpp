@@ -29,6 +29,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -144,9 +145,12 @@ auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
                                     << llvmIRToString(IndirectCall));
     }
   }
-  REG_COUNTER("CG Vertices", boost::num_vertices(ret),
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("CG Edges", boost::num_edges(ret), PAMM_SEVERITY_LEVEL::Full);
+
+  PAMM_GET_INSTANCE;
+  REG_COUNTER("CG Functions", CGBuilder.viewCallGraph().getNumVertexFunctions(),
+              Full);
+  REG_COUNTER("CG CallSites", CGBuilder.viewCallGraph().getNumVertexCallSites(),
+              Full);
   PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
                        "Call graph has been constructed");
   return CGBuilder.consumeCallGraph();
@@ -376,6 +380,19 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
 }
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
+
+bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
+  if (F.hasName()) {
+    llvm::StringRef FunctionName = F.getName();
+    return llvm::StringSwitch<bool>(FunctionName)
+        .Cases(GlobalCRuntimeModelName, GlobalCRuntimeDtorModelName,
+               GlobalCRuntimeDtorsCallerName,
+               GlobalCRuntimeUserEntrySelectorName, true)
+        .Default(false);
+  }
+
+  return false;
+}
 
 [[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
   return IRDB->getAllFunctions();

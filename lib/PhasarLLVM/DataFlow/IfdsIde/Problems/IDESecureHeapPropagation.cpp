@@ -19,6 +19,7 @@
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <array>
 #include <utility>
@@ -62,13 +63,13 @@ IDESecureHeapPropagation::IDESecureHeapPropagation(
 
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getNormalFlowFunction(n_t /*Curr*/, n_t /*Succ*/) {
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getCallFlowFunction(n_t /*CallSite*/,
                                               f_t /*DestMthd*/) {
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
@@ -76,7 +77,7 @@ IDESecureHeapPropagation::getRetFlowFunction(n_t /*CallSite*/,
                                              f_t /*CalleeMthd*/,
                                              n_t /*ExitInst*/,
                                              n_t /*RetSite*/) {
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 
 IDESecureHeapPropagation::FlowFunctionPtrType
@@ -90,7 +91,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(
   if (FName == InitializerFn) {
     return generateFromZero(SecureHeapFact::INITIALIZED);
   }
-  return Identity<d_t>::getInstance();
+  return identityFlow();
 }
 IDESecureHeapPropagation::FlowFunctionPtrType
 IDESecureHeapPropagation::getSummaryFlowFunction(n_t /*CallSite*/,
@@ -109,33 +110,8 @@ IDESecureHeapPropagation::createZeroValue() const {
   return SecureHeapFact::ZERO;
 }
 
-bool IDESecureHeapPropagation::isZeroValue(d_t Fact) const {
+bool IDESecureHeapPropagation::isZeroValue(d_t Fact) const noexcept {
   return Fact == SecureHeapFact::ZERO;
-}
-
-void IDESecureHeapPropagation::printNode(llvm::raw_ostream &Os,
-                                         n_t Stmt) const {
-  Os << llvmIRToString(Stmt);
-}
-
-void IDESecureHeapPropagation::printDataFlowFact(llvm::raw_ostream &Os,
-                                                 d_t Fact) const {
-  switch (Fact) {
-  case SecureHeapFact::ZERO:
-    Os << "ZERO";
-    break;
-  case SecureHeapFact::INITIALIZED:
-    Os << "INITIALIZED";
-    break;
-  default:
-    assert(false && "Invalid dataflow-fact");
-    break;
-  }
-}
-
-void IDESecureHeapPropagation::printFunction(llvm::raw_ostream &Os,
-                                             f_t F) const {
-  Os << llvm::demangle(F->getName().str());
 }
 
 // in addition provide specifications for the IDE parts
@@ -187,50 +163,6 @@ IDESecureHeapPropagation::getSummaryEdgeFunction(n_t /*CallSite*/,
   return nullptr;
 }
 
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::topElement() {
-  return l_t::TOP;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::bottomElement() {
-  return l_t::BOT;
-}
-
-IDESecureHeapPropagation::l_t IDESecureHeapPropagation::join(l_t Lhs, l_t Rhs) {
-  if (Lhs == Rhs) {
-    return Lhs;
-  }
-  if (Lhs == l_t::TOP) {
-    return Rhs;
-  }
-  if (Rhs == l_t::TOP) {
-    return Lhs;
-  }
-  return l_t::BOT;
-}
-
-EdgeFunction<IDESecureHeapPropagation::l_t>
-IDESecureHeapPropagation::allTopFunction() {
-  return AllTop<l_t>{};
-}
-
-void IDESecureHeapPropagation::printEdgeFact(llvm::raw_ostream &Os,
-                                             l_t L) const {
-  switch (L) {
-  case l_t::BOT:
-    Os << "BOT";
-    break;
-  case l_t::INITIALIZED:
-    Os << "INITIALIZED";
-    break;
-  case l_t::TOP:
-    Os << "TOP";
-    break;
-  default:
-    assert(false && "Invalid edge fact");
-    break;
-  }
-}
-
 void IDESecureHeapPropagation::emitTextReport(
     const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &Os) {
   LLVMBasedCFG CFG;
@@ -243,11 +175,11 @@ void IDESecureHeapPropagation::emitTextReport(
       auto Results = SR.resultsAt(Stmt, true);
 
       if (!Results.empty()) {
-        Os << "At IR statement: " << NtoString(Stmt) << '\n';
+        Os << "At IR statement: " << NToString(Stmt) << '\n';
         for (auto Res : Results) {
 
-          Os << "   Fact: " << DtoString(Res.first)
-             << "\n  Value: " << LtoString(Res.second) << '\n';
+          Os << "   Fact: " << DToString(Res.first)
+             << "\n  Value: " << LToString(Res.second) << '\n';
         }
         Os << '\n';
       }
@@ -257,3 +189,25 @@ void IDESecureHeapPropagation::emitTextReport(
 }
 
 } // namespace psr
+
+llvm::StringRef psr::DToString(SecureHeapFact Fact) noexcept {
+  switch (Fact) {
+  case SecureHeapFact::ZERO:
+    return "ZERO";
+  case SecureHeapFact::INITIALIZED:
+    return "INITIALIZED";
+  }
+  llvm_unreachable("Invalid dataflow-fact");
+}
+
+llvm::StringRef psr::LToString(SecureHeapValue Val) noexcept {
+  switch (Val) {
+  case SecureHeapValue::BOT:
+    return "BOT";
+  case SecureHeapValue::INITIALIZED:
+    return "INITIALIZED";
+  case SecureHeapValue::TOP:
+    return "TOP";
+  }
+  llvm_unreachable("Invalid edge fact");
+}
