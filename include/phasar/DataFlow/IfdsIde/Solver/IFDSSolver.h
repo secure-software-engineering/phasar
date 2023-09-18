@@ -19,6 +19,7 @@
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/DataFlow/IfdsIde/Solver/SolverStrategy.h"
 #include "phasar/Domain/BinaryDomain.h"
 
 #include <memory>
@@ -28,8 +29,7 @@
 
 namespace psr {
 
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+template <typename AnalysisDomainTy, typename Container, typename Strategy>
 class IFDSSolver
     : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container> {
 public:
@@ -42,8 +42,9 @@ public:
             typename = std::enable_if_t<
                 std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
-             const i_t *ICF)
-      : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
+             const i_t *ICF, Strategy S = {})
+      : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container, Strategy>(
+            IFDSProblem, ICF) {}
 
   ~IFDSSolver() override = default;
 
@@ -100,19 +101,25 @@ public:
 template <typename Problem, typename ICF>
 IFDSSolver(Problem &, ICF *)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                  typename Problem::container_type>;
+                  typename Problem::container_type, PropagateAfterStrategy>;
 
-template <typename Problem>
+template <typename Problem, typename ICF, typename Strategy>
+IFDSSolver(Problem &, ICF *, Strategy)
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type, Strategy>;
+
+template <typename Problem, typename Strategy = PropagateAfterStrategy>
 using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                                typename Problem::container_type>;
+                                typename Problem::container_type, Strategy>;
 
-template <typename AnalysisDomainTy, typename Container>
+template <typename AnalysisDomainTy, typename Container,
+          typename Strategy = PropagateAfterStrategy>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t,
                     typename AnalysisDomainTy::l_t>
 solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
-                 const typename AnalysisDomainTy::i_t &ICF) {
-  IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+                 const typename AnalysisDomainTy::i_t &ICF, Strategy S = {}) {
+  IFDSSolver Solver(Problem, &ICF, S);
   Solver.solve();
   return Solver.consumeSolverResults();
 }

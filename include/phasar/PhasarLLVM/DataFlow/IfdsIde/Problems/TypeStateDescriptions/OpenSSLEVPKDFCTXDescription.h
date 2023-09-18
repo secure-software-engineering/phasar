@@ -73,14 +73,14 @@ private:
 
   // std::map<std::pair<const llvm::Instruction *, const llvm::Value *>, int>
   //     requiredKDFState;
-  IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFDescription>>
+  IDESolver_P<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>
       &KDFAnalysisResults;
   static OpenSSLEVTKDFToken funcNameToToken(llvm::StringRef F);
 
 public:
   using TypeStateDescription::getNextState;
   OpenSSLEVPKDFCTXDescription(
-      IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFDescription>>
+      IDESolver_P<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>
           &KDFAnalysisResults)
       : KDFAnalysisResults(KDFAnalysisResults) {}
 

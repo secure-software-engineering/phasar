@@ -52,8 +52,7 @@ const OpenSSLSecureHeapState OpenSSLSecureHeapDescription::Delta[5][6] = {
      OpenSSLSecureHeapState::FREED, OpenSSLSecureHeapState::ERROR},
 };
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapDescription(
-    IDESolver<IDESecureHeapPropagationAnalysisDomain>
-        &SecureHeapPropagationResults)
+    IDESolver_P<IDESecureHeapPropagation> &SecureHeapPropagationResults)
     : SecureHeapPropagationResults(SecureHeapPropagationResults) {}
 
 bool OpenSSLSecureHeapDescription::isFactoryFunction(llvm::StringRef F) const {

@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVER_H
-#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVER_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_EAGERIDESOLVER_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_EAGERIDESOLVER_H
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDBBase.h"
@@ -54,13 +54,16 @@
 #include <unordered_set>
 #include <utility>
 
+#include <llvm/ADT/DenseSet.h>
+#include <llvm/Support/ErrorHandling.h>
+
 namespace psr {
 
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
 /// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy, typename Container>
-class IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>
+class IDESolver<AnalysisDomainTy, Container, PropagateOntoStrategy>
     : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>> {
   friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>>;
 
@@ -78,7 +81,7 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
 
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-            const i_t *ICF, PropagateAfterStrategy /*Strategy*/ = {})
+            const i_t *ICF, PropagateOntoStrategy /*Strategy*/ = {})
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
@@ -256,6 +259,71 @@ public:
   }
 
 protected:
+  void addWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
+                       EdgeFunction<l_t> EF) {
+    WorkList.emplace_back(PathEdge{std::move(
+        SourceVal, std::move(Target), std::move(TargetVal), std::move(EF))});
+  }
+
+  bool updateJumpFunction(d_t SourceVal, n_t Target, d_t TargetVal,
+                          EdgeFunction<l_t> *f) {
+    EdgeFunction<l_t> JumpFnE = [&]() {
+      const auto RevLookupResult = JumpFn->reverseLookup(Target, TargetVal);
+      if (RevLookupResult) {
+        const auto &JumpFnContainer = RevLookupResult->get();
+        const auto Find = std::find_if(
+            JumpFnContainer.begin(), JumpFnContainer.end(),
+            [SourceVal](auto &KVpair) { return KVpair.first == SourceVal; });
+        if (Find != JumpFnContainer.end()) {
+          return Find->second;
+        }
+      }
+      // jump function is initialized to all-top if no entry
+      // was found
+      return AllTop;
+    }();
+
+    EdgeFunction<l_t> fPrime = JumpFnE.joinWith(*f);
+    bool NewFunction = fPrime != JumpFnE;
+    if (NewFunction) {
+      *f = fPrime;
+      JumpFn->addFunction(std::move(SourceVal), std::move(Target),
+                          std::move(TargetVal), std::move(fPrime));
+
+      IF_LOG_ENABLED(
+          PHASAR_LOG_LEVEL(
+              DEBUG, "Join: " << JumpFnE << " & " << f
+                              << (JumpFnE == f ? " (EF's are equal)" : " "));
+          PHASAR_LOG_LEVEL(
+              DEBUG, "    = " << f << (NewFunction ? " (new jump func)" : " "));
+          PHASAR_LOG_LEVEL(DEBUG, ' '));
+
+      IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
+        PHASAR_LOG_LEVEL(DEBUG, "EDGE: <F: "
+                                    << FToString(ICF->getFunctionOf(Target))
+                                    << ", D: " << DToString(SourceVal) << '>');
+        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
+        PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
+        PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
+        PHASAR_LOG_LEVEL(DEBUG, ' ');
+      });
+    }
+    return NewFunction;
+  }
+
+  void updateWithNewEdge(llvm::SmallDenseSet<d_t> &UpdatedFacts, d_t SourceVal,
+                         n_t OldTarget, n_t NewTarget, d_t TargetVal,
+                         EdgeFunction<l_t> EF) {
+    if (updateJumpFunction(SourceVal, OldTarget, TargetVal, &EF)) {
+      UpdatedFacts.insert(TargetVal);
+      addWorklistItem(SourceVal, NewTarget, std::move(TargetVal),
+                      std::move(EF));
+    } else if (UpdatedFacts.contains(TargetVal)) {
+      addWorklistItem(SourceVal, NewTarget, std::move(TargetVal),
+                      std::move(EF));
+    }
+  }
+
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
   ///
@@ -273,7 +341,7 @@ protected:
   ///
   /// @param edge an edge whose target node resembles a method call
   ///
-  virtual void processCall(const PathEdge<n_t, d_t> Edge) {
+  virtual void processCall(PathEdge<n_t, d_t> Edge, EdgeFunction<l_t> f) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, Full);
     PHASAR_LOG_LEVEL(DEBUG,
@@ -282,7 +350,7 @@ protected:
     n_t n = Edge.getTarget();
     // a call node; line 14...
     d_t d2 = Edge.factAtTarget();
-    EdgeFunction<l_t> f = jumpFunction(Edge);
+    // EdgeFunction<l_t> f = jumpFunction(Edge);
     const auto &ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
     const auto &Callees = ICF->getCalleesOfCallAt(n);
 
@@ -295,6 +363,9 @@ protected:
              : ReturnSiteNs) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(ret));
         });
+
+    // The facts that are updated for the return-site
+    llvm::SmallDenseSet<d_t> UpdatedFacts;
 
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
@@ -320,8 +391,9 @@ protected:
                     DEBUG, "Queried Summary Edge Function: " << SumEdgFnE);
                 PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE << " * " << f
                                                     << '\n'));
-            addWorklistItem(d1, ReturnSiteN, std::move(d3),
-                            f.composeWith(SumEdgFnE));
+
+            updateWithNewEdge(UpdatedFacts, d1, n, ReturnSiteN, std::move(d3),
+                              f.composeWith(SumEdgFnE));
           }
         }
       } else {
@@ -344,14 +416,20 @@ protected:
           // for each result node of the call-flow function
           for (d_t d3 : Res) {
             using TableCell = typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell;
-            // create initial self-loop
-            PHASAR_LOG_LEVEL(
-                DEBUG, "Create initial self-loop with D: " << DToString(d3));
-            addWorklistItem(d3, SP, d3, EdgeIdentity<l_t>{}); // line 15
 
-            //  register the fact that <sp,d3> has an incoming edge from <n,d2>
-            //  line 15.1 of Naeem/Lhotak/Rodriguez
+            const auto &SummaryEntries = endSummary(SP, d3);
+
+            //  register the fact that <sp,d3> has an incoming edge from
+            //  <n,d2> line 15.1 of Naeem/Lhotak/Rodriguez
             addIncoming(SP, d3, n, d2);
+
+            if (SummaryEntries.empty()) {
+              // create initial self-loop
+              PHASAR_LOG_LEVEL(
+                  DEBUG, "Create initial self-loop with D: " << DToString(d3));
+              addWorklistItem(d3, SP, d3, EdgeIdentity<l_t>{}); // line 15
+              continue;
+            }
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
             // const std::set<TableCell> endSumm(endSummary(sP, d3));
@@ -366,10 +444,10 @@ protected:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (const TableCell &Entry : endSummary(SP, d3)) {
-              n_t eP = Entry.getRowKey();
-              d_t d4 = Entry.getColumnKey();
-              EdgeFunction<l_t> fCalleeSummary = Entry.getValue();
+            for (const TableCell &Entry : SummaryEntries) {
+              const n_t &eP = Entry.getRowKey();
+              const d_t &d4 = Entry.getColumnKey();
+              const EdgeFunction<l_t> &fCalleeSummary = Entry.getValue();
               // for each return site
               for (n_t RetSiteN : ReturnSiteNs) {
                 // compute return-flow function
@@ -418,8 +496,9 @@ protected:
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f);
-                  addWorklistItem(d1, RetSiteN, std::move(d5_restoredCtx),
-                                  f.composeWith(fPrime));
+                  updateWithNewEdge(UpdatedFacts, d1, n, RetSiteN,
+                                    std::move(d5_restoredCtx),
+                                    f.composeWith(fPrime));
                 }
               }
             }
@@ -452,7 +531,8 @@ protected:
         auto fPrime = f.composeWith(EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
-        addWorklistItem(d1, ReturnSiteN, std::move(d3), std::move(fPrime));
+        updateWithNewEdge(UpdatedFacts, d1, n, ReturnSiteN, std::move(d3),
+                          std::move(fPrime));
       }
     }
   }
@@ -461,15 +541,19 @@ protected:
   /// Simply propagate normal, intra-procedural flows.
   /// @param edge
   ///
-  virtual void processNormalFlow(PathEdge<n_t, d_t> Edge) {
+  virtual void processNormalFlow(PathEdge<n_t, d_t> Edge, EdgeFunction<l_t> f) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, Full);
     PHASAR_LOG_LEVEL(
         DEBUG, "Process normal at target: " << NToString(Edge.getTarget()));
-    EdgeFunction<l_t> f = jumpFunction(Edge);
+    // EdgeFunction<l_t> f = jumpFunction(Edge);
     auto [d1, n, d2] = Edge.consume();
 
-    for (const auto nPrime : ICF->getSuccsOf(n)) {
+    const auto &Succs = ICF->getSuccsOf(n);
+
+    llvm::SmallDenseSet<d_t> UpdatedFacts;
+
+    for (const auto &nPrime : Succs) {
       FlowFunctionPtrType FlowFunc =
           CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
       INC_COUNTER("FF Queries", 1, Full);
@@ -488,7 +572,9 @@ protected:
         PHASAR_LOG_LEVEL(DEBUG,
                          "Compose: " << g << " * " << f << " = " << fPrime);
         INC_COUNTER("EF Queries", 1, Full);
-        addWorklistItem(d1, nPrime, std::move(d3), std::move(fPrime));
+
+        updateWithNewEdge(UpdatedFacts, d1, n, nPrime, std::move(d3),
+                          std::move(fPrime));
       }
     }
   }
@@ -611,7 +697,7 @@ protected:
   }
 
   // should be made a callable at some point
-  void pathEdgeProcessingTask(PathEdge<n_t, d_t> Edge) {
+  void pathEdgeProcessingTask(PathEdge<n_t, d_t> Edge, EdgeFunction<l_t> EF) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("JumpFn Construction", 1, Full);
     IF_LOG_ENABLED(
@@ -632,13 +718,13 @@ protected:
 
     if (!ICF->isCallSite(Edge.getTarget())) {
       if (ICF->isExitInst(Edge.getTarget())) {
-        processExit(Edge);
+        processExit(Edge, EF);
       }
       if (!ICF->getSuccsOf(Edge.getTarget()).empty()) {
-        processNormalFlow(std::move(Edge));
+        processNormalFlow(std::move(Edge), std::move(EF));
       }
     } else {
-      processCall(std::move(Edge));
+      processCall(std::move(Edge), std::move(EF));
     }
   }
 
@@ -773,7 +859,10 @@ protected:
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, Core);
         }
-        addWorklistItem(Fact, StartPoint, Fact, EdgeIdentity<l_t>{});
+
+        /// TODO: Do we have to add EdgeIdentity to the JF-table in advance?
+        /// Probably not
+        WorkList.emplace_back(Fact, StartPoint, Fact);
       }
     }
   }
@@ -786,13 +875,14 @@ protected:
   ///
   /// @param edge an edge whose target node resembles a method exit
   ///
-  virtual void processExit(const PathEdge<n_t, d_t> Edge) {
+  virtual void processExit(PathEdge<n_t, d_t> Edge, EdgeFunction<l_t> f) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, Full);
     PHASAR_LOG_LEVEL(DEBUG,
                      "Process exit at target: " << NToString(Edge.getTarget()));
     n_t n = Edge.getTarget(); // an exit node; line 21...
-    EdgeFunction<l_t> f = jumpFunction(Edge);
+
+    // EdgeFunction<l_t> f = jumpFunction(Edge);
     f_t FunctionThatNeedsSummary = ICF->getFunctionOf(n);
     d_t d1 = Edge.factAtSource();
     d_t d2 = Edge.factAtTarget();
@@ -814,6 +904,9 @@ protected:
     for (const auto &Entry : Inc) {
       // line 22
       n_t c = Entry.first;
+
+      llvm::SmallDenseSet<d_t> UpdatedFacts;
+
       // for each return site
       for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
@@ -866,9 +959,15 @@ protected:
                   d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
-                  addWorklistItem(std::move(d3), RetSiteC,
-                                  std::move(d5_restoredCtx),
-                                  f3.composeWith(fPrime));
+                  if (updateJumpFunction(d3, c, d5_restoredCtx,
+                                         f3.composeWith(fPrime))) {
+                    UpdatedFacts.insert(d5_restoredCtx);
+                    WorkList.emplace_back(std::move(d3), RetSiteC,
+                                          std::move(d5_restoredCtx));
+                  } else if (UpdatedFacts.contains(d5_restoredCtx)) {
+                    WorkList.emplace_back(std::move(d3), RetSiteC,
+                                          std::move(d5_restoredCtx));
+                  }
                 }
               }
             }
@@ -928,8 +1027,9 @@ protected:
   void propagteUnbalancedReturnFlow(n_t RetSiteC, d_t TargetVal,
                                     EdgeFunction<l_t> EdgeFunc,
                                     n_t /*RelatedCallSite*/) {
-    addWorklistItem(ZeroValue, std::move(RetSiteC), std::move(TargetVal),
-                    std::move(EdgeFunc));
+    WorkList.emplace_back(
+        PathEdge{ZeroValue, std::move(RetSiteC), std::move(TargetVal)},
+        std::move(EdgeFunc));
   }
 
   /// This method will be called for each incoming edge and can be used to
@@ -1015,55 +1115,6 @@ protected:
     return RetFlowFunction->computeTargets(d2);
   }
 
-  bool addWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
-                       EdgeFunction<l_t> f) {
-    EdgeFunction<l_t> JumpFnE = [&]() {
-      const auto RevLookupResult = JumpFn->reverseLookup(Target, TargetVal);
-      if (RevLookupResult) {
-        const auto &JumpFnContainer = RevLookupResult->get();
-        const auto Find = std::find_if(
-            JumpFnContainer.begin(), JumpFnContainer.end(),
-            [SourceVal](auto &KVpair) { return KVpair.first == SourceVal; });
-        if (Find != JumpFnContainer.end()) {
-          return Find->second;
-        }
-      }
-      // jump function is initialized to all-top if no entry
-      // was found
-      return AllTop;
-    }();
-    EdgeFunction<l_t> fPrime = JumpFnE.joinWith(f);
-    bool NewFunction = fPrime != JumpFnE;
-
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(
-            DEBUG, "Join: " << JumpFnE << " & " << f
-                            << (JumpFnE == f ? " (EF's are equal)" : " "));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "    = " << fPrime
-                                  << (NewFunction ? " (new jump func)" : " "));
-        PHASAR_LOG_LEVEL(DEBUG, ' '));
-    if (NewFunction) {
-      JumpFn->addFunction(SourceVal, Target, TargetVal, fPrime);
-      PathEdge Edge(SourceVal, Target, TargetVal);
-      WorkList.push_back(std::move(Edge));
-
-      IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
-        PHASAR_LOG_LEVEL(DEBUG, "[addWorklistItem]: EDGE: <F: "
-                                    << FToString(ICF->getFunctionOf(Target))
-                                    << ", D: " << DToString(SourceVal) << '>');
-        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
-        PHASAR_LOG_LEVEL(DEBUG, ' ');
-      });
-    } else {
-      PHASAR_LOG_LEVEL(DEBUG, "[addWorklistItem]: No new function!");
-    }
-
-    return NewFunction;
-  }
-
   /// Propagates the flow further down the exploded super graph, merging any
   /// edge function that might already have been computed for TargetVal at
   /// Target.
@@ -1080,7 +1131,7 @@ protected:
   /// unbalanced return (this value is not used within this implementation
   /// but may be useful for subclasses of {@link IDESolver})
   ///
-  void propagate(PathEdge<n_t, d_t> Edge) {
+  void propagate(PathEdge<n_t, d_t> Edge, EdgeFunction<l_t> EF) {
     const auto &[SourceVal, Target, TargetVal] = Edge.get();
 
     PHASAR_LOG_LEVEL(DEBUG, "Propagate flow");
@@ -1089,7 +1140,7 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG, "Target value  : " << DToString(TargetVal));
 
     PathEdgeCount++;
-    pathEdgeProcessingTask(std::move(Edge));
+    pathEdgeProcessingTask(std::move(Edge), std::move(EF));
   }
 
   l_t joinValueAt(n_t /*Unit*/, d_t /*Fact*/, l_t Curr, l_t NewVal) {
@@ -1659,10 +1710,10 @@ private:
 
   bool doNext() {
     assert(!WorkList.empty());
-    auto Edge = std::move(WorkList.back());
+    auto [Edge, EF] = std::move(WorkList.back());
     WorkList.pop_back();
 
-    propagate(std::move(Edge));
+    propagate(std::move(Edge), std::move(EF));
 
     return !WorkList.empty();
   }
@@ -1704,7 +1755,7 @@ private:
   const i_t *ICF;
   IFDSIDESolverConfig &SolverConfig;
 
-  std::vector<PathEdge<n_t, d_t>> WorkList;
+  std::vector<std::pair<PathEdge<n_t, d_t>, EdgeFunction<l_t>>> WorkList;
   std::vector<std::pair<n_t, d_t>> ValuePropWL;
 
   size_t PathEdgeCount = 0;
@@ -1741,13 +1792,18 @@ private:
   std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
 };
 
+template <typename Problem, typename ICF>
+IDESolver(Problem &, ICF *, PropagateOntoStrategy)
+    -> IDESolver<typename Problem::ProblemAnalysisDomain,
+                 typename Problem::container_type, PropagateOntoStrategy>;
+
 template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t,
                     typename AnalysisDomainTy::l_t>
 solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
                 const typename AnalysisDomainTy::i_t &ICF,
-                PropagateAfterStrategy Strategy = {}) {
+                PropagateOntoStrategy Strategy) {
   IDESolver Solver(Problem, &ICF, Strategy);
   Solver.solve();
   return Solver.consumeSolverResults();
