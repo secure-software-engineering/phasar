@@ -44,7 +44,7 @@ public:
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
              const i_t *ICF, Strategy S = {})
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container, Strategy>(
-            IFDSProblem, ICF) {}
+            IFDSProblem, ICF, S) {}
 
   ~IFDSSolver() override = default;
 

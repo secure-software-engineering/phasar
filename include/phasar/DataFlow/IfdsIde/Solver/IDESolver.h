@@ -61,8 +61,10 @@ namespace psr {
 /// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy, typename Container>
 class IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>
-    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>> {
-  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>>;
+    : public IDESolverAPIMixin<
+          IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>> {
+  friend IDESolverAPIMixin<
+      IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>>;
 
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;

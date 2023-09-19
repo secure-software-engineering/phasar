@@ -1,9 +1,14 @@
+#include "phasar/DataFlow/IfdsIde/Solver/EagerIDESolver.h"
+
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/DataFlow/IfdsIde/Solver/SolverStrategy.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "TestConfig.h"
@@ -15,6 +20,7 @@
 using namespace psr;
 
 namespace {
+
 /* ============== TEST FIXTURE ============== */
 class LinearConstant : public ::testing::TestWithParam<std::string_view> {
 protected:
@@ -24,7 +30,7 @@ protected:
 
 }; // Test Fixture
 
-TEST_P(LinearConstant, ResultsEquivalentSolveUntil) {
+TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
   HelperAnalyses HA(PathToLlFiles + GetParam(), EntryPoints);
 
   // Compute the ICFG to possibly create the runtime model
@@ -38,79 +44,32 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntil) {
       std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                                 : "main"});
 
-  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
+  auto PropagateOverResults = IDESolver(LCAProblem, &ICFG).solve();
   {
-    auto InteractiveResults =
-        IDESolver(LCAProblem, &ICFG).solveUntil(FalseFn{});
+    // psr::Logger::initializeStderrLogger(SeverityLevel::DEBUG);
 
-    ASSERT_TRUE(InteractiveResults.has_value());
-    for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-      auto InteractiveRes =
-          InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
-      EXPECT_EQ(InteractiveRes, Cell.getValue());
+    auto PropagateOntoResults =
+        IDESolver(LCAProblem, &ICFG, PropagateOntoStrategy{}).solve();
+
+    PropagateOntoResults.dumpResults(ICFG);
+
+    for (auto &&Cell : PropagateOntoResults.getAllResultEntries()) {
+      const auto *Stmt = Cell.getRowKey();
+      if (Stmt->isTerminator()) {
+        continue;
+      }
+      const auto *NextStmt = Stmt->getNextNonDebugInstruction();
+      assert(NextStmt != nullptr);
+
+      auto PropagateOverRes =
+          PropagateOverResults.resultAt(NextStmt, Cell.getColumnKey());
+      EXPECT_EQ(PropagateOverRes, Cell.getValue())
+          << "The Incoming results of the eager IDE solver should match the "
+             "outgoing results of the default solver. Expected: ("
+          << NToString(NextStmt) << ", " << DToString(Cell.getColumnKey())
+          << ") --> " << LToString(PropagateOverRes) << "; got "
+          << LToString(Cell.getValue());
     }
-  }
-  auto InterruptedResults = [&] {
-    IDESolver Solver(LCAProblem, &ICFG);
-    auto Result = Solver.solveUntil(TrueFn{});
-    EXPECT_EQ(std::nullopt, Result);
-    if (!Result) {
-      return std::move(Solver).continueSolving();
-    }
-    return Solver.consumeSolverResults();
-  }();
-
-  for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-    auto InteractiveRes =
-        InterruptedResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
-    EXPECT_EQ(InteractiveRes, Cell.getValue());
-  }
-}
-
-TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
-  HelperAnalyses HA(PathToLlFiles + GetParam(), EntryPoints);
-
-  // Compute the ICFG to possibly create the runtime model
-  auto &ICFG = HA.getICFG();
-
-  auto HasGlobalCtor = HA.getProjectIRDB().getFunctionDefinition(
-                           LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
-
-  auto LCAProblem = createAnalysisProblem<IDELinearConstantAnalysis>(
-      HA,
-      std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
-                                : "main"});
-
-  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
-
-  {
-    std::atomic_bool IsCancelled = false;
-    auto InteractiveResults =
-        IDESolver(LCAProblem, &ICFG).solveWithAsyncCancellation(IsCancelled);
-
-    ASSERT_TRUE(InteractiveResults.has_value());
-    for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-      auto InteractiveRes =
-          InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
-      EXPECT_EQ(InteractiveRes, Cell.getValue());
-    }
-  }
-  auto InterruptedResults = [&] {
-    IDESolver Solver(LCAProblem, &ICFG);
-    std::atomic_bool IsCancelled = true;
-    auto Result = Solver.solveWithAsyncCancellation(IsCancelled);
-    EXPECT_EQ(std::nullopt, Result);
-    if (!Result) {
-      IsCancelled = false;
-      return std::move(Solver).solveWithAsyncCancellation(IsCancelled).value();
-    }
-    return Solver.consumeSolverResults();
-  }();
-
-  for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-    auto InteractiveRes =
-        InterruptedResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
-    EXPECT_EQ(InteractiveRes, Cell.getValue());
   }
 }
 

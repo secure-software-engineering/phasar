@@ -64,8 +64,10 @@ namespace psr {
 /// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy, typename Container>
 class IDESolver<AnalysisDomainTy, Container, PropagateOntoStrategy>
-    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>> {
-  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>>;
+    : public IDESolverAPIMixin<
+          IDESolver<AnalysisDomainTy, Container, PropagateOntoStrategy>> {
+  friend IDESolverAPIMixin<
+      IDESolver<AnalysisDomainTy, Container, PropagateOntoStrategy>>;
 
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
@@ -261,8 +263,9 @@ public:
 protected:
   void addWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
                        EdgeFunction<l_t> EF) {
-    WorkList.emplace_back(PathEdge{std::move(
-        SourceVal, std::move(Target), std::move(TargetVal), std::move(EF))});
+    WorkList.emplace_back(
+        PathEdge{std::move(SourceVal), std::move(Target), std::move(TargetVal)},
+        std::move(EF));
   }
 
   bool updateJumpFunction(d_t SourceVal, n_t Target, d_t TargetVal,
@@ -286,17 +289,17 @@ protected:
     EdgeFunction<l_t> fPrime = JumpFnE.joinWith(*f);
     bool NewFunction = fPrime != JumpFnE;
     if (NewFunction) {
-      *f = fPrime;
-      JumpFn->addFunction(std::move(SourceVal), std::move(Target),
-                          std::move(TargetVal), std::move(fPrime));
-
       IF_LOG_ENABLED(
           PHASAR_LOG_LEVEL(
-              DEBUG, "Join: " << JumpFnE << " & " << f
-                              << (JumpFnE == f ? " (EF's are equal)" : " "));
+              DEBUG, "Join: " << JumpFnE << " & " << *f
+                              << (JumpFnE == *f ? " (EF's are equal)" : " "));
           PHASAR_LOG_LEVEL(
               DEBUG, "    = " << f << (NewFunction ? " (new jump func)" : " "));
           PHASAR_LOG_LEVEL(DEBUG, ' '));
+
+      *f = fPrime;
+      JumpFn->addFunction(std::move(SourceVal), std::move(Target),
+                          std::move(TargetVal), std::move(fPrime));
 
       IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
         PHASAR_LOG_LEVEL(DEBUG, "EDGE: <F: "
@@ -528,6 +531,7 @@ protected:
               .push_back(EdgeFnE);
         }
         INC_COUNTER("EF Queries", 1, Full);
+        PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f);
         auto fPrime = f.composeWith(EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
@@ -712,9 +716,10 @@ protected:
                                                << " ;");
         PHASAR_LOG_LEVEL(DEBUG,
                          "  N target: " << NToString(Edge.getTarget()) << " ;");
-        PHASAR_LOG_LEVEL(DEBUG, "  D target: " << DToString(Edge.factAtTarget())
-                                               << " >");
-        PHASAR_LOG_LEVEL(DEBUG, ' '));
+        PHASAR_LOG_LEVEL(DEBUG,
+                         "  D target: " << DToString(Edge.factAtTarget()));
+        PHASAR_LOG_LEVEL(DEBUG, "  J jump-function: " << EF << " >")
+            PHASAR_LOG_LEVEL(DEBUG, ' '));
 
     if (!ICF->isCallSite(Edge.getTarget())) {
       if (ICF->isExitInst(Edge.getTarget())) {
@@ -862,7 +867,7 @@ protected:
 
         /// TODO: Do we have to add EdgeIdentity to the JF-table in advance?
         /// Probably not
-        WorkList.emplace_back(Fact, StartPoint, Fact);
+        addWorklistItem(Fact, StartPoint, Fact, EdgeIdentity<l_t>{});
       }
     }
   }
@@ -959,15 +964,9 @@ protected:
                   d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
-                  if (updateJumpFunction(d3, c, d5_restoredCtx,
-                                         f3.composeWith(fPrime))) {
-                    UpdatedFacts.insert(d5_restoredCtx);
-                    WorkList.emplace_back(std::move(d3), RetSiteC,
-                                          std::move(d5_restoredCtx));
-                  } else if (UpdatedFacts.contains(d5_restoredCtx)) {
-                    WorkList.emplace_back(std::move(d3), RetSiteC,
-                                          std::move(d5_restoredCtx));
-                  }
+                  updateWithNewEdge(UpdatedFacts, std::move(d3), c, RetSiteC,
+                                    std::move(d5_restoredCtx),
+                                    f3.composeWith(fPrime));
                 }
               }
             }
@@ -1027,9 +1026,8 @@ protected:
   void propagteUnbalancedReturnFlow(n_t RetSiteC, d_t TargetVal,
                                     EdgeFunction<l_t> EdgeFunc,
                                     n_t /*RelatedCallSite*/) {
-    WorkList.emplace_back(
-        PathEdge{ZeroValue, std::move(RetSiteC), std::move(TargetVal)},
-        std::move(EdgeFunc));
+    addWorklistItem(ZeroValue, std::move(RetSiteC), std::move(TargetVal),
+                    std::move(EdgeFunc));
   }
 
   /// This method will be called for each incoming edge and can be used to
@@ -1138,6 +1136,8 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG, "Source value  : " << DToString(SourceVal));
     PHASAR_LOG_LEVEL(DEBUG, "Target        : " << NToString(Target));
     PHASAR_LOG_LEVEL(DEBUG, "Target value  : " << DToString(TargetVal));
+    PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EF);
+    llvm::errs().flush();
 
     PathEdgeCount++;
     pathEdgeProcessingTask(std::move(Edge), std::move(EF));
