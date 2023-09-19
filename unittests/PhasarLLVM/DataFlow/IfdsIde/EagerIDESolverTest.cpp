@@ -51,7 +51,7 @@ TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
     auto PropagateOntoResults =
         IDESolver(LCAProblem, &ICFG, PropagateOntoStrategy{}).solve();
 
-    PropagateOntoResults.dumpResults(ICFG);
+    // PropagateOntoResults.dumpResults(ICFG);
 
     for (auto &&Cell : PropagateOntoResults.getAllResultEntries()) {
       const auto *Stmt = Cell.getRowKey();

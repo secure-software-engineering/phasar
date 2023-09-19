@@ -37,10 +37,13 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Table.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
@@ -53,9 +56,6 @@
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
-
-#include <llvm/ADT/DenseSet.h>
-#include <llvm/Support/ErrorHandling.h>
 
 namespace psr {
 
@@ -587,19 +587,21 @@ protected:
     PAMM_GET_INSTANCE;
     d_t Fact = NAndD.second;
     f_t Func = ICF->getFunctionOf(Stmt);
-    for (const n_t CallSite : ICF->getCallsFromWithin(Func)) {
-      auto LookupResults = JumpFn->forwardLookup(Fact, CallSite);
-      if (!LookupResults) {
-        continue;
-      }
-      for (size_t I = 0; I < LookupResults->get().size(); ++I) {
-        auto Entry = LookupResults->get()[I];
-        d_t dPrime = Entry.first;
-        auto fPrime = Entry.second;
-        n_t SP = Stmt;
-        l_t Val = val(SP, Fact);
-        INC_COUNTER("Value Propagation", 1, Full);
-        propagateValue(CallSite, dPrime, fPrime.computeTarget(Val));
+    for (const n_t CS : ICF->getCallsFromWithin(Func)) {
+      for (const auto &BeforeCS : ICF->getPredsOf(CS)) {
+        auto LookupResults = JumpFn->forwardLookup(Fact, BeforeCS);
+        if (!LookupResults) {
+          continue;
+        }
+        for (size_t I = 0; I < LookupResults->get().size(); ++I) {
+          auto Entry = LookupResults->get()[I];
+          d_t dPrime = Entry.first;
+          auto fPrime = Entry.second;
+          n_t SP = Stmt;
+          l_t Val = seedVal(SP, Fact);
+          INC_COUNTER("Value Propagation", 1, Full);
+          propagateSeedValue(CS, dPrime, fPrime.computeTarget(Val));
+        }
       }
     }
   }
@@ -624,18 +626,27 @@ protected:
         INC_COUNTER("EF Queries", 1, Full);
         for (const n_t StartPoint : ICF->getStartPointsOf(Callee)) {
           INC_COUNTER("Value Propagation", 1, Full);
-          propagateValue(StartPoint, dPrime,
-                         EdgeFn.computeTarget(val(Stmt, Fact)));
+          propagateSeedValue(StartPoint, dPrime,
+                             EdgeFn.computeTarget(seedVal(Stmt, Fact)));
         }
       }
     }
   }
 
-  void propagateValue(n_t NHashN, d_t NHashD, const l_t &L) {
-    l_t ValNHash = val(NHashN, NHashD);
+  // void propagateValue(n_t NHashN, d_t NHashD, const l_t &L) {
+  //   l_t ValNHash = val(NHashN, NHashD);
+  //   l_t LPrime = joinValueAt(NHashN, NHashD, ValNHash, L);
+  //   if (!(LPrime == ValNHash)) {
+  //     setVal(NHashN, NHashD, std::move(LPrime));
+  //     ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
+  //   }
+  // }
+
+  void propagateSeedValue(n_t NHashN, d_t NHashD, const l_t &L) {
+    l_t ValNHash = seedVal(NHashN, NHashD);
     l_t LPrime = joinValueAt(NHashN, NHashD, ValNHash, L);
     if (!(LPrime == ValNHash)) {
-      setVal(NHashN, NHashD, std::move(LPrime));
+      SeedValues.insert(NHashN, NHashD, std::move(LPrime));
       ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
     }
   }
@@ -645,6 +656,13 @@ protected:
       return ValTab.get(NHashN, NHashD);
     }
     // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
+    return IDEProblem.topElement();
+  }
+
+  l_t seedVal(n_t NHashN, d_t NHashD) {
+    if (SeedValues.contains(NHashN, NHashD)) {
+      return SeedValues.get(NHashN, NHashD);
+    }
     return IDEProblem.topElement();
   }
 
@@ -764,7 +782,7 @@ protected:
           d_t dPrime = SourceValTargetValAndFunction.getRowKey();
           d_t d = SourceValTargetValAndFunction.getColumnKey();
           EdgeFunction<l_t> fPrime = SourceValTargetValAndFunction.getValue();
-          l_t TargetVal = val(SP, dPrime);
+          l_t TargetVal = seedVal(SP, dPrime);
           setVal(n, d,
                  IDEProblem.join(val(n, d),
                                  fPrime.computeTarget(std::move(TargetVal))));
@@ -801,11 +819,23 @@ protected:
                                     << ", value: " << LToString(Value));
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
-        setVal(StartPoint, Fact, Value);
+        SeedValues.insert(StartPoint, Fact, Value);
         std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
         valuePropagationTask(std::move(SuperGraphNode));
       }
     }
+  }
+
+  std::vector<n_t> allNodes() const {
+    std::vector<n_t> Ret;
+    // TODO: Reserve
+
+    for (const auto &Fun : ICF->getAllFunctions()) {
+      for (const auto &Inst : ICF->getAllInstructionsOf(Fun)) {
+        Ret.push_back(Inst);
+      }
+    }
+    return Ret;
   }
 
   /// Computes the final values for edge functions.
@@ -822,8 +852,8 @@ protected:
     // Phase II(ii)
     // we create an array of all nodes and then dispatch fractions of this
     // array to multiple threads
-    const auto AllNonCallStartNodes = ICF->allNonCallStartNodes();
-    valueComputationTask(AllNonCallStartNodes);
+    const auto AllNodes = allNodes();
+    valueComputationTask(AllNodes);
   }
 
   /// Schedules the processing of initial seeds, initiating the analysis.
@@ -1786,6 +1816,7 @@ private:
   std::set<n_t> UnbalancedRetSites;
 
   InitialSeeds<n_t, d_t, l_t> Seeds;
+  Table<n_t, d_t, l_t> SeedValues;
 
   Table<n_t, d_t, l_t> ValTab;
 
