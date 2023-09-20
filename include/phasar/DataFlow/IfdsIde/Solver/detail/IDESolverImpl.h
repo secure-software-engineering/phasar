@@ -18,6 +18,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/detail/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/detail/PathEdge.h"
 #include "phasar/Utils/DOTGraph.h"
+#include "phasar/Utils/Printer.h"
 
 #include <type_traits>
 
@@ -1079,8 +1080,8 @@ private:
 
   void addWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
                        EdgeFunction<l_t> /*EF*/) {
-    WorkList.emplace_back(std::move(SourceVal), std::move(Target),
-                          std::move(TargetVal));
+    self().WorkList.emplace_back(std::move(SourceVal), std::move(Target),
+                                 std::move(TargetVal));
   }
 
   std::set<typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell>
@@ -1139,7 +1140,7 @@ private:
         d_t dPrime = Entry.first;
         auto fPrime = Entry.second;
         n_t SP = Stmt;
-        l_t Val = val(SP, Fact);
+        l_t Val = self().seedVal(SP, Fact);
         INC_COUNTER("Value Propagation", 1, Full);
         self().propagateValue(CallSite, dPrime, fPrime.computeTarget(Val));
       }
@@ -1166,18 +1167,20 @@ private:
         INC_COUNTER("EF Queries", 1, Full);
         for (const n_t StartPoint : ICF->getStartPointsOf(Callee)) {
           INC_COUNTER("Value Propagation", 1, Full);
-          self().propagateValue(StartPoint, dPrime,
-                                EdgeFn.computeTarget(self().val(Stmt, Fact)));
+          self().propagateValue(
+              StartPoint, dPrime,
+              EdgeFn.computeTarget(self().seedVal(Stmt, Fact)));
         }
       }
     }
   }
 
   void propagateValue(n_t NHashN, d_t NHashD, const l_t &L) {
-    l_t ValNHash = self().val(NHashN, NHashD);
+    l_t ValNHash = self().seedVal(NHashN, NHashD);
     l_t LPrime = self().joinValueAt(NHashN, NHashD, ValNHash, L);
     if (!(LPrime == ValNHash)) {
-      self().setVal(NHashN, NHashD, std::move(LPrime));
+      self().setSeedVal(NHashN, NHashD, std::move(LPrime));
+
       ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
     }
   }
@@ -1208,12 +1211,14 @@ private:
         using TableCell = typename Table<d_t, d_t, EdgeFunction<l_t>>::Cell;
         Table<d_t, d_t, EdgeFunction<l_t>> &LookupByTarget =
             JumpFn->lookupByTarget(n);
+
         for (const TableCell &SourceValTargetValAndFunction :
              LookupByTarget.cellSet()) {
           d_t dPrime = SourceValTargetValAndFunction.getRowKey();
           d_t d = SourceValTargetValAndFunction.getColumnKey();
           EdgeFunction<l_t> fPrime = SourceValTargetValAndFunction.getValue();
-          l_t TargetVal = self().val(SP, dPrime);
+          l_t TargetVal = self().seedVal(SP, dPrime);
+
           self().setVal(
               n, d,
               IDEProblem.join(self().val(n, d),
@@ -1240,7 +1245,7 @@ private:
                                     << ", value: " << LToString(Value));
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
-        self().setVal(StartPoint, Fact, Value);
+        self().setSeedVal(StartPoint, Fact, Value);
         std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
         self().valuePropagationTask(std::move(SuperGraphNode));
       }
@@ -1253,6 +1258,10 @@ private:
     }
     // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
     return IDEProblem.topElement();
+  }
+
+  l_t seedVal(n_t NHashN, d_t NHashD) {
+    return self().val(std::move(NHashN), std::move(NHashD));
   }
 
   void setVal(n_t NHashN, d_t NHashD, l_t L) {
@@ -1271,6 +1280,10 @@ private:
     // } else {
     ValTab.insert(NHashN, NHashD, std::move(L));
     // }
+  }
+
+  void setSeedVal(n_t NHashN, d_t NHashD, l_t L) {
+    self().setVal(std::move(NHashN), std::move(NHashD), std::move(L));
   }
 
   std::vector<n_t> getAllValueComputationNodes() {
@@ -1312,18 +1325,18 @@ private:
 
     // We start our analysis and construct exploded supergraph
     self().submitInitialSeeds();
-    return !WorkList.empty();
+    return !self().WorkList.empty();
   }
 
   bool doNext() {
-    assert(!WorkList.empty());
-    auto Edge = std::move(WorkList.back());
-    WorkList.pop_back();
+    assert(!self().WorkList.empty());
+    auto Edge = std::move(self().WorkList.back());
+    self().WorkList.pop_back();
 
     auto EF = self().jumpFunction(Edge);
     self().propagate(std::move(Edge), std::move(EF));
 
-    return !WorkList.empty();
+    return !self().WorkList.empty();
   }
 
   void finalizeInternal() {
@@ -1652,7 +1665,7 @@ private:
   }
 
   IDESolverImpl(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-                const i_t *ICF, PropagateAfterStrategy /*Strategy*/ = {})
+                const i_t *ICF, StrategyT /*Strategy*/ = {})
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
@@ -1676,7 +1689,6 @@ private:
   const i_t *ICF;
   IFDSIDESolverConfig &SolverConfig;
 
-  std::vector<PathEdge<n_t, d_t>> WorkList;
   std::vector<std::pair<n_t, d_t>> ValuePropWL;
 
   size_t PathEdgeCount = 0;

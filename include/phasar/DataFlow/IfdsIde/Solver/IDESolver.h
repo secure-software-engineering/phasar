@@ -24,6 +24,9 @@ namespace psr {
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
 /// can then be queried by using resultAt() and resultsAt().
+///
+/// Propagates data-flow facts to the successors of the statement, where they
+/// were generated.
 template <typename AnalysisDomainTy, typename Container>
 class IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>
     : public IDESolverImpl<
@@ -46,9 +49,14 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-            const i_t *ICF, PropagateAfterStrategy Strategy = {})
+  explicit IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+                     const i_t *ICF, PropagateAfterStrategy Strategy = {})
       : base_t(Problem, ICF, Strategy) {}
+
+private:
+  friend base_t;
+
+  std::vector<PathEdge<n_t, d_t>> WorkList;
 };
 
 template <typename AnalysisDomainTy, typename Container>
