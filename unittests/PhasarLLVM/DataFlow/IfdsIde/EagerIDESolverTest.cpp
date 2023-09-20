@@ -51,24 +51,28 @@ TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
     auto PropagateOntoResults =
         IDESolver(LCAProblem, &ICFG, PropagateOntoStrategy{}).solve();
 
-    // PropagateOntoResults.dumpResults(ICFG);
+    bool Failed = false;
 
-    for (auto &&Cell : PropagateOntoResults.getAllResultEntries()) {
-      const auto *Stmt = Cell.getRowKey();
+    for (const auto *Stmt : HA.getProjectIRDB().getAllInstructions()) {
       if (Stmt->isTerminator()) {
         continue;
       }
+
       const auto *NextStmt = Stmt->getNextNonDebugInstruction();
       assert(NextStmt != nullptr);
 
-      auto PropagateOverRes =
-          PropagateOverResults.resultAt(NextStmt, Cell.getColumnKey());
-      EXPECT_EQ(PropagateOverRes, Cell.getValue())
-          << "The Incoming results of the eager IDE solver should match the "
-             "outgoing results of the default solver. Expected: ("
-          << NToString(NextStmt) << ", " << DToString(Cell.getColumnKey())
-          << ") --> " << LToString(PropagateOverRes) << "; got "
-          << LToString(Cell.getValue());
+      for (auto &&[Fact, Value] : PropagateOntoResults.resultsAt(Stmt)) {
+        auto PropagateOverRes = PropagateOverResults.resultAt(NextStmt, Fact);
+        EXPECT_EQ(PropagateOverRes, Value)
+            << "The Incoming results of the eager IDE solver should match the "
+               "outgoing results of the default solver. Expected: ("
+            << NToString(NextStmt) << ", " << DToString(Fact) << ") --> "
+            << LToString(PropagateOverRes) << "; got " << LToString(Value);
+        Failed |= PropagateOverRes != Value;
+      }
+    }
+    if (Failed) {
+      PropagateOntoResults.dumpResults(ICFG);
     }
   }
 }

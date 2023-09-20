@@ -30,8 +30,8 @@
 namespace psr {
 
 template <typename AnalysisDomainTy, typename Container, typename Strategy>
-class IFDSSolver
-    : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container> {
+class IFDSSolver : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>,
+                                    Container, Strategy> {
 public:
   using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
   using d_t = typename AnalysisDomainTy::d_t;

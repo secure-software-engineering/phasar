@@ -185,6 +185,9 @@ private:
     static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
     return static_cast<const Derived &>(*this);
   }
+
+  SolverResultsBase() noexcept = default;
+  friend Derived;
 };
 } // namespace detail
 

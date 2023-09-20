@@ -314,16 +314,26 @@ protected:
     return NewFunction;
   }
 
-  void updateWithNewEdge(llvm::SmallDenseSet<d_t> &UpdatedFacts, d_t SourceVal,
-                         n_t OldTarget, n_t NewTarget, d_t TargetVal,
-                         EdgeFunction<l_t> EF) {
+  template <typename TargetsT>
+  void updateWithNewEdges(d_t SourceVal, n_t OldTarget,
+                          const TargetsT &NewTargets, d_t TargetVal,
+                          EdgeFunction<l_t> EF) {
     if (updateJumpFunction(SourceVal, OldTarget, TargetVal, &EF)) {
-      UpdatedFacts.insert(TargetVal);
-      addWorklistItem(SourceVal, NewTarget, std::move(TargetVal),
-                      std::move(EF));
-    } else if (UpdatedFacts.contains(TargetVal)) {
-      addWorklistItem(SourceVal, NewTarget, std::move(TargetVal),
-                      std::move(EF));
+      auto It = NewTargets.begin();
+      auto End = NewTargets.end();
+      if (It == End) {
+        return;
+      }
+
+      auto Next = std::next(It);
+      if (Next == End) {
+        addWorklistItem(SourceVal, *It, std::move(TargetVal), std::move(EF));
+        return;
+      }
+
+      for (; It != End; ++It) {
+        addWorklistItem(SourceVal, *It, TargetVal, EF);
+      }
     }
   }
 
@@ -367,9 +377,6 @@ protected:
           PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(ret));
         });
 
-    // The facts that are updated for the return-site
-    llvm::SmallDenseSet<d_t> UpdatedFacts;
-
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
@@ -395,8 +402,8 @@ protected:
                 PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE << " * " << f
                                                     << '\n'));
 
-            updateWithNewEdge(UpdatedFacts, d1, n, ReturnSiteN, std::move(d3),
-                              f.composeWith(SumEdgFnE));
+            updateWithNewEdges(d1, n, ReturnSiteNs, std::move(d3),
+                               f.composeWith(SumEdgFnE));
           }
         }
       } else {
@@ -499,9 +506,9 @@ protected:
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f);
-                  updateWithNewEdge(UpdatedFacts, d1, n, RetSiteN,
-                                    std::move(d5_restoredCtx),
-                                    f.composeWith(fPrime));
+                  updateWithNewEdges(d1, n, ReturnSiteNs,
+                                     std::move(d5_restoredCtx),
+                                     f.composeWith(fPrime));
                 }
               }
             }
@@ -535,8 +542,8 @@ protected:
         auto fPrime = f.composeWith(EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
-        updateWithNewEdge(UpdatedFacts, d1, n, ReturnSiteN, std::move(d3),
-                          std::move(fPrime));
+        updateWithNewEdges(d1, n, ReturnSiteNs, std::move(d3),
+                           std::move(fPrime));
       }
     }
   }
@@ -554,8 +561,6 @@ protected:
     auto [d1, n, d2] = Edge.consume();
 
     const auto &Succs = ICF->getSuccsOf(n);
-
-    llvm::SmallDenseSet<d_t> UpdatedFacts;
 
     for (const auto &nPrime : Succs) {
       FlowFunctionPtrType FlowFunc =
@@ -577,8 +582,7 @@ protected:
                          "Compose: " << g << " * " << f << " = " << fPrime);
         INC_COUNTER("EF Queries", 1, Full);
 
-        updateWithNewEdge(UpdatedFacts, d1, n, nPrime, std::move(d3),
-                          std::move(fPrime));
+        updateWithNewEdges(d1, n, Succs, std::move(d3), std::move(fPrime));
       }
     }
   }
@@ -940,10 +944,9 @@ protected:
       // line 22
       n_t c = Entry.first;
 
-      llvm::SmallDenseSet<d_t> UpdatedFacts;
-
+      const auto &RetSiteCs = ICF->getReturnSitesOfCallAt(c);
       // for each return site
-      for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(c)) {
+      for (n_t RetSiteC : RetSiteCs) {
         // compute return-flow function
         FlowFunctionPtrType RetFunction =
             CachedFlowEdgeFunctions.getRetFlowFunction(
@@ -994,9 +997,9 @@ protected:
                   d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
-                  updateWithNewEdge(UpdatedFacts, std::move(d3), c, RetSiteC,
-                                    std::move(d5_restoredCtx),
-                                    f3.composeWith(fPrime));
+                  updateWithNewEdges(std::move(d3), c, RetSiteCs,
+                                     std::move(d5_restoredCtx),
+                                     f3.composeWith(fPrime));
                 }
               }
             }
