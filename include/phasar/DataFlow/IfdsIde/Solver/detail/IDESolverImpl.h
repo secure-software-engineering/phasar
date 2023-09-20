@@ -456,7 +456,9 @@ private:
         DEBUG, "Process normal at target: " << NToString(Edge.getTarget()));
     auto [d1, n, d2] = Edge.consume();
 
-    for (const auto nPrime : ICF->getSuccsOf(n)) {
+    const auto &Succs = ICF->getSuccsOf(n);
+
+    for (const auto nPrime : Succs) {
       FlowFunctionPtrType FlowFunc =
           CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
       INC_COUNTER("FF Queries", 1, Full);
@@ -475,7 +477,8 @@ private:
         PHASAR_LOG_LEVEL(DEBUG,
                          "Compose: " << g << " * " << f << " = " << fPrime);
         INC_COUNTER("EF Queries", 1, Full);
-        self().addWorklistItem(d1, nPrime, std::move(d3), std::move(fPrime));
+        self().updateWithNewEdges(d1, n, nPrime, Succs, std::move(d3),
+                                  std::move(fPrime));
       }
     }
   }
@@ -544,8 +547,8 @@ private:
                     DEBUG, "Queried Summary Edge Function: " << SumEdgFnE);
                 PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE << " * " << f
                                                     << '\n'));
-            self().addWorklistItem(d1, ReturnSiteN, std::move(d3),
-                                   f.composeWith(SumEdgFnE));
+            self().updateWithNewEdges(d1, n, ReturnSiteN, ReturnSiteNs,
+                                      std::move(d3), f.composeWith(SumEdgFnE));
           }
         }
       } else {
@@ -571,7 +574,8 @@ private:
             // create initial self-loop
             PHASAR_LOG_LEVEL(
                 DEBUG, "Create initial self-loop with D: " << DToString(d3));
-            self().addWorklistItem(d3, SP, d3, EdgeIdentity<l_t>{}); // line 15
+            self().addInitialWorklistItem(d3, SP, d3,
+                                          EdgeIdentity<l_t>{}); // line 15
 
             //  register the fact that <sp,d3> has an incoming edge from <n,d2>
             //  line 15.1 of Naeem/Lhotak/Rodriguez
@@ -644,9 +648,10 @@ private:
                       self().restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f);
-                  self().addWorklistItem(d1, RetSiteN,
-                                         std::move(d5_restoredCtx),
-                                         f.composeWith(fPrime));
+
+                  self().updateWithNewEdges(d1, n, RetSiteN, ReturnSiteNs,
+                                            std::move(d5_restoredCtx),
+                                            f.composeWith(fPrime));
                 }
               }
             }
@@ -679,8 +684,9 @@ private:
         auto fPrime = f.composeWith(EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
-        self().addWorklistItem(d1, ReturnSiteN, std::move(d3),
-                               std::move(fPrime));
+
+        self().updateWithNewEdges(d1, n, ReturnSiteN, ReturnSiteNs,
+                                  std::move(d3), std::move(fPrime));
       }
     }
   }
@@ -720,8 +726,10 @@ private:
     for (const auto &Entry : Inc) {
       // line 22
       n_t c = Entry.first;
+
+      const auto &RetSiteCs = ICF->getReturnSitesOfCallAt(c);
       // for each return site
-      for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(c)) {
+      for (n_t RetSiteC : RetSiteCs) {
         // compute return-flow function
         FlowFunctionPtrType RetFunction =
             CachedFlowEdgeFunctions.getRetFlowFunction(
@@ -773,9 +781,9 @@ private:
                   d_t d5_restoredCtx =
                       self().restoreContextOnReturnedFact(c, d4, d5);
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
-                  self().addWorklistItem(std::move(d3), RetSiteC,
-                                         std::move(d5_restoredCtx),
-                                         f3.composeWith(fPrime));
+                  self().updateWithNewEdges(
+                      std::move(d3), c, RetSiteC, RetSiteCs,
+                      std::move(d5_restoredCtx), f3.composeWith(fPrime));
                 }
               }
             }
@@ -835,8 +843,8 @@ private:
   void propagteUnbalancedReturnFlow(n_t RetSiteC, d_t TargetVal,
                                     EdgeFunction<l_t> EdgeFunc,
                                     n_t /*RelatedCallSite*/) {
-    self().addWorklistItem(ZeroValue, std::move(RetSiteC), std::move(TargetVal),
-                           std::move(EdgeFunc));
+    self().addInitialWorklistItem(ZeroValue, std::move(RetSiteC),
+                                  std::move(TargetVal), std::move(EdgeFunc));
   }
 
   EdgeFunction<l_t> jumpFunction(const PathEdge<n_t, d_t> Edge) {
@@ -923,7 +931,8 @@ private:
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, Core);
         }
-        addWorklistItem(Fact, StartPoint, Fact, EdgeIdentity<l_t>{});
+        self().addInitialWorklistItem(Fact, StartPoint, Fact,
+                                      EdgeIdentity<l_t>{});
       }
     }
   }
@@ -1011,10 +1020,12 @@ private:
     return RetFlowFunction->computeTargets(std::move(d2));
   }
 
-  bool addWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
-                       EdgeFunction<l_t> f) {
+  template <typename TargetsT>
+  void updateWithNewEdges(d_t SourceVal, n_t /*OldTarget*/, n_t NewTarget,
+                          const TargetsT & /*AllNewTargets*/, d_t TargetVal,
+                          EdgeFunction<l_t> f) {
     EdgeFunction<l_t> JumpFnE = [&]() {
-      const auto RevLookupResult = JumpFn->reverseLookup(Target, TargetVal);
+      const auto RevLookupResult = JumpFn->reverseLookup(NewTarget, TargetVal);
       if (RevLookupResult) {
         const auto &JumpFnContainer = RevLookupResult->get();
         const auto Find = std::find_if(
@@ -1040,24 +1051,36 @@ private:
                                   << (NewFunction ? " (new jump func)" : " "));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
     if (NewFunction) {
-      JumpFn->addFunction(SourceVal, Target, TargetVal, fPrime);
-      PathEdge Edge(SourceVal, Target, TargetVal);
-      WorkList.push_back(std::move(Edge));
+      JumpFn->addFunction(SourceVal, NewTarget, TargetVal, fPrime);
 
       IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
-        PHASAR_LOG_LEVEL(DEBUG, "[addWorklistItem]: EDGE: <F: "
-                                    << FToString(ICF->getFunctionOf(Target))
+        PHASAR_LOG_LEVEL(DEBUG, "[updateWithNewEdges]: EDGE: <F: "
+                                    << FToString(ICF->getFunctionOf(NewTarget))
                                     << ", D: " << DToString(SourceVal) << '>');
-        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
+        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(NewTarget) << ',');
         PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
         PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
         PHASAR_LOG_LEVEL(DEBUG, ' ');
       });
-    } else {
-      PHASAR_LOG_LEVEL(DEBUG, "[addWorklistItem]: No new function!");
-    }
 
-    return NewFunction;
+      self().addWorklistItem(SourceVal, NewTarget, TargetVal,
+                             std::move(fPrime));
+    } else {
+      PHASAR_LOG_LEVEL(DEBUG, "[updateWithNewEdges]: No new function!");
+    }
+  }
+
+  void addInitialWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
+                              EdgeFunction<l_t> EF) {
+    self().updateWithNewEdges(std::move(SourceVal), Target, Target,
+                              llvm::ArrayRef<n_t>(&Target, 1),
+                              std::move(TargetVal), std::move(EF));
+  }
+
+  void addWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
+                       EdgeFunction<l_t> /*EF*/) {
+    WorkList.emplace_back(std::move(SourceVal), std::move(Target),
+                          std::move(TargetVal));
   }
 
   std::set<typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell>
