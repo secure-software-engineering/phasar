@@ -26,11 +26,10 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
-#include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
-#include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/Solver/SolverStrategy.h"
+#include "phasar/DataFlow/IfdsIde/Solver/detail/IDESolverImpl.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/DOTGraph.h"
@@ -363,7 +362,6 @@ protected:
     n_t n = Edge.getTarget();
     // a call node; line 14...
     d_t d2 = Edge.factAtTarget();
-    // EdgeFunction<l_t> f = jumpFunction(Edge);
     const auto &ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
     const auto &Callees = ICF->getCalleesOfCallAt(n);
 
@@ -557,7 +555,6 @@ protected:
     INC_COUNTER("Process Normal", 1, Full);
     PHASAR_LOG_LEVEL(
         DEBUG, "Process normal at target: " << NToString(Edge.getTarget()));
-    // EdgeFunction<l_t> f = jumpFunction(Edge);
     auto [d1, n, d2] = Edge.consume();
 
     const auto &Succs = ICF->getSuccsOf(n);
@@ -636,15 +633,6 @@ protected:
       }
     }
   }
-
-  // void propagateValue(n_t NHashN, d_t NHashD, const l_t &L) {
-  //   l_t ValNHash = val(NHashN, NHashD);
-  //   l_t LPrime = joinValueAt(NHashN, NHashD, ValNHash, L);
-  //   if (!(LPrime == ValNHash)) {
-  //     setVal(NHashN, NHashD, std::move(LPrime));
-  //     ValuePropWL.emplace_back(std::move(NHashN), std::move(NHashD));
-  //   }
-  // }
 
   void propagateSeedValue(n_t NHashN, d_t NHashD, const l_t &L) {
     l_t ValNHash = seedVal(NHashN, NHashD);
@@ -898,9 +886,6 @@ protected:
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, Core);
         }
-
-        /// TODO: Do we have to add EdgeIdentity to the JF-table in advance?
-        /// Probably not
         addWorklistItem(Fact, StartPoint, Fact, EdgeIdentity<l_t>{});
       }
     }
@@ -920,8 +905,6 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG,
                      "Process exit at target: " << NToString(Edge.getTarget()));
     n_t n = Edge.getTarget(); // an exit node; line 21...
-
-    // EdgeFunction<l_t> f = jumpFunction(Edge);
     f_t FunctionThatNeedsSummary = ICF->getFunctionOf(n);
     d_t d1 = Edge.factAtSource();
     d_t d2 = Edge.factAtTarget();
@@ -1170,7 +1153,6 @@ protected:
     PHASAR_LOG_LEVEL(DEBUG, "Target        : " << NToString(Target));
     PHASAR_LOG_LEVEL(DEBUG, "Target value  : " << DToString(TargetVal));
     PHASAR_LOG_LEVEL(DEBUG, "Edge Function  : " << EF);
-    llvm::errs().flush();
 
     PathEdgeCount++;
     pathEdgeProcessingTask(std::move(Edge), std::move(EF));
