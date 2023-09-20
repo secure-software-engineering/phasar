@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_DB_LLVMPROJECTIRDB_H
-#define PHASAR_DB_LLVMPROJECTIRDB_H
+#ifndef PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
+#define PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
 
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
@@ -22,6 +22,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
@@ -48,10 +49,12 @@ public:
   /// CAUTION: Do not manage the same LLVM Module with multiple LLVMProjectIRDB
   /// instances at the same time! This will confuse the ModulesToSlotTracker
   explicit LLVMProjectIRDB(llvm::Module *Mod);
-  /// Initializes the new ProjectIRDB with the given IR Moduleand takes
+  /// Initializes the new ProjectIRDB with the given IR Module and takes
   /// ownership of it
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
+  /// Parses the given LLVM IR file and owns the resulting IR Module
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
@@ -165,4 +168,4 @@ const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
 extern template class ProjectIRDBBase<LLVMProjectIRDB>;
 } // namespace psr
 
-#endif // PHASAR_DB_LLVMPROJECTIRDB_H
+#endif // PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H

@@ -7,8 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSTABULATIONPROBLEM_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_IFDSTABULATIONPROBLEM_H
+#define PHASAR_DATAFLOW_IFDSIDE_IFDSTABULATIONPROBLEM_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
@@ -75,12 +75,6 @@ public:
                                            n_t /*Succ*/,
                                            d_t /*SuccNode*/) final {
     return EdgeIdentity<l_t>{};
-  }
-
-  EdgeFunction<l_t> allTopFunction() final { return AllTop<l_t>{}; }
-
-  void printEdgeFact(llvm::raw_ostream &OS, BinaryDomain Val) const final {
-    OS << Val;
   }
 };
 } // namespace psr

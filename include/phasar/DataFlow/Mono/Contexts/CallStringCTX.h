@@ -1,5 +1,5 @@
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_CONTEXTS_CALLSTRINGCTX_H
+#ifndef PHASAR_DATAFLOW_MONO_CONTEXTS_CALLSTRINGCTX_H
+#define PHASAR_DATAFLOW_MONO_CONTEXTS_CALLSTRINGCTX_H
 
 #include "phasar/Utils/Printer.h"
 
@@ -68,11 +68,10 @@ public:
     return Lhs.cs < Rhs.cs;
   }
 
-  llvm::raw_ostream &print(llvm::raw_ostream &OS,
-                           const NodePrinterBase<N> &NP) const {
+  llvm::raw_ostream &print(llvm::raw_ostream &OS) const {
     OS << "Call string: [ ";
     for (auto C : CallString) {
-      NP.printNode(OS, C);
+      OS << NToString(C);
       if (C != CallString.back()) {
         OS << " * ";
       }

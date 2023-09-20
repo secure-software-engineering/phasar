@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
@@ -481,8 +482,10 @@ LLVMTaintConfig::makeInitialSeedsImpl() const {
       InitialSeeds[Inst].insert(Inst);
     } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(SourceValue);
                Arg && !Arg->getParent()->isDeclaration()) {
-      const auto *FunFirstInst = &Arg->getParent()->getEntryBlock().front();
-      InitialSeeds[FunFirstInst].insert(Arg);
+      LLVMBasedCFG C;
+      for (const auto *SP : C.getStartPointsOf(Arg->getParent())) {
+        InitialSeeds[SP].insert(Arg);
+      }
     }
   }
   return InitialSeeds;

@@ -107,6 +107,30 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
   }
 }
 
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf) {
+  llvm::SMDiagnostic Diag;
+  std::unique_ptr<llvm::Module> M = llvm::parseIR(Buf, Diag, Ctx);
+  bool BrokenDebugInfo = false;
+  if (M == nullptr) {
+    Diag.print(nullptr, llvm::errs());
+    return;
+  }
+
+  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+    PHASAR_LOG_LEVEL(ERROR, Buf.getBufferIdentifier()
+                                << " could not be parsed correctly!");
+    return;
+  }
+  if (BrokenDebugInfo) {
+    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
+  }
+
+  auto *NonConst = M.get();
+  Mod = std::move(M);
+  ModulesToSlotTracker::setMSTForModule(Mod.get());
+  preprocessModule(NonConst);
+}
+
 LLVMProjectIRDB::~LLVMProjectIRDB() {
   if (Mod) {
     ModulesToSlotTracker::deleteMSTForModule(Mod.get());
@@ -260,5 +284,5 @@ const llvm::Value *psr::fromMetaDataId(const LLVMProjectIRDB &IRDB,
   }
 
   auto IdNr = ParseInt(Id);
-  return IdNr ? IRDB.getInstruction(*IdNr) : nullptr;
+  return IdNr ? IRDB.getValueFromId(*IdNr) : nullptr;
 }

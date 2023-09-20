@@ -7,10 +7,11 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
+#ifndef PHASAR_CONTROLFLOW_ICFGBASE_H
+#define PHASAR_CONTROLFLOW_ICFGBASE_H
 
 #include "phasar/ControlFlow/CFGBase.h"
+#include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -64,20 +65,24 @@ public:
         is_iterable_over_v<decltype(self().allNonCallStartNodesImpl()), n_t>);
     return self().allNonCallStartNodesImpl();
   }
-  /// Returns an iterable range of all possible callee candidates at the given
-  /// call-site induced by the used call-graph. NOTE: This function is typically
-  /// called in a hot part of the analysis and should therefore be very fast
-  [[nodiscard]] decltype(auto) getCalleesOfCallAt(ByConstRef<n_t> Inst) const {
+
+  /// Returns a view to the underlying call-graph
+  [[nodiscard]] decltype(auto) getCallGraph() const noexcept {
     static_assert(
-        is_iterable_over_v<decltype(self().getCalleesOfCallAtImpl(Inst)), f_t>);
-    return self().getCalleesOfCallAtImpl(Inst);
+        is_crtp_base_of_v<CallGraphBase,
+                          std::decay_t<decltype(self().getCallGraphImpl())>>);
+    return self().getCallGraphImpl();
+  }
+
+  /// Returns an iterable range of all possible callee candidates at the given
+  /// call-site induced by the used call-graph.
+  [[nodiscard]] decltype(auto) getCalleesOfCallAt(ByConstRef<n_t> Inst) const {
+    return getCallGraph().getCalleesOfCallAt(Inst);
   }
   /// Returns an iterable range of all possible call-site candidates that may
   /// call the given function induced by the used call-graph.
   [[nodiscard]] decltype(auto) getCallersOf(ByConstRef<f_t> Fun) const {
-    static_assert(
-        is_iterable_over_v<decltype(self().getCallersOfImpl(Fun)), n_t>);
-    return self().getCallersOfImpl(Fun);
+    return getCallGraph().getCallersOf(Fun);
   }
   /// Returns an iterable range of all call-instruction in the given function
   [[nodiscard]] decltype(auto) getCallsFromWithin(ByConstRef<f_t> Fun) const {
@@ -114,7 +119,6 @@ public:
   }
 
 private:
-  Derived &self() noexcept { return static_cast<Derived &>(*this); }
   const Derived &self() const noexcept {
     return static_cast<const Derived &>(*this);
   }
@@ -130,4 +134,4 @@ constexpr bool is_icfg_v = is_crtp_base_of_v<ICFGBase, ICF>
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_ICFGBASE_H
+#endif // PHASAR_CONTROLFLOW_ICFGBASE_H

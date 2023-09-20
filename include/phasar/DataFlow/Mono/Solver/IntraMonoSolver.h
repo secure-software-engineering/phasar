@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_SOLVER_INTRAMONOSOLVER_H
+#ifndef PHASAR_DATAFLOW_MONO_SOLVER_INTRAMONOSOLVER_H
+#define PHASAR_DATAFLOW_MONO_SOLVER_INTRAMONOSOLVER_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -115,14 +115,12 @@ public:
     OS << "Intra-Monotone solver results:\n"
           "------------------------------\n";
     for (auto &[Node, FlowFacts] : this->Analysis) {
-      OS << "Instruction:\n" << this->IMProblem.NtoString(Node);
+      OS << "Instruction:\n" << NToString(Node);
       OS << "\nFacts:\n";
       if (FlowFacts.empty()) {
         OS << "\tEMPTY\n";
       } else {
-        for (auto FlowFact : FlowFacts) {
-          OS << this->IMProblem.DtoString(FlowFact) << '\n';
-        }
+        IMProblem.printContainer(OS, FlowFacts);
       }
       OS << "\n\n";
     }

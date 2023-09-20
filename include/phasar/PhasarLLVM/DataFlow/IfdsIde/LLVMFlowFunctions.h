@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_LLVMFLOWFUNCTIONS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFLOWFUNCTIONS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFLOWFUNCTIONS_H
 
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
@@ -179,6 +179,12 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
       llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
       llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
 
+      if (ParamIt != ParamEnd && (*ParamIt).hasStructRetAttr()) {
+        // sret parameters are writeonly
+        ++ParamIt;
+        ++ArgIt;
+      }
+
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (std::invoke(PropArg, ArgIt->get(), Source)) {
           Res.insert(std::invoke(FactConstructor, &*ParamIt));
@@ -347,27 +353,6 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
                                   std::forward<FnRet>(PropagateRet),
                                   std::forward<DCtor>(FactConstructor),
                                   PropagateZeroToCaller);
-}
-
-//===----------------------------------------------------------------------===//
-// Propagation flow functions
-
-/// Utility function to simplify writing a flow function of the form:
-/// generateFlow(Load, from: Load->getPointerOperand()).
-template <typename Container = std::set<const llvm::Value *>>
-FlowFunctionPtrType<const llvm::Value *, Container>
-propagateLoad(const llvm::LoadInst *Load) {
-  return generateFlow<const llvm::Value *, Container>(
-      Load, Load->getPointerOperand());
-}
-
-/// Utility function to simplify writing a flow function of the form:
-/// generateFlow(Store->getValueOperand(), from: Store->getPointerOperand()).
-template <typename Container = std::set<const llvm::Value *>>
-FlowFunctionPtrType<const llvm::Value *, Container>
-propagateStore(const llvm::StoreInst *Store) {
-  return generateFlow<const llvm::Value *, Container>(
-      Store->getValueOperand(), Store->getPointerOperand());
 }
 
 //===----------------------------------------------------------------------===//

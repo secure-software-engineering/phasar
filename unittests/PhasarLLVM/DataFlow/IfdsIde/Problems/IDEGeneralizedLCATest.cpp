@@ -69,8 +69,8 @@ protected:
   /// alloca, inst)
   void compareResults(const std::vector<groundTruth_t> &Expected) {
     for (const auto &[EVal, VrId, InstId] : Expected) {
-      auto *Vr = HA->getProjectIRDB().getInstruction(VrId);
-      auto *Inst = HA->getProjectIRDB().getInstruction(InstId);
+      const auto *Vr = HA->getProjectIRDB().getInstruction(VrId);
+      const auto *Inst = HA->getProjectIRDB().getInstruction(InstId);
       ASSERT_NE(nullptr, Vr);
       ASSERT_NE(nullptr, Inst);
       auto Result = LCASolver->resultAt(Inst, Vr);

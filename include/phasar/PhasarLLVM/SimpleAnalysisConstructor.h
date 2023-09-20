@@ -7,8 +7,8 @@
  *     Fabian Schiebel, and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_SIMPLEANALYSISCONSTRUCTOR_H_
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_SIMPLEANALYSISCONSTRUCTOR_H_
+#ifndef PHASAR_PHASARLLVM_SIMPLEANALYSISCONSTRUCTOR_H
+#define PHASAR_PHASARLLVM_SIMPLEANALYSISCONSTRUCTOR_H
 
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 
@@ -66,4 +66,4 @@ ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_ANALYSISSTRATEGY_SIMPLEANALYSISCONSTRUCTOR_H_
+#endif // PHASAR_PHASARLLVM_SIMPLEANALYSISCONSTRUCTOR_H

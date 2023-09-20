@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_POINTER_ALIASINFOBASE_H
-#define PHASAR_PHASARLLVM_POINTER_ALIASINFOBASE_H
+#ifndef PHASAR_POINTER_ALIASINFOBASE_H
+#define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
 
@@ -79,4 +79,4 @@ static constexpr bool IsAliasInfo = detail::IsAliasInfo<T>::value;
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_POINTER_ALIASINFOBASE_H
+#endif // PHASAR_POINTER_ALIASINFOBASE_H

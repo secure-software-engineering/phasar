@@ -14,14 +14,15 @@
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
+#define PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/Printer.h"
 
 #include <cstdint>
 #include <map>
@@ -44,10 +45,15 @@ class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class InterMonoFullConstantPropagation;
 
+struct IntraMonoFCAFact {
+  const llvm::Value *Fact{};
+  LatticeDomain<int64_t> Value{};
+};
+
 struct IntraMonoFullConstantPropagationAnalysisDomain
     : public LLVMAnalysisDomainDefault {
   using plain_d_t = int64_t;
-  using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
+  using d_t = IntraMonoFCAFact;
   using mono_container_t =
       std::map<const llvm::Value *, LatticeDomain<plain_d_t>>;
 };
@@ -90,31 +96,23 @@ public:
                 const mono_container_t &Rhs) override;
 
   std::unordered_map<n_t, mono_container_t> initialSeeds() override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
 };
+
+std::string DToString(const IntraMonoFCAFact &Fact);
 
 } // namespace psr
 
 namespace std {
 
-template <>
-struct hash<std::pair<
-    const llvm::Value *,
-    psr::LatticeDomain<psr::IntraMonoFullConstantPropagation::plain_d_t>>> {
-  size_t operator()(const std::pair<const llvm::Value *,
-                                    psr::LatticeDomain<int64_t>> &P) const {
+template <> struct hash<psr::IntraMonoFCAFact> {
+  size_t operator()(const psr::IntraMonoFCAFact &P) const {
     std::hash<const llvm::Value *> HashPtr;
-    size_t HP = HashPtr(P.first);
+    size_t HP = HashPtr(P.Fact);
     size_t HU = 0;
     // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
     if (const auto *Ptr =
             std::get_if<psr::IntraMonoFullConstantPropagation::plain_d_t>(
-                &P.second)) {
+                &P.Value)) {
       HU = *Ptr;
     }
     return HP ^ (HU << 1);

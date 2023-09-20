@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 #define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/iterator_range.h"
 
 #include <initializer_list>
@@ -148,10 +149,10 @@ public:
   }
 
   [[nodiscard]] const_iterator find(key_type Key) const {
-    return find_if(StoredData.begin(), StoredData.end(),
-                   [&Key](const EquivalenceClassBucketT &Val) -> bool {
-                     return Val.first.count(Key) >= 1;
-                   });
+    return llvm::find_if(StoredData,
+                         [&Key](const EquivalenceClassBucketT &Val) -> bool {
+                           return Val.first.count(Key) >= 1;
+                         });
   }
 
   [[nodiscard]] std::optional<ValueT> findValue(key_type Key) const {

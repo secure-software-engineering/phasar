@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
+#ifndef PHASAR_PHASARLLVM_HELPERANALYSES_H
+#define PHASAR_PHASARLLVM_HELPERANALYSES_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
@@ -33,6 +33,7 @@ public:
                           std::optional<nlohmann::json> PrecomputedPTS,
                           AliasAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
+                          std::optional<nlohmann::json> PrecomputedCG,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport) noexcept;
 
@@ -69,6 +70,7 @@ private:
   bool AllowLazyPTS{};
 
   // ICF
+  std::optional<nlohmann::json> PrecomputedCG;
   std::vector<std::string> EntryPoints;
   CallGraphAnalysisType CGTy{};
   Soundness SoundnessLevel{};
@@ -76,4 +78,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSES_H_
+#endif // PHASAR_PHASARLLVM_HELPERANALYSES_H

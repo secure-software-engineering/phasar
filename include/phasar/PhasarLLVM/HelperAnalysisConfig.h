@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
-#define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
+#ifndef PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H
+#define PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
@@ -21,6 +21,7 @@
 namespace psr {
 struct HelperAnalysisConfig {
   std::optional<nlohmann::json> PrecomputedPTS = std::nullopt;
+  std::optional<nlohmann::json> PrecomputedCG = std::nullopt;
   AliasAnalysisType PTATy = AliasAnalysisType::CFLAnders;
   CallGraphAnalysisType CGTy = CallGraphAnalysisType::OTF;
   Soundness SoundnessLevel = Soundness::Soundy;
@@ -34,4 +35,4 @@ struct HelperAnalysisConfig {
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_ANALYSISSTRATEGY_HELPERANALYSISCONFIG_H
+#endif // PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H

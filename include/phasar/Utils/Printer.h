@@ -7,109 +7,112 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_UTILS_PRINTER_H
-#define PHASAR_PHASARLLVM_UTILS_PRINTER_H
+#ifndef PHASAR_UTILS_PRINTER_H
+#define PHASAR_UTILS_PRINTER_H
 
+#include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <functional>
 #include <string>
+#include <type_traits>
+
+namespace llvm {
+class Value;
+class Instruction;
+class Function;
+} // namespace llvm
 
 namespace psr {
+namespace detail {
+template <typename T>
+static constexpr bool IsSomehowPrintable =
+    has_str_v<T> || is_llvm_printable_v<T> || has_adl_to_string_v<T>;
 
-template <typename P, typename T>
-std::string toStringBuilder(void (P::*Printer)(llvm::raw_ostream &, T) const,
-                            const P *This, const T &Arg) {
-  std::string Buffer;
-  llvm::raw_string_ostream StrS(Buffer);
-  std::invoke(Printer, This, std::ref(StrS), Arg);
-  return Buffer;
+template <typename T> decltype(auto) printSomehow(const T &Val) {
+  if constexpr (has_str_v<T>) {
+    return Val.str();
+  } else if constexpr (has_adl_to_string_v<T>) {
+    return adl_to_string(Val);
+  } else if constexpr (is_llvm_printable_v<T>) {
+    std::string Str;
+    llvm::raw_string_ostream ROS(Str);
+    ROS << Val;
+    return Str;
+  } else {
+    llvm_unreachable(
+        "All compilable cases should be handled in the if-chain above");
+  }
+}
+} // namespace detail
+
+/// Stringify the given ICFG node (instruction/statement).
+///
+/// Default implementation. Provide your own overload to customize this API for
+/// your types
+template <typename N,
+          typename = std::enable_if_t<detail::IsSomehowPrintable<N>>>
+[[nodiscard]] decltype(auto) NToString(const N &Node) {
+  return detail::printSomehow(Node);
 }
 
-template <typename N> struct NodePrinterBase {
-  virtual ~NodePrinterBase() = default;
+/// Stringify the given data-flow fact.
+///
+/// Default implementation. Provide your own overload to customize this API for
+/// your types
+template <typename D,
+          typename = std::enable_if_t<detail::IsSomehowPrintable<D>>>
+[[nodiscard]] decltype(auto) DToString(const D &Fact) {
+  return detail::printSomehow(Fact);
+}
 
-  virtual void printNode(llvm::raw_ostream &OS, N Stmt) const = 0;
+/// Stringify the given edge value.
+///
+/// Default implementation. Provide your own overload to customize this API for
+/// your types
+template <typename L,
+          typename = std::enable_if_t<detail::IsSomehowPrintable<L>>>
+[[nodiscard]] decltype(auto) LToString(const L &Value) {
+  return detail::printSomehow(Value);
+}
 
-  [[nodiscard]] std::string NtoString(N Stmt) const { // NOLINT
-    return toStringBuilder(&NodePrinterBase::printNode, this, Stmt);
-  }
-};
-template <typename AnalysisDomainTy>
-using NodePrinter = NodePrinterBase<typename AnalysisDomainTy::n_t>;
+/// Stringify the given function.
+///
+/// Default implementation. Provide your own overload to customize this API for
+/// your types
+template <typename F,
+          typename = std::enable_if_t<detail::IsSomehowPrintable<F>>>
+[[nodiscard]] std::string FToString(const F &Fun) {
+  return detail::printSomehow(Fun);
+}
 
-template <typename D> struct DataFlowFactPrinterBase {
-  virtual ~DataFlowFactPrinterBase() = default;
+// -- specializations
 
-  virtual void printDataFlowFact(llvm::raw_ostream &OS, D Fact) const = 0;
+// --- LLVM
+// Note: Provide forward declarations here, such that improper usage will
+// definitely lead to an error instead of triggering one of the default
+// implementations
 
-  [[nodiscard]] std::string DtoString(D Fact) const { // NOLINT
-    return toStringBuilder(&DataFlowFactPrinterBase::printDataFlowFact, this,
-                           Fact);
-  }
-};
-template <typename AnalysisDomainTy>
-using DataFlowFactPrinter =
-    DataFlowFactPrinterBase<typename AnalysisDomainTy::d_t>;
+/// Stringify the given LLVM Value.
+///
+/// \remark Link phasar_llvm_utils to use this
+[[nodiscard]] std::string NToString(const llvm::Value *V);
 
-template <typename V> struct ValuePrinter {
-  virtual ~ValuePrinter() = default;
+/// Stringify the given LLVM Instruction.
+///
+/// \remark Link phasar_llvm_utils to use this
+[[nodiscard]] std::string NToString(const llvm::Instruction *V);
 
-  virtual void printValue(llvm::raw_ostream &OS, V Val) const = 0;
+/// Stringify the given LLVM Value.
+///
+/// \remark Link phasar_llvm_utils to use this
+[[nodiscard]] std::string DToString(const llvm::Value *V);
 
-  [[nodiscard]] std::string VtoString(V Val) const { // NOLINT
-    return toStringBuilder(&ValuePrinter::printValue, this, Val);
-  }
-};
-
-template <typename T> struct TypePrinter {
-  virtual ~TypePrinter() = default;
-
-  virtual void printType(llvm::raw_ostream &OS, T Ty) const = 0;
-
-  [[nodiscard]] std::string TtoString(T Ty) const { // NOLINT
-    return toStringBuilder(&TypePrinter::printType, this, Ty);
-  }
-};
-
-template <typename L> struct EdgeFactPrinterBase {
-  using l_t = L;
-
-  virtual ~EdgeFactPrinterBase() = default;
-
-  virtual void printEdgeFact(llvm::raw_ostream &OS, l_t Val) const = 0;
-
-  [[nodiscard]] std::string LtoString(l_t Val) const { // NOLINT
-    return toStringBuilder(&EdgeFactPrinterBase::printEdgeFact, this, Val);
-  }
-};
-
-template <typename AnalysisDomainTy>
-using EdgeFactPrinter = EdgeFactPrinterBase<typename AnalysisDomainTy::l_t>;
-
-template <typename AnalysisDomainTy> struct FunctionPrinter {
-  using F = typename AnalysisDomainTy::f_t;
-
-  virtual ~FunctionPrinter() = default;
-
-  virtual void printFunction(llvm::raw_ostream &OS, F Func) const = 0;
-
-  [[nodiscard]] std::string FtoString(F Func) const { // NOLINT
-    return toStringBuilder(&FunctionPrinter::printFunction, this, Func);
-  }
-};
-
-template <typename ContainerTy> struct ContainerPrinter {
-  virtual ~ContainerPrinter() = default;
-
-  virtual void printContainer(llvm::raw_ostream &OS,
-                              ContainerTy Container) const = 0;
-
-  [[nodiscard]] std::string
-  ContainertoString(ContainerTy Container) const { // NOLINT
-    return toStringBuilder(&ContainerPrinter::printContainer, this, Container);
-  }
-};
+/// Stringify the given LLVM Function.
+///
+/// \remark Link phasar_llvm_utils to use this
+[[nodiscard]] llvm::StringRef FToString(const llvm::Function *V);
 
 } // namespace psr
 

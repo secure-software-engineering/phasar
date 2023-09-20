@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEPROTOANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
@@ -66,7 +66,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  bool isZeroValue(d_t Fact) const override;
+  bool isZeroValue(d_t Fact) const noexcept override;
 
   // in addition provide specifications for the IDE parts
 
@@ -97,14 +97,6 @@ public:
   l_t join(l_t Lhs, l_t Rhs) override;
 
   EdgeFunction<l_t> allTopFunction() override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
-
-  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
 };
 
 } // namespace psr
