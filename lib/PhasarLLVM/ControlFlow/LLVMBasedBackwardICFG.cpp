@@ -9,7 +9,6 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 
 namespace psr {
@@ -68,4 +67,12 @@ void LLVMBasedBackwardICFG::printImpl(llvm::raw_ostream &OS) const {
 nlohmann::json LLVMBasedBackwardICFG::getAsJsonImpl() const {
   return ForwardICFG->getAsJson();
 }
+
+auto LLVMBasedBackwardICFG::getCallGraphImpl() const noexcept
+    -> const CallGraph<n_t, f_t> & {
+  return ForwardICFG->getCallGraph();
+}
+
+template class ICFGBase<LLVMBasedBackwardICFG>;
+
 } // namespace psr
