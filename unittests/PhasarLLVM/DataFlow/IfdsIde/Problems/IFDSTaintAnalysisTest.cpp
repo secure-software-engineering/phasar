@@ -8,6 +8,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
@@ -24,7 +25,7 @@ class IFDSTaintAnalysisTest : public ::testing::Test {
 protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("taint_analysis/");
-  const std::vector<std::string> EntryPoints = {"main"};
+  static inline const std::vector<std::string> EntryPoints = {"main"};
 
   std::optional<HelperAnalyses> HA;
 
@@ -34,42 +35,79 @@ protected:
   IFDSTaintAnalysisTest() = default;
   ~IFDSTaintAnalysisTest() override = default;
 
+  static LLVMTaintConfig getDefaultConfig() {
+    auto SourceCB = [](const llvm::Instruction *Inst) {
+      std::set<const llvm::Value *> Ret;
+      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+          Call && Call->getCalledFunction() &&
+          Call->getCalledFunction()->getName() == "_Z6sourcev") {
+        Ret.insert(Call);
+      }
+      return Ret;
+    };
+    auto SinkCB = [](const llvm::Instruction *Inst) {
+      std::set<const llvm::Value *> Ret;
+      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+          Call && Call->getCalledFunction() &&
+          Call->getCalledFunction()->getName() == "_Z4sinki") {
+        assert(Call->arg_size() > 0);
+        Ret.insert(Call->getArgOperand(0));
+      }
+      return Ret;
+    };
+    return LLVMTaintConfig(std::move(SourceCB), std::move(SinkCB));
+  }
+
+  static LLVMTaintConfig getDoubleFreeConfig() {
+    auto SourceCB = [](const llvm::Instruction *Inst) {
+      std::set<const llvm::Value *> Ret;
+      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+          Call && Call->getCalledFunction() &&
+          Call->getCalledFunction()->getName() == "free") {
+        Ret.insert(Call->getArgOperand(0));
+      }
+      return Ret;
+    };
+
+    return LLVMTaintConfig(SourceCB, SourceCB);
+  }
+
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
-    LLVMTaintConfig::TaintDescriptionCallBackTy SourceCB =
-        [](const llvm::Instruction *Inst) {
-          std::set<const llvm::Value *> Ret;
-          if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
-              Call && Call->getCalledFunction() &&
-              Call->getCalledFunction()->getName() == "_Z6sourcev") {
-            Ret.insert(Call);
-          }
-          return Ret;
-        };
-    LLVMTaintConfig::TaintDescriptionCallBackTy SinkCB =
-        [](const llvm::Instruction *Inst) {
-          std::set<const llvm::Value *> Ret;
-          if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
-              Call && Call->getCalledFunction() &&
-              Call->getCalledFunction()->getName() == "_Z4sinki") {
-            assert(Call->arg_size() > 0);
-            Ret.insert(Call->getArgOperand(0));
-          }
-          return Ret;
-        };
-    TSF.emplace(std::move(SourceCB), std::move(SinkCB));
+
+    if (!TSF) {
+      TSF = getDefaultConfig();
+    }
     TaintProblem =
         createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
 
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
+  static void doAnalysis(const llvm::Twine &IRFile,
+                         const LLVMTaintConfig &Config,
+                         const map<int, set<string>> &GroundTruth) {
+    HelperAnalyses HA(PathToLlFiles + IRFile, EntryPoints);
 
-  void TearDown() override {}
+    auto TaintProblem =
+        createAnalysisProblem<IFDSTaintAnalysis>(HA, &Config, EntryPoints);
 
-  void compareResults(map<int, set<string>> &GroundTruth) {
-    // std::map<n_t, std::set<d_t>> Leaks;
+    IFDSSolver TaintSolver(TaintProblem, &HA.getICFG());
+    TaintSolver.solve();
+
+    TaintSolver.dumpResults();
+
+    compare(TaintProblem.Leaks, GroundTruth);
+  }
+
+  static void doAnalysis(const llvm::Twine &IRFile,
+                         const map<int, set<string>> &GroundTruth) {
+    doAnalysis(IRFile, getDefaultConfig(), GroundTruth);
+  }
+
+  template <typename LeaksTy>
+  static void compare(const LeaksTy &Leaks,
+                      const map<int, set<string>> &GroundTruth) {
     map<int, set<string>> FoundLeaks;
-    for (const auto &Leak : TaintProblem->Leaks) {
+    for (const auto &Leak : Leaks) {
       int SinkId = stoi(getMetaDataID(Leak.first));
       set<string> LeakedValueIds;
       for (const auto *LV : Leak.second) {
@@ -78,6 +116,10 @@ protected:
       FoundLeaks.insert(make_pair(SinkId, LeakedValueIds));
     }
     EXPECT_EQ(FoundLeaks, GroundTruth);
+  }
+
+  void compareResults(const map<int, set<string>> &GroundTruth) noexcept {
+    compare(TaintProblem->Leaks, GroundTruth);
   }
 }; // Test Fixture
 
@@ -255,6 +297,20 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   map<int, set<string>> GroundTruth;
   GroundTruth[62] = set<string>{"61"};
   compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
+  doAnalysis("double_free_01_c.ll", getDoubleFreeConfig(),
+             {
+                 {6, {"5"}},
+             });
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
+  doAnalysis("double_free_02_c.ll", getDoubleFreeConfig(),
+             {
+                 {11, {"10"}},
+             });
 }
 
 int main(int Argc, char **Argv) {

@@ -55,7 +55,8 @@ public:
    */
   IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     const LLVMTaintConfig *Config,
-                    std::vector<std::string> EntryPoints = {"main"});
+                    std::vector<std::string> EntryPoints = {"main"},
+                    bool TaintMainArgs = true);
 
   ~IFDSTaintAnalysis() override = default;
 
@@ -85,6 +86,7 @@ public:
 private:
   const LLVMTaintConfig *Config{};
   LLVMAliasInfoRef PT{};
+  bool TaintMainArgs{};
 
   bool isSourceCall(const llvm::CallBase *CB,
                     const llvm::Function *Callee) const;
