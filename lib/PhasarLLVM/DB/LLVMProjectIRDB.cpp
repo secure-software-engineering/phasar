@@ -13,15 +13,57 @@
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/SourceMgr.h"
 
 #include <charconv>
 
 namespace psr {
 
+std::unique_ptr<llvm::Module>
+LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
+                                         llvm::LLVMContext &Ctx) noexcept {
+
+  llvm::SMDiagnostic Diag;
+  std::unique_ptr<llvm::Module> M = llvm::parseIR(IRFileContent, Diag, Ctx);
+  bool BrokenDebugInfo = false;
+  if (M == nullptr) {
+    Diag.print(nullptr, llvm::errs());
+    return nullptr;
+  }
+  /* Crash in presence of llvm-3.9.1 module (segfault) */
+  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+    PHASAR_LOG_LEVEL(ERROR, IRFileContent.getBufferIdentifier()
+                                << " could not be parsed correctly!");
+    return nullptr;
+  }
+  if (BrokenDebugInfo) {
+    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
+  }
+  return M;
+}
+
+std::unique_ptr<llvm::Module>
+LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
+                                         llvm::LLVMContext &Ctx) noexcept {
+  // Look at LLVM's IRReader.cpp for reference
+
+  auto FileOrErr =
+      llvm::MemoryBuffer::getFileOrSTDIN(IRFileName, /*IsText=*/true);
+  if (std::error_code EC = FileOrErr.getError()) {
+    llvm::SmallString<128> Buf;
+    auto Err = llvm::SMDiagnostic(IRFileName.toStringRef(Buf),
+                                  llvm::SourceMgr::DK_Error,
+                                  "Could not open input file: " + EC.message());
+    Err.print(nullptr, llvm::errs());
+    return nullptr;
+  }
+  return getParsedIRModuleOrNull(*FileOrErr.get(), Ctx);
+}
+
 LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName) {
 
-  std::unique_ptr<llvm::Module> M = getParsedIRModuleOrNull(IRFileName, Ctx);
+  auto M = getParsedIRModuleOrNull(IRFileName, Ctx);
 
   if (!M) {
     return;
@@ -87,10 +129,16 @@ void LLVMProjectIRDB::preprocessModule(llvm::Module *NonConstMod) {
   assert(InstToId.size() == IdToInst.size());
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::Module *Mod) : Mod(Mod) {
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::Module *Mod, bool DoPreprocessing)
+    : Mod(Mod) {
   assert(Mod != nullptr);
   ModulesToSlotTracker::setMSTForModule(Mod);
-  initInstructionIds();
+
+  if (DoPreprocessing) {
+    preprocessModule(Mod);
+  } else {
+    initInstructionIds();
+  }
 }
 
 LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
@@ -109,20 +157,9 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
 
 LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf) {
   llvm::SMDiagnostic Diag;
-  std::unique_ptr<llvm::Module> M = llvm::parseIR(Buf, Diag, Ctx);
-  bool BrokenDebugInfo = false;
-  if (M == nullptr) {
-    Diag.print(nullptr, llvm::errs());
+  auto M = getParsedIRModuleOrNull(Buf, Ctx);
+  if (!M) {
     return;
-  }
-
-  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
-    PHASAR_LOG_LEVEL(ERROR, Buf.getBufferIdentifier()
-                                << " could not be parsed correctly!");
-    return;
-  }
-  if (BrokenDebugInfo) {
-    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
   }
 
   auto *NonConst = M.get();
@@ -135,29 +172,6 @@ LLVMProjectIRDB::~LLVMProjectIRDB() {
   if (Mod) {
     ModulesToSlotTracker::deleteMSTForModule(Mod.get());
   }
-}
-
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
-                                         llvm::LLVMContext &Ctx) noexcept {
-  llvm::SMDiagnostic Diag;
-  llvm::SmallString<256> Buf;
-  std::unique_ptr<llvm::Module> M =
-      llvm::parseIRFile(IRFileName.toStringRef(Buf), Diag, Ctx);
-  bool BrokenDebugInfo = false;
-  if (M == nullptr) {
-    Diag.print(nullptr, llvm::errs());
-    return nullptr;
-  }
-  /* Crash in presence of llvm-3.9.1 module (segfault) */
-  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
-    PHASAR_LOG_LEVEL(ERROR, IRFileName << " could not be parsed correctly!");
-    return nullptr;
-  }
-  if (BrokenDebugInfo) {
-    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
-  }
-  return M;
 }
 
 static llvm::Function *

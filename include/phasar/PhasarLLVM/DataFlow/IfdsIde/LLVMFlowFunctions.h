@@ -239,7 +239,8 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 ///
 /// Propagates the return value back to the call-site and based on the
 /// PropagateParameter predicate propagates back parameters holding as dataflow
-/// facts.
+/// facts. The resulting out-set of dataflow facts can be post-processed if
+/// necessary.
 ///
 /// Let a call-site cs: r = fun(..., ax, ...) a function prototype fun(...,
 /// px, ...) and an exit statement exit: return rv.
@@ -252,30 +253,30 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 ///   f(x)  = ({ax} if PropagateParameter(ax, x) else {}) union ({r} if
 ///                    PropagateRet(rv, x) else {}).
 ///
-template <typename D = const llvm::Value *, typename Container = std::set<D>,
-          typename FnParam = std::equal_to<D>,
-          typename FnRet = std::equal_to<D>,
-          typename DCtor = DefaultConstruct<D>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
-              std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>>>
-FlowFunctionPtrType<D, Container>
-mapFactsToCaller(const llvm::CallBase *CallSite,
-                 const llvm::Instruction *ExitInst,
-                 FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
-                 DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
-                 bool PropagateZeroToCaller = true) {
+template <
+    typename D = const llvm::Value *, typename Container = std::set<D>,
+    typename FnParam = std::equal_to<D>, typename FnRet = std::equal_to<D>,
+    typename DCtor = DefaultConstruct<D>, typename PostProcessFn = IgnoreArgs,
+    typename = std::enable_if_t<
+        std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
+        std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>>>
+FlowFunctionPtrType<D, Container> mapFactsToCaller(
+    const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
+    FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
+    DCtor &&FactConstructor = {}, bool PropagateGlobals = true,
+    bool PropagateZeroToCaller = true, PostProcessFn &&PostProcess = {}) {
 
   struct Mapper : public FlowFunction<D, Container> {
     Mapper(const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
            bool PropagateGlobals, FnParam &&PropagateParameter,
            FnRet &&PropagateRet, DCtor &&FactConstructor,
-           bool PropagateZeroToCaller)
+           bool PropagateZeroToCaller, PostProcessFn &&PostProcess)
         : CSAndPropGlob(CallSite, PropagateGlobals),
           ExitInstAndPropZero(ExitInst, PropagateZeroToCaller),
           PropArg(std::forward<FnParam>(PropagateParameter)),
           PropRet(std::forward<FnRet>(PropagateRet)),
-          FactConstructor(std::forward<DCtor>(FactConstructor)) {}
+          FactConstructor(std::forward<DCtor>(FactConstructor)),
+          PostProcess(std::forward<PostProcessFn>(PostProcess)) {}
 
     Container computeTargets(D Source) override {
       Container Res;
@@ -337,6 +338,8 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
         }
       }
 
+      std::invoke(PostProcess, Res);
+
       return Res;
     }
 
@@ -346,13 +349,14 @@ mapFactsToCaller(const llvm::CallBase *CallSite,
     [[no_unique_address]] std::decay_t<FnParam> PropArg;
     [[no_unique_address]] std::decay_t<FnRet> PropRet;
     [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
+    [[no_unique_address]] std::decay_t<PostProcessFn> PostProcess;
   };
 
-  return std::make_shared<Mapper>(CallSite, ExitInst, PropagateGlobals,
-                                  std::forward<FnParam>(PropagateParameter),
-                                  std::forward<FnRet>(PropagateRet),
-                                  std::forward<DCtor>(FactConstructor),
-                                  PropagateZeroToCaller);
+  return std::make_shared<Mapper>(
+      CallSite, ExitInst, PropagateGlobals,
+      std::forward<FnParam>(PropagateParameter),
+      std::forward<FnRet>(PropagateRet), std::forward<DCtor>(FactConstructor),
+      PropagateZeroToCaller, std::forward<PostProcessFn>(PostProcess));
 }
 
 //===----------------------------------------------------------------------===//
