@@ -9,6 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
+#include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -36,13 +38,16 @@
 #include <utility>
 
 namespace psr {
+using d_t = IFDSTaintAnalysis::d_t;
+using container_type = IFDSTaintAnalysis::container_type;
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      LLVMAliasInfoRef PT,
                                      const LLVMTaintConfig *Config,
-                                     std::vector<std::string> EntryPoints)
+                                     std::vector<std::string> EntryPoints,
+                                     bool TaintMainArgs)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
-      Config(Config), PT(PT) {
+      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs) {
   assert(Config != nullptr);
   assert(PT);
 }
@@ -110,29 +115,58 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
       [this](const auto &Arg) { return Config->isSanitizer(&Arg); });
 }
 
+static bool canSkipAtContext(const llvm::Value *Val,
+                             const llvm::Instruction *Context) noexcept {
+  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Val)) {
+    /// Mapping instructions between functions is done via the call-FF and
+    /// ret-FF
+    if (Inst->getFunction() != Context->getFunction()) {
+      return true;
+    }
+    if (Inst->getParent() == Context->getParent() &&
+        Context->comesBefore(Inst)) {
+      // We will see that inst later
+      return true;
+    }
+    return false;
+  }
+
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Val)) {
+    // An argument is only valid in the function it belongs to
+    if (Arg->getParent() != Context->getFunction()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool isCompiletimeConstantData(const llvm::Value *Val) noexcept {
+  if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Val)) {
+    // Data cannot flow into the readonly-data section
+    return Glob->isConstant();
+  }
+
+  return llvm::isa<llvm::Function>(Val) || llvm::isa<llvm::ConstantData>(Val);
+}
+
 void IFDSTaintAnalysis::populateWithMayAliases(
     container_type &Facts, const llvm::Instruction *Context) const {
   container_type Tmp = Facts;
   for (const auto *Fact : Facts) {
     auto Aliases = PT.getAliasSet(Fact);
     for (const auto *Alias : *Aliases) {
-      if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
-        /// Mapping instructions between functions is done via the call-FF and
-        /// ret-FF
-        if (Inst->getFunction() != Context->getFunction()) {
-          continue;
-        }
-        if (Inst->getParent() == Context->getParent() &&
-            Context->comesBefore(Inst)) {
-          // We will see that inst later
-          continue;
-        }
-      } else if (const auto *Glob =
-                     llvm::dyn_cast<llvm::GlobalVariable>(Alias)) {
-        if (Glob != Fact && Glob->isConstant()) {
-          // Data cannot flow into the readonly-data section
-          continue;
-        }
+      if (canSkipAtContext(Alias, Context)) {
+        continue;
+      }
+
+      if (isCompiletimeConstantData(Alias)) {
+        continue;
+      }
+
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
+        // Handle at least one level of indirection...
+        const auto *PointerOp = Load->getPointerOperand()->stripPointerCasts();
+        Tmp.insert(PointerOp);
       }
 
       Tmp.insert(Alias);
@@ -148,6 +182,85 @@ void IFDSTaintAnalysis::populateWithMustAliases(
   /// may-aliases
 }
 
+static IFDSTaintAnalysis::FlowFunctionPtrType transferAndKillFlow(d_t To,
+                                                                  d_t From) {
+  if (From->hasNUsesOrMore(2)) {
+    return FlowFunctionTemplates<d_t, container_type>::transferFlow(To, From);
+  }
+  return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+      [To, From](d_t Source) -> container_type {
+        if (Source == From) {
+          return {To};
+        }
+        if (Source == To) {
+          return {};
+        }
+        return {Source};
+      });
+}
+
+static IFDSTaintAnalysis::FlowFunctionPtrType
+transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
+  bool KillFrom1 = !From1->hasNUsesOrMore(2);
+  bool KillFrom2 = !From2->hasNUsesOrMore(2);
+
+  if (KillFrom1) {
+    if (KillFrom2) {
+      return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+          [To, From1, From2](d_t Source) -> container_type {
+            if (Source == From1 || Source == From2) {
+              return {To};
+            }
+            if (Source == To) {
+              return {};
+            }
+            return {Source};
+          });
+    }
+
+    return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+        [To, From1, From2](d_t Source) -> container_type {
+          if (Source == From1) {
+            return {To};
+          }
+          if (Source == From2) {
+            return {Source, To};
+          }
+          if (Source == To) {
+            return {};
+          }
+          return {Source};
+        });
+  }
+
+  if (KillFrom2) {
+    return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+        [To, From1, From2](d_t Source) -> container_type {
+          if (Source == From1) {
+            return {Source, To};
+          }
+          if (Source == From2) {
+            return {To};
+          }
+          if (Source == To) {
+            return {};
+          }
+          return {Source};
+        });
+  }
+
+  return FlowFunctionTemplates<d_t, container_type>::lambdaFlow(
+      [To, From1, From2](d_t Source) -> container_type {
+        if (Source == From1 || Source == From2) {
+          return {Source, To};
+        }
+        if (Source == To) {
+          return {};
+        }
+        return {Source};
+      });
+}
+
 auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
                                               [[maybe_unused]] n_t Succ)
     -> FlowFunctionPtrType {
@@ -156,47 +269,40 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
     container_type Gen;
     Gen.insert(Store->getPointerOperand());
     populateWithMayAliases(Gen, Store);
-    Gen.insert(Store->getValueOperand());
+    if (Store->getValueOperand()->hasNUsesOrMore(2)) {
+      Gen.insert(Store->getValueOperand());
+    }
 
     return lambdaFlow(
         [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
-          if (Store->getValueOperand() == Source) {
-            return Gen;
-          }
           if (Store->getPointerOperand() == Source) {
             return {};
           }
+          if (Store->getValueOperand() == Source) {
+            return Gen;
+          }
+
           return {Source};
         });
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    return transferFlow(Load, Load->getPointerOperand());
+    return transferAndKillFlow(Load, Load->getPointerOperand());
   }
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
   if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-    return transferFlow(GEP, GEP->getPointerOperand());
+    return transferAndKillFlow(GEP, GEP->getPointerOperand());
   }
   // Check if a tainted value is extracted and taint the targets of
   // the extract operation accordingly
   if (const auto *Extract = llvm::dyn_cast<llvm::ExtractValueInst>(Curr)) {
-    return transferFlow(Extract, Extract->getAggregateOperand());
+    return transferAndKillFlow(Extract, Extract->getAggregateOperand());
   }
 
   if (const auto *Insert = llvm::dyn_cast<llvm::InsertValueInst>(Curr)) {
-    return lambdaFlow([Insert](d_t Source) -> container_type {
-      if (Source == Insert->getAggregateOperand() ||
-          Source == Insert->getInsertedValueOperand()) {
-        return {Source, Insert};
-      }
-
-      if (Source == Insert) {
-        return {};
-      }
-
-      return {Source};
-    });
+    return transferAndKillTwoFlows(Insert, Insert->getAggregateOperand(),
+                                   Insert->getInsertedValueOperand());
   }
 
   if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr)) {
@@ -234,7 +340,11 @@ auto IFDSTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
       [](d_t Formal, d_t Source) {
         return Formal == Source && Formal->getType()->isPointerTy();
       },
-      [](d_t RetVal, d_t Source) { return RetVal == Source; });
+      [](d_t RetVal, d_t Source) { return RetVal == Source; }, {}, true, true,
+      [this, CallSite](container_type &Res) {
+        // Correctly handling return-POIs
+        populateWithMayAliases(Res, CallSite);
+      });
   // All other stuff is killed at this point
 }
 
@@ -332,19 +442,24 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
 auto IFDSTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
-  // If main function is the entry point, commandline arguments have to be
-  // tainted. Otherwise we just use the zero value to initialize the analysis.
+
   InitialSeeds<n_t, d_t, l_t> Seeds;
 
   LLVMBasedCFG C;
-  forallStartingPoints(EntryPoints, IRDB, C, [this, &Seeds](n_t SP) {
-    Seeds.addSeed(SP, getZeroValue());
-    if (SP->getFunction()->getName() == "main") {
+  addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
+                            psr::BinaryDomain::BOTTOM);
+
+  if (TaintMainArgs && llvm::is_contained(EntryPoints, "main")) {
+    // If main function is the entry point, commandline arguments have to be
+    // tainted. Otherwise we just use the zero value to initialize the analysis.
+
+    const auto *MainF = IRDB->getFunction("main");
+    for (const auto *SP : C.getStartPointsOf(MainF)) {
       for (const auto &Arg : SP->getFunction()->args()) {
         Seeds.addSeed(SP, &Arg);
       }
     }
-  });
+  }
 
   return Seeds;
 }

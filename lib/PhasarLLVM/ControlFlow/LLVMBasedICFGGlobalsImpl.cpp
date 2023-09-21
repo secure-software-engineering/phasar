@@ -124,9 +124,10 @@ static llvm::Function *createDtorCallerForModule(
         &RegisteredDtors) {
 
   auto *PhasarDtorCaller = llvm::cast<llvm::Function>(
-      Mod.getOrInsertFunction("__psrGlobalDtorsCaller." +
-                                  getReducedModuleName(Mod),
-                              llvm::Type::getVoidTy(Mod.getContext()))
+      Mod.getOrInsertFunction(
+             LLVMBasedICFG::GlobalCRuntimeDtorsCallerName.str() + '.' +
+                 getReducedModuleName(Mod),
+             llvm::Type::getVoidTy(Mod.getContext()))
           .getCallee());
 
   auto *BB =
@@ -195,7 +196,7 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
 
   auto &CTX = M.getContext();
   auto *Cleanup = llvm::cast<llvm::Function>(
-      M.getOrInsertFunction("__psrCRuntimeGlobalDtorsModel",
+      M.getOrInsertFunction(LLVMBasedICFG::GlobalCRuntimeDtorModelName,
                             llvm::Type::getVoidTy(CTX))
           .getCallee());
 
@@ -301,7 +302,7 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
   } else {
 
     auto UEntrySelectorFn = M.getOrInsertFunction(
-        "__psrCRuntimeUserEntrySelector", llvm::Type::getInt32Ty(CTX));
+        GlobalCRuntimeUserEntrySelectorName, llvm::Type::getInt32Ty(CTX));
 
     auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn);
 

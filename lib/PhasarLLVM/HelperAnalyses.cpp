@@ -43,6 +43,20 @@ HelperAnalyses::HelperAnalyses(const char *IRFile,
                                HelperAnalysisConfig Config)
     : HelperAnalyses(std::string(IRFile), std::move(EntryPoints),
                      std::move(Config)) {}
+HelperAnalyses::HelperAnalyses(llvm::Module *IRModule,
+                               std::vector<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : HelperAnalyses(std::string(), std::move(EntryPoints), std::move(Config)) {
+  this->IRDB = std::make_unique<LLVMProjectIRDB>(
+      IRModule, Config.PreprocessExistingModule);
+}
+HelperAnalyses::HelperAnalyses(std::unique_ptr<llvm::Module> IRModule,
+                               std::vector<std::string> EntryPoints,
+                               HelperAnalysisConfig Config)
+    : HelperAnalyses(std::string(), std::move(EntryPoints), std::move(Config)) {
+  this->IRDB = std::make_unique<LLVMProjectIRDB>(
+      std::move(IRModule), Config.PreprocessExistingModule);
+}
 
 HelperAnalyses::~HelperAnalyses() noexcept = default;
 
