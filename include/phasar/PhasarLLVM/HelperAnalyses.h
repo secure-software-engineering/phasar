@@ -20,6 +20,10 @@
 #include <set>
 #include <vector>
 
+namespace llvm {
+class Module;
+} // namespace llvm
+
 namespace psr {
 class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
@@ -44,6 +48,12 @@ public:
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
   explicit HelperAnalyses(const char *IRFile,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
+  explicit HelperAnalyses(llvm::Module *IRModule,
+                          std::vector<std::string> EntryPoints,
+                          HelperAnalysisConfig Config = {});
+  explicit HelperAnalyses(std::unique_ptr<llvm::Module> IRModule,
                           std::vector<std::string> EntryPoints,
                           HelperAnalysisConfig Config = {});
   ~HelperAnalyses() noexcept;

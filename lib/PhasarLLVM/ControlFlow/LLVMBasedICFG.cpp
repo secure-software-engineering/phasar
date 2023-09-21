@@ -457,4 +457,6 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
 }
 
+template class ICFGBase<LLVMBasedICFG>;
+
 } // namespace psr
