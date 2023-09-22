@@ -69,13 +69,23 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
                TypeToVertex.end());
         size_t BaseTypeVertex = TypeToVertex[DerivedType->getBaseType()];
 
-        llvm::outs().flush();
-        assert(TransitiveClosure.size() >= BaseTypeVertex);
-        assert(TransitiveClosure.size() >= ActualDerivedType);
+        assert(TransitiveClosure.size() > BaseTypeVertex);
+        assert(TransitiveClosure.size() > ActualDerivedType);
 
         TransitiveClosure[BaseTypeVertex][ActualDerivedType] = true;
 
-        continue;
+        if (DerivedType->isPublic()) {
+          DerivedTypeAccess.insert(std::pair<size_t, AccessProperty>(
+              ActualDerivedType, AccessProperty::Public));
+        } else if (DerivedType->isProtected()) {
+          DerivedTypeAccess.insert(std::pair<size_t, AccessProperty>(
+              ActualDerivedType, AccessProperty::Protected));
+        } else if (DerivedType->isPrivate()) {
+          DerivedTypeAccess.insert(std::pair<size_t, AccessProperty>(
+              ActualDerivedType, AccessProperty::Private));
+          llvm::report_fatal_error(
+              "Couldn't deduce accessiblity of inheritance");
+        }
       }
     }
   }
@@ -124,19 +134,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
     TransitiveClosure[I][I] = true;
   }
 
-  // add virtual functions table
-  size_t VTableSize = 0;
-  for (const auto &Subprogram : Finder.subprograms()) {
-    if (Subprogram->getVirtualIndex() > VTableSize) {
-      VTableSize = Subprogram->getVirtualIndex();
-    }
-  }
-  // if the biggest virtual index is 2 for example, the vector needs to have a
-  // size of 3 (Indices: 0, 1, 2)
-  VTableSize++;
-
-  std::vector<std::vector<const llvm::Function *>> IndexToFunctions;
-  IndexToFunctions.resize(VertexTypes.size());
+  std::vector<std::vector<const llvm::Function *>> IndexToFunctions(
+      VertexTypes.size());
 
   //  get VTables
   for (auto *Subprogram : Finder.subprograms()) {
@@ -144,8 +143,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
       continue;
     }
 
-    const auto *const FunctionToAdd =
-        IRDB.getFunction(Subprogram->getLinkageName());
+    const auto *FunctionToAdd = IRDB.getFunction(Subprogram->getLinkageName());
 
     if (!FunctionToAdd) {
       continue;
@@ -153,9 +151,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
     const auto &TypeIndex = TypeToVertex.find(Subprogram->getContainingType());
 
-    if (TypeIndex->getSecond() >= IndexToFunctions.size()) {
-      continue;
-    }
+    assert(TypeIndex->getSecond() < IndexToFunctions.size());
 
     const auto &VirtualIndex = Subprogram->getVirtualIndex();
 
@@ -286,9 +282,22 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   llvm::report_fatal_error("Not implemented");
 }
 
-void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
-  OS << "digraph TypeHierarchy{\n";
+[[nodiscard]] std::string
+DIBasedTypeHierarchy::accessPropertyToString(AccessProperty AP) const {
+  switch (AP) {
+  case AccessProperty::Public:
+    return "public";
+    break;
+  case AccessProperty::Protected:
+    return "protected";
+    break;
+  case AccessProperty::Private:
+    return "private";
+    break;
+  }
+}
 
+void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   if (TransitiveClosure.size() != VertexTypes.size()) {
     llvm::errs() << "TC.size(): " << TransitiveClosure.size()
                  << " VT.size(): " << VertexTypes.size();
@@ -297,14 +306,23 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
     return;
   }
 
+  OS << "digraph TypeHierarchy{\n";
+
+  // add nodes
+  size_t CurrentNodeIndex = 0;
+  for (const auto &Row : TransitiveClosure) {
+    OS << CurrentNodeIndex << "[label=\""
+       << VertexTypes[CurrentNodeIndex]->getName() << "\"]\n";
+    CurrentNodeIndex++;
+  }
+
   // add all edges
   size_t CurrentRowIndex = 0;
   for (const auto &Row : TransitiveClosure) {
     for (const auto &Cell : Row.set_bits()) {
-      if (Row[Cell]) {
-        OS << "  " << VertexTypes[CurrentRowIndex]->getName() << " -> "
-           << VertexTypes[Cell]->getName() << "\n";
-      }
+      OS << "  " << CurrentRowIndex << " -> " << Cell << "[=label=\""
+         << accessPropertyToString(DerivedTypeAccess.at(CurrentRowIndex))
+         << "\"]\n";
     }
     CurrentRowIndex++;
   }

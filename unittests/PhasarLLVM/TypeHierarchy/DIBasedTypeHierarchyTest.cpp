@@ -65,11 +65,6 @@ TEST(DBTHTest, BasicTHReconstruction_2) {
   EXPECT_TRUE(DBTH.hasType(Base2Type));
   EXPECT_TRUE(DBTH.hasVFTable(Base2Type));
 
-  // Since Child2 hasn't been created, it shouldn't exist and also not be found
-  // via DBTH.getType("Child2")
-  const auto &Child2Type = DBTH.getType("Child2");
-  EXPECT_FALSE(Child2Type);
-
   const auto &KidType = DBTH.getType("Kid");
   ASSERT_NE(nullptr, KidType);
   EXPECT_TRUE(DBTH.hasType(KidType));
@@ -90,8 +85,10 @@ TEST(DBTHTest, BasicTHReconstruction_2) {
 
 TEST(DBTHTest, BasicTHReconstruction_3) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "type_hierarchies/type_hierarchy_18_cpp_dbg.ll"});
+                        "type_hierarchies/type_hierarchy_3_cpp.ll"});
   DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for types
 
   const auto &BaseType = DBTH.getType("Base");
   ASSERT_NE(nullptr, BaseType);
@@ -99,30 +96,90 @@ TEST(DBTHTest, BasicTHReconstruction_3) {
 
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  EXPECT_TRUE(DBTH.isSuperType(ChildType, BaseType));
+
+  // check VFTables
+
+  ASSERT_TRUE(DBTH.hasVFTable(BaseType));
   ASSERT_TRUE(DBTH.hasVFTable(ChildType));
+
+  const auto &VTableForBase = DBTH.getVFTable(BaseType);
+  ASSERT_NE(nullptr, VTableForBase);
+
+  const auto &VTableForBaseFunction0 = VTableForBase->getFunction(0);
+  ASSERT_NE(nullptr, VTableForBaseFunction0);
+  EXPECT_TRUE(VTableForBaseFunction0->getName() == "_ZN4Base3fooEv");
+  const auto &VTableForBaseFunction1 = VTableForBase->getFunction(1);
+  ASSERT_NE(nullptr, VTableForBaseFunction1);
+  EXPECT_TRUE(VTableForBaseFunction1->getName() == "_ZN4Base3barEv");
 
   const auto &VTableForChild = DBTH.getVFTable(ChildType);
   ASSERT_NE(nullptr, VTableForChild);
   const auto &VTableForChildFunction0 = VTableForChild->getFunction(0);
   ASSERT_NE(nullptr, VTableForChildFunction0);
   EXPECT_TRUE(VTableForChildFunction0->getName() == "_ZN5Child3fooEv");
+  const auto &VTableForChildFunction1 = VTableForChild->getFunction(1);
+  ASSERT_NE(nullptr, VTableForChildFunction1);
+  EXPECT_TRUE(VTableForChildFunction1->getName() == "_ZN4Base3barEv");
+}
+
+/*
+  TODO: implement old unit tests and check if all test files are being tested
+*/
+
+TEST(DBTHTest, BasicTHReconstruction_4) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_18_cpp_dbg.ll"});
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for types
+
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  EXPECT_TRUE(DBTH.hasType(ChildType));
 
   const auto &Child2Type = DBTH.getType("Child_2");
   ASSERT_NE(nullptr, Child2Type);
+  EXPECT_TRUE(DBTH.hasType(Child2Type));
+
+  const auto &Child3Type = DBTH.getType("Child_3");
+  ASSERT_NE(nullptr, Child3Type);
+  EXPECT_TRUE(DBTH.hasType(Child3Type));
+
+  EXPECT_TRUE(DBTH.isSuperType(ChildType, BaseType));
+  EXPECT_TRUE(DBTH.isSuperType(Child2Type, ChildType));
+  EXPECT_TRUE(DBTH.isSuperType(Child3Type, Child2Type));
+
+  // check VFTables
+
+  ASSERT_TRUE(DBTH.hasVFTable(BaseType));
+  ASSERT_TRUE(DBTH.hasVFTable(ChildType));
   ASSERT_TRUE(DBTH.hasVFTable(Child2Type));
+  EXPECT_TRUE(DBTH.hasVFTable(Child3Type));
+
+  const auto &VTableForChild3 = DBTH.getVFTable(Child3Type);
+  ASSERT_NE(nullptr, VTableForChild3);
+  const auto &VTableForChild3Function0 = VTableForChild3->getFunction(0);
+  ASSERT_NE(nullptr, VTableForChild3Function0);
+  EXPECT_TRUE(VTableForChild3Function0->getName() == "_ZN7Child_36barfooEv");
 
   const auto &VTableForChild2 = DBTH.getVFTable(Child2Type);
   ASSERT_NE(nullptr, VTableForChild2);
   const auto &VTableForChild2Function2 = VTableForChild2->getFunction(2);
   ASSERT_NE(nullptr, VTableForChild2Function2);
-
   EXPECT_TRUE(VTableForChild2Function2->getName() == "_ZN7Child_26foobarEv");
 
-  const auto &Child3Type = DBTH.getType("Child_3");
-  ASSERT_NE(nullptr, Child3Type);
-
-  EXPECT_TRUE(DBTH.hasType(Child3Type));
-  EXPECT_TRUE(DBTH.hasVFTable(Child3Type));
+  const auto &VTableForChild = DBTH.getVFTable(ChildType);
+  ASSERT_NE(nullptr, VTableForChild);
+  const auto &VTableForChildFunction0 = VTableForChild->getFunction(0);
+  ASSERT_NE(nullptr, VTableForChildFunction0);
+  EXPECT_TRUE(VTableForChildFunction0->getName() == "_ZN5Child3fooEv");
 
   // subtypes
   const auto &BaseSubTypes = DBTH.getSubTypes(BaseType);
@@ -132,7 +189,18 @@ TEST(DBTHTest, BasicTHReconstruction_3) {
   EXPECT_TRUE(BaseSubTypes.find(Child3Type) != BaseSubTypes.end());
 }
 
-TEST(DBTHTest, BasicTHReconstruction_4) {
+TEST(DBTHTest, THPublicProtectedPrivate_1) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_19_cpp_dbg.ll"});
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // TODO: check for public, protected, private
+  // TODO: check the .ll file of test 19 and see how public, protected and
+  // private are being saved. This information is needed, so that it can be
+  // saved in DIBasedTypeHierarchy and used for the dot graph.
+}
+
+TEST(DBTHTest, BasicTHReconstruction_5) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "type_hierarchies/type_hierarchy_20_cpp_dbg.ll"});
   DIBasedTypeHierarchy DBTH(IRDB);
@@ -157,7 +225,7 @@ TEST(DBTHTest, BasicTHReconstruction_4) {
   EXPECT_TRUE(DBTH.hasVFTable(ChildType));
 }
 
-TEST(DBTHTest, BasicTHReconstruction_5) {
+TEST(DBTHTest, BasicTHReconstruction_6) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "type_hierarchies/type_hierarchy_21_cpp_dbg.ll"});
   DIBasedTypeHierarchy DBTH(IRDB);
@@ -184,7 +252,7 @@ TEST(DBTHTest, BasicTHReconstruction_5) {
   EXPECT_TRUE(Base2SubTypes.find(Child2Type) != Base2SubTypes.end());
 }
 
-TEST(DBTHTest, BasicTHReconstruction_6) {
+TEST(DBTHTest, BasicTHReconstruction_7) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "type_hierarchies/type_hierarchy_21_cpp_dbg.ll"});
   DIBasedTypeHierarchy DBTH(IRDB);

@@ -81,6 +81,10 @@ public:
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
+  enum class AccessProperty { Public, Protected, Private };
+
+  [[nodiscard]] std::string accessPropertyToString(AccessProperty AP) const;
+
 private:
   llvm::StringMap<ClassType> NameToType;
   // Map each type to an integer index that is used by VertexTypes and
@@ -92,8 +96,8 @@ private:
   // The type-graph edges ("Adjacency List").
   // DerivedTypesOf[TypeToVertex.lookup(Ty)] gives the indices of the direct
   // subclasses of type T
-  // The VTables of the polymorphic types in the TH. default-constructed if not
-  // exists
+  // The VTables of the polymorphic types in the TH. default-constructed if
+  // not exists
   std::deque<LLVMVFTable> VTables;
   // Transitive closure implemented as a matrix
   // Example:
@@ -105,6 +109,8 @@ private:
   // (B)              B | 1 1 1
   //                  C | 0 0 1
   std::vector<llvm::BitVector> TransitiveClosure;
+
+  std::map<size_t, AccessProperty> DerivedTypeAccess;
 };
 } // namespace psr
 
