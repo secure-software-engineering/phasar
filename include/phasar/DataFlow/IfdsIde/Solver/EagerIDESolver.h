@@ -1,60 +1,16 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2023 Fabian Schiebel.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Fabian Schiebel and others
  *****************************************************************************/
-
-/*
- * IDESolver.h
- *
- *  Created on: 04.08.2016
- *      Author: pdschbrt
- */
 
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_EAGERIDESOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_EAGERIDESOLVER_H
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDBBase.h"
-#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
-#include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
-#include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
-#include "phasar/DataFlow/IfdsIde/Solver/SolverStrategy.h"
 #include "phasar/DataFlow/IfdsIde/Solver/detail/IDESolverImpl.h"
-#include "phasar/DataFlow/IfdsIde/SolverResults.h"
-#include "phasar/Domain/AnalysisDomain.h"
-#include "phasar/Utils/DOTGraph.h"
-#include "phasar/Utils/JoinLattice.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Printer.h"
-#include "phasar/Utils/Table.h"
-#include "phasar/Utils/Utilities.h"
-
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "nlohmann/json.hpp"
-
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
-#include <type_traits>
-#include <unordered_set>
-#include <utility>
 
 namespace psr {
 
@@ -130,7 +86,7 @@ private:
       this->JumpFn->addFunction(std::move(SourceVal), std::move(Target),
                                 std::move(TargetVal), std::move(fPrime));
 
-      IF_LOG_ENABLED(if (!this->IDEProblem.isZeroValue(TargetVal)) {
+      IF_LOG_ENABLED(if (!this->IDEProblem->isZeroValue(TargetVal)) {
         PHASAR_LOG_LEVEL(
             DEBUG, "EDGE: <F: " << FToString(this->ICF->getFunctionOf(Target))
                                 << ", D: " << DToString(SourceVal) << '>');
@@ -216,7 +172,7 @@ private:
 
   std::vector<n_t> getAllValueComputationNodes() const {
     std::vector<n_t> Ret;
-    // TODO: Reserve
+    Ret.reserve(this->ICF->getNumFunctions() * 2); // Just a rough guess
 
     for (const auto &Fun : this->ICF->getAllFunctions()) {
       for (const auto &Inst : this->ICF->getAllInstructionsOf(Fun)) {
@@ -230,7 +186,7 @@ private:
     if (SeedValues.contains(NHashN, NHashD)) {
       return SeedValues.get(NHashN, NHashD);
     }
-    return this->IDEProblem.topElement();
+    return this->IDEProblem->topElement();
   }
 
   void setSeedVal(n_t NHashN, d_t NHashD, l_t L) {

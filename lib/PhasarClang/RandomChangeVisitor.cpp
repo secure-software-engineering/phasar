@@ -62,7 +62,7 @@ bool RandomChangeVisitor::visitFunctionDecl(clang::FunctionDecl *F) {
     // Add comment before
     std::stringstream SSBefore;
     SSBefore << "// Begin function " << FuncName << " returning " << TypeStr
-             << "\n";
+             << '\n';
     clang::SourceLocation ST = F->getSourceRange().getBegin();
     RW.InsertText(ST, SSBefore.str(), true, true);
     // And after

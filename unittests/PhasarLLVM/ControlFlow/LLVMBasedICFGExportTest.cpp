@@ -110,7 +110,7 @@ protected:
         = [WithDebugOutput](auto &&...Args) {
             if (WithDebugOutput) {
               ((llvm::errs() << Args), ...);
-              llvm::errs() << "\n";
+              llvm::errs() << '\n';
             }
           };
 
@@ -193,7 +193,7 @@ protected:
         }
       } AW{};
       IRDB.getModule()->print(llvm::errs(), &AW);
-      // llvm::errs() << "ModuleRef: " << *IRDB.getWPAModule() << "\n";
+      // llvm::errs() << "ModuleRef: " << *IRDB.getWPAModule() << '\n';
       llvm::errs()
           << ICFG.exportICFGAsJson(/*WithSourceCodeInfo*/ false).dump(4)
           << '\n';

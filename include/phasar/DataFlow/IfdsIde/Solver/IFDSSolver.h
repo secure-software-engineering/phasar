@@ -101,19 +101,19 @@ public:
 template <typename Problem, typename ICF>
 IFDSSolver(Problem &, ICF *)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                  typename Problem::container_type, PropagateAfterStrategy>;
+                  typename Problem::container_type, PropagateOverStrategy>;
 
 template <typename Problem, typename ICF, typename Strategy>
 IFDSSolver(Problem &, ICF *, Strategy)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
                   typename Problem::container_type, Strategy>;
 
-template <typename Problem, typename Strategy = PropagateAfterStrategy>
+template <typename Problem, typename Strategy = PropagateOverStrategy>
 using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
                                 typename Problem::container_type, Strategy>;
 
 template <typename AnalysisDomainTy, typename Container,
-          typename Strategy = PropagateAfterStrategy>
+          typename Strategy = PropagateOverStrategy>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t,
                     typename AnalysisDomainTy::l_t>

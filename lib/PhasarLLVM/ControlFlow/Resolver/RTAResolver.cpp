@@ -68,7 +68,7 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     PHASAR_LOG_LEVEL(DEBUG,
                      "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                         << llvmIRToString(CallSite) << "\n");
+                         << llvmIRToString(CallSite) << '\n');
     return {};
   }
 

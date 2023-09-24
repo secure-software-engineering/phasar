@@ -28,13 +28,13 @@ namespace psr {
 /// Propagates data-flow facts to the successors of the statement, where they
 /// were generated.
 template <typename AnalysisDomainTy, typename Container>
-class IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>
+class IDESolver<AnalysisDomainTy, Container, PropagateOverStrategy>
     : public IDESolverImpl<
-          IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>,
-          AnalysisDomainTy, Container, PropagateAfterStrategy> {
+          IDESolver<AnalysisDomainTy, Container, PropagateOverStrategy>,
+          AnalysisDomainTy, Container, PropagateOverStrategy> {
   using base_t = IDESolverImpl<
-      IDESolver<AnalysisDomainTy, Container, PropagateAfterStrategy>,
-      AnalysisDomainTy, Container, PropagateAfterStrategy>;
+      IDESolver<AnalysisDomainTy, Container, PropagateOverStrategy>,
+      AnalysisDomainTy, Container, PropagateOverStrategy>;
 
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
@@ -50,7 +50,7 @@ public:
   using v_t = typename AnalysisDomainTy::v_t;
 
   explicit IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-                     const i_t *ICF, PropagateAfterStrategy Strategy = {})
+                     const i_t *ICF, PropagateOverStrategy Strategy = {})
       : base_t(Problem, ICF, Strategy) {}
 
 private:
@@ -65,7 +65,7 @@ OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::l_t>
 solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
                 const typename AnalysisDomainTy::i_t &ICF,
-                PropagateAfterStrategy Strategy = {}) {
+                PropagateOverStrategy Strategy = {}) {
   IDESolver Solver(Problem, &ICF, Strategy);
   Solver.solve();
   return Solver.consumeSolverResults();

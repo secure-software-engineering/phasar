@@ -49,7 +49,7 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
     llvm::errs() << "The function name '" << Name
                  << "' is ambiguous. Possible candidates are:\n";
     for (const auto *F : FnDefs) {
-      llvm::errs() << "> " << F->getName() << "\n";
+      llvm::errs() << "> " << F->getName() << '\n';
     }
     llvm::errs() << "Please further specify the function's name, such that it "
                     "becomes unambiguous\n";
@@ -66,7 +66,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
     auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
     if (FnDefs.empty()) {
-      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
+      llvm::errs() << "WARNING: Cannot retrieve function " << Name << '\n';
       continue;
     }
 
@@ -81,7 +81,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
             llvm::errs()
                 << "ERROR: The source-function parameter index is out of "
                    "bounds: "
-                << Idx << "\n";
+                << Idx << '\n';
             // Use 'continue' instead of 'break' to get error messages for the
             // remaining parameters as well
             continue;
@@ -96,7 +96,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
               llvm::errs()
                   << "ERROR: The source-function parameter index is out of "
                      "bounds: "
-                  << Idx << "\n";
+                  << Idx << '\n';
               continue;
             }
             addTaintCategory(Fun->getArg(Idx), TaintCategory::Sink);
@@ -116,7 +116,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
             llvm::errs()
                 << "ERROR: The source-function parameter index is out of "
                    "bounds: "
-                << Idx << "\n";
+                << Idx << '\n';
             continue;
           }
           addTaintCategory(Fun->getArg(Idx), TaintCategory::Sanitizer);

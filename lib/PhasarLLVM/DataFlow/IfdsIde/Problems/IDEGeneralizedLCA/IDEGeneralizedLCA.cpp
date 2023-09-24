@@ -294,12 +294,12 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getNormalEdgeFunction(
     IDEGeneralizedLCA::d_t PointerOperand = Store->getPointerOperand();
     IDEGeneralizedLCA::d_t ValueOperand = Store->getValueOperand();
     /*if (auto cnstFP = llvm::dyn_cast<llvm::ConstantFP>(valueOperand)) {
-      llvm::errs() << "Value Operand: " << *cnstFP << "\n";
+      llvm::errs() << "Value Operand: " << *cnstFP << '\n';
       llvm::errs() << "ValueOperand as APF: ";
       cnstFP->getValueAPF().print(llvm::errs());
-      llvm::errs() << "\n";
+      llvm::errs() << '\n';
       llvm::errs() << "Value operand as double: "
-                   << cnstFP->getValueAPF().convertToDouble() << "\n";
+                   << cnstFP->getValueAPF().convertToDouble() << '\n';
     }*/
     if (PointerOperand == SuccNode) {
       // Case I: Storing a constant value.
@@ -488,7 +488,7 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::allTopFunction() {
           if (!llvm::isa<llvm::LoadInst>(res.first)) {
             os << "\nValue: " << VtoString(res.second)
                << "\nIR  : " << DtoString(res.first) << '\n'
-               << llvmValueToSrc(res.first, false) << "\n";
+               << llvmValueToSrc(res.first, false) << '\n';
           }
         }
       }

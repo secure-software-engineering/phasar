@@ -75,7 +75,7 @@ public:
     initialize();
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
-      // llvm::outs() << "worklist size: " << Worklist.size() << "\n";
+      // llvm::outs() << "worklist size: " << Worklist.size() << '\n';
       std::pair<n_t, n_t> Edge = Worklist.front();
       Worklist.pop_front();
       n_t Src = Edge.first;

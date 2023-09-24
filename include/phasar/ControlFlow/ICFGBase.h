@@ -38,6 +38,12 @@ public:
     return self().getAllFunctionsImpl();
   }
 
+  /// Returns the number of total functions that were considered when building
+  /// up this ICFG. Equals the size of getAllFunctions()
+  [[nodiscard]] size_t getNumFunctions() const noexcept {
+    return self().getNumFunctionsImpl();
+  }
+
   /// returns the function definition or declaration with the given name. If
   /// ther eis no such function, returns a default constructed f_t (nullptr for
   /// pointers).

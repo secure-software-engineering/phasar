@@ -785,7 +785,7 @@ void LLVMAliasSet::drawAliasSetsDistribution(int Peak) const {
     llvm::outs() << llvm::formatv("{0,10} |{1,-50} {2,-10}\n", KV.first,
                                   PeakBar, KV.second);
   }
-  llvm::outs() << "\n";
+  llvm::outs() << '\n';
 
   if (Peak) {
     for (const auto &ValueSetPair : AliasSets) {

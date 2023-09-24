@@ -255,7 +255,7 @@ void PAMM::printTimers(llvm::raw_ostream &OS) {
   if (StoppedTimer.empty()) {
     OS << "No single Timer started!\n\n";
   } else {
-    OS << "\n";
+    OS << '\n';
   }
   OS << "Repeating Timer\n";
   OS << "---------------\n";
@@ -290,7 +290,7 @@ void PAMM::printCounters(llvm::raw_ostream &OS) {
   if (Counter.empty()) {
     OS << "No Counter registered!\n";
   } else {
-    OS << "\n";
+    OS << '\n';
   }
 }
 

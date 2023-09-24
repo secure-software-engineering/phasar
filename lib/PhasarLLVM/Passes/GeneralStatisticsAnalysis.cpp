@@ -238,21 +238,21 @@ nlohmann::json GeneralStatistics::getAsJson() const {
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const GeneralStatistics &Statistics) {
-  return OS << "General LLVM IR Statistics"
-            << "\n"
+  return OS << "General LLVM IR Statistics\n"
             << "Module " << Statistics.ModuleName << ":\n"
-            << "LLVM IR instructions:\t" << Statistics.Instructions << "\n"
-            << "Functions:\t" << Statistics.Functions << "\n"
-            << "Global Variables:\t" << Statistics.Globals << "\n"
-            << "Global Variable Consts:\t" << Statistics.GlobalConsts << "\n"
-            << "Global Pointers:\t" << Statistics.GlobalPointers << "\n"
+            << "LLVM IR instructions:\t" << Statistics.Instructions << '\n'
+            << "Functions:\t" << Statistics.Functions << '\n'
+            << "Globals:\t" << Statistics.Globals << '\n'
+            << "Global Consts:\t" << Statistics.GlobalConsts << '\n'
+            << "Global Variables:\t"
+            << Statistics.Globals - Statistics.GlobalConsts << '\n'
             << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
-            << "\n"
-            << "Call Sites:\t" << Statistics.CallSites << "\n"
-            << "Branches:\t" << Statistics.Branches << "\n"
-            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << "\n"
-            << "Phi Nodes:\t" << Statistics.PhiNodes << "\n"
-            << "Basic Blocks:\t" << Statistics.BasicBlocks << "\n";
+            << '\n'
+            << "Call Sites:\t" << Statistics.CallSites << '\n'
+            << "Branches:\t" << Statistics.Branches << '\n'
+            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << '\n'
+            << "Phi Nodes:\t" << Statistics.PhiNodes << '\n'
+            << "Basic Blocks:\t" << Statistics.BasicBlocks << '\n';
 }
 
 } // namespace psr

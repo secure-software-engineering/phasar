@@ -753,7 +753,7 @@ void IDEExtendedTaintAnalysis::emitTextReport(
   for (auto &[Inst, LeakSet] : Leaks) {
     OS << "At " << NToString(Inst) << '\n';
     for (const auto &Leak : LeakSet) {
-      OS << "\t" << llvmIRToShortString(Leak) << "\n";
+      OS << "\t" << llvmIRToShortString(Leak) << '\n';
     }
   }
   OS << '\n';

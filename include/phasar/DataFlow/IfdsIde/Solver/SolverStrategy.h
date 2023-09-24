@@ -15,7 +15,7 @@ namespace psr {
 enum class SolverStrategyKind {
   /// Propagate the data-flow effects of an instruction to the start of the
   /// successor instructions. This is the default strategy
-  PropagateAfter,
+  PropagateOver,
   // Propagate the data-flow effects of an instruction onto the same
   // instruction.
   PropagateOnto,
@@ -23,8 +23,8 @@ enum class SolverStrategyKind {
 
 struct SolverStrategy {};
 
-struct PropagateAfterStrategy : SolverStrategy {
-  static constexpr auto Kind = SolverStrategyKind::PropagateAfter;
+struct PropagateOverStrategy : SolverStrategy {
+  static constexpr auto Kind = SolverStrategyKind::PropagateOver;
 };
 
 struct PropagateOntoStrategy : SolverStrategy {
@@ -32,19 +32,19 @@ struct PropagateOntoStrategy : SolverStrategy {
 };
 
 template <typename AnalysisDomainTy, typename Container,
-          typename Strategy = PropagateAfterStrategy>
+          typename Strategy = PropagateOverStrategy>
 class IDESolver;
 
 template <typename Problem, typename ICF>
 IDESolver(Problem &, ICF *)
     -> IDESolver<typename Problem::ProblemAnalysisDomain,
-                 typename Problem::container_type, PropagateAfterStrategy>;
+                 typename Problem::container_type, PropagateOverStrategy>;
 template <typename Problem, typename ICF>
-IDESolver(Problem &, ICF *, PropagateAfterStrategy)
+IDESolver(Problem &, ICF *, PropagateOverStrategy)
     -> IDESolver<typename Problem::ProblemAnalysisDomain,
-                 typename Problem::container_type, PropagateAfterStrategy>;
+                 typename Problem::container_type, PropagateOverStrategy>;
 
-template <typename Problem, typename Strategy = PropagateAfterStrategy>
+template <typename Problem, typename Strategy = PropagateOverStrategy>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,
                               typename Problem::container_type, Strategy>;
 

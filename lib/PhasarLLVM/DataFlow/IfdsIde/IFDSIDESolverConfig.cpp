@@ -9,12 +9,11 @@
 
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 
-#include <ostream>
+#include "phasar/Utils/IOManip.h"
 
-using namespace std;
+#include "llvm/Support/raw_ostream.h"
+
 using namespace psr;
-
-namespace psr {
 
 IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options) noexcept
     : Options(Options) {}
@@ -59,16 +58,15 @@ void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
 
 void IFDSIDESolverConfig::setConfig(SolverConfigOptions Opt) { Options = Opt; }
 
-ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   const IFDSIDESolverConfig &SC) {
   return OS << "IFDSIDESolverConfig:\n"
-            << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds()
-            << "\n"
-            << "\tautoAddZero: " << std::boolalpha << SC.autoAddZero() << "\n"
-            << "\tcomputeValues: " << SC.computeValues() << "\n"
-            << "\trecordEdges: " << SC.recordEdges() << "\n"
-            << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries()
-            << "\n"
-            << "\temitESG: " << SC.emitESG();
+            << "\tfollowReturnsPastSeeds: "
+            << BoolAlpha{SC.followReturnsPastSeeds()} << '\n'
+            << "\tautoAddZero: " << BoolAlpha{SC.autoAddZero()} << '\n'
+            << "\tcomputeValues: " << BoolAlpha{SC.computeValues()} << '\n'
+            << "\trecordEdges: " << BoolAlpha{SC.recordEdges()} << '\n'
+            << "\tcomputePersistedSummaries: "
+            << BoolAlpha{SC.computePersistedSummaries()} << '\n'
+            << "\temitESG: " << BoolAlpha{SC.emitESG()};
 }
-
-} // namespace psr

@@ -139,7 +139,10 @@ public:
 
 private:
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
+  [[nodiscard]] size_t getNumFunctionsImpl() const noexcept;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
+
+  [[nodiscard]] size_t getNumNodesImpl() const noexcept;
 
   [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
   [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;

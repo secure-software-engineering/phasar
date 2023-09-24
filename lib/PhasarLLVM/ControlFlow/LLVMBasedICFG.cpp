@@ -394,26 +394,28 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
   return false;
 }
 
-[[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
+FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
   return IRDB->getAllFunctions();
 }
 
-[[nodiscard]] auto LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const
-    -> f_t {
+size_t LLVMBasedICFG::getNumFunctionsImpl() const noexcept {
+  return IRDB->getNumFunctions();
+}
+
+auto LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const -> f_t {
   return IRDB->getFunction(Fun);
 }
 
-[[nodiscard]] bool LLVMBasedICFG::isIndirectFunctionCallImpl(n_t Inst) const {
+bool LLVMBasedICFG::isIndirectFunctionCallImpl(n_t Inst) const {
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
   return CallSite && CallSite->isIndirectCall();
 }
 
-[[nodiscard]] bool LLVMBasedICFG::isVirtualFunctionCallImpl(n_t Inst) const {
+bool LLVMBasedICFG::isVirtualFunctionCallImpl(n_t Inst) const {
   return internalIsVirtualFunctionCall(Inst, *TH);
 }
 
-[[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const
-    -> std::vector<n_t> {
+auto LLVMBasedICFG::allNonCallStartNodesImpl() const -> std::vector<n_t> {
   std::vector<n_t> NonCallStartNodes;
   NonCallStartNodes.reserve(2 * IRDB->getNumFunctions());
   for (const auto *Inst : IRDB->getAllInstructions()) {
@@ -425,7 +427,7 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
   return NonCallStartNodes;
 }
 
-[[nodiscard]] auto LLVMBasedICFG::getCallsFromWithinImpl(f_t Fun) const
+auto LLVMBasedICFG::getCallsFromWithinImpl(f_t Fun) const
     -> llvm::SmallVector<n_t> {
   llvm::SmallVector<n_t> CallSites;
   for (const auto &I : llvm::instructions(Fun)) {
@@ -436,7 +438,7 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
   return CallSites;
 }
 
-[[nodiscard]] auto LLVMBasedICFG::getReturnSitesOfCallAtImpl(n_t Inst) const
+auto LLVMBasedICFG::getReturnSitesOfCallAtImpl(n_t Inst) const
     -> llvm::SmallVector<n_t, 2> {
   /// Currently, we don't distinguish normal-dest and unwind-dest, so we can
   /// just use getSuccsOf
@@ -451,7 +453,7 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       [](n_t CS) { return llvmIRToStableString(CS); });
 }
 
-[[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
+nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
   return CG.getAsJson(
       [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });

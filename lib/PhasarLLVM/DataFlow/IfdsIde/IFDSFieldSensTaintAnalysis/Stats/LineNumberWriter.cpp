@@ -19,7 +19,7 @@ void LineNumberWriter::write() const {
 
       for (const auto &LineNumberEntry : LineNumberStats) {
 
-        Writer << LineNumberEntry.getLineNumber() << "\n";
+        Writer << LineNumberEntry.getLineNumber() << '\n';
       }
     }
   }

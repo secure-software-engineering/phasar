@@ -75,7 +75,7 @@ protected:
     }
     std::set<unsigned long> MutableIDs;
     for (const auto *Memloc : AllMutableAllocas) {
-      std::cerr << "> Is Mutable: " << llvmIRToShortString(Memloc) << "\n";
+      std::cerr << "> Is Mutable: " << llvmIRToShortString(Memloc) << '\n';
       MutableIDs.insert(std::stoul(getMetaDataID(Memloc)));
     }
     EXPECT_EQ(GroundTruth, MutableIDs);

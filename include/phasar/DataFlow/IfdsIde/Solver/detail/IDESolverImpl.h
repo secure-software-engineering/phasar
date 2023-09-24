@@ -10,7 +10,6 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVERIMPL_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVERIMPL_H
 
-#include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
@@ -19,6 +18,8 @@
 #include "phasar/DataFlow/IfdsIde/Solver/detail/PathEdge.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/Printer.h"
+
+#include "nlohmann/json.hpp"
 
 #include <type_traits>
 
@@ -116,11 +117,11 @@ public:
   }
 
   virtual void emitTextReport(llvm::raw_ostream &OS = llvm::outs()) {
-    IDEProblem.emitTextReport(getSolverResults(), OS);
+    IDEProblem->emitTextReport(getSolverResults(), OS);
   }
 
   virtual void emitGraphicalReport(llvm::raw_ostream &OS = llvm::outs()) {
-    IDEProblem.emitGraphicalReport(getSolverResults(), OS);
+    IDEProblem->emitGraphicalReport(getSolverResults(), OS);
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
@@ -132,16 +133,16 @@ public:
     auto Interpe = ComputedInterPathEdges.cellSet();
     for (const auto &Cell : Interpe) {
       llvm::outs() << "FROM" << '\n';
-      IDEProblem.printNode(llvm::outs(), Cell.getRowKey());
+      IDEProblem->printNode(llvm::outs(), Cell.getRowKey());
       llvm::outs() << "TO" << '\n';
-      IDEProblem.printNode(llvm::outs(), Cell.getColumnKey());
+      IDEProblem->printNode(llvm::outs(), Cell.getColumnKey());
       llvm::outs() << "FACTS" << '\n';
       for (const auto &Fact : Cell.getValue()) {
         llvm::outs() << "fact" << '\n';
-        IDEProblem.printDataFlowFact(llvm::outs(), Fact.first);
+        IDEProblem->printDataFlowFact(llvm::outs(), Fact.first);
         llvm::outs() << "produces" << '\n';
         for (const auto &Out : Fact.second) {
-          IDEProblem.printDataFlowFact(llvm::outs(), Out);
+          IDEProblem->printDataFlowFact(llvm::outs(), Out);
         }
       }
     }
@@ -152,16 +153,16 @@ public:
     auto Intrape = ComputedIntraPathEdges.cellSet();
     for (auto &Cell : Intrape) {
       llvm::outs() << "FROM" << '\n';
-      IDEProblem.printNode(llvm::outs(), Cell.getRowKey());
+      IDEProblem->printNode(llvm::outs(), Cell.getRowKey());
       llvm::outs() << "TO" << '\n';
-      IDEProblem.printNode(llvm::outs(), Cell.getColumnKey());
+      IDEProblem->printNode(llvm::outs(), Cell.getColumnKey());
       llvm::outs() << "FACTS" << '\n';
       for (auto &Fact : Cell.getValue()) {
         llvm::outs() << "fact" << '\n';
-        IDEProblem.printDataFlowFact(llvm::outs(), Fact.first);
+        IDEProblem->printDataFlowFact(llvm::outs(), Fact.first);
         llvm::outs() << "produces" << '\n';
         for (auto &Out : Fact.second) {
-          IDEProblem.printDataFlowFact(llvm::outs(), Out);
+          IDEProblem->printDataFlowFact(llvm::outs(), Out);
         }
       }
     }
@@ -220,7 +221,7 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1Fact));
 
         DOTNode D1;
-        if (IDEProblem.isZeroValue(D1Fact)) {
+        if (IDEProblem->isZeroValue(D1Fact)) {
           D1 = {FuncName, "Λ", N1StmtId, 0, false, true};
           D1FactId = 0;
         } else {
@@ -241,7 +242,7 @@ public:
           PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2Fact));
           // We do not need to generate any intra-procedural nodes and edges
           // for the zero value since they will be auto-generated
-          if (!IDEProblem.isZeroValue(D2Fact)) {
+          if (!IDEProblem->isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
             std::string D2Label = DToString(D2Fact);
@@ -253,7 +254,7 @@ public:
               EFLabel += to_string(EF) + ", ";
             }
             PHASAR_LOG_LEVEL(DEBUG, "EF LABEL: " << EFLabel);
-            if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
+            if (D1FactId == D2FactId && !IDEProblem->isZeroValue(D1Fact)) {
               assert(D1FSG && "D1_FSG was nullptr but should be valid.");
               D1FSG->Nodes.insert(std::make_pair(N2StmtId, D2));
               D1FSG->Edges.emplace(D1, D2, true, EFLabel);
@@ -324,7 +325,7 @@ public:
         auto D1Fact = D1ToD2Set.first;
         PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1Fact));
         DOTNode D1;
-        if (IDEProblem.isZeroValue(D1Fact)) {
+        if (IDEProblem->isZeroValue(D1Fact)) {
           D1 = {FNameOfN1, "Λ", N1StmtId, 0, false, true};
         } else {
           // Get the fact-ID
@@ -343,7 +344,7 @@ public:
         for (const auto &D2Fact : D2Set) {
           PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2Fact));
           DOTNode D2;
-          if (IDEProblem.isZeroValue(D2Fact)) {
+          if (IDEProblem->isZeroValue(D2Fact)) {
             D2 = {FNameOfN2, "Λ", N2StmtId, 0, false, true};
           } else {
             // Get the fact-ID
@@ -358,8 +359,8 @@ public:
             }
           }
 
-          if (IDEProblem.isZeroValue(D1Fact) &&
-              IDEProblem.isZeroValue(D2Fact)) {
+          if (IDEProblem->isZeroValue(D1Fact) &&
+              IDEProblem->isZeroValue(D2Fact)) {
             // Do not add lambda recursion edges as inter-procedural edges
             if (D1.FuncName != D2.FuncName) {
               G.InterLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");
@@ -800,7 +801,7 @@ private:
     // condition
     /// TODO: Add a check for "d1 is seed in functionOf(n)"
     if (SolverConfig.followReturnsPastSeeds() && Inc.empty() /*&&
-        IDEProblem.isZeroValue(d1)*/) {
+        IDEProblem->isZeroValue(d1)*/) {
       const auto &Callers = ICF->getCallersOf(FunctionThatNeedsSummary);
       for (n_t Caller : Callers) {
         for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(Caller)) {
@@ -835,7 +836,7 @@ private:
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
       if (Callers.empty()) {
-        IDEProblem.applyUnbalancedRetFlowFunctionSideEffects(
+        IDEProblem->applyUnbalancedRetFlowFunctionSideEffects(
             FunctionThatNeedsSummary, n, d2);
       }
     }
@@ -908,7 +909,7 @@ private:
         PHASAR_LOG_LEVEL(
             DEBUG, "Zero-Value has been added automatically to start point: "
                        << NToString(StartPoint));
-        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem.bottomElement());
+        Seeds.addSeed(StartPoint, ZeroValue, IDEProblem->bottomElement());
       }
     }
     PHASAR_LOG_LEVEL(DEBUG,
@@ -929,7 +930,7 @@ private:
         PHASAR_LOG_LEVEL(DEBUG, "Submit seed at: " << NToString(StartPoint));
         PHASAR_LOG_LEVEL(DEBUG, "\tFact: " << DToString(Fact));
         PHASAR_LOG_LEVEL(DEBUG, "\tValue: " << LToString(Value));
-        if (!IDEProblem.isZeroValue(Fact)) {
+        if (!IDEProblem->isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, Core);
         }
         self().addInitialWorklistItem(Fact, StartPoint, Fact,
@@ -1054,7 +1055,7 @@ private:
     if (NewFunction) {
       JumpFn->addFunction(SourceVal, NewTarget, TargetVal, fPrime);
 
-      IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
+      IF_LOG_ENABLED(if (!IDEProblem->isZeroValue(TargetVal)) {
         PHASAR_LOG_LEVEL(DEBUG, "[updateWithNewEdges]: EDGE: <F: "
                                     << FToString(ICF->getFunctionOf(NewTarget))
                                     << ", D: " << DToString(SourceVal) << '>');
@@ -1221,8 +1222,8 @@ private:
 
           self().setVal(
               n, d,
-              IDEProblem.join(self().val(n, d),
-                              fPrime.computeTarget(std::move(TargetVal))));
+              IDEProblem->join(self().val(n, d),
+                               fPrime.computeTarget(std::move(TargetVal))));
           INC_COUNTER("Value Computation", 1, Full);
         }
       }
@@ -1233,7 +1234,7 @@ private:
     std::map<n_t, std::map<d_t, l_t>> AllSeeds = Seeds.getSeeds();
     for (n_t UnbalancedRetSite : UnbalancedRetSites) {
       if (AllSeeds.find(UnbalancedRetSite) == AllSeeds.end()) {
-        AllSeeds[UnbalancedRetSite][ZeroValue] = IDEProblem.topElement();
+        AllSeeds[UnbalancedRetSite][ZeroValue] = IDEProblem->topElement();
       }
     }
     // do processing
@@ -1257,7 +1258,7 @@ private:
       return ValTab.get(NHashN, NHashD);
     }
     // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
-    return IDEProblem.topElement();
+    return IDEProblem->topElement();
   }
 
   l_t seedVal(n_t NHashN, d_t NHashD) {
@@ -1274,7 +1275,7 @@ private:
       PHASAR_LOG_LEVEL(DEBUG, ' ');
     });
     // TOP is the implicit default value which we do not need to store.
-    // if (l == IDEProblem.topElement()) {
+    // if (l == IDEProblem->topElement()) {
     // do not store top values
     // ValTab.remove(nHashN, nHashD);
     // } else {
@@ -1291,7 +1292,7 @@ private:
   }
 
   l_t joinValueAt(n_t /*Unit*/, d_t /*Fact*/, l_t Curr, l_t NewVal) {
-    return IDEProblem.join(std::move(Curr), std::move(NewVal));
+    return IDEProblem->join(std::move(Curr), std::move(NewVal));
   }
 
   /// -- InteractiveIDESolverMixin implementation
@@ -1549,7 +1550,7 @@ private:
           PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(D1));
           NumInterPathEdges += D2s.size();
           for (auto D2 : D2s) {
-            if (!IDEProblem.isZeroValue(D2)) {
+            if (!IDEProblem->isZeroValue(D2)) {
               NumGenFacts++;
             }
             // Special case
@@ -1558,8 +1559,9 @@ private:
 
               std::set<d_t> SummaryDSet;
               EndsummaryTab.get(Edge.second, D2)
-                  .foreachCell([&SummaryDSet](const auto &Row, const auto &Col,
-                                              const auto &Val) {
+                  .foreachCell([&SummaryDSet](const auto & /*Row*/,
+                                              const auto &Col,
+                                              const auto & /*Val*/) {
                     SummaryDSet.insert(Col);
                   });
 
@@ -1666,7 +1668,7 @@ private:
 
   IDESolverImpl(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
                 const i_t *ICF, StrategyT /*Strategy*/ = {})
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
+      : IDEProblem(&Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>()),
@@ -1684,10 +1686,10 @@ private:
 
   /// -- Data members
 
-  IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
+  IDETabulationProblem<AnalysisDomainTy, Container> *IDEProblem{};
   d_t ZeroValue;
   const i_t *ICF;
-  IFDSIDESolverConfig &SolverConfig;
+  IFDSIDESolverConfig SolverConfig;
 
   std::vector<std::pair<n_t, d_t>> ValuePropWL;
 
@@ -1723,8 +1725,6 @@ private:
   Table<n_t, d_t, l_t> ValTab;
 
   std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
-
-  [[no_unique_address]] StrategyT Strategy{};
 };
 } // namespace psr
 

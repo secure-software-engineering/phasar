@@ -9,7 +9,7 @@
 
 #define LOG_INFO(x)                                                            \
   do {                                                                         \
-    llvm::outs() << "[ENV_TRACE] " << x << "\n"; /*NOLINT*/                    \
+    llvm::outs() << "[ENV_TRACE] " << x << '\n'; /*NOLINT*/                    \
                                                                                \
     llvm::outs().flush();                                                      \
   } while (0)
