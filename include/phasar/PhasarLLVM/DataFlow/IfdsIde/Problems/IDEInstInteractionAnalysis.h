@@ -333,7 +333,7 @@ public:
       //              v  v  v
       //              0  Y  x
       //
-      return this->lambdaFlow([Load](d_t Source) -> container_type {
+      return this->lambdaFlow([Load, this](d_t Source) -> container_type {
         if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                 Load->getPointerOperand())) {
           const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
@@ -360,6 +360,11 @@ public:
             return {Source};
           }
           return {Source, LoadedVal.value()};
+        }
+        const auto PTS =
+            *PT.getReachableAllocationSites(Load, OnlyConsiderLocalAliases);
+        if (PTS.count(Source.getBaseValue()) > 0) {
+          return {Source, Source.getSameAP(Load)};
         }
         return {Source};
       });
@@ -414,7 +419,9 @@ public:
                   Store->getPointerOperand())) {
             const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
             Facts.insert(LhsForStore.getStored(Alloca, Offset.value_or(9001)));
-            auto PTS = *PT.getAliasSet(Alloca);
+            // auto PTS = *PT.getAliasSet(Alloca);
+            const auto PTS = *PT.getReachableAllocationSites(
+                Alloca, OnlyConsiderLocalAliases);
             for (const auto *PTBase : PTS) {
               if (llvm::isa<llvm::GetElementPtrInst>(PTBase)) {
                 continue;
@@ -424,7 +431,9 @@ public:
             }
           } else {
             // Ordinary store.
-            auto PTS = *PT.getAliasSet(Store->getPointerOperand());
+            // auto PTS = *PT.getAliasSet(Store->getPointerOperand());
+            const auto PTS = *PT.getReachableAllocationSites(
+                Store->getPointerOperand(), OnlyConsiderLocalAliases);
             for (const auto *PTBase : PTS) {
               if (llvm::isa<llvm::GetElementPtrInst>(PTBase)) {
                 continue;
