@@ -26,18 +26,26 @@ getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep) {
   }
   auto CumulatedOffset = getConstantOffset(Gep);
   const auto *Alloca = Gep->getPointerOperand();
-  while (const auto *ChainedGEP =
-             llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
-    if (CumulatedOffset.has_value()) {
-      const auto ChainedGepOffset = getConstantOffset(ChainedGEP);
-      if (ChainedGepOffset.has_value()) {
-        CumulatedOffset = CumulatedOffset.value() + ChainedGepOffset.value();
-      } else {
-        CumulatedOffset = std::nullopt;
+  bool Changed = false;
+  do {
+    while (const auto *ChainedGEP =
+               llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
+      if (CumulatedOffset.has_value()) {
+        const auto ChainedGepOffset = getConstantOffset(ChainedGEP);
+        if (ChainedGepOffset.has_value()) {
+          CumulatedOffset = CumulatedOffset.value() + ChainedGepOffset.value();
+        } else {
+          CumulatedOffset = std::nullopt;
+        }
       }
+      Alloca = ChainedGEP->getPointerOperand();
+      Changed = true;
     }
-    Alloca = ChainedGEP->getPointerOperand();
-  }
+    if (const auto *ChainedBC = llvm::dyn_cast<llvm::BitCastInst>(Alloca)) {
+      Alloca = ChainedBC->getOperand(0);
+      Changed = true;
+    }
+  } while (Changed);
   return {Alloca, CumulatedOffset};
 }
 
