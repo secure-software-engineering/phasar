@@ -9,25 +9,32 @@ using namespace psr;
 
 namespace psr {
 
-std::optional<int64_t> getConstantOffset(const llvm::GetElementPtrInst *Gep) {
-  if (!Gep->hasAllConstantIndices()) {
-    return std::nullopt;
+std::optional<int64_t> getConstantOffset(const llvm::Value *GepOrBC) {
+  if (llvm::isa<llvm::BitCastInst>(GepOrBC)) {
+    return 0;
   }
-  const auto &DL = Gep->getModule()->getDataLayout();
-  llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
-  Gep->accumulateConstantOffset(DL, AccumulatedOffset);
-  return AccumulatedOffset.getSExtValue();
+  if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(GepOrBC)) {
+    if (!Gep->hasAllConstantIndices()) {
+      return std::nullopt;
+    }
+    const auto &DL = Gep->getModule()->getDataLayout();
+    llvm::APInt AccumulatedOffset(DL.getPointerSize() * 8, 0, true);
+    Gep->accumulateConstantOffset(DL, AccumulatedOffset);
+    return AccumulatedOffset.getSExtValue();
+  }
+  return std::nullopt;
 }
 
 std::pair<const llvm::Value *, std::optional<int64_t>>
-getAllocaInstAndConstantOffset(const llvm::GetElementPtrInst *Gep) {
-  if (!Gep) {
+getAllocaInstAndConstantOffset(const llvm::Value *GepOrBC) {
+  if (!GepOrBC) {
     return {nullptr, std::nullopt};
   }
-  auto CumulatedOffset = getConstantOffset(Gep);
-  const auto *Alloca = Gep->getPointerOperand();
+  std::optional<int64_t> CumulatedOffset = 0;
+  const auto *Alloca = GepOrBC;
   bool Changed = false;
   do {
+    Changed = false;
     while (const auto *ChainedGEP =
                llvm::dyn_cast<llvm::GetElementPtrInst>(Alloca)) {
       if (CumulatedOffset.has_value()) {

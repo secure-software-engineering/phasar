@@ -528,9 +528,10 @@ public:
         [CS, CurrentSourceHasOffset, CurrentSourceOffset](
             const llvm::Value *ActualArg, ByConstRef<d_t> Src) mutable {
           if (ActualArg != Src.getBaseValue()) { // FIXMEMM
-            if (const auto *Gep =
-                    llvm::dyn_cast<llvm::GetElementPtrInst>(ActualArg)) {
-              const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
+            if (llvm::isa<llvm::GetElementPtrInst>(ActualArg) ||
+                llvm::isa<llvm::BitCastInst>(ActualArg)) {
+              const auto [Alloca, Offset] =
+                  getAllocaInstAndConstantOffset(ActualArg);
               CurrentSourceHasOffset = true;
               CurrentSourceOffset = Offset;
               return Alloca == Src.getBaseValue();
