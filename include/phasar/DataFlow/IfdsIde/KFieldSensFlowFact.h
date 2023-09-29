@@ -73,9 +73,12 @@ public:
   KFieldSensFlowFact getWithOffset(d_t NewBase, int64_t Offset) {
     auto Result = *this;
     if (Result.AccessPath.size() > 0) {
-      int64_t NewFirstOffset64 =
-          static_cast<int64_t>(Result.AccessPath.back()) + Offset;
       constexpr auto UpcastOffsetLimit = static_cast<int64_t>(OffsetLimit);
+      int64_t NewFirstOffset64 =
+          UpcastOffsetLimit ==
+                  std::abs(static_cast<int64_t>(Result.AccessPath.back()))
+              ? static_cast<int64_t>(Result.AccessPath.back())
+              : static_cast<int64_t>(Result.AccessPath.back()) + Offset;
       offset_int_t NewFirstOffset;
       if (NewFirstOffset64 >= UpcastOffsetLimit ||
           NewFirstOffset64 <= -UpcastOffsetLimit) {

@@ -388,7 +388,9 @@ public:
       //             v  v  v
       //             0  x  Y
       //
-      return this->lambdaFlow([Store, this](d_t Src) -> container_type {
+      auto &WideningForStore = Widenings[Store];
+      return this->lambdaFlow([Store, &WideningForStore,
+                               this](d_t Src) -> container_type {
         if (Store->getPointerOperand() == Src) {
           if (Src.overwrittenByStore(Store, Store->getPointerOperand(), 0)) {
             return {};
@@ -410,7 +412,12 @@ public:
               getAllocaInstAndConstantOffset(LhsGep);
           if (LhsBase == Src) {
             DoStore = true;
-            LhsForStore = Src.getWithOffset(LhsGep, LhsOffset);
+            if (WideningForStore < WideningLimit) {
+              LhsForStore = Src.getWithOffset(LhsGep, LhsOffset);
+              WideningForStore++;
+            } else {
+              LhsForStore = Src.getOverapproximated(LhsGep);
+            }
           }
         }
         if (DoStore) {
@@ -1461,6 +1468,8 @@ private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   std::function<FlowFactGeneratorTy> FlowFactGen;
   static inline const bool OnlyConsiderLocalAliases = true;
+  std::unordered_map<const llvm::StoreInst *, unsigned> Widenings;
+  static constexpr auto WideningLimit = 10u;
 
   inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {
