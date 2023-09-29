@@ -73,19 +73,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         assert(TransitiveClosure.size() > ActualDerivedType);
 
         TransitiveClosure[BaseTypeVertex][ActualDerivedType] = true;
-
-        if (DerivedType->isPublic()) {
-          DerivedTypeAccess.insert(std::pair<size_t, AccessProperty>(
-              ActualDerivedType, AccessProperty::Public));
-        } else if (DerivedType->isProtected()) {
-          DerivedTypeAccess.insert(std::pair<size_t, AccessProperty>(
-              ActualDerivedType, AccessProperty::Protected));
-        } else if (DerivedType->isPrivate()) {
-          DerivedTypeAccess.insert(std::pair<size_t, AccessProperty>(
-              ActualDerivedType, AccessProperty::Private));
-          llvm::report_fatal_error(
-              "Couldn't deduce accessiblity of inheritance");
-        }
       }
     }
   }
@@ -294,6 +281,9 @@ DIBasedTypeHierarchy::accessPropertyToString(AccessProperty AP) const {
   case AccessProperty::Private:
     return "private";
     break;
+  case AccessProperty::Unknown:
+    return "unknown";
+    break;
   }
 }
 
@@ -320,9 +310,7 @@ void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   size_t CurrentRowIndex = 0;
   for (const auto &Row : TransitiveClosure) {
     for (const auto &Cell : Row.set_bits()) {
-      OS << "  " << CurrentRowIndex << " -> " << Cell << "[=label=\""
-         << accessPropertyToString(DerivedTypeAccess.at(CurrentRowIndex))
-         << "\"]\n";
+      OS << "  " << CurrentRowIndex << " -> " << Cell << "\n";
     }
     CurrentRowIndex++;
   }

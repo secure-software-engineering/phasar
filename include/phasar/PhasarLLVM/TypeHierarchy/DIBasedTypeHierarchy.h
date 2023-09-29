@@ -81,7 +81,7 @@ public:
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  enum class AccessProperty { Public, Protected, Private };
+  enum class AccessProperty { Public, Protected, Private, Unknown };
 
   [[nodiscard]] std::string accessPropertyToString(AccessProperty AP) const;
 
@@ -109,8 +109,6 @@ private:
   // (B)              B | 1 1 1
   //                  C | 0 0 1
   std::vector<llvm::BitVector> TransitiveClosure;
-
-  std::map<size_t, AccessProperty> DerivedTypeAccess;
 };
 } // namespace psr
 
