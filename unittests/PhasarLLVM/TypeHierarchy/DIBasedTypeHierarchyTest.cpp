@@ -186,6 +186,56 @@ TEST(DBTHTest, BasicTHReconstruction_4) {
   EXPECT_TRUE(BaseSubTypes.find(Child3Type) != BaseSubTypes.end());
 }
 
+TEST(DBTHTest, BasicTHReconstruction_5) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_16_cpp_dbg.ll"});
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for types
+
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  const auto &ChildOfChildType = DBTH.getType("ChildOfChild");
+  ASSERT_NE(nullptr, ChildOfChildType);
+  EXPECT_TRUE(DBTH.hasType(ChildOfChildType));
+
+  const auto &BaseTwoType = DBTH.getType("BaseTwo");
+  ASSERT_NE(nullptr, BaseTwoType);
+  EXPECT_TRUE(DBTH.hasType(BaseTwoType));
+
+  const auto &ChildTwoType = DBTH.getType("ChildTwo");
+  ASSERT_NE(nullptr, ChildTwoType);
+  EXPECT_TRUE(DBTH.hasType(ChildTwoType));
+
+  EXPECT_TRUE(DBTH.isSuperType(ChildType, BaseType));
+  EXPECT_TRUE(DBTH.isSuperType(ChildOfChildType, ChildType));
+  EXPECT_TRUE(DBTH.isSuperType(ChildTwoType, BaseTwoType));
+
+  // check VFTables
+
+  ASSERT_TRUE(DBTH.hasVFTable(BaseType));
+  ASSERT_TRUE(DBTH.hasVFTable(ChildType));
+  EXPECT_FALSE(DBTH.hasVFTable(ChildOfChildType));
+  ASSERT_TRUE(DBTH.hasVFTable(BaseTwoType));
+  ASSERT_TRUE(DBTH.hasVFTable(ChildTwoType));
+
+  EXPECT_EQ(DBTH.getVFTable(DBTH.getType("Base"))->getFunction(0)->getName(),
+            "_ZN4Base3fooEv");
+  EXPECT_EQ(DBTH.getVFTable(DBTH.getType("Child"))->getFunction(0)->getName(),
+            "_ZN5Child3fooEv");
+  EXPECT_EQ(DBTH.getVFTable(DBTH.getType("BaseTwo"))->getFunction(0)->getName(),
+            "_ZN7BaseTwo6foobarEv");
+  EXPECT_EQ(
+      DBTH.getVFTable(DBTH.getType("ChildTwo"))->getFunction(0)->getName(),
+      "_ZN8ChildTwo6foobarEv");
+}
+
 // check if the vtables are constructed correctly in more complex scenarios
 TEST(LTHTest, VTableConstruction) {
   LLVMProjectIRDB IRDB1({unittest::PathToLLTestFiles +
