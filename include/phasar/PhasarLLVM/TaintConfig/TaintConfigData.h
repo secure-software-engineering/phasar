@@ -16,7 +16,6 @@
 namespace psr {
 struct TaintConfigData;
 enum class TaintCategory;
-class LLVMProjectIRDB;
 
 struct FunctionData {
   FunctionData() noexcept = default;

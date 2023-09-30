@@ -9,11 +9,10 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "nlohmann/json-schema.hpp"
+#include "nlohmann/json.hpp"
 
 #include <optional>
 #include <stdexcept>
-
-#include <nlohmann/json_fwd.hpp>
 
 llvm::StringRef psr::to_string(TaintCategory Cat) noexcept {
   switch (Cat) {
