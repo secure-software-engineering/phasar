@@ -19,7 +19,7 @@
 namespace psr {
 class LLVMTaintConfig;
 class LLVMProjectIRDB;
-class TaintConfigData;
+struct TaintConfigData;
 
 template <> struct TaintConfigTraits<LLVMTaintConfig> {
   using n_t = const llvm::Instruction *;

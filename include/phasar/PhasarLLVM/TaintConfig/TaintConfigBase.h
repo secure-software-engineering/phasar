@@ -25,7 +25,7 @@
 
 namespace psr {
 
-enum class TaintCategory { Source, Sink, Sanitizer, None };
+enum class TaintCategory { None, Source, Sink, Sanitizer };
 
 [[nodiscard]] llvm::StringRef to_string(TaintCategory Cat) noexcept;
 [[nodiscard]] TaintCategory toTaintCategory(llvm::StringRef Str) noexcept;
@@ -158,8 +158,9 @@ protected:
 //===----------------------------------------------------------------------===//
 // Miscellaneous helper functions
 
-TaintConfigData parseTaintConfig(const llvm::Twine &Path);
-std::optional<TaintConfigData> parseTaintConfigOrNull(const llvm::Twine &Path);
+[[nodiscard]] TaintConfigData parseTaintConfig(const llvm::Twine &Path);
+[[nodiscard]] std::optional<TaintConfigData>
+parseTaintConfigOrNull(const llvm::Twine &Path) noexcept;
 
 } // namespace psr
 

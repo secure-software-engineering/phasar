@@ -236,7 +236,7 @@ TEST_F(TaintConfigTest, Array_01_Json) {
 
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  ;
+
   const llvm::Value *I = IR.getInstruction(3);
   ASSERT_TRUE(TConfig.isSource(I));
 }
@@ -340,10 +340,10 @@ TEST_F(TaintConfigTest, FunMember_01_Json) {
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
-  for (const auto &F : IR.getAllFunctions()) {
+  for (const auto *F : IR.getAllFunctions()) {
     if (F->getName().contains("foo")) {
       assert(F);
-      for (const auto *const User : F->users()) {
+      for (const auto *User : F->users()) {
         if (llvm::isa<llvm::CallBase>(User)) {
           ASSERT_TRUE(TConfig.isSource(User));
         }

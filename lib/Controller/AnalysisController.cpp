@@ -15,8 +15,8 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -185,6 +185,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     WithResultFileOrStdout("/psr-cg.txt",
                            [this](auto &OS) { HA.getICFG().print(OS); });
   }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    WithResultFileOrStdout(
+        "/psr-cg.json", [this](auto &OS) { OS << HA.getICFG().getAsJson(); });
+  }
 
   if (EmitterOptions &
       (AnalysisControllerEmitterOptions::EmitStatisticsAsJson |
@@ -193,6 +197,11 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     auto &IRDB = HA.getProjectIRDB();
     GeneralStatisticsAnalysis GSA;
     const auto &Stats = GSA.runOnModule(*IRDB.getModule());
+
+    if (EmitterOptions &
+        AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
+      llvm::outs() << Stats << '\n';
+    }
 
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitStatisticsAsJson) {
@@ -205,8 +214,10 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 LLVMTaintConfig AnalysisController::makeTaintConfig() {
   std::string AnalysisConfigPath =
       !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
-
-  return LLVMTaintConfig(HA.getProjectIRDB());
+  return !AnalysisConfigPath.empty()
+             ? LLVMTaintConfig(HA.getProjectIRDB(),
+                               parseTaintConfig(AnalysisConfigPath))
+             : LLVMTaintConfig(HA.getProjectIRDB());
 }
 
 } // namespace psr

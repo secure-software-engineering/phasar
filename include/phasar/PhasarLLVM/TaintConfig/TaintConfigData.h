@@ -15,26 +15,27 @@
 
 namespace psr {
 struct TaintConfigData;
+enum class TaintCategory;
 class LLVMProjectIRDB;
 
 struct FunctionData {
-  FunctionData() = default;
+  FunctionData() noexcept = default;
 
   std::string Name;
-  std::string ReturnType;
-  std::vector<int> SourceValues;
-  std::vector<int> SinkValues;
-  std::vector<int> SanitizerValues;
+  TaintCategory ReturnCat{};
+  std::vector<uint32_t> SourceValues;
+  std::vector<uint32_t> SinkValues;
+  std::vector<uint32_t> SanitizerValues;
   bool HasAllSinkParam = false;
 };
 
 struct VariableData {
-  VariableData() = default;
+  VariableData() noexcept = default;
 
   size_t Line{};
   std::string Name;
   std::string Scope;
-  std::string Cat;
+  TaintCategory Cat{};
 };
 
 struct TaintConfigData {

@@ -131,33 +131,8 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
   FuncDataPrint.Name = "_Z5printi";
   FuncDataPrint.SinkValues.push_back(0);
 
-  Config.Functions.push_back(FuncDataMain);
-  Config.Functions.push_back(FuncDataPrint);
-
-  json Old = R"!({
-    "name": "XTaintTest",
-    "version": 1.0,
-    "functions": [
-      {
-        "file": "xtaint01.cpp",
-        "name": "main",
-        "params": {
-          "source": [
-            0
-          ]
-        }
-      },
-      {
-        "file": "xtaint01.cpp",
-        "name": "_Z5printi",
-        "params": {
-          "sink": [
-            0
-          ]
-        }
-      }
-    ]
-    })!"_json;
+  Config.Functions.push_back(std::move(FuncDataMain));
+  Config.Functions.push_back(std::move(FuncDataPrint));
 
   doAnalysis({PathToLLFiles + "xtaint01_json_cpp_dbg.ll"}, Gt, &Config);
 }
