@@ -9,17 +9,9 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_analysis_strategy
-    SHARED
-    ${ANALYSIS_STRATEGY_SRC}
-  )
-else()
-  add_phasar_library(phasar_analysis_strategy
-    STATIC
-    ${ANALYSIS_STRATEGY_SRC}
-  )
-endif()
+add_phasar_library(phasar_analysis_strategy
+  ${ANALYSIS_STRATEGY_SRC}
+)
 
 set_target_properties(phasar_analysis_strategy
   PROPERTIES

@@ -13,17 +13,9 @@ set(LLVM_LINK_COMPONENTS
   Option
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_clang
-    SHARED
-    ${PHASARCLANG_SRC}
-  )
-else()
-  add_phasar_library(phasar_clang
-    STATIC
-    ${PHASARCLANG_SRC}
-  )
-endif()
+add_phasar_library(phasar_clang
+  ${PHASARCLANG_SRC}
+)
 
 target_link_libraries(phasar_clang
   LINK_PUBLIC

@@ -14,17 +14,9 @@ set(LLVM_LINK_COMPONENTS
   Demangle
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_llvm_controlflow
-    SHARED
-    ${CONTROLFLOW_SRC}
-  )
-else()
-  add_phasar_library(phasar_llvm_controlflow
-    STATIC
-    ${CONTROLFLOW_SRC}
-  )
-endif()
+add_phasar_library(phasar_llvm_controlflow
+  ${CONTROLFLOW_SRC}
+)
 
 set_target_properties(phasar_llvm_controlflow
   PROPERTIES

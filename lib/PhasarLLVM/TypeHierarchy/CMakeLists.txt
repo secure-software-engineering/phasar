@@ -12,21 +12,12 @@ set(LLVM_LINK_COMPONENTS
 )
 
 # Handle the library files
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_llvm_typehierarchy
-    SHARED
-    ${TYPEHIERARCHY_SRC}
-  )
-else()
-  add_phasar_library(phasar_llvm_typehierarchy
-    STATIC
-    ${TYPEHIERARCHY_SRC}
-  )
-endif()
+add_phasar_library(phasar_llvm_typehierarchy
+  ${TYPEHIERARCHY_SRC}
+)
 
-find_package(Boost COMPONENTS graph REQUIRED)
 target_link_libraries(phasar_llvm_typehierarchy
-  LINK_PUBLIC
+  LINK_PRIVATE
   ${Boost_LIBRARIES}
 )
 

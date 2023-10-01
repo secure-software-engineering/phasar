@@ -10,17 +10,9 @@ set(LLVM_LINK_COMPONENTS
 )
 
 # Handle the library files
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_pointer
-    SHARED
-    ${POINTER_SRC}
-  )
-else()
-  add_phasar_library(phasar_pointer
-    STATIC
-    ${POINTER_SRC}
-  )
-endif()
+add_phasar_library(phasar_pointer
+  ${POINTER_SRC}
+)
 
 set_target_properties(phasar_pointer
   PROPERTIES

@@ -8,20 +8,12 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_config
-    SHARED
-    ${CONFIG_SRC}
-  )
-else()
-  add_phasar_library(phasar_config
-    STATIC
-    ${CONFIG_SRC}
-  )
-endif()
+add_phasar_library(phasar_config
+  ${CONFIG_SRC}
+)
 
 target_link_libraries(phasar_config
-  LINK_PUBLIC
+  LINK_PRIVATE
   ${Boost_LIBRARIES}
 )
 

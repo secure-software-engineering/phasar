@@ -12,17 +12,9 @@ set(LLVM_LINK_COMPONENTS
   IRReader
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_llvm_db
-    SHARED
-    ${PSR_LLVM_DB_SRC}
-  )
-else()
-  add_phasar_library(phasar_llvm_db
-    STATIC
-    ${PSR_LLVM_DB_SRC}
-  )
-endif()
+add_phasar_library(phasar_llvm_db
+  ${PSR_LLVM_DB_SRC}
+)
 
 set_target_properties(phasar_llvm_db
   PROPERTIES

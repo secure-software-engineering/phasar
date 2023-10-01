@@ -13,9 +13,9 @@ endif()
 
 target_link_libraries(myphasartool
   LINK_PUBLIC
-  phasar
+    phasar
   LINK_PRIVATE
-  ${PHASAR_STD_FILESYSTEM}
+    ${PHASAR_STD_FILESYSTEM}
 )
 
 install(TARGETS myphasartool

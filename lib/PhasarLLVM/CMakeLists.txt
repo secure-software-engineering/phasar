@@ -21,14 +21,6 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_llvm
-    SHARED
-    ${PHASAR_LLVM_SRC}
-  )
-else()
-  add_phasar_library(phasar_llvm
-    STATIC
-    ${PHASAR_LLVM_SRC}
-  )
-endif()
+add_phasar_library(phasar_llvm
+  ${PHASAR_LLVM_SRC}
+)
