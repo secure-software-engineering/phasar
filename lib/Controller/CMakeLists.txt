@@ -19,22 +19,12 @@ set(LLVM_LINK_COMPONENTS
   Demangle
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_controller
-    SHARED
-    ${CONTROLLER_SRC}
-  )
-else()
-  add_phasar_library(phasar_controller
-    STATIC
-    ${CONTROLLER_SRC}
-  )
-endif()
+add_phasar_library(phasar_controller
+  ${CONTROLLER_SRC}
+)
 
 target_link_libraries(phasar_controller
   LINK_PUBLIC
-  curl
-  ${CMAKE_THREAD_LIBS_INIT}
   ${PHASAR_STD_FILESYSTEM}
 )
 

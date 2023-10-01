@@ -18,22 +18,13 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_pass
-    SHARED
-    ${PHASARPASS_SRC}
-  )
-else()
-  add_phasar_library(phasar_pass
-    STATIC
-    ${PHASARPASS_SRC}
-  )
-endif()
+add_phasar_library(phasar_pass
+  ${PHASARPASS_SRC}
+)
 
 # We specifically link internal phasar libs into phasar_pass so on that the
 # llvm user side only has to specify one library.
 
-find_package(Boost COMPONENTS graph REQUIRED)
 target_link_libraries(phasar_pass
   LINK_PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}

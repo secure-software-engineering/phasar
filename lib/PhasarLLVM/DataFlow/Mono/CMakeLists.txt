@@ -14,17 +14,9 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_mono
-    SHARED
-    ${MONO_SRC}
-  )
-else()
-  add_phasar_library(phasar_mono
-    STATIC
-    ${MONO_SRC}
-  )
-endif()
+add_phasar_library(phasar_mono
+  ${MONO_SRC}
+)
 
 set_target_properties(phasar_mono
   PROPERTIES

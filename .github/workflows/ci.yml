@@ -70,6 +70,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_CXX_COMPILER=$CXX \
             -DBUILD_SWIFT_TESTS=1 \
+            -DPHASAR_DEBUG_LIBDEPS=ON \
             -G Ninja
           cmake --build .
 

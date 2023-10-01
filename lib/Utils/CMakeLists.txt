@@ -16,24 +16,14 @@ set(LLVM_LINK_COMPONENTS
   Demangle
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_utils
-    SHARED
-    ${UTILS_SRC}
-  )
-else()
-  add_phasar_library(phasar_utils
-    STATIC
-    ${UTILS_SRC}
-  )
-endif()
+add_phasar_library(phasar_utils
+  ${UTILS_SRC}
+)
 
 target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
 
 target_link_libraries(phasar_utils
   LINK_PUBLIC
-  ${CMAKE_DL_LIBS}
-  ${Boost_LIBRARIES}
   ${PHASAR_STD_FILESYSTEM}
 )
 

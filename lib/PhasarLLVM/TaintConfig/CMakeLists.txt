@@ -14,20 +14,12 @@ set(LLVM_LINK_COMPONENTS
   Support
 )
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_taintconfig
-    SHARED
-    ${TAINTCONFIG_SRC}
-  )
-else()
-  add_phasar_library(phasar_taintconfig
-    STATIC
-    ${TAINTCONFIG_SRC}
-  )
-endif()
+add_phasar_library(phasar_taintconfig
+  ${TAINTCONFIG_SRC}
+)
 
 target_link_libraries(phasar_taintconfig
-  LINK_PUBLIC
+  LINK_PRIVATE
   nlohmann_json_schema_validator
 )
 
