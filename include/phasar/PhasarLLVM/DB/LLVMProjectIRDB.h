@@ -41,19 +41,23 @@ class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
   friend ProjectIRDBBase;
 
 public:
-  /// Reads and parses the given LLVM IR file and owns the resulting IR Module
+  /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
-  /// ownership. The module is not being preprocessed.
+  /// ownership. The module is optionally being preprocessed.
   ///
   /// CAUTION: Do not manage the same LLVM Module with multiple LLVMProjectIRDB
   /// instances at the same time! This will confuse the ModulesToSlotTracker
-  explicit LLVMProjectIRDB(llvm::Module *Mod);
+  explicit LLVMProjectIRDB(llvm::Module *Mod, bool DoPreprocessing = true);
   /// Initializes the new ProjectIRDB with the given IR Module and takes
-  /// ownership of it
+  /// ownership of it. The module is optionally being preprocessed.
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
-  /// Parses the given LLVM IR file and owns the resulting IR Module
+  /// Parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
   explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
@@ -63,6 +67,9 @@ public:
 
   [[nodiscard]] static std::unique_ptr<llvm::Module>
   getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
+                          llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] static std::unique_ptr<llvm::Module>
+  getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
                           llvm::LLVMContext &Ctx) noexcept;
 
   /// Also use the const overload
@@ -81,7 +88,7 @@ public:
   /// Also use the const overload
   using ProjectIRDBBase::getModule;
   /// Non-const overload
-  [[nodiscard]] llvm::Module *getModule() { return Mod.get(); }
+  [[nodiscard]] llvm::Module *getModule() noexcept { return Mod.get(); }
 
   /// Similar to getInstruction(size_t), but is also able to return global
   /// variables by id
@@ -95,6 +102,8 @@ public:
   /// llvm::Module that is managed by the IRDB. insertFunction should not be
   /// called twice for the same function. Use with care!
   void insertFunction(llvm::Function *F, bool DoPreprocessing = true);
+
+  explicit operator bool() const noexcept { return isValid(); }
 
 private:
   [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }

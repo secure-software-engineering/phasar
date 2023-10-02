@@ -162,6 +162,8 @@ private:
   LLVMProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
 };
+
+extern template class ICFGBase<LLVMBasedICFG>;
 } // namespace psr
 
 #endif
