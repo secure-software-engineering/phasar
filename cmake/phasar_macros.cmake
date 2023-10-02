@@ -1,3 +1,21 @@
+
+macro(phasar_link_llvm executable)
+  # llvm_config links LLVM as LINK_PRIVATE. We want to LINK_PUBLIC
+  if (USE_LLVM_FAT_LIB)
+    target_link_libraries(${executable} LINK_PUBLIC LLVM)
+  else()
+    llvm_map_components_to_libnames(LLVM_LIBRARIES ${LLVM_LINK_COMPONENTS})
+    target_link_libraries(${executable} LINK_PUBLIC ${LLVM_LIBRARIES})
+  endif()
+endmacro()
+
+macro(add_cxx_compile_options opts)
+  add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${opts}>")
+endmacro()
+macro(add_cxx_compile_definitions defs)
+  add_compile_definitions("$<$<COMPILE_LANGUAGE:CXX>:${defs}>")
+endmacro()
+
 function(add_phasar_unittest test_name)
   message("Set-up unittest: ${test_name}")
   get_filename_component(test ${test_name} NAME_WE)
@@ -6,11 +24,7 @@ function(add_phasar_unittest test_name)
   )
   add_dependencies(PhasarUnitTests ${test})
 
-  if(USE_LLVM_FAT_LIB)
-    llvm_config(${test} USE_SHARED ${LLVM_LINK_COMPONENTS})
-  else()
-    llvm_config(${test} ${LLVM_LINK_COMPONENTS})
-  endif()
+  phasar_link_llvm(${test})
 
   target_link_libraries(${test}
     LINK_PUBLIC
@@ -195,13 +209,7 @@ macro(add_phasar_library name)
     endforeach(lib)
   endif(PHASAR_LINK_LIBS)
 
-  if(LLVM_LINK_COMPONENTS)
-    if(USE_LLVM_FAT_LIB)
-      llvm_config(${name} USE_SHARED ${LLVM_LINK_COMPONENTS})
-    else()
-      llvm_config(${name} ${LLVM_LINK_COMPONENTS})
-    endif()
-  endif(LLVM_LINK_COMPONENTS)
+  phasar_link_llvm(${name})
 
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)

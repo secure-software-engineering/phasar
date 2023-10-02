@@ -38,6 +38,10 @@ include(GNUInstallDirs)
 
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
+set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
+include("phasar_macros")
+
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
@@ -55,7 +59,7 @@ if (NOT PHASAR_TARGET_ARCH STREQUAL "")
   check_cxx_compiler_flag("-march=${PHASAR_TARGET_ARCH}" MARCH_SUPPORTED)
   if(MARCH_SUPPORTED)
     message(STATUS "Target architecture ${PHASAR_TARGET_ARCH} enabled")
-    add_compile_options(-march=${PHASAR_TARGET_ARCH})
+    add_cxx_compile_options(-march=${PHASAR_TARGET_ARCH})
   else()
     message(STATUS "Target architecture ${PHASAR_TARGET_ARCH} not supported")
   endif()
@@ -66,7 +70,7 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
   message(STATUS "Selected Debug Build with Sanitizers")
-  add_compile_options(
+  add_cxx_compile_options(
     -fno-omit-frame-pointer
     -fsanitize=address,undefined
     -O1
@@ -76,13 +80,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
   )
 elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Selected Debug Build")
-  add_compile_options(
+  add_cxx_compile_options(
     -Og
     -fno-omit-frame-pointer
   )
 elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   message(STATUS "Selected Optimized Debug Build (RelWithDebInfo")
-  add_compile_options(
+  add_cxx_compile_options(
     -fno-omit-frame-pointer
   )
 else()
@@ -108,14 +112,9 @@ enable_testing()
 #  message(FATAL_ERROR "Phasar is not a llvm drop-in, abort!")
 # endif()
 
-set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
-
 file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FILE)
 string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
 list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
-
-include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
@@ -145,7 +144,7 @@ endif()
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
-  add_compile_options(
+  add_cxx_compile_options(
     -Wall
     -Wextra
     -Wno-unused-variable
@@ -164,10 +163,10 @@ if (NOT PHASAR_ENABLE_PAMM)
   set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
 endif()
 if(PHASAR_ENABLE_PAMM STREQUAL "Core" AND NOT PHASAR_BUILD_UNITTESTS)
-  add_compile_definitions(PAMM_CORE)
+  add_cxx_compile_definitions(PAMM_CORE)
   message(STATUS "PAMM metric severity level: Core")
 elseif(PHASAR_ENABLE_PAMM STREQUAL "Full" AND NOT PHASAR_BUILD_UNITTESTS)
-  add_compile_definitions(PAMM_FULL)
+  add_cxx_compile_definitions(PAMM_FULL)
   message(STATUS "PAMM metric severity level: Full")
 elseif(PHASAR_BUILD_UNITTESTS AND (PHASAR_ENABLE_PAMM STREQUAL "Core" OR PHASAR_ENABLE_PAMM STREQUAL "Full"))
   message(WARNING "PAMM metric severity level: Off (due to unittests)")
@@ -179,7 +178,7 @@ option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and 
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
-  add_compile_definitions(DYNAMIC_LOG)
+  add_cxx_compile_definitions(DYNAMIC_LOG)
 else()
   message(STATUS "Dynamic log disabled")
 endif()
@@ -215,8 +214,8 @@ else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
 
-add_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
-add_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
+add_cxx_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
+add_cxx_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
 
 
 ### Adding external libraries
@@ -280,6 +279,10 @@ if (NOT PHASAR_IN_TREE)
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 
   find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
+  if(BUILD_SHARED_LIBS AND NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+    message(STATUS "Found consolidated shared LLVM lib ${LLVM_LIBRARY} that will be linked against.")
+    set(USE_LLVM_FAT_LIB ON)
+  endif()
 endif()
 
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
