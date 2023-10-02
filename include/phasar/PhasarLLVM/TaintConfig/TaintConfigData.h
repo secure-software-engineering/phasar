@@ -14,7 +14,6 @@
 #include <vector>
 
 namespace psr {
-struct TaintConfigData;
 enum class TaintCategory;
 
 struct FunctionData {
