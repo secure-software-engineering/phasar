@@ -13,7 +13,12 @@ jobs:
       fail-fast: true
       matrix:
         compiler: [ [clang++-14, clang-14] ]
-        build: [ Debug, Release ]
+        build: [ DebugSan, Release ]
+        include:
+          - build: DebugSan
+            flags: -DPHASAR_BUILD_DYNLIB=ON
+          - build: Release
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF
 
     continue-on-error: false
     steps:
@@ -71,6 +76,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=$CXX \
             -DBUILD_SWIFT_TESTS=1 \
             -DPHASAR_DEBUG_LIBDEPS=ON \
+            ${{ matrix.flags }} \
             -G Ninja
           cmake --build .
 
