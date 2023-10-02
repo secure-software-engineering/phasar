@@ -4,6 +4,14 @@ cmake_minimum_required (VERSION 3.9)
 cmake_policy(SET CMP0069 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 
+# Allow overwriting options of external projects from this CMakeLists file
+cmake_policy(SET CMP0077 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
+# Allow portable use of CMAKE_VISIBILITY_INLINES_HIDDEN not only for shared libraries
+cmake_policy(SET CMP0063 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
+
 # Check if we build within the llvm source tree
 if (DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
@@ -18,7 +26,7 @@ option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experim
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 if(PHASAR_EXPERIMENTAL_CXX20)
-  message(STATUS "Selected experimental C++ build")
+  message(STATUS "Selected experimental C++20 build")
   set(CMAKE_CXX_STANDARD 20)
 else()
   set(CMAKE_CXX_STANDARD 17)
@@ -34,18 +42,54 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
 
+option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+
+# NOTE: Use gcc -march=native -Q --help=target | grep -- '-march=' | cut -f3
+#       to check the architecture detected by match=native
+set(PHASAR_TARGET_ARCH "" CACHE STRING "Optimize the build for the given target architecture, e.g. -march=native. Most useful in Release builds. Disabled by default")
+
+if (NOT PHASAR_TARGET_ARCH STREQUAL "")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-march=${PHASAR_TARGET_ARCH}" MARCH_SUPPORTED)
+  if(MARCH_SUPPORTED)
+    message(STATUS "Target architecture ${PHASAR_TARGET_ARCH} enabled")
+    add_compile_options(-march=${PHASAR_TARGET_ARCH})
+  else()
+    message(STATUS "Target architecture ${PHASAR_TARGET_ARCH} not supported")
+  endif()
+endif()
+
+# TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
+# https://reviews.llvm.org/D157613
+
 if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
-  message(STATUS "Selected Debug Build with sanitizers")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -fno-omit-frame-pointer -fsanitize=address,undefined")
+  message(STATUS "Selected Debug Build with Sanitizers")
+  add_compile_options(
+    -fno-omit-frame-pointer
+    -fsanitize=address,undefined
+    -O1
+  )
+  add_link_options(
+    -fsanitize=address,undefined
+  )
 elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Selected Debug Build")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
+  add_compile_options(
+    -Og
+    -fno-omit-frame-pointer
+  )
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  message(STATUS "Selected Optimized Debug Build (RelWithDebInfo")
+  add_compile_options(
+    -fno-omit-frame-pointer
+  )
 else()
   message(STATUS "Selected Release Build")
 
   include(CheckIPOSupported)
   check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
-
 
   if(LTO_SUPPORTED)
     message(STATUS "IPO/LTO enabled")
@@ -53,9 +97,6 @@ else()
   else()
     message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
   endif()
-
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
 
 endif()
 
@@ -104,12 +145,18 @@ endif()
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")
+  add_compile_options(
+    -Wall
+    -Wextra
+    -Wno-unused-variable
+    -Wno-unused-parameter
+    -Wno-return-type-c-linkage
+  )
 endif (PHASAR_ENABLE_WARNINGS)
 
 option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
 if (PHASAR_ENABLE_PIC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif (PHASAR_ENABLE_PIC)
 
 if (NOT PHASAR_ENABLE_PAMM)
@@ -132,7 +179,7 @@ option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and 
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDYNAMIC_LOG")
+  add_compile_definitions(DYNAMIC_LOG)
 else()
   message(STATUS "Dynamic log disabled")
 endif()
