@@ -75,7 +75,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
     -fsanitize=address,undefined
     -O1
   )
-  add_link_options(
+  add_cxx_link_options(
     -fsanitize=address,undefined
   )
 elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
