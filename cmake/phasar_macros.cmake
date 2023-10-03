@@ -1,22 +1,22 @@
 
 macro(phasar_link_llvm executable)
-  # llvm_config links LLVM as LINK_PRIVATE. We want to LINK_PUBLIC
+  # llvm_config links LLVM as PRIVATE. We need to link PUBLIC
   if (USE_LLVM_FAT_LIB)
-    target_link_libraries(${executable} LINK_PUBLIC LLVM)
+    target_link_libraries(${executable} PUBLIC LLVM)
   else()
     llvm_map_components_to_libnames(LLVM_LIBRARIES ${LLVM_LINK_COMPONENTS})
-    target_link_libraries(${executable} LINK_PUBLIC ${LLVM_LIBRARIES})
+    target_link_libraries(${executable} PUBLIC ${LLVM_LIBRARIES})
   endif()
 endmacro()
 
-macro(add_cxx_compile_options opts)
-  add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${opts}>")
+macro(add_cxx_compile_options)
+  add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${ARGN}>")
 endmacro()
-macro(add_cxx_compile_definitions defs)
-  add_compile_definitions("$<$<COMPILE_LANGUAGE:CXX>:${defs}>")
+macro(add_cxx_compile_definitions)
+  add_compile_definitions("$<$<COMPILE_LANGUAGE:CXX>:${ARGN}>")
 endmacro()
-macro(add_cxx_link_options opts)
-  add_link_options("$<$<COMPILE_LANGUAGE:CXX>:${opts}>")
+macro(add_cxx_link_options)
+  add_link_options("$<$<COMPILE_LANGUAGE:CXX>:${ARGN}>")
 endmacro()
 
 function(add_phasar_unittest test_name)
@@ -30,14 +30,8 @@ function(add_phasar_unittest test_name)
   phasar_link_llvm(${test})
 
   target_link_libraries(${test}
-    LINK_PUBLIC
+    LINK_PRIVATE
     phasar
-    nlohmann_json_schema_validator
-    ${SQLITE3_LIBRARY}
-    ${Boost_LIBRARIES}
-    ${CMAKE_DL_LIBS}
-    ${CMAKE_THREAD_LIBS_INIT}
-    curl
     gtest
   )
 
@@ -205,9 +199,9 @@ macro(add_phasar_library name)
   if(PHASAR_LINK_LIBS)
     foreach(lib ${PHASAR_LINK_LIBS})
       if(PHASAR_DEBUG_LIBDEPS)
-        target_link_libraries(${name} LINK_PRIVATE ${lib})
+        target_link_libraries(${name} PRIVATE ${lib})
       else()
-        target_link_libraries(${name} LINK_PUBLIC ${lib})
+        target_link_libraries(${name} PUBLIC ${lib})
       endif(PHASAR_DEBUG_LIBDEPS)
     endforeach(lib)
   endif(PHASAR_LINK_LIBS)

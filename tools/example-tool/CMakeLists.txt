@@ -12,9 +12,8 @@ else()
 endif()
 
 target_link_libraries(myphasartool
-  LINK_PUBLIC
+  PRIVATE
     phasar
-  LINK_PRIVATE
     ${PHASAR_STD_FILESYSTEM}
 )
 

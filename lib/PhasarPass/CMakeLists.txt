@@ -26,10 +26,10 @@ add_phasar_library(phasar_pass
 # llvm user side only has to specify one library.
 
 target_link_libraries(phasar_pass
-  LINK_PUBLIC
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${PHASAR_LINK_LIBS}
-  ${Boost_LIBRARIES}
+  PUBLIC
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${PHASAR_LINK_LIBS}
+    ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_pass

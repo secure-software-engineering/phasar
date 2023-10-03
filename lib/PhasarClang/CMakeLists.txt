@@ -18,8 +18,8 @@ add_phasar_library(phasar_clang
 )
 
 target_link_libraries(phasar_clang
-  LINK_PUBLIC
-  ${CLANG_LIBRARY}
+  PUBLIC
+    ${CLANG_LIBRARY}
 )
 
 set_target_properties(phasar_clang

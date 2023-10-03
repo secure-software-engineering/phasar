@@ -23,8 +23,8 @@ add_phasar_library(phasar_utils
 target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
 
 target_link_libraries(phasar_utils
-  LINK_PUBLIC
-  ${PHASAR_STD_FILESYSTEM}
+  PRIVATE
+    ${PHASAR_STD_FILESYSTEM}
 )
 
 set_target_properties(phasar_utils

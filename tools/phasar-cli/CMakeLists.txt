@@ -23,7 +23,7 @@ endif()
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar-cli
-  LINK_PUBLIC
+  PRIVATE
     phasar_config
     phasar_controller
     phasar_llvm_controlflow
@@ -37,7 +37,7 @@ target_link_libraries(phasar-cli
     phasar_llvm_pointer
     phasar_llvm
     phasar_llvm_typehierarchy
-  LINK_PRIVATE
+
     ${PHASAR_STD_FILESYSTEM}
 )
 

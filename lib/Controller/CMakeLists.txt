@@ -24,8 +24,8 @@ add_phasar_library(phasar_controller
 )
 
 target_link_libraries(phasar_controller
-  LINK_PUBLIC
-  ${PHASAR_STD_FILESYSTEM}
+  PRIVATE
+    ${PHASAR_STD_FILESYSTEM}
 )
 
 set_target_properties(phasar_controller

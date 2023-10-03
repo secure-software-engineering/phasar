@@ -38,6 +38,11 @@ include(GNUInstallDirs)
 
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
+set(CMAKE_CONFIGURATION_TYPES DebugSan Debug RelWithDebInfo Release CACHE STRING "Configuration types: DebugSan, Debug, RelWithDebInfo and Release" FORCE)
+
+set(DEBUG_CONFIGURATIONS DEBUG DEBUGSAN CACHE INTERNAL "" FORCE)
+set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
+
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
@@ -73,6 +78,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
   add_cxx_compile_options(
     -fno-omit-frame-pointer
     -fsanitize=address,undefined
+    -g
     -O1
   )
   add_cxx_link_options(
