@@ -163,10 +163,10 @@ if (NOT PHASAR_ENABLE_PAMM)
   set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
 endif()
 if(PHASAR_ENABLE_PAMM STREQUAL "Core" AND NOT PHASAR_BUILD_UNITTESTS)
-  add_cxx_compile_definitions(PAMM_CORE)
+  set(PAMM_CORE ON)
   message(STATUS "PAMM metric severity level: Core")
 elseif(PHASAR_ENABLE_PAMM STREQUAL "Full" AND NOT PHASAR_BUILD_UNITTESTS)
-  add_cxx_compile_definitions(PAMM_FULL)
+  set(PAMM_FULL ON)
   message(STATUS "PAMM metric severity level: Full")
 elseif(PHASAR_BUILD_UNITTESTS AND (PHASAR_ENABLE_PAMM STREQUAL "Core" OR PHASAR_ENABLE_PAMM STREQUAL "Full"))
   message(WARNING "PAMM metric severity level: Off (due to unittests)")
@@ -178,13 +178,10 @@ option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and 
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
-  add_cxx_compile_definitions(DYNAMIC_LOG)
+  set(DYNAMIC_LOG ON)
 else()
   message(STATUS "Dynamic log disabled")
 endif()
-
-configure_file(config.h.in config.h @ONLY)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
@@ -213,10 +210,6 @@ if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
 else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
-
-add_cxx_compile_definitions(PHASAR_CONFIG_DIR="${PHASAR_CONFIG_INSTALL_DIR}")
-add_cxx_compile_definitions(PHASAR_DIR="${PHASAR_SRC_DIR}")
-
 
 ### Adding external libraries
 # Threads
@@ -348,6 +341,9 @@ if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
     # -warnings-as-errors=*;
   )
 endif ()
+
+configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/include/")
 
 # Add PhASAR's subdirectories
 add_subdirectory(include)

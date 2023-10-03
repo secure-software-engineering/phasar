@@ -1,9 +1,10 @@
 #ifndef UNITTEST_TESTUTILS_TESTCONFIG_H_
 #define UNITTEST_TESTUTILS_TESTCONFIG_H_
 
+#include "phasar/Config/phasar-config.h"
+
 #include "llvm/ADT/StringRef.h"
 
-#include "config.h"
 #include "gtest/gtest.h"
 
 #include <string>
