@@ -110,6 +110,10 @@ else()
 
 endif()
 
+# Some preprocessor symbols that need to be available in phasar sources, but should not be installed
+add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
+add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
+
 # Enable testing
 enable_testing()
 
@@ -384,6 +388,14 @@ set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
 # Install Phasar include directory
 install(DIRECTORY include/
   DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.def"
+  PATTERN "*.h"
+)
+
+# Install the config file
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/phasar/Config/
+  DESTINATION include/phasar/Config
   FILES_MATCHING
   PATTERN "*.def"
   PATTERN "*.h"

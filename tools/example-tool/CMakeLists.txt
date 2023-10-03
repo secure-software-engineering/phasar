@@ -19,6 +19,4 @@ target_link_libraries(myphasartool
 
 install(TARGETS myphasartool
   RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
 )
