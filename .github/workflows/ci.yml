@@ -64,7 +64,6 @@ jobs:
           swift-version: "5.8.1"
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
-          BUILD_TYPE: ${{ matrix.build }}
           CXX: ${{ matrix.compiler[0] }}
           CC: ${{ matrix.compiler[1] }}
         shell: bash
@@ -72,9 +71,8 @@ jobs:
           mkdir build
           cd build
           cmake .. \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_CXX_COMPILER=$CXX \
-            -DBUILD_SWIFT_TESTS=1 \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build }} \
+            -DBUILD_SWIFT_TESTS=ON \
             -DPHASAR_DEBUG_LIBDEPS=ON \
             ${{ matrix.flags }} \
             -G Ninja
