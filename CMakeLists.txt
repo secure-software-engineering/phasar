@@ -38,9 +38,11 @@ include(GNUInstallDirs)
 
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
-set(CMAKE_CONFIGURATION_TYPES DebugSan Debug RelWithDebInfo Release CACHE STRING "Configuration types: DebugSan, Debug, RelWithDebInfo and Release" FORCE)
+set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE STRING "Configuration types: Debug, RelWithDebInfo and Release" FORCE)
 
-set(DEBUG_CONFIGURATIONS DEBUG DEBUGSAN CACHE INTERNAL "" FORCE)
+option(PHASAR_ENABLE_SANITIZERS "Build PhASAR with AddressSanitizer and UBSanitizer (default is OFF)" OFF)
+
+set(DEBUG_CONFIGURATIONS DEBUG CACHE INTERNAL "" FORCE)
 set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -48,7 +50,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('DebugSan' or 'Debug' or 'Release', default is 'Debug')" FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
@@ -70,21 +72,22 @@ if (NOT PHASAR_TARGET_ARCH STREQUAL "")
   endif()
 endif()
 
-# TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
-# https://reviews.llvm.org/D157613
 
-if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
-  message(STATUS "Selected Debug Build with Sanitizers")
+if (PHASAR_ENABLE_SANITIZERS)
+  message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build with Sanitizers")
   add_cxx_compile_options(
     -fno-omit-frame-pointer
     -fsanitize=address,undefined
-    -g
-    -O1
   )
   add_cxx_link_options(
     -fsanitize=address,undefined
   )
-elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+endif()
+
+# TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
+# https://reviews.llvm.org/D157613
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Selected Debug Build")
   add_cxx_compile_options(
     -Og
@@ -116,11 +119,6 @@ add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
 # Enable testing
 enable_testing()
-
-# TODO: allow Phasar to be build as a llvm drop-in as well
-# if (NOT DEFINED LLVM_MAIN_SRC_DIR)
-#  message(FATAL_ERROR "Phasar is not a llvm drop-in, abort!")
-# endif()
 
 file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FILE)
 string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
