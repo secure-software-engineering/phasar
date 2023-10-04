@@ -64,7 +64,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   CallGraphAnalysisType CGTy = toCallGraphAnalysisType(CallGraphAnalysis);
   LLVMTypeHierarchy H(DB);
   LLVMAliasSet PT(&DB);
-  LLVMBasedCFG CFG;
+  // LLVMBasedCFG CFG;
   LLVMBasedICFG I(&DB, CGTy, EntryPoints, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {
     IFDSSolverTest IFDSTest(&DB, EntryPoints);

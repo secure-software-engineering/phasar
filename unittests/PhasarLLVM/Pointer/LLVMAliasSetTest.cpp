@@ -21,7 +21,7 @@ TEST(LLVMAliasSet, Intra_01) {
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      auto S = PTS.getAliasSet(&I); // NOLINT
+      std::ignore = PTS.getAliasSet(&I); // NOLINT
     }
   }
   PTS.print(llvm::outs());
@@ -37,7 +37,7 @@ TEST(LLVMAliasSet, Inter_01) {
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      auto S = PTS.getAliasSet(&I); // NOLINT
+      std::ignore = PTS.getAliasSet(&I); // NOLINT
     }
   }
   PTS.print(llvm::outs());
@@ -53,11 +53,11 @@ TEST(LLVMAliasSet, Global_01) {
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &G : Main->getParent()->globals()) {
-    auto S = PTS.getAliasSet(&G); // NOLINT
+    std::ignore = PTS.getAliasSet(&G); // NOLINT
   }
   for (const auto &BB : *Main) {
     for (const auto &I : BB) {
-      auto S = PTS.getAliasSet(&I); // NOLINT
+      std::ignore = PTS.getAliasSet(&I); // NOLINT
     }
   }
   PTS.print(llvm::outs());
