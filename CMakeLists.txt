@@ -49,13 +49,12 @@ set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
-if (NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE AND NOT GENERATOR_IS_MULTI_CONFIG)
+  message(STATUS "No CMAKE_BUILD_TYPE specified, setting it to Debug")
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
 
 # NOTE: Use gcc -march=native -Q --help=target | grep -- '-march=' | cut -f3
 #       to check the architecture detected by match=native
@@ -87,32 +86,25 @@ endif()
 # TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
 # https://reviews.llvm.org/D157613
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  message(STATUS "Selected Debug Build")
-  add_cxx_compile_options(
-    -Og
-    -fno-omit-frame-pointer
-  )
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-  message(STATUS "Selected Optimized Debug Build (RelWithDebInfo")
-  add_cxx_compile_options(
-    -fno-omit-frame-pointer
-  )
-else()
-  message(STATUS "Selected Release Build")
+string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
+string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
+string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
+message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build")
+
+# LTO
+if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
   include(CheckIPOSupported)
   check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
 
   if(LTO_SUPPORTED)
-    message(STATUS "IPO/LTO enabled")
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # LTO
+    message(STATUS "IPO/LTO enabled in Release mode")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
   else()
     message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
   endif()
-
 endif()
-
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
 add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
