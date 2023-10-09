@@ -15,7 +15,7 @@ readonly dest_dir="${3}"
 readonly llvm_release="${4}"
 
 if [ "$#" -ne 4 ] || ! [[ "$num_cores" =~ ${re_number} ]] || ! [ -d "${build_dir}" ] || ! [[ "${llvm_release}" =~ ${re_llvm_release} ]]; then
-	echo "usage: <prog> <# cores> <build dir> <install dir> <LLVM release (e.g. 'llvmorg-9.0.0')>" >&2
+	echo "usage: <prog> <# cores> <build dir> <install dir> <LLVM release (e.g. 'llvmorg-14.0.6')>" >&2
 	exit 1
 fi
 

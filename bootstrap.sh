@@ -9,11 +9,24 @@ readonly PHASAR_INSTALL_DIR="/usr/local/phasar"
 readonly LLVM_INSTALL_DIR="/usr/local/llvm-14"
 
 NUM_THREADS=$(nproc)
-LLVM_RELEASE=llvmorg-14.0.0
+LLVM_RELEASE=llvmorg-14.0.6
 DO_UNIT_TEST=true
 DO_INSTALL=false
 BUILD_TYPE=Release
 
+
+function usage {
+    echo "USAGE: ./bootstrap.sh [options]"
+    echo ""
+    echo "OPTIONS:"
+    echo -e "\t-j --jobs\t\t\t- Number of parallel jobs used for compilation (default is nproc -- $(nproc))"
+    echo -e "\t-u --unittest\t\t\t- Build and run PhASARs unit-tests (default is true)"
+    echo -e "\t-DBOOST_DIR=<path>\t\t- The directory where boost should be installed (optional)"
+    echo -e "\t-DBOOST_VERSION=<string>\t- The desired boost version to install (optional)"
+    echo -e "\t-DCMAKE_BUILD_TYPE=<string>\t- The build mode for building PhASAR. One of {Debug, RelWithDebInfo, Release} (default is Release)"
+    echo -e "\t--install\t\t\t- Install PhASAR system-wide after building (default is false)"
+    echo -e "\t-h --help\t\t\t- Display this help message"
+}
 
 # Parsing command-line-parameters
 # See "https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash" as a reference
@@ -59,6 +72,10 @@ case $key in
     DO_INSTALL=true
     shift # past argument
     ;;
+    -h|--help)
+    usage
+    exit 0
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -71,12 +88,10 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 echo "installing phasar dependencies..."
 if [ -x "$(command -v pacman)" ]; then
-    yes | sudo pacman -Syu --needed which zlib sqlite3 ncurses make python3 doxygen libxml2 swig gcc libedit graphviz python-sphinx openmp python-pip ninja
+    yes | sudo pacman -Syu --needed which zlib sqlite3 python3 doxygen gcc python-pip ninja cmake
 else
     ./utils/InstallAptDependencies.sh
 fi
-
-pip3 install cmake
 
 if [ ! -z "${DESIRED_BOOST_DIR}" ]; then
     BOOST_PARAMS="-DBOOST_ROOT=${DESIRED_BOOST_DIR}"
@@ -90,10 +105,10 @@ else
             yes | sudo pacman -Syu --needed boost-libs boost
         else
             if [ -z "$DESIRED_BOOST_VERSION" ] ;then
-                sudo apt install libboost-all-dev -y
+                sudo apt-get install libboost-graph-dev -y
             else
                 # DESIRED_BOOST_VERSION in form d.d, i.e. 1.65 (this is the latest version I found in the apt repo)
-                sudo apt install "libboost${DESIRED_BOOST_VERSION}-all-dev" -y
+                sudo apt-get install "libboost${DESIRED_BOOST_VERSION}-graph-dev" -y
             fi
             #verify installation
             BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"')
@@ -109,9 +124,7 @@ else
         if [ -x "$(command -v apt)" ]; then
             DESIRED_BOOST_VERSION=${BOOST_VERSION//_/.}
             # install missing packages if necessary
-            boostlibnames=("libboost-system" "libboost-filesystem"
-                    "libboost-graph" "libboost-program-options"
-                    "libboost-thread")
+            boostlibnames=("libboost-graph")
             additional_boost_libs=()
             for boost_lib in ${boostlibnames[@]}; do
                 dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||
@@ -122,7 +135,7 @@ else
             done
             if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
                 echo "Installing additional ${#additional_boost_libs[@]} boost packages: ${additional_boost_libs[*]}"
-                sudo apt install "${additional_boost_libs[@]}" -y || true
+                sudo apt-get install "${additional_boost_libs[@]}" -y || true
             fi
         fi
 	fi
