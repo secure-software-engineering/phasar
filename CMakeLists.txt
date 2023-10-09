@@ -71,7 +71,6 @@ if (NOT PHASAR_TARGET_ARCH STREQUAL "")
   endif()
 endif()
 
-
 if (PHASAR_ENABLE_SANITIZERS)
   message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build with Sanitizers")
   add_cxx_compile_options(
@@ -187,6 +186,7 @@ else()
 endif()
 
 ### Adding external libraries
+
 # Threads
 find_package(Threads)
 
@@ -223,6 +223,7 @@ add_subdirectory(external/json-schema-validator)
 # Googletest
 if (NOT PHASAR_IN_TREE)
   set(BUILD_GMOCK OFF)
+  set(INSTALL_GTEST OFF)
   add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
   set(GTEST_INCLUDE_DIR "external/googletest/googletest/include")
 else()
@@ -240,7 +241,11 @@ if (NOT PHASAR_IN_TREE)
   find_package(LLVM 14 REQUIRED CONFIG)
 
   find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
-  if(BUILD_SHARED_LIBS AND NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+
+  if(USE_LLVM_FAT_LIB AND ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+    message(WARNING "Did not find requested libLLVM.so. Link against individual modules instead")
+    set(USE_LLVM_FAT_LIB OFF)
+  elseif(BUILD_SHARED_LIBS AND NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
     message(STATUS "Found consolidated shared LLVM lib ${LLVM_LIBRARY} that will be linked against.")
     set(USE_LLVM_FAT_LIB ON)
   endif()
@@ -251,7 +256,7 @@ if(NOT LLVM_ENABLE_RTTI)
 endif()
 
 # Clang
-option(BUILD_PHASAR_CLANG "Build the phasar-clang library (default is ON)" ON)
+option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
 
 if(BUILD_PHASAR_CLANG)
   # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
@@ -314,7 +319,7 @@ include_directories(SYSTEM external/json-schema-validator/src/)
 include_directories(SYSTEM ${GTEST_INCLUDE_DIR})
 include_directories(SYSTEM ${SQLITE3_INCLUDE_DIR})
 if(NOT PHASAR_IN_TREE)
-  include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+  include_directories(${LLVM_INCLUDE_DIRS})
 endif()
 
 # Library Dependency Dirs
@@ -326,8 +331,6 @@ if(NOT PHASAR_IN_TREE)
     link_directories(${CLANG_LIB_PATH})
   endif()
 endif()
-
-
 
 # Installed config
 configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)

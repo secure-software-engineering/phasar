@@ -71,8 +71,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 echo "installing phasar dependencies..."
 if [ -x "$(command -v pacman)" ]; then
-    yes | sudo pacman -Syu --needed which zlib sqlite3 ncurses make python3 doxygen libxml2 swig gcc z3 libedit graphviz python-sphinx openmp curl python-pip ninja
-    ./utils/installBuildEAR.sh
+    yes | sudo pacman -Syu --needed which zlib sqlite3 ncurses make python3 doxygen libxml2 swig gcc libedit graphviz python-sphinx openmp python-pip ninja
 else
     ./utils/InstallAptDependencies.sh
 fi
