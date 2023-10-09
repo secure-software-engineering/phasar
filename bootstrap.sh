@@ -19,13 +19,14 @@ function usage {
     echo "USAGE: ./bootstrap.sh [options]"
     echo ""
     echo "OPTIONS:"
-    echo -e "\t-j --jobs\t\t\t- Number of parallel jobs used for compilation (default is nproc -- $(nproc))"
-    echo -e "\t-u --unittest\t\t\t- Build and run PhASARs unit-tests (default is true)"
+    echo -e "\t--jobs\t\t-j\t\t- Number of parallel jobs used for compilation (default is nproc -- $(nproc))"
+    echo -e "\t--unittest\t-u\t\t- Build and run PhASARs unit-tests (default is true)"
+    echo -e "\t--install\t\t\t- Install PhASAR system-wide after building (default is false)"
+    echo -e "\t--help\t\t-h\t\t- Display this help message"
     echo -e "\t-DBOOST_DIR=<path>\t\t- The directory where boost should be installed (optional)"
     echo -e "\t-DBOOST_VERSION=<string>\t- The desired boost version to install (optional)"
     echo -e "\t-DCMAKE_BUILD_TYPE=<string>\t- The build mode for building PhASAR. One of {Debug, RelWithDebInfo, Release} (default is Release)"
-    echo -e "\t--install\t\t\t- Install PhASAR system-wide after building (default is false)"
-    echo -e "\t-h --help\t\t\t- Display this help message"
+    echo -e "\t-DPHASAR_INSTALL_DIR=<path>\t- The folder where to install PhASAR if --install is specified (default is /usr/local/phasar)"
 }
 
 # Parsing command-line-parameters
@@ -71,6 +72,15 @@ case $key in
     --install)
     DO_INSTALL=true
     shift # past argument
+    ;;
+    -DPHASAR_INSTALL_DIR)
+    PHASAR_INSTALL_DIR="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -DPHASAR_INSTALL_DIR=*)
+    PHASAR_INSTALL_DIR="${key#*=}"
+    shift # past argument=value
     ;;
     -h|--help)
     usage

@@ -28,16 +28,6 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      # - name: Install Basic Dependencies
-      #   shell: bash
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get -y install --no-install-recommends \
-      #         cmake \
-      #         ninja-build \
-      #         libstdc++6 \
-      #         libboost-all-dev
-
       - name: Install Phasar Dependencies
         shell: bash
         run: |
