@@ -42,6 +42,7 @@ jobs:
         shell: bash
         run: |
           ./utils/InstallAptDependencies.sh
+          sudo apt-get -y install --no-install-recommends libboost-graph-dev
 
       - name: Install Strategy Dependencies
         shell: bash
