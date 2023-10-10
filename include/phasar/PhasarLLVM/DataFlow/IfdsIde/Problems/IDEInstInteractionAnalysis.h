@@ -1468,8 +1468,11 @@ private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   std::function<FlowFactGeneratorTy> FlowFactGen;
   static inline const bool OnlyConsiderLocalAliases = true;
-  std::unordered_map<const llvm::StoreInst *, unsigned> Widenings;
-  static constexpr auto WideningLimit = 10u;
+  std::unordered_map<const llvm::Instruction *, unsigned> Widenings;
+  std::unordered_map<const llvm::Instruction *,
+                     std::unordered_map<const llvm::Value *, unsigned>>
+      EntryWidenings;
+  static constexpr auto WideningLimit = 8u;
 
   inline BitVectorSet<e_t> edgeFactGenForInstToBitVectorSet(n_t CurrInst) {
     if (EdgeFactGen) {
