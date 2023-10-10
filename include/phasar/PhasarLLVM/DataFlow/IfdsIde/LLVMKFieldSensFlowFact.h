@@ -27,7 +27,7 @@ namespace psr {
 std::pair<const llvm::Value *, std::optional<int64_t>>
 getAllocaInstAndConstantOffset(const llvm::Value *Gep);
 
-template <unsigned K = 3, unsigned OffsetLimit = 1024,
+template <unsigned K = 2, unsigned OffsetLimit = 128,
           typename d_t = const llvm::Value *>
 class LLVMKFieldSensFlowFact : public KFieldSensFlowFact<d_t, K, OffsetLimit> {
 private:
