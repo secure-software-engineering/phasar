@@ -439,15 +439,16 @@ public:
               getAllocaInstAndConstantOffset(LhsGep);
           if (LhsBase == Src) {
             DoStore = true;
-            if (WideningForStore < WideningLimit) {
-              LhsForStore = Src.getWithOffset(LhsGep, LhsOffset);
-              WideningForStore++;
-            } else {
-              LhsForStore = Src.getOverapproximated(LhsGep);
-            }
+            LhsForStore = Src.getWithOffset(LhsGep, LhsOffset);
           }
         }
         if (DoStore) {
+          if (WideningForStore < WideningLimit) {
+            WideningForStore++;
+          } else {
+            LhsForStore =
+                LhsForStore.getOverapproximated(LhsForStore.getBaseValue());
+          }
           // Store to array or struct.
           if (const auto &Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                   Store->getPointerOperand())) {
