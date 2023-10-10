@@ -334,6 +334,7 @@ public:
       //              0  Y  x
       //
       return this->lambdaFlow([Load, this](d_t Source) -> container_type {
+        auto &WideningForLoad = Widenings[Load];
         if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(
                 Load->getPointerOperand())) {
           const auto [Alloca, Offset] = getAllocaInstAndConstantOffset(Gep);
@@ -346,7 +347,19 @@ public:
             // Performs the case distinction for Offset in getLoaded()
             auto LoadedVal = Source.getLoaded(Load, Offset);
             if (LoadedVal != std::nullopt) {
+              if (WideningForLoad < WideningLimit) {
+                WideningForLoad++;
+              } else {
+                LoadedVal = LoadedVal.value().getOverapproximated(Load);
+              }
               return {Source, LoadedVal.value()};
+            }
+            if (Source.getBaseValue() == Load) {
+              if (WideningForLoad < WideningLimit) {
+                WideningForLoad++;
+              } else {
+                Source = Source.getOverapproximated(Load);
+              }
             }
             return {Source};
             // Fixed above:
@@ -357,6 +370,13 @@ public:
         if (Source.getBaseValue() == Load->getPointerOperand()) {
           auto LoadedVal = Source.getLoaded(Load);
           if (LoadedVal == std::nullopt) {
+            if (Source.getBaseValue() == Load) {
+              if (WideningForLoad < WideningLimit) {
+                WideningForLoad++;
+              } else {
+                Source = Source.getOverapproximated(Load);
+              }
+            }
             return {Source};
           }
           return {Source, LoadedVal.value()};
@@ -365,6 +385,13 @@ public:
             *PT.getReachableAllocationSites(Load, OnlyConsiderLocalAliases);
         if (PTS.count(Source.getBaseValue()) > 0) {
           return {Source, Source.getSameAP(Load)};
+        }
+        if (Source.getBaseValue() == Load) {
+          if (WideningForLoad < WideningLimit) {
+            WideningForLoad++;
+          } else {
+            Source = Source.getOverapproximated(Load);
+          }
         }
         return {Source};
       });
