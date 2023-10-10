@@ -525,7 +525,16 @@ public:
         // if one of the operands holds, also generate the instruction using
         // it
         if (Op == Src) {
-          Facts.insert(Src.getSameAP(Inst)); // FIXMEMM
+          auto NewFact = Src.getSameAP(Inst);
+          auto &WideningForOpProp =
+              EntryWidenings[Inst][NewFact.getBaseValue()];
+          if (WideningForOpProp < WideningLimit) {
+            WideningForOpProp++;
+          } else {
+            NewFact = NewFact.getOverapproximated(NewFact.getBaseValue());
+          }
+          Facts.insert(NewFact);
+          break;
         }
       }
       // pass everything that already holds as identity
