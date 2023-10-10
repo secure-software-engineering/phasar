@@ -512,7 +512,7 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-    return this->lambdaFlow([Inst = Curr](d_t Src) {
+    return this->lambdaFlow([Inst = Curr, this](d_t Src) {
       container_type Facts;
       if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
         // keep the zero flow fact
@@ -529,6 +529,15 @@ public:
         }
       }
       // pass everything that already holds as identity
+      if (this->ICF->getStartPointsOf(Inst->getParent()->getParent())[0] ==
+          Inst) {
+        auto &WideningForEntry = EntryWidenings[Inst][Src.getBaseValue()];
+        if (WideningForEntry < WideningLimit) {
+          WideningForEntry++;
+        } else {
+          Src = Src.getOverapproximated(Src.getBaseValue());
+        }
+      }
       Facts.insert(Src);
       IF_LOG_ENABLED({
         for (const auto Fact : Facts) {
