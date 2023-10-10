@@ -31,6 +31,9 @@ public:
   KFieldSensFlowFact getStored(d_t BaseValue, int64_t FollowedOffset = 0) {
     auto Result = *this;
     Result.BaseValue = BaseValue;
+    if (std::abs(FollowedOffset) > OffsetLimit) {
+      FollowedOffset = OffsetLimit;
+    }
     if (Result.AccessPath.size() == K) {
       for (unsigned I = 0; I < K - 1; I++) {
         Result.AccessPath[I] = Result.AccessPath[I + 1];
