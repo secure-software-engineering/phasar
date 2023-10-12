@@ -24,7 +24,6 @@ add_phasar_library(phasar_pass
 
   LINK_PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
-    ${PHASAR_LINK_LIBS}
     ${Boost_LIBRARIES}
 )
 
