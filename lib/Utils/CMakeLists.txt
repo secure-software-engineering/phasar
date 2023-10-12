@@ -6,24 +6,16 @@ if(PHASAR_ENABLE_PAMM STREQUAL "Off" AND NOT PHASAR_BUILD_UNITTESTS)
   list(REMOVE_ITEM UTILS_SRC ${pamm_src})
 endif()
 
-set(PHASAR_LINK_LIBS
-)
-
-set(LLVM_LINK_COMPONENTS
-  Core
-  Support
-  BitWriter
-  Demangle
-)
-
 add_phasar_library(phasar_utils
   ${UTILS_SRC}
-)
 
-target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
+  LLVM_LINK_COMPONENTS
+    Core
+    Support
+    BitWriter
+    Demangle
 
-target_link_libraries(phasar_utils
-  PRIVATE
+  LINK_PRIVATE
     ${PHASAR_STD_FILESYSTEM}
 )
 

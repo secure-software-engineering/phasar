@@ -54,32 +54,10 @@ if (NOT CMAKE_BUILD_TYPE AND NOT GENERATOR_IS_MULTI_CONFIG)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
 
-option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
-
-# NOTE: Use gcc -march=native -Q --help=target | grep -- '-march=' | cut -f3
-#       to check the architecture detected by match=native
-set(PHASAR_TARGET_ARCH "" CACHE STRING "Optimize the build for the given target architecture, e.g. -march=native. Most useful in Release builds. Disabled by default")
-
-if (NOT PHASAR_TARGET_ARCH STREQUAL "")
-  include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag("-march=${PHASAR_TARGET_ARCH}" MARCH_SUPPORTED)
-  if(MARCH_SUPPORTED)
-    message(STATUS "Target architecture ${PHASAR_TARGET_ARCH} enabled")
-    add_cxx_compile_options(-march=${PHASAR_TARGET_ARCH})
-  else()
-    message(STATUS "Target architecture ${PHASAR_TARGET_ARCH} not supported")
-  endif()
-endif()
-
-if (PHASAR_ENABLE_SANITIZERS)
-  message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build with Sanitizers")
-  add_cxx_compile_options(
-    -fno-omit-frame-pointer
-    -fsanitize=address,undefined
-  )
-  add_cxx_link_options(
-    -fsanitize=address,undefined
-  )
+if(GENERATOR_IS_MULTI_CONFIG)
+  message(STATUS "Selected multi-config Build")
+else()
+  message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build")
 endif()
 
 # TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
@@ -90,7 +68,48 @@ string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
-message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build")
+
+option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
+
+# march=native
+
+# NOTE: Use gcc -march=native -Q --help=target | grep -- '-march=' | cut -f3
+#       to check the architecture detected by match=native
+# set(PHASAR_TARGET_ARCH "" CACHE STRING "Optimize the build for the given target architecture, e.g. -march=native. Most useful in Release builds. Disabled by default")
+
+if (DEFINED PHASAR_TARGET_ARCH)
+  if (NOT CMAKE_BUILD_TYPE STREQUAL "Release" AND NOT GENERATOR_IS_MULTI_CONFIG)
+    message(WARNING "The PHASAR_TARGET_ARCH flag will be ignored in non-Release build type ${CMAKE_BUILD_TYPE}")
+  else()
+    set(PHASAR_TARGET_ARCH_INTERNAL "${PHASAR_TARGET_ARCH}")
+  endif()
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  set(PHASAR_TARGET_ARCH_INTERNAL "native")
+endif()
+
+if (NOT "${PHASAR_TARGET_ARCH_INTERNAL}" STREQUAL "")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-march=${PHASAR_TARGET_ARCH_INTERNAL}" MARCH_SUPPORTED)
+  if (MARCH_SUPPORTED)
+    message(STATUS "Target architecture '${PHASAR_TARGET_ARCH_INTERNAL}' enabled")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -march=${PHASAR_TARGET_ARCH_INTERNAL}")
+  else()
+    message(WARNING "Target architecture '${PHASAR_TARGET_ARCH_INTERNAL}' not supported. Fallback to generic build")
+  endif()
+endif()
+
+# Sanitizers
+if (PHASAR_ENABLE_SANITIZERS)
+  message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build with Sanitizers")
+
+  if(MSVC)
+    set(ASAN_FLAG "/fsanitize=address")
+  else()
+    set(ASAN_FLAG "-fsanitize=address,undefined")
+  endif()
+
+  string(APPEND CMAKE_CXX_FLAGS " ${ASAN_FLAG}")
+endif()
 
 # LTO
 if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -107,10 +126,6 @@ endif()
 
 # Enable testing
 enable_testing()
-
-file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FILE)
-string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
-list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
@@ -136,6 +151,7 @@ if (PHASAR_ENABLE_PIC)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif (PHASAR_ENABLE_PIC)
 
+# PAMM
 if (NOT PHASAR_ENABLE_PAMM)
   set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')" FORCE)
   set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
@@ -152,6 +168,7 @@ else()
   message(STATUS "PAMM metric severity level: Off")
 endif()
 
+# Logger
 option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
@@ -161,6 +178,7 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
+# RPATH
 if (NOT PHASAR_IN_TREE)
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
@@ -172,12 +190,14 @@ if (NOT PHASAR_IN_TREE)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
 
+# Filesystem
 if (LLVM_ENABLE_LIBCXX)
   set(PHASAR_STD_FILESYSTEM c++fs)
 else()
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
+# Config
 set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
 if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
   set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
@@ -317,7 +337,6 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 include_directories(SYSTEM external/json/include/)
 include_directories(SYSTEM external/json-schema-validator/src/)
 include_directories(SYSTEM ${GTEST_INCLUDE_DIR})
-include_directories(SYSTEM ${SQLITE3_INCLUDE_DIR})
 if(NOT PHASAR_IN_TREE)
   include_directories(${LLVM_INCLUDE_DIRS})
 endif()
@@ -336,18 +355,16 @@ endif()
 configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/include/")
 
-include_directories(
-  ${PHASAR_SRC_DIR}/include
-)
+include_directories(${PHASAR_SRC_DIR}/include)
 
 # Warnings
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
-  add_cxx_compile_options(
-    -Wall
-    -Wextra
-    -Wno-unused-parameter
-  )
+  if (MSVC)
+    string(APPEND CMAKE_CXX_FLAGS " /W4")
+  else()
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter")
+  endif()
 endif (PHASAR_ENABLE_WARNINGS)
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
@@ -355,7 +372,6 @@ add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
 add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
 # Add PhASAR's subdirectories
-add_subdirectory(include)
 add_subdirectory(lib)
 
 # phasar-based binaries
@@ -440,20 +456,20 @@ configure_package_config_file(
   phasarConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
   PATH_VARS INCLUDE_INSTALL_DIR
-  )
+)
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake
   VERSION 1.0.0
   COMPATIBILITY SameMajorVersion
-  )
+)
 
 ### Install Config and ConfigVersion files
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/phasarConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
+)
 
 # If the Phasar shared object libraries are not installed into a system folder
 # the so libs must be added manually to the linker search path and the linker

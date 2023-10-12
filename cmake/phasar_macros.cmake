@@ -1,22 +1,16 @@
 
-macro(phasar_link_llvm executable)
+function(phasar_link_llvm executable)
   # llvm_config links LLVM as PRIVATE. We need to link PUBLIC
   if (USE_LLVM_FAT_LIB)
     target_link_libraries(${executable} PUBLIC LLVM)
   else()
-    llvm_map_components_to_libnames(LLVM_LIBRARIES ${LLVM_LINK_COMPONENTS})
+    llvm_map_components_to_libnames(LLVM_LIBRARIES ${ARGN})
     target_link_libraries(${executable} PUBLIC ${LLVM_LIBRARIES})
   endif()
-endmacro()
+endfunction()
 
-macro(add_cxx_compile_options)
-  add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${ARGN}>")
-endmacro()
 macro(add_cxx_compile_definitions)
   add_compile_definitions("$<$<COMPILE_LANGUAGE:CXX>:${ARGN}>")
-endmacro()
-macro(add_cxx_link_options)
-  add_link_options("$<$<COMPILE_LANGUAGE:CXX>:${ARGN}>")
 endmacro()
 
 function(add_phasar_unittest test_name)
@@ -27,12 +21,12 @@ function(add_phasar_unittest test_name)
   )
   add_dependencies(PhasarUnitTests ${test})
 
-  phasar_link_llvm(${test})
+  phasar_link_llvm(${test} ${LLVM_LINK_COMPONENTS})
 
   target_link_libraries(${test}
-    LINK_PRIVATE
-    phasar
-    gtest
+    PRIVATE
+      phasar
+      gtest
   )
 
   add_test(NAME "${test}"
@@ -158,19 +152,21 @@ macro(add_phasar_executable name)
   )
 endmacro(add_phasar_executable)
 
-macro(add_phasar_library name)
+function(add_phasar_library name)
   set(PHASAR_LIB_OPTIONS SHARED STATIC MODULE INTERFACE)
-  cmake_parse_arguments(PHASAR_LIB "${PHASAR_LIB_OPTIONS}" "" "" ${ARGN})
+  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES)
+  cmake_parse_arguments(PHASAR_LIB "${PHASAR_LIB_OPTIONS}" "" "${PHASAR_LIB_MULTIVAL}" ${ARGN})
   set(srcs ${PHASAR_LIB_UNPARSED_ARGUMENTS})
+  list(APPEND srcs ${PHASAR_LIB_FILES})
 
   if(MSVC_IDE OR XCODE)
     file(GLOB_RECURSE headers *.h *.td *.def)
-    set(srcs ${srcs} ${headers})
+    list(APPEND srcs ${headers})
     string(REGEX MATCHALL "/[^/]" split_path ${CMAKE_CURRENT_SOURCE_DIR})
     list(GET split_path -1 dir)
     file(GLOB_RECURSE headers
       ../../include/phasar${dir}/*.h)
-    set(srcs ${srcs} ${headers})
+    list(APPEND srcs ${headers})
   endif(MSVC_IDE OR XCODE)
 
   if(PHASAR_LIB_MODULE)
@@ -190,23 +186,21 @@ macro(add_phasar_library name)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
   endif(LLVM_COMMON_DEPENDS)
 
-  if(LLVM_USED_LIBS)
-    foreach(lib ${LLVM_USED_LIBS})
-      target_link_libraries(${name} ${lib})
-    endforeach(lib)
-  endif(LLVM_USED_LIBS)
+  foreach(lib ${PHASAR_LIB_LINKS})
+    if(PHASAR_DEBUG_LIBDEPS)
+      target_link_libraries(${name} PRIVATE ${lib})
+    else()
+      target_link_libraries(${name} PUBLIC ${lib})
+    endif()
+  endforeach()
+  foreach(lib ${PHASAR_LIB_LINK_PUBLIC})
+      target_link_libraries(${name} PUBLIC ${lib})
+  endforeach()
+  foreach(lib ${PHASAR_LIB_LINK_PRIVATE})
+      target_link_libraries(${name} PRIVATE ${lib})
+  endforeach()
 
-  if(PHASAR_LINK_LIBS)
-    foreach(lib ${PHASAR_LINK_LIBS})
-      if(PHASAR_DEBUG_LIBDEPS)
-        target_link_libraries(${name} PRIVATE ${lib})
-      else()
-        target_link_libraries(${name} PUBLIC ${lib})
-      endif(PHASAR_DEBUG_LIBDEPS)
-    endforeach(lib)
-  endif(PHASAR_LINK_LIBS)
-
-  phasar_link_llvm(${name})
+  phasar_link_llvm(${name} ${PHASAR_LIB_LLVM_LINK_COMPONENTS})
 
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)
@@ -220,7 +214,7 @@ macro(add_phasar_library name)
   endif(MSVC)
 
   # cut off prefix phasar_ for convenient component names
-  string(REGEX REPLACE phasar_ "" name component_name)
+  string(REGEX REPLACE phasar_ "" component_name ${name})
 
   if(PHASAR_IN_TREE)
     install(TARGETS ${name}
@@ -247,32 +241,7 @@ macro(add_phasar_library name)
   endif()
 
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
-endmacro(add_phasar_library)
-
-macro(add_phasar_loadable_module name)
-  set(srcs ${ARGN})
-
-  # klduge: pass different values for MODULE with multiple targets in same dir
-  # this allows building shared-lib and module in same dir
-  # there must be a cleaner way to achieve this....
-  if(MODULE)
-  else()
-    set(GLOBAL_NOT_MODULE TRUE)
-  endif()
-
-  set(MODULE TRUE)
-  add_phasar_library(${name} ${srcs})
-
-  if(GLOBAL_NOT_MODULE)
-    unset(MODULE)
-  endif()
-
-  if(APPLE)
-    # Darwin-specific linker flags for loadable modules.
-    set_target_properties(${name} PROPERTIES
-      LINK_FLAGS "-Wl,-flat_namespace -Wl,-undefined -Wl,suppress")
-  endif()
-endmacro(add_phasar_loadable_module)
+endfunction(add_phasar_library)
 
 macro(subdirlist result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)

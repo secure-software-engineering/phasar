@@ -1,18 +1,16 @@
 file(GLOB_RECURSE PASSES_SRC *.h *.cpp)
 
-set(PHASAR_LINK_LIBS
-  phasar_utils
-)
-
-set(LLVM_LINK_COMPONENTS
-  Core
-  Support
-  Analysis
-  Demangle
-)
-
 add_phasar_library(phasar_passes
   ${PASSES_SRC}
+
+  LINKS
+    phasar_utils
+
+  LLVM_LINK_COMPONENTS
+    Core
+    Support
+    Analysis
+    Demangle
 )
 
 set_target_properties(phasar_passes
