@@ -13,6 +13,12 @@
 
 namespace psr {
 
+/*
+---------------------------
+BasicTHReconstruction Tests
+---------------------------
+*/
+
 TEST(DBTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_1_cpp_dbg.ll");
@@ -235,6 +241,7 @@ TEST(DBTHTest, BasicTHReconstruction_7_b) {
   const auto &SubTypesZ = DBTH.getSubTypes(ZType);
   EXPECT_TRUE(SubTypesZ.find(OmegaType) != SubTypesZ.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_8) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_8_cpp_dbg.ll");
@@ -260,6 +267,7 @@ TEST(DBTHTest, BasicTHReconstruction_8) {
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_9) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_9_cpp_dbg.ll");
@@ -279,6 +287,7 @@ TEST(DBTHTest, BasicTHReconstruction_9) {
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_10) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_10_cpp_dbg.ll");
@@ -298,6 +307,7 @@ TEST(DBTHTest, BasicTHReconstruction_10) {
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_11) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_11_cpp_dbg.ll");
@@ -317,6 +327,7 @@ TEST(DBTHTest, BasicTHReconstruction_11) {
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_12) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_12_cpp_dbg.ll");
@@ -336,6 +347,7 @@ TEST(DBTHTest, BasicTHReconstruction_12) {
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_12_b) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_12_b_cpp_dbg.ll");
@@ -360,6 +372,7 @@ TEST(DBTHTest, BasicTHReconstruction_12_b) {
   const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
   EXPECT_TRUE(SubTypesChild.find(ChildsChildType) != SubTypesChild.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_12_c) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_12_c_cpp_dbg.ll");
@@ -379,6 +392,13 @@ TEST(DBTHTest, BasicTHReconstruction_12_c) {
   const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
   EXPECT_TRUE(SubTypesChild.find(ChildsChildType) != SubTypesChild.end());
 }
+
+/*
+TEST(DBTHTest, BasicTHReconstruction_13) {
+  Test file 13 has no types
+}
+*/
+
 TEST(DBTHTest, BasicTHReconstruction_14) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_14_cpp_dbg.ll");
@@ -393,6 +413,7 @@ TEST(DBTHTest, BasicTHReconstruction_14) {
 
   // there are no subtypes here
 }
+
 TEST(DBTHTest, BasicTHReconstruction_15) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_15_cpp_dbg.ll");
@@ -412,6 +433,7 @@ TEST(DBTHTest, BasicTHReconstruction_15) {
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_16) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_16_cpp_dbg.ll");
@@ -444,6 +466,7 @@ TEST(DBTHTest, BasicTHReconstruction_16) {
   const auto &SubTypesTwo = DBTH.getSubTypes(BaseTwoType);
   EXPECT_TRUE(SubTypesTwo.find(ChildTwoType) != SubTypesTwo.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_17) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_17_cpp_dbg.ll");
@@ -476,6 +499,7 @@ TEST(DBTHTest, BasicTHReconstruction_17) {
   const auto &SubTypesBase2 = DBTH.getSubTypes(Base2Type);
   EXPECT_TRUE(SubTypesBase2.find(KidType) != SubTypesBase2.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_18) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_18_cpp_dbg.ll");
@@ -505,6 +529,7 @@ TEST(DBTHTest, BasicTHReconstruction_18) {
   const auto &SubTypesChild2 = DBTH.getSubTypes(Child2Type);
   EXPECT_TRUE(SubTypesChild2.find(Child3Type) != SubTypesChild2.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_19) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_19_cpp_dbg.ll");
@@ -540,6 +565,7 @@ TEST(DBTHTest, BasicTHReconstruction_19) {
   const auto &SubTypesLorem = DBTH.getSubTypes(LoremType);
   EXPECT_TRUE(SubTypesLorem.find(ImpsumType) != SubTypesLorem.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_20) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_20_cpp_dbg.ll");
@@ -564,6 +590,7 @@ TEST(DBTHTest, BasicTHReconstruction_20) {
   const auto &SubTypes2 = DBTH.getSubTypes(Base2Type);
   EXPECT_TRUE(SubTypes2.find(ChildType) != SubTypes2.end());
 }
+
 TEST(DBTHTest, BasicTHReconstruction_21) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_21_cpp_dbg.ll");
@@ -598,37 +625,364 @@ TEST(DBTHTest, BasicTHReconstruction_21) {
   const auto &SubTypesBase3 = DBTH.getSubTypes(Base3Type);
   EXPECT_TRUE(SubTypesBase3.find(Child2Type) != SubTypesBase3.end());
 }
+
+/*
+------------------------
+VTableConstruction Tests
+------------------------
+*/
+
 TEST(DBTHTest, VTableConstruction_1) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_1_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasVFTable(BaseType));
-
   ASSERT_TRUE(DBTH.hasVFTable(ChildType));
-  const auto &VTableForChild = DBTH.getVFTable(ChildType);
 
+  const auto &VTableForChild = DBTH.getVFTable(ChildType);
   ASSERT_NE(nullptr, VTableForChild);
+
   EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
 }
-TEST(DBTHTest, VTableConstruction_2) {}
-TEST(DBTHTest, VTableConstruction_3) {}
-TEST(DBTHTest, VTableConstruction_4) {}
-TEST(DBTHTest, VTableConstruction_5) {}
-TEST(DBTHTest, VTableConstruction_6) {}
-TEST(DBTHTest, VTableConstruction_7) {}
-TEST(DBTHTest, VTableConstruction_8) {}
-TEST(DBTHTest, VTableConstruction_9) {}
-TEST(DBTHTest, VTableConstruction_10) {}
-TEST(DBTHTest, VTableConstruction_11) {}
-TEST(DBTHTest, VTableConstruction_12) {}
-TEST(DBTHTest, VTableConstruction_12_a) {}
-TEST(DBTHTest, VTableConstruction_12_b) {}
-TEST(DBTHTest, VTableConstruction_14) {}
-TEST(DBTHTest, VTableConstruction_15) {}
-TEST(DBTHTest, VTableConstruction_16) {}
-TEST(DBTHTest, VTableConstruction_17) {}
-TEST(DBTHTest, VTableConstruction_18) {}
-TEST(DBTHTest, VTableConstruction_19) {}
-TEST(DBTHTest, VTableConstruction_20) {}
-TEST(DBTHTest, VTableConstruction_21) {}
+
+TEST(DBTHTest, VTableConstruction_2) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_2_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_3) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_3_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_4) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_4_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_5) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_5_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &OtherBaseType = DBTH.getType("OtherBase");
+  ASSERT_NE(nullptr, OtherBaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_6) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_6_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_7) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_7_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &AType = DBTH.getType("A");
+  ASSERT_NE(nullptr, AType);
+  const auto &BType = DBTH.getType("B");
+  ASSERT_NE(nullptr, BType);
+  const auto &CType = DBTH.getType("C");
+  ASSERT_NE(nullptr, CType);
+  const auto &DType = DBTH.getType("D");
+  ASSERT_NE(nullptr, DType);
+  const auto &XType = DBTH.getType("X");
+  ASSERT_NE(nullptr, XType);
+  const auto &YType = DBTH.getType("Y");
+  ASSERT_NE(nullptr, YType);
+  const auto &ZType = DBTH.getType("Z");
+  ASSERT_NE(nullptr, ZType);
+}
+
+TEST(DBTHTest, VTableConstruction_7_b) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_7_b_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &AType = DBTH.getType("A");
+  ASSERT_NE(nullptr, AType);
+  const auto &CType = DBTH.getType("C");
+  ASSERT_NE(nullptr, CType);
+  const auto &XType = DBTH.getType("X");
+  ASSERT_NE(nullptr, XType);
+  const auto &YType = DBTH.getType("Y");
+  ASSERT_NE(nullptr, YType);
+  const auto &ZType = DBTH.getType("Z");
+  ASSERT_NE(nullptr, ZType);
+  const auto &OmegaType = DBTH.getType("Omega");
+  ASSERT_NE(nullptr, OmegaType);
+}
+
+TEST(DBTHTest, VTableConstruction_8) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_8_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &NonvirtualClassType = DBTH.getType("NonvirtualClass");
+  EXPECT_NE(nullptr, NonvirtualClassType);
+  const auto &NonvirtualStructType = DBTH.getType("NonvirtualStruct");
+  EXPECT_NE(nullptr, NonvirtualStructType);
+}
+
+TEST(DBTHTest, VTableConstruction_9) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_9_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_10) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_10_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_11) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_11_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_12) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_12_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_12_b) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_12_b_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  ASSERT_NE(nullptr, ChildsChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_12_c) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_12_c_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  ASSERT_NE(nullptr, ChildsChildType);
+}
+
+/*
+TEST(DBTHTest, VTableConstruction_13) {
+  Test file 13 has no types
+}
+*/
+
+TEST(DBTHTest, VTableConstruction_14) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_14_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+}
+
+TEST(DBTHTest, VTableConstruction_15) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_15_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_16) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_16_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  ASSERT_NE(nullptr, ChildsChildType);
+  const auto &BaseTwoType = DBTH.getType("BaseTwo");
+  ASSERT_NE(nullptr, BaseTwoType);
+  const auto &ChildTwoType = DBTH.getType("ChildTwo");
+  ASSERT_NE(nullptr, ChildTwoType);
+}
+
+TEST(DBTHTest, VTableConstruction_17) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_17_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &Child2Type = DBTH.getType("Child2");
+  ASSERT_NE(nullptr, Child2Type);
+  const auto &Base2Type = DBTH.getType("Base2");
+  ASSERT_NE(nullptr, Base2Type);
+  const auto &KidType = DBTH.getType("Kid");
+  ASSERT_NE(nullptr, KidType);
+}
+
+TEST(DBTHTest, VTableConstruction_18) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_18_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &Child2Type = DBTH.getType("Child2");
+  ASSERT_NE(nullptr, Child2Type);
+  const auto &Child3Type = DBTH.getType("Child3");
+  ASSERT_NE(nullptr, Child3Type);
+}
+
+TEST(DBTHTest, VTableConstruction_19) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_19_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &FooType = DBTH.getType("Foo");
+  ASSERT_NE(nullptr, FooType);
+  const auto &BarType = DBTH.getType("Bar");
+  ASSERT_NE(nullptr, BarType);
+  const auto &LoremType = DBTH.getType("Lorem");
+  ASSERT_NE(nullptr, LoremType);
+  const auto &ImpsumType = DBTH.getType("Impsum");
+  ASSERT_NE(nullptr, ImpsumType);
+}
+
+TEST(DBTHTest, VTableConstruction_20) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_20_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &Base2Type = DBTH.getType("Base2");
+  ASSERT_NE(nullptr, Base2Type);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+}
+
+TEST(DBTHTest, VTableConstruction_21) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_21_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &Base2Type = DBTH.getType("Base2");
+  ASSERT_NE(nullptr, Base2Type);
+  const auto &Base3Type = DBTH.getType("Base3");
+  ASSERT_NE(nullptr, Base3Type);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &Child2Type = DBTH.getType("Child2");
+  ASSERT_NE(nullptr, Child2Type);
+}
+
+/*
+--------------------------------
+TransitivelyReachableTypes Tests
+--------------------------------
+*/
 
 TEST(DBTHTest, TransitivelyReachableTypes_1) {}
 TEST(DBTHTest, TransitivelyReachableTypes_2) {}
@@ -644,6 +998,11 @@ TEST(DBTHTest, TransitivelyReachableTypes_11) {}
 TEST(DBTHTest, TransitivelyReachableTypes_12) {}
 TEST(DBTHTest, TransitivelyReachableTypes_12_a) {}
 TEST(DBTHTest, TransitivelyReachableTypes_12_b) {}
+/*
+TEST(DBTHTest, BasicTHReconstruction_13) {
+  Test file 13 has no types
+}
+*/
 TEST(DBTHTest, TransitivelyReachableTypes_14) {}
 TEST(DBTHTest, TransitivelyReachableTypes_15) {}
 TEST(DBTHTest, TransitivelyReachableTypes_16) {}
@@ -652,11 +1011,6 @@ TEST(DBTHTest, TransitivelyReachableTypes_18) {}
 TEST(DBTHTest, TransitivelyReachableTypes_19) {}
 TEST(DBTHTest, TransitivelyReachableTypes_20) {}
 TEST(DBTHTest, TransitivelyReachableTypes_21) {}
-
-// Test with no types
-// TEST(DBTHTest, BasicTHReconstruction_13) {}
-// TEST(DBTHTest, VTableConstruction_13) {}
-// TEST(DBTHTest, TransitivelyReachableTypes_13) {}
 
 // Check basic type hierarchy construction
 TEST(DBTHTest, BasicTHReconstruction_1) {
