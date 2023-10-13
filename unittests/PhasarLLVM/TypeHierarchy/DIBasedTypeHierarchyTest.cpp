@@ -13,6 +13,651 @@
 
 namespace psr {
 
+TEST(DBTHTest, BasicTHReconstruction_1) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_1_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_2) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_2_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_3) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_3_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_4) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_4_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_5) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_5_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 3U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &OtherBaseType = DBTH.getType("OtherBase");
+  ASSERT_NE(nullptr, OtherBaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(OtherBaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypesBase = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypesBase.find(ChildType) != SubTypesBase.end());
+  const auto &SubTypesOtherBase = DBTH.getSubTypes(OtherBaseType);
+  EXPECT_TRUE(SubTypesOtherBase.find(ChildType) != SubTypesOtherBase.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_6) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_6_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_7) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_7_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 7U);
+  const auto &AType = DBTH.getType("A");
+  ASSERT_NE(nullptr, AType);
+  const auto &BType = DBTH.getType("B");
+  ASSERT_NE(nullptr, BType);
+  const auto &CType = DBTH.getType("C");
+  ASSERT_NE(nullptr, CType);
+  const auto &DType = DBTH.getType("D");
+  ASSERT_NE(nullptr, DType);
+  const auto &XType = DBTH.getType("X");
+  ASSERT_NE(nullptr, XType);
+  const auto &YType = DBTH.getType("Y");
+  ASSERT_NE(nullptr, YType);
+  const auto &ZType = DBTH.getType("Z");
+  ASSERT_NE(nullptr, ZType);
+
+  EXPECT_TRUE(DBTH.hasType(AType));
+  EXPECT_TRUE(DBTH.hasType(BType));
+  EXPECT_TRUE(DBTH.hasType(CType));
+  EXPECT_TRUE(DBTH.hasType(DType));
+  EXPECT_TRUE(DBTH.hasType(XType));
+  EXPECT_TRUE(DBTH.hasType(YType));
+  EXPECT_TRUE(DBTH.hasType(ZType));
+
+  // check for all subtypes
+
+  // struct B : A {};
+  // struct C : A {};
+  const auto &SubTypesA = DBTH.getSubTypes(AType);
+  EXPECT_TRUE(SubTypesA.find(BType) != SubTypesA.end());
+  EXPECT_TRUE(SubTypesA.find(CType) != SubTypesA.end());
+  // struct D : B {};
+  const auto &SubTypesB = DBTH.getSubTypes(BType);
+  EXPECT_TRUE(SubTypesB.find(DType) != SubTypesB.end());
+  // struct Z : C, Y {};
+  const auto &SubTypesC = DBTH.getSubTypes(CType);
+  EXPECT_TRUE(SubTypesC.find(ZType) != SubTypesC.end());
+  // struct Y : X {};
+  const auto &SubTypesX = DBTH.getSubTypes(XType);
+  EXPECT_TRUE(SubTypesX.find(YType) != SubTypesX.end());
+  // struct Z : C, Y {};
+  const auto &SubTypesY = DBTH.getSubTypes(YType);
+  EXPECT_TRUE(SubTypesY.find(ZType) != SubTypesY.end());
+}
+
+TEST(DBTHTest, BasicTHReconstruction_7_b) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_7_b_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 7U);
+  const auto &AType = DBTH.getType("A");
+  ASSERT_NE(nullptr, AType);
+  const auto &CType = DBTH.getType("C");
+  ASSERT_NE(nullptr, CType);
+  const auto &XType = DBTH.getType("X");
+  ASSERT_NE(nullptr, XType);
+  const auto &YType = DBTH.getType("Y");
+  ASSERT_NE(nullptr, YType);
+  const auto &ZType = DBTH.getType("Z");
+  ASSERT_NE(nullptr, ZType);
+  const auto &OmegaType = DBTH.getType("Omega");
+  ASSERT_NE(nullptr, OmegaType);
+
+  EXPECT_TRUE(DBTH.hasType(AType));
+  EXPECT_TRUE(DBTH.hasType(CType));
+  EXPECT_TRUE(DBTH.hasType(XType));
+  EXPECT_TRUE(DBTH.hasType(YType));
+  EXPECT_TRUE(DBTH.hasType(ZType));
+  EXPECT_TRUE(DBTH.hasType(OmegaType));
+
+  // check for all subtypes
+
+  // struct C : A {};
+  const auto &SubTypesA = DBTH.getSubTypes(AType);
+  EXPECT_TRUE(SubTypesA.find(CType) != SubTypesA.end());
+  // struct Z : C, Y {};
+  const auto &SubTypesC = DBTH.getSubTypes(CType);
+  EXPECT_TRUE(SubTypesC.find(ZType) != SubTypesC.end());
+  // struct Y : X {};
+  const auto &SubTypesX = DBTH.getSubTypes(XType);
+  EXPECT_TRUE(SubTypesX.find(YType) != SubTypesX.end());
+  // struct Z : C, Y {};
+  const auto &SubTypesY = DBTH.getSubTypes(YType);
+  EXPECT_TRUE(SubTypesY.find(ZType) != SubTypesY.end());
+
+  // class Omega : Z {
+  const auto &SubTypesZ = DBTH.getSubTypes(ZType);
+  EXPECT_TRUE(SubTypesZ.find(OmegaType) != SubTypesZ.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_8) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_8_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &NonvirtualClassType = DBTH.getType("NonvirtualClass");
+  EXPECT_NE(nullptr, NonvirtualClassType);
+  const auto &NonvirtualStructType = DBTH.getType("NonvirtualStruct");
+  EXPECT_NE(nullptr, NonvirtualStructType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(NonvirtualClassType));
+  EXPECT_TRUE(DBTH.hasType(NonvirtualStructType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_9) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_9_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_10) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_10_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_11) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_11_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_12) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_12_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_12_b) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_12_b_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 3U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  ASSERT_NE(nullptr, ChildsChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(ChildsChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  EXPECT_TRUE(SubTypesChild.find(ChildsChildType) != SubTypesChild.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_12_c) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_12_c_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  ASSERT_NE(nullptr, ChildsChildType);
+
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(ChildsChildType));
+
+  // check for all subtypes
+  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  EXPECT_TRUE(SubTypesChild.find(ChildsChildType) != SubTypesChild.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_14) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_14_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 1U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+
+  // there are no subtypes here
+}
+TEST(DBTHTest, BasicTHReconstruction_15) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_15_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_16) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_16_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  ASSERT_NE(nullptr, ChildsChildType);
+  const auto &BaseTwoType = DBTH.getType("BaseTwo");
+  ASSERT_NE(nullptr, BaseTwoType);
+  const auto &ChildTwoType = DBTH.getType("ChildTwo");
+  ASSERT_NE(nullptr, ChildTwoType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(ChildsChildType));
+  EXPECT_TRUE(DBTH.hasType(BaseTwoType));
+  EXPECT_TRUE(DBTH.hasType(ChildTwoType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  EXPECT_TRUE(SubTypesChild.find(ChildsChildType) != SubTypesChild.end());
+  const auto &SubTypesTwo = DBTH.getSubTypes(BaseTwoType);
+  EXPECT_TRUE(SubTypesTwo.find(ChildTwoType) != SubTypesTwo.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_17) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_17_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &Child2Type = DBTH.getType("Child2");
+  ASSERT_NE(nullptr, Child2Type);
+  const auto &Base2Type = DBTH.getType("Base2");
+  ASSERT_NE(nullptr, Base2Type);
+  const auto &KidType = DBTH.getType("Kid");
+  ASSERT_NE(nullptr, KidType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(Child2Type));
+  EXPECT_TRUE(DBTH.hasType(Base2Type));
+  EXPECT_TRUE(DBTH.hasType(KidType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  EXPECT_TRUE(SubTypesChild.find(Child2Type) != SubTypesChild.end());
+  const auto &SubTypesBase2 = DBTH.getSubTypes(Base2Type);
+  EXPECT_TRUE(SubTypesBase2.find(KidType) != SubTypesBase2.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_18) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_18_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &Child2Type = DBTH.getType("Child2");
+  ASSERT_NE(nullptr, Child2Type);
+  const auto &Child3Type = DBTH.getType("Child3");
+  ASSERT_NE(nullptr, Child3Type);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(Child2Type));
+  EXPECT_TRUE(DBTH.hasType(Child3Type));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  EXPECT_TRUE(SubTypesChild.find(Child2Type) != SubTypesChild.end());
+  const auto &SubTypesChild2 = DBTH.getSubTypes(Child2Type);
+  EXPECT_TRUE(SubTypesChild2.find(Child3Type) != SubTypesChild2.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_19) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_19_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 6U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &FooType = DBTH.getType("Foo");
+  ASSERT_NE(nullptr, FooType);
+  const auto &BarType = DBTH.getType("Bar");
+  ASSERT_NE(nullptr, BarType);
+  const auto &LoremType = DBTH.getType("Lorem");
+  ASSERT_NE(nullptr, LoremType);
+  const auto &ImpsumType = DBTH.getType("Impsum");
+  ASSERT_NE(nullptr, ImpsumType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(FooType));
+  EXPECT_TRUE(DBTH.hasType(BarType));
+  EXPECT_TRUE(DBTH.hasType(LoremType));
+  EXPECT_TRUE(DBTH.hasType(ImpsumType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypesFoo = DBTH.getSubTypes(FooType);
+  EXPECT_TRUE(SubTypesFoo.find(BarType) != SubTypesFoo.end());
+  const auto &SubTypesLorem = DBTH.getSubTypes(LoremType);
+  EXPECT_TRUE(SubTypesLorem.find(ImpsumType) != SubTypesLorem.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_20) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_20_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 3U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &Base2Type = DBTH.getType("Base2");
+  ASSERT_NE(nullptr, Base2Type);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(Base2Type));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypes2 = DBTH.getSubTypes(Base2Type);
+  EXPECT_TRUE(SubTypes2.find(ChildType) != SubTypes2.end());
+}
+TEST(DBTHTest, BasicTHReconstruction_21) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_21_cpp_dbg.ll");
+  DIBasedTypeHierarchy DBTH(IRDB);
+
+  // check for all types
+  EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
+  const auto &BaseType = DBTH.getType("Base");
+  ASSERT_NE(nullptr, BaseType);
+  const auto &Base2Type = DBTH.getType("Base2");
+  ASSERT_NE(nullptr, Base2Type);
+  const auto &Base3Type = DBTH.getType("Base3");
+  ASSERT_NE(nullptr, Base3Type);
+  const auto &ChildType = DBTH.getType("Child");
+  ASSERT_NE(nullptr, ChildType);
+  const auto &Child2Type = DBTH.getType("Child2");
+  ASSERT_NE(nullptr, Child2Type);
+
+  EXPECT_TRUE(DBTH.hasType(BaseType));
+  EXPECT_TRUE(DBTH.hasType(Base2Type));
+  EXPECT_TRUE(DBTH.hasType(Base3Type));
+  EXPECT_TRUE(DBTH.hasType(ChildType));
+  EXPECT_TRUE(DBTH.hasType(Child2Type));
+
+  // check for all subtypes
+  const auto &SubTypes = DBTH.getSubTypes(BaseType);
+  EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+  const auto &SubTypesBase2 = DBTH.getSubTypes(Base2Type);
+  EXPECT_TRUE(SubTypesBase2.find(ChildType) != SubTypesBase2.end());
+  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  EXPECT_TRUE(SubTypesChild.find(Child2Type) != SubTypesChild.end());
+  const auto &SubTypesBase3 = DBTH.getSubTypes(Base3Type);
+  EXPECT_TRUE(SubTypesBase3.find(Child2Type) != SubTypesBase3.end());
+}
+TEST(DBTHTest, VTableConstruction_1) {
+
+  EXPECT_TRUE(DBTH.hasVFTable(BaseType));
+
+  ASSERT_TRUE(DBTH.hasVFTable(ChildType));
+  const auto &VTableForChild = DBTH.getVFTable(ChildType);
+
+  ASSERT_NE(nullptr, VTableForChild);
+  EXPECT_TRUE(VTableForChild->getFunction(0)->getName() == "_ZN5Child3fooEv");
+}
+TEST(DBTHTest, VTableConstruction_2) {}
+TEST(DBTHTest, VTableConstruction_3) {}
+TEST(DBTHTest, VTableConstruction_4) {}
+TEST(DBTHTest, VTableConstruction_5) {}
+TEST(DBTHTest, VTableConstruction_6) {}
+TEST(DBTHTest, VTableConstruction_7) {}
+TEST(DBTHTest, VTableConstruction_8) {}
+TEST(DBTHTest, VTableConstruction_9) {}
+TEST(DBTHTest, VTableConstruction_10) {}
+TEST(DBTHTest, VTableConstruction_11) {}
+TEST(DBTHTest, VTableConstruction_12) {}
+TEST(DBTHTest, VTableConstruction_12_a) {}
+TEST(DBTHTest, VTableConstruction_12_b) {}
+TEST(DBTHTest, VTableConstruction_14) {}
+TEST(DBTHTest, VTableConstruction_15) {}
+TEST(DBTHTest, VTableConstruction_16) {}
+TEST(DBTHTest, VTableConstruction_17) {}
+TEST(DBTHTest, VTableConstruction_18) {}
+TEST(DBTHTest, VTableConstruction_19) {}
+TEST(DBTHTest, VTableConstruction_20) {}
+TEST(DBTHTest, VTableConstruction_21) {}
+
+TEST(DBTHTest, TransitivelyReachableTypes_1) {}
+TEST(DBTHTest, TransitivelyReachableTypes_2) {}
+TEST(DBTHTest, TransitivelyReachableTypes_3) {}
+TEST(DBTHTest, TransitivelyReachableTypes_4) {}
+TEST(DBTHTest, TransitivelyReachableTypes_5) {}
+TEST(DBTHTest, TransitivelyReachableTypes_6) {}
+TEST(DBTHTest, TransitivelyReachableTypes_7) {}
+TEST(DBTHTest, TransitivelyReachableTypes_8) {}
+TEST(DBTHTest, TransitivelyReachableTypes_9) {}
+TEST(DBTHTest, TransitivelyReachableTypes_10) {}
+TEST(DBTHTest, TransitivelyReachableTypes_11) {}
+TEST(DBTHTest, TransitivelyReachableTypes_12) {}
+TEST(DBTHTest, TransitivelyReachableTypes_12_a) {}
+TEST(DBTHTest, TransitivelyReachableTypes_12_b) {}
+TEST(DBTHTest, TransitivelyReachableTypes_14) {}
+TEST(DBTHTest, TransitivelyReachableTypes_15) {}
+TEST(DBTHTest, TransitivelyReachableTypes_16) {}
+TEST(DBTHTest, TransitivelyReachableTypes_17) {}
+TEST(DBTHTest, TransitivelyReachableTypes_18) {}
+TEST(DBTHTest, TransitivelyReachableTypes_19) {}
+TEST(DBTHTest, TransitivelyReachableTypes_20) {}
+TEST(DBTHTest, TransitivelyReachableTypes_21) {}
+
+// Test with no types
+// TEST(DBTHTest, BasicTHReconstruction_13) {}
+// TEST(DBTHTest, VTableConstruction_13) {}
+// TEST(DBTHTest, TransitivelyReachableTypes_13) {}
+
 // Check basic type hierarchy construction
 TEST(DBTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
@@ -409,10 +1054,10 @@ TEST(LTHTest, TransitivelyReachableTypes) {
   EXPECT_TRUE(ReachableTypesA2.count(TH2.getType("C")));
   EXPECT_TRUE(ReachableTypesA2.count(TH2.getType("D")));
   EXPECT_TRUE(ReachableTypesA2.count(TH2.getType("Z")));
-  EXPECT_TRUE(ReachableTypesA2.size() == 5U);
+  EXPECT_EQ(ReachableTypesA2.size(), 5U);
   EXPECT_TRUE(ReachableTypesB2.count(TH2.getType("B")));
   EXPECT_TRUE(ReachableTypesB2.count(TH2.getType("D")));
-  EXPECT_TRUE(ReachableTypesB2.size() == 2U);
+  EXPECT_EQ(ReachableTypesB2.size(), 2U);
   EXPECT_TRUE(ReachableTypesC2.count(TH2.getType("C")));
   EXPECT_TRUE(ReachableTypesC2.count(TH2.getType("Z")));
   EXPECT_TRUE(ReachableTypesC2.size() == 2U);
