@@ -9,136 +9,18 @@
 
 #include "phasar/Controller/AnalysisController.h"
 
-#include "phasar/AnalysisStrategy/Strategies.h"
-#include "phasar/Controller/AnalysisControllerEmitterOptions.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/ErrorHandling.h"
-
-#include <cassert>
-#include <filesystem>
-#include <functional>
-#include <set>
-#include <utility>
+#include "AnalysisControllerInternal.h"
 
 namespace psr {
 
-AnalysisController::AnalysisController(
-    HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-    std::vector<std::string> AnalysisConfigs,
-    std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
-    AnalysisControllerEmitterOptions EmitterOptions,
-    IFDSIDESolverConfig SolverConfig, std::string ProjectID,
-    std::string OutDirectory)
-    : HA(HA), DataFlowAnalyses(std::move(DataFlowAnalyses)),
-      AnalysisConfigs(std::move(AnalysisConfigs)),
-      EntryPoints(std::move(EntryPoints)), Strategy(Strategy),
-      EmitterOptions(EmitterOptions), ProjectID(std::move(ProjectID)),
-      ResultDirectory(std::move(OutDirectory)), SolverConfig(SolverConfig) {
-  if (!ResultDirectory.empty()) {
-    // create directory for results
-    ResultDirectory /= this->ProjectID + "-" + createTimeStamp();
-    std::filesystem::create_directory(ResultDirectory);
-  }
-  emitRequestedHelperAnalysisResults();
-  executeAs(Strategy);
-}
-
-void AnalysisController::executeAs(AnalysisStrategy Strategy) {
-  switch (Strategy) {
-  case AnalysisStrategy::None:
-    return;
-  case AnalysisStrategy::DemandDriven:
-  case AnalysisStrategy::Incremental:
-  case AnalysisStrategy::ModuleWise:
-  case AnalysisStrategy::Variational:
-    llvm::report_fatal_error("AnalysisStrategy not supported, yet!");
-    return;
-  case AnalysisStrategy::WholeProgram:
-    executeWholeProgram();
-    return;
-  }
-  llvm_unreachable(
-      "All AnalysisStrategy variants should be handled in the switch above!");
-}
-
-void AnalysisController::executeDemandDriven() {}
-
-void AnalysisController::executeIncremental() {}
-
-void AnalysisController::executeModuleWise() {}
-
-void AnalysisController::executeVariational() {}
-
-void AnalysisController::executeWholeProgram() {
-  for (auto DataFlowAnalysis : DataFlowAnalyses) {
-    switch (DataFlowAnalysis) {
-    case DataFlowAnalysisType::None:
-      continue;
-    case DataFlowAnalysisType::IFDSUninitializedVariables:
-      executeIFDSUninitVar();
-      continue;
-    case DataFlowAnalysisType::IFDSConstAnalysis:
-      executeIFDSConst();
-      continue;
-    case DataFlowAnalysisType::IFDSTaintAnalysis:
-      executeIFDSTaint();
-      continue;
-    case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
-      executeIDEXTaint();
-      continue;
-    case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis:
-      executeIDEOpenSSLTS();
-      continue;
-    case DataFlowAnalysisType::IDECSTDIOTypeStateAnalysis:
-      executeIDECSTDIOTS();
-      continue;
-    case DataFlowAnalysisType::IFDSTypeAnalysis:
-      executeIFDSType();
-      continue;
-    case DataFlowAnalysisType::IFDSSolverTest:
-      executeIFDSSolverTest();
-      continue;
-    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis:
-      executeIFDSFieldSensTaint();
-      continue;
-    case DataFlowAnalysisType::IDELinearConstantAnalysis:
-      executeIDELinearConst();
-      continue;
-    case DataFlowAnalysisType::IDESolverTest:
-      executeIDESolverTest();
-      continue;
-    case DataFlowAnalysisType::IDEInstInteractionAnalysis:
-      executeIDEIIA();
-      continue;
-    case DataFlowAnalysisType::IntraMonoFullConstantPropagation:
-      executeIntraMonoFullConstant();
-      continue;
-    case DataFlowAnalysisType::IntraMonoSolverTest:
-      executeIntraMonoSolverTest();
-      continue;
-    case DataFlowAnalysisType::InterMonoSolverTest:
-      executeInterMonoSolverTest();
-      continue;
-    case DataFlowAnalysisType::InterMonoTaintAnalysis:
-      executeInterMonoTaint();
-      continue;
-    }
-
-    llvm_unreachable("All possible DataFlowAnalysisType variants should be "
-                     "handled in the switch above!");
-  }
-}
-
-void AnalysisController::emitRequestedHelperAnalysisResults() {
-  auto WithResultFileOrStdout = [this](const auto &FileName, auto Callback) {
+static void
+emitRequestedHelperAnalysisResults(AnalysisController::ControllerData &Data) {
+  auto WithResultFileOrStdout = [&ResultDirectory = Data.ResultDirectory](
+                                    const auto &FileName, auto Callback) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream(ResultDirectory.string() + FileName)) {
         Callback(*OFS);
@@ -148,46 +30,49 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
     }
   };
 
+  auto EmitterOptions = Data.EmitterOptions;
+  auto &HA = *Data.HA;
+
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
-    WithResultFileOrStdout("/psr-preprocess-ir.ll", [this](auto &OS) {
+    WithResultFileOrStdout("/psr-preprocess-ir.ll", [&HA](auto &OS) {
       HA.getProjectIRDB().emitPreprocessedIR(OS);
     });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
     WithResultFileOrStdout(
-        "/psr-th.txt", [this](auto &OS) { HA.getTypeHierarchy().print(OS); });
+        "/psr-th.txt", [&HA](auto &OS) { HA.getTypeHierarchy().print(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
-    WithResultFileOrStdout("/psr-th.dot", [this](auto &OS) {
+    WithResultFileOrStdout("/psr-th.dot", [&HA](auto &OS) {
       HA.getTypeHierarchy().printAsDot(OS);
     });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsJson) {
-    WithResultFileOrStdout("/psr-th.json", [this](auto &OS) {
+    WithResultFileOrStdout("/psr-th.json", [&HA](auto &OS) {
       HA.getTypeHierarchy().printAsJson(OS);
     });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
     WithResultFileOrStdout("/psr-pta.txt",
-                           [this](auto &OS) { HA.getAliasInfo().print(OS); });
+                           [&HA](auto &OS) { HA.getAliasInfo().print(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     WithResultFileOrStdout("/psr-pta.dot",
-                           [this](auto &OS) { HA.getAliasInfo().print(OS); });
+                           [&HA](auto &OS) { HA.getAliasInfo().print(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
-    WithResultFileOrStdout("/psr-pta.json", [this](auto &OS) {
+    WithResultFileOrStdout("/psr-pta.json", [&HA](auto &OS) {
       HA.getAliasInfo().printAsJson(OS);
     });
   }
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
     WithResultFileOrStdout("/psr-cg.txt",
-                           [this](auto &OS) { HA.getICFG().print(OS); });
+                           [&HA](auto &OS) { HA.getICFG().print(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
-    WithResultFileOrStdout(
-        "/psr-cg.json", [this](auto &OS) { OS << HA.getICFG().getAsJson(); });
+    WithResultFileOrStdout("/psr-cg.json",
+                           [&HA](auto &OS) { OS << HA.getICFG().getAsJson(); });
   }
 
   if (EmitterOptions &
@@ -211,13 +96,144 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
 }
 
-LLVMTaintConfig AnalysisController::makeTaintConfig() {
+static void executeDemandDriven(AnalysisController::ControllerData & /*Data*/) {
+  llvm::report_fatal_error(
+      "AnalysisStrategy 'demand-driven' not supported, yet!");
+}
+static void executeIncremental(AnalysisController::ControllerData & /*Data*/) {
+  llvm::report_fatal_error(
+      "AnalysisStrategy 'incremental' not supported, yet!");
+}
+static void executeModuleWise(AnalysisController::ControllerData & /*Data*/) {
+  llvm::report_fatal_error(
+      "AnalysisStrategy 'module-wise' not supported, yet!");
+}
+static void executeVariational(AnalysisController::ControllerData & /*Data*/) {
+  llvm::report_fatal_error(
+      "AnalysisStrategy 'variational' not supported, yet!");
+}
+
+static void executeWholeProgram(AnalysisController::ControllerData &Data) {
+  for (auto DataFlowAnalysis : Data.DataFlowAnalyses) {
+    using namespace controller;
+    switch (DataFlowAnalysis) {
+    case DataFlowAnalysisType::None:
+      continue;
+    case DataFlowAnalysisType::IFDSUninitializedVariables:
+      executeIFDSUninitVar(Data);
+      continue;
+    case DataFlowAnalysisType::IFDSConstAnalysis:
+      executeIFDSConst(Data);
+      continue;
+    case DataFlowAnalysisType::IFDSTaintAnalysis:
+      executeIFDSTaint(Data);
+      continue;
+    case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
+      executeIDEXTaint(Data);
+      continue;
+    case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis:
+      executeIDEOpenSSLTS(Data);
+      continue;
+    case DataFlowAnalysisType::IDECSTDIOTypeStateAnalysis:
+      executeIDECSTDIOTS(Data);
+      continue;
+    case DataFlowAnalysisType::IFDSTypeAnalysis:
+      executeIFDSType(Data);
+      continue;
+    case DataFlowAnalysisType::IFDSSolverTest:
+      executeIFDSSolverTest(Data);
+      continue;
+    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis:
+      executeIFDSFieldSensTaint(Data);
+      continue;
+    case DataFlowAnalysisType::IDELinearConstantAnalysis:
+      executeIDELinearConst(Data);
+      continue;
+    case DataFlowAnalysisType::IDESolverTest:
+      executeIDESolverTest(Data);
+      continue;
+    case DataFlowAnalysisType::IDEInstInteractionAnalysis:
+      executeIDEIIA(Data);
+      continue;
+    case DataFlowAnalysisType::IntraMonoFullConstantPropagation:
+      executeIntraMonoFullConstant(Data);
+      continue;
+    case DataFlowAnalysisType::IntraMonoSolverTest:
+      executeIntraMonoSolverTest(Data);
+      continue;
+    case DataFlowAnalysisType::InterMonoSolverTest:
+      executeInterMonoSolverTest(Data);
+      continue;
+    case DataFlowAnalysisType::InterMonoTaintAnalysis:
+      executeInterMonoTaint(Data);
+      continue;
+    }
+
+    llvm_unreachable("All possible DataFlowAnalysisType variants should be "
+                     "handled in the switch above!");
+  }
+}
+
+static void executeAs(AnalysisController::ControllerData &Data,
+                      AnalysisStrategy Strategy) {
+  switch (Strategy) {
+  case AnalysisStrategy::None:
+    return;
+  case AnalysisStrategy::DemandDriven:
+    executeDemandDriven(Data);
+    return;
+  case AnalysisStrategy::Incremental:
+    executeIncremental(Data);
+    return;
+  case AnalysisStrategy::ModuleWise:
+    executeModuleWise(Data);
+    return;
+  case AnalysisStrategy::Variational:
+    executeVariational(Data);
+    return;
+  case AnalysisStrategy::WholeProgram:
+    executeWholeProgram(Data);
+    return;
+  }
+  llvm_unreachable(
+      "All AnalysisStrategy variants should be handled in the switch above!");
+}
+
+AnalysisController::AnalysisController(
+    HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+    std::vector<std::string> AnalysisConfigs,
+    std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
+    AnalysisControllerEmitterOptions EmitterOptions,
+    IFDSIDESolverConfig SolverConfig, std::string ProjectID,
+    std::string OutDirectory)
+    : Data{
+          &HA,
+          std::move(DataFlowAnalyses),
+          std::move(AnalysisConfigs),
+          std::move(EntryPoints),
+          Strategy,
+          EmitterOptions,
+          std::move(ProjectID),
+          std::move(OutDirectory),
+          SolverConfig,
+      } {
+  if (!Data.ResultDirectory.empty()) {
+    // create directory for results
+    Data.ResultDirectory /= Data.ProjectID + "-" + createTimeStamp();
+    std::filesystem::create_directory(Data.ResultDirectory);
+  }
+  emitRequestedHelperAnalysisResults(Data);
+  executeAs(Data, Strategy);
+}
+
+LLVMTaintConfig
+controller::makeTaintConfig(AnalysisController::ControllerData &Data) {
   std::string AnalysisConfigPath =
-      !AnalysisConfigs.empty() ? AnalysisConfigs[0] : "";
+      !Data.AnalysisConfigs.empty() ? Data.AnalysisConfigs[0] : "";
   return !AnalysisConfigPath.empty()
-             ? LLVMTaintConfig(HA.getProjectIRDB(),
+             ? LLVMTaintConfig(Data.HA->getProjectIRDB(),
                                parseTaintConfig(AnalysisConfigPath))
-             : LLVMTaintConfig(HA.getProjectIRDB());
+             : LLVMTaintConfig(Data.HA->getProjectIRDB());
 }
 
 } // namespace psr

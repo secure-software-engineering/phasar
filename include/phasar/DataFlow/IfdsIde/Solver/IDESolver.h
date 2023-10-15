@@ -39,6 +39,7 @@
 #include "phasar/Utils/Table.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -52,8 +53,6 @@
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
-
-#include <llvm/ADT/DenseSet.h>
 
 namespace psr {
 

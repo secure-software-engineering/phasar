@@ -7,16 +7,17 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 
-namespace psr {
+#include "AnalysisControllerInternalIDE.h"
 
-void AnalysisController::executeIDEIIA() {
+using namespace psr;
+
+void controller::executeIDEIIA(AnalysisController::ControllerData &Data) {
   // use Phasar's instruction ids as testing labels
   auto Generator =
       [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
@@ -38,7 +39,6 @@ void AnalysisController::executeIDEIIA() {
         Current);
   };
 
-  executeIDEAnalysis<IDEInstInteractionAnalysis>(EntryPoints, Generator);
+  executeIDEAnalysis<IDEInstInteractionAnalysis>(Data, Data.EntryPoints,
+                                                 Generator);
 }
-
-} // namespace psr
