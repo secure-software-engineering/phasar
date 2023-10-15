@@ -21,10 +21,14 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <atomic>
+#include <cstddef>
 #include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+
+#include <llvm/ADT/DenseMapInfo.h>
+#include <llvm/ADT/Hashing.h>
 
 namespace psr {
 
@@ -404,6 +408,12 @@ public:
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
 
+  [[nodiscard]] bool
+  referenceEquals(const EdgeFunction<L> &Other) const noexcept {
+    return VTAndHeapAlloc.getPointer() == Other.VTAndHeapAlloc.getPointer() &&
+           EF == Other.EF;
+  }
+
   /// Checks for equality of two edge functions. Equality requires exact
   /// type-equality and value-equality based on operator== of the concrete edge
   /// functions that are compared.
@@ -630,6 +640,31 @@ public:
     return static_cast<const CachedRefCounted<ConcreteEF> *>(EF)->Cache;
   }
 
+  [[nodiscard]] size_t getHashCode() const noexcept {
+    if (!VTAndHeapAlloc.getOpaqueValue()) {
+      return 0;
+    }
+
+    return VTAndHeapAlloc.getPointer()->getHashCode(
+        EF, VTAndHeapAlloc.getPointer());
+  }
+
+  friend size_t hash_value(const EdgeFunction &EF) noexcept { // NOLINT
+    return EF.getHashCode();
+  }
+
+  static EdgeFunction getEmptyKey() noexcept {
+    return EdgeFunction(nullptr,
+                        {llvm::DenseMapInfo<const VTable *>::getEmptyKey(),
+                         AllocationPolicy::SmallObjectOptimized});
+  }
+
+  static EdgeFunction getTombstoneKey() noexcept {
+    return EdgeFunction(nullptr,
+                        {llvm::DenseMapInfo<const VTable *>::getTombstoneKey(),
+                         AllocationPolicy::SmallObjectOptimized});
+  }
+
 private:
   struct VTable {
     // NOLINTBEGIN(readability-identifier-naming)
@@ -641,6 +676,7 @@ private:
     void (*print)(const void *, llvm::raw_ostream &);
     bool (*isConstant)(const void *) noexcept;
     void (*destroy)(const void *, AllocationPolicy) noexcept;
+    size_t (*getHashCode)(const void *, const void *) noexcept;
     // NOLINTEND(readability-identifier-naming)
   };
 
@@ -704,6 +740,16 @@ private:
           }
         }
       },
+      [](const void *EF, const void *VT) noexcept -> size_t {
+        if constexpr (is_std_hashable_v<ConcreteEF>) {
+          return std::hash<ConcreteEF>{}(*getPtr<ConcreteEF>(EF));
+        } else if constexpr (is_llvm_hashable_v<ConcreteEF>) {
+          using llvm::hash_value;
+          return hash_value(*getPtr<ConcreteEF>(EF));
+        } else {
+          return llvm::hash_combine(EF, VT);
+        }
+      },
   };
 
   // Utility ctor for (copy) construction. Increments the ref-count if
@@ -728,6 +774,32 @@ private:
 } // namespace psr
 
 namespace llvm {
+
+template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
+  static inline auto getEmptyKey() noexcept {
+    return psr::EdgeFunction<L>::getEmptyKey();
+  }
+  static inline auto getTombstoneKey() noexcept {
+    return psr::EdgeFunction<L>::getTombstoneKey();
+  }
+  static inline auto getHashValue(const psr::EdgeFunction<L> &EF) noexcept {
+    return EF.getHashCode();
+  }
+  static inline auto isEqual(const psr::EdgeFunction<L> &EF1,
+                             const psr::EdgeFunction<L> &EF2) noexcept {
+    if (EF1.referenceEquals(EF2)) {
+      return true;
+    }
+    auto Empty = getEmptyKey();
+    auto Tombstone = getTombstoneKey();
+    if (EF1.referenceEquals(Empty) || EF2.referenceEquals(Empty) ||
+        EF1.referenceEquals(Tombstone) || EF2.referenceEquals(Tombstone)) {
+      return false;
+    }
+
+    return EF1 == EF2;
+  }
+};
 
 // LLVM is currently overhauling its casting system. Use the new variant once
 // possible!

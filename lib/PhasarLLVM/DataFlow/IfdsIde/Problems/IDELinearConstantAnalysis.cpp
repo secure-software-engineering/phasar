@@ -22,6 +22,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -42,6 +43,8 @@
 #include <limits>
 #include <memory>
 #include <utility>
+
+#include <llvm/ADT/Hashing.h>
 
 namespace psr {
 
@@ -66,7 +69,20 @@ struct LCAEdgeFunctionComposer : EdgeFunctionComposer<l_t> {
   }
 };
 
-using GenConstant = ConstantEdgeFunction<l_t>;
+auto hash_value(const LCAEdgeFunctionComposer &EF) noexcept {
+  return llvm::hash_combine(EF.First, EF.Second);
+}
+
+static_assert(is_llvm_hashable_v<LCAEdgeFunctionComposer>);
+
+struct GenConstant : ConstantEdgeFunction<l_t> {};
+
+llvm::hash_code hash_value(const GenConstant &EF) noexcept {
+  return llvm::hash_value(EF.Value);
+}
+
+using TTT = decltype(hash_value(std::declval<GenConstant>()));
+static_assert(is_llvm_hashable_v<GenConstant>);
 
 /**
  * The following binary operations are computed:
@@ -253,6 +269,13 @@ struct BinOp {
     return OS;
   }
 };
+
+auto hash_value(const BinOp &EF) noexcept {
+  return llvm::hash_combine(EF.Op, EF.Lop, EF.Rop, EF.CurrNode);
+}
+
+static_assert(is_llvm_hashable_v<BinOp>);
+
 } // namespace lca
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(

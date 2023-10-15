@@ -26,13 +26,19 @@
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Soundness.h"
+#include "phasar/Utils/Timer.h"
 
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
+
+#include <llvm/Support/TypeName.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace psr {
 
@@ -109,7 +115,17 @@ private:
     auto Problem =
         createAnalysisProblem<ProblemTy>(HA, std::forward<ArgTys>(Args)...);
     SolverTy Solver(Problem, &HA.getICFG());
-    Solver.solve();
+    {
+      std::optional<Timer> MeasureTime;
+      if (EmitterOptions &
+          AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
+        MeasureTime.emplace([](hms Elapsed) {
+          llvm::outs() << "Elapsed: " << Elapsed << '\n';
+        });
+      }
+
+      Solver.solve();
+    }
     emitRequestedDataFlowResults(Solver);
   }
 
@@ -126,6 +142,16 @@ private:
   }
 
   LLVMTaintConfig makeTaintConfig();
+
+  template <typename T>
+  void statsEmitter(llvm::raw_ostream &OS, const T &Solver) {
+    OS << "The solver " << llvm::getTypeName<T>()
+       << " does not support statistics output\n";
+  }
+  template <typename T, typename U>
+  void statsEmitter(llvm::raw_ostream &OS, const IDESolver<T, U> &Solver) {
+    Solver.printEdgeFunctionStatistics();
+  }
 
   template <typename T> void emitRequestedDataFlowResults(T &Solver) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
@@ -162,6 +188,11 @@ private:
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
       llvm::outs()
           << "Front-end support for 'EmitESGAsDot' to be implemented\n";
+    }
+    if (EmitterOptions &
+        AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
+
+      statsEmitter(llvm::outs(), Solver);
     }
   }
 

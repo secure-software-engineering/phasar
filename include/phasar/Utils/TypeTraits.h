@@ -105,6 +105,10 @@ struct is_llvm_hashable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
+template <typename T>
+struct is_llvm_hashable<T,
+                        decltype(llvm::hash_value(std::declval<T>()))> // NOLINT
+    : std::true_type {};
 
 template <template <typename> typename Base, typename Derived>
 class template_arg {

@@ -53,6 +53,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include <llvm/ADT/DenseSet.h>
+
 namespace psr {
 
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
@@ -253,6 +255,29 @@ public:
   consumeSolverResults() noexcept(std::is_nothrow_move_constructible_v<d_t>) {
     return OwningSolverResults<n_t, d_t, l_t>(std::move(this->ValTab),
                                               std::move(ZeroValue));
+  }
+
+  void printEdgeFunctionStatistics(llvm::raw_ostream &OS = llvm::outs()) const {
+    std::array<llvm::DenseSet<EdgeFunction<l_t>>, 5> UniqueEFs{};
+    std::array<size_t, 5> TotalEFCount{};
+    static constexpr std::array<llvm::StringRef, 5> EFKind{
+        "Normal", "Call", "Return", "CallToReturn", "Summary"};
+    // TODO: Cache EFs
+    CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
+        [&UniqueEFs, &TotalEFCount](EdgeFunction<l_t> EF,
+                                    EdgeFunctionKind Kind) {
+          UniqueEFs[int(Kind)].insert(std::move(EF));
+          TotalEFCount[int(Kind)]++;
+        });
+
+    size_t Ctr = 0;
+    for (const auto &[UEF, Count] : llvm::zip(UniqueEFs, TotalEFCount)) {
+      OS << "Kind: " << EFKind[Ctr] << ":\n";
+      Ctr++;
+
+      OS << "  Total # EdgeFunctions: " << Count << '\n';
+      OS << "  Unique EdgeFunctions: " << UEF.size() << '\n';
+    }
   }
 
 protected:
