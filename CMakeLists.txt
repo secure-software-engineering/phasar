@@ -255,6 +255,8 @@ endif()
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 
+option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
+
 # LLVM
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
@@ -345,7 +347,7 @@ endif()
 if(NOT PHASAR_IN_TREE)
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
   separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-  add_definitions(${LLVM_DEFINITIONS_LIST})
+  add_cxx_compile_definitions(${LLVM_DEFINITIONS_LIST})
   if (BUILD_PHASAR_CLANG)
     link_directories(${CLANG_LIB_PATH})
   endif()
@@ -389,7 +391,10 @@ endif(BUILD_SWIFT_TESTS)
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
   add_subdirectory(unittests)
-  set(PHASAR_BUILD_IR ON)
+  if(NOT PHASAR_BUILD_IR)
+    message(WARNING "Set PHASAR_BUILD_IR=ON, because PHASAR_BUILD_UNITTESTS is ON")
+    set(PHASAR_BUILD_IR ON)
+  endif()
 endif()
 
 # Build all IR test code

@@ -12,10 +12,6 @@ set(ControlFlowSources
 	LLVMBasedICFGSerializationTest.cpp
 )
 
-set(LLVM_LINK_COMPONENTS
-	Linker
-)
-
 foreach(TEST_SRC ${ControlFlowSources})
 	add_phasar_unittest(${TEST_SRC})
 endforeach(TEST_SRC)
