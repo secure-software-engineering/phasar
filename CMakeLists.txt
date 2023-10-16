@@ -403,7 +403,8 @@ if (PHASAR_BUILD_IR)
   add_subdirectory(test)
 endif()
 
-set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
+set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Install dir of headers")
+set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Install dir of libraries")
 
 # Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
@@ -460,7 +461,7 @@ configure_package_config_file(
   Config.cmake.in
   phasarConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
-  PATH_VARS INCLUDE_INSTALL_DIR
+  PATH_VARS INCLUDE_INSTALL_DIR LIBRARY_INSTALL_DIR
 )
 
 write_basic_package_version_file(
