@@ -26,9 +26,3 @@ add_phasar_library(phasar_pass
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
 )
-
-set_target_properties(phasar_pass
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

@@ -10,9 +10,3 @@ add_phasar_library(phasar_db
 target_include_directories(phasar_db
   PRIVATE ${SQLITE3_INCLUDE_DIR}
 )
-
-set_target_properties(phasar_db
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

@@ -20,9 +20,3 @@ add_phasar_library(phasar_clang
 target_include_directories(phasar_clang
   PUBLIC ${CLANG_INCLUDE_DIRS}
 )
-
-set_target_properties(phasar_clang
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

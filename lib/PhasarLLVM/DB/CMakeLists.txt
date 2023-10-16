@@ -13,9 +13,3 @@ add_phasar_library(phasar_llvm_db
     Support
     IRReader
 )
-
-set_target_properties(phasar_llvm_db
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

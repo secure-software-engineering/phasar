@@ -24,9 +24,3 @@ add_phasar_library(phasar_controller
   LINK_PRIVATE
     ${PHASAR_STD_FILESYSTEM}
 )
-
-set_target_properties(phasar_controller
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

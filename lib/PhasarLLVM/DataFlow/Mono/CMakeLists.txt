@@ -15,9 +15,3 @@ add_phasar_library(phasar_mono
     Core
     Support
 )
-
-set_target_properties(phasar_mono
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

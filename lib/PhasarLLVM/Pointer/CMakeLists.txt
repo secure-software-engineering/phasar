@@ -20,9 +20,3 @@ add_phasar_library(phasar_llvm_pointer
   LINK_PRIVATE
     ${Boost_LIBRARIES}
 )
-
-set_target_properties(phasar_llvm_pointer
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

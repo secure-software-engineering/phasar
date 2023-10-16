@@ -22,9 +22,3 @@ add_phasar_library(phasar_llvm_ifdside
   LINK_PRIVATE
     ${Boost_LIBRARIES}
 )
-
-set_target_properties(phasar_llvm_ifdside
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

@@ -12,9 +12,3 @@ add_phasar_library(phasar_passes
     Analysis
     Demangle
 )
-
-set_target_properties(phasar_passes
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

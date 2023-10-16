@@ -5,9 +5,3 @@ add_phasar_library(phasar_analysis_strategy
   LINKS phasar_db phasar_controlflow
   LLVM_LINK_COMPONENTS Support
 )
-
-set_target_properties(phasar_analysis_strategy
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

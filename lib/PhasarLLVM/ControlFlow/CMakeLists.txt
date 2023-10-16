@@ -15,9 +15,3 @@ add_phasar_library(phasar_llvm_controlflow
     Support
     Demangle
 )
-
-set_target_properties(phasar_llvm_controlflow
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

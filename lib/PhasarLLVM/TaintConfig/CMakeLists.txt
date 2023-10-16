@@ -18,9 +18,3 @@ add_phasar_library(phasar_taintconfig
   LINK_PRIVATE
     nlohmann_json_schema_validator
 )
-
-set_target_properties(phasar_taintconfig
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)

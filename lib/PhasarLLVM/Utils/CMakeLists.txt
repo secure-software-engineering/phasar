@@ -13,9 +13,3 @@ add_phasar_library(phasar_llvm_utils
     BitWriter
     Demangle
 )
-
-set_target_properties(phasar_llvm_utils
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)
