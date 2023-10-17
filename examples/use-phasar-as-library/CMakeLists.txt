@@ -9,12 +9,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(phasar COMPONENTS llvm_ifdside REQUIRED)
 
+# Or without specifying components
+#   find_package(phasar REQUIRED)
+
 # Build a small test tool to show how phasar may be used
 add_executable(myphasartool
   myphasartool.cpp
 )
 
-phasar_config(myphasartool)
+# Old way using phasar_config:
+#   phasar_config(myphasartool)
+
+# New way using target_link_libraries:
+target_link_libraries(myphasartool phasar::phasar_llvm_ifdside)
+
+# If find_package did not specify components:
+#   target_link_libraries(myphasartool phasar::phasar)
 
 install(TARGETS myphasartool
   RUNTIME DESTINATION bin

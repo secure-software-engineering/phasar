@@ -42,14 +42,20 @@ list(REMOVE_DUPLICATES phasar_FIND_COMPONENTS)
 
 foreach(component ${phasar_FIND_COMPONENTS})
   if(NOT ${component} IN_LIST PHASAR_COMPONENTS)
-    message(FATAL_ERROR "Requested component ${component} is no valid PHASAR component. Valid components are: ${PHASAR_COMPONENTS}")
-    break()
+    set(phasar_FOUND false)
+    set(phasar_NOT_FOUND_MESSAGE "Unsupported component: ${component}. valid components are: ${PHASAR_COMPONENTS}")
   endif()
 endforeach()
 
 foreach(component ${PHASAR_COMPONENTS})
   include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-targets.cmake")
 endforeach()
+include("${CMAKE_CURRENT_LIST_DIR}/phasar-targets.cmake")
+
+if (NOT phasar_FIND_COMPONENTS)
+  list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
+  set(phasar_FIND_COMPONENTS ${PHASAR_NEEDED_LIBS})
+endif()
 
 foreach(component ${phasar_FIND_COMPONENTS})
   list(APPEND PHASAR_NEEDED_LIBS phasar::phasar_${component})
@@ -59,11 +65,5 @@ function(phasar_config executable)
   target_link_libraries(${executable}
     PUBLIC
       ${PHASAR_NEEDED_LIBS}
-  )
-
-  # TODO: Use target_include_directories from withing phasar already, such that phasar_config is no longer necessary in the future
-  target_include_directories(${executable}
-    PUBLIC
-      ${PHASAR_INCLUDE_DIR}
   )
 endfunction()

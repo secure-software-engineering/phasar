@@ -334,17 +334,9 @@ if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
   )
 endif ()
 
-# Library Dependency Headers
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-include_directories(SYSTEM external/json/include/)
-include_directories(SYSTEM external/json-schema-validator/src/)
-include_directories(SYSTEM ${GTEST_INCLUDE_DIR})
-if(NOT PHASAR_IN_TREE)
-  include_directories(${LLVM_INCLUDE_DIRS})
-endif()
-
 # Library Dependency Dirs
 if(NOT PHASAR_IN_TREE)
+  include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
   separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
   add_definitions(${LLVM_DEFINITIONS_LIST})
@@ -355,9 +347,6 @@ endif()
 
 # Installed config
 configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/include/")
-
-include_directories(${PHASAR_SRC_DIR}/include)
 
 # Warnings
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
