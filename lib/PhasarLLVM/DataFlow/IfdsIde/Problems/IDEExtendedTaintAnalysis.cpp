@@ -227,6 +227,9 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
     const llvm::Value *LeakCandidate) {
   if (isSink(SinkCandidate, Inst)) {
     Leaks[Inst].insert(LeakCandidate);
+    Warning<IDEExtendedTaintAnalysisDomain> War(
+        Inst, makeFlowFact(LeakCandidate), Top{});
+    Printer->onResult(War);
   }
 }
 
@@ -744,19 +747,20 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 
 void IDEExtendedTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
-  OS << "===== IDEExtendedTaintAnalysis-Results =====\n";
 
   if (!PostProcessed) {
     doPostProcessing(SR);
   }
 
   for (auto &[Inst, LeakSet] : Leaks) {
-    OS << "At " << NToString(Inst) << '\n';
     for (const auto &Leak : LeakSet) {
-      OS << "\t" << llvmIRToShortString(Leak) << "\n";
+      Warning<IDEExtendedTaintAnalysisDomain> War(Inst, makeFlowFact(Leak),
+                                                  Top{});
+      Printer->onResult(War);
     }
   }
-  OS << '\n';
+
+  Printer->onFinalize(OS);
 }
 
 // Helpers:

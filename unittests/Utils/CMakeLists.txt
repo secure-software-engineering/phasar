@@ -6,6 +6,7 @@ set(UtilsSources
   LLVMShorthandsTest.cpp
   PAMMTest.cpp
   StableVectorTest.cpp
+  AnalysisPrinterTest.cpp
 )
 
 if(PHASAR_ENABLE_DYNAMIC_LOG)

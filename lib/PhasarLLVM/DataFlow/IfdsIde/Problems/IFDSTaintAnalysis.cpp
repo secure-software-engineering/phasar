@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -408,7 +409,11 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
       return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
                          CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
-          Leaks[CallSite].insert(Source);
+          if (Leaks[CallSite].insert(Source).second) {
+            Warning<LLVMIFDSAnalysisDomainDefault> War(CallSite, Source,
+                                                       topElement());
+            Printer->onResult(War);
+          }
         }
 
         if (Kill.count(Source)) {
@@ -433,7 +438,11 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
     }
 
     if (Leak.count(Source)) {
-      Leaks[CallSite].insert(Source);
+      if (Leaks[CallSite].insert(Source).second) {
+        Warning<LLVMIFDSAnalysisDomainDefault> War(CallSite, Source,
+                                                   topElement());
+        Printer->onResult(War);
+      }
     }
 
     return {Source};
@@ -478,25 +487,7 @@ void IFDSTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
-  if (Leaks.empty()) {
-    OS << "No leaks found!\n";
-    return;
-  }
-
-  for (const auto &Leak : Leaks) {
-    OS << "At instruction\nIR  : " << llvmIRToString(Leak.first) << '\n';
-    OS << "\nLeak(s):\n";
-    for (const auto *LeakedValue : Leak.second) {
-      OS << "IR  : ";
-      // Get the actual leaked alloca instruction if possible
-      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
-        OS << llvmIRToString(Load->getPointerOperand()) << '\n';
-      } else {
-        OS << llvmIRToString(LeakedValue) << '\n';
-      }
-    }
-    OS << "-------------------\n";
-  }
+  Printer->onFinalize(OS);
 }
 
 } // namespace psr
