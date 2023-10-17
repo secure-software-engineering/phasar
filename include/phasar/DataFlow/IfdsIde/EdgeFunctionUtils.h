@@ -265,6 +265,8 @@ template <typename L> struct EdgeFunctionComposer {
     return LHS.First == RHS.First && LHS.Second == RHS.Second;
   }
 
+  size_t depth() noexcept { return First.depth() + Second.depth(); }
+
   // -- data members
 
   EdgeFunction<l_t> First{};

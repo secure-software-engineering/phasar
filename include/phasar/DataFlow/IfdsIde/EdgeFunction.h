@@ -14,6 +14,8 @@
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/TypeName.h"
@@ -26,9 +28,6 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-
-#include <llvm/ADT/DenseMapInfo.h>
-#include <llvm/ADT/Hashing.h>
 
 namespace psr {
 
@@ -77,12 +76,13 @@ public:
                        alignof(ConcreteEF) <= alignof(void *) &&
                        std::is_trivially_copyable_v<ConcreteEF>;
 
-protected:
   enum class AllocationPolicy {
     SmallObjectOptimized,
     DefaultHeapAllocated,
     CustomHeapAllocated,
   };
+
+protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
@@ -619,6 +619,10 @@ public:
     return VTAndHeapAlloc.getInt() == AllocationPolicy::CustomHeapAllocated;
   }
 
+  [[nodiscard]] auto getAllocationPolicy() const noexcept {
+    return VTAndHeapAlloc.getInt();
+  }
+
   /// Gets an opaque identifier for this edge function. Only meant for
   /// comparisons of object-identity. Do not dereference!
   [[nodiscard]] const void *getOpaqueValue() const noexcept { return EF; }
@@ -649,6 +653,11 @@ public:
         EF, VTAndHeapAlloc.getPointer());
   }
 
+  [[nodiscard]] auto depth() noexcept {
+    assert(!!*this && "depth() called on nullptr!");
+    return VTAndHeapAlloc.getPointer()->depth(EF);
+  }
+
   friend size_t hash_value(const EdgeFunction &EF) noexcept { // NOLINT
     return EF.getHashCode();
   }
@@ -677,6 +686,7 @@ private:
     bool (*isConstant)(const void *) noexcept;
     void (*destroy)(const void *, AllocationPolicy) noexcept;
     size_t (*getHashCode)(const void *, const void *) noexcept;
+    size_t (*depth)(const void *) noexcept;
     // NOLINTEND(readability-identifier-naming)
   };
 
@@ -748,6 +758,13 @@ private:
           return hash_value(*getPtr<ConcreteEF>(EF));
         } else {
           return llvm::hash_combine(EF, VT);
+        }
+      },
+      [](const void *EF) noexcept -> size_t {
+        if constexpr (HasDepth<ConcreteEF>) {
+          return getPtr<ConcreteEF>(EF)->depth();
+        } else {
+          return 1;
         }
       },
   };

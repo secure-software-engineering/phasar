@@ -22,6 +22,10 @@
 
 #include "llvm/Support/Compiler.h"
 
+namespace psr {
+template <typename T, typename U> class IDESolver;
+} // namespace psr
+
 namespace psr::controller {
 
 LLVM_LIBRARY_VISIBILITY void
@@ -67,6 +71,8 @@ makeTaintConfig(AnalysisController::ControllerData &Data);
 
 template <typename T>
 static void statsEmitter(llvm::raw_ostream & /*OS*/, const T & /*Solver*/) {}
+template <typename T, typename U>
+static void statsEmitter(llvm::raw_ostream &OS, const IDESolver<T, U> &Solver);
 
 template <typename T>
 static void

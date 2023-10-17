@@ -151,6 +151,11 @@ struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
     : std::true_type {};
 
+template <typename T, typename = size_t> struct HasDepth : std::false_type {};
+template <typename T>
+struct HasDepth<T, decltype(std::declval<const T &>().depth())>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T>
@@ -212,6 +217,9 @@ constexpr bool is_crtp_base_of_v = // NOLINT
 
 template <typename T>
 static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
+
+template <typename T>
+static inline constexpr bool HasDepth = detail::HasDepth<T>::value;
 
 template <typename T>
 static inline constexpr bool IsEqualityComparable =

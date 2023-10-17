@@ -261,12 +261,16 @@ public:
     std::array<size_t, 5> TotalEFCount{};
     static constexpr std::array<llvm::StringRef, 5> EFKind{
         "Normal", "Call", "Return", "CallToReturn", "Summary"};
+
+    std::array<size_t, 3> PerAllocCount{};
+    static constexpr std::array<llvm::StringRef, 3> AllocKind{
+        "SmallObjectOptimized", "DefaultHeapAllocated", "CustomHeapAllocated"};
     // TODO: Cache EFs
     CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
-        [&UniqueEFs, &TotalEFCount](EdgeFunction<l_t> EF,
-                                    EdgeFunctionKind Kind) {
+        [&](EdgeFunction<l_t> EF, EdgeFunctionKind Kind) {
           UniqueEFs[int(Kind)].insert(std::move(EF));
           TotalEFCount[int(Kind)]++;
+          PerAllocCount[int(EF.getAllocationPolicy())]++;
         });
 
     size_t Ctr = 0;
@@ -276,6 +280,10 @@ public:
 
       OS << "  Total # EdgeFunctions: " << Count << '\n';
       OS << "  Unique EdgeFunctions: " << UEF.size() << '\n';
+    }
+
+    for (auto [Count, Kind] : llvm::zip(PerAllocCount, AllocKind)) {
+      OS << Kind << ": " << Count << '\n';
     }
   }
 
