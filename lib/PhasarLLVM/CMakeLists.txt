@@ -13,6 +13,7 @@ add_phasar_library(phasar_llvm
   ${PHASAR_LLVM_SRC}
 
   LINKS
+    phasar_utils
     phasar_llvm_pointer
     phasar_llvm_db
     phasar_llvm_controlflow
