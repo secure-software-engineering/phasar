@@ -38,14 +38,10 @@ include(GNUInstallDirs)
 
 set_property(GLOBAL PROPERTY TARGET_MESSAGES OFF)
 
-set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE STRING "Configuration types: Debug, RelWithDebInfo and Release" FORCE)
-
 option(PHASAR_ENABLE_SANITIZERS "Build PhASAR with AddressSanitizer and UBSanitizer (default is OFF)" OFF)
 
-set(DEBUG_CONFIGURATIONS DEBUG CACHE INTERNAL "" FORCE)
-set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
-
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(PHASAR_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
@@ -56,9 +52,13 @@ endif ()
 
 if(GENERATOR_IS_MULTI_CONFIG)
   message(STATUS "Selected multi-config Build")
+  set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE STRING "Configuration types: Debug, RelWithDebInfo and Release" FORCE)
 else()
   message(STATUS "Selected ${CMAKE_BUILD_TYPE} Build")
 endif()
+
+set(DEBUG_CONFIGURATIONS DEBUG CACHE INTERNAL "" FORCE)
+set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 
 # TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
 # https://reviews.llvm.org/D157613
@@ -67,7 +67,6 @@ string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
-
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
 
@@ -273,7 +272,7 @@ if (NOT PHASAR_IN_TREE)
   endif()
 endif()
 
-if(NOT LLVM_ENABLE_RTTI)
+if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
   message(FATAL_ERROR "PhASAR requires a LLVM version that is built with RTTI")
 endif()
 

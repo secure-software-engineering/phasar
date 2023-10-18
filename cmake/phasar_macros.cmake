@@ -200,7 +200,7 @@ function(add_phasar_library name)
   target_include_directories(${name}
     PUBLIC
       $<BUILD_INTERFACE:${PHASAR_SRC_DIR}/include/>   # The regular include folder
-      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include/> # The location of phasar-config.h
+      $<BUILD_INTERFACE:${PHASAR_BINARY_DIR}/include/> # The location of phasar-config.h
   )
 
   # Set the target property such that installed PhASAR knows where to find its includes (must be relative paths in this case in contrast to non-installed PhASAR!)

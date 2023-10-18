@@ -11,10 +11,9 @@ add_phasar_library(phasar_taintconfig
     phasar_controlflow
     phasar_llvm_controlflow
 
+    nlohmann_json_schema_validator
+
   LLVM_LINK_COMPONENTS
     Core
     Support
-
-  LINK_PRIVATE
-    nlohmann_json_schema_validator
 )
