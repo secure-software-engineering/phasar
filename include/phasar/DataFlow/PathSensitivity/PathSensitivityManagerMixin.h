@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
@@ -31,6 +32,10 @@
 #include <filesystem>
 #include <system_error>
 #include <type_traits>
+
+namespace llvm {
+class DbgInfoIntrinsic;
+} // namespace llvm
 
 namespace psr {
 template <typename Derived, typename AnalysisDomainTy, typename GraphType>
@@ -167,6 +172,46 @@ public:
 
     return pathsDagToAll(std::move(Inst), llvm::ArrayRef(&Fact, 1), Config,
                          PFilter);
+  }
+
+  template <
+      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  [[nodiscard]] GraphType
+  pathsDagToInLLVMSSA(n_t Inst, d_t Fact,
+                      const PathSensitivityConfigBase<ConfigTy> &Config,
+                      const Filter &PFilter = {}) const {
+    // Temporary code to bridge the time until merging f-IDESolverStrategy
+    // into development
+    if (Inst->getType()->isVoidTy()) {
+      return pathsDagToAll(Inst, llvm::ArrayRef(&Fact, 1), Config, PFilter);
+    }
+
+    if (auto Next = Inst->getNextNonDebugInstruction()) {
+      return pathsDagToAll(Next, llvm::ArrayRef(&Fact, 1), Config, PFilter);
+    }
+
+    PHASAR_LOG_LEVEL(WARNING, "[pathsDagToInLLVMSSA]: Cannot precisely "
+                              "determine the ESG node for inst-flowfact-pair ("
+                                  << NToString(Inst) << ", " << DToString(Fact)
+                                  << "). Fall-back to an approximation");
+
+    for (const auto *BB : llvm::successors(Inst)) {
+      const auto *First = &BB->front();
+      if (llvm::isa<llvm::DbgInfoIntrinsic>(First)) {
+        First = First->getNextNonDebugInstruction();
+      }
+      if (ESG.getNodeOrNull(First, Fact)) {
+        return pathsDagToAll(First, llvm::ArrayRef(&Fact, 1), Config, PFilter);
+      }
+    }
+
+    llvm::report_fatal_error("Could not determine any ESG node corresponding "
+                             "to the inst-flowfact-pair (" +
+                             llvm::Twine(NToString(Inst)) + ", " +
+                             DToString(Fact) + ")");
+
+    return {};
   }
 
 private:

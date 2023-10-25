@@ -37,20 +37,15 @@
 #include <string>
 #include <system_error>
 
+namespace {
 // ============== TEST FIXTURE ============== //
 class PathTracingTest : public ::testing::Test {
-protected:
+public:
   static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("path_tracing/");
 
-  std::unique_ptr<psr::LLVMProjectIRDB> IRDB;
-  psr::LLVMPathConstraints LPC;
-
-  void SetUp() override { psr::ValueAnnotationPass::resetValueID(); }
-  void TearDown() override { psr::Logger::disable(); }
-
-  std::pair<const llvm::Instruction *, const llvm::Value *>
-  getInterestingInstFact() {
-    auto *Main = IRDB->getFunctionDefinition("main");
+  static std::pair<const llvm::Instruction *, const llvm::Value *>
+  getInterestingInstFact(psr::LLVMProjectIRDB &IRDB) {
+    auto *Main = IRDB.getFunctionDefinition("main");
     assert(Main);
     auto *LastInst = &Main->back().back();
     auto *InterestingFact = [&] {
@@ -69,6 +64,18 @@ protected:
     }();
 
     return {LastInst, InterestingFact};
+  }
+
+protected:
+  std::unique_ptr<psr::LLVMProjectIRDB> IRDB;
+  psr::LLVMPathConstraints LPC;
+
+  void SetUp() override { psr::ValueAnnotationPass::resetValueID(); }
+  void TearDown() override { psr::Logger::disable(); }
+
+  std::pair<const llvm::Instruction *, const llvm::Value *>
+  getInterestingInstFact() {
+    return getInterestingInstFact(*IRDB);
   }
 
   psr::FlowPathSequence<const llvm::Instruction *>
@@ -758,6 +765,94 @@ TEST(PathsDAGTest, ForwardMinimizeDAGTest) {
                 Graph, traits_t::target(traits_t::outEdges(Graph, Rt)[0])),
             0);
 }
+
+template <typename GraphTy>
+std::vector<std::vector<std::string>> getPaths(const GraphTy &G) {
+  std::vector<std::vector<std::string>> Ret;
+  std::vector<std::string> Curr;
+  using traits_t = psr::GraphTraits<GraphTy>;
+  auto doGetPaths = [&G, &Curr, &Ret](const auto &doGetPaths,
+                                      auto Vtx) -> void {
+    size_t Sz = Curr.size();
+    for (const auto *N : traits_t::node(G, Vtx)) {
+      Curr.push_back(psr::getMetaDataID(N));
+    }
+    bool HasSucc = false;
+    for (auto Edge : traits_t::outEdges(G, Vtx)) {
+      HasSucc = true;
+      doGetPaths(doGetPaths, traits_t::target(Edge));
+    }
+    if (!HasSucc) {
+      Ret.push_back(Curr);
+    }
+    Curr.resize(Sz);
+  };
+
+  for (auto Rt : traits_t::roots(G)) {
+    doGetPaths(doGetPaths, Rt);
+  }
+
+  return Ret;
+}
+
+TEST(PathsDAGTest, InLLVMSSA) {
+  psr::LLVMProjectIRDB IRDB(PathTracingTest::PathToLlFiles + "inter_01_cpp.ll");
+  psr::LLVMTypeHierarchy TH(IRDB);
+  psr::LLVMAliasSet PT(&IRDB);
+  psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"}, &TH,
+                          &PT, psr::Soundness::Soundy,
+                          /*IncludeGlobals*/ false);
+  psr::IDELinearConstantAnalysis LCAProblem(&IRDB, &ICFG, {"main"});
+  psr::PathAwareIDESolver LCASolver(LCAProblem, &ICFG);
+  LCASolver.solve();
+  // if (PrintDump) {
+  //   // IRDB->print();
+  //   // ICFG.print();
+  //   // LCASolver.dumpResults();
+  //   std::error_code EC;
+  //   llvm::raw_fd_ostream ROS(LlvmFilePath + "_explicit_esg.dot", EC);
+  //   assert(!EC);
+  //   LCASolver.getExplicitESG().printAsDot(ROS);
+  // }
+  auto [LastInst, InterestingFact] =
+      PathTracingTest::getInterestingInstFact(IRDB);
+  // llvm::outs() << "Target instruction: " << psr::llvmIRToString(LastInst);
+  // llvm::outs() << "\nTarget data-flow fact: "
+  //              << psr::llvmIRToString(InterestingFact) << '\n';
+
+  const auto *InterestingFactInst =
+      llvm::dyn_cast<llvm::Instruction>(InterestingFact);
+  ASSERT_FALSE(InterestingFact->getType()->isVoidTy());
+  ASSERT_NE(nullptr, InterestingFactInst);
+
+  psr::PathSensitivityManager<psr::IDELinearConstantAnalysisDomain> PSM(
+      &LCASolver.getExplicitESG());
+
+  auto Dag = PSM.pathsDagToInLLVMSSA(InterestingFactInst, InterestingFact,
+                                     psr::PathSensitivityConfig{});
+
+  // psr::printGraph(Dag, llvm::outs(), "", [](const auto &Node) {
+  //   std::string Str;
+  //   llvm::raw_string_ostream ROS(Str);
+  //   ROS << '[';
+  //   llvm::interleaveComma(Node, ROS, [&ROS](const auto *Inst) {
+  //     ROS << psr::getMetaDataID(Inst);
+  //   });
+  //   ROS << ']';
+
+  //   return Str;
+  // });
+  auto Paths = getPaths(Dag);
+  ASSERT_EQ(1, Paths.size());
+
+  // TODO: Should the "18" be removed?
+  std::vector<std::string> Gt = {"17", "16", "5",  "3",  "2",  "1",
+                                 "0",  "15", "14", "13", "12", "11",
+                                 "10", "9",  "8",  "7",  "6",  "18"};
+  EXPECT_EQ(Gt, Paths[0]);
+}
+
+} // namespace
 
 // main function for the test case
 int main(int Argc, char **Argv) {
