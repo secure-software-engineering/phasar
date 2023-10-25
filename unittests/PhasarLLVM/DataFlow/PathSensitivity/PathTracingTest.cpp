@@ -119,7 +119,7 @@ protected:
                             {"main"}, &TH, &PT, psr::Soundness::Soundy,
                             /*IncludeGlobals*/ false);
 
-    psr::LLVMTaintConfig Config(*IRDB, nlohmann::json{});
+    psr::LLVMTaintConfig Config(*IRDB);
     psr::IDEExtendedTaintAnalysis<3, false> Analysis(IRDB.get(), &ICFG, &PT,
                                                      Config, {"main"});
     psr::PathAwareIDESolver Solver(Analysis, &ICFG);
