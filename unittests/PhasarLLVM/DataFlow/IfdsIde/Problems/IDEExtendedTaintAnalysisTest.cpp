@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
@@ -53,18 +54,18 @@ protected:
   IDETaintAnalysisTest() = default;
   ~IDETaintAnalysisTest() override = default;
 
-  void doAnalysis(const llvm::Twine &IRFile,
-                  const map<int, set<string>> &GroundTruth,
-                  std::variant<std::monostate, json *, CallBackPairTy> Config,
-                  bool DumpResults = false) {
+  void doAnalysis(
+      const llvm::Twine &IRFile, const map<int, set<string>> &GroundTruth,
+      std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
+      bool DumpResults = false) {
     HelperAnalyses HA(IRFile, EntryPoints);
 
     auto TC =
         std::visit(Overloaded{[&](std::monostate) {
                                 return LLVMTaintConfig(HA.getProjectIRDB());
                               },
-                              [&](json *JS) {
-                                auto Ret =
+                              [&](TaintConfigData *JS) {
+                                LLVMTaintConfig Ret =
                                     LLVMTaintConfig(HA.getProjectIRDB(), *JS);
                                 if (DumpResults) {
                                   llvm::errs() << Ret << "\n";
@@ -120,30 +121,18 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
 
   Gt[7] = {"6"};
 
-  json Config = R"!({
-    "name": "XTaintTest",
-    "version": 1.0,
-    "functions": [
-      {
-        "file": "xtaint01.cpp",
-        "name": "main",
-        "params": {
-          "source": [
-            0
-          ]
-        }
-      },
-      {
-        "file": "xtaint01.cpp",
-        "name": "_Z5printi",
-        "params": {
-          "sink": [
-            0
-          ]
-        }
-      }
-    ]
-    })!"_json;
+  TaintConfigData Config;
+
+  FunctionData FuncDataMain;
+  FuncDataMain.Name = "main";
+  FuncDataMain.SourceValues.push_back(0);
+
+  FunctionData FuncDataPrint;
+  FuncDataPrint.Name = "_Z5printi";
+  FuncDataPrint.SinkValues.push_back(0);
+
+  Config.Functions.push_back(std::move(FuncDataMain));
+  Config.Functions.push_back(std::move(FuncDataPrint));
 
   doAnalysis({PathToLLFiles + "xtaint01_json_cpp_dbg.ll"}, Gt, &Config);
 }
