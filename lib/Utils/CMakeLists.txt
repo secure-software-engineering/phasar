@@ -6,35 +6,19 @@ if(PHASAR_ENABLE_PAMM STREQUAL "Off" AND NOT PHASAR_BUILD_UNITTESTS)
   list(REMOVE_ITEM UTILS_SRC ${pamm_src})
 endif()
 
-set(PHASAR_LINK_LIBS
-)
+add_phasar_library(phasar_utils
+  ${UTILS_SRC}
 
-set(LLVM_LINK_COMPONENTS
-  Core
-  Support
-  BitWriter
-  Demangle
-)
+  LLVM_LINK_COMPONENTS
+    Core
+    Support
+    BitWriter
+    Demangle
 
-if(BUILD_SHARED_LIBS)
-  add_phasar_library(phasar_utils
-    SHARED
-    ${UTILS_SRC}
-  )
-else()
-  add_phasar_library(phasar_utils
-    STATIC
-    ${UTILS_SRC}
-  )
-endif()
-
-target_include_directories(phasar_utils PUBLIC ${LLVM_INCLUDE_DIRS})
-
-target_link_libraries(phasar_utils
+  LINK_PRIVATE
+    ${PHASAR_STD_FILESYSTEM}
   LINK_PUBLIC
-  ${CMAKE_DL_LIBS}
-  ${Boost_LIBRARIES}
-  ${PHASAR_STD_FILESYSTEM}
+    nlohmann_json::nlohmann_json
 )
 
 set_target_properties(phasar_utils

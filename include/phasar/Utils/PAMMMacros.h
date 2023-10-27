@@ -17,6 +17,8 @@
 #ifndef PHASAR_UTILS_PAMMMACROS_H_
 #define PHASAR_UTILS_PAMMMACROS_H_
 
+#include "phasar/Config/phasar-config.h"
+
 namespace psr {
 /// Defines the different level of severity of PAMM's performance evaluation
 enum class PAMM_SEVERITY_LEVEL { Off = 0, Core, Full }; // NOLINT

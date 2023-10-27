@@ -11,7 +11,7 @@ assignees: ''
 Replace the empty checkboxes [ ] below with checked ones [x] accordingly. -->
 
   - [ ] I have searched open and closed issues for duplicates
-  - [ ] I made sure that I am not using an old project version (DO: pull Phasar, update git submodules, rebuild the project and check if the bug is still there)
+  - [ ] I made sure that I am not using an old project version (DO: pull PhASAR, update git submodules, rebuild the project and check if the bug is still there)
 
 ----------------------------------------
 
@@ -24,9 +24,9 @@ Describe here the issue that you are experiencing.
   - that reproduce the bug
   - e.g. cli arguments and flags
 
-**Actual result:** Describe here what happens after you run the steps above (i.e. the buggy behaviour)
+**Actual result:** Describe here what happens after you run the steps above (i.e. the buggy behavior)
 
-**Expected result:** Describe here what should happen after you run the steps above (i.e. what would be the correct behaviour)
+**Expected result:** Describe here what should happen after you run the steps above (i.e. what would be the correct behavior)
 
 ### Context (Environment)
 
@@ -35,7 +35,7 @@ Describe here the issue that you are experiencing.
   - **phasar:** \[commit-id]
   - **googletest:** \[commit-id]
   - **json:** \[commit-id]
-  - **WALi-OpenNWA:** \[commit-id]
+  - **json-schema-validator** \[commit-id]
 
 <!-- Which operating system are you using? -->
 
@@ -48,11 +48,12 @@ Describe here the issue that you are experiencing.
 
 **Build Type:**
   - [ ] cmake
+  - [ ] bootstrap.sh
   - [ ] custom build
 
 ### Possible solution
 
-We are happy to discuss possible solutions to this problem, especially if it origniates from a design flaw.
+We are happy to discuss possible solutions to this problem, especially if it originates from a design flaw.
 
 ### Example files
 
