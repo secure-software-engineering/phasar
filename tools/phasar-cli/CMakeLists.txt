@@ -23,26 +23,22 @@ endif()
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar-cli
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_llvm_controlflow
-  phasar_llvm_utils
-  phasar_analysis_strategy
-  phasar_llvm_ifdside
-  phasar_utils
-  phasar_mono
-  phasar_llvm_db
-  phasar_passes
-  phasar_llvm_pointer
-  phasar_llvm
-  phasar_llvm_typehierarchy
-  ${SQLITE3_LIBRARY}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  LINK_PRIVATE
-  ${PHASAR_STD_FILESYSTEM}
+  PRIVATE
+    phasar_config
+    phasar_controller
+    phasar_llvm_controlflow
+    phasar_llvm_utils
+    phasar_analysis_strategy
+    phasar_llvm_ifdside
+    phasar_utils
+    phasar_mono
+    phasar_llvm_db
+    phasar_passes
+    phasar_llvm_pointer
+    phasar_llvm
+    phasar_llvm_typehierarchy
+
+    ${PHASAR_STD_FILESYSTEM}
 )
 
 if (NOT PHASAR_IN_TREE)

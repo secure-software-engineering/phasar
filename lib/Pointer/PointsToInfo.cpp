@@ -137,12 +137,14 @@ class DummyFieldSensitivePointsToAnalysis
 
 [[maybe_unused]] void testTypeErasure() {
   DummyFieldInsensitivePointsToAnalysis PTA1;
-  PointsToInfoRef<PointsToTraits<DummyFieldInsensitivePointsToAnalysis>>
+  [[maybe_unused]] PointsToInfoRef<
+      PointsToTraits<DummyFieldInsensitivePointsToAnalysis>>
       TEPTA1 = &PTA1;
 
   DummyFieldSensitivePointsToAnalysis PTA2;
-  PointsToInfoRef<PointsToTraits<DummyFieldSensitivePointsToAnalysis>> TEPTA2 =
-      &PTA2;
+  [[maybe_unused]] PointsToInfoRef<
+      PointsToTraits<DummyFieldSensitivePointsToAnalysis>>
+      TEPTA2 = &PTA2;
 
   PointsToInfo<PointsToTraits<DummyFieldInsensitivePointsToAnalysis>> TEPTA3(
       std::in_place_type<DummyFieldInsensitivePointsToAnalysis>);

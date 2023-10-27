@@ -366,8 +366,9 @@ AbstractMemoryLocationFactoryBase::withOffsetsImpl(
                                           AML->offsets().end());
   OffsCpy.back() += Offs.front();
 
+#ifdef XTAINT_DIAGNOSTICS
   bool IsOverApproximating = false;
-
+#endif
   if (NwLifetime < Offs.size() - 1) {
     Offs = Offs.slice(0, NwLifetime + 1);
   }

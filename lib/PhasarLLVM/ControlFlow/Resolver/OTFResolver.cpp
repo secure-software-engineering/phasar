@@ -94,7 +94,7 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const llvm::Value *Receiver = CallSite->getArgOperand(0);
+  //  const llvm::Value *Receiver = CallSite->getArgOperand(0);
 
   if (CallSite->getCalledOperand() &&
       CallSite->getCalledOperand()->getType()->isPointerTy()) {
