@@ -15,7 +15,7 @@ RUN apt-get -y install --no-install-recommends \
     cmake \
     ninja-build \
     libstdc++6 \
-    libboost-all-dev
+    libboost-graph-dev
 
 COPY ./utils/InstallAptDependencies.sh /usr/src/phasar/utils/
 RUN ./utils/InstallAptDependencies.sh
@@ -53,6 +53,7 @@ RUN git submodule update
 RUN mkdir -p build && cd build && \
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
+            -DPHASAR_TARGET_ARCH="" \
             -DCMAKE_CXX_COMPILER=$CXX \
             -G Ninja && \
           cmake --build .
