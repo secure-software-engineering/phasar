@@ -9,7 +9,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
 #include "TestConfig.h"
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <memory>

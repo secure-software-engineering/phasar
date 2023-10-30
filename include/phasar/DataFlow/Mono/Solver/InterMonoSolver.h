@@ -92,7 +92,7 @@ protected:
 
   void addCalleesToWorklist(std::pair<n_t, n_t> Edge) {
     auto Src = Edge.first;
-    auto Dst = Edge.second;
+    // auto Dst = Edge.second;
     // Add inter- and intra-edges of callee(s)
     for (auto Callee : ICF->getCalleesOfCallAt(Src)) {
       if (AddedFunctions.find(Callee) != AddedFunctions.end()) {
@@ -362,7 +362,7 @@ public:
       std::pair<n_t, n_t> Edge = Worklist.front();
       Worklist.pop_front();
       auto Src = Edge.first;
-      auto Dst = Edge.second;
+      // auto Dst = Edge.second;
       if (ICF->isCallSite(Src)) {
         addCalleesToWorklist(Edge);
       }

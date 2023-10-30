@@ -12,14 +12,11 @@ else()
 endif()
 
 target_link_libraries(myphasartool
-  LINK_PUBLIC
-  phasar
-  LINK_PRIVATE
-  ${PHASAR_STD_FILESYSTEM}
+  PRIVATE
+    phasar
+    ${PHASAR_STD_FILESYSTEM}
 )
 
 install(TARGETS myphasartool
   RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
 )
