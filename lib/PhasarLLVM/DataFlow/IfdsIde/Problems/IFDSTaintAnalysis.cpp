@@ -487,7 +487,7 @@ void IFDSTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
-  Printer->onFinalize(OS);
+  Printer->onFinalize();
 }
 
 } // namespace psr

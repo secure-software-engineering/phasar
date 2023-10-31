@@ -47,9 +47,7 @@ public:
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void onFinalize(llvm::raw_ostream & /*OS*/ = llvm::outs()) const override {
-    EXPECT_TRUE(GroundTruth.empty());
-  }
+  void onFinalize() const override { EXPECT_TRUE(GroundTruth.empty()); }
 
 private:
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};

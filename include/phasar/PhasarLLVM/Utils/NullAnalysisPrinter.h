@@ -15,7 +15,7 @@ public:
 
   void onInitialize() override{};
   void onResult(Warning<AnalysisDomainTy> /*War*/) override{};
-  void onFinalize(llvm::raw_ostream & /*OS*/) const override{};
+  void onFinalize() const override{};
 
 private:
   NullAnalysisPrinter() = default;

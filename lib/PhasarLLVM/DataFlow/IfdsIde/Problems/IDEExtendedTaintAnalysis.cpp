@@ -760,7 +760,7 @@ void IDEExtendedTaintAnalysis::emitTextReport(
     }
   }
 
-  Printer->onFinalize(OS);
+  Printer->onFinalize();
 }
 
 // Helpers:

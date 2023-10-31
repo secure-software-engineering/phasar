@@ -25,7 +25,7 @@ public:
   }
 
   void onInitialize() override{};
-  void onFinalize(llvm::raw_ostream &OS = llvm::outs()) const override {
+  void onFinalize() const override {
     for (const auto &Iter : AnalysisResults.War) {
 
       OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
@@ -40,6 +40,7 @@ public:
 
 private:
   DataflowAnalysisResults<AnalysisDomainTy> AnalysisResults{};
+  llvm::raw_ostream &OS = llvm::outs();
 };
 
 } // namespace psr

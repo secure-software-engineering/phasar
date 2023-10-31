@@ -553,7 +553,7 @@ public:
       }
     }
 
-    this->Printer->onFinalize(OS);
+    this->Printer->onFinalize();
   }
 
 private:
