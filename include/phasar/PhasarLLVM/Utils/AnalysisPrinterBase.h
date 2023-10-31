@@ -28,7 +28,7 @@ template <typename AnalysisDomainTy> class AnalysisPrinterBase {
 public:
   virtual void onResult(Warning<AnalysisDomainTy> /*War*/) = 0;
   virtual void onInitialize() = 0;
-  virtual void onFinalize(llvm::raw_ostream & /*OS*/) const = 0;
+  virtual void onFinalize() const = 0;
 
   AnalysisPrinterBase() = default;
   virtual ~AnalysisPrinterBase() = default;
