@@ -87,9 +87,11 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(
   // Change to CallSite everywhere
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
-  auto FName = CS->getCalledFunction()->getName();
-  if (FName == InitializerFn) {
-    return generateFromZero(SecureHeapFact::INITIALIZED);
+  if (CS->getCalledFunction()) {
+    auto FName = CS->getCalledFunction()->getName();
+    if (FName == InitializerFn) {
+      return generateFromZero(SecureHeapFact::INITIALIZED);
+    }
   }
   return identityFlow();
 }
@@ -147,7 +149,7 @@ IDESecureHeapPropagation::getCallToRetEdgeFunction(
     return SHPGenEdgeFn{l_t::INITIALIZED};
   }
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-  if (CallNode != ZeroValue &&
+  if (CallNode != ZeroValue && CS->getCalledFunction() &&
       CS->getCalledFunction()->getName() == ShutdownFn) {
     // std::cerr << "Kill at " << llvmIRToShortString(callSite) << std::endl;
     return SHPGenEdgeFn{l_t::BOT};
