@@ -28,9 +28,6 @@
 #include <set>
 #include <string>
 
-#define XSTR(S) STR(S)
-#define STR(S) #S
-
 namespace psr {
 
 class PhasarConfig {

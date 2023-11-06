@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_LOGGER_H
 #define PHASAR_UTILS_LOGGER_H
 
+#include "phasar/Config/phasar-config.h"
+
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
