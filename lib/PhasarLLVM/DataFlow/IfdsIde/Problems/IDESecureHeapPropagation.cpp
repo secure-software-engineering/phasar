@@ -87,7 +87,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(
   // Change to CallSite everywhere
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
-  if (const auto * Callee = CS->getCalledFunction()) {
+  if (const auto *Callee = CS->getCalledFunction()) {
     if (Callee->getName() == InitializerFn) {
       return generateFromZero(SecureHeapFact::INITIALIZED);
     }
