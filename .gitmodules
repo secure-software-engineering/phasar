@@ -9,7 +9,3 @@
 [submodule "external/json-schema-validator"]
 	path = external/json-schema-validator
 	url = https://github.com/pboettch/json-schema-validator.git
-[submodule "external/z3"]
-	path = external/z3
-	url = https://github.com/fabianbs96/z3
-	branch = LLVMCompatibleZ3

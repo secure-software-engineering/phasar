@@ -87,7 +87,7 @@ endif(BUILD_SWIFT_TESTS)
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
-option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is ON as long as we are building out of tree)" ON)
+option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)" OFF)
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
 
@@ -242,37 +242,12 @@ endif()
 add_definitions(${LLVM_DEFINITIONS})
 
 # Z3 Solver
+
 if(PHASAR_USE_Z3)
-  if(NOT Z3_FOUND)
-    # Z3 does not compile with '-Werror', so disable it for Z3's build
-    # string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-    # Do not pass DebugSan to z3 as it is unable to handle it
-    if(CMAKE_BUILD_TYPE STREQUAL "DebugSan")
-      set(CMAKE_BUILD_TYPE_ADAPTED_FOR_Z3 ON)
-      set(CMAKE_BUILD_TYPE "Debug")
-    endif()
-
-    # Convince z3 to install its library along with phasar libs
-    # To avoid possible side effects we only change CMAKE_INSTALL_LIBDIR
-    # for including z3 (here) and restore it afterwards
-    set(ORIGINAL_CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-    set(CMAKE_INSTALL_LIBDIR ${PHASAR_INSTALL_LIBDIR})
-    add_subdirectory(external/z3/)
-    set(CMAKE_INSTALL_LIBDIR ${ORIGINAL_CMAKE_INSTALL_LIBDIR})
-
-    if(CMAKE_BUILD_TYPE_ADAPTED_FOR_Z3)
-      set(CMAKE_BUILD_TYPE "DebugSan")
-    endif()
-
-    include_directories(external/z3/src/)
-    include_directories(external/z3/src/api/)
-    include_directories(external/z3/src/api/c++/)
-    link_directories(${Z3_BINARY_DIR})
-    link_directories(${Z3_BINARY_DIR}/src)
-
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-  endif()
+  # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
+  # as it lacks some functionality (such as z3::expr::simplify()) that we require
+  find_package(Z3 4.7.1 REQUIRED)
+  include_directories(${Z3_INCLUDE_DIR})
 endif(PHASAR_USE_Z3)
 
 if(NOT PHASAR_IN_TREE)
