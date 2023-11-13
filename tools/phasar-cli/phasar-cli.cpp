@@ -366,7 +366,7 @@ int main(int Argc, const char **Argv) {
   validateParamAnalysisConfig();
   validatePTAJsonFile();
 
-  auto &PConfig = PhasarConfig::getPhasarConfig();
+  [[maybe_unused]] auto &PConfig = PhasarConfig::getPhasarConfig();
 
   // setup the emitter options to display the computed analysis results
   auto EmitterOptions = AnalysisControllerEmitterOptions::None;
