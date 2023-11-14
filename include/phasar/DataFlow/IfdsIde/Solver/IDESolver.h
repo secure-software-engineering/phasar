@@ -286,15 +286,16 @@ protected:
     const auto &ReturnSiteNs = ICF->getReturnSitesOfCallAt(n);
     const auto &Callees = ICF->getCalleesOfCallAt(n);
 
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(DEBUG, "Possible callees:"); for (auto Callee
-                                                           : Callees) {
-          PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName());
-        } PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
-        for (auto ret
-             : ReturnSiteNs) {
-          PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(ret));
-        });
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
+      PHASAR_LOG_LEVEL(DEBUG, "Possible callees:");
+      for (auto Callee : Callees) {
+        PHASAR_LOG_LEVEL(DEBUG, "  " << Callee->getName());
+      }
+      PHASAR_LOG_LEVEL(DEBUG, "Possible return sites:");
+      for (auto ret : ReturnSiteNs) {
+        PHASAR_LOG_LEVEL(DEBUG, "  " << NToString(ret));
+      }
+    });
 
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
@@ -315,11 +316,11 @@ protected:
                 CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                ReturnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1, Full);
-            IF_LOG_ENABLED(
-                PHASAR_LOG_LEVEL(
-                    DEBUG, "Queried Summary Edge Function: " << SumEdgFnE);
-                PHASAR_LOG_LEVEL(DEBUG, "Compose: " << SumEdgFnE << " * " << f
-                                                    << '\n'));
+
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "Queried Summary Edge Function: " << SumEdgFnE);
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "Compose: " << SumEdgFnE << " * " << f << '\n');
             WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
                                   f.composeWith(SumEdgFnE));
           }
@@ -562,7 +563,7 @@ protected:
   }
 
   void setVal(n_t NHashN, d_t NHashD, l_t L) {
-    IF_LOG_ENABLED({
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
       PHASAR_LOG_LEVEL(DEBUG,
                        "Function : " << ICF->getFunctionOf(NHashN)->getName());
       PHASAR_LOG_LEVEL(DEBUG, "Inst.    : " << NToString(NHashN));
@@ -580,13 +581,13 @@ protected:
   }
 
   EdgeFunction<l_t> jumpFunction(const PathEdge<n_t, d_t> Edge) {
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(DEBUG, "JumpFunctions Forward-Lookup:");
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "   Source D: " << DToString(Edge.factAtSource()));
-        PHASAR_LOG_LEVEL(DEBUG, "   Target N: " << NToString(Edge.getTarget()));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "   Target D: " << DToString(Edge.factAtTarget())));
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
+      PHASAR_LOG_LEVEL(DEBUG, "JumpFunctions Forward-Lookup:");
+      PHASAR_LOG_LEVEL(DEBUG,
+                       "   Source D: " << DToString(Edge.factAtSource()));
+      PHASAR_LOG_LEVEL(DEBUG, "   Target N: " << NToString(Edge.getTarget()));
+      PHASAR_LOG_LEVEL(DEBUG, "   Target D: " << DToString(Edge.factAtTarget()))
+    });
 
     auto FwdLookupRes =
         JumpFn->forwardLookup(Edge.factAtSource(), Edge.getTarget());
@@ -617,21 +618,22 @@ protected:
   void pathEdgeProcessingTask(PathEdge<n_t, d_t> Edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("JumpFn Construction", 1, Full);
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(
-            DEBUG,
-            "-------------------------------------------- "
-                << PathEdgeCount
-                << ". Path Edge --------------------------------------------");
-        PHASAR_LOG_LEVEL(DEBUG, ' ');
-        PHASAR_LOG_LEVEL(DEBUG, "Process " << PathEdgeCount << ". path edge:");
-        PHASAR_LOG_LEVEL(DEBUG, "< D source: " << DToString(Edge.factAtSource())
-                                               << " ;");
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "  N target: " << NToString(Edge.getTarget()) << " ;");
-        PHASAR_LOG_LEVEL(DEBUG, "  D target: " << DToString(Edge.factAtTarget())
-                                               << " >");
-        PHASAR_LOG_LEVEL(DEBUG, ' '));
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
+      PHASAR_LOG_LEVEL(
+          DEBUG,
+          "-------------------------------------------- "
+              << PathEdgeCount
+              << ". Path Edge --------------------------------------------");
+      PHASAR_LOG_LEVEL(DEBUG, ' ');
+      PHASAR_LOG_LEVEL(DEBUG, "Process " << PathEdgeCount << ". path edge:");
+      PHASAR_LOG_LEVEL(DEBUG, "< D source: " << DToString(Edge.factAtSource())
+                                             << " ;");
+      PHASAR_LOG_LEVEL(DEBUG,
+                       "  N target: " << NToString(Edge.getTarget()) << " ;");
+      PHASAR_LOG_LEVEL(DEBUG, "  D target: " << DToString(Edge.factAtTarget())
+                                             << " >");
+      PHASAR_LOG_LEVEL(DEBUG, ' ')
+    });
 
     if (!ICF->isCallSite(Edge.getTarget())) {
       if (ICF->isExitInst(Edge.getTarget())) {
@@ -1063,28 +1065,31 @@ protected:
     EdgeFunction<l_t> fPrime = JumpFnE.joinWith(f);
     bool NewFunction = fPrime != JumpFnE;
 
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(
-            DEBUG, "Join: " << JumpFnE << " & " << f
-                            << (JumpFnE == f ? " (EF's are equal)" : " "));
-        PHASAR_LOG_LEVEL(DEBUG,
-                         "    = " << fPrime
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
+      PHASAR_LOG_LEVEL(DEBUG,
+                       "Join: " << JumpFnE << " & " << f
+                                << (JumpFnE == f ? " (EF's are equal)" : " "));
+      PHASAR_LOG_LEVEL(DEBUG, "    = "
+                                  << fPrime
                                   << (NewFunction ? " (new jump func)" : " "));
-        PHASAR_LOG_LEVEL(DEBUG, ' '));
+      PHASAR_LOG_LEVEL(DEBUG, ' ')
+    });
     if (NewFunction) {
       JumpFn->addFunction(SourceVal, Target, TargetVal, fPrime);
       PathEdge Edge(SourceVal, Target, TargetVal);
       PathEdgeCount++;
       pathEdgeProcessingTask(std::move(Edge));
 
-      IF_LOG_ENABLED(if (!IDEProblem.isZeroValue(TargetVal)) {
-        PHASAR_LOG_LEVEL(DEBUG, "EDGE: <F: " << Target->getFunction()->getName()
-                                             << ", D: " << DToString(SourceVal)
-                                             << '>');
-        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
-        PHASAR_LOG_LEVEL(DEBUG, ' ');
+      IF_LOG_LEVEL_ENABLED(DEBUG, {
+        if (!IDEProblem.isZeroValue(TargetVal)) {
+          PHASAR_LOG_LEVEL(
+              DEBUG, "EDGE: <F: " << Target->getFunction()->getName()
+                                  << ", D: " << DToString(SourceVal) << '>');
+          PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
+          PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
+          PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
+          PHASAR_LOG_LEVEL(DEBUG, ' ');
+        }
       });
     } else {
       PHASAR_LOG_LEVEL(DEBUG, "PROPAGATE: No new function!");
@@ -1118,41 +1123,43 @@ protected:
   }
 
   void printIncomingTab() const {
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(DEBUG, "Start of incomingtab entry");
-        for (const auto &Cell
-             : IncomingTab.cellSet()) {
-          PHASAR_LOG_LEVEL(DEBUG, "sP: " << NToString(Cell.getRowKey()));
-          PHASAR_LOG_LEVEL(DEBUG, "d3: " << DToString(Cell.getColumnKey()));
-          for (const auto &Entry : Cell.getValue()) {
-            PHASAR_LOG_LEVEL(DEBUG, "  n: " << NToString(Entry.first));
-            for (const auto &Fact : Entry.second) {
-              PHASAR_LOG_LEVEL(DEBUG, "  d2: " << DToString(Fact));
-            }
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
+      PHASAR_LOG_LEVEL(DEBUG, "Start of incomingtab entry");
+      for (const auto &Cell : IncomingTab.cellSet()) {
+        PHASAR_LOG_LEVEL(DEBUG, "sP: " << NToString(Cell.getRowKey()));
+        PHASAR_LOG_LEVEL(DEBUG, "d3: " << DToString(Cell.getColumnKey()));
+        for (const auto &Entry : Cell.getValue()) {
+          PHASAR_LOG_LEVEL(DEBUG, "  n: " << NToString(Entry.first));
+          for (const auto &Fact : Entry.second) {
+            PHASAR_LOG_LEVEL(DEBUG, "  d2: " << DToString(Fact));
           }
-          PHASAR_LOG_LEVEL(DEBUG, "---------------");
-        } PHASAR_LOG_LEVEL(DEBUG, "End of incomingtab entry");)
+        }
+        PHASAR_LOG_LEVEL(DEBUG, "---------------");
+      }
+      PHASAR_LOG_LEVEL(DEBUG, "End of incomingtab entry");
+    })
   }
 
   void printEndSummaryTab() const {
-    IF_LOG_ENABLED(
-        PHASAR_LOG_LEVEL(DEBUG, "Start of endsummarytab entry");
+    IF_LOG_LEVEL_ENABLED(DEBUG, {
+      PHASAR_LOG_LEVEL(DEBUG, "Start of endsummarytab entry");
 
-        EndsummaryTab.foreachCell(
-            [](const auto &Row, const auto &Col, const auto &Val) {
-              PHASAR_LOG_LEVEL(DEBUG, "sP: " << NToString(Row));
-              PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(Col));
+      EndsummaryTab.foreachCell(
+          [](const auto &Row, const auto &Col, const auto &Val) {
+            PHASAR_LOG_LEVEL(DEBUG, "sP: " << NToString(Row));
+            PHASAR_LOG_LEVEL(DEBUG, "d1: " << DToString(Col));
 
-              Val.foreachCell([](const auto &InnerRow, const auto &InnerCol,
-                                 const auto &InnerVal) {
-                PHASAR_LOG_LEVEL(DEBUG, "  eP: " << NToString(InnerRow));
-                PHASAR_LOG_LEVEL(DEBUG, "  d2: " << DToString(InnerCol));
-                PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerVal);
-              });
-              PHASAR_LOG_LEVEL(DEBUG, "---------------");
+            Val.foreachCell([](const auto &InnerRow, const auto &InnerCol,
+                               const auto &InnerVal) {
+              PHASAR_LOG_LEVEL(DEBUG, "  eP: " << NToString(InnerRow));
+              PHASAR_LOG_LEVEL(DEBUG, "  d2: " << DToString(InnerCol));
+              PHASAR_LOG_LEVEL(DEBUG, "  EF: " << InnerVal);
             });
+            PHASAR_LOG_LEVEL(DEBUG, "---------------");
+          });
 
-        PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");)
+      PHASAR_LOG_LEVEL(DEBUG, "End of endsummarytab entry");
+    })
   }
 
   void printComputedPathEdges() {
@@ -1259,7 +1266,7 @@ protected:
         if (ICF->isCallSite(Edge.first)) {
           ValidInCallerContext[Edge.second].insert(D2s.begin(), D2s.end());
         }
-        IF_LOG_ENABLED([this](const auto &D2s) {
+        IF_LOG_LEVEL_ENABLED(DEBUG, [this](const auto &D2s) {
           for (auto D2 : D2s) {
             PHASAR_LOG_LEVEL(DEBUG, "d2: " << DToString(D2));
           }
@@ -1671,6 +1678,8 @@ private:
   void finalizeInternal() {
     PAMM_GET_INSTANCE;
     STOP_TIMER("DFA Phase I", Full);
+    PHASAR_LOG_LEVEL(INFO, "[info]: IDE Phase I completed");
+
     if (SolverConfig.computeValues()) {
       START_TIMER("DFA Phase II", Full);
       // Computing the final values for the edge functions
@@ -1679,6 +1688,7 @@ private:
       computeValues();
       STOP_TIMER("DFA Phase II", Full);
     }
+
     PHASAR_LOG_LEVEL(INFO, "Problem solved");
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();

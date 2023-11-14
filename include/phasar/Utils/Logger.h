@@ -83,7 +83,7 @@ private:
   static inline std::map<std::optional<SeverityLevel>,
                          std::variant<StdStream, std::string>>
       LevelsToStreamVariant;
-  static inline SeverityLevel LogFilterLevel = DEBUG;
+  static inline SeverityLevel LogFilterLevel = CRITICAL;
   static std::string toString(SeverityLevel Level);
   static inline llvm::StringMap<llvm::raw_fd_ostream> LogfileStreams;
   // static inline auto StartTime = std::chrono::steady_clock::now();
@@ -108,16 +108,18 @@ private:
   }
 
 #define IS_LOG_ENABLED ::psr::Logger::isLoggingEnabled()
-
 #define IF_LOG_ENABLED(computation)                                            \
   IF_LOG_ENABLED_BOOL(::psr::Logger::isLoggingEnabled(), computation)
 
+#define IS_LOG_LEVEL_ENABLED(level)                                            \
+  (::psr::Logger::isLoggingEnabled() &&                                        \
+   (::psr::SeverityLevel::level) >= ::psr::Logger::getLoggerFilterLevel())
+#define IF_LOG_LEVEL_ENABLED(level, computation)                               \
+  IF_LOG_ENABLED_BOOL(IS_LOG_LEVEL_ENABLED(level), computation)
+
 #define PHASAR_LOG_LEVEL(level, message)                                       \
   IF_LOG_ENABLED_BOOL(                                                         \
-      ::psr::Logger::isLoggingEnabled() &&                                     \
-          (::psr::SeverityLevel::level) >=                                     \
-              ::psr::Logger::getLoggerFilterLevel(),                           \
-      do {                                                                     \
+      IS_LOG_LEVEL_ENABLED(level), do {                                        \
         auto &Stream = ::psr::Logger::getLogStream(                            \
             ::psr::SeverityLevel::level, std::nullopt);                        \
         ::psr::Logger::addLinePrefix(Stream, ::psr::SeverityLevel::level,      \
@@ -155,9 +157,13 @@ private:
       } while (false);)
 
 #else
+#define IS_LOG_ENABLED false
 #define IF_LOG_ENABLED_BOOL(condition, computation)                            \
   {}
 #define IF_LOG_ENABLED(computation)                                            \
+  {}
+#define IS_LOG_LEVEL_ENABLED(level) false
+#define IF_LOG_LEVEL_ENABLED(level, computation)                               \
   {}
 #define PHASAR_LOG(computation)                                                \
   {}
@@ -167,7 +173,6 @@ private:
   {}
 #define PHASAR_LOG_LEVEL(level, message)                                       \
   {}
-#define IS_LOG_ENABLED false
 #endif
 
 /**

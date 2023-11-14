@@ -56,6 +56,7 @@ void Logger::initializeStdoutLogger(
   } else {
     LevelsToStreamVariant[Level] = StdStream::STDOUT;
   }
+  LogFilterLevel = std::min(LogFilterLevel, Level.value_or(CRITICAL));
 }
 
 void Logger::initializeStderrLogger(
@@ -67,6 +68,7 @@ void Logger::initializeStderrLogger(
   } else {
     LevelsToStreamVariant[Level] = StdStream::STDERR;
   }
+  LogFilterLevel = std::min(LogFilterLevel, Level.value_or(CRITICAL));
 }
 
 [[nodiscard]] bool Logger::initializeFileLogger(
@@ -78,6 +80,8 @@ void Logger::initializeStderrLogger(
   } else {
     LevelsToStreamVariant[Level] = Filename.str();
   }
+
+  LogFilterLevel = std::min(LogFilterLevel, Level.value_or(CRITICAL));
 
   std::error_code EC;
   auto [It, Inserted] = [&] {
