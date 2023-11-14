@@ -59,7 +59,7 @@ TEST(EquivalenceClassMap, insertKeyRef) {
   int Key = 42;
   const MapTy::key_type &KeyRef = Key;
 
-  M.insert(42, "foo");
+  M.insert(KeyRef, "foo");
   EXPECT_EQ(M.findValue(42), "foo");
 }
 

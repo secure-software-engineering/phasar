@@ -695,7 +695,7 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
                                                       d_t SuccNode)
     -> EdgeFunctionType {
 
-  const auto *Call = llvm::cast<llvm::CallBase>(Curr);
+  // const auto *Call = llvm::cast<llvm::CallBase>(Curr);
 
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     return GenEdgeFunction{nullptr};
