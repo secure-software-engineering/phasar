@@ -794,6 +794,19 @@ public:
   virtual FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                                  n_t ExitInst, n_t RetSite) = 0;
 
+  // Performs any side-effects of a return-flow-function
+  //
+  // In case of unbalanced returns (if the option `followReturnsPastSeeds` is
+  // activated in the IfdsIdeSolverConfig), we will eventually reach a function
+  // that is not called from other functions. Still, we may want to apply a
+  // return-flow-function -- just for its side-effects, such as registering a
+  // taint
+  virtual void applyUnbalancedRetFlowFunctionSideEffects(f_t CalleeFun,
+                                                         n_t ExitInst,
+                                                         d_t Source) {
+    // By default, do nothing
+  }
+
   //
   // Describes the data-flows alongsite a CallSite.
   //

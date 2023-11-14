@@ -14,9 +14,12 @@
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <optional>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -264,6 +267,28 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   }
 
   return OS;
+}
+
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE void assertNotNull(const T & /*Value*/) {}
+
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE void
+assertNotNull([[maybe_unused]] const std::optional<T> &Value) {
+  assert(Value.has_value());
+}
+
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE void
+assertNotNull([[maybe_unused]] const T *Value) {
+  assert(Value != nullptr);
+}
+
+template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {
+  assertNotNull(Range);
+  for (const auto &Elem : Range) {
+    assertNotNull(Elem);
+  }
 }
 
 } // namespace psr

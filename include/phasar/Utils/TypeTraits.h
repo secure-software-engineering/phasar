@@ -257,6 +257,10 @@ template <typename T> struct DefaultConstruct {
   }
 };
 
+struct IgnoreArgs {
+  template <typename... U> void operator()(U &&.../*Val*/) noexcept {}
+};
+
 template <typename T> void reserveIfPossible(T &Container, size_t Capacity) {
   if constexpr (detail::has_reserve<T>::value) {
     Container.reserve(Capacity);

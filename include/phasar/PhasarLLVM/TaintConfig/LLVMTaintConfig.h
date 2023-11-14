@@ -19,6 +19,7 @@
 namespace psr {
 class LLVMTaintConfig;
 class LLVMProjectIRDB;
+struct TaintConfigData;
 
 template <> struct TaintConfigTraits<LLVMTaintConfig> {
   using n_t = const llvm::Instruction *;
@@ -31,7 +32,7 @@ class LLVMTaintConfig : public TaintConfigBase<LLVMTaintConfig> {
 
 public:
   explicit LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                           const nlohmann::json &Config);
+                           const psr::TaintConfigData &Config);
   explicit LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode);
   explicit LLVMTaintConfig(
       TaintDescriptionCallBackTy SourceCB, TaintDescriptionCallBackTy SinkCB,
@@ -93,7 +94,7 @@ private:
   // --- utilities
 
   void addAllFunctions(const LLVMProjectIRDB &IRDB,
-                       const nlohmann::json &Config);
+                       const TaintConfigData &Config);
 
   // --- data members
 

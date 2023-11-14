@@ -29,6 +29,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -380,6 +381,19 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
 
+bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
+  if (F.hasName()) {
+    llvm::StringRef FunctionName = F.getName();
+    return llvm::StringSwitch<bool>(FunctionName)
+        .Cases(GlobalCRuntimeModelName, GlobalCRuntimeDtorModelName,
+               GlobalCRuntimeDtorsCallerName,
+               GlobalCRuntimeUserEntrySelectorName, true)
+        .Default(false);
+  }
+
+  return false;
+}
+
 [[nodiscard]] FunctionRange LLVMBasedICFG::getAllFunctionsImpl() const {
   return IRDB->getAllFunctions();
 }
@@ -442,5 +456,7 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
 }
+
+template class ICFGBase<LLVMBasedICFG>;
 
 } // namespace psr
