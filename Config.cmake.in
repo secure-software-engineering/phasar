@@ -13,6 +13,11 @@ find_package(LLVM 14 REQUIRED CONFIG)
 
 set(PHASAR_USE_LLVM_FAT_LIB @USE_LLVM_FAT_LIB@)
 set(PHASAR_BUILD_DYNLIB @PHASAR_BUILD_DYNLIB@)
+set(PHASAR_USE_Z3 @PHASAR_USE_Z3@)
+
+if (PHASAR_USE_Z3)
+  find_dependency(Z3)
+endif()
 
 # TODO: The order seems to be important in the include'ing loop below. Fix this!
 
