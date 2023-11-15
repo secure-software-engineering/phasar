@@ -107,14 +107,14 @@ class ZeroedFlowFunction : public FlowFunction<D, Container> {
 
 public:
   ZeroedFlowFunction(FlowFunctionPtrType FF, D ZV)
-      : Delegate(std::move(FF)), ZeroValue(ZV) {}
+      : Delegate(std::move(FF)), ZeroValue(std::move(ZV)) {}
   container_type computeTargets(D Source) override {
     if (Source == ZeroValue) {
       container_type Result = Delegate->computeTargets(Source);
       Result.insert(ZeroValue);
       return Result;
     }
-    return Delegate->computeTargets(Source);
+    return Delegate->computeTargets(std::move(Source));
   }
 
 private:
@@ -423,9 +423,7 @@ public:
   ///
   static auto killAllFlows() {
     struct KillAllFF final : public FlowFunction<d_t, container_type> {
-      Container computeTargets(d_t Source) override {
-        return {std::move(Source)};
-      }
+      Container computeTargets(d_t /*Source*/) override { return Container(); }
     };
     static auto TheKillAllFlow = std::make_shared<KillAllFF>();
 
