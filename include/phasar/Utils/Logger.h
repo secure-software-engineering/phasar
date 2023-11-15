@@ -12,17 +12,12 @@
 
 #include "phasar/Config/phasar-config.h"
 
-#include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
-#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <map>
 #include <optional>
 #include <string>
-#include <type_traits>
-#include <variant>
 
 namespace psr {
 
@@ -32,29 +27,31 @@ enum SeverityLevel {
   INVALID
 };
 
-SeverityLevel parseSeverityLevel(llvm::StringRef Str);
+[[nodiscard]] SeverityLevel parseSeverityLevel(llvm::StringRef Str) noexcept;
+[[nodiscard]] llvm::StringRef to_string(SeverityLevel Level) noexcept;
 
 class Logger final {
 public:
   /**
    * Set the filter level.
    */
-  static void setLoggerFilterLevel(SeverityLevel Level);
+  static void setLoggerFilterLevel(SeverityLevel Level) noexcept;
 
-  static SeverityLevel getLoggerFilterLevel();
+  static SeverityLevel getLoggerFilterLevel() noexcept {
+    return LogFilterLevel;
+  }
 
-  static bool isLoggingEnabled();
+  static bool isLoggingEnabled() noexcept { return LoggingEnabled; }
 
-  static void enable() { LoggingEnabled = true; };
-
-  static void disable() { LoggingEnabled = false; };
+  static void enable() noexcept { LoggingEnabled = true; };
+  static void disable() noexcept { LoggingEnabled = false; };
 
   static llvm::raw_ostream &
   getLogStream(std::optional<SeverityLevel> Level,
                const std::optional<llvm::StringRef> &Category);
 
   static bool logCategory(llvm::StringRef Category,
-                          std::optional<SeverityLevel> Level);
+                          std::optional<SeverityLevel> Level) noexcept;
 
   static void addLinePrefix(llvm::raw_ostream &,
                             std::optional<SeverityLevel> Level,
@@ -75,32 +72,15 @@ public:
       bool Append = false);
 
 private:
-  enum class StdStream : uint8_t { STDOUT = 0, STDERR };
   static inline bool LoggingEnabled = false;
-  static inline llvm::StringMap<std::map<std::optional<SeverityLevel>,
-                                         std::variant<StdStream, std::string>>>
-      CategoriesToStreamVariant;
-  static inline std::map<std::optional<SeverityLevel>,
-                         std::variant<StdStream, std::string>>
-      LevelsToStreamVariant;
   static inline SeverityLevel LogFilterLevel = CRITICAL;
-  static std::string toString(SeverityLevel Level);
-  static inline llvm::StringMap<llvm::raw_fd_ostream> LogfileStreams;
-  // static inline auto StartTime = std::chrono::steady_clock::now();
-  [[nodiscard]] static llvm::raw_ostream &
-  getLogStream(std::optional<SeverityLevel> Level,
-               const std::map<std::optional<SeverityLevel>,
-                              std::variant<StdStream, std::string>>
-                   &PassedLevelsToStreamVariant);
-  [[nodiscard]] static llvm::raw_ostream &getLogStreamFromStreamVariant(
-      const std::variant<StdStream, std::string> &StreamVariant);
 };
 
 #ifdef DYNAMIC_LOG
 
 // For performance reason, we want to disable any
 // formatting computation that would go straight into
-// logs if logs are deactivated This macro does just
+// logs if logs are deactivated. This macro does just
 // that
 #define IF_LOG_ENABLED_BOOL(condition, computation)                            \
   if (LLVM_UNLIKELY(condition)) {                                              \
