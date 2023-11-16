@@ -50,12 +50,17 @@ public:
   getLogStream(std::optional<SeverityLevel> Level,
                const std::optional<llvm::StringRef> &Category);
 
-  static bool logCategory(llvm::StringRef Category,
-                          std::optional<SeverityLevel> Level) noexcept;
+  static llvm::raw_ostream &
+  getLogStreamWithLinePrefix(std::optional<SeverityLevel> Level,
+                             const std::optional<llvm::StringRef> &Category);
+
+  [[nodiscard]] static bool
+  logCategory(llvm::StringRef Category,
+              std::optional<SeverityLevel> Level) noexcept;
 
   static void addLinePrefix(llvm::raw_ostream &,
                             std::optional<SeverityLevel> Level,
-                            const std::optional<std::string> &Category);
+                            const std::optional<llvm::StringRef> &Category);
 
   static void initializeStdoutLogger(
       std::optional<SeverityLevel> Level = std::nullopt,
@@ -98,43 +103,42 @@ private:
   IF_LOG_ENABLED_BOOL(IS_LOG_LEVEL_ENABLED(level), computation)
 
 #define PHASAR_LOG_LEVEL(level, message)                                       \
-  IF_LOG_ENABLED_BOOL(                                                         \
-      IS_LOG_LEVEL_ENABLED(level), do {                                        \
-        auto &Stream = ::psr::Logger::getLogStream(                            \
-            ::psr::SeverityLevel::level, std::nullopt);                        \
-        ::psr::Logger::addLinePrefix(Stream, ::psr::SeverityLevel::level,      \
-                                     std::nullopt);                            \
-        /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
-        Stream << message << '\n';                                             \
-      } while (false);)
+  do {                                                                         \
+    IF_LOG_ENABLED_BOOL(IS_LOG_LEVEL_ENABLED(level), {                         \
+      auto &Stream = ::psr::Logger::getLogStreamWithLinePrefix(                \
+          ::psr::SeverityLevel::level, std::nullopt);                          \
+      /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                         \
+      Stream << message << '\n';                                               \
+    })                                                                         \
+  } while (false)
 
 #define PHASAR_LOG(message) PHASAR_LOG_LEVEL(DEBUG, message)
 
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message)                              \
-  IF_LOG_ENABLED_BOOL(                                                         \
-      ::psr::Logger::isLoggingEnabled() &&                                     \
-          (::psr::SeverityLevel::level) >=                                     \
-              ::psr::Logger::getLoggerFilterLevel() &&                         \
-          ::psr::Logger::logCategory(cat, ::psr::SeverityLevel::level),        \
-      do {                                                                     \
-        auto &Stream =                                                         \
-            ::psr::Logger::getLogStream(::psr::SeverityLevel::level, cat);     \
-        ::psr::Logger::addLinePrefix(Stream, ::psr::SeverityLevel::level,      \
-                                     cat);                                     \
-        /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
-        Stream << message << '\n';                                             \
-      } while (false);)
+  do {                                                                         \
+    IF_LOG_ENABLED_BOOL(                                                       \
+        IS_LOG_LEVEL_ENABLED(level) &&                                         \
+            ::psr::Logger::logCategory(cat, ::psr::SeverityLevel::level),      \
+        {                                                                      \
+          auto &Stream = ::psr::Logger::getLogStreamWithLinePrefix(            \
+              ::psr::SeverityLevel::level, cat);                               \
+          /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                     \
+          Stream << message << '\n';                                           \
+        })                                                                     \
+  } while (false)
 
 #define PHASAR_LOG_CAT(cat, message)                                           \
-  IF_LOG_ENABLED_BOOL(                                                         \
-      ::psr::Logger::isLoggingEnabled() &&                                     \
-          ::psr::Logger::logCategory(cat, std::nullopt),                       \
-      do {                                                                     \
-        auto &Stream = ::psr::Logger::getLogStream(std::nullopt, cat);         \
-        ::psr::Logger::addLinePrefix(Stream, std::nullopt, cat);               \
-        /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                       \
-        Stream << message << '\n';                                             \
-      } while (false);)
+  do {                                                                         \
+    IF_LOG_ENABLED_BOOL(::psr::Logger::isLoggingEnabled() &&                   \
+                            ::psr::Logger::logCategory(cat, std::nullopt),     \
+                        {                                                      \
+                          auto &Stream =                                       \
+                              ::psr::Logger::getLogStreamWithLinePrefix(       \
+                                  std::nullopt, cat);                          \
+                          /* NOLINTNEXTLINE(bugprone-macro-parentheses) */     \
+                          Stream << message << '\n';                           \
+                        })                                                     \
+  } while (false)
 
 #else
 #define IS_LOG_ENABLED false
@@ -145,14 +149,10 @@ private:
 #define IS_LOG_LEVEL_ENABLED(level) false
 #define IF_LOG_LEVEL_ENABLED(level, computation)                               \
   {}
-#define PHASAR_LOG(computation)                                                \
-  {}
-#define PHASAR_LOG_CAT(cat, message)                                           \
-  {}
-#define PHASAR_LOG_LEVEL_CAT(level, cat, message)                              \
-  {}
-#define PHASAR_LOG_LEVEL(level, message)                                       \
-  {}
+#define PHASAR_LOG(computation) (void)0
+#define PHASAR_LOG_CAT(cat, message) (void)0
+#define PHASAR_LOG_LEVEL_CAT(level, cat, message) (void)0
+#define PHASAR_LOG_LEVEL(level, message) (void)0
 #endif
 
 /**

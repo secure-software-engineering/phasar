@@ -586,7 +586,8 @@ protected:
       PHASAR_LOG_LEVEL(DEBUG,
                        "   Source D: " << DToString(Edge.factAtSource()));
       PHASAR_LOG_LEVEL(DEBUG, "   Target N: " << NToString(Edge.getTarget()));
-      PHASAR_LOG_LEVEL(DEBUG, "   Target D: " << DToString(Edge.factAtTarget()))
+      PHASAR_LOG_LEVEL(DEBUG,
+                       "   Target D: " << DToString(Edge.factAtTarget()));
     });
 
     auto FwdLookupRes =
@@ -632,7 +633,7 @@ protected:
                        "  N target: " << NToString(Edge.getTarget()) << " ;");
       PHASAR_LOG_LEVEL(DEBUG, "  D target: " << DToString(Edge.factAtTarget())
                                              << " >");
-      PHASAR_LOG_LEVEL(DEBUG, ' ')
+      PHASAR_LOG_LEVEL(DEBUG, ' ');
     });
 
     if (!ICF->isCallSite(Edge.getTarget())) {
@@ -1072,7 +1073,7 @@ protected:
       PHASAR_LOG_LEVEL(DEBUG, "    = "
                                   << fPrime
                                   << (NewFunction ? " (new jump func)" : " "));
-      PHASAR_LOG_LEVEL(DEBUG, ' ')
+      PHASAR_LOG_LEVEL(DEBUG, ' ');
     });
     if (NewFunction) {
       JumpFn->addFunction(SourceVal, Target, TargetVal, fPrime);

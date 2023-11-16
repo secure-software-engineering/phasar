@@ -16,6 +16,9 @@
 
 #include "phasar/Utils/Logger.h"
 
+#include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/FileSystem.h"
@@ -44,13 +47,13 @@ llvm::StringRef psr::to_string(SeverityLevel Level) noexcept {
 namespace psr {
 namespace logger {
 
-enum class StdStream : uint8_t { STDOUT = 0, STDERR };
+struct StdOut {};
+struct StdErr {};
+using StreamVariantTy = std::variant<StdOut, StdErr, std::string>;
 
-static llvm::StringMap<std::map<std::optional<SeverityLevel>,
-                                std::variant<StdStream, std::string>>>
+static llvm::StringMap<std::map<std::optional<SeverityLevel>, StreamVariantTy>>
     CategoriesToStreamVariant;
-static std::map<std::optional<SeverityLevel>,
-                std::variant<StdStream, std::string>>
+static std::map<std::optional<SeverityLevel>, StreamVariantTy>
     LevelsToStreamVariant;
 
 static llvm::StringMap<llvm::raw_fd_ostream> LogfileStreams;
@@ -58,51 +61,57 @@ static llvm::StringMap<llvm::raw_fd_ostream> LogfileStreams;
 
 // ---
 
-[[nodiscard]] static llvm::raw_ostream &getLogStreamFromStreamVariant(
-    const std::variant<logger::StdStream, std::string> &StreamVariant) {
-  using namespace logger;
-  if (std::holds_alternative<StdStream>(StreamVariant)) {
-    auto StdStreamKind = std::get<StdStream>(StreamVariant);
-    if (StdStreamKind == StdStream::STDOUT) {
-      return llvm::outs();
-    }
-    if (StdStreamKind == StdStream::STDERR) {
-      return llvm::errs();
-    }
-    return llvm::nulls();
+[[nodiscard]] static llvm::raw_ostream &
+getLogStreamFromStreamVariant(const StreamVariantTy &StreamVariant) {
+  switch (StreamVariant.index()) {
+  case variant_idx<StreamVariantTy, StdOut>:
+    return llvm::outs();
+  case variant_idx<StreamVariantTy, StdErr>:
+    return llvm::errs();
+  case variant_idx<StreamVariantTy, std::string>: {
+    const auto &Filename = std::get<std::string>(StreamVariant);
+    auto It = LogfileStreams.find(Filename);
+    assert(It != LogfileStreams.end());
+    return It->second;
   }
-  auto It = LogfileStreams.find(std::get<std::string>(StreamVariant));
-  assert(It != LogfileStreams.end());
-  return It->second;
+  }
+  llvm_unreachable("All stream variants should be handled in the switch above");
 }
 
 [[nodiscard]] static llvm::raw_ostream &
 getLogStream(std::optional<SeverityLevel> Level,
-             const std::map<std::optional<SeverityLevel>,
-                            std::variant<logger::StdStream, std::string>>
+             const std::map<std::optional<SeverityLevel>, StreamVariantTy>
                  &PassedLevelsToStreamVariant) {
-  using namespace logger;
   if (Level.has_value()) {
-    std::optional<SeverityLevel> ClosestLevel = std::nullopt;
-    for (const auto &[LevelThreshold, _] : PassedLevelsToStreamVariant) {
-      if (LevelThreshold <= Level.value()) {
-        if (!ClosestLevel || ClosestLevel.value() < LevelThreshold) {
-          ClosestLevel = LevelThreshold;
-        }
+    for (const auto &[LevelThreshold, StreamVar] :
+         llvm::reverse(PassedLevelsToStreamVariant)) {
+      if (LevelThreshold <= *Level) {
+        return getLogStreamFromStreamVariant(StreamVar);
       }
     }
-    auto StreamVariantIt = PassedLevelsToStreamVariant.find(ClosestLevel);
-    if (StreamVariantIt != PassedLevelsToStreamVariant.end()) {
-      return getLogStreamFromStreamVariant(StreamVariantIt->second);
-    }
-    return llvm::nulls();
+    // fallthrough
   }
-  auto StreamVariantIt = PassedLevelsToStreamVariant.find(Level);
+
+  auto StreamVariantIt = PassedLevelsToStreamVariant.find(std::nullopt);
   if (StreamVariantIt != PassedLevelsToStreamVariant.end()) {
     return getLogStreamFromStreamVariant(StreamVariantIt->second);
   }
   return llvm::nulls();
 }
+
+template <typename StdStreamTy>
+void initializeLoggerImpl(std::optional<SeverityLevel> Level,
+                          const std::optional<std::string> &Category,
+                          StdStreamTy Stream) {
+  using namespace logger;
+  if (Category.has_value()) {
+    CategoriesToStreamVariant[*Category].insert_or_assign(Level,
+                                                          std::move(Stream));
+  } else {
+    LevelsToStreamVariant.insert_or_assign(Level, std::move(Stream));
+  }
+}
+
 } // namespace logger
 
 void Logger::setLoggerFilterLevel(SeverityLevel Level) noexcept {
@@ -114,58 +123,37 @@ void Logger::initializeStdoutLogger(
     std::optional<SeverityLevel> Level,
     const std::optional<std::string> &Category) {
   LoggingEnabled = true;
-  using namespace logger;
-  if (Category.has_value()) {
-    CategoriesToStreamVariant[*Category][Level] = StdStream::STDOUT;
-  } else {
-    LevelsToStreamVariant[Level] = StdStream::STDOUT;
-  }
+  logger::initializeLoggerImpl(Level, Category, logger::StdOut{});
   LogFilterLevel = std::min(LogFilterLevel, Level.value_or(CRITICAL));
 }
 
 void Logger::initializeStderrLogger(
     std::optional<SeverityLevel> Level,
     const std::optional<std::string> &Category) {
-  using namespace logger;
   LoggingEnabled = true;
-  if (Category.has_value()) {
-    CategoriesToStreamVariant[*Category][Level] = StdStream::STDERR;
-  } else {
-    LevelsToStreamVariant[Level] = StdStream::STDERR;
-  }
+  logger::initializeLoggerImpl(Level, Category, logger::StdErr{});
   LogFilterLevel = std::min(LogFilterLevel, Level.value_or(CRITICAL));
 }
 
-[[nodiscard]] bool Logger::initializeFileLogger(
-    llvm::StringRef Filename, std::optional<SeverityLevel> Level,
-    const std::optional<std::string> &Category, bool Append) {
-  using namespace logger;
-  LoggingEnabled = true;
-  if (Category.has_value()) {
-    CategoriesToStreamVariant[*Category][Level] = Filename.str();
-  } else {
-    LevelsToStreamVariant[Level] = Filename.str();
-  }
+bool Logger::initializeFileLogger(llvm::StringRef Filename,
+                                  std::optional<SeverityLevel> Level,
+                                  const std::optional<std::string> &Category,
+                                  bool Append) {
+  using logger::LogfileStreams;
 
+  LoggingEnabled = true;
+  logger::initializeLoggerImpl(Level, Category, Filename.str());
   LogFilterLevel = std::min(LogFilterLevel, Level.value_or(CRITICAL));
 
-  std::error_code EC;
-  auto [It, Inserted] = [&] {
-    if (Append) {
-      return LogfileStreams.try_emplace(
-          Filename, Filename, EC,
-          llvm::sys::fs::OpenFlags::OF_Append |
-              llvm::sys::fs::OpenFlags::OF_ChildInherit);
-    }
-
-    return LogfileStreams.try_emplace(
-        Filename, Filename, EC, llvm::sys::fs::OpenFlags::OF_ChildInherit);
-  }();
-
-  if (!Inserted) {
-    return true;
+  auto Flags = llvm::sys::fs::OpenFlags::OF_ChildInherit;
+  if (Append) {
+    Flags |= llvm::sys::fs::OpenFlags::OF_Append;
   }
 
+  std::error_code EC;
+  LogfileStreams.try_emplace(Filename, Filename, EC, Flags);
+
+  // EC can only be true, if a new filestream was inserted
   if (EC) {
     LogfileStreams.erase(Filename);
     llvm::errs() << "Failed to open logfile: " << Filename << '\n';
@@ -189,6 +177,14 @@ Logger::getLogStream(std::optional<SeverityLevel> Level,
   return logger::getLogStream(Level, LevelsToStreamVariant);
 }
 
+llvm::raw_ostream &Logger::getLogStreamWithLinePrefix(
+    std::optional<SeverityLevel> Level,
+    const std::optional<llvm::StringRef> &Category) {
+  auto &OS = getLogStream(Level, Category);
+  addLinePrefix(OS, Level, Category);
+  return OS;
+}
+
 bool Logger::logCategory(llvm::StringRef Category,
                          std::optional<SeverityLevel> Level) noexcept {
   using namespace logger;
@@ -204,24 +200,24 @@ bool Logger::logCategory(llvm::StringRef Category,
     }
     return false;
   }
-  return CategoryLookupIt->second.count(Level) > 0;
+  return CategoryLookupIt->second.count(Level);
 }
 
 void Logger::addLinePrefix(llvm::raw_ostream &OS,
                            std::optional<SeverityLevel> Level,
-                           const std::optional<std::string> &Category) {
+                           const std::optional<llvm::StringRef> &Category) {
   // const auto NowTime = std::chrono::steady_clock::now();
   // const auto MillisecondsDuration =
   //     chrono::duration_cast<chrono::milliseconds>(NowTime -
   //     StartTime).count();
   // OS << MillisecondsDuration;
   if (Level.has_value()) {
-    OS << '[' << to_string(Level.value()) << ']';
+    OS << '[' << to_string(*Level) << ']';
   } // else {
     // OS << ' ';
     // }
   if (Category.has_value()) {
-    OS << '[' << Category.value() << ']';
+    OS << '[' << *Category << ']';
   } // else {
   //   OS << ' ';
   // }
