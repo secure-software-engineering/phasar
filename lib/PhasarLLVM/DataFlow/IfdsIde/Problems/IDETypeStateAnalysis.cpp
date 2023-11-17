@@ -182,12 +182,15 @@ auto IDETypeStateAnalysisBase::getCallToRetFlowFunction(
     n_t CallSite, n_t /*RetSite*/, llvm::ArrayRef<f_t> Callees)
     -> FlowFunctionPtrType {
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+  bool DeclarationOnlyCalleeFound = false;
   for (const auto *Callee : Callees) {
     std::string DemangledFname = llvm::demangle(Callee->getName().str());
     // Generate the return value of factory functions from zero value
     if (isFactoryFunction(DemangledFname)) {
       return this->generateFromZero(CS);
     }
+
+    DeclarationOnlyCalleeFound |= Callee->isDeclaration();
 
     /// XXX: Revisit this:
 
@@ -207,9 +210,11 @@ auto IDETypeStateAnalysisBase::getCallToRetFlowFunction(
           return killManyFlows(getWMAliasesAndAllocas(Arg.get()));
         }
       }
-      return killFlowIf(
-          [](d_t Source) { return llvm::isa<llvm::Constant>(Source); });
     }
+  }
+  if (!DeclarationOnlyCalleeFound) {
+    return killFlowIf(
+        [](d_t Source) { return llvm::isa<llvm::Constant>(Source); });
   }
   return identityFlow();
 }
