@@ -14,6 +14,11 @@ jobs:
       matrix:
         compiler: [ [clang++-14, clang-14] ]
         build: [ Debug, Release ]
+        include:
+          - build: Debug
+            flags: -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+          - build: Release
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF
 
     continue-on-error: false
     steps:
@@ -23,20 +28,11 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Install Basic Dependencies
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install --no-install-recommends \
-              cmake \
-              ninja-build \
-              libstdc++6 \
-              libboost-all-dev
-
       - name: Install Phasar Dependencies
         shell: bash
         run: |
           ./utils/InstallAptDependencies.sh
+          sudo apt-get -y install --no-install-recommends libboost-graph-dev
 
       - name: Install Strategy Dependencies
         shell: bash
@@ -59,7 +55,6 @@ jobs:
           swift-version: "5.8.1"
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
-          BUILD_TYPE: ${{ matrix.build }}
           CXX: ${{ matrix.compiler[0] }}
           CC: ${{ matrix.compiler[1] }}
         shell: bash
@@ -67,9 +62,10 @@ jobs:
           mkdir build
           cd build
           cmake .. \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_CXX_COMPILER=$CXX \
-            -DBUILD_SWIFT_TESTS=1 \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build }} \
+            -DBUILD_SWIFT_TESTS=ON \
+            -DPHASAR_DEBUG_LIBDEPS=ON \
+            ${{ matrix.flags }} \
             -G Ninja
           cmake --build .
 

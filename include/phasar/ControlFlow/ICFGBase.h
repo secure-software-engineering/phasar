@@ -101,14 +101,7 @@ public:
                            n_t>);
     return self().getReturnSitesOfCallAtImpl(Inst);
   }
-  /// Returns an iterable range of all global initializer functions
-  [[nodiscard]] decltype(auto)
-  getGlobalInitializers(ByConstRef<f_t> Fun) const {
-    static_assert(
-        is_iterable_over_v<decltype(self().getGlobalInitializersImpl(Fun)),
-                           f_t>);
-    return self().getGlobalInitializersImpl(Fun);
-  }
+
   /// Prints the underlying call-graph as DOT to the given output-stream
   void print(llvm::raw_ostream &OS = llvm::outs()) const {
     self().printImpl(OS);

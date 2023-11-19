@@ -27,6 +27,9 @@ struct HelperAnalysisConfig {
   Soundness SoundnessLevel = Soundness::Soundy;
   bool AutoGlobalSupport = true;
   bool AllowLazyPTS = true;
+  /// Preprocess a ProjectIRDB even if it gets constructed by an already
+  /// existing llvm::Module
+  bool PreprocessExistingModule = true;
 
   HelperAnalysisConfig &&withCGType(CallGraphAnalysisType CGTy) &&noexcept {
     this->CGTy = CGTy;

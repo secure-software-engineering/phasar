@@ -16,6 +16,7 @@
 
 #include "phasar/Config/Configuration.h"
 
+#include "phasar/Config/phasar-config.h"
 #include "phasar/Utils/ErrorHandling.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
@@ -32,6 +33,9 @@
 #include <iterator>
 #include <system_error>
 
+#define XSTR(S) STR(S)
+#define STR(S) #S
+
 using namespace psr;
 
 namespace psr {
@@ -43,10 +47,12 @@ llvm::StringRef PhasarConfig::GlobalConfigurationDirectory() noexcept {
   return PHASAR_CONFIG_DIR;
 }
 
-llvm::StringRef PhasarConfig::PhasarDirectory() noexcept { return PHASAR_DIR; }
+llvm::StringRef PhasarConfig::PhasarDirectory() noexcept {
+  return PHASAR_SRC_DIR;
+}
 
 llvm::StringRef PhasarConfig::DefaultSourceSinkFunctionsPath() noexcept {
-  return PHASAR_DIR "/config/phasar-source-sink-function.json";
+  return PHASAR_SRC_DIR "/config/phasar-source-sink-function.json";
 }
 
 PhasarConfig::PhasarConfig() {
