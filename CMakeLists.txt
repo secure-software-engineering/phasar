@@ -70,6 +70,27 @@ string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
 
+include(CheckCXXCompilerFlag)
+
+# Handle memory issues with linking
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  string(APPEND CMAKE_CXX_FLAGS_DEBUG " -gsplit-dwarf")
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -gsplit-dwarf")
+  set(LINKER_FLAGS_SAVE ${CMAKE_EXE_LINKER_FLAGS})
+
+  # See LLVM_USE_SPLIT_DWARF in LLVM
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gdb-index")
+  cmake_policy(PUSH)
+  cmake_policy(SET CMP0056 NEW)
+  check_cxx_compiler_flag("" GDB_INDEX_SUPPORTED)
+  cmake_policy(POP)
+  set(CMAKE_EXE_LINKER_FLAGS ${LINKER_FLAGS_SAVE})
+
+  if(GDB_INDEX_SUPPORTED)
+    link_libraries(debug "-Wl,--gdb-index")
+  endif()
+endif()
+
 # march=native
 
 # NOTE: Use gcc -march=native -Q --help=target | grep -- '-march=' | cut -f3
@@ -87,7 +108,6 @@ elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 endif()
 
 if (NOT "${PHASAR_TARGET_ARCH_INTERNAL}" STREQUAL "")
-  include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag("-march=${PHASAR_TARGET_ARCH_INTERNAL}" MARCH_SUPPORTED)
   if (MARCH_SUPPORTED)
     message(STATUS "Target architecture '${PHASAR_TARGET_ARCH_INTERNAL}' enabled")
