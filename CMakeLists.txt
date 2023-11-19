@@ -314,7 +314,7 @@ if (NOT PHASAR_IN_TREE)
       Linker
     )
     foreach(lib ${LLVM_REQUIRED_LIBRARIES})
-      find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH REQUIRED)
+      find_library(LLVM_SMALL_LIB NAMES LLVM${lib} PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH REQUIRED)
     endforeach()
   endif()
 endif()
