@@ -179,8 +179,14 @@ function(add_phasar_library name)
     set(libkind STATIC)
   endif()
 
+  # cut off prefix phasar_ for convenient component names
+  string(REGEX REPLACE phasar_ "" component_name ${name})
+
   add_library(${name} ${libkind} ${srcs})
-  add_library(phasar::${name} ALIAS ${name})
+  add_library(phasar::${component_name} ALIAS ${name})
+  set_target_properties(${name} PROPERTIES
+    EXPORT_NAME ${component_name}
+  )
 
   if(LLVM_COMMON_DEPENDS)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
@@ -223,30 +229,18 @@ function(add_phasar_library name)
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${cflag})
   endif(MSVC)
 
-  # cut off prefix phasar_ for convenient component names
-  string(REGEX REPLACE phasar_ "" component_name ${name})
-
   if(PHASAR_IN_TREE)
     install(TARGETS ${name}
       EXPORT LLVMExports
       LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+    )
   else()
     install(TARGETS ${name}
-      EXPORT ${name}-targets
-      COMPONENT ${component_name}
-
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      EXPORT PhasarExports
 
       # NOTE: Library, archive and runtime destination are automatically set by
       # GNUInstallDirs which is included in the top-level CMakeLists.txt
-    )
-    install(EXPORT ${name}-targets
-      FILE ${name}-targets.cmake
-      NAMESPACE phasar::
-      DESTINATION lib/cmake/phasar
-      COMPONENT ${component_name}
     )
   endif()
 

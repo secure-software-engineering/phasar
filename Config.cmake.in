@@ -14,8 +14,6 @@ find_package(LLVM 14 REQUIRED CONFIG)
 set(PHASAR_USE_LLVM_FAT_LIB @USE_LLVM_FAT_LIB@)
 set(PHASAR_BUILD_DYNLIB @PHASAR_BUILD_DYNLIB@)
 
-# TODO: The order seems to be important in the include'ing loop below. Fix this!
-
 set(PHASAR_COMPONENTS
   utils
   passes
@@ -40,30 +38,35 @@ set(PHASAR_COMPONENTS
 
 list(REMOVE_DUPLICATES phasar_FIND_COMPONENTS)
 
+set(PHASAR_NEEDED_LIBS)
+
+include("${CMAKE_CURRENT_LIST_DIR}/PhasarExports.cmake")
+
 foreach(component ${phasar_FIND_COMPONENTS})
   if(NOT ${component} IN_LIST PHASAR_COMPONENTS)
     set(phasar_FOUND false)
-    set(phasar_NOT_FOUND_MESSAGE "Unsupported component: ${component}. valid components are: ${PHASAR_COMPONENTS}")
+    set(phasar_NOT_FOUND_MESSAGE "Unsupported component: ${component}. Valid components are: ${PHASAR_COMPONENTS}")
   endif()
+
+  list(APPEND PHASAR_NEEDED_LIBS phasar::${component})
 endforeach()
 
-foreach(component ${PHASAR_COMPONENTS})
-  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-targets.cmake")
-endforeach()
-include("${CMAKE_CURRENT_LIST_DIR}/phasar-targets.cmake")
+if (phasar_FOUND)
+  foreach(component ${phasar_FIND_COMPONENTS})
+    # For backwards compatibility -- will be removed with next release
+    add_library(phasar::phasar_${component} ALIAS phasar::${component})
+  endforeach()
 
-if (NOT phasar_FIND_COMPONENTS)
-  list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
-  set(phasar_FIND_COMPONENTS ${PHASAR_NEEDED_LIBS})
+  if (NOT phasar_FIND_COMPONENTS)
+    list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
+    # Default target
+    add_library(phasar ALIAS phasar::phasar)
+  endif()
+
+  function(phasar_config executable)
+    target_link_libraries(${executable}
+      PUBLIC
+        ${PHASAR_NEEDED_LIBS}
+    )
+  endfunction()
 endif()
-
-foreach(component ${phasar_FIND_COMPONENTS})
-  list(APPEND PHASAR_NEEDED_LIBS phasar::phasar_${component})
-endforeach()
-
-function(phasar_config executable)
-  target_link_libraries(${executable}
-    PUBLIC
-      ${PHASAR_NEEDED_LIBS}
-  )
-endfunction()
