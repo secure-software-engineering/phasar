@@ -192,22 +192,25 @@ function(add_phasar_library name)
     target_link_libraries(${name} PUBLIC ${PHASAR_LIB_LINKS})
   endif()
 
-  target_link_libraries(${name} PUBLIC ${PHASAR_LIB_LINK_PUBLIC})
+  target_link_libraries(${name} PUBLIC phasar_interface ${PHASAR_LIB_LINK_PUBLIC})
   target_link_libraries(${name} PRIVATE ${PHASAR_LIB_LINK_PRIVATE})
 
   phasar_link_llvm(${name} ${PHASAR_LIB_LLVM_LINK_COMPONENTS})
 
-  target_include_directories(${name}
-    PUBLIC
-      $<BUILD_INTERFACE:${PHASAR_SRC_DIR}/include/>   # The regular include folder
-      $<BUILD_INTERFACE:${PHASAR_BINARY_DIR}/include/> # The location of phasar-config.h
-  )
-
-  # Set the target property such that installed PhASAR knows where to find its includes (must be relative paths in this case in contrast to non-installed PhASAR!)
-  set_property(TARGET ${name} APPEND
-    PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-    $<INSTALL_INTERFACE:include/>
-  )
+  # Library Dependency Dirs
+  if(NOT PHASAR_IN_TREE)
+    target_include_directories(${name} PUBLIC
+      ${LLVM_INCLUDE_DIRS}
+    )
+    target_link_directories(${name} PUBLIC
+      ${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS}
+    )
+    if (BUILD_PHASAR_CLANG)
+      target_link_directories(${name} PUBLIC
+        ${CLANG_LIB_PATH}
+      )
+    endif()
+  endif()
 
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)
