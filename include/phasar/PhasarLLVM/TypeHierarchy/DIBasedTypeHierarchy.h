@@ -31,19 +31,29 @@ public:
   using ClassType = const llvm::DIType *;
   using f_t = const llvm::Function *;
 
-  DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
+  explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
   ~DIBasedTypeHierarchy() override = default;
 
-  [[nodiscard]] bool hasType([[maybe_unused]] ClassType Type) const override {
+  [[nodiscard]] bool hasType(ClassType Type) const override {
     return TypeToVertex.count(Type);
   }
 
-  [[nodiscard]] bool isSubType(ClassType Type, ClassType SubType) override;
+  [[nodiscard]] bool isSubType(ClassType Type, ClassType SubType) override {
+    return llvm::is_contained(subTypesOf(Type), SubType);
+  }
 
-  [[nodiscard]] std::set<ClassType> getSubTypes(ClassType Type) override;
+  [[nodiscard]] std::set<ClassType> getSubTypes(ClassType Type) override {
+    const auto &Range = subTypesOf(Type);
+    return {Range.begin(), Range.end()};
+  }
+
+  /// A more efficient version of getSubTypes()
+  [[nodiscard]] llvm::iterator_range<const ClassType *>
+  subTypesOf(ClassType Ty) const noexcept;
 
   [[nodiscard]] bool isSuperType(ClassType Type, ClassType SuperType) override;
 
+  /// Not supported yet
   [[nodiscard]] std::set<ClassType> getSuperTypes(ClassType Type) override;
 
   [[nodiscard]] ClassType
@@ -55,9 +65,7 @@ public:
     return {VertexTypes.begin(), VertexTypes.end()};
   }
 
-  [[nodiscard]] std::deque<LLVMVFTable> getAllVTables() const {
-    return {VTables.begin(), VTables.end()};
-  }
+  [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
   [[nodiscard]] std::string getTypeName(ClassType Type) const override {
     return Type->getName().str();
@@ -65,7 +73,13 @@ public:
 
   [[nodiscard]] bool hasVFTable(ClassType Type) const override;
 
-  [[nodiscard]] const VFTable<f_t> *getVFTable(ClassType Type) const override;
+  [[nodiscard]] const VFTable<f_t> *getVFTable(ClassType Type) const override {
+    auto It = TypeToVertex.find(Type);
+    if (It == TypeToVertex.end()) {
+      return nullptr;
+    }
+    return &VTables[It->second];
+  }
 
   [[nodiscard]] size_t size() const override { return VertexTypes.size(); }
 
@@ -81,34 +95,30 @@ public:
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
-  enum class AccessProperty { Public, Protected, Private, Unknown };
-
-  [[nodiscard]] std::string accessPropertyToString(AccessProperty AP) const;
-
 private:
+  [[nodiscard]] llvm::iterator_range<const ClassType *>
+  subTypesOf(size_t TypeIdx) const noexcept;
+
+  // ---
+
   llvm::StringMap<ClassType> NameToType;
   // Map each type to an integer index that is used by VertexTypes and
   // DerivedTypesOf.
-  // Note: all the below arrays should always have the same size!
+  // Note: all the below arrays should always have the same size (except for
+  // Hierarchy)!
   llvm::DenseMap<ClassType, size_t> TypeToVertex;
   // The class types we care about ("VertexProperties")
-  std::vector<ClassType> VertexTypes;
-  // The type-graph edges ("Adjacency List").
-  // DerivedTypesOf[TypeToVertex.lookup(Ty)] gives the indices of the direct
-  // subclasses of type T
-  // The VTables of the polymorphic types in the TH. default-constructed if
-  // not exists
+  std::vector<const llvm::DICompositeType *> VertexTypes;
+  std::vector<std::pair<uint32_t, uint32_t>> TransitiveDerivedIndex;
+  // The inheritance graph linearized as-if constructed by L2R pre-order
+  // traversal from the roots. Allows efficient access to the transitive closure
+  // without ever storing it explicitly. This only works, because the type-graph
+  // is known to never contain loops
+  std::vector<ClassType> Hierarchy;
+
+  // The VTables of the polymorphic types in the TH. default-constructed if not
+  // exists
   std::deque<LLVMVFTable> VTables;
-  // Transitive closure implemented as a matrix
-  // Example:
-  //
-  // Graph:       Transitive closure:
-  // (A) -> (C)         | A B C
-  //  ^               --+------
-  //  |               A | 1 0 1
-  // (B)              B | 1 1 1
-  //                  C | 0 0 1
-  std::vector<llvm::BitVector> TransitiveClosure;
 };
 } // namespace psr
 

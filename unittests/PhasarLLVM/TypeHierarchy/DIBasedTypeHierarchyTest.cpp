@@ -9,8 +9,6 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <iomanip>
-
 namespace psr {
 
 /*
@@ -463,9 +461,9 @@ TEST(DBTHTest, BasicTHReconstruction_16) {
   // check for all subtypes
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
-  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
-  // Since ChildsChild is never used, it is optimized out
-  // EXPECT_TRUE(SubTypesChild.find(ChildsChildType) == SubTypesChild.end());
+  // const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  //  Since ChildsChild is never used, it is optimized out
+  //  EXPECT_TRUE(SubTypesChild.find(ChildsChildType) == SubTypesChild.end());
   const auto &SubTypesTwo = DBTH.getSubTypes(BaseTwoType);
   EXPECT_TRUE(SubTypesTwo.find(ChildTwoType) != SubTypesTwo.end());
 }
@@ -481,7 +479,7 @@ TEST(DBTHTest, BasicTHReconstruction_17) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child2Type = DBTH.getType("Child2");
+  // const auto &Child2Type = DBTH.getType("Child2");
   // Since Child2Type is never used, it is optimized out
   // ASSERT_EQ(nullptr, Child2Type);
   const auto &Base2Type = DBTH.getType("Base2");
@@ -499,7 +497,7 @@ TEST(DBTHTest, BasicTHReconstruction_17) {
   // check for all subtypes
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
-  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  // const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
   // Since ChildsChild is never used, it is optimized out
   // EXPECT_TRUE(SubTypesChild.find(Child2Type) == SubTypesChild.end());
   const auto &SubTypesBase2 = DBTH.getSubTypes(Base2Type);
@@ -517,26 +515,26 @@ TEST(DBTHTest, BasicTHReconstruction_18) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child_2Type = DBTH.getType("Child_2");
-  // Since Child2Type is never used, it is optimized out
-  // ASSERT_EQ(nullptr, Child2Type);
-  const auto &Child_3Type = DBTH.getType("Child_3");
-  ASSERT_NE(nullptr, Child_3Type);
+  // const auto &Child_2Type = DBTH.getType("Child_2");
+  //  Since Child2Type is never used, it is optimized out
+  //  ASSERT_EQ(nullptr, Child2Type);
+  const auto &Child3Type = DBTH.getType("Child_3");
+  ASSERT_NE(nullptr, Child3Type);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
   EXPECT_TRUE(DBTH.hasType(ChildType));
   // Since Child2 is never used, it is optimized out
   // EXPECT_FALSE(DBTH.hasType(Child2Type));
-  EXPECT_TRUE(DBTH.hasType(Child_3Type));
+  EXPECT_TRUE(DBTH.hasType(Child3Type));
 
   // check for all subtypes
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
-  const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
+  // const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
   // Since Child2 is never used, it is optimized out
   // EXPECT_TRUE(SubTypesChild.find(Child2Type) == SubTypesChild.end());
-  const auto &SubTypesChild2 = DBTH.getSubTypes(Child_2Type);
-  EXPECT_TRUE(SubTypesChild2.find(Child_3Type) != SubTypesChild2.end());
+  const auto &SubTypesChild2 = DBTH.getSubTypes(Child3Type);
+  EXPECT_TRUE(SubTypesChild2.find(Child3Type) != SubTypesChild2.end());
 }
 
 TEST(DBTHTest, BasicTHReconstruction_19) {
@@ -1965,9 +1963,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_16) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &ChildsChildType = DBTH.getType("ChildsChild");
-  // Since ChildsChild is never used, it is optimized out
-  // ASSERT_EQ(nullptr, ChildsChildType);
+  // const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  //  Since ChildsChild is never used, it is optimized out
+  //  ASSERT_EQ(nullptr, ChildsChildType);
   const auto &BaseTwoType = DBTH.getType("BaseTwo");
   ASSERT_NE(nullptr, BaseTwoType);
   const auto &ChildTwoType = DBTH.getType("ChildTwo");
@@ -2010,7 +2008,7 @@ TEST(DBTHTest, TransitivelyReachableTypes_17) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child2Type = DBTH.getType("Child2");
+  // const auto &Child2Type = DBTH.getType("Child2");
   // Since Child2 is never used, it is optimized out
   // ASSERT_EQ(nullptr, Child2Type);
   const auto &Base2Type = DBTH.getType("Base2");
@@ -2055,32 +2053,32 @@ TEST(DBTHTest, TransitivelyReachableTypes_18) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child_2Type = DBTH.getType("Child_2");
-  ASSERT_NE(nullptr, Child_2Type);
-  const auto &Child_3Type = DBTH.getType("Child_3");
-  ASSERT_NE(nullptr, Child_3Type);
+  const auto &Child2Type = DBTH.getType("Child_2");
+  ASSERT_NE(nullptr, Child2Type);
+  const auto &Child3Type = DBTH.getType("Child_3");
+  ASSERT_NE(nullptr, Child3Type);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
   auto ReachableTypesChild = DBTH.getSubTypes(ChildType);
-  auto ReachableTypesChild_2 = DBTH.getSubTypes(Child_2Type);
-  auto ReachableTypesChild_3 = DBTH.getSubTypes(Child_3Type);
+  auto ReachableTypesChild2 = DBTH.getSubTypes(Child2Type);
+  auto ReachableTypesChild3 = DBTH.getSubTypes(Child3Type);
 
   EXPECT_EQ(ReachableTypesBase.size(), 4U);
   EXPECT_EQ(ReachableTypesChild.size(), 3U);
-  EXPECT_EQ(ReachableTypesChild_2.size(), 2U);
-  EXPECT_EQ(ReachableTypesChild_3.size(), 1U);
+  EXPECT_EQ(ReachableTypesChild2.size(), 2U);
+  EXPECT_EQ(ReachableTypesChild3.size(), 1U);
 
   EXPECT_TRUE(ReachableTypesBase.count(BaseType));
   EXPECT_TRUE(ReachableTypesBase.count(ChildType));
-  EXPECT_TRUE(ReachableTypesBase.count(Child_2Type));
-  EXPECT_TRUE(ReachableTypesBase.count(Child_3Type));
+  EXPECT_TRUE(ReachableTypesBase.count(Child2Type));
+  EXPECT_TRUE(ReachableTypesBase.count(Child3Type));
 
   EXPECT_TRUE(ReachableTypesChild.count(ChildType));
-  EXPECT_TRUE(ReachableTypesChild.count(Child_2Type));
-  EXPECT_TRUE(ReachableTypesChild.count(Child_3Type));
+  EXPECT_TRUE(ReachableTypesChild.count(Child2Type));
+  EXPECT_TRUE(ReachableTypesChild.count(Child3Type));
 
-  EXPECT_TRUE(ReachableTypesChild_2.count(Child_2Type));
-  EXPECT_TRUE(ReachableTypesChild_3.count(Child_3Type));
+  EXPECT_TRUE(ReachableTypesChild2.count(Child2Type));
+  EXPECT_TRUE(ReachableTypesChild3.count(Child3Type));
 }
 
 TEST(DBTHTest, TransitivelyReachableTypes_19) {

@@ -11,11 +11,14 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
-#include "phasar/TypeHierarchy/VFTable.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -30,166 +33,156 @@
 namespace psr {
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
-  const auto *const Module = IRDB.getModule();
+  // -- Find all types
+  {
+    llvm::DebugInfoFinder DIF;
+    DIF.processModule(*IRDB.getModule());
+    {
+      size_t NumTypes = DIF.type_count(); // upper bound
 
-  llvm::DebugInfoFinder Finder;
-  Finder.processModule(*Module);
-
-  // find and save all base types first, so they are present in TypeToVertex
-  size_t Counter = 0;
-  for (const llvm::DIType *DIType : Finder.types()) {
-    if (const auto *CompositeType =
-            llvm::dyn_cast<llvm::DICompositeType>(DIType)) {
-      NameToType.try_emplace(CompositeType->getName(), CompositeType);
-      TypeToVertex.try_emplace(CompositeType, Counter++);
-      VertexTypes.push_back(CompositeType);
-      continue;
+      TypeToVertex.reserve(NumTypes);
+      VertexTypes.reserve(NumTypes);
     }
+
+    // -- Filter all struct- or class types
+
+    for (const auto *Ty : DIF.types()) {
+      if (const auto *Composite = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
+        TypeToVertex.try_emplace(Composite, VertexTypes.size());
+        VertexTypes.push_back(Composite);
+        NameToType.try_emplace(Composite->getName(), Composite);
+      }
+    }
+
+    // -- Construct VTables
+
+    std::vector<std::vector<const llvm::Function *>> VT(VertexTypes.size());
+
+    for (const auto *DIFun : DIF.subprograms()) {
+      auto Virt = DIFun->getVirtuality();
+      if (!Virt) {
+        continue;
+      }
+      auto VIdx = DIFun->getVirtualIndex();
+      auto *Parent = llvm::dyn_cast<llvm::DICompositeType>(DIFun->getScope());
+      if (!Parent) {
+        continue;
+      }
+      auto IdxIt = TypeToVertex.find(Parent);
+      if (IdxIt == TypeToVertex.end()) [[unlikely]] {
+        PHASAR_LOG_LEVEL(WARNING,
+                         "Enclosing type '"
+                             << Parent->getName() << "' of virtual function '"
+                             << llvm::demangle(DIFun->getLinkageName().str())
+                             << "'  not found in the current module")
+
+        continue;
+      }
+
+      const auto *Fun = IRDB.getFunction(DIFun->getLinkageName());
+      if (!Fun) {
+        PHASAR_LOG_LEVEL(WARNING,
+                         "Referenced virtual function '"
+                             << llvm::demangle(DIFun->getLinkageName().str())
+                             << "' (aka. " << DIFun->getLinkageName()
+                             << ") not declared in the current module");
+        continue;
+      }
+
+      auto &VTable = VT[IdxIt->second];
+      if (VTable.size() == VIdx) {
+        VTable.push_back(Fun);
+      } else {
+        if (VTable.size() < VIdx) {
+          VTable.resize(VIdx + 1);
+        }
+        VTable[VIdx] = Fun;
+      }
+    }
+    // -- Translate the found VTables to LLVMVTable
+    VTables.assign(std::make_move_iterator(VT.begin()),
+                   std::make_move_iterator(VT.end()));
   }
+  // -- Build a type-graph
 
-  // Initialize the transitive closure matrix with all positions as false
-  TransitiveClosure.resize(VertexTypes.size());
+  llvm::SmallVector<llvm::SmallVector<uint32_t>> DerivedTypesOf;
+  DerivedTypesOf.resize(VertexTypes.size());
+  llvm::SmallBitVector Roots(VertexTypes.size(), true);
 
-  for (auto &Curr : TransitiveClosure) {
-    Curr.resize(VertexTypes.size());
-  }
+  for (const auto *Composite : VertexTypes) {
+    auto DerivedIdx = TypeToVertex.lookup(Composite);
+    assert(DerivedIdx != 0 || VertexTypes[0] == Composite);
 
-  // find and save all derived types
-  for (const llvm::DIType *DIType : Finder.types()) {
-    if (const auto *DerivedType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
-      if (DerivedType->getTag() == llvm::dwarf::DW_TAG_inheritance) {
-        assert(NameToType.count(DerivedType->getScope()->getName()));
-        assert(
-            TypeToVertex.find(NameToType[DerivedType->getScope()->getName()]) !=
-            TypeToVertex.end());
-        const size_t ActualDerivedType =
-            TypeToVertex[NameToType[DerivedType->getScope()->getName()]];
+    for (const auto *Fld : Composite->getElements()) {
+      if (const auto *Inheritenace = llvm::dyn_cast<llvm::DIDerivedType>(Fld);
+          Inheritenace &&
+          Inheritenace->getTag() == llvm::dwarf::DW_TAG_inheritance) {
+        auto BaseIdx = TypeToVertex.lookup(Inheritenace->getBaseType());
+        assert(BaseIdx != 0 || VertexTypes[0] == Inheritenace->getBaseType());
 
-        assert(TypeToVertex.find(DerivedType->getBaseType()) !=
-               TypeToVertex.end());
-        size_t BaseTypeVertex = TypeToVertex[DerivedType->getBaseType()];
-
-        assert(TransitiveClosure.size() > BaseTypeVertex);
-        assert(TransitiveClosure.size() > ActualDerivedType);
-
-        TransitiveClosure[BaseTypeVertex][ActualDerivedType] = true;
+        DerivedTypesOf[BaseIdx].push_back(DerivedIdx);
+        Roots.reset(DerivedIdx);
       }
     }
   }
-  // Add transitive edges
-  bool Change = true;
-  size_t TCSize = TransitiveClosure.size();
-  size_t RowIndex = 0;
-  size_t PreviousRow = 0;
 
-  // (max): I know the code below is very ugly, but I wanted to avoid recursion.
-  // If the algorithm goes over the entire matrix and couldn't update any rows
-  // anymore, it stops. As soon as one position gets updated, it goes over the
-  // matrix again
-  while (Change) {
-    Change = false;
-    // go over all rows of the matrix
-    for (size_t CurrentRow = 0; CurrentRow < TCSize; CurrentRow++) {
-      // compare current row with all other rows and check if an edge can be
-      // added
-      for (size_t CompareRow = 0; CompareRow < TCSize; CompareRow++) {
-        // row doesn't need to compare itself with itself
-        if (CurrentRow == CompareRow) {
-          continue;
-        }
+  // -- Build the transitive closure
 
-        // if the current row is not a parent type of the current compare row,
-        // no edges should be added
-        if (!TransitiveClosure[CurrentRow][CompareRow]) {
-          continue;
-        }
+  TransitiveDerivedIndex.resize(VertexTypes.size());
 
-        // Compare both rows and add edges if needed
-        for (size_t Column = 0; Column < TCSize; Column++) {
-          if (TransitiveClosure[CompareRow][Column] &&
-              !TransitiveClosure[CurrentRow][Column] && CurrentRow != Column) {
-            TransitiveClosure[CurrentRow][Column] = true;
-            Change = true;
-          }
-        }
+  llvm::SmallBitVector Seen(VertexTypes.size());
+
+  llvm::SmallVector<int32_t> WorkList;
+
+  for (uint32_t Rt : Roots.set_bits()) {
+    WorkList.emplace_back(Rt);
+
+    // llvm::errs() << "> Root: " << VertexTypes[Rt]->getName() << '\n';
+
+    while (!WorkList.empty()) {
+      auto Curr = WorkList.pop_back_val();
+
+      if (Curr < 0) {
+        // Pop N elements
+        auto TypeIdx = ~Curr;
+        TransitiveDerivedIndex[TypeIdx].second = Hierarchy.size();
+        // llvm::errs() << "> End of " << VertexTypes[TypeIdx]->getName() << ":
+        // "
+        //              << Hierarchy.size() << '\n';
+        continue;
       }
+
+      if (!Seen.test(Curr)) {
+        TransitiveDerivedIndex[Curr].first = Hierarchy.size();
+        // llvm::errs() << "> Start of " << VertexTypes[Curr]->getName() << ": "
+        //              << Hierarchy.size() << '\n';
+      } else {
+        Seen.set(Curr);
+      }
+      Hierarchy.push_back(VertexTypes[Curr]);
+      // llvm::errs() << " -- push " << VertexTypes[Curr]->getName() << '\n';
+      WorkList.push_back(~Curr);
+      WorkList.append(DerivedTypesOf[Curr].begin(), DerivedTypesOf[Curr].end());
     }
-  }
-
-  // add edges onto vertices themselves
-  for (size_t I = 0; I < TransitiveClosure.size(); I++) {
-    TransitiveClosure[I][I] = true;
-  }
-
-  std::vector<std::vector<const llvm::Function *>> IndexToFunctions(
-      VertexTypes.size());
-
-  //  get VTables
-  for (auto *Subprogram : Finder.subprograms()) {
-    if (!Subprogram->getVirtuality()) {
-      continue;
-    }
-
-    const auto *FunctionToAdd = IRDB.getFunction(Subprogram->getLinkageName());
-
-    if (!FunctionToAdd) {
-      continue;
-    }
-
-    const auto &TypeIndex = TypeToVertex.find(Subprogram->getContainingType());
-
-    assert(TypeIndex->getSecond() < IndexToFunctions.size());
-
-    const auto &VirtualIndex = Subprogram->getVirtualIndex();
-
-    if (IndexToFunctions[TypeIndex->getSecond()].size() <= VirtualIndex) {
-      IndexToFunctions[TypeIndex->getSecond()].resize(VirtualIndex + 1);
-    }
-
-    IndexToFunctions[TypeIndex->getSecond()][VirtualIndex] = FunctionToAdd;
-  }
-
-  for (auto &ToAdd : IndexToFunctions) {
-    VTables.emplace_back(std::move(ToAdd));
   }
 }
 
-[[nodiscard]] bool DIBasedTypeHierarchy::isSubType(ClassType Type,
-                                                   ClassType SubType) {
-  const auto IndexOfTypeFind = TypeToVertex.find(Type);
-  const auto IndexOfSubTypeFind = TypeToVertex.find(SubType);
-
-  assert(IndexOfTypeFind != TypeToVertex.end());
-  assert(IndexOfSubTypeFind != TypeToVertex.end());
-
-  size_t IndexOfType = IndexOfTypeFind->getSecond();
-  size_t IndexOfSubType = IndexOfSubTypeFind->getSecond();
-
-  return TransitiveClosure[IndexOfType][IndexOfSubType];
+auto DIBasedTypeHierarchy::subTypesOf(size_t TypeIdx) const noexcept
+    -> llvm::iterator_range<const ClassType *> {
+  const auto *Data = Hierarchy.data();
+  auto [Start, End] = TransitiveDerivedIndex[TypeIdx];
+  return {std::next(Data, Start), std::next(Data, End)};
 }
 
-[[nodiscard]] auto DIBasedTypeHierarchy::getSubTypes(ClassType Type)
-    -> std::set<ClassType> {
-  // find index of super type
-  const auto IndexOfTypeFind = TypeToVertex.find(Type);
-
-  assert(IndexOfTypeFind != TypeToVertex.end());
-
-  size_t IndexOfType = IndexOfTypeFind->getSecond();
-
-  // if the super type hasn't been found, return an empty set
-  if (IndexOfType >= TypeToVertex.size()) {
-    return {};
+auto DIBasedTypeHierarchy::subTypesOf(ClassType Ty) const noexcept
+    -> llvm::iterator_range<const ClassType *> {
+  auto It = TypeToVertex.find(Ty);
+  if (It == TypeToVertex.end()) {
+    const auto *Data = Hierarchy.data();
+    return {Data, Data};
   }
 
-  // return all sub types
-  std::set<ClassType> SubTypes = {};
-
-  for (auto Index : TransitiveClosure[IndexOfType].set_bits()) {
-    SubTypes.insert(VertexTypes[Index]);
-  }
-
-  return SubTypes;
+  return subTypesOf(It->second);
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::isSuperType(ClassType Type,
@@ -204,64 +197,37 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
-  const auto TypeIndex = TypeToVertex.find(Type);
-
-  if (TypeIndex == TypeToVertex.end() || TypeIndex->second >= VTables.size()) {
-    return false;
-  }
-
-  return !VTables[TypeIndex->second].empty();
-}
-
-[[nodiscard]] auto DIBasedTypeHierarchy::getVFTable(ClassType Type) const
-    -> const VFTable<f_t> * {
-  const auto TypeIndex = TypeToVertex.find(Type);
-  assert(TypeIndex != TypeToVertex.end());
-  return &VTables[TypeIndex->getSecond()];
+  const auto *StructTy = llvm::dyn_cast<llvm::DICompositeType>(Type);
+  return StructTy && StructTy->getVTableHolder();
 }
 
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
-  size_t VertexIndex = 0;
-  size_t EdgeIndex = 0;
-
-  OS << "Type Hierarchy\n";
-  for (const auto &CurrentVertex : TransitiveClosure) {
-    OS << VertexTypes[VertexIndex]->getName() << "\n";
-    for (size_t I = 0; I < TransitiveClosure.size(); I++) {
-      if (EdgeIndex != VertexIndex && CurrentVertex[I]) {
-        OS << "--> " << VertexTypes[EdgeIndex]->getName() << "\n";
+  {
+    OS << "Type Hierarchy:\n";
+    size_t TyIdx = 0;
+    for (const auto *Ty : VertexTypes) {
+      OS << Ty->getName() << " --> ";
+      for (const auto *SubTy : llvm::drop_begin(subTypesOf(TyIdx))) {
+        OS << SubTy->getName() << ' ';
       }
-      EdgeIndex++;
+      ++TyIdx;
+      OS << '\n';
     }
-    VertexIndex++;
-    EdgeIndex = 0;
   }
 
-  OS << "VFTables:\n";
+  {
+    size_t TyIdx = 0;
+    OS << "VFTables:\n";
 
-  size_t TypeIndex = 0;
-  for (const auto &Type : VertexTypes) {
-    const auto &VTable = VTables[TypeIndex];
-
-    OS << Type->getName() << ": ";
-
-    // get all function names for the llvm::interleaveComma function
-    llvm::SmallVector<std::string, 6> Names;
-    for (const auto &Function : VTable.getAllFunctions()) {
-      if (Function) {
-        Names.push_back(Function->getName().str());
-      } else {
-        Names.push_back("<none>");
+    for (const auto &VFT : VTables) {
+      OS << "Virtual function table for: " << VertexTypes[TyIdx]->getName()
+         << '\n';
+      for (const auto *F : VFT) {
+        OS << "\t-" << (F ? F->getName() : "<null>") << '\n';
       }
+      ++TyIdx;
     }
-    // prints out all function names, seperated by comma, without a trailing
-    // comma
-    llvm::interleaveComma(Names, OS);
-    OS << "\n";
-    TypeIndex++;
   }
-
-  OS << "\n";
 }
 
 [[nodiscard]] nlohmann::json DIBasedTypeHierarchy::getAsJson() const {
@@ -269,53 +235,23 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   llvm::report_fatal_error("Not implemented");
 }
 
-[[nodiscard]] std::string
-DIBasedTypeHierarchy::accessPropertyToString(AccessProperty AP) const {
-  switch (AP) {
-  case AccessProperty::Public:
-    return "public";
-    break;
-  case AccessProperty::Protected:
-    return "protected";
-    break;
-  case AccessProperty::Private:
-    return "private";
-    break;
-  case AccessProperty::Unknown:
-    return "unknown";
-    break;
-  }
-}
-
 void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
-  if (TransitiveClosure.size() != VertexTypes.size()) {
-    llvm::errs() << "TC.size(): " << TransitiveClosure.size()
-                 << " VT.size(): " << VertexTypes.size();
-    llvm::report_fatal_error(
-        "TransitiveClosure and VertexType size not equal.");
-    return;
-  }
-
   OS << "digraph TypeHierarchy{\n";
+  scope_exit CloseBrace = [&OS] { OS << "}\n"; };
 
   // add nodes
-  size_t CurrentNodeIndex = 0;
-  for (const auto &Row : TransitiveClosure) {
-    OS << CurrentNodeIndex << "[label=\""
-       << VertexTypes[CurrentNodeIndex]->getName() << "\"]\n";
-    CurrentNodeIndex++;
+  for (const auto &[Type, Vtx] : TypeToVertex) {
+    OS << Vtx << "[label=\"";
+    OS.write_escaped(Type->getName()) << "\"];\n";
   }
 
   // add all edges
-  size_t CurrentRowIndex = 0;
-  for (const auto &Row : TransitiveClosure) {
-    for (const auto &Cell : Row.set_bits()) {
-      OS << "  " << CurrentRowIndex << " -> " << Cell << "\n";
-    }
-    CurrentRowIndex++;
-  }
 
-  OS << "}\n";
+  for (size_t I = 0, End = TypeToVertex.size(); I != End; ++I) {
+    for (const auto &SubType : subTypesOf(I)) {
+      OS << I << " -> " << TypeToVertex.lookup(SubType) << ";\n";
+    }
+  }
 }
 
 } // namespace psr
