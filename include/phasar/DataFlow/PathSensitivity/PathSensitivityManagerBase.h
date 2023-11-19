@@ -106,9 +106,10 @@ private:
     // WLInsert. This way, we can stop the process, when we have reached the
     // MaxDepth
 
-    auto NumBytes =
-        (sizeof(vertex_t) + 2 * sizeof(std::pair<vertex_t, vertex_t>)) *
-        EquivSize;
+    constexpr auto Factor =
+        sizeof(vertex_t) + 2 * sizeof(std::pair<vertex_t, vertex_t>);
+    assert(EquivSize <= SIZE_MAX / Factor && "Overflow on size calculation");
+    auto NumBytes = Factor * EquivSize;
 
     // For performance reasons, we wish to allocate the buffer on the stack, if
     // it is small enough
