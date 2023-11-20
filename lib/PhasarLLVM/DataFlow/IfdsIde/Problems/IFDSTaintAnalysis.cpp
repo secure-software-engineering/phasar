@@ -410,9 +410,9 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
                          CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
-            Warning<LLVMIFDSAnalysisDomainDefault> War(CallSite, Source,
-                                                       topElement());
-            Printer->onResult(War);
+            Warning<LLVMIFDSAnalysisDomainDefault> Warn(CallSite, Source,
+                                                        topElement());
+            Printer->onResult(Warn);
           }
         }
 
@@ -439,9 +439,9 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
     if (Leak.count(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
-        Warning<LLVMIFDSAnalysisDomainDefault> War(CallSite, Source,
-                                                   topElement());
-        Printer->onResult(War);
+        Warning<LLVMIFDSAnalysisDomainDefault> Warn(CallSite, Source,
+                                                    topElement());
+        Printer->onResult(Warn);
       }
     }
 

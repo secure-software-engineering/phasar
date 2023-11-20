@@ -20,7 +20,7 @@ template <typename AnalysisDomainTy> struct Warning {
         LatticeElement(std::move(Lattice)) {}
 };
 
-template <typename AnalysisDomainTy> struct Results {
+template <typename AnalysisDomainTy> struct DataflowAnalysisResults {
   std::vector<Warning<AnalysisDomainTy>> War;
 };
 

@@ -227,9 +227,9 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
     const llvm::Value *LeakCandidate) {
   if (isSink(SinkCandidate, Inst)) {
     Leaks[Inst].insert(LeakCandidate);
-    Warning<IDEExtendedTaintAnalysisDomain> War(
+    Warning<IDEExtendedTaintAnalysisDomain> Warn(
         Inst, makeFlowFact(LeakCandidate), Top{});
-    Printer->onResult(War);
+    Printer->onResult(Warn);
   }
 }
 
@@ -754,9 +754,9 @@ void IDEExtendedTaintAnalysis::emitTextReport(
 
   for (auto &[Inst, LeakSet] : Leaks) {
     for (const auto &Leak : LeakSet) {
-      Warning<IDEExtendedTaintAnalysisDomain> War(Inst, makeFlowFact(Leak),
-                                                  Top{});
-      Printer->onResult(War);
+      Warning<IDEExtendedTaintAnalysisDomain> Warn(Inst, makeFlowFact(Leak),
+                                                   Top{});
+      Printer->onResult(Warn);
     }
   }
 
