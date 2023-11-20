@@ -302,6 +302,7 @@ if (NOT PHASAR_IN_TREE)
   endif()
 
   if (NOT USE_LLVM_FAT_LIB)
+    message(STATUS "Link against individual LLVM modules")
     set(LLVM_REQUIRED_LIBRARIES
       Core
       Support
@@ -314,10 +315,22 @@ if (NOT PHASAR_IN_TREE)
       Linker
     )
     foreach(lib ${LLVM_REQUIRED_LIBRARIES})
-      find_library(LLVM_SMALL_LIB NAMES LLVM${lib} PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH REQUIRED)
+      find_library(LLVM_SMALL_LIB NAMES LLVM${lib} PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
+      if(LLVM_SMALL_LIB STREQUAL "LLVM_SMALL_LIB-NOTFOUND")
+        list(APPEND LLVM_SMALL_LIB_NOTFOUND "LLVM${lib}")
+      endif()
     endforeach()
-  endif()
-endif()
+
+    if(DEFINED LLVM_SMALL_LIB_NOTFOUND)
+      if(${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+        message(FATAL_ERROR "Did not find a complete version of LLVM: Did not find the fat lib libLLVM.so, but also did not find the individual modules ${LLVM_SMALL_LIB_NOTFOUND}.")
+      else()
+        set(USE_LLVM_FAT_LIB ON)
+        message(WARNING "Did not find the LLVM modules ${LLVM_SMALL_LIB_NOTFOUND}. Fallback to link against ${LLVM_LIBRARY}. To silence this warning, set -DUSE_LLVM_FAT_LIB=ON in the cmake invocation.")
+      endif()
+    endif(DEFINED LLVM_SMALL_LIB_NOTFOUND)
+  endif(NOT USE_LLVM_FAT_LIB)
+endif(NOT PHASAR_IN_TREE)
 
 if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
   message(FATAL_ERROR "PhASAR requires a LLVM version that is built with RTTI")
