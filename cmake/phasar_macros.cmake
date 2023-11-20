@@ -211,11 +211,6 @@ function(add_phasar_library name)
     target_link_directories(${name} PUBLIC
       ${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS}
     )
-    if (BUILD_PHASAR_CLANG)
-      target_link_directories(${name} PUBLIC
-        ${CLANG_LIB_PATH}
-      )
-    endif()
   endif()
 
   if(MSVC)
