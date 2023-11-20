@@ -530,9 +530,9 @@ public:
                       llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
                 if (Res.second == TSD->error()) {
                   Warning<IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>
-                      War(&I, Res.first, TSD->error());
+                      Warn(&I, Res.first, TSD->error());
                   // ERROR STATE DETECTED
-                  this->Printer->onResult(War);
+                  this->Printer->onResult(Warn);
                 }
               }
             }
@@ -542,9 +542,9 @@ public:
                       llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
                 if (Res.second == TSD->error()) {
                   Warning<IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>
-                      War(&I, Res.first, TSD->error());
+                      Warn(&I, Res.first, TSD->error());
                   // ERROR STATE DETECTED
-                  this->Printer->onResult(War);
+                  this->Printer->onResult(Warn);
                 }
               }
             }

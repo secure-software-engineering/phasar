@@ -39,7 +39,7 @@ public:
   }
 
 private:
-  Results<AnalysisDomainTy> AnalysisResults{};
+  DataflowAnalysisResults<AnalysisDomainTy> AnalysisResults{};
 };
 
 } // namespace psr
