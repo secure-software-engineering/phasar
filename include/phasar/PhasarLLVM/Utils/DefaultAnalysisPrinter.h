@@ -18,7 +18,7 @@ class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 
 public:
   ~DefaultAnalysisPrinter() override = default;
-  DefaultAnalysisPrinter() = default;
+  DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(OS) {}
 
   void onResult(Warning<AnalysisDomainTy> War) override {
     AnalysisResults.War.emplace_back(std::move(War));
