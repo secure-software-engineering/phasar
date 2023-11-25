@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_STABLEVECTOR_H_
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -197,6 +198,8 @@ public:
     Start = Blck;
     End = Blck + Cap;
     Pos = Blck + (Other.Pos - Other.Start);
+
+    __asan_poison_memory_region(Pos, (End - Pos) * sizeof(T));
   }
 
   void swap(StableVector &Other) noexcept {
@@ -244,6 +247,7 @@ public:
     std::destroy(Start, Pos);
 
     for (size_t I = BlockIdx; I < Blocks.size(); ++I) {
+      __asan_unpoison_memory_region(Blocks[I], Cap * sizeof(T));
       std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
 
       Cap = TotalSize;
@@ -263,6 +267,7 @@ public:
     }
 
     auto Ret = Pos;
+    __asan_unpoison_memory_region(Ret, sizeof(T));
     std::allocator_traits<allocator_type>::construct(
         Alloc, Ret, std::forward<ArgTys>(Args)...);
     ++Pos;
@@ -343,6 +348,8 @@ public:
     assert(!empty() && "Do not call pop_back() on an empty StableVector!");
 
     std::destroy_at(--Pos);
+    __asan_poison_memory_region(Pos, sizeof(T));
+
     --Size;
     if (Pos != Start) {
       return;
@@ -374,11 +381,13 @@ public:
 
     for (size_t I = 0; I < BlockIdx; ++I) {
       std::destroy_n(Blocks[I], Cap);
+      __asan_poison_memory_region(Blocks[I], Cap * sizeof(T));
       Cap = TotalSize;
       TotalSize += Cap;
     }
 
     std::destroy(Start, Pos);
+    __asan_poison_memory_region(Start, (Pos - Start) * sizeof(T));
     BlockIdx = 0;
     Size = 0;
     if (!Blocks.empty()) {
@@ -399,10 +408,12 @@ public:
         Pos -= N;
         Size -= N;
         std::destroy_n(Pos, N);
+        __asan_poison_memory_region(Pos, N * sizeof(T));
         return;
       }
 
       std::destroy(Start, Pos);
+      __asan_poison_memory_region(Start, (Pos - Start) * sizeof(T));
       Size -= NumElementsInCurrBlock;
       N -= NumElementsInCurrBlock;
 
@@ -429,6 +440,7 @@ public:
 
     if (Size == 0) {
       assert(BlockIdx == 0);
+      __asan_unpoison_memory_region(Blocks[0], InitialCapacity * sizeof(T));
       std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[0],
                                                         InitialCapacity);
     }
@@ -437,6 +449,7 @@ public:
 
     for (size_t I = BlockIdx + 1, BlocksEnd = Blocks.size(); I < BlocksEnd;
          ++I) {
+      __asan_unpoison_memory_region(Blocks[I], Cap * sizeof(T));
       std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
       Cap <<= 1;
     }
@@ -491,7 +504,9 @@ private:
   template <typename... ArgTys>
   [[nodiscard]] T &growAndEmplace(ArgTys &&...Args) {
     auto makeBlock = [this](size_t N) {
-      return std::allocator_traits<allocator_type>::allocate(Alloc, N);
+      auto *Ret = std::allocator_traits<allocator_type>::allocate(Alloc, N);
+      __asan_poison_memory_region(std::next(Ret), (N - 1) * sizeof(T));
+      return Ret;
     };
 
     if (Blocks.empty()) {
@@ -501,6 +516,7 @@ private:
       assert(llvm::isPowerOf2_64(Size));
       BlockIdx++;
       End = Blocks[BlockIdx] + Size;
+      __asan_unpoison_memory_region(Blocks[BlockIdx], sizeof(T));
     } else {
       assert(llvm::isPowerOf2_64(Size));
       BlockIdx++;
