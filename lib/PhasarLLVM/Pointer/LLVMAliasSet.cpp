@@ -13,7 +13,6 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -55,9 +54,8 @@ template class BoxedPtr<LLVMAliasInfo::AliasSetTy>;
 template class BoxedConstPtr<LLVMAliasInfo::AliasSetTy>;
 template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
 
-LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
-                           AliasAnalysisType PATy)
-    : PTA(*IRDB, UseLazyEvaluation, PATy) {
+LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation)
+    : PTA(*IRDB, UseLazyEvaluation) {
   assert(IRDB != nullptr);
 
   auto NumGlobals = IRDB->getNumGlobals();
@@ -463,6 +461,7 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
   llvm::DenseSet<const llvm::Value *> UsedGlobals;
 
   for (auto &Inst : llvm::instructions(F)) {
+
     if (Inst.getType()->isPointerTy()) {
       // Add all pointer instructions.
       addPointer(&Inst, Pointers);

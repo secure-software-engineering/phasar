@@ -9,17 +9,13 @@
 #include <string>
 
 namespace psr {
-HelperAnalyses::HelperAnalyses(std::string IRFile,
-                               std::optional<nlohmann::json> PrecomputedPTS,
-                               AliasAnalysisType PTATy, bool AllowLazyPTS,
-                               std::vector<std::string> EntryPoints,
-                               std::optional<nlohmann::json> PrecomputedCG,
-                               CallGraphAnalysisType CGTy,
-                               Soundness SoundnessLevel,
-                               bool AutoGlobalSupport) noexcept
+HelperAnalyses::HelperAnalyses(
+    std::string IRFile, std::optional<nlohmann::json> PrecomputedPTS,
+    bool AllowLazyPTS, std::vector<std::string> EntryPoints,
+    std::optional<nlohmann::json> PrecomputedCG, CallGraphAnalysisType CGTy,
+    Soundness SoundnessLevel, bool AutoGlobalSupport) noexcept
     : IRFile(std::move(IRFile)), PrecomputedPTS(std::move(PrecomputedPTS)),
-      PTATy(PTATy), AllowLazyPTS(AllowLazyPTS),
-      PrecomputedCG(std::move(PrecomputedCG)),
+      AllowLazyPTS(AllowLazyPTS), PrecomputedCG(std::move(PrecomputedCG)),
       EntryPoints(std::move(EntryPoints)), CGTy(CGTy),
       SoundnessLevel(SoundnessLevel), AutoGlobalSupport(AutoGlobalSupport) {}
 
@@ -27,7 +23,7 @@ HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::vector<std::string> EntryPoints,
                                HelperAnalysisConfig Config) noexcept
     : IRFile(std::move(IRFile)),
-      PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
+      PrecomputedPTS(std::move(Config.PrecomputedPTS)),
       AllowLazyPTS(Config.AllowLazyPTS),
       PrecomputedCG(std::move(Config.PrecomputedCG)),
       EntryPoints(std::move(EntryPoints)), CGTy(Config.CGTy),
@@ -72,8 +68,7 @@ LLVMAliasSet &HelperAnalyses::getAliasInfo() {
     if (PrecomputedPTS.has_value()) {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), *PrecomputedPTS);
     } else {
-      PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS,
-                                          PTATy);
+      PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS);
     }
   }
   return *PT;

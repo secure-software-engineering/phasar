@@ -10,14 +10,16 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 
-#include "phasar/Pointer/AliasAnalysisType.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include "llvm/Analysis/AliasAnalysis.h"
+#include <memory>
 
 namespace llvm {
 class Value;
 class Function;
 class Instruction;
+class AAResults;
 } // namespace llvm
 
 namespace psr {
@@ -25,11 +27,8 @@ namespace psr {
 class LLVMProjectIRDB;
 
 class LLVMBasedAliasAnalysis {
-
 public:
-  explicit LLVMBasedAliasAnalysis(
-      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
-      AliasAnalysisType PATy = AliasAnalysisType::Basic);
+  LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true);
 
   LLVMBasedAliasAnalysis(LLVMBasedAliasAnalysis &&) noexcept = default;
   LLVMBasedAliasAnalysis &
@@ -37,9 +36,8 @@ public:
 
   LLVMBasedAliasAnalysis(const LLVMBasedAliasAnalysis &) = delete;
   LLVMBasedAliasAnalysis &operator=(const LLVMBasedAliasAnalysis &) = delete;
-  ~LLVMBasedAliasAnalysis();
 
-  void print(llvm::raw_ostream &OS = llvm::outs()) const;
+  ~LLVMBasedAliasAnalysis();
 
   [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
     if (!hasAliasInfo(*F)) {
@@ -52,11 +50,6 @@ public:
 
   void clear() noexcept;
 
-  [[nodiscard]] inline AliasAnalysisType
-  getPointerAnalysisType() const noexcept {
-    return PATy;
-  };
-
 private:
   [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
 
@@ -66,7 +59,6 @@ private:
 
   struct Impl;
   std::unique_ptr<Impl> PImpl;
-  AliasAnalysisType PATy;
   llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
 };
 

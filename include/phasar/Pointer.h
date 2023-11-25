@@ -10,7 +10,6 @@
 #ifndef PHASAR_POINTER_H
 #define PHASAR_POINTER_H
 
-#include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasInfo.h"
 #include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"

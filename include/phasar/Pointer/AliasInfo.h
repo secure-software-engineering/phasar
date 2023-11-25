@@ -32,7 +32,6 @@ class Instruction;
 } // namespace llvm
 
 namespace psr {
-enum class AliasAnalysisType;
 
 template <typename V, typename N> class AliasInfoRef;
 template <typename V, typename N> class AliasInfo;
@@ -96,10 +95,6 @@ public:
   [[nodiscard]] bool isInterProcedural() const noexcept {
     assert(VT != nullptr);
     return VT->IsInterProcedural(AA);
-  }
-  [[nodiscard]] AliasAnalysisType getAliasAnalysisType() const noexcept {
-    assert(VT != nullptr);
-    return VT->GetAliasAnalysisType(AA);
   }
 
   [[nodiscard]] AliasResult alias(ByConstRef<v_t> Pointer1,
@@ -189,7 +184,6 @@ public:
 private:
   struct VTable {
     bool (*IsInterProcedural)(const void *) noexcept;
-    AliasAnalysisType (*GetAliasAnalysisType)(const void *) noexcept;
     AliasResult (*Alias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
                          ByConstRef<n_t>);
     AliasSetPtrTy (*GetAliasSet)(void *, ByConstRef<v_t>, ByConstRef<n_t>);
@@ -214,9 +208,6 @@ private:
   static constexpr VTable VTableFor = {
       [](const void *AA) noexcept {
         return static_cast<const ConcreteAA *>(AA)->isInterProcedural();
-      },
-      [](const void *AA) noexcept {
-        return static_cast<const ConcreteAA *>(AA)->getAliasAnalysisType();
       },
       [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
          ByConstRef<n_t> AtInstruction) {

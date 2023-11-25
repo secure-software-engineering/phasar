@@ -30,6 +30,8 @@ class Value;
 class Instruction;
 class GlobalVariable;
 class Function;
+class GlobalObject;
+class DataLayout;
 } // namespace llvm
 
 namespace psr {
@@ -58,18 +60,13 @@ public:
    * UseLazyEvaluation is true, computes points-to-sets for functions that do
    * not use global variables on the fly
    */
-  explicit LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation = true,
-                        AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
+  explicit LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation = true);
 
   explicit LLVMAliasSet(LLVMProjectIRDB *IRDB,
                         const nlohmann::json &SerializedPTS);
 
   [[nodiscard]] inline bool isInterProcedural() const noexcept {
     return false;
-  };
-
-  [[nodiscard]] inline AliasAnalysisType getAliasAnalysisType() const noexcept {
-    return PTA.getPointerAnalysisType();
   };
 
   [[nodiscard]] AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
@@ -158,6 +155,19 @@ private:
 };
 
 static_assert(IsAliasInfo<LLVMAliasSet>);
+using TTTT = decltype(detail::testAliasInfo(
+    std::declval<LLVMAliasSet &>(), std::declval<const LLVMAliasSet &>()));
+
+using TTTT2 = std::void_t<
+    decltype(std::declval<const LLVMAliasSet>().print(llvm::outs())),
+    decltype(std::declval<const LLVMAliasSet>().printAsJson(llvm::outs())),
+    decltype(std::declval<LLVMAliasSet>().mergeWith(
+        std::declval<LLVMAliasSet>())),
+    decltype(std::declval<LLVMAliasSet>().introduceAlias(
+        std::declval<typename AliasInfoTraits<LLVMAliasSet>::v_t>(),
+        std::declval<typename AliasInfoTraits<LLVMAliasSet>::v_t>(),
+        std::declval<typename AliasInfoTraits<LLVMAliasSet>::n_t>(),
+        AliasResult{}))>;
 
 } // namespace psr
 

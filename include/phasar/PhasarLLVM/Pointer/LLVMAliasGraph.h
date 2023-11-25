@@ -126,9 +126,7 @@ public:
    * considered. False, if May and Must Aliases should be
    * considered.
    */
-  explicit LLVMAliasGraph(
-      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-      AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
+  explicit LLVMAliasGraph(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true);
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -211,8 +209,6 @@ public:
   // --- IsAliasInfo impl
 
   [[nodiscard]] bool isInterProcedural() const noexcept;
-
-  [[nodiscard]] AliasAnalysisType getAliasAnalysisType() const noexcept;
 
   AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
                     const llvm::Instruction *I = nullptr);
