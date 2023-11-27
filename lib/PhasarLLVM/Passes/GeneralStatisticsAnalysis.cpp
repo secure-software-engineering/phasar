@@ -24,9 +24,11 @@
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -42,7 +44,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
-  Stats.ModuleName = M.getName();
+  Stats.ModuleName = M.getName().str();
   for (auto &F : M) {
     ++Stats.Functions;
     for (auto &BB : F) {
@@ -83,13 +85,21 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         if (llvm::isa<llvm::MemIntrinsic>(I)) {
           ++Stats.MemIntrinsics;
         }
+        if (llvm::isa<llvm::InlineAsm>(I)) {
+          ++Stats.NumInlineAsm;
+        }
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++Stats.CallSites;
           const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(&I);
-          if (CallSite->getCalledFunction()) {
-            if (MemAllocatingFunctions.count(llvm::demangle(
-                    CallSite->getCalledFunction()->getName().str()))) {
+
+          const auto *CalledOp =
+              CallSite->getCalledOperand()->stripPointerCastsAndAliases();
+
+          if (const auto *CalleeFun =
+                  llvm::dyn_cast<llvm::Function>(CalledOp)) {
+            if (MemAllocatingFunctions.count(
+                    llvm::demangle(CalleeFun->getName().str()))) {
               // do not add allocas from llvm internal functions
               Stats.AllocaInstructions.insert(&I);
               ++Stats.AllocationSites;
@@ -119,6 +129,8 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
                 }
               }
             }
+          } else {
+            ++Stats.IndCalls;
           }
         }
       }
@@ -222,10 +234,13 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
 nlohmann::json GeneralStatistics::getAsJson() const {
   nlohmann::json J;
   J["ModuleName"] = GeneralStatistics::ModuleName;
-  J["Instructions"] = getInstructions();
+  J["Instructions"] = Instructions;
   J["Functions"] = Functions;
   J["AllocaInstructions"] = AllocaInstructions.size();
   J["CallSites"] = CallSites;
+  J["IndirectCallSites"] = IndCalls;
+  J["MemoryIntrinsics"] = MemIntrinsics;
+  J["InlineAssembly"] = NumInlineAsm;
   J["GlobalVariables"] = Globals;
   J["Branches"] = Branches;
   J["GetElementPtrs"] = GetElementPtrs;
@@ -236,23 +251,26 @@ nlohmann::json GeneralStatistics::getAsJson() const {
   return J;
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const GeneralStatistics &Statistics) {
-  return OS << "General LLVM IR Statistics"
-            << "\n"
-            << "Module " << Statistics.ModuleName << ":\n"
-            << "LLVM IR instructions:\t" << Statistics.Instructions << "\n"
-            << "Functions:\t" << Statistics.Functions << "\n"
-            << "Global Variables:\t" << Statistics.Globals << "\n"
-            << "Global Variable Consts:\t" << Statistics.GlobalConsts << "\n"
-            << "Global Pointers:\t" << Statistics.GlobalPointers << "\n"
-            << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
-            << "\n"
-            << "Call Sites:\t" << Statistics.CallSites << "\n"
-            << "Branches:\t" << Statistics.Branches << "\n"
-            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << "\n"
-            << "Phi Nodes:\t" << Statistics.PhiNodes << "\n"
-            << "Basic Blocks:\t" << Statistics.BasicBlocks << "\n";
-}
-
 } // namespace psr
+
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   const GeneralStatistics &Statistics) {
+  return OS << "General LLVM IR Statistics" << '\n'
+            << "Module " << Statistics.ModuleName << ":\n"
+            << "LLVM IR instructions:\t" << Statistics.Instructions << '\n'
+            << "Functions:\t\t" << Statistics.Functions << '\n'
+            << "Globals:\t\t" << Statistics.Globals << '\n'
+            << "Global Constants:\t" << Statistics.GlobalConsts << '\n'
+            << "Global Variables:\t"
+            << (Statistics.Globals - Statistics.GlobalConsts) << '\n'
+            << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
+            << '\n'
+            << "Call Sites:\t\t" << Statistics.CallSites << '\n'
+            << "Indirect Call Sites:\t" << Statistics.IndCalls << '\n'
+            << "Memory Intrinsics:\t" << Statistics.MemIntrinsics << '\n'
+            << "Inline Assemblies:\t" << Statistics.NumInlineAsm << '\n'
+            << "Branches:\t" << Statistics.Branches << '\n'
+            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << '\n'
+            << "Phi Nodes:\t" << Statistics.PhiNodes << '\n'
+            << "Basic Blocks:\t" << Statistics.BasicBlocks << '\n';
+}
