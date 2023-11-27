@@ -74,27 +74,31 @@ private:
     EdgeFunction<l_t> fPrime = JumpFnE.joinWith(*f);
     bool NewFunction = fPrime != JumpFnE;
     if (NewFunction) {
-      IF_LOG_ENABLED(
-          PHASAR_LOG_LEVEL(
-              DEBUG, "Join: " << JumpFnE << " & " << *f
-                              << (JumpFnE == *f ? " (EF's are equal)" : ""));
-          PHASAR_LOG_LEVEL(
-              DEBUG, "    = " << f << (NewFunction ? " (new jump func)" : ""));
-          PHASAR_LOG_LEVEL(DEBUG, ' '));
+      IF_LOG_LEVEL_ENABLED(DEBUG, {
+        PHASAR_LOG_LEVEL(
+            DEBUG, "Join: " << JumpFnE << " & " << *f
+                            << (JumpFnE == *f ? " (EF's are equal)" : ""));
+        PHASAR_LOG_LEVEL(
+            DEBUG, "    = " << f << (NewFunction ? " (new jump func)" : ""));
+        PHASAR_LOG_LEVEL(DEBUG, ' ');
+      });
 
       *f = fPrime;
       this->JumpFn->addFunction(std::move(SourceVal), std::move(Target),
                                 std::move(TargetVal), std::move(fPrime));
 
-      IF_LOG_ENABLED(if (!this->IDEProblem->isZeroValue(TargetVal)) {
-        PHASAR_LOG_LEVEL(
-            DEBUG, "EDGE: <F: " << FToString(this->ICF->getFunctionOf(Target))
-                                << ", D: " << DToString(SourceVal) << '>');
-        PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "       D: " << DToString(TargetVal) << ',');
-        PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
-        PHASAR_LOG_LEVEL(DEBUG, ' ');
-      });
+      IF_LOG_LEVEL_ENABLED(
+          DEBUG, if (!this->IDEProblem->isZeroValue(TargetVal)) {
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "EDGE: <F: "
+                                 << FToString(this->ICF->getFunctionOf(Target))
+                                 << ", D: " << DToString(SourceVal) << '>');
+            PHASAR_LOG_LEVEL(DEBUG, " ---> <N: " << NToString(Target) << ',');
+            PHASAR_LOG_LEVEL(DEBUG,
+                             "       D: " << DToString(TargetVal) << ',');
+            PHASAR_LOG_LEVEL(DEBUG, "      EF: " << fPrime << '>');
+            PHASAR_LOG_LEVEL(DEBUG, ' ');
+          });
     }
     return NewFunction;
   }

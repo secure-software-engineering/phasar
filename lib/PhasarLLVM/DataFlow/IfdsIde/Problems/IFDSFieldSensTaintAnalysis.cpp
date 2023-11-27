@@ -28,13 +28,12 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h"
 
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <llvm/Support/raw_ostream.h>
 
 namespace psr {
 

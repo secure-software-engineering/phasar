@@ -21,6 +21,12 @@
 
 namespace psr {
 
+#if __cplusplus < 202002L
+template <typename T> struct type_identity { using type = T; };
+#else
+template <typename T> using type_identity = std::type_identity<T>;
+#endif
+
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
 
@@ -147,6 +153,13 @@ struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
     : std::true_type {};
 
+template <typename Var, typename T> struct variant_idx;
+template <typename... Ts, typename T>
+struct variant_idx<std::variant<Ts...>, T>
+    : std::integral_constant<
+          size_t,
+          std::variant<type_identity<Ts>...>(type_identity<T>{}).index()> {};
+
 } // namespace detail
 
 template <typename T>
@@ -217,13 +230,10 @@ template <typename T, typename U>
 static inline constexpr bool AreEqualityComparable =
     detail::AreEqualityComparable<T, U>::value;
 
-#if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; };
-#else
-template <typename T> using type_identity = std::type_identity<T>;
-#endif
-
 template <typename T> using type_identity_t = typename type_identity<T>::type;
+
+template <typename Var, typename T>
+static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 struct TrueFn {
   template <typename... Args>

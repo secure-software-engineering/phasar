@@ -19,6 +19,7 @@
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
+#include "phasar/PhasarLLVM/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
@@ -78,8 +79,17 @@ public:
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
-        ZeroValue(std::move(ZeroValue)) {
+        ZeroValue(std::move(ZeroValue)),
+        Printer(NullAnalysisPrinter<AnalysisDomainTy>::getInstance()) {
     assert(IRDB != nullptr);
+  }
+
+  void setAnalysisPrinter(AnalysisPrinterBase<AnalysisDomainTy> *P) {
+    if (P) {
+      Printer = P;
+    } else {
+      Printer = NullAnalysisPrinter<AnalysisDomainTy>::getInstance();
+    }
   }
 
   ~IDETabulationProblem() override = default;
@@ -167,6 +177,8 @@ protected:
   IFDSIDESolverConfig SolverConfig{};
 
   [[maybe_unused]] Soundness SF = Soundness::Soundy;
+
+  AnalysisPrinterBase<AnalysisDomainTy> *Printer;
 };
 
 } // namespace psr
