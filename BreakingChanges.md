@@ -2,6 +2,7 @@
 
 ## Development HEAD
 
+- The LLVm passes `PhasarPass` and `PhasarPrinterPass` have been removed as they use the deprecated legacy pass manager of LLVM. Use an own module- or LTO pass instead.
 - Default build mode is no longer `SHARED` but `STATIC`. To build in shared mode, use the cmake option `BUILD_SHARED_LIBS` which we don't recommend anymore. Consider using `PHASAR_BUILD_DYNLIB` instead to build one big libphasar.so.
 - Build type `DebugSan` has been removed in favor of a new CMake option `PHASAR_ENABLE_SANITIZERS` that not only works in `Debug` mode.
 

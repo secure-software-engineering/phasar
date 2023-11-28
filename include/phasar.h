@@ -19,7 +19,6 @@
 #include "phasar/Domain.h"
 #include "phasar/PhasarClang.h"
 #include "phasar/PhasarLLVM.h"
-#include "phasar/PhasarPass.h"
 #include "phasar/Pointer.h"
 #include "phasar/TypeHierarchy.h"
 #include "phasar/Utils.h"
