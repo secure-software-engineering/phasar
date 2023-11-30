@@ -41,6 +41,29 @@ static bool isAddressTaken(const llvm::Function &Fun) noexcept {
   return false;
 }
 
+template <typename Set>
+static void collectAllocatedTypes(const llvm::CallBase *CallSite, Set &Into) {
+  for (const auto *User : CallSite->users()) {
+    if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+      if (Cast->getDestTy()->getPointerElementType()->isStructTy()) {
+        // finally check for ctor call
+        for (const auto *User : Cast->users()) {
+          if (llvm::isa<llvm::CallInst>(User) ||
+              llvm::isa<llvm::InvokeInst>(User)) {
+            // potential call to the structures ctor
+            const auto *CTor = llvm::cast<llvm::CallBase>(User);
+            if (CTor->getCalledFunction() &&
+                CTor->getCalledFunction()->getArg(0)->getType() ==
+                    Cast->getDestTy()) {
+              Into.insert(Cast->getDestTy()->getPointerElementType());
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
 GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
@@ -160,29 +183,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
               ++Stats.AllocationSites;
               // check if an instance of a user-defined type is allocated on the
               // heap
-              for (auto *User : I.users()) {
-                if (auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
-                  if (Cast->getDestTy()
-                          ->getPointerElementType()
-                          ->isStructTy()) {
-                    // finally check for ctor call
-                    for (auto *User : Cast->users()) {
-                      if (llvm::isa<llvm::CallInst>(User) ||
-                          llvm::isa<llvm::InvokeInst>(User)) {
-                        // potential call to the structures ctor
-                        const llvm::CallBase *CTor =
-                            llvm::cast<llvm::CallBase>(User);
-                        if (CTor->getCalledFunction() &&
-                            CTor->getCalledFunction()->getArg(0)->getType() ==
-                                Cast->getDestTy()) {
-                          Stats.AllocatedTypes.insert(
-                              Cast->getDestTy()->getPointerElementType());
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              collectAllocatedTypes(CallSite, Stats.AllocatedTypes);
             }
           } else {
             ++Stats.IndCalls;
@@ -192,10 +193,16 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
     }
   }
   // check for global pointers
-  for (auto const &Global : M.globals()) {
+  for (const auto &Global : M.globals()) {
     ++Stats.Globals;
     if (Global.isConstant()) {
       ++Stats.GlobalConsts;
+    }
+    if (!Global.isDeclaration()) {
+      ++Stats.GlobalsDefinitions;
+    }
+    if (Global.hasExternalLinkage()) {
+      ++Stats.ExternalGlobals;
     }
   }
   // register stuff in PAMM
@@ -308,7 +315,7 @@ nlohmann::json GeneralStatistics::getAsJson() const {
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
                                    const GeneralStatistics &Statistics) {
-  return OS << "General LLVM IR Statistics" << '\n'
+  return OS << "General LLVM IR Statistics\n"
             << "Module " << Statistics.ModuleName << ":\n"
             << "LLVM IR instructions:\t" << Statistics.Instructions << '\n'
             << "Functions:\t\t" << Statistics.Functions << '\n'
@@ -321,6 +328,8 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
             << "Global Constants:\t" << Statistics.GlobalConsts << '\n'
             << "Global Variables:\t"
             << (Statistics.Globals - Statistics.GlobalConsts) << '\n'
+            << "External Globals:\t" << Statistics.ExternalGlobals << '\n'
+            << "Global Definitions:\t" << Statistics.GlobalsDefinitions << '\n'
             << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
             << '\n'
             << "Call Sites:\t\t" << Statistics.CallSites << '\n'
