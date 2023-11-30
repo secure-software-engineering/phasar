@@ -318,13 +318,14 @@ nlohmann::json GeneralStatistics::getAsJson() const {
 
 } // namespace psr
 
+namespace {
 template <typename T> struct AlignNum {
   llvm::StringRef Name;
   T Num;
 
   AlignNum(llvm::StringRef Name, T Num) noexcept : Name(Name), Num(Num) {}
-  AlignNum(llvm::StringRef Name, size_t Counter, size_t Numerator) noexcept
-      : Name(Name), Num(double(Counter) / double(Numerator)) {}
+  AlignNum(llvm::StringRef Name, size_t Numerator, size_t Denominator) noexcept
+      : Name(Name), Num(double(Numerator) / double(Denominator)) {}
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const AlignNum &AN) {
@@ -337,20 +338,21 @@ template <typename T> struct AlignNum {
     // Default is two fixed-point decimal places, so shift the output by three
     // spaces
     OS.indent(Diff + std::is_floating_point_v<T> * 3);
-    OS << llvm::formatv("   {0,+7}\n", AN.Num);
+    OS << llvm::formatv("{0,+7}\n", AN.Num);
 
     return OS;
   }
 };
 template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
 AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+} // namespace
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
                                    const GeneralStatistics &Statistics) {
   return OS
          << "General LLVM IR Statistics\n"
          << "Module " << Statistics.ModuleName << ":\n"
-         << "------------------------------------\n"
+         << "---------------------------------------\n"
          << AlignNum("LLVM IR instructions", Statistics.Instructions)
          << AlignNum("Functions", Statistics.Functions)
          << AlignNum("External Functions", Statistics.ExternalFunctions)
