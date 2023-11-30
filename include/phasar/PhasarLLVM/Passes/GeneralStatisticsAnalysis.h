@@ -36,17 +36,22 @@ namespace psr {
 struct GeneralStatistics {
 
   size_t Functions = 0;
+  size_t ExternalFunctions = 0;
+  size_t FunctionDefinitions = 0;
+  size_t AddressTakenFunctions = 0;
   size_t Globals = 0;
   size_t BasicBlocks = 0;
   size_t AllocationSites = 0;
   size_t CallSites = 0;
+  size_t DebugIntrinsics = 0;
   size_t Instructions = 0;
   size_t StoreInstructions = 0;
   size_t LoadInstructions = 0;
   size_t MemIntrinsics = 0;
-  size_t GlobalPointers = 0;
   size_t Branches = 0;
+  size_t Switches = 0;
   size_t GetElementPtrs = 0;
+  size_t LandingPads = 0;
   size_t PhiNodes = 0;
   size_t GlobalConsts = 0;
   size_t NumInlineAsm = 0;
