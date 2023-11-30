@@ -56,6 +56,16 @@ struct GeneralStatistics {
   size_t GlobalConsts = 0;
   size_t NumInlineAsm = 0;
   size_t IndCalls = 0;
+  size_t TotalNumOperands = 0;
+  size_t TotalNumUses = 0;
+  size_t TotalNumPredecessorBBs = 0;
+  size_t TotalNumSuccessorBBs = 0;
+  size_t MaxNumOperands = 0;
+  size_t MaxNumUses = 0;
+  size_t MaxNumPredecessorBBs = 0;
+  size_t MaxNumSuccessorBBs = 0;
+  size_t NumInstWithMultipleUses = 0;
+  size_t NonVoidInsts = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;

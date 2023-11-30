@@ -25,6 +25,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/InstrTypes.h"
@@ -33,6 +34,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/Format.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -72,9 +74,44 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
 
     for (auto &BB : F) {
       ++Stats.BasicBlocks;
+
+      {
+        auto PredSize = llvm::pred_size(&BB);
+        auto SuccSize = llvm::succ_size(&BB);
+        Stats.TotalNumPredecessorBBs += PredSize;
+        Stats.TotalNumSuccessorBBs += SuccSize;
+        if (PredSize > Stats.MaxNumPredecessorBBs) {
+          ++Stats.MaxNumPredecessorBBs;
+        }
+        if (SuccSize > Stats.MaxNumSuccessorBBs) {
+          ++Stats.MaxNumSuccessorBBs;
+        }
+      }
+
       for (auto &I : BB) {
         // found one more instruction
         ++Stats.Instructions;
+
+        {
+          auto NumOps = I.getNumOperands();
+          auto NumUses = I.getNumUses();
+          Stats.TotalNumOperands += NumOps;
+          Stats.TotalNumUses += NumUses;
+          if (NumOps > Stats.MaxNumOperands) {
+            ++Stats.MaxNumOperands;
+          }
+          if (NumUses > Stats.MaxNumUses) {
+            ++Stats.MaxNumUses;
+          }
+          if (NumUses > 1) {
+            ++Stats.NumInstWithMultipleUses;
+          }
+        }
+
+        if (!I.getType()->isVoidTy()) {
+          ++Stats.NonVoidInsts;
+        }
+
         // check for alloca instruction for possible types
         if (const llvm::AllocaInst *Alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
@@ -308,5 +345,29 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
             << "GetElementPtrs:\t" << Statistics.GetElementPtrs << '\n'
             << "Phi Nodes:\t" << Statistics.PhiNodes << '\n'
             << "LandingPads:\t" << Statistics.LandingPads << '\n'
-            << "Basic Blocks:\t" << Statistics.BasicBlocks << '\n';
+            << "Basic Blocks:\t" << Statistics.BasicBlocks << '\n'
+            << "Avg #pred per BasicBlock:\t"
+            << llvm::format("%g\n", double(Statistics.TotalNumPredecessorBBs) /
+                                        double(Statistics.BasicBlocks))
+            << "Max #pred per BasicBlock:\t" << Statistics.MaxNumPredecessorBBs
+            << '\n'
+            << "Avg #succ per BasicBlock:\t"
+            << llvm::format("%g\n", double(Statistics.TotalNumSuccessorBBs) /
+                                        double(Statistics.BasicBlocks))
+            << "Max #succ per BasicBlock:\t" << Statistics.MaxNumSuccessorBBs
+            << '\n'
+            << "Avg #operands per Inst:\t\t"
+            << llvm::format("%g\n", double(Statistics.TotalNumOperands) /
+                                        double(Statistics.Instructions))
+            << "Max #operands per Inst:\t\t" << Statistics.MaxNumOperands
+            << '\n'
+            << "Avg #uses per Inst:\t\t"
+            << llvm::format("%g\n", double(Statistics.TotalNumUses) /
+                                        double(Statistics.Instructions))
+            << "Max #uses per Inst:\t\t" << Statistics.MaxNumUses << '\n'
+            << "Insts with >1 uses:\t\t" << Statistics.NumInstWithMultipleUses
+            << '\n'
+            << "Non-void Insts:\t\t\t" << Statistics.NonVoidInsts << '\n'
+
+      ;
 }
