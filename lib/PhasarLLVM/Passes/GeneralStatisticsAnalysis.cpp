@@ -214,27 +214,27 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   REG_COUNTER("GS Load Instructions", Stats.LoadInstructions, Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
-  IF_LOG_ENABLED(
-      PHASAR_LOG_LEVEL(INFO, "GeneralStatisticsAnalysis summary for module: '"
-                                 << M.getName() << "'");
-      PHASAR_LOG_LEVEL(INFO, "Instructions       : " << Stats.Instructions);
-      PHASAR_LOG_LEVEL(INFO,
-                       "Allocated Types    : " << Stats.AllocatedTypes.size());
-      PHASAR_LOG_LEVEL(INFO, "Allocation Sites   : " << Stats.AllocationSites);
-      PHASAR_LOG_LEVEL(INFO, "Basic Blocks       : " << Stats.BasicBlocks);
-      PHASAR_LOG_LEVEL(INFO, "Calls Sites        : " << Stats.CallSites);
-      PHASAR_LOG_LEVEL(INFO, "Functions          : " << Stats.Functions);
-      PHASAR_LOG_LEVEL(INFO, "Globals            : " << Stats.Globals);
-      PHASAR_LOG_LEVEL(INFO, "Global Consts      : " << Stats.GlobalConsts);
-      PHASAR_LOG_LEVEL(INFO, "Memory Intrinsics  : " << Stats.MemIntrinsics);
-      PHASAR_LOG_LEVEL(INFO,
-                       "Store Instructions : " << Stats.StoreInstructions);
-      PHASAR_LOG_LEVEL(INFO, ' '); PHASAR_LOG_LEVEL(
-          INFO, "Allocated Types << " << Stats.AllocatedTypes.size());
-      for (const auto *Type
-           : Stats.AllocatedTypes) {
-        PHASAR_LOG_LEVEL(INFO, "  " << llvmTypeToString(Type));
-      });
+  IF_LOG_LEVEL_ENABLED(INFO, {
+    PHASAR_LOG_LEVEL(INFO, "GeneralStatisticsAnalysis summary for module: '"
+                               << M.getName() << "'");
+    PHASAR_LOG_LEVEL(INFO, "Instructions       : " << Stats.Instructions);
+    PHASAR_LOG_LEVEL(INFO,
+                     "Allocated Types    : " << Stats.AllocatedTypes.size());
+    PHASAR_LOG_LEVEL(INFO, "Allocation Sites   : " << Stats.AllocationSites);
+    PHASAR_LOG_LEVEL(INFO, "Basic Blocks       : " << Stats.BasicBlocks);
+    PHASAR_LOG_LEVEL(INFO, "Calls Sites        : " << Stats.CallSites);
+    PHASAR_LOG_LEVEL(INFO, "Functions          : " << Stats.Functions);
+    PHASAR_LOG_LEVEL(INFO, "Globals            : " << Stats.Globals);
+    PHASAR_LOG_LEVEL(INFO, "Global Consts      : " << Stats.GlobalConsts);
+    PHASAR_LOG_LEVEL(INFO, "Memory Intrinsics  : " << Stats.MemIntrinsics);
+    PHASAR_LOG_LEVEL(INFO, "Store Instructions : " << Stats.StoreInstructions);
+    PHASAR_LOG_LEVEL(INFO, ' ');
+    PHASAR_LOG_LEVEL(INFO,
+                     "Allocated Types << " << Stats.AllocatedTypes.size());
+    for (const auto *Type : Stats.AllocatedTypes) {
+      PHASAR_LOG_LEVEL(INFO, "  " << llvmTypeToString(Type));
+    }
+  });
   // now we are done and can return the results
   return Stats;
 }
