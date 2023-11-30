@@ -21,10 +21,12 @@ add_executable(myphasartool
 #   phasar_config(myphasartool)
 
 # New way using target_link_libraries:
-target_link_libraries(myphasartool phasar::phasar_llvm_ifdside)
+target_link_libraries(myphasartool phasar::llvm_ifdside)
 
 # If find_package did not specify components:
 #   target_link_libraries(myphasartool phasar::phasar)
+# alternatively using the default target:
+#   target_link_libraries(myphasartool phasar)
 
 install(TARGETS myphasartool
   RUNTIME DESTINATION bin
