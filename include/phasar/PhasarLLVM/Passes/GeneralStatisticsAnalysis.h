@@ -67,6 +67,7 @@ struct GeneralStatistics {
   size_t MaxNumPredecessorBBs = 0;
   size_t MaxNumSuccessorBBs = 0;
   size_t NumInstWithMultipleUses = 0;
+  size_t NumInstsUsedOutsideBB = 0;
   size_t NonVoidInsts = 0;
   std::set<const llvm::Type *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;

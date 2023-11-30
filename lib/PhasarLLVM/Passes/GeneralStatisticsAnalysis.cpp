@@ -24,10 +24,11 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Format.h"
+#include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
+#include <type_traits>
 
 namespace psr {
 
@@ -121,6 +122,10 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
 
         if (!I.getType()->isVoidTy()) {
           ++Stats.NonVoidInsts;
+        }
+
+        if (I.isUsedOutsideOfBlock(I.getParent())) {
+          ++Stats.NumInstsUsedOutsideBB;
         }
 
         // check for alloca instruction for possible types
@@ -313,58 +318,80 @@ nlohmann::json GeneralStatistics::getAsJson() const {
 
 } // namespace psr
 
+template <typename T> struct AlignNum {
+  llvm::StringRef Name;
+  T Num;
+
+  AlignNum(llvm::StringRef Name, T Num) noexcept : Name(Name), Num(Num) {}
+  AlignNum(llvm::StringRef Name, size_t Counter, size_t Numerator) noexcept
+      : Name(Name), Num(double(Counter) / double(Numerator)) {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const AlignNum &AN) {
+    static constexpr size_t NumOffs = 32;
+
+    auto Len = AN.Name.size() + 1;
+    auto Diff = -(Len < NumOffs) & (NumOffs - Len);
+
+    OS << AN.Name << ':';
+    // Default is two fixed-point decimal places, so shift the output by three
+    // spaces
+    OS.indent(Diff + std::is_floating_point_v<T> * 3);
+    OS << llvm::formatv("   {0,+7}\n", AN.Num);
+
+    return OS;
+  }
+};
+template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
+AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
                                    const GeneralStatistics &Statistics) {
-  return OS << "General LLVM IR Statistics\n"
-            << "Module " << Statistics.ModuleName << ":\n"
-            << "LLVM IR instructions:\t" << Statistics.Instructions << '\n'
-            << "Functions:\t\t" << Statistics.Functions << '\n'
-            << "External Functions:\t" << Statistics.ExternalFunctions << '\n'
-            << "Function Definitions:\t" << Statistics.FunctionDefinitions
-            << '\n'
-            << "Address-Taken Functions:\t" << Statistics.AddressTakenFunctions
-            << '\n'
-            << "Globals:\t\t" << Statistics.Globals << '\n'
-            << "Global Constants:\t" << Statistics.GlobalConsts << '\n'
-            << "Global Variables:\t"
-            << (Statistics.Globals - Statistics.GlobalConsts) << '\n'
-            << "External Globals:\t" << Statistics.ExternalGlobals << '\n'
-            << "Global Definitions:\t" << Statistics.GlobalsDefinitions << '\n'
-            << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
-            << '\n'
-            << "Call Sites:\t\t" << Statistics.CallSites << '\n'
-            << "Indirect Call Sites:\t" << Statistics.IndCalls << '\n'
-            << "Inline Assemblies:\t" << Statistics.NumInlineAsm << '\n'
-            << "Memory Intrinsics:\t" << Statistics.MemIntrinsics << '\n'
-            << "Debug Intrinsics:\t" << Statistics.DebugIntrinsics << '\n'
-            << "Branches:\t" << Statistics.Branches << '\n'
-            << "Switches:\t" << Statistics.Switches << '\n'
-            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << '\n'
-            << "Phi Nodes:\t" << Statistics.PhiNodes << '\n'
-            << "LandingPads:\t" << Statistics.LandingPads << '\n'
-            << "Basic Blocks:\t" << Statistics.BasicBlocks << '\n'
-            << "Avg #pred per BasicBlock:\t"
-            << llvm::format("%g\n", double(Statistics.TotalNumPredecessorBBs) /
-                                        double(Statistics.BasicBlocks))
-            << "Max #pred per BasicBlock:\t" << Statistics.MaxNumPredecessorBBs
-            << '\n'
-            << "Avg #succ per BasicBlock:\t"
-            << llvm::format("%g\n", double(Statistics.TotalNumSuccessorBBs) /
-                                        double(Statistics.BasicBlocks))
-            << "Max #succ per BasicBlock:\t" << Statistics.MaxNumSuccessorBBs
-            << '\n'
-            << "Avg #operands per Inst:\t\t"
-            << llvm::format("%g\n", double(Statistics.TotalNumOperands) /
-                                        double(Statistics.Instructions))
-            << "Max #operands per Inst:\t\t" << Statistics.MaxNumOperands
-            << '\n'
-            << "Avg #uses per Inst:\t\t"
-            << llvm::format("%g\n", double(Statistics.TotalNumUses) /
-                                        double(Statistics.Instructions))
-            << "Max #uses per Inst:\t\t" << Statistics.MaxNumUses << '\n'
-            << "Insts with >1 uses:\t\t" << Statistics.NumInstWithMultipleUses
-            << '\n'
-            << "Non-void Insts:\t\t\t" << Statistics.NonVoidInsts << '\n'
+  return OS
+         << "General LLVM IR Statistics\n"
+         << "Module " << Statistics.ModuleName << ":\n"
+         << "------------------------------------\n"
+         << AlignNum("LLVM IR instructions", Statistics.Instructions)
+         << AlignNum("Functions", Statistics.Functions)
+         << AlignNum("External Functions", Statistics.ExternalFunctions)
+         << AlignNum("Function Definitions", Statistics.FunctionDefinitions)
+         << AlignNum("Address-Taken Functions",
+                     Statistics.AddressTakenFunctions)
+         << AlignNum("Globals", Statistics.Globals)
+         << AlignNum("Global Constants", Statistics.GlobalConsts)
+         << AlignNum("Global Variables",
+                     Statistics.Globals - Statistics.GlobalConsts)
+         << AlignNum("External Globals", Statistics.ExternalGlobals)
+         << AlignNum("Global Definitions", Statistics.GlobalsDefinitions)
+         << AlignNum("Alloca Instructions",
+                     Statistics.AllocaInstructions.size())
+         << AlignNum("Call Sites", Statistics.CallSites)
+         << AlignNum("Indirect Call Sites", Statistics.IndCalls)
+         << AlignNum("Inline Assemblies", Statistics.NumInlineAsm)
+         << AlignNum("Memory Intrinsics", Statistics.MemIntrinsics)
+         << AlignNum("Debug Intrinsics", Statistics.DebugIntrinsics)
+         << AlignNum("Switches", Statistics.Switches)
+         << AlignNum("GetElementPtrs", Statistics.GetElementPtrs)
+         << AlignNum("Phi Nodes", Statistics.PhiNodes)
+         << AlignNum("LandingPads", Statistics.LandingPads)
+         << AlignNum("Basic Blocks", Statistics.BasicBlocks)
+         << AlignNum("Avg #pred per BasicBlock",
+                     Statistics.TotalNumPredecessorBBs, Statistics.BasicBlocks)
+         << AlignNum("Max #pred per BasicBlock",
+                     Statistics.MaxNumPredecessorBBs)
+         << AlignNum("Avg #succ per BasicBlock",
+                     Statistics.TotalNumSuccessorBBs, Statistics.BasicBlocks)
+         << AlignNum("Max #succ per BasicBlock", Statistics.MaxNumSuccessorBBs)
+         << AlignNum("Avg #operands per Inst", Statistics.TotalNumOperands,
+                     Statistics.Instructions)
+         << AlignNum("Max #operands per Inst", Statistics.MaxNumOperands)
+         << AlignNum("Avg #uses per Inst", Statistics.TotalNumUses,
+                     Statistics.Instructions)
+         << AlignNum("Max #uses per Inst", Statistics.MaxNumUses)
+         << AlignNum("Insts with >1 uses", Statistics.NumInstWithMultipleUses)
+         << AlignNum("Non-void Insts", Statistics.NonVoidInsts)
+         << AlignNum("Insts used outside its BB",
+                     Statistics.NumInstsUsedOutsideBB)
 
       ;
 }
