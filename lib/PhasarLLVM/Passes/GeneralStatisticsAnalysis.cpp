@@ -7,13 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * MyHelloPass.cpp
- *
- *  Created on: 05.07.2016
- *      Author: pdschbrt
- */
-
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
@@ -22,9 +15,6 @@
 #include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 
-#include "llvm/Analysis/LoopInfo.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InlineAsm.h"
@@ -38,8 +28,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
-
-using namespace psr;
 
 namespace psr {
 
