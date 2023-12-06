@@ -20,6 +20,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionStats.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
@@ -256,35 +257,27 @@ public:
                                               std::move(ZeroValue));
   }
 
-  void printEdgeFunctionStatistics(llvm::raw_ostream &OS = llvm::outs()) const {
-    std::array<llvm::DenseSet<EdgeFunction<l_t>>, 5> UniqueEFs{};
-    std::array<size_t, 5> TotalEFCount{};
-    static constexpr std::array<llvm::StringRef, 5> EFKind{
-        "Normal", "Call", "Return", "CallToReturn", "Summary"};
+  [[nodiscard]] EdgeFunctionStats getEdgeFunctionStatistics() const {
+    detail::EdgeFunctionStatsData Stats{};
 
-    std::array<size_t, 3> PerAllocCount{};
-    static constexpr std::array<llvm::StringRef, 3> AllocKind{
-        "SmallObjectOptimized", "DefaultHeapAllocated", "CustomHeapAllocated"};
+    std::array<llvm::DenseSet<EdgeFunction<l_t>>, 5> UniqueEFs{};
     // TODO: Cache EFs
     CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
         [&](EdgeFunction<l_t> EF, EdgeFunctionKind Kind) {
           UniqueEFs[int(Kind)].insert(std::move(EF));
-          TotalEFCount[int(Kind)]++;
-          PerAllocCount[int(EF.getAllocationPolicy())]++;
+          Stats.TotalEFCount[int(Kind)]++;
+          Stats.PerAllocCount[int(EF.getAllocationPolicy())]++;
         });
 
-    size_t Ctr = 0;
-    for (const auto &[UEF, Count] : llvm::zip(UniqueEFs, TotalEFCount)) {
-      OS << "Kind: " << EFKind[Ctr] << ":\n";
-      Ctr++;
-
-      OS << "  Total # EdgeFunctions: " << Count << '\n';
-      OS << "  Unique EdgeFunctions: " << UEF.size() << '\n';
+    for (size_t I = 0, End = UniqueEFs.size(); I != End; ++I) {
+      Stats.UniqueEFCount[I] = UniqueEFs[I].size(); // NOLINT
     }
 
-    for (auto [Count, Kind] : llvm::zip(PerAllocCount, AllocKind)) {
-      OS << Kind << ": " << Count << '\n';
-    }
+    return Stats;
+  }
+
+  void printEdgeFunctionStatistics(llvm::raw_ostream &OS = llvm::outs()) const {
+    OS << getEdgeFunctionStatistics() << '\n';
   }
 
 protected:

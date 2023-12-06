@@ -68,6 +68,12 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
 
 #endif
 
+enum class EdgeFunctionAllocationPolicy {
+  SmallObjectOptimized,
+  DefaultHeapAllocated,
+  CustomHeapAllocated,
+};
+
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
@@ -76,11 +82,7 @@ public:
                        alignof(ConcreteEF) <= alignof(void *) &&
                        std::is_trivially_copyable_v<ConcreteEF>;
 
-  enum class AllocationPolicy {
-    SmallObjectOptimized,
-    DefaultHeapAllocated,
-    CustomHeapAllocated,
-  };
+  using AllocationPolicy = EdgeFunctionAllocationPolicy;
 
 protected:
   struct RefCountedBase {
