@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
 
@@ -265,13 +266,17 @@ template <typename L> struct EdgeFunctionComposer {
     return LHS.First == RHS.First && LHS.Second == RHS.Second;
   }
 
-  size_t depth() noexcept { return First.depth() + Second.depth(); }
+  [[nodiscard]] size_t depth() const noexcept {
+    return First.depth() + Second.depth();
+  }
 
   // -- data members
 
   EdgeFunction<l_t> First{};
   EdgeFunction<l_t> Second{};
 };
+
+static_assert(HasDepth<EdgeFunctionComposer<int>>);
 
 template <typename L, uint8_t N> struct JoinEdgeFunction {
   using l_t = L;

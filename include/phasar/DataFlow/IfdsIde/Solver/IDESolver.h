@@ -260,19 +260,77 @@ public:
   [[nodiscard]] EdgeFunctionStats getEdgeFunctionStatistics() const {
     detail::EdgeFunctionStatsData Stats{};
 
-    std::array<llvm::DenseSet<EdgeFunction<l_t>>, 5> UniqueEFs{};
-    // TODO: Cache EFs
-    CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
-        [&](EdgeFunction<l_t> EF, EdgeFunctionKind Kind) {
-          UniqueEFs[int(Kind)].insert(std::move(EF));
-          Stats.TotalEFCount[int(Kind)]++;
-          Stats.PerAllocCount[int(EF.getAllocationPolicy())]++;
-        });
+    // Cached Edge Functions
+    {
 
-    for (size_t I = 0, End = UniqueEFs.size(); I != End; ++I) {
-      Stats.UniqueEFCount[I] = UniqueEFs[I].size(); // NOLINT
+      std::array<llvm::DenseSet<EdgeFunction<l_t>>, 5> UniqueEFs{};
+      size_t TotalDepth = 0;
+      size_t TotalUniqueDepth = 0;
+      size_t TotalNumEF = 0;
+      // TODO: Cache EFs
+      CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
+          [&](EdgeFunction<l_t> EF, EdgeFunctionKind Kind) {
+            ++TotalNumEF;
+            auto Depth = EF.depth();
+            TotalDepth += Depth;
+            if (Depth > Stats.MaxDepth) {
+              Stats.MaxDepth = Depth;
+            }
+
+            if (UniqueEFs[int(Kind)].insert(std::move(EF)).second) {
+              TotalUniqueDepth += Depth;
+            }
+            Stats.TotalEFCount[int(Kind)]++;
+            Stats.PerAllocCount[int(EF.getAllocationPolicy())]++;
+          });
+
+      size_t TotalUniqueNumEF = 0;
+      for (size_t I = 0, End = UniqueEFs.size(); I != End; ++I) {
+        Stats.UniqueEFCount[I] = UniqueEFs[I].size(); // NOLINT
+        TotalUniqueNumEF += UniqueEFs[I].size();
+      }
+
+      Stats.AvgDepth = double(TotalDepth) / double(TotalNumEF);
+      Stats.AvgUniqueDepth =
+          double(TotalUniqueDepth) / double(TotalUniqueNumEF);
     }
 
+    // Jump Functions
+    {
+
+      llvm::DenseSet<EdgeFunction<l_t>> UniqueJumpFns;
+      llvm::DenseSet<const void *> AllocatedJumpFns;
+      size_t TotalDepth = 0;
+      size_t TotalUniqueDepth = 0;
+      size_t TotalAllocDepth = 0;
+
+      JumpFn->foreachEdgeFunction([&](EdgeFunction<l_t> JF) {
+        ++Stats.TotalNumJF;
+        auto Depth = JF.depth();
+        TotalDepth += Depth;
+        if (Depth > Stats.MaxJFDepth) {
+          Stats.MaxJFDepth = Depth;
+        }
+
+        if (AllocatedJumpFns.insert(JF.getOpaqueValue()).second) {
+          TotalAllocDepth += Depth;
+        }
+
+        Stats.PerAllocJFCount[int(JF.getAllocationPolicy())]++;
+
+        if (UniqueJumpFns.insert(std::move(JF)).second) {
+          TotalUniqueDepth += Depth;
+        }
+      });
+
+      Stats.UniqueNumJF = UniqueJumpFns.size();
+      Stats.NumJFObjects = AllocatedJumpFns.size();
+      Stats.AvgJFDepth = double(TotalDepth) / double(Stats.TotalNumJF);
+      Stats.AvgUniqueJFDepth =
+          double(TotalUniqueDepth) / double(Stats.UniqueNumJF);
+      Stats.AvgJFObjDepth =
+          double(TotalAllocDepth) / double(Stats.NumJFObjects);
+    }
     return Stats;
   }
 

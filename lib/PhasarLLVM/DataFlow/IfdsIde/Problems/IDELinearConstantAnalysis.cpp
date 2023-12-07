@@ -236,7 +236,6 @@ struct BinOp {
     }
 
     // TODO: Optimize Binop::composeWith(BinOp)
-
     return LCAEdgeFunctionComposer{This, SecondFunction};
   }
 

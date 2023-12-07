@@ -655,7 +655,7 @@ public:
         EF, VTAndHeapAlloc.getPointer());
   }
 
-  [[nodiscard]] auto depth() noexcept {
+  [[nodiscard]] auto depth() const noexcept {
     assert(!!*this && "depth() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->depth(EF);
   }

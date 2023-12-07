@@ -29,6 +29,18 @@ struct EdgeFunctionStatsData {
   std::array<size_t, NumEFKinds> UniqueEFCount{};
   std::array<size_t, NumEFKinds> TotalEFCount{};
   std::array<size_t, NumAllocPolicies> PerAllocCount{};
+  size_t MaxDepth{};
+  double AvgDepth{};
+  double AvgUniqueDepth{};
+
+  size_t TotalNumJF{};
+  size_t UniqueNumJF{};
+  size_t NumJFObjects{};
+  size_t MaxJFDepth{};
+  double AvgJFDepth{};
+  double AvgUniqueJFDepth{};
+  double AvgJFObjDepth{};
+  std::array<size_t, NumAllocPolicies> PerAllocJFCount{};
 };
 } // namespace detail
 
