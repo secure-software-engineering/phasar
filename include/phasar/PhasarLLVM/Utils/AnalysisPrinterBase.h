@@ -21,12 +21,12 @@ template <typename AnalysisDomainTy> struct Warning {
 };
 
 template <typename AnalysisDomainTy> struct DataflowAnalysisResults {
-  std::vector<Warning<AnalysisDomainTy>> War;
+  std::vector<Warning<AnalysisDomainTy>> Warn;
 };
 
 template <typename AnalysisDomainTy> class AnalysisPrinterBase {
 public:
-  virtual void onResult(Warning<AnalysisDomainTy> /*War*/) = 0;
+  virtual void onResult(Warning<AnalysisDomainTy> /*Warn*/) = 0;
   virtual void onInitialize() = 0;
   virtual void onFinalize() const = 0;
 

@@ -38,11 +38,11 @@ public:
     }
   }
 
-  void onResult(Warning<IDEExtendedTaintAnalysisDomain> War) override {
+  void onResult(Warning<IDEExtendedTaintAnalysisDomain> Warn) override {
     llvm::DenseMap<int, std::set<std::string>> FoundLeak;
-    int SinkId = stoi(getMetaDataID(War.Instr));
+    int SinkId = stoi(getMetaDataID(Warn.Instr));
     std::set<std::string> LeakedValueIds;
-    LeakedValueIds.insert(getMetaDataID((War.Fact)->base()));
+    LeakedValueIds.insert(getMetaDataID((Warn.Fact)->base()));
     FoundLeak.try_emplace(SinkId, LeakedValueIds);
     findAndRemove(FoundLeak, GroundTruth);
   }

@@ -188,38 +188,30 @@ IFDSUninitializedVariables::getNormalFlowFunction(
     });
   }
   // check if some instruction is using an undefined value (in)directly
-  struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-    const llvm::Instruction *Inst;
-    std::map<IFDSUninitializedVariables::n_t,
-             std::set<IFDSUninitializedVariables::d_t>> &UndefValueUses;
-    UVFF(const llvm::Instruction *Inst,
-         std::map<IFDSUninitializedVariables::n_t,
-                  std::set<IFDSUninitializedVariables::d_t>> &UVU)
-        : Inst(Inst), UndefValueUses(UVU) {}
-    std::set<IFDSUninitializedVariables::d_t>
-    computeTargets(IFDSUninitializedVariables::d_t Source) override {
-      for (const auto &Operand : Inst->operands()) {
-        const llvm::UndefValue *Undef =
-            llvm::dyn_cast<llvm::UndefValue>(Operand);
-        if (Operand == Source || Operand == Undef) {
-          //----------------------------------------------------------------
-          // It is not necessary and (from my point of view) not intended to
-          // report a leak on EVERY kind of instruction.
-          // For some of them (e.g. gep, bitcast, ...) propagating the dataflow
-          // facts may be enough
-          //----------------------------------------------------------------
-          if (!llvm::isa<llvm::GetElementPtrInst>(Inst) &&
-              !llvm::isa<llvm::CastInst>(Inst) &&
-              !llvm::isa<llvm::PHINode>(Inst)) {
-            UndefValueUses[Inst].insert(Operand);
-          }
-          return {Source, Inst};
+
+  return lambdaFlow([Curr, this](d_t Source) -> std::set<d_t> {
+    for (const auto &Operand : Curr->operands()) {
+      const llvm::UndefValue *Undef = llvm::dyn_cast<llvm::UndefValue>(Operand);
+      if (Operand == Source || Operand == Undef) {
+        //----------------------------------------------------------------
+        // It is not necessary and (from my point of view) not intended to
+        // report a leak on EVERY kind of instruction.
+        // For some of them (e.g. gep, bitcast, ...) propagating the dataflow
+        // facts may be enough
+        //----------------------------------------------------------------
+        if (!llvm::isa<llvm::GetElementPtrInst>(Curr) &&
+            !llvm::isa<llvm::CastInst>(Curr) &&
+            !llvm::isa<llvm::PHINode>(Curr)) {
+          UndefValueUses[Curr].insert(Operand);
+          Warning<LLVMIFDSAnalysisDomainDefault> Warn(Curr, Operand,
+                                                      BinaryDomain::TOP);
+          Printer->onResult(Warn);
         }
+        return {Source, Curr};
       }
-      return {Source};
     }
-  };
-  return std::make_shared<UVFF>(Curr, UndefValueUses);
+    return {Source};
+  });
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -441,6 +433,7 @@ void IFDSUninitializedVariables::emitTextReport(
         Res.print(OS);
       }
     }
+    Printer->onFinalize();
   }
 }
 

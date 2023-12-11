@@ -20,13 +20,13 @@ public:
   ~DefaultAnalysisPrinter() override = default;
   DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(OS) {}
 
-  void onResult(Warning<AnalysisDomainTy> War) override {
-    AnalysisResults.War.emplace_back(std::move(War));
+  void onResult(Warning<AnalysisDomainTy> Warn) override {
+    AnalysisResults.Warn.emplace_back(std::move(Warn));
   }
 
   void onInitialize() override{};
   void onFinalize() const override {
-    for (const auto &Iter : AnalysisResults.War) {
+    for (const auto &Iter : AnalysisResults.Warn) {
 
       OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
 
