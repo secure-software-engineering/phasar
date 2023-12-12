@@ -36,9 +36,8 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
     std::terminate();
   }
 
-  static_assert(alignof(AbstractMemoryLocationImpl) <= alignof(size_t));
-
-  auto *Ret = reinterpret_cast<Block *>(new size_t[1 + NumPointerEntries]);
+  auto *Ret = reinterpret_cast<Block *>(new (std::align_val_t{
+      alignof(AbstractMemoryLocationImpl)}) size_t[1 + NumPointerEntries]);
 
   new (Ret) Block(Next);
 
