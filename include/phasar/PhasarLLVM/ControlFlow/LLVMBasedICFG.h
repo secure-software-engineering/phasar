@@ -52,6 +52,9 @@ class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   struct Builder;
 
 public:
+  using typename LLVMBasedCFG::f_t;
+  using typename LLVMBasedCFG::n_t;
+
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
       "__psrCRuntimeGlobalCtorsModel";
 

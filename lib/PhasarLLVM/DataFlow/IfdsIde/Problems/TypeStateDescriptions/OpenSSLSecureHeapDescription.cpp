@@ -9,6 +9,8 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
 

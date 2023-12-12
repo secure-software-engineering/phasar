@@ -344,7 +344,7 @@ template <typename T> struct AlignNum {
   }
 };
 template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
-AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+AlignNum(llvm::StringRef, size_t, size_t) -> AlignNum<double>;
 } // namespace
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,

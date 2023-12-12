@@ -130,7 +130,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   const auto *LastMainInstruction =
       getLastInstructionOf(HA->getProjectIRDB().getFunction("main"));
   GroundTruth.push_back({{EdgeValue("Hello, World")},
-                         3,
+                         3U,
                          std::stoi(getMetaDataID(LastMainInstruction))});
   compareResults(GroundTruth);
 }

@@ -66,7 +66,7 @@ CachedTypeGraph::vertex_t
 CachedTypeGraph::addType(const llvm::StructType *NewType) {
   std::string Name;
   if (!NewType->isLiteral()) {
-    Name = NewType->getName();
+    Name = NewType->getName().str();
   } else {
     std::stringstream StrS;
     StrS << "literal_" << NewType;
@@ -123,9 +123,10 @@ bool CachedTypeGraph::addLinkWithoutReversePropagation(
 }
 
 void CachedTypeGraph::printAsDot(const std::string &Path) const {
-  std::ofstream Ofs(Path);
-  boost::write_graphviz(
-      Ofs, G, boost::make_label_writer(boost::get(&VertexProperties::Name, G)));
+  // std::ofstream Ofs(Path);
+  // boost::write_graphviz(
+  //     Ofs, G, boost::make_label_writer(boost::get(&VertexProperties::Name,
+  //     G)));
 }
 
 void CachedTypeGraph::aggregateTypes() {

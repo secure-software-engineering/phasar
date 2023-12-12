@@ -201,7 +201,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
       for (const auto &Operand : Inst->operands()) {
         const llvm::UndefValue *Undef =
             llvm::dyn_cast<llvm::UndefValue>(Operand);
-        if (Operand == Source || Operand == Undef) {
+        if (Operand.get() == Source || Operand.get() == Undef) {
           //----------------------------------------------------------------
           // It is not necessary and (from my point of view) not intended to
           // report a leak on EVERY kind of instruction.

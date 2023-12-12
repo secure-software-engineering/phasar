@@ -75,10 +75,14 @@ bool LazyTypeGraph::addLink(const llvm::StructType *From,
 }
 
 void LazyTypeGraph::printAsDot(const std::string &Path) const {
+  // TODO: There seems to be a problem with MSVC accessing
+  // LazyTypeGraph::VertexProperties::Name
+#ifndef _MSC_VER
   std::ofstream Ofs(Path);
   boost::write_graphviz(Ofs, Graph,
                         boost::make_label_writer(boost::get(
                             &LazyTypeGraph::VertexProperties::Name, Graph)));
+#endif
 }
 
 std::set<const llvm::StructType *>

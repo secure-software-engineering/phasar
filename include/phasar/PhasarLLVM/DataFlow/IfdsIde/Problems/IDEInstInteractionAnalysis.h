@@ -1218,6 +1218,13 @@ protected:
     return LLVMZeroValue::isLLVMZeroValue(d);
   }
 
+  // Apparently, a friend function cannot access friends:
+  // https://stackoverflow.com/a/67773627
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAKillOrReplaceEF &EF);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAAddLabelsEF &EF);
+
   static void printEdgeFactImpl(llvm::raw_ostream &OS,
                                 ByConstRef<l_t> EdgeFact) {
     if (std::holds_alternative<Top>(EdgeFact)) {

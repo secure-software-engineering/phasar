@@ -217,14 +217,14 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
     llvm::Type *I1ElTy =
         llvm::cast<llvm::PointerType>(I1->first->getType())->getElementType();
     const uint64_t I1Size = I1ElTy->isSized()
-                                ? DL.getTypeStoreSize(I1ElTy)
+                                ? DL.getTypeStoreSize(I1ElTy).getKnownMinSize()
                                 : llvm::MemoryLocation::UnknownSize;
     for (auto I2 = std::next(I1); I2 != MapEnd; ++I2) {
       llvm::Type *I2ElTy =
           llvm::cast<llvm::PointerType>(I2->first->getType())->getElementType();
-      const uint64_t I2Size = I2ElTy->isSized()
-                                  ? DL.getTypeStoreSize(I2ElTy)
-                                  : llvm::MemoryLocation::UnknownSize;
+      const uint64_t I2Size =
+          I2ElTy->isSized() ? DL.getTypeStoreSize(I2ElTy).getKnownMinSize()
+                            : llvm::MemoryLocation::UnknownSize;
       switch (AA.alias(I1->first, I1Size, I2->first, I2Size)) {
       case llvm::AliasResult::NoAlias:
         break;
@@ -414,10 +414,10 @@ void LLVMAliasGraph::print(llvm::raw_ostream &OS) const {
 }
 
 void LLVMAliasGraph::printAsDot(llvm::raw_ostream &OS) const {
-  std::stringstream S;
-  boost::write_graphviz(S, PAG, makePointerVertexOrEdgePrinter(PAG),
-                        makePointerVertexOrEdgePrinter(PAG));
-  OS << S.str();
+  // std::stringstream S;
+  // boost::write_graphviz(S, PAG, makePointerVertexOrEdgePrinter(PAG),
+  //                       makePointerVertexOrEdgePrinter(PAG));
+  // OS << S.str();
 }
 
 nlohmann::json LLVMAliasGraph::getAsJson() const {

@@ -61,17 +61,17 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
   {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
   {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
 };
-  // clang-format on
+// clang-format on
 
 #endif
 
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
-  static constexpr bool
-      IsSOOCandidate = sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
-                       alignof(ConcreteEF) <= alignof(void *) &&
-                       std::is_trivially_copyable_v<ConcreteEF>;
+  static constexpr bool IsSOOCandidate =
+      sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
+      alignof(ConcreteEF) <= alignof(void *) &&
+      std::is_trivially_copyable_v<ConcreteEF>;
 
 protected:
   enum class AllocationPolicy {
@@ -82,7 +82,9 @@ protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
-  template <typename T> struct RefCounted : RefCountedBase { T Value; };
+  template <typename T> struct RefCounted : RefCountedBase {
+    T Value;
+  };
 
   template <typename T> struct CachedRefCounted : RefCounted<T> {
     EdgeFunctionSingletonCache<T> *Cache{};
@@ -427,30 +429,27 @@ public:
             typename = std::enable_if_t<
                 !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
                 IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
-                                       const EdgeFunction &RHS) noexcept {
-    if (!RHS.template isa<ConcreteEF>()) {
+  [[nodiscard]] bool operator==(EdgeFunctionRef<ConcreteEF> RHS) noexcept {
+    if (!isa<ConcreteEF>()) {
       return false;
     }
-    if (LHS.Instance == RHS.EF) {
+    if (RHS.Instance == EF) {
       return true;
     }
     if constexpr (IsEqualityComparable<ConcreteEF>) {
-      return *LHS == *getPtr<ConcreteEF>(RHS.EF);
+      return *RHS == *getPtr<ConcreteEF>(EF);
     } else {
       return true;
     }
   }
 
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool
-  operator==(const EdgeFunction<L> &LHS,
-             EdgeFunctionRef<ConcreteEF> RHS) noexcept {
+  template <typename ConcreteEF, typename = std::enable_if_t<!std::is_same_v<
+                                     EdgeFunction, std::decay_t<ConcreteEF>>>>
+  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
+                                       const EdgeFunction &RHS) noexcept {
     return RHS == LHS;
   }
+
   [[nodiscard]] friend bool operator==(const EdgeFunction &EF,
                                        std::nullptr_t) noexcept {
     return EF.VTAndHeapAlloc.getOpaqueValue() == nullptr;

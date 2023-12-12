@@ -71,11 +71,13 @@ template <typename L> struct AllBottom final {
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
-  template <typename LL = L,
-            typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
   friend bool operator==(const AllBottom<L> &LHS,
                          const AllBottom<L> &RHS) noexcept {
-    return LHS.BottomValue == RHS.BottomValue;
+    if constexpr (HasJoinLatticeTraits<L>) {
+      return true;
+    } else {
+      return LHS.BottomValue == RHS.BottomValue;
+    }
   }
 };
 
@@ -111,10 +113,12 @@ template <typename L> struct AllTop final {
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
-  template <typename LL = L,
-            typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
   friend bool operator==(const AllTop<L> &LHS, const AllTop<L> &RHS) noexcept {
-    return LHS.TopValue == RHS.TopValue;
+    if constexpr (HasJoinLatticeTraits<L>) {
+      return true;
+    } else {
+      return LHS.TopValue == RHS.TopValue;
+    }
   }
 };
 
@@ -310,7 +314,7 @@ template <typename L, uint8_t N> struct JoinEdgeFunction {
       }
     };
 
-    return DefaultJoinEdgeFunctionComposer{This, SecondFunction};
+    return DefaultJoinEdgeFunctionComposer{{This, SecondFunction}};
   }
 
   [[nodiscard]] static EdgeFunction<l_t>

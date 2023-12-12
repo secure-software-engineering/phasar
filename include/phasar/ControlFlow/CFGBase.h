@@ -15,6 +15,10 @@
 
 #include "nlohmann/json.hpp"
 
+#include <type_traits>
+
+#include <llvm/ADT/StringRef.h>
+
 namespace psr {
 
 enum class SpecialMemberFunctionType;
@@ -119,6 +123,7 @@ public:
     return self().getStatementIdImpl(Inst);
   }
   [[nodiscard]] decltype(auto) getFunctionName(ByConstRef<f_t> Fun) const {
+    static_assert(__cplusplus > 201402L);
     static_assert(is_string_like_v<decltype(self().getFunctionNameImpl(Fun))>);
     return self().getFunctionNameImpl(Fun);
   }
@@ -144,9 +149,10 @@ private:
 
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-constexpr bool is_cfg_v = is_crtp_base_of_v<CFGBase, ICF>
-    &&std::is_same_v<typename ICF::n_t, typename Domain::n_t>
-        &&std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
+constexpr bool is_cfg_v =
+    is_crtp_base_of_v<CFGBase, ICF> &&
+    std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
+    std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
 
 } // namespace psr
 

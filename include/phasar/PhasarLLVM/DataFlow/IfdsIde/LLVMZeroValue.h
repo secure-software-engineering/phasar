@@ -19,12 +19,10 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Value.h"
 
 #include <memory>
-
-namespace llvm {
-class Value;
-} // namespace llvm
+#include <type_traits>
 
 namespace psr {
 
@@ -52,10 +50,17 @@ public:
   // Do not specify a destructor (at all)!
   static const LLVMZeroValue *getInstance();
 
+#ifndef _MSC_VER
   // NOLINTNEXTLINE(readability-identifier-naming)
   static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) noexcept {
     return V == getInstance();
   };
+#else
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static bool isLLVMZeroValue(const llvm::Value *V) noexcept {
+    return V == getInstance();
+  }
+#endif
 };
 } // namespace psr
 

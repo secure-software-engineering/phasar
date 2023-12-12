@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Instructions.h"
@@ -35,8 +36,9 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
     std::terminate();
   }
 
-  auto *Ret = reinterpret_cast<Block *>(new (std::align_val_t{
-      alignof(AbstractMemoryLocationImpl)}) size_t[1 + NumPointerEntries]);
+  static_assert(alignof(AbstractMemoryLocationImpl) <= alignof(size_t));
+
+  auto *Ret = reinterpret_cast<Block *>(new size_t[1 + NumPointerEntries]);
 
   new (Ret) Block(Next);
 

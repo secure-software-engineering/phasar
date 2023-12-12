@@ -260,7 +260,8 @@ void validateParamModule() {
   if (!(std::filesystem::exists(ModulePath) &&
         !std::filesystem::is_directory(ModulePath) &&
         (ModulePath.extension() == ".ll" || ModulePath.extension() == ".bc"))) {
-    llvm::errs() << "LLVM module '" << std::filesystem::canonical(ModulePath)
+    llvm::errs() << "LLVM module '"
+                 << std::filesystem::canonical(ModulePath).string()
                  << "' does not exist!\n";
     exit(1);
   }
@@ -352,7 +353,8 @@ int main(int Argc, const char **Argv) {
   if (ProjectIdOpt.empty()) {
     ProjectIdOpt = std::filesystem::path(ModuleOpt.getValue())
                        .filename()
-                       .replace_extension();
+                       .replace_extension()
+                       .string();
     if (ProjectIdOpt.empty()) {
       ProjectIdOpt = "default-phasar-project";
     }

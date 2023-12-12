@@ -63,10 +63,15 @@ set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 # TODO: Once available, we may want to use -fextend-lifetimes on Debug- and RelWithDebInfo builds to improve debugging experience
 # https://reviews.llvm.org/D157613
 
-string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
-string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
-string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
+
+if (NOT MSVC)
+  string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+  string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
+  string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
+else()
+  string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus /bigobj")
+endif()
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
 
@@ -214,7 +219,7 @@ endif()
 # Filesystem
 if (LLVM_ENABLE_LIBCXX)
   set(PHASAR_STD_FILESYSTEM c++fs)
-else()
+elseif(NOT MSVC)
   set(PHASAR_STD_FILESYSTEM stdc++fs)
 endif()
 
@@ -289,9 +294,17 @@ endif()
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 
-option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
+if(NOT "${SQLITE3_LIBRARY}" STREQUAL "SQLITE3_LIBRARY-NOTFOUND")
+  # include_directories(SYSTEM ${SQLITE3_INCLUDE_DIR})
+  # link_libraries(${SQLITE3_LIBRARY})
+  set(PHASAR_HAS_SQLITE3 ON)
+endif()
+
 
 # LLVM
+
+option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
+
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
   find_package(LLVM 14 REQUIRED CONFIG)

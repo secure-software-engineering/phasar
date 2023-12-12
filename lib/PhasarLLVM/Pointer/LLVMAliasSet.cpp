@@ -322,12 +322,14 @@ static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
 
   auto VSize = V->getType()->getPointerElementType()->isSized()
                    ? DL.getTypeStoreSize(V->getType()->getPointerElementType())
+                         .getKnownMinSize()
                    : llvm::MemoryLocation::UnknownSize;
 
   auto RepSize =
       Rep->getType()->getPointerElementType()->isSized()
           ? DL.getTypeStoreSize(Rep->getType()->getPointerElementType())
-          : llvm::MemoryLocation::UnknownSize;
+                .getKnownMinSize()
+          : llvm::TypeSize(llvm::MemoryLocation::UnknownSize, false);
 
   if (AA.alias(V, VSize, Rep, RepSize) != llvm::AliasResult::NoAlias) {
     return true;
