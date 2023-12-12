@@ -61,7 +61,7 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
   {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
   {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
 };
-// clang-format on
+  // clang-format on
 
 #endif
 
