@@ -11,7 +11,7 @@ add_phasar_library(phasar_db
 )
 
 if(PHASAR_HAS_SQLITE3)
-  target_link_libraries(phasar_db 
+  target_link_libraries(phasar_db
     PRIVATE ${SQLITE3_LIBRARY}
   )
   target_include_directories(phasar_db
