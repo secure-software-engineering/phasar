@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 #define PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGDATA_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
