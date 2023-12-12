@@ -68,10 +68,10 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
-  static constexpr bool IsSOOCandidate =
-      sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
-      alignof(ConcreteEF) <= alignof(void *) &&
-      std::is_trivially_copyable_v<ConcreteEF>;
+  static constexpr bool
+      IsSOOCandidate = sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
+                       alignof(ConcreteEF) <= alignof(void *) &&
+                       std::is_trivially_copyable_v<ConcreteEF>;
 
 protected:
   enum class AllocationPolicy {
