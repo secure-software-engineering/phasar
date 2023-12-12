@@ -492,9 +492,9 @@ if (PHASAR_BUILD_IR)
   message("Building IR test code")
 
   message(STATUS "Searching for clang in ${LLVM_BINARY_DIR}")
-  find_program(CLANG_EXE clang HINTS ${LLVM_BINARY_DIR} REQUIRED)
-  find_program(CLANGXX_EXE clang++ HINTS ${LLVM_BINARY_DIR} REQUIRED)
-  find_program(LLVMOPT_EXE opt HINTS ${LLVM_BINARY_DIR} REQUIRED)
+  find_program(CLANG_EXE clang-14 HINTS ${LLVM_BINARY_DIR} REQUIRED)
+  find_program(CLANGXX_EXE clang++-14 HINTS ${LLVM_BINARY_DIR} REQUIRED)
+  find_program(LLVMOPT_EXE opt-14 HINTS ${LLVM_BINARY_DIR} REQUIRED)
 
   add_subdirectory(test)
 endif()
