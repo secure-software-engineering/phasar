@@ -13,6 +13,7 @@
 #include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/ScopeExit.h"
 #include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/ArrayRef.h"

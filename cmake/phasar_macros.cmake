@@ -109,11 +109,10 @@ function(generate_ll_file)
   set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${GEN_LL_FILE}")
 
   # define .ll file generation command
+  set(GEN_CMD ${CLANG_EXE})
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CLANGXX_EXE})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CLANG_EXE})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
 

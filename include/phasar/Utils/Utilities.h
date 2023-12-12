@@ -154,27 +154,6 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::vector<bool> &Bits);
 
-/// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
-template <typename Fn> class scope_exit { // NOLINT
-public:
-  template <typename FFn, typename = decltype(std::declval<FFn>()())>
-  scope_exit(FFn &&F) noexcept(std::is_nothrow_constructible_v<Fn, FFn &&>)
-      : F(std::forward<FFn>(F)) {}
-
-  ~scope_exit() noexcept { F(); }
-
-  scope_exit(const scope_exit &) = delete;
-  scope_exit(scope_exit &&) = delete;
-
-  scope_exit &operator=(const scope_exit &) = delete;
-  scope_exit &operator=(scope_exit &&) = delete;
-
-private:
-  Fn F;
-};
-
-template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
-
 // Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
 template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
