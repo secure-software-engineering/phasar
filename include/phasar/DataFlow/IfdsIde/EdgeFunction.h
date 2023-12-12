@@ -82,9 +82,7 @@ protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
-  template <typename T> struct RefCounted : RefCountedBase {
-    T Value;
-  };
+  template <typename T> struct RefCounted : RefCountedBase { T Value; };
 
   template <typename T> struct CachedRefCounted : RefCounted<T> {
     EdgeFunctionSingletonCache<T> *Cache{};
