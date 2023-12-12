@@ -70,7 +70,10 @@ if (NOT MSVC)
   string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
   string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 else()
-  string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus /bigobj")
+  string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus /bigobj") # /D_ITERATOR_DEBUG_LEVEL=0 /VERBOSE:LIB
+  if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
+  endif()
 endif()
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
@@ -167,6 +170,12 @@ option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkag
 
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
+
+if (BUILD_SHARED_LIBS)
+  message(STATUS "Build shared libraries")
+else()
+  message(STATUS "Build static libraries")
+endif()
 
 if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
   message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
@@ -283,6 +292,11 @@ add_subdirectory(external/json-schema-validator)
 if (NOT PHASAR_IN_TREE)
   set(BUILD_GMOCK OFF)
   set(INSTALL_GTEST OFF)
+
+  if (MSVC AND CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "DLL$")
+    set(gtest_force_shared_crt ON)
+  endif()
+
   add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
   set(GTEST_INCLUDE_DIR "external/googletest/googletest/include")
 else()
@@ -476,6 +490,12 @@ endif()
 # Build all IR test code
 if (PHASAR_BUILD_IR)
   message("Building IR test code")
+
+  message(STATUS "Searching for clang in ${LLVM_BINARY_DIR}")
+  find_program(CLANG_EXE clang HINTS ${LLVM_BINARY_DIR} REQUIRED)
+  find_program(CLANGXX_EXE clang++ HINTS ${LLVM_BINARY_DIR} REQUIRED)
+  find_program(LLVMOPT_EXE opt HINTS ${LLVM_BINARY_DIR} REQUIRED)
+
   add_subdirectory(test)
 endif()
 

@@ -18,7 +18,7 @@
 #define PHASAR_UTILS_DOTGRAPH_H
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/Utils/Utilities.h"
+#include "phasar/Utils/StringIDLess.h"
 
 #include <map>
 #include <set>

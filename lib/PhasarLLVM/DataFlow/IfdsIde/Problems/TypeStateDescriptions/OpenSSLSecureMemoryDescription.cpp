@@ -115,7 +115,8 @@ std::string OpenSSLSecureMemoryDescription::getTypeNameOfInterest() const {
 
 set<int>
 OpenSSLSecureMemoryDescription::getConsumerParamIdx(llvm::StringRef F) const {
-  if (const auto *It = llvm::find_if(
+  // NOTE: On MSVC, the array iterator is no pointer!
+  if (auto It = llvm::find_if( // NOLINT
           ConsumingFuncs, [&F](const auto &Pair) { return F == Pair.first; });
       It != ConsumingFuncs.end()) {
     return {It->second};

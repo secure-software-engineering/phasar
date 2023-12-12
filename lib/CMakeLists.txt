@@ -42,7 +42,7 @@ add_phasar_library(phasar ${PHASAR_DYNLIB_KIND}
         phasar_llvm_ifdside
         phasar_analysis_strategy
         phasar_controller
-    LINK_PRIVATE
+    LINK_PUBLIC
         ${Boost_LIBRARIES}
     LLVM_LINK_COMPONENTS
         Core

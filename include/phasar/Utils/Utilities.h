@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_UTILITIES_H_
 
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/StringIDLess.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/Hashing.h"
@@ -153,10 +154,6 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::vector<bool> &Bits);
 
-struct StringIDLess {
-  bool operator()(const std::string &LHS, const std::string &RHS) const;
-};
-
 /// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
 template <typename Fn> class scope_exit { // NOLINT
 public:
@@ -179,7 +176,9 @@ private:
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
 // Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> struct Overloaded : Ts... {
+  using Ts::operator()...;
+};
 
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;

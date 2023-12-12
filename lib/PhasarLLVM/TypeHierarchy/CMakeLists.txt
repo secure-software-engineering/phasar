@@ -13,6 +13,6 @@ add_phasar_library(phasar_llvm_typehierarchy
     Support
     Analysis
 
-  LINK_PRIVATE
+  LINK_PUBLIC
     ${Boost_LIBRARIES}
 )

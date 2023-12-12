@@ -17,6 +17,7 @@
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseSet.h"

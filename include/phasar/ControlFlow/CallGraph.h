@@ -14,7 +14,6 @@
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/StableVector.h"
-#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
