@@ -56,7 +56,7 @@ foreach(component ${phasar_FIND_COMPONENTS})
   list(APPEND PHASAR_NEEDED_LIBS phasar::${component})
 endforeach()
 
-if (phasar_FOUND)
+if (NOT DEFINED phasar_FOUND OR phasar_FOUND EQUAL TRUE)
   foreach(component ${phasar_FIND_COMPONENTS})
     # For backwards compatibility -- will be removed with next release
     add_library(phasar::phasar_${component} ALIAS phasar::${component})
