@@ -19,7 +19,6 @@
 #include <set>
 #include <string>
 
-
 namespace psr {
 
 // Return value is modeled as -1
