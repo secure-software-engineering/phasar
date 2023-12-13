@@ -726,6 +726,9 @@ private:
     }
     self().printEndSummaryTab();
     self().printIncomingTab();
+
+    llvm::SmallVector<std::pair<d_t, EdgeFunction<l_t>>> JFStorage;
+
     // for each incoming call edge already processed
     //(see processCall(..))
     for (const auto &Entry : Inc) {
@@ -776,10 +779,12 @@ private:
             PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime);
             // for each jump function coming into the call, propagate to
             // return site using the composed function
-            auto RevLookupResult = JumpFn->reverseLookup(c, d4);
+            JFStorage.clear();
+            const auto *RevLookupResult =
+                self().incomingJumpFunctionsAtCall(c, d4, JFStorage);
             if (RevLookupResult) {
-              for (size_t I = 0; I < RevLookupResult->get().size(); ++I) {
-                auto ValAndFunc = RevLookupResult->get()[I];
+              for (size_t I = 0; I < RevLookupResult->size(); ++I) {
+                auto ValAndFunc = (*RevLookupResult)[I];
                 EdgeFunction<l_t> f3 = ValAndFunc.second;
                 if (f3 != AllTop) {
                   d_t d3 = ValAndFunc.first;
@@ -843,6 +848,17 @@ private:
             FunctionThatNeedsSummary, n, d2);
       }
     }
+  }
+
+  const llvm::SmallVectorImpl<std::pair<d_t, EdgeFunction<l_t>>> *
+  incomingJumpFunctionsAtCall(
+      n_t CallSite, d_t TargetVal,
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunction<l_t>>> & /*Storage*/) {
+    auto Opt = JumpFn->reverseLookup(CallSite, TargetVal);
+    if (Opt) {
+      return &Opt->get();
+    }
+    return nullptr;
   }
 
   void propagteUnbalancedReturnFlow(n_t RetSiteC, d_t TargetVal,

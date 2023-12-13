@@ -126,6 +126,30 @@ private:
     }
   }
 
+  const llvm::SmallVectorImpl<std::pair<d_t, EdgeFunction<l_t>>> *
+  incomingJumpFunctionsAtCall(
+      n_t CallSite, d_t TargetVal,
+      llvm::SmallVectorImpl<std::pair<d_t, EdgeFunction<l_t>>> &Storage) {
+    const auto &Preds = this->ICF->getPredsOf(CallSite);
+
+    if (Preds.size() == 1) {
+      auto Opt = this->JumpFn->reverseLookup(*Preds.begin(), TargetVal);
+      if (Opt) {
+        return &Opt->get();
+      }
+      return nullptr;
+    }
+
+    for (const auto &Pred : Preds) {
+      auto Opt = this->JumpFn->reverseLookup(*Preds.begin(), TargetVal);
+      if (Opt) {
+        Storage.append(Opt->get());
+      }
+    }
+
+    return Storage.empty() ? nullptr : &Storage;
+  }
+
   void addInitialWorklistItem(d_t SourceVal, n_t Target, d_t TargetVal,
                               EdgeFunction<l_t> EF) {
     addWorklistItem(std::move(SourceVal), std::move(Target),
