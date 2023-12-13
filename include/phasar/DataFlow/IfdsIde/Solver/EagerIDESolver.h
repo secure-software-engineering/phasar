@@ -141,7 +141,7 @@ private:
     }
 
     for (const auto &Pred : Preds) {
-      auto Opt = this->JumpFn->reverseLookup(*Preds.begin(), TargetVal);
+      auto Opt = this->JumpFn->reverseLookup(Pred, TargetVal);
       if (Opt) {
         Storage.append(Opt->get());
       }

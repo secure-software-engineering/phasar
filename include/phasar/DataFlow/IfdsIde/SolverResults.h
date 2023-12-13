@@ -235,6 +235,7 @@ public:
   [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
     return get();
   }
+
   operator SolverResults<N, D, L>() && = delete;
 
 private:

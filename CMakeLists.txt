@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required (VERSION 3.14)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
@@ -150,6 +150,8 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
+option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)" OFF)
+
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
 
 option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
@@ -259,11 +261,13 @@ add_subdirectory(external/json)
 # The following workaround may collapse or become unnecessary once the issue is
 # changed or fixed in nlohmann_json_schema_validator.
 
-#Override option of nlohmann_json_schema_validator to not build its tests
+# Override option of nlohmann_json_schema_validator to not build its tests
 set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
 
 if (PHASAR_IN_TREE)
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
+
+  set (PHASAR_USE_Z3 OFF)
 endif()
 
 # Json Schema Validator
@@ -336,6 +340,21 @@ endif(NOT PHASAR_IN_TREE)
 if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
   message(FATAL_ERROR "PhASAR requires a LLVM version that is built with RTTI")
 endif()
+
+# Z3 Solver
+if(PHASAR_USE_Z3)
+  # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
+  # as it lacks some functionality (such as z3::expr::simplify()) that we require
+  find_package(Z3 4.7.1 REQUIRED)
+
+  if(NOT TARGET z3)
+    add_library(z3 IMPORTED SHARED)
+    set_property(TARGET z3 PROPERTY
+             IMPORTED_LOCATION ${Z3_LIBRARIES})
+    set_property(TARGET z3 PROPERTY
+             INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+  endif()
+endif(PHASAR_USE_Z3)
 
 # Clang
 option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)

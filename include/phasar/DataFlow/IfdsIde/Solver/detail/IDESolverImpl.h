@@ -11,6 +11,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVERIMPL_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/SolverStrategy.h"
@@ -467,7 +468,7 @@ private:
       INC_COUNTER("FF Queries", 1, Full);
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
-      self().saveEdges(n, nPrime, d2, Res, false);
+      self().saveEdges(n, nPrime, d2, Res, ESGEdgeKind::Normal);
       for (d_t d3 : Res) {
         EdgeFunction<l_t> g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
@@ -526,21 +527,25 @@ private:
       }
     });
 
+    bool HasNoCalleeInformation = true;
+
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
       FlowFunctionPtrType SpecialSum =
           CachedFlowEdgeFunctions.getSummaryFlowFunction(n, SCalledProcN);
+
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
       if (SpecialSum) {
+        HasNoCalleeInformation = false;
         PHASAR_LOG_LEVEL(DEBUG, "Found and process special summary");
         for (n_t ReturnSiteN : ReturnSiteNs) {
           container_type Res =
               self().computeSummaryFlowFunction(SpecialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1, Full);
           ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
-          self().saveEdges(n, ReturnSiteN, d2, Res, false);
+          self().saveEdges(n, ReturnSiteN, d2, Res, ESGEdgeKind::Summary);
           for (d_t d3 : Res) {
             EdgeFunction<l_t> SumEdgFnE =
                 CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
@@ -572,7 +577,8 @@ private:
         }
         // if startPointsOf is empty, the called function is a declaration
         for (n_t SP : StartPointsOf) {
-          self().saveEdges(n, SP, d2, Res, true);
+          HasNoCalleeInformation = false;
+          self().saveEdges(n, SP, d2, Res, ESGEdgeKind::Call);
           // for each result node of the call-flow function
           for (d_t d3 : Res) {
             using TableCell = typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell;
@@ -615,7 +621,8 @@ private:
                                                      Container{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", ReturnedFacts.size(), 1,
                                  Full);
-                self().saveEdges(eP, RetSiteN, d4, ReturnedFacts, true);
+                self().saveEdges(eP, RetSiteN, d4, ReturnedFacts,
+                                 ESGEdgeKind::Ret);
                 // for each target value of the function
                 for (d_t d5 : ReturnedFacts) {
                   // update the caller-side summary function
@@ -674,7 +681,9 @@ private:
       container_type ReturnFacts =
           self().computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", ReturnFacts.size(), 1, Full);
-      self().saveEdges(n, ReturnSiteN, d2, ReturnFacts, false);
+      self().saveEdges(n, ReturnSiteN, d2, ReturnFacts,
+                       HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                              : ESGEdgeKind::CallToRet);
       for (d_t d3 : ReturnFacts) {
         EdgeFunction<l_t> EdgeFnE =
             CachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, ReturnSiteN,
@@ -748,7 +757,7 @@ private:
           const auto &Targets = self().computeReturnFlowFunction(
               RetFunction, d1, d2, c, Entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
-          self().saveEdges(n, RetSiteC, d2, Targets, true);
+          self().saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           // for each target value at the return site
           // line 23
           for (const d_t &d5 : Targets) {
@@ -820,7 +829,7 @@ private:
           const container_type Targets = self().computeReturnFlowFunction(
               RetFunction, d1, d2, Caller, Container{ZeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
-          self().saveEdges(n, RetSiteC, d2, Targets, true);
+          self().saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           for (d_t d5 : Targets) {
             EdgeFunction<l_t> f5 =
                 CachedFlowEdgeFunctions.getReturnEdgeFunction(
@@ -902,12 +911,12 @@ private:
 
   // TODO: De-virtualize
   virtual void saveEdges(n_t SourceNode, n_t SinkStmt, d_t SourceVal,
-                         const container_type &DestVals, bool InterP) {
+                         const container_type &DestVals, ESGEdgeKind Kind) {
     if (!SolverConfig.recordEdges()) {
       return;
     }
     Table<n_t, n_t, std::map<d_t, container_type>> &TgtMap =
-        (InterP) ? ComputedInterPathEdges : ComputedIntraPathEdges;
+        (isInterProc(Kind)) ? ComputedInterPathEdges : ComputedIntraPathEdges;
     TgtMap.get(SourceNode, SinkStmt)[SourceVal].insert(DestVals.begin(),
                                                        DestVals.end());
   }
