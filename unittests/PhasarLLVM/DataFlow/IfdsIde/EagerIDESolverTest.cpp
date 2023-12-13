@@ -11,6 +11,8 @@
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
@@ -29,6 +31,26 @@ protected:
   const std::vector<std::string> EntryPoints = {"main"};
 
 }; // Test Fixture
+
+template <typename ResultsMapTy>
+static std::string computeDiff(const ResultsMapTy &DefaultResults,
+                               const ResultsMapTy &EagerResults) {
+  std::string Ret;
+  llvm::raw_string_ostream OS(Ret);
+
+  for (const auto &[Fact, Val] : DefaultResults) {
+    if (!EagerResults.count(Fact)) {
+      OS << " + " << DToString(Fact) << '\n';
+    }
+  }
+  for (const auto &[Fact, Val] : EagerResults) {
+    if (!DefaultResults.count(Fact)) {
+      OS << " - " << DToString(Fact) << '\n';
+    }
+  }
+
+  return Ret;
+}
 
 TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
   HelperAnalyses HA(PathToLlFiles + GetParam(), EntryPoints);
@@ -54,7 +76,7 @@ TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
     bool Failed = false;
 
     for (const auto *Stmt : HA.getProjectIRDB().getAllInstructions()) {
-      if (Stmt->isTerminator()) {
+      if (Stmt->isTerminator() || Stmt->isDebugOrPseudoInst()) {
         continue;
       }
 
@@ -66,13 +88,26 @@ TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
         EXPECT_EQ(PropagateOverRes, Value)
             << "The Incoming results of the eager IDE solver should match the "
                "outgoing results of the default solver. Expected: ("
-            << NToString(NextStmt) << ", " << DToString(Fact) << ") --> "
+            << NToString(Stmt) << ", " << DToString(Fact) << ") --> "
             << LToString(PropagateOverRes) << "; got " << LToString(Value);
         Failed |= PropagateOverRes != Value;
       }
+
+      auto DefaultSize = PropagateOverResults.resultsAt(NextStmt).size();
+      auto EagerSize = PropagateOntoResults.resultsAt(Stmt).size();
+
+      EXPECT_EQ(DefaultSize, EagerSize)
+          << "The Number of facts holding at the incoming results of the eager "
+             "IDE solver do not match the number of outgoing facts of the "
+             "default solver. At: "
+          << NToString(Stmt) << " Diff:\n"
+          << computeDiff(PropagateOverResults.resultsAt(NextStmt),
+                         PropagateOntoResults.resultsAt(Stmt));
+      Failed |= DefaultSize != EagerSize;
     }
     if (Failed) {
       PropagateOntoResults.dumpResults(ICFG);
+      llvm::outs().flush();
     }
   }
 }
@@ -117,6 +152,8 @@ static constexpr std::string_view LCATestFiles[] = {
     "call_09_cpp_dbg.ll",
     "call_10_cpp_dbg.ll",
     "call_11_cpp_dbg.ll",
+    "call_12_cpp_dbg.ll",
+    "call_13_cpp_dbg.ll",
 
     "recursion_01_cpp_dbg.ll",
     "recursion_02_cpp_dbg.ll",

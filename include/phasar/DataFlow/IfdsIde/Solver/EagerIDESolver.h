@@ -10,6 +10,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_EAGERIDESOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_EAGERIDESOLVER_H
 
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/Solver/detail/IDESolverImpl.h"
 
 namespace psr {
@@ -138,6 +139,12 @@ private:
         return &Opt->get();
       }
       return nullptr;
+    }
+
+    if (Preds.empty()) {
+      // We are at the start of the current function
+      Storage.emplace_back(std::move(TargetVal), EdgeIdentity<l_t>{});
+      return &Storage;
     }
 
     for (const auto &Pred : Preds) {
