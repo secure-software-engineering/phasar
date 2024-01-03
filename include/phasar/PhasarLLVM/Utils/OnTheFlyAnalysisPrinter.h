@@ -5,6 +5,7 @@
 #include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/Printer.h"
 
 #include <cassert>
 
@@ -23,6 +24,9 @@ public:
   explicit OnTheFlyAnalysisPrinter<AnalysisDomainTy>(
       const llvm::Twine &Filename)
       : AnalysisPrinterBase<AnalysisDomainTy>(), OS(openFileStream(Filename)){};
+
+  OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
+  ~OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
 
   void onInitialize() override{};
   void onResult(Warning<AnalysisDomainTy> Warn) override {
