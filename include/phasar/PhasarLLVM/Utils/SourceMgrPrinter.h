@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/OnTheFlyAnalysisPrinter.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/Support/MemoryBuffer.h"
 
@@ -16,14 +17,14 @@ template <typename AnalysisDomainTy>
 class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 public:
   SourceMgrPrinter() = default;
-  SourceMgrPrinter<AnalysisDomainTy>(llvm::raw_ostream &OS) : OS(OS){};
+  SourceMgrPrinter<AnalysisDomainTy>(llvm::raw_ostream &OS) : OS(&OS){};
 
   void onInitialize() override {}
   void onFinalize() const override{};
   void onResult(Warning<AnalysisDomainTy> Warn) override {
     auto BufIdOpt = getSourceBufId(getFilePathFromIR(Warn.Instr));
     if (BufIdOpt.has_value()) {
-      SrcMgr.PrintMessage(OS,
+      SrcMgr.PrintMessage(*OS,
                           SrcMgr.FindLocForLineAndColumn(
                               BufIdOpt.value(),
                               getLineAndColFromIR(Warn.Instr).first,
@@ -52,7 +53,7 @@ private:
   llvm::SourceMgr SrcMgr;
   llvm::StringMap<unsigned> FileNameIDMap;
   static constexpr llvm::StringLiteral Msg = "Phasar found an error";
-  llvm::raw_ostream &OS = llvm::errs();
+  MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
 };
 } // namespace psr
 #endif
