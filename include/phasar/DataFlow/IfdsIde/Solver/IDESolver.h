@@ -725,7 +725,10 @@ protected:
                                     << ", value: " << LToString(Value));
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
-        setVal(StartPoint, Fact, Value);
+        l_t OldVal = val(StartPoint, Fact);
+        auto NewVal = IDEProblem.join(Value, std::move(OldVal));
+        setVal(StartPoint, Fact, std::move(NewVal));
+
         std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
         valuePropagationTask(std::move(SuperGraphNode));
       }
