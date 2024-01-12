@@ -257,6 +257,32 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
 }
 
+/// See https://en.cppreference.com/w/cpp/utility/forward_like
+template <class T, class U>
+[[nodiscard]] constexpr auto &&forward_like(U &&X) noexcept { // NOLINT
+  // NOLINTNEXTLINE
+  constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
+  if constexpr (std::is_lvalue_reference_v<T &&>) {
+    if constexpr (is_adding_const) {
+      return std::as_const(X);
+    } else {
+      return static_cast<U &>(X);
+    }
+  } else {
+    if constexpr (is_adding_const) {
+      return std::move(std::as_const(X));
+    } else {
+      return std::move(X); // NOLINT
+    }
+  }
+}
+
+struct identity {
+  template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
+    return std::forward<T>(Val);
+  }
+};
+
 template <typename T, typename = std::enable_if_t<is_llvm_printable_v<T>>>
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::optional<T> &Opt) {

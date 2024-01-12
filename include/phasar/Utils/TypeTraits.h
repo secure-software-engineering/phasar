@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -21,25 +22,31 @@
 
 namespace psr {
 
+#if __cplusplus < 202002L
+template <typename T> struct type_identity { using type = T; };
+#else
+template <typename T> using type_identity = std::type_identity<T>;
+#endif
+
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
 
 template <typename T, typename = void>
 struct is_iterable : std::false_type {}; // NOLINT
 template <typename T>
-struct is_iterable<T, std::void_t< // NOLINT
-                          decltype(std::declval<T>().begin()),
-                          decltype(std::declval<T>().end())>> : std::true_type {
-};
+struct is_iterable<T, std::void_t<decltype(llvm::adl_begin(std::declval<T>())),
+                                  decltype(llvm::adl_end(std::declval<T>()))>>
+    : public std::true_type {};
+
 template <typename T, typename U, typename = void>
 struct is_iterable_over : std::false_type {}; // NOLINT
 template <typename T, typename U>
 struct is_iterable_over<
     T, U,
-    std::enable_if_t<
-        is_iterable<T>::value &&
-        std::is_convertible_v<decltype(*std::declval<T>().begin()), U>>>
-    : std::true_type {};
+    std::enable_if_t<is_iterable<T>::value &&
+                     std::is_same_v<U, std::decay_t<decltype(*llvm::adl_begin(
+                                           std::declval<T>()))>>>>
+    : public std::true_type {};
 
 template <typename T> struct is_pair : std::false_type {}; // NOLINT
 template <typename U, typename V>
@@ -156,6 +163,13 @@ template <typename T>
 struct HasDepth<T, decltype(std::declval<const T &>().depth())>
     : std::true_type {};
 
+template <typename Var, typename T> struct variant_idx;
+template <typename... Ts, typename T>
+struct variant_idx<std::variant<Ts...>, T>
+    : std::integral_constant<
+          size_t,
+          std::variant<type_identity<Ts>...>(type_identity<T>{}).index()> {};
+
 } // namespace detail
 
 template <typename T>
@@ -229,13 +243,10 @@ template <typename T, typename U>
 static inline constexpr bool AreEqualityComparable =
     detail::AreEqualityComparable<T, U>::value;
 
-#if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; };
-#else
-template <typename T> using type_identity = std::type_identity<T>;
-#endif
-
 template <typename T> using type_identity_t = typename type_identity<T>::type;
+
+template <typename Var, typename T>
+static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 struct TrueFn {
   template <typename... Args>

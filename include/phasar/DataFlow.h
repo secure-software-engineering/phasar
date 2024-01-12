@@ -24,6 +24,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
+#include "phasar/DataFlow/IfdsIde/Solver/PathAwareIDESolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/DataFlow/IfdsIde/SpecialSummaries.h"
@@ -32,5 +33,7 @@
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/DataFlow/Mono/Solver/InterMonoSolver.h"
 #include "phasar/DataFlow/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
+#include "phasar/DataFlow/PathSensitivity/PathSensitivityManager.h"
 
 #endif // PHASAR_DATAFLOW_H
