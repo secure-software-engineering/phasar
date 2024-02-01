@@ -43,7 +43,7 @@ protected:
 
   std::optional<HelperAnalyses> HA;
   std::optional<IDEGeneralizedLCA> LCAProblem;
-  std::unique_ptr<IDESolver<IDEGeneralizedLCADomain>> LCASolver;
+  std::unique_ptr<IDESolver_P<IDEGeneralizedLCA>> LCASolver;
 
   static constexpr size_t MaxSetSize = 2;
 
@@ -54,7 +54,7 @@ protected:
     HA.emplace(PathToLLFiles + LLFile, std::vector{"main"s});
     LCAProblem = createAnalysisProblem<IDEGeneralizedLCA>(
         *HA, std::vector{"main"s}, MaxSetSize);
-    LCASolver = std::make_unique<IDESolver<IDEGeneralizedLCADomain>>(
+    LCASolver = std::make_unique<IDESolver_P<IDEGeneralizedLCA>>(
         *LCAProblem, &HA->getICFG());
 
     LCASolver->solve();

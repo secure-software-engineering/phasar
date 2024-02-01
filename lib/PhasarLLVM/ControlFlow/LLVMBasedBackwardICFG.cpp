@@ -23,6 +23,10 @@ FunctionRange LLVMBasedBackwardICFG::getAllFunctionsImpl() const {
   return ForwardICFG->getAllFunctions();
 }
 
+size_t LLVMBasedBackwardICFG::getNumFunctionsImpl() const noexcept {
+  return ForwardICFG->getNumFunctions();
+}
+
 auto LLVMBasedBackwardICFG::getFunctionImpl(llvm::StringRef Fun) const -> f_t {
   return ForwardICFG->getFunction(Fun);
 }

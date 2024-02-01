@@ -22,6 +22,7 @@ endif()
 add_phasar_library(phasar ${PHASAR_DYNLIB_KIND}
     FILES
         LibPhasar.cpp
+        IDESolverImpl.cpp
     LINKS
         phasar_utils
         phasar_passes

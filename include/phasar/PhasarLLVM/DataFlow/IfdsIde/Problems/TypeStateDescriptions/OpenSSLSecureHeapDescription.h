@@ -43,15 +43,14 @@ private:
   // Delta matrix to implement the state machine's Delta function
   static const OpenSSLSecureHeapState Delta[5][6];
 
-  IDESolver<IDESecureHeapPropagationAnalysisDomain>
-      &SecureHeapPropagationResults;
+  IDESolver_P<IDESecureHeapPropagation> &SecureHeapPropagationResults;
 
   static OpenSSLSecureHeapToken funcNameToToken(llvm::StringRef F);
 
 public:
   using TypeStateDescription::getNextState;
-  OpenSSLSecureHeapDescription(IDESolver<IDESecureHeapPropagationAnalysisDomain>
-                                   &SecureHeapPropagationResults);
+  OpenSSLSecureHeapDescription(
+      IDESolver_P<IDESecureHeapPropagation> &SecureHeapPropagationResults);
 
   [[nodiscard]] bool isFactoryFunction(llvm::StringRef F) const override;
   [[nodiscard]] bool isConsumingFunction(llvm::StringRef F) const override;

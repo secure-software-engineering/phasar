@@ -50,7 +50,7 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
     llvm::errs() << "The function name '" << Name
                  << "' is ambiguous. Possible candidates are:\n";
     for (const auto *F : FnDefs) {
-      llvm::errs() << "> " << F->getName() << "\n";
+      llvm::errs() << "> " << F->getName() << '\n';
     }
     llvm::errs() << "Please further specify the function's name, such that it "
                     "becomes unambiguous\n";
@@ -67,7 +67,7 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
     auto FnDefs = findAllFunctionDefs(IRDB, Name);
 
     if (FnDefs.empty()) {
-      llvm::errs() << "WARNING: Cannot retrieve function " << Name << "\n";
+      llvm::errs() << "WARNING: Cannot retrieve function " << Name << '\n';
       continue;
     }
 

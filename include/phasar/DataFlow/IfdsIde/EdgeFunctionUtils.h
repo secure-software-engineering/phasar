@@ -212,8 +212,8 @@ template <typename L, typename = std::enable_if_t<
 }
 
 template <typename L>
-[[nodiscard]] llvm::raw_ostream &
-operator<<(llvm::raw_ostream &OS, ByConstRef<ConstantEdgeFunction<L>> Id) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const ConstantEdgeFunction<L> &Id) {
   OS << "ConstantEF";
   if constexpr (is_llvm_printable_v<
                     typename ConstantEdgeFunction<L>::value_type>) {

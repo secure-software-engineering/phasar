@@ -47,7 +47,7 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
                          // Leading to SEGFAULT in Unittests. Error only when
                          // run in Debug mode
                          // << llvmIRToString(CallSite)
-                         << "\n");
+                         << '\n');
     return {};
   }
 

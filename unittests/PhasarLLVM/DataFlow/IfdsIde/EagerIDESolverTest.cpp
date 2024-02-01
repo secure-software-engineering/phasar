@@ -1,10 +1,17 @@
+#include "phasar/DataFlow/IfdsIde/Solver/EagerIDESolver.h"
+
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/DataFlow/IfdsIde/Solver/SolverStrategy.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/TypeTraits.h"
+
+#include "llvm/Support/raw_ostream.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -15,6 +22,7 @@
 using namespace psr;
 
 namespace {
+
 /* ============== TEST FIXTURE ============== */
 class LinearConstant : public ::testing::TestWithParam<std::string_view> {
 protected:
@@ -24,50 +32,27 @@ protected:
 
 }; // Test Fixture
 
-TEST_P(LinearConstant, ResultsEquivalentSolveUntil) {
-  HelperAnalyses HA(PathToLlFiles + GetParam(), EntryPoints);
+template <typename ResultsMapTy>
+static std::string computeDiff(const ResultsMapTy &DefaultResults,
+                               const ResultsMapTy &EagerResults) {
+  std::string Ret;
+  llvm::raw_string_ostream OS(Ret);
 
-  // Compute the ICFG to possibly create the runtime model
-  auto &ICFG = HA.getICFG();
-
-  auto HasGlobalCtor = HA.getProjectIRDB().getFunctionDefinition(
-                           LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
-
-  auto LCAProblem = createAnalysisProblem<IDELinearConstantAnalysis>(
-      HA,
-      std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
-                                : "main"});
-
-  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
-  {
-    auto InteractiveResults =
-        IDESolver(LCAProblem, &ICFG).solveUntil(FalseFn{});
-
-    ASSERT_TRUE(InteractiveResults.has_value());
-    for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-      auto InteractiveRes =
-          InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
-      EXPECT_EQ(InteractiveRes, Cell.getValue());
+  for (const auto &[Fact, Val] : DefaultResults) {
+    if (!EagerResults.count(Fact)) {
+      OS << " + " << DToString(Fact) << '\n';
     }
   }
-  auto InterruptedResults = [&] {
-    IDESolver Solver(LCAProblem, &ICFG);
-    auto Result = Solver.solveUntil(TrueFn{});
-    EXPECT_EQ(std::nullopt, Result);
-    if (!Result) {
-      return std::move(Solver).continueSolving();
+  for (const auto &[Fact, Val] : EagerResults) {
+    if (!DefaultResults.count(Fact)) {
+      OS << " - " << DToString(Fact) << '\n';
     }
-    return Solver.consumeSolverResults();
-  }();
-
-  for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-    auto InteractiveRes =
-        InterruptedResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
-    EXPECT_EQ(InteractiveRes, Cell.getValue());
   }
+
+  return Ret;
 }
 
-TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
+TEST_P(LinearConstant, ResultsEquivalentPropagateOnto) {
   HelperAnalyses HA(PathToLlFiles + GetParam(), EntryPoints);
 
   // Compute the ICFG to possibly create the runtime model
@@ -81,36 +66,49 @@ TEST_P(LinearConstant, ResultsEquivalentSolveUntilAsync) {
       std::vector{HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str()
                                 : "main"});
 
-  auto AtomicResults = IDESolver(LCAProblem, &ICFG).solve();
-
+  auto PropagateOverResults = IDESolver(LCAProblem, &ICFG).solve();
   {
-    std::atomic_bool IsCancelled = false;
-    auto InteractiveResults =
-        IDESolver(LCAProblem, &ICFG).solveWithAsyncCancellation(IsCancelled);
+    // psr::Logger::initializeStderrLogger(SeverityLevel::DEBUG);
 
-    ASSERT_TRUE(InteractiveResults.has_value());
-    for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-      auto InteractiveRes =
-          InteractiveResults->resultAt(Cell.getRowKey(), Cell.getColumnKey());
-      EXPECT_EQ(InteractiveRes, Cell.getValue());
-    }
-  }
-  auto InterruptedResults = [&] {
-    IDESolver Solver(LCAProblem, &ICFG);
-    std::atomic_bool IsCancelled = true;
-    auto Result = Solver.solveWithAsyncCancellation(IsCancelled);
-    EXPECT_EQ(std::nullopt, Result);
-    if (!Result) {
-      IsCancelled = false;
-      return std::move(Solver).solveWithAsyncCancellation(IsCancelled).value();
-    }
-    return Solver.consumeSolverResults();
-  }();
+    auto PropagateOntoResults =
+        IDESolver(LCAProblem, &ICFG, PropagateOntoStrategy{}).solve();
 
-  for (auto &&Cell : AtomicResults.getAllResultEntries()) {
-    auto InteractiveRes =
-        InterruptedResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
-    EXPECT_EQ(InteractiveRes, Cell.getValue());
+    bool Failed = false;
+
+    for (const auto *Stmt : HA.getProjectIRDB().getAllInstructions()) {
+      if (Stmt->isTerminator() || Stmt->isDebugOrPseudoInst()) {
+        continue;
+      }
+
+      const auto *NextStmt = Stmt->getNextNonDebugInstruction();
+      assert(NextStmt != nullptr);
+
+      for (auto &&[Fact, Value] : PropagateOntoResults.resultsAt(Stmt)) {
+        auto PropagateOverRes = PropagateOverResults.resultAt(NextStmt, Fact);
+        EXPECT_EQ(PropagateOverRes, Value)
+            << "The Incoming results of the eager IDE solver should match the "
+               "outgoing results of the default solver. Expected: ("
+            << NToString(Stmt) << ", " << DToString(Fact) << ") --> "
+            << LToString(PropagateOverRes) << "; got " << LToString(Value);
+        Failed |= PropagateOverRes != Value;
+      }
+
+      auto DefaultSize = PropagateOverResults.resultsAt(NextStmt).size();
+      auto EagerSize = PropagateOntoResults.resultsAt(Stmt).size();
+
+      EXPECT_EQ(DefaultSize, EagerSize)
+          << "The Number of facts holding at the incoming results of the eager "
+             "IDE solver do not match the number of outgoing facts of the "
+             "default solver. At: "
+          << NToString(Stmt) << " Diff:\n"
+          << computeDiff(PropagateOverResults.resultsAt(NextStmt),
+                         PropagateOntoResults.resultsAt(Stmt));
+      Failed |= DefaultSize != EagerSize;
+    }
+    if (Failed) {
+      PropagateOntoResults.dumpResults(ICFG);
+      llvm::outs().flush();
+    }
   }
 }
 
@@ -154,6 +152,8 @@ static constexpr std::string_view LCATestFiles[] = {
     "call_09_cpp_dbg.ll",
     "call_10_cpp_dbg.ll",
     "call_11_cpp_dbg.ll",
+    "call_12_cpp_dbg.ll",
+    "call_13_cpp_dbg.ll",
 
     "recursion_01_cpp_dbg.ll",
     "recursion_02_cpp_dbg.ll",

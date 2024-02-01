@@ -68,7 +68,7 @@ protected:
                                 LLVMTaintConfig Ret =
                                     LLVMTaintConfig(HA.getProjectIRDB(), *JS);
                                 if (DumpResults) {
-                                  llvm::errs() << Ret << "\n";
+                                  llvm::errs() << Ret << '\n';
                                 }
                                 return Ret;
                               },

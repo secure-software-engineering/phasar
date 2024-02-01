@@ -1029,7 +1029,7 @@ dumpMemoryLocation(const std::vector<const llvm::Value *> &MemLocationSeq) {
   for (const auto MemLocationPart : MemLocationSeq) {
     llvm::outs() << "[ENV_TRACE] ";
     MemLocationPart->print(llvm::outs());
-    llvm::outs() << "\n";
+    llvm::outs() << '\n';
     llvm::outs().flush();
   }
 #endif

@@ -264,20 +264,20 @@ void IFDSFieldSensTaintAnalysis::emitTextReport(
 std::string psr::DToString(const ExtendedValue &EV) {
   std::string Ret;
   llvm::raw_string_ostream OS(Ret);
-  OS << llvmIRToString(EV.getValue()) << "\n";
+  OS << llvmIRToString(EV.getValue()) << '\n';
   for (const auto *MemLocationPart : EV.getMemLocationSeq()) {
-    OS << "A:\t" << llvmIRToString(MemLocationPart) << "\n";
+    OS << "A:\t" << llvmIRToString(MemLocationPart) << '\n';
   }
   if (!EV.getEndOfTaintedBlockLabel().empty()) {
-    OS << "L:\t" << EV.getEndOfTaintedBlockLabel() << "\n";
+    OS << "L:\t" << EV.getEndOfTaintedBlockLabel() << '\n';
   }
   if (EV.isVarArg()) {
-    OS << "VT:\t" << EV.isVarArgTemplate() << "\n";
+    OS << "VT:\t" << EV.isVarArgTemplate() << '\n';
     for (const auto *VAListMemLocationPart : EV.getVaListMemLocationSeq()) {
-      OS << "VLA:\t" << llvmIRToString(VAListMemLocationPart) << "\n";
+      OS << "VLA:\t" << llvmIRToString(VAListMemLocationPart) << '\n';
     }
-    OS << "VI:\t" << EV.getVarArgIndex() << "\n";
-    OS << "CI:\t" << EV.getCurrentVarArgIndex() << "\n";
+    OS << "VI:\t" << EV.getVarArgIndex() << '\n';
+    OS << "CI:\t" << EV.getCurrentVarArgIndex() << '\n';
   }
 
   return Ret;

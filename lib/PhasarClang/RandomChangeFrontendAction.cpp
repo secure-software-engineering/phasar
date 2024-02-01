@@ -41,14 +41,14 @@ RandomChangeFrontendAction::RandomChangeFrontendAction() = default;
 void RandomChangeFrontendAction::EndSourceFileAction() {
   clang::SourceManager &SM = RW.getSourceMgr();
   llvm::errs() << "** EndSourceFileAction for: "
-               << SM.getFileEntryForID(SM.getMainFileID())->getName() << "\n";
+               << SM.getFileEntryForID(SM.getMainFileID())->getName() << '\n';
   RW.getEditBuffer(SM.getMainFileID()).write(llvm::outs());
 }
 
 std::unique_ptr<clang::ASTConsumer>
 RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
                                               llvm::StringRef File) {
-  llvm::errs() << "** Creating AST consumer for: " << File << "\n";
+  llvm::errs() << "** Creating AST consumer for: " << File << '\n';
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
   return std::make_unique<RandomChangeASTConsumer>(RW);
 }

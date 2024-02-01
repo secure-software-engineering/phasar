@@ -15,13 +15,13 @@ void LcovWriter::write() const {
     const auto File = FileEntry.first;
     const auto FunctionStats = FileEntry.second;
 
-    Writer << "SF:" << File << "\n";
+    Writer << "SF:" << File << '\n';
 
     for (const auto &FunctionEntry : FunctionStats) {
       const auto Function = FunctionEntry.first;
 
       Writer << "FNDA:"
-             << "1," << Function << "\n";
+             << "1," << Function << '\n';
     }
 
     for (const auto &FunctionEntry : FunctionStats) {
@@ -29,13 +29,11 @@ void LcovWriter::write() const {
 
       for (const auto &LineNumberEntry : LineNumberStats) {
 
-        Writer << "DA:" << LineNumberEntry.getLineNumber() << ",1"
-               << "\n";
+        Writer << "DA:" << LineNumberEntry.getLineNumber() << ",1" << '\n';
       }
     }
 
-    Writer << "end_of_record"
-           << "\n";
+    Writer << "end_of_record" << '\n';
   }
 }
 

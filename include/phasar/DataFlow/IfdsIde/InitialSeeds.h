@@ -98,13 +98,13 @@ public:
     for (const auto &[Node, Facts] : Seeds) {
       OS << "At ";
       printNode(Node);
-      OS << "\n";
+      OS << '\n';
       for (const auto &[Fact, Value] : Facts) {
         OS << "> ";
         printFact(Fact);
-        OS << " --> \\." << Value << "\n";
+        OS << " --> \\." << Value << '\n';
       }
-      OS << "\n";
+      OS << '\n';
     }
     OS << "========================== End Seeds ==========================\n";
   }

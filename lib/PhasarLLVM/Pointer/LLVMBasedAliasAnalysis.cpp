@@ -60,7 +60,7 @@ static void printResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
     if (O2 < O1) {
       std::swap(O1, O2);
     }
-    llvm::errs() << "  " << AR << ":\t" << O1 << ", " << O2 << "\n";
+    llvm::errs() << "  " << AR << ":\t" << O1 << ", " << O2 << '\n';
   }
 }
 
