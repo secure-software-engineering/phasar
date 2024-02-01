@@ -109,7 +109,7 @@ private:
   [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }
   [[nodiscard]] bool debugInfoAvailableImpl() const;
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const {
-    return llvm::map_range(Mod->functions(),
+    return llvm::map_range(ProjectIRDBBase::getModule()->functions(),
                            Ref2PointerConverter<llvm::Function>{});
   }
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef FunctionName) const {
