@@ -96,6 +96,7 @@ public:
                          const nlohmann::json &SerializedCG,
                          LLVMTypeHierarchy *TH = nullptr);
 
+  // Deleter of LLVMTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
 
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;

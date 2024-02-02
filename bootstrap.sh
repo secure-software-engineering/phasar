@@ -5,8 +5,8 @@ set -eo pipefail
 source ./utils/safeCommandsSet.sh
 
 readonly PHASAR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-readonly PHASAR_INSTALL_DIR="/usr/local/phasar"
-readonly LLVM_INSTALL_DIR="/usr/local/llvm-14"
+PHASAR_INSTALL_DIR="/usr/local/phasar"
+LLVM_INSTALL_DIR="/usr/local/llvm-14"
 
 NUM_THREADS=$(nproc)
 LLVM_RELEASE=llvmorg-14.0.6
@@ -26,7 +26,8 @@ function usage {
     echo -e "\t-DBOOST_DIR=<path>\t\t- The directory where boost should be installed (optional)"
     echo -e "\t-DBOOST_VERSION=<string>\t- The desired boost version to install (optional)"
     echo -e "\t-DCMAKE_BUILD_TYPE=<string>\t- The build mode for building PhASAR. One of {Debug, RelWithDebInfo, Release} (default is Release)"
-    echo -e "\t-DPHASAR_INSTALL_DIR=<path>\t- The folder where to install PhASAR if --install is specified (default is /usr/local/phasar)"
+    echo -e "\t-DPHASAR_INSTALL_DIR=<path>\t- The folder where to install PhASAR if --install is specified (default is ${PHASAR_INSTALL_DIR})"
+    echo -e "\t-DLLVM_INSTALL_DIR=<path>\t- The folder where to install LLVM if --install is specified (default is ${LLVM_INSTALL_DIR})"
 }
 
 # Parsing command-line-parameters
@@ -80,6 +81,15 @@ case $key in
     ;;
     -DPHASAR_INSTALL_DIR=*)
     PHASAR_INSTALL_DIR="${key#*=}"
+    shift # past argument=value
+    ;;
+    -DLLVM_INSTALL_DIR)
+    LLVM_INSTALL_DIR="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -DLLVM_INSTALL_DIR=*)
+    LLVM_INSTALL_DIR="${key#*=}"
     shift # past argument=value
     ;;
     -h|--help)
@@ -157,6 +167,9 @@ tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
 rm -rf "${tmp_dir}"
 echo "dependencies successfully installed"
 
+# *Always* set the LLVM root to ensure the Phasar script uses the proper toolchain
+LLVM_PARAMS=-DLLVM_ROOT="${LLVM_INSTALL_DIR}"
+
 echo "Updating the submodules..."
 git submodule update --init
 echo "Submodules successfully updated"
@@ -169,7 +182,7 @@ export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
 mkdir -p "${PHASAR_DIR}"/build
 safe_cd "${PHASAR_DIR}"/build
-cmake -G Ninja -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" "${BOOST_PARAMS}" -DPHASAR_BUILD_UNITTESTS="${DO_UNIT_TEST}" "${PHASAR_DIR}"
+cmake -G Ninja -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" "${BOOST_PARAMS}" -DPHASAR_BUILD_UNITTESTS="${DO_UNIT_TEST}" "${LLVM_PARAMS}" "${PHASAR_DIR}"
 cmake --build . -j "${NUM_THREADS}"
 
 echo "phasar successfully built"

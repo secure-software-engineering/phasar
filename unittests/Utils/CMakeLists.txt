@@ -1,4 +1,5 @@
 set(UtilsSources
+  CompilationTests.cpp
   BitVectorSetTest.cpp
   EquivalenceClassMapTest.cpp
   IOTest.cpp
@@ -18,3 +19,5 @@ endif()
 foreach(TEST_SRC ${UtilsSources})
   add_phasar_unittest(${TEST_SRC})
 endforeach(TEST_SRC)
+
+target_compile_options(CompilationTests PRIVATE -Wno-delete-incomplete)
