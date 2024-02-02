@@ -41,7 +41,7 @@ private:
       Block *Next = nullptr;
 
       static Block *create(Block *Next, size_t NumPointerEntries);
-      static void destroy(Block *Blck);
+      static void destroy(Block *Blck, size_t NumPointerEntries);
 
     private:
       Block(Block *Next);
@@ -49,6 +49,7 @@ private:
 
     Block *Root = nullptr;
     void **Pos = nullptr, **End = nullptr;
+    size_t InitialCapacity{};
 
     Allocator() noexcept = default;
     Allocator(size_t InitialCapacity);

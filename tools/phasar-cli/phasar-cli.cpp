@@ -260,7 +260,7 @@ void validateParamModule() {
   if (!(std::filesystem::exists(ModulePath) &&
         !std::filesystem::is_directory(ModulePath) &&
         (ModulePath.extension() == ".ll" || ModulePath.extension() == ".bc"))) {
-    llvm::errs() << "LLVM module '" << std::filesystem::absolute(ModulePath)
+    llvm::errs() << "LLVM module '" << std::filesystem::canonical(ModulePath)
                  << "' does not exist!\n";
     exit(1);
   }
@@ -453,6 +453,10 @@ int main(int Argc, const char **Argv) {
                     !AnalysisController::needsToEmitPTA(EmitterOptions),
                     EntryOpt, std::move(PrecomputedCallGraph), CGTypeOpt,
                     SoundnessOpt, AutoGlobalsOpt);
+  if (!HA.getProjectIRDB().isValid()) {
+    // Note: Error message has already been printed
+    return 1;
+  }
 
   AnalysisController Controller(
       HA, DataFlowAnalysisOpt, {AnalysisConfigOpt.getValue()}, EntryOpt,
