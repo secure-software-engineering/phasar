@@ -130,7 +130,6 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
   std::unordered_map<const llvm::Type *, const std::string> StructConfigMap;
 
   // read all struct types from config
-  size_t Counter = 0;
   for (const auto &VarDesc : Config.Variables) {
     llvm::DebugInfoFinder DIF;
     const auto *M = Code.getModule();

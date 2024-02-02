@@ -110,8 +110,6 @@ template <typename GraphTy>
     }
   }
 
-  size_t Idx = 0;
-
   llvm::IntEqClasses Equiv(traits_t::size(G));
 
   auto isEquivalent = [&Equiv](edge_t LHS, edge_t RHS) {

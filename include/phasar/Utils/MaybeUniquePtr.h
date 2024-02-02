@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_MAYBEUNIQUEPTR_H_
 
 #include "llvm/ADT/PointerIntPair.h"
+#include "llvm/Support/PointerLikeTypeTraits.h"
 
 #include <memory>
 #include <type_traits>
@@ -39,8 +40,12 @@ protected:
 };
 
 template <typename T> class MaybeUniquePtrBase<T, true> {
+  struct PointerTraits : llvm::PointerLikeTypeTraits<T *> {
+    static constexpr int NumLowBitsAvailable = 1;
+  };
+
 protected:
-  llvm::PointerIntPair<T *, 1, bool> Data{};
+  llvm::PointerIntPair<T *, 1, bool, PointerTraits> Data{};
 
   constexpr MaybeUniquePtrBase(T *Ptr, bool Owns) noexcept : Data{Ptr, Owns} {}
   constexpr MaybeUniquePtrBase() noexcept = default;
@@ -61,12 +66,15 @@ public:
   constexpr MaybeUniquePtr() noexcept = default;
 
   constexpr MaybeUniquePtr(T *Pointer, bool Owns = false) noexcept
-      : detail::MaybeUniquePtrBase<T, RequireAlignment>(Pointer, Owns) {}
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(Pointer,
+                                                        Owns && Pointer) {}
 
   constexpr MaybeUniquePtr(std::unique_ptr<T> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
 
-  template <typename TT>
+  template <typename TT,
+            typename = std::enable_if_t<!std::is_same_v<T, TT> &&
+                                        std::is_convertible_v<TT *, T *>>>
   constexpr MaybeUniquePtr(std::unique_ptr<TT> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
 
@@ -92,16 +100,20 @@ public:
     if (owns()) {
       delete Data.getPointer();
     }
-    Data = {Owner.release(), true};
+    auto *Ptr = Owner.release();
+    Data = {Ptr, Ptr != nullptr};
     return *this;
   }
 
-  template <typename TT>
+  template <typename TT,
+            typename = std::enable_if_t<!std::is_same_v<T, TT> &&
+                                        std::is_convertible_v<TT *, T *>>>
   constexpr MaybeUniquePtr &operator=(std::unique_ptr<TT> &&Owner) noexcept {
     if (owns()) {
       delete Data.getPointer();
     }
-    Data = {Owner.release(), true};
+    auto *Ptr = Owner.release();
+    Data = {Ptr, Ptr != nullptr};
     return *this;
   }
 
@@ -118,24 +130,16 @@ public:
     }
   }
 
-  [[nodiscard]] constexpr T *get() noexcept { return Data.getPointer(); }
-  [[nodiscard]] constexpr const T *get() const noexcept {
-    return Data.getPointer();
-  }
+  [[nodiscard]] constexpr T *get() const noexcept { return Data.getPointer(); }
 
-  [[nodiscard]] constexpr T *operator->() noexcept { return get(); }
-  [[nodiscard]] constexpr const T *operator->() const noexcept { return get(); }
+  [[nodiscard]] constexpr T *operator->() const noexcept { return get(); }
 
-  [[nodiscard]] constexpr T &operator*() noexcept {
-    assert(get() != nullptr);
-    return *get();
-  }
-  [[nodiscard]] constexpr const T &operator*() const noexcept {
+  [[nodiscard]] constexpr T &operator*() const noexcept {
     assert(get() != nullptr);
     return *get();
   }
 
-  T *release() noexcept {
+  constexpr T *release() noexcept {
     Data.setInt(false);
     return Data.getPointer();
   }
@@ -147,8 +151,19 @@ public:
     Data = {};
   }
 
+  template <typename TT>
+  constexpr void reset(MaybeUniquePtr<TT> &&Other) noexcept {
+    *this = std::move(Other);
+  }
+
+  template <typename TT>
+  constexpr void reset(std::unique_ptr<TT> &&Other) noexcept {
+    *this = std::move(Other);
+  }
+
   [[nodiscard]] constexpr bool owns() const noexcept {
-    return Data.getInt() && Data.getPointer();
+    assert(Data.getPointer() || !Data.getInt());
+    return Data.getInt();
   }
 
   constexpr friend bool operator==(const MaybeUniquePtr &LHS,
