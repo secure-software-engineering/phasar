@@ -5,18 +5,16 @@
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
                                    const EdgeFunctionStats &S) {
-  static constexpr std::array<llvm::StringRef, 5> EFKind{
-      "Normal", "Call", "Return", "CallToReturn", "Summary"};
-  static constexpr std::array<llvm::StringRef, 3> AllocKind{
+  static constexpr auto EFKind = {"Normal", "Call", "Return", "CallToReturn",
+                                  "Summary"};
+  static constexpr auto AllocKind = {
       "SmallObjectOptimized", "DefaultHeapAllocated", "CustomHeapAllocated"};
 
   OS << "Cached Edge Functions:\n";
 
-  size_t Ctr = 0;
-  for (const auto &[UEF, Count] : llvm::zip(S.UniqueEFCount, S.TotalEFCount)) {
-    OS << "  Kind: " << EFKind[Ctr] << ":\n";
-    Ctr++;
-
+  for (const auto &[UEF, Count, EFK] :
+       llvm::zip(S.UniqueEFCount, S.TotalEFCount, EFKind)) {
+    OS << "  Kind: " << EFK << ":\n";
     OS << "    Total #EdgeFunctions:\t" << Count << '\n';
     OS << "    Unique EdgeFunctions:\t" << UEF << '\n';
   }

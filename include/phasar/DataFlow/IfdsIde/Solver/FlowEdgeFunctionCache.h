@@ -34,6 +34,7 @@ class Value;
 namespace psr {
 
 enum class EdgeFunctionKind { Normal, Call, Return, CallToReturn, Summary };
+static constexpr size_t EdgeFunctionKindCount = 5;
 
 template <typename KeyT> class DefaultMapKeyCompressor {
 public:

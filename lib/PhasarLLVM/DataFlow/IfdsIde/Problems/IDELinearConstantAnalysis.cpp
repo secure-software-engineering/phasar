@@ -25,6 +25,7 @@
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
@@ -43,8 +44,6 @@
 #include <limits>
 #include <memory>
 #include <utility>
-
-#include <llvm/ADT/Hashing.h>
 
 namespace psr {
 
