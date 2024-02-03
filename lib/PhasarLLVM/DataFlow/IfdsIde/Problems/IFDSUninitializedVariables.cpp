@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -203,8 +204,9 @@ IFDSUninitializedVariables::getNormalFlowFunction(
             !llvm::isa<llvm::CastInst>(Curr) &&
             !llvm::isa<llvm::PHINode>(Curr)) {
           UndefValueUses[Curr].insert(Operand);
-          Warning<LLVMIFDSAnalysisDomainDefault> Warn(Curr, Operand,
-                                                      BinaryDomain::TOP);
+          Warning<LLVMIFDSAnalysisDomainDefault> Warn(
+              Curr, Operand, BinaryDomain::TOP,
+              DataFlowAnalysisType::IFDSUninitializedVariables);
           Printer->onResult(Warn);
         }
         return {Source, Curr};

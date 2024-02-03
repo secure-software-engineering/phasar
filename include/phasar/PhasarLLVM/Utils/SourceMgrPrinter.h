@@ -1,6 +1,7 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_SOURCEMGRPRINTER_H
 #define PHASAR_PHASARLLVM_UTILS_SOURCEMGRPRINTER_H
 #include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/OnTheFlyAnalysisPrinter.h"
 #include "phasar/Utils/Logger.h"
@@ -9,6 +10,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 
 #include <llvm/ADT/StringMap.h>
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -24,12 +26,13 @@ public:
   void onResult(Warning<AnalysisDomainTy> Warn) override {
     auto BufIdOpt = getSourceBufId(getFilePathFromIR(Warn.Instr));
     if (BufIdOpt.has_value()) {
-      SrcMgr.PrintMessage(*OS,
-                          SrcMgr.FindLocForLineAndColumn(
-                              BufIdOpt.value(),
-                              getLineAndColFromIR(Warn.Instr).first,
-                              getLineAndColFromIR(Warn.Instr).second),
-                          llvm::SourceMgr::DK_Warning, Msg);
+      SrcMgr.PrintMessage(
+          *OS,
+          SrcMgr.FindLocForLineAndColumn(
+              BufIdOpt.value(), getLineAndColFromIR(Warn.Instr).first,
+              getLineAndColFromIR(Warn.Instr).second),
+          llvm::SourceMgr::DK_Warning,
+          toString(Warn.AnalysisType) + " Analysis found an error");
     }
   }
 
@@ -52,7 +55,6 @@ public:
 private:
   llvm::SourceMgr SrcMgr;
   llvm::StringMap<unsigned> FileNameIDMap;
-  static constexpr llvm::StringLiteral Msg = "Phasar found an error";
   MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
 };
 } // namespace psr

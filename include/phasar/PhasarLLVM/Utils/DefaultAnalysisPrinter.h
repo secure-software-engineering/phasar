@@ -4,6 +4,7 @@
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Printer.h"
 
 #include <optional>
@@ -18,7 +19,7 @@ class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 
 public:
   ~DefaultAnalysisPrinter() override = default;
-  DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(OS) {}
+  DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(&OS) {}
 
   void onResult(Warning<AnalysisDomainTy> Warn) override {
     AnalysisResults.Warn.emplace_back(std::move(Warn));
@@ -28,19 +29,19 @@ public:
   void onFinalize() const override {
     for (const auto &Iter : AnalysisResults.Warn) {
 
-      OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
+      *OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
 
-      OS << "\tFact: " << DToString(Iter.Fact) << "\n";
+      *OS << "\tFact: " << DToString(Iter.Fact) << "\n";
 
       if constexpr (std::is_same_v<l_t, BinaryDomain>) {
-        OS << "Value: " << LToString(Iter.LatticeElement) << "\n";
+        *OS << "Value: " << LToString(Iter.LatticeElement) << "\n";
       }
     }
   }
 
 private:
   DataflowAnalysisResults<AnalysisDomainTy> AnalysisResults{};
-  llvm::raw_ostream &OS = llvm::outs();
+  MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::outs();
 };
 
 } // namespace psr

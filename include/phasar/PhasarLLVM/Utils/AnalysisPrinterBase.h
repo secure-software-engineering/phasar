@@ -1,6 +1,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_ANALYSISPRINTERBASE_H
 #define PHASAR_PHASARLLVM_UTILS_ANALYSISPRINTERBASE_H
 
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
@@ -13,11 +15,13 @@ template <typename AnalysisDomainTy> struct Warning {
   n_t Instr;
   d_t Fact;
   l_t LatticeElement;
+  DataFlowAnalysisType AnalysisType;
 
   // Constructor
-  Warning(n_t Inst, d_t DfFact, l_t Lattice)
+  Warning(n_t Inst, d_t DfFact, l_t Lattice,
+          DataFlowAnalysisType DfAnalysisType)
       : Instr(std::move(Inst)), Fact(std::move(DfFact)),
-        LatticeElement(std::move(Lattice)) {}
+        LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
 };
 
 template <typename AnalysisDomainTy> struct DataflowAnalysisResults {

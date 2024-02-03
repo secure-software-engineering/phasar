@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -410,8 +411,9 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
                          CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
-            Warning<LLVMIFDSAnalysisDomainDefault> Warn(CallSite, Source,
-                                                        topElement());
+            Warning<LLVMIFDSAnalysisDomainDefault> Warn(
+                CallSite, Source, topElement(),
+                DataFlowAnalysisType::IFDSTaintAnalysis);
             Printer->onResult(Warn);
           }
         }
@@ -439,8 +441,9 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
     if (Leak.count(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
-        Warning<LLVMIFDSAnalysisDomainDefault> Warn(CallSite, Source,
-                                                    topElement());
+        Warning<LLVMIFDSAnalysisDomainDefault> Warn(
+            CallSite, Source, topElement(),
+            DataFlowAnalysisType::IFDSTaintAnalysis);
         Printer->onResult(Warn);
       }
     }

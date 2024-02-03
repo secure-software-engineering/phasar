@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
@@ -530,7 +531,8 @@ public:
                       llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
                 if (Res.second == TSD->error()) {
                   Warning<IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>
-                      Warn(&I, Res.first, TSD->error());
+                      Warn(&I, Res.first, TSD->error(),
+                           DataFlowAnalysisType::None);
                   // ERROR STATE DETECTED
                   this->Printer->onResult(Warn);
                 }
@@ -542,7 +544,8 @@ public:
                       llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
                 if (Res.second == TSD->error()) {
                   Warning<IDETypeStateAnalysisDomain<TypeStateDescriptionTy>>
-                      Warn(&I, Res.first, TSD->error());
+                      Warn(&I, Res.first, TSD->error(),
+                           DataFlowAnalysisType::None);
                   // ERROR STATE DETECTED
                   this->Printer->onResult(Warn);
                 }
