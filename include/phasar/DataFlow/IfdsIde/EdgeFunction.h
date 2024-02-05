@@ -332,7 +332,7 @@ public:
   /// details.
   ///
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
-    assert(!!*this && "computeTarget() called on nullptr!");
+    assert(isValid() && "computeTarget() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->computeTarget(EF, Source);
   }
 
@@ -363,8 +363,8 @@ public:
   /// SecondEF.computeTarget(FirstEF.computeTarget(x)).
   [[nodiscard]] static EdgeFunction compose(const EdgeFunction &FirstEF,
                                             const EdgeFunction &SecondEF) {
-    assert(!!FirstEF && "compose() called on LHS nullptr!");
-    assert(!!SecondEF && "compose() called on RHS nullptr!");
+    assert(FirstEF.isValid() && "compose() called on LHS nullptr!");
+    assert(SecondEF.isValid() && "compose() called on RHS nullptr!");
     return FirstEF.VTAndHeapAlloc.getPointer()->compose(
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
@@ -404,8 +404,8 @@ public:
   /// connected with the value-lattice on l_t
   [[nodiscard]] static EdgeFunction join(const EdgeFunction &FirstEF,
                                          const EdgeFunction &SecondEF) {
-    assert(!!FirstEF && "join() called on LHS nullptr!");
-    assert(!!SecondEF && "join() called on RHS nullptr!");
+    assert(FirstEF.isValid() && "join() called on LHS nullptr!");
+    assert(SecondEF.isValid() && "join() called on RHS nullptr!");
     return FirstEF.VTAndHeapAlloc.getPointer()->join(
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
@@ -558,14 +558,16 @@ public:
   /// Allows for better optimizations in compose and join and should be
   /// provided, whehever this knowledge is available.
   [[nodiscard]] bool isConstant() const noexcept {
-    assert(!!*this && "isConstant() called on nullptr!");
+    assert(isValid() && "isConstant() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->isConstant(EF);
   }
 
-  /// Performs a null-check. True, iff thie edge function is not null.
-  [[nodiscard]] explicit operator bool() const noexcept {
+  [[nodiscard]] bool isValid() const noexcept {
     return VTAndHeapAlloc.getOpaqueValue();
   }
+
+  /// Performs a null-check. True, iff thie edge function is not null.
+  [[nodiscard]] explicit operator bool() const noexcept { return isValid(); }
 
   /// Performs a runtime-typecheck. True, if the concrete type of the held edge
   /// function *exactly* equals ConcreteEF.
@@ -656,7 +658,7 @@ public:
   }
 
   [[nodiscard]] auto depth() const noexcept {
-    assert(!!*this && "depth() called on nullptr!");
+    assert(isValid() && "depth() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->depth(EF);
   }
 
