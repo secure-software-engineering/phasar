@@ -74,7 +74,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
                          "Enclosing type '"
                              << Parent->getName() << "' of virtual function '"
                              << llvm::demangle(DIFun->getLinkageName().str())
-                             << "'  not found in the current module")
+                             << "'  not found in the current module");
 
         continue;
       }
@@ -190,7 +190,7 @@ auto DIBasedTypeHierarchy::subTypesOf(ClassType Ty) const noexcept
   return isSubType(SuperType, Type); // NOLINT
 }
 
-[[nodiscard]] auto DIBasedTypeHierarchy::getSuperTypes(ClassType Type)
+[[nodiscard]] auto DIBasedTypeHierarchy::getSuperTypes(ClassType /*Type*/)
     -> std::set<ClassType> {
   // TODO: implement (low priority)
   llvm::report_fatal_error("Not implemented");
