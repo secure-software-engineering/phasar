@@ -7,9 +7,9 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
-#include "phasar/PhasarLLVM/Utils/DefaultAnalysisPrinter.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DefaultAnalysisPrinter.h"
 
 #include "llvm/ADT/DenseMap.h"
 
@@ -47,7 +47,7 @@ public:
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void onFinalize() const override { EXPECT_TRUE(GroundTruth.empty()); }
+  void onFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
 
 private:
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};

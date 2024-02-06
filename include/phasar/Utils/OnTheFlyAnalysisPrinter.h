@@ -2,7 +2,7 @@
 #define PHASAR_PHASARLLVM_UTILS_ONTHEFLYANALYSISPRINTER_H
 
 #include "phasar/Domain/BinaryDomain.h"
-#include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
+#include "phasar/Utils/AnalysisPrinterBase.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Printer.h"
@@ -38,9 +38,9 @@ public:
     }
   }
 
-  void onFinalize() const override{};
+  void onFinalize() override{};
 
-  bool isValid() { return OS != nullptr; }
+  [[nodiscard]] bool isValid() const noexcept { return OS != nullptr; }
 
 private:
   MaybeUniquePtr<llvm::raw_ostream> OS = nullptr;

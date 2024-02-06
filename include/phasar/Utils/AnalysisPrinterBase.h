@@ -7,6 +7,7 @@
 
 namespace psr {
 
+// move warning to default analysis printer
 template <typename AnalysisDomainTy> struct Warning {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -24,15 +25,11 @@ template <typename AnalysisDomainTy> struct Warning {
         LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
 };
 
-template <typename AnalysisDomainTy> struct DataflowAnalysisResults {
-  std::vector<Warning<AnalysisDomainTy>> Warn;
-};
-
 template <typename AnalysisDomainTy> class AnalysisPrinterBase {
 public:
   virtual void onResult(Warning<AnalysisDomainTy> /*Warn*/) = 0;
   virtual void onInitialize() = 0;
-  virtual void onFinalize() const = 0;
+  virtual void onFinalize() = 0;
 
   AnalysisPrinterBase() = default;
   virtual ~AnalysisPrinterBase() = default;

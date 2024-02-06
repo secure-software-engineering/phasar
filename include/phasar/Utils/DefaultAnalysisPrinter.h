@@ -2,8 +2,7 @@
 #define PHASAR_PHASARLLVM_UTILS_DEFAULTANALYSISPRINTER_H
 
 #include "phasar/Domain/BinaryDomain.h"
-#include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/AnalysisPrinterBase.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Printer.h"
 
@@ -22,12 +21,12 @@ public:
   DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(&OS) {}
 
   void onResult(Warning<AnalysisDomainTy> Warn) override {
-    AnalysisResults.Warn.emplace_back(std::move(Warn));
+    AnalysisResults.emplace_back(std::move(Warn));
   }
 
   void onInitialize() override{};
-  void onFinalize() const override {
-    for (const auto &Iter : AnalysisResults.Warn) {
+  void onFinalize() override {
+    for (const auto &Iter : AnalysisResults) {
 
       *OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
 
@@ -40,7 +39,7 @@ public:
   }
 
 private:
-  DataflowAnalysisResults<AnalysisDomainTy> AnalysisResults{};
+  std::vector<Warning<AnalysisDomainTy>> AnalysisResults{};
   MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::outs();
 };
 

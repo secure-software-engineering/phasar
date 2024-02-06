@@ -1,12 +1,10 @@
-#include "phasar/PhasarLLVM/Utils/OnTheFlyAnalysisPrinter.h"
+#include "phasar/Utils/OnTheFlyAnalysisPrinter.h"
 
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
-#include "phasar/PhasarLLVM/Utils/SourceMgrPrinter.h"
 
 #include "llvm/ADT/DenseMap.h"
 
@@ -45,7 +43,7 @@ public:
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void onFinalize() const override { EXPECT_TRUE(GroundTruth.empty()); }
+  void onFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
 
 private:
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};

@@ -1,7 +1,7 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_NULLANALYSISPRINTER_H
 #define PHASAR_PHASARLLVM_UTILS_NULLANALYSISPRINTER_H
 
-#include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
+#include "phasar/Utils/AnalysisPrinterBase.h"
 
 namespace psr {
 
@@ -15,7 +15,7 @@ public:
 
   void onInitialize() override{};
   void onResult(Warning<AnalysisDomainTy> /*War*/) override{};
-  void onFinalize() const override{};
+  void onFinalize() override{};
 
 private:
   NullAnalysisPrinter() = default;

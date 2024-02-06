@@ -3,9 +3,11 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/Utils/AnalysisPrinterBase.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/AnalysisPrinterBase.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -22,7 +24,8 @@ class GroundTruthCollector
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(std::set<std::string> &GroundTruth)
-      : SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>(OS),
+      : SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>(
+            [](DataFlowAnalysisType) { return ""; }, OS),
         GroundTruth(GroundTruth), OS(Str){};
 
   std::string findSubString(const std::string &String) {
@@ -53,7 +56,7 @@ public:
     findAndRemove(OS.str());
   }
 
-  void onFinalize() const override { EXPECT_TRUE(GroundTruth.empty()); }
+  void onFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
 
 private:
   std::set<std::string> GroundTruth{};
