@@ -9,7 +9,6 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -68,7 +67,6 @@ static void collectAllocatedTypes(const llvm::CallBase *CallSite, Set &Into) {
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
 GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
-  LLVMBasedCFG CFG;
   Stats.ModuleName = M.getName().str();
   for (auto &F : M) {
     ++Stats.Functions;
@@ -182,7 +180,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
             ++Stats.NumInlineAsm;
           } else if (const auto *CalleeFun =
                          llvm::dyn_cast<llvm::Function>(CalledOp)) {
-            if (CFG.isHeapAllocatingFunction(CalleeFun)) {
+            if (isHeapAllocatingFunction(CalleeFun)) {
               // do not add allocas from llvm internal functions
               Stats.AllocaInstructions.insert(&I);
               ++Stats.AllocationSites;

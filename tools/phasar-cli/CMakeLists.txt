@@ -37,6 +37,7 @@ target_link_libraries(phasar-cli
     phasar_llvm_pointer
     phasar_llvm
     phasar_llvm_typehierarchy
+    phasar_taintconfig
 
     ${PHASAR_STD_FILESYSTEM}
 )
