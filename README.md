@@ -13,16 +13,14 @@ PhASAR is primarily developed and maintained by the Secure Software Engineering 
 
 Lead developers of PhASAR are:  Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>), Martin Mory (@MMory)(<martin.mory@upb.de>), Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>) and others.
 
-<!--  Please also refer to <https://phasar.org/> -->
-
-## Required version of the C++ standard
+## Required Version of the C++ Standard
 
 PhASAR requires C++-17.
 
 However, building in C++20 mode is supported as an experimental feature. You may enable this by turning the cmake option `PHASAR_EXPERIMENTAL_CXX20` on.
 Although phasar currently does not make use of C++20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
 
-## Currently supported version of LLVM
+## Currently Supported Version of LLVM
 
 PhASAR is currently set up to support LLVM-14.0.*
 
@@ -68,41 +66,7 @@ The bootstrap script may ask for superuser permissions (to install the dependenc
 
 For subsequent builds, see [Compiling PhASAR](#compiling-phasar-if-not-already-done-using-the-installation-scripts).
 
-## Please help us to improve PhASAR
-
-You are using PhASAR and would like to help us in the future? Then please
-support us by filling out this [web form](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
-
-By giving us feedback you help to decide in what direction PhASAR should stride in
-the future and give us clues about our user base. Thank you very much!
-
-## Installation
-
-PhASAR can be installed using the installer scripts as explained in the following.
-
-### Installing PhASAR on an Ubuntu system
-
-In the following, we would like to give an complete example of how to install
-PhASAR using an Ubuntu or Unix-like system.
-
-Therefore, we provide an installation script. To install PhASAR, just navigate to the top-level
-directory of PhASAR and use the following command:
-
-```bash
-./bootstrap.sh --install
-```
-
-The bootstrap script may ask for superuser permissions.
-
-Done!
-
-### Installing PhASAR a MacOS system
-
-Due to unfortunate updates to MacOS and the handling of C++, especially on the newer M1 processors, we can't support native development on Mac.
-The easiest solution to develop PhASAR on a Mac right now is to use [dockers development environments](https://docs.docker.com/desktop/dev-environments/). Clone this repository as described in their documentation. Afterwards, you have to login once manually, as a root user by running `docker exec -it -u root <container name> /bin/bash` to complete the rest of the install process as described in this readme (install submodules, run bootstrap.sh, ...).
-Now you can just attach your docker container to VS Code or any other IDE, which supports remote development.
-
-### Compiling PhASAR (if not already done using the installation scripts)
+### Compiling PhASAR (if not already done using the bootstrap script)
 
 Set the system's variables for the C and C++ compiler to clang:
 
@@ -141,12 +105,6 @@ After compilation using cmake the following two binaries can be found in the bui
 + `phasar-cli` - the PhASAR command-line tool (previously called `phasar-llvm`) that provides access to analyses that are already implemented within PhASAR. Use this if you don't want to build an own tool on top of PhASAR.
 + `myphasartool` - an example tool that shows how tools can be build on top of PhASAR
 
-Use the command:
-
-`$ ./phasar-cli --help`
-
-in order to display the manual and help message.
-
 Please be careful and check if errors occur during the compilation.
 
 When using CMake to compile PhASAR the following optional parameters can be used:
@@ -170,17 +128,51 @@ When using CMake to compile PhASAR the following optional parameters can be used
 
 You can use these parameters either directly or modify the installer-script `bootstrap.sh`
 
-#### A remark on compile time
+#### A Remark on Compile Time
 
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can easily be run in parallel, resulting in shorter compilation times. Make use of it!
 
-### Running a test solver
+### Running a Test Solver
 
 To test if everything works as expected please run the following command:
 
 `$ phasar-cli -m test/llvm_test_code/basic/module_cpp.ll -D ifds-solvertest`
 
+You can find the `phasar-cli` tool in the build-tree under `tools/phasar-cli`.
+
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
+
+### Building PhASAR on a MacOS System
+
+Due to unfortunate updates to MacOS and the handling of C++, especially on the newer M1 processors, we can't support native development on Mac.
+The easiest solution to develop PhASAR on a Mac right now is to use [dockers development environments](https://docs.docker.com/desktop/dev-environments/). Clone this repository as described in their documentation. Afterwards, you have to login once manually, as a root user by running `docker exec -it -u root <container name> /bin/bash` to complete the rest of the build process as described in this readme (install submodules, run bootstrap.sh, ...).
+Now you can just attach your docker container to VS Code or any other IDE, which supports remote development.
+
+## Installation
+
+PhASAR can be installed using the installer scripts as explained in the following.
+However, you do not need to install PhASAR in order to use it.
+
+### Installing PhASAR on an Ubuntu System
+
+In the following, we would like to give an complete example of how to install
+PhASAR using an Ubuntu or Unix-like system.
+
+Therefore, we provide an installation script. To install PhASAR, just navigate to the top-level
+directory of PhASAR and use the following command:
+
+```bash
+./bootstrap.sh --install
+```
+
+The bootstrap script may ask for superuser permissions.
+
+Done!
+
+If You have already built phasar, you can just invoke
+```bash
+sudo ninja install
+```
 
 ## How to use PhASAR?
 
@@ -189,7 +181,7 @@ We recomment using phasar as a library with `cmake`.
 If you already have installed phasar, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
 
 Otherwise, we recommend adding PhASAR as a git submodule to your repository.
-In this case, just `add_subdirectory` the phasar submodule directory and add phasar's include folder to your `include_directories` within your `CMakeLists.txt`.
+In this case, just `add_subdirectory` the phasar submodule directory within your `CMakeLists.txt`.
 
 Assuming you have checked out phasar in `external/phasar`, the phasar-related cmake commands may look like this:
 
@@ -197,8 +189,6 @@ Assuming you have checked out phasar in `external/phasar`, the phasar-related cm
 set(PHASAR_BUILD_UNITTESTS OFF)              # -- Don't build PhASAR's unittests with *your* tool
 set(PHASAR_BUILD_IR OFF)                     # --
 add_subdirectory(external/phasar)            # Build phasar with your tool
-include_directories(external/phasar/include) # To find PhASAR's headers
-link_libraries(nlohmann_json::nlohmann:json) # To find the json headers
 
 ...
 
@@ -211,6 +201,15 @@ target_link_libraries(yourphasartool
 Depending on your use of PhASAR you also may need to add LLVM to your build.
 
 For more information please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
+
+
+## Please help us to improve PhASAR
+
+You are using PhASAR and would like to help us in the future? Then please
+support us by filling out this [web form](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
+
+By giving us feedback you help to decide in what direction PhASAR should stride in
+the future and give us clues about our user base. Thank you very much!
 
 ### Installing PhASAR's Git pre-commit hook
 
