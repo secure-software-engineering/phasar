@@ -22,6 +22,13 @@ if (NOT PHASAR_IN_TREE)
   set(CMAKE_PROJECT_NAME "phasar")
 endif ()
 
+# NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT ON)
+else()
+  set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT OFF)
+endif()
+
 option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -146,13 +153,13 @@ endif()
 # Enable testing
 enable_testing()
 
-option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)" OFF)
 
-option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
+option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
 
@@ -251,7 +258,8 @@ set(CMAKE_CXX_CLANG_TIDY "")
 # Nlohmann JSON
 set(JSON_BuildTests OFF)
 set(JSON_Install ON)
-add_subdirectory(external/json)
+set(JSON_SystemInclude ON)
+add_subdirectory(external/json EXCLUDE_FROM_ALL)
 
 # We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
 # The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
@@ -272,14 +280,15 @@ endif()
 
 # Json Schema Validator
 set(JSON_VALIDATOR_INSTALL ON)
-add_subdirectory(external/json-schema-validator)
+add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
-  set(BUILD_GMOCK OFF)
-  set(INSTALL_GTEST OFF)
-  add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-  set(GTEST_INCLUDE_DIR "external/googletest/googletest/include")
+  if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
+    set(BUILD_GMOCK OFF)
+    set(INSTALL_GTEST OFF)
+    add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
+  endif()
 else()
   # Set llvm distributed includes for gtest header
   set(GTEST_INCLUDE_DIR "${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include")
@@ -440,7 +449,9 @@ add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
 add_subdirectory(lib)
 
 # phasar-based binaries
-add_subdirectory(tools)
+if(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT)
+  add_subdirectory(tools)
+endif()
 
 # Swift tests
 option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
