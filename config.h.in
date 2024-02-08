@@ -7,5 +7,6 @@
 #cmakedefine PAMM_FULL
 
 #cmakedefine DYNAMIC_LOG
+#cmakedefine BUILD_PHASAR_CLANG
 
 #endif /* PHASAR_CONFIG_CONFIG_H  */
