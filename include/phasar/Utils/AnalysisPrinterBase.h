@@ -7,7 +7,7 @@
 
 namespace psr {
 
-// move warning to default analysis printer
+/// TODO: move warning to default analysis printer
 template <typename AnalysisDomainTy> struct Warning {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -27,6 +27,9 @@ template <typename AnalysisDomainTy> struct Warning {
 
 template <typename AnalysisDomainTy> class AnalysisPrinterBase {
 public:
+  /// TODO: use non-virtual function to call virtual function with default
+  /// parameters +
+  /// TODO: templace magic - #include "memory_resource"
   virtual void onResult(Warning<AnalysisDomainTy> /*Warn*/) = 0;
   virtual void onInitialize() = 0;
   virtual void onFinalize() = 0;

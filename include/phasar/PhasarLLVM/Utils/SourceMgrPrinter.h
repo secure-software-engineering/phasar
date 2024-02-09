@@ -12,7 +12,7 @@
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/raw_ostream.h> // quoting style
+#include <llvm/Support/raw_ostream.h> /// TODO: quoting style
 
 namespace psr {
 template <typename AnalysisDomainTy>
@@ -29,21 +29,15 @@ public:
     auto BufIdOpt = getSourceBufId(getFilePathFromIR(Warn.Instr));
     if (BufIdOpt.has_value()) {
       /// TODO: getLineAndColFromIR call only once
-      /// TODO:Configuration options for warning or error
-      SrcMgr.PrintMessage(*OS,
-                          SrcMgr.FindLocForLineAndColumn(
-                              BufIdOpt.value(),
-                              getLineAndColFromIR(Warn.Instr).first,
-                              getLineAndColFromIR(Warn.Instr).second),
-                          llvm::SourceMgr::DK_Warning,
-
-                          GetPrintMessage(Warn.AnalysisType));
+      /// TODO: Configuration options for warning or error
+      SrcMgr.PrintMessage(
+          *OS,
+          SrcMgr.FindLocForLineAndColumn(
+              BufIdOpt.value(), getLineAndColFromIR(Warn.Instr).first,
+              getLineAndColFromIR(Warn.Instr).second),
+          llvm::SourceMgr::DK_Warning, GetPrintMessage(Warn.AnalysisType));
     }
   }
-
-  /// TODO: use non-virtual function to call virtual function with default
-  /// parameters +
-  /// TODO: templace magic - #include "memory_resource"
 
   /// TODO: move this to cpp file and refactor the imports
   std::optional<unsigned> getSourceBufId(llvm::StringRef FileName) {
