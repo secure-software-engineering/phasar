@@ -397,9 +397,9 @@ nlohmann::json LLVMTypeHierarchy::getAsJson() const {
 // }
 
 void LLVMTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
-  std::stringstream S;
-  boost::write_graphviz(S, TypeGraph, TypeHierarchyVertexWriter(TypeGraph));
-  OS << S.str();
+  // std::stringstream S;
+  // boost::write_graphviz(S, TypeGraph, TypeHierarchyVertexWriter(TypeGraph));
+  // OS << S.str();
 }
 
 void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {

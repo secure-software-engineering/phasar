@@ -10,8 +10,8 @@
 #ifndef PHASAR_UTILS_GRAPHTRAITS_H
 #define PHASAR_UTILS_GRAPHTRAITS_H
 
+#include "phasar/Utils/ScopeExit.h"
 #include "phasar/Utils/TypeTraits.h"
-#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/None.h"

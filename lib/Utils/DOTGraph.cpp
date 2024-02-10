@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iterator>
 #include <ostream>
+#include <sstream>
 #include <utility>
 
 namespace psr {

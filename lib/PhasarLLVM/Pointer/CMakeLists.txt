@@ -17,6 +17,6 @@ add_phasar_library(phasar_llvm_pointer
     Passes
     Demangle
 
-  LINK_PRIVATE
+  LINK_PUBLIC
     ${Boost_LIBRARIES}
 )

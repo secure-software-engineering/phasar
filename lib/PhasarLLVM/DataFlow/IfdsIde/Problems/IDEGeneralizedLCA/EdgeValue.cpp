@@ -411,10 +411,10 @@ int EdgeValue::compare(const EdgeValue &Lhs, const EdgeValue &Rhs) {
     int64_t Rhsval;
     double RhsvalFp;
     if (Rhs.tryGetInt(Rhsval)) {
-      return +std::signbit(Lhsval - Rhsval);
+      return (Lhsval > Rhsval) * 2 - 1;
     }
     if (Rhs.tryGetFP(RhsvalFp)) {
-      return +std::signbit(double(Lhsval) - RhsvalFp);
+      return (double(Lhsval) > RhsvalFp) * 2 - 1;
     }
     break;
   }
@@ -428,7 +428,7 @@ int EdgeValue::compare(const EdgeValue &Lhs, const EdgeValue &Rhs) {
         RhsvalFp = double(Rhsval);
       }
 
-      return +std::signbit(Lhsval - RhsvalFp);
+      return (Lhsval > RhsvalFp) * 2 - 1;
     }
 
     break;

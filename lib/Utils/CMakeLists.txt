@@ -19,6 +19,7 @@ add_phasar_library(phasar_utils
     ${PHASAR_STD_FILESYSTEM}
   LINK_PUBLIC
     nlohmann_json::nlohmann_json
+    ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_utils

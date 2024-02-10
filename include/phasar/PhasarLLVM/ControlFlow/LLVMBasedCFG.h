@@ -14,6 +14,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -86,7 +87,7 @@ protected:
   [[nodiscard]] SpecialMemberFunctionType
   getSpecialMemberFunctionTypeImpl(f_t Fun) const;
   [[nodiscard]] std::string getStatementIdImpl(n_t Inst) const;
-  [[nodiscard]] auto getFunctionNameImpl(f_t Fun) const {
+  [[nodiscard]] llvm::StringRef getFunctionNameImpl(f_t Fun) const {
     return Fun->getName();
   }
   [[nodiscard]] std::string getDemangledFunctionNameImpl(f_t Fun) const;

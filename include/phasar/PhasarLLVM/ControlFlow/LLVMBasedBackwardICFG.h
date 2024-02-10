@@ -41,14 +41,17 @@ class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
     }
   };
 
+public:
+  using typename LLVMBasedBackwardCFG::f_t;
+  using typename LLVMBasedBackwardCFG::n_t;
+
+  LLVMBasedBackwardICFG(LLVMBasedICFG *ForwardICFG);
+
   using CFGBase::print;
   using ICFGBase::print;
 
   using CFGBase::getAsJson;
   using ICFGBase::getAsJson;
-
-public:
-  LLVMBasedBackwardICFG(LLVMBasedICFG *ForwardICFG);
 
 private:
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;

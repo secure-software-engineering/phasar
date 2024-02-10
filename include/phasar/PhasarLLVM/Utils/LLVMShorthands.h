@@ -17,9 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 #define PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 
-#include "phasar/Utils/Utilities.h"
-
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallVector.h"
 
 #include <string>
 #include <vector>
@@ -35,6 +34,7 @@ class StoreInst;
 class BranchInst;
 class Module;
 class CallInst;
+class Type;
 } // namespace llvm
 
 namespace psr {

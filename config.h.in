@@ -7,5 +7,6 @@
 #cmakedefine PAMM_FULL
 
 #cmakedefine DYNAMIC_LOG
+#cmakedefine PHASAR_HAS_SQLITE3
 
 #endif /* PHASAR_CONFIG_CONFIG_H  */

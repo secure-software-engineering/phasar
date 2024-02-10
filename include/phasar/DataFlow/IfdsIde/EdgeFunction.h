@@ -427,30 +427,27 @@ public:
             typename = std::enable_if_t<
                 !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
                 IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
-                                       const EdgeFunction &RHS) noexcept {
-    if (!RHS.template isa<ConcreteEF>()) {
+  [[nodiscard]] bool operator==(EdgeFunctionRef<ConcreteEF> RHS) noexcept {
+    if (!isa<ConcreteEF>()) {
       return false;
     }
-    if (LHS.Instance == RHS.EF) {
+    if (RHS.Instance == EF) {
       return true;
     }
     if constexpr (IsEqualityComparable<ConcreteEF>) {
-      return *LHS == *getPtr<ConcreteEF>(RHS.EF);
+      return *RHS == *getPtr<ConcreteEF>(EF);
     } else {
       return true;
     }
   }
 
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool
-  operator==(const EdgeFunction<L> &LHS,
-             EdgeFunctionRef<ConcreteEF> RHS) noexcept {
+  template <typename ConcreteEF, typename = std::enable_if_t<!std::is_same_v<
+                                     EdgeFunction, std::decay_t<ConcreteEF>>>>
+  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
+                                       const EdgeFunction &RHS) noexcept {
     return RHS == LHS;
   }
+
   [[nodiscard]] friend bool operator==(const EdgeFunction &EF,
                                        std::nullptr_t) noexcept {
     return EF.VTAndHeapAlloc.getOpaqueValue() == nullptr;

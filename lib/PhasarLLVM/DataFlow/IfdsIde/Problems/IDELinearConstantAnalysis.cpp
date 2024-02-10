@@ -221,7 +221,7 @@ struct BinOp {
 
     // TODO: Optimize Binop::composeWith(BinOp)
 
-    return LCAEdgeFunctionComposer{This, SecondFunction};
+    return LCAEdgeFunctionComposer{{This, SecondFunction}};
   }
 
   static EdgeFunction<l_t> join(EdgeFunctionRef<BinOp> This,

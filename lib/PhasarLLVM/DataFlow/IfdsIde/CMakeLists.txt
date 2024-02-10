@@ -19,6 +19,6 @@ add_phasar_library(phasar_llvm_ifdside
     Support
     Demangle
 
-  LINK_PRIVATE
+  LINK_PUBLIC
     ${Boost_LIBRARIES}
 )

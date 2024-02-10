@@ -182,14 +182,14 @@ public:
 
   class PointerVertexOrEdgePrinter {
   public:
-    PointerVertexOrEdgePrinter(const graph_t &PAG) : PAG(PAG) {}
+    PointerVertexOrEdgePrinter(const graph_t &PAG) : PAG(&PAG) {}
     template <class VertexOrEdge>
     void operator()(std::ostream &Out, const VertexOrEdge &V) const {
-      Out << "[label=\"" << PAG[V].getValueAsString() << "\"]";
+      Out << "[label=\"" << (*PAG)[V].getValueAsString() << "\"]";
     }
 
   private:
-    const graph_t &PAG;
+    const graph_t *PAG;
   };
 
   static inline PointerVertexOrEdgePrinter

@@ -14,6 +14,7 @@
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/ScopeExit.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 

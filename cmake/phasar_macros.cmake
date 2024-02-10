@@ -109,11 +109,10 @@ function(generate_ll_file)
   set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${GEN_LL_FILE}")
 
   # define .ll file generation command
+  set(GEN_CMD ${CLANG_EXE})
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
 
@@ -121,7 +120,7 @@ function(generate_ll_file)
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${LLVMOPT_EXE} -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
