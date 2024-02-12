@@ -12,16 +12,36 @@
 
 namespace psr {
 
+template <typename AnalysisDomainTy> struct Warning {
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+
+  n_t Instr;
+  d_t Fact;
+  l_t LatticeElement;
+  DataFlowAnalysisType AnalysisType;
+
+  // Constructor
+  Warning(n_t Inst, d_t DfFact, l_t Lattice,
+          DataFlowAnalysisType DfAnalysisType)
+      : Instr(std::move(Inst)), Fact(std::move(DfFact)),
+        LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
+};
+
 template <typename AnalysisDomainTy>
 class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
   ~DefaultAnalysisPrinter() override = default;
   DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(&OS) {}
 
-  void onResult(Warning<AnalysisDomainTy> Warn) override {
-    AnalysisResults.emplace_back(std::move(Warn));
+  void onResult(n_t Instr, d_t DfFact, l_t Lattice,
+                DataFlowAnalysisType AnalysisType) override {
+    AnalysisResults.emplace_back(Instr, DfFact, Lattice, AnalysisType);
   }
 
   void onInitialize() override{};

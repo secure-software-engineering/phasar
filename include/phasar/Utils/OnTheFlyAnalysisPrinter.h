@@ -7,14 +7,16 @@
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Printer.h"
 
-#include <cassert>
+#include "llvm/ADT/Twine.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <llvm/ADT/Twine.h>
-#include <llvm/Support/raw_ostream.h>
+#include <cassert>
 namespace psr {
 
 template <typename AnalysisDomainTy>
 class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
@@ -29,12 +31,13 @@ public:
   ~OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
 
   void onInitialize() override{};
-  void onResult(Warning<AnalysisDomainTy> Warn) override {
+  void onResult(n_t Instr, d_t DfFact, l_t LatticeElement,
+                DataFlowAnalysisType /*AnalysisType*/) override {
     assert(isValid());
-    *OS << "\nAt IR statement: " << NToString(Warn.Instr) << "\n";
-    *OS << "\tFact: " << DToString(Warn.Fact) << "\n";
+    *OS << "\nAt IR statement: " << NToString(Instr) << "\n";
+    *OS << "\tFact: " << DToString(DfFact) << "\n";
     if constexpr (std::is_same_v<l_t, BinaryDomain>) {
-      *OS << "Value: " << LToString(Warn.LatticeElement) << "\n";
+      *OS << "Value: " << LToString(LatticeElement) << "\n";
     }
   }
 

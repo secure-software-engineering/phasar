@@ -22,6 +22,11 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 // Use template to variate between Typesate and Taint analysis
 class GroundTruthCollector
     : public DefaultAnalysisPrinter<IDEExtendedTaintAnalysisDomain> {
+
+  using n_t = IDEExtendedTaintAnalysisDomain::n_t;
+  using d_t = IDEExtendedTaintAnalysisDomain::d_t;
+  using l_t = IDEExtendedTaintAnalysisDomain::l_t;
+
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
@@ -38,11 +43,12 @@ public:
     }
   }
 
-  void onResult(Warning<IDEExtendedTaintAnalysisDomain> Warn) override {
+  void onResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
+                DataFlowAnalysisType /*AnalysisType*/) override {
     llvm::DenseMap<int, std::set<std::string>> FoundLeak;
-    int SinkId = stoi(getMetaDataID(Warn.Instr));
+    int SinkId = stoi(getMetaDataID(Instr));
     std::set<std::string> LeakedValueIds;
-    LeakedValueIds.insert(getMetaDataID((Warn.Fact)->base()));
+    LeakedValueIds.insert(getMetaDataID((DfFact)->base()));
     FoundLeak.try_emplace(SinkId, LeakedValueIds);
     findAndRemove(FoundLeak, GroundTruth);
   }

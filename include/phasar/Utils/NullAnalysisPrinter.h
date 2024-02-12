@@ -7,6 +7,10 @@ namespace psr {
 
 template <typename AnalysisDomainTy>
 class NullAnalysisPrinter final : public AnalysisPrinterBase<AnalysisDomainTy> {
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+
 public:
   static NullAnalysisPrinter *getInstance() {
     static auto Instance = NullAnalysisPrinter();
@@ -14,7 +18,8 @@ public:
   }
 
   void onInitialize() override{};
-  void onResult(Warning<AnalysisDomainTy> /*War*/) override{};
+  void onResult(n_t /*Instr*/, d_t /*DfFact*/, l_t /*Lattice*/,
+                DataFlowAnalysisType /*AnalysisType*/) override{};
   void onFinalize() override{};
 
 private:

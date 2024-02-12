@@ -7,30 +7,17 @@
 
 namespace psr {
 
-/// TODO: move warning to default analysis printer
-template <typename AnalysisDomainTy> struct Warning {
+template <typename AnalysisDomainTy> class AnalysisPrinterBase {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
-  n_t Instr;
-  d_t Fact;
-  l_t LatticeElement;
-  DataFlowAnalysisType AnalysisType;
-
-  // Constructor
-  Warning(n_t Inst, d_t DfFact, l_t Lattice,
-          DataFlowAnalysisType DfAnalysisType)
-      : Instr(std::move(Inst)), Fact(std::move(DfFact)),
-        LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
-};
-
-template <typename AnalysisDomainTy> class AnalysisPrinterBase {
 public:
   /// TODO: use non-virtual function to call virtual function with default
   /// parameters +
   /// TODO: templace magic - #include "memory_resource"
-  virtual void onResult(Warning<AnalysisDomainTy> /*Warn*/) = 0;
+  virtual void onResult(n_t /*Instr*/, d_t /*DfFact*/, l_t /*LatticeElement*/,
+                        DataFlowAnalysisType /*AnalysisType*/) = 0;
   virtual void onInitialize() = 0;
   virtual void onFinalize() = 0;
 

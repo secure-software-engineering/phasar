@@ -9,18 +9,22 @@
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
 
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <set>
 
-#include <llvm/ADT/StringRef.h>
-#include <llvm/Support/raw_ostream.h>
-
 using namespace psr;
 
 class GroundTruthCollector
     : public SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault> {
+  using n_t = LLVMIFDSAnalysisDomainDefault::n_t;
+  using d_t = LLVMIFDSAnalysisDomainDefault::d_t;
+  using l_t = LLVMIFDSAnalysisDomainDefault::l_t;
+
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(std::set<std::string> &GroundTruth)
@@ -51,8 +55,10 @@ public:
     GroundTruth.erase(SubString);
   }
 
-  void onResult(Warning<LLVMIFDSAnalysisDomainDefault> Warn) override {
-    SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>::onResult(Warn);
+  void onResult(n_t Instr, d_t DfFact, l_t LatticeElement,
+                DataFlowAnalysisType AnalysisType) override {
+    SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>::onResult(
+        Instr, DfFact, LatticeElement, AnalysisType);
     findAndRemove(OS.str());
   }
 

@@ -7,17 +7,20 @@
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-
-#include <llvm/ADT/StringRef.h>
-#include <llvm/Support/raw_ostream.h>
 
 using namespace psr;
 
 class GroundTruthCollector
     : public OnTheFlyAnalysisPrinter<LLVMIFDSAnalysisDomainDefault> {
+  using n_t = LLVMIFDSAnalysisDomainDefault::n_t;
+  using d_t = LLVMIFDSAnalysisDomainDefault::d_t;
+  using l_t = LLVMIFDSAnalysisDomainDefault::l_t;
+
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
@@ -34,11 +37,12 @@ public:
     }
   }
 
-  void onResult(Warning<LLVMIFDSAnalysisDomainDefault> Warn) override {
+  void onResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
+                DataFlowAnalysisType /*AnalysisType*/) override {
     llvm::DenseMap<int, std::set<std::string>> FoundLeak;
-    int SinkId = stoi(getMetaDataID(Warn.Instr));
+    int SinkId = stoi(getMetaDataID(Instr));
     std::set<std::string> LeakedValueIds;
-    LeakedValueIds.insert(getMetaDataID((Warn.Fact)));
+    LeakedValueIds.insert(getMetaDataID((DfFact)));
     FoundLeak.try_emplace(SinkId, LeakedValueIds);
     findAndRemove(FoundLeak, GroundTruth);
   }

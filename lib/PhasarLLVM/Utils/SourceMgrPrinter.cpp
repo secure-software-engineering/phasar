@@ -1,13 +1,10 @@
 #include "phasar/PhasarLLVM/Utils/SourceMgrPrinter.h"
 
-#include <llvm/Support/SourceMgr.h>
-
 namespace psr {
 
-llvm::StringMap<unsigned> FileNameIDMap{};
-llvm::SourceMgr SrcMgr{};
-
-std::optional<unsigned> getSourceBufId(llvm::StringRef FileName) {
+std::optional<unsigned> getSourceBufId(llvm::StringRef FileName,
+                                       llvm::StringMap<unsigned> &FileNameIDMap,
+                                       llvm::SourceMgr &SrcMgr) {
   if (auto It = FileNameIDMap.find(FileName); It != FileNameIDMap.end()) {
     return It->second;
   }
