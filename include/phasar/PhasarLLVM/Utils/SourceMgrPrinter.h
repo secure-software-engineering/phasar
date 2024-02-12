@@ -15,6 +15,9 @@
 #include <llvm/Support/raw_ostream.h> /// TODO: quoting style
 
 namespace psr {
+
+std::optional<unsigned> getSourceBufId(llvm::StringRef FileName);
+
 template <typename AnalysisDomainTy>
 class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 public:
@@ -28,39 +31,22 @@ public:
   void onResult(Warning<AnalysisDomainTy> Warn) override {
     auto BufIdOpt = getSourceBufId(getFilePathFromIR(Warn.Instr));
     if (BufIdOpt.has_value()) {
-      /// TODO: getLineAndColFromIR call only once
+      std::pair<unsigned int, unsigned int> LineAndCol =
+          getLineAndColFromIR(Warn.Instr);
       /// TODO: Configuration options for warning or error
       SrcMgr.PrintMessage(
           *OS,
-          SrcMgr.FindLocForLineAndColumn(
-              BufIdOpt.value(), getLineAndColFromIR(Warn.Instr).first,
-              getLineAndColFromIR(Warn.Instr).second),
+          SrcMgr.FindLocForLineAndColumn(BufIdOpt.value(), LineAndCol.first,
+                                         LineAndCol.second),
           llvm::SourceMgr::DK_Warning, GetPrintMessage(Warn.AnalysisType));
     }
   }
 
-  /// TODO: move this to cpp file and refactor the imports
-  std::optional<unsigned> getSourceBufId(llvm::StringRef FileName) {
-    if (auto It = FileNameIDMap.find(FileName); It != FileNameIDMap.end()) {
-      return It->second;
-    }
-
-    auto Buf = llvm::MemoryBuffer::getFile(FileName, true);
-    if (!Buf) {
-      PHASAR_LOG_LEVEL(WARNING, "File not accessible: " << FileName);
-      return std::nullopt;
-    }
-
-    auto Id = SrcMgr.AddNewSourceBuffer(std::move(Buf.get()), llvm::SMLoc{});
-    FileNameIDMap.try_emplace(FileName, Id);
-    return Id;
-  }
-
 private:
   llvm::SourceMgr SrcMgr{};
-  llvm::StringMap<unsigned> FileNameIDMap{};
   llvm::unique_function<std::string(DataFlowAnalysisType)> GetPrintMessage;
   MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
 };
+
 } // namespace psr
 #endif
