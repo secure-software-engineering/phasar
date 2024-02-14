@@ -32,39 +32,18 @@ public:
             [](DataFlowAnalysisType) { return ""; }, OS),
         GroundTruth(GroundTruth), OS(Str){};
 
-  std::string findSubString(const std::string &String) {
-    size_t LastSlashPos = String.rfind('/');
-    if (LastSlashPos != std::string::npos) {
-      // Find the first space after the last '/'
-      size_t FirstSpacePos = String.find(' ', LastSlashPos);
-
-      if (FirstSpacePos != std::string::npos) {
-        // Extract the substring from the last '/' to the first space after
-        // the last '/'
-        std::string Result =
-            String.substr(LastSlashPos + 1, FirstSpacePos - LastSlashPos - 2);
-        return Result;
-      }
-      return "";
-    }
-    return "";
-  }
-
-  void findAndRemove(const std::string &SearchString) {
-    std::string SubString = findSubString(SearchString);
-    GroundTruth.erase(SubString);
-  }
-
-  void onResult(n_t Instr, d_t DfFact, l_t LatticeElement,
-                DataFlowAnalysisType AnalysisType) override {
-    SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>::onResult(
-        Instr, DfFact, LatticeElement, AnalysisType);
-    findAndRemove(OS.str());
-  }
-
-  void onFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
-
 private:
+  void doOnFinalize() override {
+    for (auto It = GroundTruth.begin(); It != GroundTruth.end();) {
+      if (OS.str().find(*It)) {
+        GroundTruth.erase(It++);
+      } else {
+        ++It;
+      }
+    }
+    EXPECT_TRUE(GroundTruth.empty());
+  }
+
   std::set<std::string> GroundTruth{};
   std::string Str;
   llvm::raw_string_ostream OS;

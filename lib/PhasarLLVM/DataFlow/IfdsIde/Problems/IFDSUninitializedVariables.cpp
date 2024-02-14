@@ -204,7 +204,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
             !llvm::isa<llvm::CastInst>(Curr) &&
             !llvm::isa<llvm::PHINode>(Curr)) {
           UndefValueUses[Curr].insert(Operand);
-          Printer->onResult(Curr, Operand, BinaryDomain::TOP,
+          Printer->onResult(Curr, Operand,
                             DataFlowAnalysisType::IFDSUninitializedVariables);
         }
         return {Source, Curr};

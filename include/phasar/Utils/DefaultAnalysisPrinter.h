@@ -39,13 +39,13 @@ public:
   ~DefaultAnalysisPrinter() override = default;
   DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(&OS) {}
 
-  void onResult(n_t Instr, d_t DfFact, l_t Lattice,
-                DataFlowAnalysisType AnalysisType) override {
+private:
+  void doOnResult(n_t Instr, d_t DfFact, l_t Lattice,
+                  DataFlowAnalysisType AnalysisType) override {
     AnalysisResults.emplace_back(Instr, DfFact, Lattice, AnalysisType);
   }
 
-  void onInitialize() override{};
-  void onFinalize() override {
+  void doOnFinalize() override {
     for (const auto &Iter : AnalysisResults) {
 
       *OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
@@ -58,7 +58,6 @@ public:
     }
   }
 
-private:
   std::vector<Warning<AnalysisDomainTy>> AnalysisResults{};
   MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::outs();
 };

@@ -37,8 +37,9 @@ public:
     }
   }
 
-  void onResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
-                DataFlowAnalysisType /*AnalysisType*/) override {
+private:
+  void doOnResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
+                  DataFlowAnalysisType /*AnalysisType*/) override {
     llvm::DenseMap<int, std::set<std::string>> FoundLeak;
     int SinkId = stoi(getMetaDataID(Instr));
     std::set<std::string> LeakedValueIds;
@@ -47,9 +48,8 @@ public:
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void onFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
+  void doOnFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
 
-private:
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};
 };
 

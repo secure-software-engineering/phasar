@@ -17,12 +17,10 @@ public:
     return &Instance;
   }
 
-  void onInitialize() override{};
-  void onResult(n_t /*Instr*/, d_t /*DfFact*/, l_t /*Lattice*/,
-                DataFlowAnalysisType /*AnalysisType*/) override{};
-  void onFinalize() override{};
-
 private:
+  void doOnResult(n_t /*Instr*/, d_t /*DfFact*/, l_t /*Lattice*/,
+                  DataFlowAnalysisType /*AnalysisType*/) override{};
+
   NullAnalysisPrinter() = default;
 };
 

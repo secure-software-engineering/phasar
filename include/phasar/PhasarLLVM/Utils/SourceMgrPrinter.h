@@ -29,10 +29,9 @@ public:
       llvm::raw_ostream &OS = llvm::errs())
       : GetPrintMessage(std::move(PrintMessage)), OS(&OS) {}
 
-  void onInitialize() override {}
-  void onFinalize() override {}
-  void onResult(n_t Instr, d_t /*DfFact*/, l_t /*Lattice*/,
-                DataFlowAnalysisType AnalysisType) override {
+private:
+  void doOnResult(n_t Instr, d_t /*DfFact*/, l_t /*Lattice*/,
+                  DataFlowAnalysisType AnalysisType) override {
     auto BufIdOpt =
         getSourceBufId(getFilePathFromIR(Instr), FileNameIDMap, SrcMgr);
     if (BufIdOpt.has_value()) {
@@ -47,7 +46,6 @@ public:
     }
   }
 
-private:
   llvm::StringMap<unsigned> FileNameIDMap{};
   llvm::SourceMgr SrcMgr{};
   llvm::unique_function<std::string(DataFlowAnalysisType)> GetPrintMessage;

@@ -411,7 +411,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
                          CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
-            Printer->onResult(CallSite, Source, topElement(),
+            Printer->onResult(CallSite, Source,
                               DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
@@ -439,7 +439,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
     if (Leak.count(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
-        Printer->onResult(CallSite, Source, topElement(),
+        Printer->onResult(CallSite, Source,
                           DataFlowAnalysisType::IFDSTaintAnalysis);
       }
     }

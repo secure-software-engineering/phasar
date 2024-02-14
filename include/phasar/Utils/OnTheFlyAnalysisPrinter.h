@@ -30,9 +30,11 @@ public:
   OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
   ~OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
 
-  void onInitialize() override{};
-  void onResult(n_t Instr, d_t DfFact, l_t LatticeElement,
-                DataFlowAnalysisType /*AnalysisType*/) override {
+  [[nodiscard]] bool isValid() const noexcept { return OS != nullptr; }
+
+private:
+  void doOnResult(n_t Instr, d_t DfFact, l_t LatticeElement,
+                  DataFlowAnalysisType /*AnalysisType*/) override {
     assert(isValid());
     *OS << "\nAt IR statement: " << NToString(Instr) << "\n";
     *OS << "\tFact: " << DToString(DfFact) << "\n";
@@ -41,11 +43,6 @@ public:
     }
   }
 
-  void onFinalize() override{};
-
-  [[nodiscard]] bool isValid() const noexcept { return OS != nullptr; }
-
-private:
   MaybeUniquePtr<llvm::raw_ostream> OS = nullptr;
 };
 } // namespace psr
