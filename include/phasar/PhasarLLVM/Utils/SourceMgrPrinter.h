@@ -26,8 +26,9 @@ class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 public:
   SourceMgrPrinter(
       llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
-      llvm::raw_ostream &OS = llvm::errs())
-      : GetPrintMessage(std::move(PrintMessage)), OS(&OS) {}
+      llvm::raw_ostream &OS = llvm::errs(),
+      llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning)
+      : GetPrintMessage(std::move(PrintMessage)), OS(&OS), WarningKind(WKind) {}
 
 private:
   void doOnResult(n_t Instr, d_t /*DfFact*/, l_t /*Lattice*/,
@@ -37,19 +38,20 @@ private:
     if (BufIdOpt.has_value()) {
       std::pair<unsigned int, unsigned int> LineAndCol =
           getLineAndColFromIR(Instr);
-      /// TODO: Configuration options for warning or error
-      SrcMgr.PrintMessage(
-          *OS,
-          SrcMgr.FindLocForLineAndColumn(BufIdOpt.value(), LineAndCol.first,
-                                         LineAndCol.second),
-          llvm::SourceMgr::DK_Warning, GetPrintMessage(AnalysisType));
+      SrcMgr.PrintMessage(*OS,
+                          SrcMgr.FindLocForLineAndColumn(BufIdOpt.value(),
+                                                         LineAndCol.first,
+                                                         LineAndCol.second),
+                          WarningKind, GetPrintMessage(AnalysisType));
     }
   }
 
   llvm::StringMap<unsigned> FileNameIDMap{};
   llvm::SourceMgr SrcMgr{};
   llvm::unique_function<std::string(DataFlowAnalysisType)> GetPrintMessage;
+
   MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
+  llvm::SourceMgr::DiagKind WarningKind;
 };
 
 } // namespace psr
