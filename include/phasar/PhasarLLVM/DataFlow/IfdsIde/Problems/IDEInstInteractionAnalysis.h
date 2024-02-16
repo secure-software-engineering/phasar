@@ -688,10 +688,9 @@ public:
         if (isZeroValue(CurrNode)) {
           return IIAAKillOrReplaceEFCache.createEdgeFunction(
               std::move(UserEdgeFacts));
-        } else {
-          return IIAAAddLabelsEFCache.createEdgeFunction(
-              std::move(UserEdgeFacts));
         }
+        return IIAAAddLabelsEFCache.createEdgeFunction(
+            std::move(UserEdgeFacts));
       }
     }
 
@@ -709,7 +708,7 @@ public:
       //               v
       //               y
       //
-      if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
+      if (CurrNode == SuccNode && CurrNode == Store->getPointerOperand()) {
         // y obtains its value(s) from its original allocation and the store
         // instruction under analysis.
         IF_LOG_ENABLED({
@@ -804,10 +803,8 @@ public:
       if (isZeroValue(CurrNode)) {
         return IIAAKillOrReplaceEFCache.createEdgeFunction(
             std::move(UserEdgeFacts));
-      } else {
-        return IIAAAddLabelsEFCache.createEdgeFunction(
-            std::move(UserEdgeFacts));
       }
+      return IIAAAddLabelsEFCache.createEdgeFunction(std::move(UserEdgeFacts));
     }
 
     // Otherwise stick to identity.
@@ -889,24 +886,24 @@ public:
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
-      for (const auto *Callee : Callees) {
-        if (this->ICF->isHeapAllocatingFunction(Callee)) {
-          // Let H be a heap allocating function.
-          //
-          // 0 --> x
-          //
-          // Edge function:
-          //
-          //               0
-          //                \
+      const auto *Callee = Callees.front();
+
+      if (this->ICF->isHeapAllocatingFunction(Callee)) {
+        // Let H be a heap allocating function.
+        //
+        // 0 --> x
+        //
+        // Edge function:
+        //
+        //               0
+        //                \
           // %i = call H     \ \x.x \cup { commit of('%i = call H') }
-          //                  v
-          //                  i
-          //
-          if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
-            return IIAAKillOrReplaceEFCache.createEdgeFunction(
-                std::move(UserEdgeFacts));
-          }
+        //                  v
+        //                  i
+        //
+        if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
+          return IIAAKillOrReplaceEFCache.createEdgeFunction(
+              std::move(UserEdgeFacts));
         }
       }
     }
@@ -939,10 +936,6 @@ public:
     // Do not use user-crafted summaries.
     return nullptr;
   }
-
-  inline l_t topElement() override { return Top{}; }
-
-  inline l_t bottomElement() override { return Bottom{}; }
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
@@ -1015,7 +1008,7 @@ public:
       return Replacement == Other.Replacement;
     }
 
-    bool isConstant() const noexcept { return true; }
+    [[nodiscard]] bool isConstant() const noexcept { return true; }
 
     friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const IIAAKillOrReplaceEF &EF) {
@@ -1198,9 +1191,8 @@ public:
   }
 
 protected:
-  static inline bool isZeroValueImpl(d_t d) {
-    return LLVMZeroValue::isLLVMZeroValue(d);
-  }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static constexpr auto isZeroValueImpl = LLVMZeroValue::isLLVMZeroValue;
 
   static void printEdgeFactImpl(llvm::raw_ostream &OS,
                                 ByConstRef<l_t> EdgeFact) {
