@@ -23,12 +23,11 @@ public:
   explicit OnTheFlyAnalysisPrinter(llvm::raw_ostream &OS)
       : AnalysisPrinterBase<AnalysisDomainTy>(), OS(&OS){};
 
-  explicit OnTheFlyAnalysisPrinter<AnalysisDomainTy>(
-      const llvm::Twine &Filename)
+  explicit OnTheFlyAnalysisPrinter(const llvm::Twine &Filename)
       : AnalysisPrinterBase<AnalysisDomainTy>(), OS(openFileStream(Filename)){};
 
-  OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
-  ~OnTheFlyAnalysisPrinter<AnalysisDomainTy>() = default;
+  OnTheFlyAnalysisPrinter() = default;
+  ~OnTheFlyAnalysisPrinter() = default;
 
   [[nodiscard]] bool isValid() const noexcept { return OS != nullptr; }
 
@@ -38,7 +37,7 @@ private:
     assert(isValid());
     *OS << "\nAt IR statement: " << NToString(Instr) << "\n";
     *OS << "\tFact: " << DToString(DfFact) << "\n";
-    if constexpr (std::is_same_v<l_t, BinaryDomain>) {
+    if constexpr (!std::is_same_v<l_t, BinaryDomain>) {
       *OS << "Value: " << LToString(LatticeElement) << "\n";
     }
   }

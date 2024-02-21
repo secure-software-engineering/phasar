@@ -3,6 +3,7 @@
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Printer.h"
 
@@ -36,8 +37,13 @@ class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
+  explicit DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs())
+      : OS(&OS) {}
+
+  explicit DefaultAnalysisPrinter(const llvm::Twine &Filename)
+      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(openFileStream(Filename)){};
+
   ~DefaultAnalysisPrinter() override = default;
-  DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs()) : OS(&OS) {}
 
 private:
   void doOnResult(n_t Instr, d_t DfFact, l_t Lattice,
