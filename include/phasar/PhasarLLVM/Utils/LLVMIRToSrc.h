@@ -19,6 +19,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include <optional>
 #include <string>
 
 // Forward declaration of types for which we only use its pointer or ref type
@@ -39,6 +40,7 @@ namespace psr {
 [[nodiscard]] std::string getFunctionNameFromIR(const llvm::Value *V);
 
 [[nodiscard]] std::string getFilePathFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getFilePathFromIR(const llvm::DIFile *DIF);
 
 [[nodiscard]] std::string getDirectoryFromIR(const llvm::Value *V);
 
@@ -84,6 +86,15 @@ void from_json(const nlohmann::json &J, SourceCodeInfo &Info);
 void to_json(nlohmann::json &J, const SourceCodeInfo &Info);
 
 [[nodiscard]] SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V);
+
+struct DebugLocation {
+  unsigned Line{};
+  unsigned Column{};
+  const llvm::DIFile *File{};
+};
+
+[[nodiscard]] std::optional<DebugLocation>
+getDebugLocation(const llvm::Value *V);
 
 } // namespace psr
 

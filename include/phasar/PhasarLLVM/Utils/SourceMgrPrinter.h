@@ -1,57 +1,70 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_SOURCEMGRPRINTER_H
 #define PHASAR_PHASARLLVM_UTILS_SOURCEMGRPRINTER_H
+
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMSourceManager.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
-#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/FunctionExtras.h"
-#include "llvm/ADT/StringMap.h"
-#include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include <type_traits>
 
 namespace psr {
 
-std::optional<unsigned> getSourceBufId(llvm::StringRef FileName,
-                                       llvm::StringMap<unsigned> &FileNameIDMap,
-                                       llvm::SourceMgr &SrcMgr);
+namespace detail {
+class SourceMgrPrinterBase {
+public:
+  explicit SourceMgrPrinterBase(
+      llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
+      llvm::raw_ostream &OS = llvm::errs(),
+      llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning);
+
+  explicit SourceMgrPrinterBase(
+      llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
+      const llvm::Twine &OutFileName,
+      llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning);
+
+protected:
+  LLVMSourceManager SrcMgr;
+
+  llvm::unique_function<std::string(DataFlowAnalysisType)> GetPrintMessage;
+  MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
+  llvm::SourceMgr::DiagKind WarningKind;
+};
+} // namespace detail
 
 template <typename AnalysisDomainTy>
-class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
+class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy>,
+                         private detail::SourceMgrPrinterBase {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
-  SourceMgrPrinter(
+  explicit SourceMgrPrinter(
       llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
       llvm::raw_ostream &OS = llvm::errs(),
       llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning)
-      : GetPrintMessage(std::move(PrintMessage)), OS(&OS), WarningKind(WKind) {}
+      : detail::SourceMgrPrinterBase(std::move(PrintMessage), OS, WKind) {}
 
 private:
-  void doOnResult(n_t Instr, d_t /*DfFact*/, l_t /*Lattice*/,
+  void doOnResult(n_t Inst, d_t Fact, l_t /*Value*/,
                   DataFlowAnalysisType AnalysisType) override {
-    auto BufIdOpt =
-        getSourceBufId(getFilePathFromIR(Instr), FileNameIDMap, SrcMgr);
-    if (BufIdOpt.has_value()) {
-      std::pair<unsigned int, unsigned int> LineAndCol =
-          getLineAndColFromIR(Instr);
-      SrcMgr.PrintMessage(*OS,
-                          SrcMgr.FindLocForLineAndColumn(BufIdOpt.value(),
-                                                         LineAndCol.first,
-                                                         LineAndCol.second),
-                          WarningKind, GetPrintMessage(AnalysisType));
+    auto SrcLoc = SrcMgr.getDebugLocation(Inst);
+    if constexpr (std::is_convertible_v<d_t, const llvm::Value *>) {
+      if (!SrcLoc) {
+        SrcLoc =
+            SrcMgr.getDebugLocation(static_cast<const llvm::Value *>(Fact));
+      }
+    }
+
+    if (SrcLoc) {
+      SrcMgr.print(*OS, *SrcLoc, WarningKind, GetPrintMessage(AnalysisType));
     }
   }
-
-  llvm::StringMap<unsigned> FileNameIDMap{};
-  llvm::SourceMgr SrcMgr{};
-  llvm::unique_function<std::string(DataFlowAnalysisType)> GetPrintMessage;
-
-  MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
-  llvm::SourceMgr::DiagKind WarningKind;
 };
 
 } // namespace psr

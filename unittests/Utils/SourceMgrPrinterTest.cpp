@@ -15,10 +15,11 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+#include <initializer_list>
 #include <set>
 
 using namespace psr;
-
+namespace {
 class GroundTruthCollector
     : public SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault> {
   using n_t = LLVMIFDSAnalysisDomainDefault::n_t;
@@ -27,10 +28,11 @@ class GroundTruthCollector
 
 public:
   // constructor init Groundtruth in each fixture
-  GroundTruthCollector(std::set<std::string> &GroundTruth)
+  GroundTruthCollector(std::initializer_list<std::string> GroundTruth,
+                       bool Dump = false)
       : SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>(
             [](DataFlowAnalysisType) { return ""; }, OS),
-        GroundTruth(GroundTruth), OS(Str){};
+        GroundTruth(GroundTruth), OS(Str), Dump(Dump){};
 
 private:
   void doOnFinalize() override {
@@ -42,11 +44,16 @@ private:
       }
     }
     EXPECT_TRUE(GroundTruth.empty());
+
+    if (Dump) {
+      llvm::errs() << Str << '\n';
+    }
   }
 
   std::set<std::string> GroundTruth{};
   std::string Str;
   llvm::raw_string_ostream OS;
+  bool Dump{};
 };
 
 class SourceMgrPrinterTest : public ::testing::Test {
@@ -55,21 +62,17 @@ protected:
       PHASAR_BUILD_SUBFOLDER("uninitialized_variables/");
 
   const std::vector<std::string> EntryPoints = {"main"};
-  std::optional<IFDSUninitializedVariables> UnInitProblem;
-  std::optional<HelperAnalyses> HA;
-
-  void initialize(const llvm::Twine &IRFile) {
-    HA.emplace(PathToLlFiles + IRFile, EntryPoints);
-    UnInitProblem =
-        createAnalysisProblem<IFDSUninitializedVariables>(*HA, EntryPoints);
-  }
 
   void doAnalysisTest(
       llvm::StringRef IRFile,
       AnalysisPrinterBase<LLVMIFDSAnalysisDomainDefault> &GTPrinter) {
-    initialize(IRFile);
-    UnInitProblem->setAnalysisPrinter(&GTPrinter);
-    IFDSSolver Solver(*UnInitProblem, &HA->getICFG());
+    HelperAnalyses HA(PathToLlFiles + IRFile, EntryPoints);
+    auto UnInitProblem =
+        createAnalysisProblem<IFDSUninitializedVariables>(HA, EntryPoints);
+
+    UnInitProblem.setAnalysisPrinter(&GTPrinter);
+    GTPrinter.onInitialize();
+    IFDSSolver Solver(UnInitProblem, &HA.getICFG());
     Solver.solve();
     GTPrinter.onFinalize();
   }
@@ -78,15 +81,12 @@ protected:
 /* ============== BASIC TESTS ============== */
 
 TEST_F(SourceMgrPrinterTest, UninitTest_01_LEAK) {
-
-  std::set<std::string> GroundTruth;
-
-  GroundTruth = {"binop_uninit.cpp:3:11", "binop_uninit.cpp:3:13"};
-
-  GroundTruthCollector GroundTruthPrinter = {GroundTruth};
+  GroundTruthCollector GroundTruthPrinter(
+      {"/binop_uninit.cpp:3:11:", "/binop_uninit.cpp:3:13:"});
 
   doAnalysisTest("binop_uninit_cpp_dbg.ll", GroundTruthPrinter);
 }
+} // namespace
 
 // main function for the test case
 int main(int Argc, char **Argv) {

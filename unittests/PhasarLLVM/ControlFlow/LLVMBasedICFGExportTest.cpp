@@ -152,20 +152,27 @@ protected:
     ASSERT_TRUE(ExportedICFG.is_array());
 
     EXPECT_EQ(GroundTruth.size(), ExportedICFG.size());
-
+    bool HasError = false;
     for (const auto &GTJson : GroundTruth) {
       auto GTFrom = GTJson.at("from").get<SourceCodeInfo>();
       auto GTTo = GTJson.at("to").get<SourceCodeInfo>();
-      EXPECT_TRUE(std::any_of(ExportedICFG.begin(), ExportedICFG.end(),
-                              [&](const nlohmann::json &ExportedInfoJson) {
-                                return ExportedInfoJson.at("from")
-                                           .get<SourceCodeInfo>()
-                                           .equivalentWith(GTFrom) &&
-                                       ExportedInfoJson.at("to")
-                                           .get<SourceCodeInfo>()
-                                           .equivalentWith(GTTo);
-                              }))
-          << "No exported equivalent to " << GTJson.dump(4);
+
+      bool HasMatch = std::any_of(ExportedICFG.begin(), ExportedICFG.end(),
+                                  [&](const nlohmann::json &ExportedInfoJson) {
+                                    return ExportedInfoJson.at("from")
+                                               .get<SourceCodeInfo>()
+                                               .equivalentWith(GTFrom) &&
+                                           ExportedInfoJson.at("to")
+                                               .get<SourceCodeInfo>()
+                                               .equivalentWith(GTTo);
+                                  });
+
+      EXPECT_TRUE(HasMatch) << "No exported equivalent to " << GTJson.dump(4);
+      HasError |= !HasMatch;
+    }
+
+    if (HasError) {
+      llvm::errs() << "Errorneous json: " << ExportedICFG.dump(4) << '\n';
     }
   }
 

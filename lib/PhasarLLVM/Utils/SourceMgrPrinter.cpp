@@ -1,22 +1,16 @@
 #include "phasar/PhasarLLVM/Utils/SourceMgrPrinter.h"
 
-namespace psr {
+#include "phasar/Utils/IO.h"
 
-std::optional<unsigned> getSourceBufId(llvm::StringRef FileName,
-                                       llvm::StringMap<unsigned> &FileNameIDMap,
-                                       llvm::SourceMgr &SrcMgr) {
-  if (auto It = FileNameIDMap.find(FileName); It != FileNameIDMap.end()) {
-    return It->second;
-  }
+using namespace psr;
 
-  auto Buf = llvm::MemoryBuffer::getFile(FileName, true);
-  if (!Buf) {
-    PHASAR_LOG_LEVEL(WARNING, "File not accessible: " << FileName);
-    return std::nullopt;
-  }
+detail::SourceMgrPrinterBase::SourceMgrPrinterBase(
+    llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
+    llvm::raw_ostream &OS, llvm::SourceMgr::DiagKind WKind)
+    : GetPrintMessage(std::move(PrintMessage)), OS(&OS), WarningKind(WKind) {}
 
-  auto Id = SrcMgr.AddNewSourceBuffer(std::move(Buf.get()), llvm::SMLoc{});
-  FileNameIDMap.try_emplace(FileName, Id);
-  return Id;
-}
-} // namespace psr
+detail::SourceMgrPrinterBase::SourceMgrPrinterBase(
+    llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
+    const llvm::Twine &OutFileName, llvm::SourceMgr::DiagKind WKind)
+    : GetPrintMessage(std::move(PrintMessage)), OS(openFileStream(OutFileName)),
+      WarningKind(WKind) {}
