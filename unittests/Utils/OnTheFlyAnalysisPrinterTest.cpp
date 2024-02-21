@@ -8,7 +8,6 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/Support/raw_ostream.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -26,26 +25,27 @@ public:
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
       : GroundTruth(GroundTruth){};
 
-  void findAndRemove(llvm::DenseMap<int, std::set<std::string>> &Map1,
-                     llvm::DenseMap<int, std::set<std::string>> &Map2) {
-    for (auto Entry = Map1.begin(); Entry != Map1.end();) {
-      auto Iter = Map2.find(Entry->first);
-      if (Iter != Map2.end() && Iter->second == Entry->second) {
-        Map2.erase(Iter);
-      }
-      ++Entry;
+  void findAndRemove(int LeakId, const std::string &LeakedFactId) {
+
+    auto It = GroundTruth.find(LeakId);
+    ASSERT_NE(It, GroundTruth.end())
+        << "Found leak at unexpected location: " << LeakId << ": '"
+        << LeakedFactId << "'";
+
+    bool Erased = It->second.erase(LeakedFactId);
+    ASSERT_TRUE(Erased) << "Did not expect leak '" << LeakedFactId
+                        << "' at instruction " << LeakId;
+
+    if (It->second.empty()) {
+      GroundTruth.erase(It);
     }
   }
 
 private:
   void doOnResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
                   DataFlowAnalysisType /*AnalysisType*/) override {
-    llvm::DenseMap<int, std::set<std::string>> FoundLeak;
-    int SinkId = stoi(getMetaDataID(Instr));
-    std::set<std::string> LeakedValueIds;
-    LeakedValueIds.insert(getMetaDataID((DfFact)));
-    FoundLeak.try_emplace(SinkId, LeakedValueIds);
-    findAndRemove(FoundLeak, GroundTruth);
+    int LeakId = stoi(getMetaDataID(Instr));
+    findAndRemove(LeakId, getMetaDataID(DfFact));
   }
 
   void doOnFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
