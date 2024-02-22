@@ -58,7 +58,7 @@ private:
 
       *OS << "\tFact: " << DToString(Iter.Fact) << "\n";
 
-      if constexpr (std::is_same_v<l_t, BinaryDomain>) {
+      if constexpr (!std::is_same_v<l_t, BinaryDomain>) {
         *OS << "Value: " << LToString(Iter.LatticeElement) << "\n";
       }
     }
