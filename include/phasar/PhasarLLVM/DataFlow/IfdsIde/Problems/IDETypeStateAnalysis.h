@@ -532,7 +532,7 @@ public:
                 if (Res.second == TSD->error()) {
                   // ERROR STATE DETECTED
                   this->Printer->onResult(&I, Res.first, TSD->error(),
-                                          DataFlowAnalysisType::None);
+                                          TSD->analysisType());
                 }
               }
             }
@@ -543,7 +543,7 @@ public:
                 if (Res.second == TSD->error()) {
                   // ERROR STATE DETECTED
                   this->Printer->onResult(&I, Res.first, TSD->error(),
-                                          DataFlowAnalysisType::None);
+                                          TSD->analysisType());
                 }
               }
             }

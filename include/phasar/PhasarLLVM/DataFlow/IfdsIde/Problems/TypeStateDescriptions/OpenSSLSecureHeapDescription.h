@@ -72,6 +72,7 @@ public:
   [[nodiscard]] TypeStateDescription::State uninit() const override;
   [[nodiscard]] TypeStateDescription::State start() const override;
   [[nodiscard]] TypeStateDescription::State error() const override;
+  [[nodiscard]] DataFlowAnalysisType analysisType() const override;
 };
 
 } // namespace psr
