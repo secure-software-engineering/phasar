@@ -194,6 +194,11 @@ OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::error() const {
   return OpenSSLEVPKDFCTXState::ERROR;
 }
 
+[[nodiscard]] DataFlowAnalysisType
+OpenSSLEVPKDFCTXDescription::analysisType() const {
+  return DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis;
+}
+
 OpenSSLEVPKDFCTXDescription::OpenSSLEVTKDFToken
 OpenSSLEVPKDFCTXDescription::funcNameToToken(llvm::StringRef F) {
   if (F == "EVP_KDF_CTX_new") {

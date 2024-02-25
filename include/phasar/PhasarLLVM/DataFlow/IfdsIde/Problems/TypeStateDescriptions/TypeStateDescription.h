@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H
 
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+
 #include "llvm/IR/InstrTypes.h"
 
 #include <set>
@@ -28,6 +30,7 @@ struct TypeStateDescriptionBase {
   getConsumerParamIdx(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual std::set<int>
   getFactoryParamIdx(llvm::StringRef F) const = 0;
+  [[nodiscard]] virtual DataFlowAnalysisType analysisType() const = 0;
 };
 
 /**

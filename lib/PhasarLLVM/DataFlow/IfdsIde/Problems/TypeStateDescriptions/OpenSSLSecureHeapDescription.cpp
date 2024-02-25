@@ -168,6 +168,11 @@ OpenSSLSecureHeapState OpenSSLSecureHeapDescription::error() const {
   return OpenSSLSecureHeapState::ERROR;
 }
 
+[[nodiscard]] DataFlowAnalysisType
+OpenSSLSecureHeapDescription::analysisType() const {
+  return DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis;
+}
+
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapToken
 OpenSSLSecureHeapDescription::funcNameToToken(llvm::StringRef F) {
   return llvm::StringSwitch<OpenSSLSecureHeapToken>(F)

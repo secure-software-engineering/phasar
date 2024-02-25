@@ -8,6 +8,8 @@ set(UtilsSources
   PAMMTest.cpp
   StableVectorTest.cpp
   AnalysisPrinterTest.cpp
+  OnTheFlyAnalysisPrinterTest.cpp
+  SourceMgrPrinterTest.cpp
 )
 
 if(PHASAR_ENABLE_DYNAMIC_LOG)
