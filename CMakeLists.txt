@@ -167,6 +167,8 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
+option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
 
@@ -432,7 +434,7 @@ endif()
 configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
 
 # Warnings
-option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
+option(PHASAR_ENABLE_WARNINGS "Enable warnings" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 if (PHASAR_ENABLE_WARNINGS)
   if (MSVC)
     string(APPEND CMAKE_CXX_FLAGS " /W4")
@@ -449,7 +451,7 @@ add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
 add_subdirectory(lib)
 
 # phasar-based binaries
-if(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT)
+if(PHASAR_BUILD_TOOLS)
   add_subdirectory(tools)
 endif()
 
