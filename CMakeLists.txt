@@ -158,14 +158,22 @@ option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (defau
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
-option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
-
-#option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
 
 if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
   message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
 endif()
+
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+if (PHASAR_DEBUG_LIBDEPS)
+  if (NOT BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+    message("PHASAR_DEBUG_LIBDEPS only works for shared libraries, so set BUILD_SHARED_LIBS=ON")
+  endif()
+  if (PHASAR_ENABLE_SANITIZERS)
+    message(FATAL_ERROR "PHASAR_DEBUG_LIBDEPS is incompatible with ASAN (see https://clang.llvm.org/docs/AddressSanitizer.html#usage)")
+  endif()
+endif ()
 
 option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
 if (PHASAR_ENABLE_PIC)

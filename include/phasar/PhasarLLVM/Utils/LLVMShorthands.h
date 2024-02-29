@@ -61,6 +61,7 @@ bool isIntegerLikeType(const llvm::Type *T) noexcept;
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
  */
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
+bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 
 // TODO add description
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
