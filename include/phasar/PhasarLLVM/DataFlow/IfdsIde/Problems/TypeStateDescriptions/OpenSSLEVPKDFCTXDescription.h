@@ -102,6 +102,7 @@ public:
   [[nodiscard]] State uninit() const override;
   [[nodiscard]] State start() const override;
   [[nodiscard]] State error() const override;
+  [[nodiscard]] DataFlowAnalysisType analysisType() const override;
   /*
     /// Checks all callSites, where a EVP_KDF object needs to be in a
     /// certain state, such that the state transition for EVP_KDF_CTX is valid.

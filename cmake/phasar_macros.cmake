@@ -192,13 +192,11 @@ function(add_phasar_library name)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
   endif(LLVM_COMMON_DEPENDS)
 
+  target_link_libraries(${name} PUBLIC ${PHASAR_LIB_LINKS} phasar_interface ${PHASAR_LIB_LINK_PUBLIC})
   if(PHASAR_DEBUG_LIBDEPS)
-    target_link_libraries(${name} PRIVATE ${PHASAR_LIB_LINKS})
-  else()
-    target_link_libraries(${name} PUBLIC ${PHASAR_LIB_LINKS})
+    target_link_libraries(${name} PRIVATE -Wl,-z,defs)
   endif()
 
-  target_link_libraries(${name} PUBLIC phasar_interface ${PHASAR_LIB_LINK_PUBLIC})
   target_link_libraries(${name} PRIVATE ${PHASAR_LIB_LINK_PRIVATE})
 
   phasar_link_llvm(${name} ${PHASAR_LIB_LLVM_LINK_COMPONENTS})

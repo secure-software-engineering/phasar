@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOUTILS_H_
 
-#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Value.h"
 
@@ -28,8 +27,6 @@ namespace psr {
   return V->getType()->isPointerTy() &&
          !llvm::isa<llvm::ConstantPointerNull>(V);
 }
-
-[[nodiscard]] bool isHeapAllocatingFunction(const llvm::Function *Fun);
 
 } // namespace psr
 

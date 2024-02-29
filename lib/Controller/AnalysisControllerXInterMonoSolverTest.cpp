@@ -7,13 +7,13 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/InterMonoSolverTest.h"
 
-namespace psr {
+#include "AnalysisControllerInternalMono.h"
 
-void AnalysisController::executeInterMonoSolverTest() {
-  executeInterMonoAnalysis<InterMonoSolverTest>(EntryPoints);
+using namespace psr;
+
+void controller::executeInterMonoSolverTest(
+    AnalysisController::ControllerData &Data) {
+  executeInterMonoAnalysis<InterMonoSolverTest>(Data, Data.EntryPoints);
 }
-
-} // namespace psr
