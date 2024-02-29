@@ -53,7 +53,7 @@ struct IsEdgeFunction<
 
 } // namespace detail
 template <typename T>
-static inline constexpr bool IsEdgeFunction = detail::IsEdgeFunction<T>::value;
+static constexpr bool IsEdgeFunction = detail::IsEdgeFunction<T>::value;
 
 #else
 // clang-format off
