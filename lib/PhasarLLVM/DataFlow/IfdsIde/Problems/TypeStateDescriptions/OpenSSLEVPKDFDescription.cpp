@@ -130,6 +130,11 @@ OpenSSLEVPKDFState OpenSSLEVPKDFDescription::error() const {
   return OpenSSLEVPKDFState::ERROR;
 }
 
+[[nodiscard]] DataFlowAnalysisType
+OpenSSLEVPKDFDescription::analysisType() const {
+  return DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis;
+}
+
 OpenSSLEVPKDFDescription::OpenSSLEVTKDFToken
 OpenSSLEVPKDFDescription::funcNameToToken(llvm::StringRef FuncName) {
   if (FuncName == "EVP_KDF_fetch") {
