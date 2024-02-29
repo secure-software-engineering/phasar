@@ -112,6 +112,10 @@ struct is_llvm_hashable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
+template <typename T>
+struct is_llvm_hashable<T,
+                        decltype(llvm::hash_value(std::declval<T>()))> // NOLINT
+    : std::true_type {};
 
 template <template <typename> typename Base, typename Derived>
 class template_arg {
@@ -152,6 +156,11 @@ struct AreEqualityComparable : std::false_type {};
 template <typename T, typename U>
 struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
+    : std::true_type {};
+
+template <typename T, typename = size_t> struct HasDepth : std::false_type {};
+template <typename T>
+struct HasDepth<T, decltype(std::declval<const T &>().depth())>
     : std::true_type {};
 
 template <typename Var, typename T> struct variant_idx;
@@ -222,6 +231,9 @@ constexpr bool is_crtp_base_of_v = // NOLINT
 
 template <typename T>
 static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
+
+template <typename T>
+static inline constexpr bool HasDepth = detail::HasDepth<T>::value;
 
 template <typename T>
 static inline constexpr bool IsEqualityComparable =

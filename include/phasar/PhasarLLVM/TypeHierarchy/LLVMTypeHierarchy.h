@@ -24,7 +24,6 @@
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
-#include "nlohmann/json.hpp"
 
 #include <optional>
 #include <set>
@@ -32,10 +31,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#ifndef FRIEND_TEST
-#define FRIEND_TEST(TEST, CLASS)
-#endif
 
 namespace llvm {
 class Module;
@@ -134,9 +129,6 @@ private:
 
   std::vector<const llvm::Function *>
   getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
-
-  FRIEND_TEST(LTHTest, GraphConstruction);
-  FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
 protected:
   void buildLLVMTypeHierarchy(const llvm::Module &M);

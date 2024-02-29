@@ -7,13 +7,14 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoFullConstantPropagation.h"
 
-namespace psr {
+#include "AnalysisControllerInternalMono.h"
 
-void AnalysisController::executeIntraMonoFullConstant() {
-  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(EntryPoints);
+using namespace psr;
+
+void controller::executeIntraMonoFullConstant(
+    AnalysisController::ControllerData &Data) {
+  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(Data,
+                                                             Data.EntryPoints);
 }
-
-} // namespace psr

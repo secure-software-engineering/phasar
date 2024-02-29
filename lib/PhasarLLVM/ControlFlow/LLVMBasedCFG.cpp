@@ -225,14 +225,6 @@ bool detail::LLVMBasedCFGImpl<Derived>::isBranchTargetImpl(
 }
 
 template <typename Derived>
-bool detail::LLVMBasedCFGImpl<Derived>::isHeapAllocatingFunctionImpl(
-    f_t Fun) const {
-  return llvm::StringSwitch<bool>(Fun->getName())
-      .Cases("_Znwm", "_Znam", "malloc", "calloc", "realloc", true)
-      .Default(false);
-}
-
-template <typename Derived>
 SpecialMemberFunctionType
 detail::LLVMBasedCFGImpl<Derived>::getSpecialMemberFunctionTypeImpl(
     f_t Fun) const {

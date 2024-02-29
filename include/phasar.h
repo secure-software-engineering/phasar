@@ -17,11 +17,14 @@
 #include "phasar/DB.h"
 #include "phasar/DataFlow.h"
 #include "phasar/Domain.h"
-#include "phasar/PhasarClang.h"
 #include "phasar/PhasarLLVM.h"
 #include "phasar/PhasarPass.h"
 #include "phasar/Pointer.h"
 #include "phasar/TypeHierarchy.h"
 #include "phasar/Utils.h"
+
+#ifdef BUILD_PHASAR_CLANG
+#include "phasar/PhasarClang.h"
+#endif
 
 #endif // PHASAR_H

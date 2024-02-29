@@ -135,7 +135,7 @@ Container makeContainer(Range &&Rng) {
     }
     return C;
   }
-};
+}
 } // namespace detail
 
 //===----------------------------------------------------------------------===//

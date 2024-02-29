@@ -27,8 +27,8 @@
 #include <string>
 #include <unordered_map>
 
-#ifndef FRIEND_TEST
-#define FRIEND_TEST(TEST, CLASS)
+#ifndef PSR_FRIEND_TEST
+#define PSR_FRIEND_TEST(TEST, CLASS)
 #endif
 
 namespace llvm {
@@ -75,13 +75,13 @@ protected:
   graph_t G;
   bool AlreadyVisited = false;
 
-  FRIEND_TEST(TypeGraphTest, AddType);
-  FRIEND_TEST(TypeGraphTest, AddLinkSimple);
-  FRIEND_TEST(TypeGraphTest, AddLinkWithSubs);
-  FRIEND_TEST(TypeGraphTest, AddLinkWithRecursion);
-  FRIEND_TEST(TypeGraphTest, ReverseTypePropagation);
-  FRIEND_TEST(TypeGraphTest, TypeAggregation);
-  FRIEND_TEST(TypeGraphTest, Merging);
+  PSR_FRIEND_TEST(TypeGraphTest, AddType)
+  PSR_FRIEND_TEST(TypeGraphTest, AddLinkSimple)
+  PSR_FRIEND_TEST(TypeGraphTest, AddLinkWithSubs)
+  PSR_FRIEND_TEST(TypeGraphTest, AddLinkWithRecursion)
+  PSR_FRIEND_TEST(TypeGraphTest, ReverseTypePropagation)
+  PSR_FRIEND_TEST(TypeGraphTest, TypeAggregation)
+  PSR_FRIEND_TEST(TypeGraphTest, Merging)
 
   vertex_t addType(const llvm::StructType *NewType);
   void reverseTypePropagation(const llvm::StructType *BaseStruct);

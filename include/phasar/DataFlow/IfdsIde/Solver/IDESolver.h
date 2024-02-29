@@ -20,6 +20,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionStats.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
@@ -33,6 +34,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/AnalysisDomain.h"
+#include "phasar/Utils/Average.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
@@ -40,6 +42,7 @@
 #include "phasar/Utils/Table.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -254,6 +257,81 @@ public:
   consumeSolverResults() noexcept(std::is_nothrow_move_constructible_v<d_t>) {
     return OwningSolverResults<n_t, d_t, l_t>(std::move(this->ValTab),
                                               std::move(ZeroValue));
+  }
+
+  [[nodiscard]] EdgeFunctionStats getEdgeFunctionStatistics() const {
+    detail::EdgeFunctionStatsData Stats{};
+
+    // Cached Edge Functions
+    {
+      std::array<llvm::DenseSet<EdgeFunction<l_t>>, EdgeFunctionKindCount>
+          UniqueEFs{};
+      Sampler DepthSampler{};
+      Sampler UniqueDepthSampler{};
+      // TODO: Cache EFs
+      CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
+          [&](EdgeFunction<l_t> EF, EdgeFunctionKind Kind) {
+            auto Depth = EF.depth();
+            DepthSampler.addSample(Depth);
+            if (Depth > Stats.MaxDepth) {
+              Stats.MaxDepth = Depth;
+            }
+
+            if (UniqueEFs[size_t(Kind)].insert(std::move(EF)).second) {
+              UniqueDepthSampler.addSample(Depth);
+            }
+            Stats.TotalEFCount[size_t(Kind)]++;
+            Stats.PerAllocCount[size_t(EF.getAllocationPolicy())]++;
+          });
+
+      size_t TotalUniqueNumEF = 0;
+      for (size_t I = 0, End = UniqueEFs.size(); I != End; ++I) {
+        Stats.UniqueEFCount[I] = UniqueEFs[I].size(); // NOLINT
+        TotalUniqueNumEF += UniqueEFs[I].size();
+      }
+
+      Stats.AvgDepth = DepthSampler.getAverage();
+      Stats.AvgUniqueDepth = UniqueDepthSampler.getAverage();
+    }
+
+    // Jump Functions
+    {
+      llvm::DenseSet<EdgeFunction<l_t>> UniqueJumpFns;
+      llvm::DenseSet<const void *> AllocatedJumpFns;
+      Sampler DepthSampler{};
+      Sampler UniqueDepthSampler{};
+      Sampler AllocDepthSampler{};
+
+      JumpFn->foreachEdgeFunction([&](EdgeFunction<l_t> JF) {
+        ++Stats.TotalNumJF;
+        auto Depth = JF.depth();
+        DepthSampler.addSample(Depth);
+        if (Depth > Stats.MaxJFDepth) {
+          Stats.MaxJFDepth = Depth;
+        }
+
+        if (AllocatedJumpFns.insert(JF.getOpaqueValue()).second) {
+          AllocDepthSampler.addSample(Depth);
+        }
+
+        Stats.PerAllocJFCount[size_t(JF.getAllocationPolicy())]++;
+
+        if (UniqueJumpFns.insert(std::move(JF)).second) {
+          UniqueDepthSampler.addSample(Depth);
+        }
+      });
+
+      Stats.UniqueNumJF = UniqueJumpFns.size();
+      Stats.NumJFObjects = AllocatedJumpFns.size();
+      Stats.AvgJFDepth = DepthSampler.getAverage();
+      Stats.AvgUniqueJFDepth = UniqueDepthSampler.getAverage();
+      Stats.AvgJFObjDepth = AllocDepthSampler.getAverage();
+    }
+    return Stats;
+  }
+
+  void printEdgeFunctionStatistics(llvm::raw_ostream &OS = llvm::outs()) const {
+    OS << getEdgeFunctionStatistics() << '\n';
   }
 
 protected:

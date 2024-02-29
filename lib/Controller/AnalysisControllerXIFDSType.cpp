@@ -7,13 +7,12 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTypeAnalysis.h"
 
-namespace psr {
+#include "AnalysisControllerInternalIDE.h"
 
-void AnalysisController::executeIFDSType() {
-  executeIFDSAnalysis<IFDSTypeAnalysis>(EntryPoints);
+using namespace psr;
+
+void controller::executeIFDSType(AnalysisController::ControllerData &Data) {
+  executeIFDSAnalysis<IFDSTypeAnalysis>(Data, Data.EntryPoints);
 }
-
-} // namespace psr

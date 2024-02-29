@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 // -- Need gtest for the FRIEND_TEST macro
+#define PSR_FRIEND_TEST(TEST, CLASS) FRIEND_TEST(TEST, CLASS);
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
