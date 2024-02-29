@@ -192,6 +192,11 @@ CSTDFILEIOState CSTDFILEIOTypeStateDescription::error() const {
   return CSTDFILEIOState::ERROR;
 }
 
+[[nodiscard]] DataFlowAnalysisType
+CSTDFILEIOTypeStateDescription::analysisType() const {
+  return DataFlowAnalysisType::IDECSTDIOTypeStateAnalysis;
+}
+
 template class IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>;
 
 } // namespace psr
