@@ -16,7 +16,7 @@ jobs:
         build: [ Debug, Release ]
         include:
           - build: Debug
-            flags: -DPHASAR_ENABLE_SANITIZERS=ON -DPHASAR_BUILD_DYNLIB=ON
+            flags: -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
           - build: Release
             flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
 
