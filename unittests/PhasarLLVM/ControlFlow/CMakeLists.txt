@@ -9,8 +9,10 @@ set(ControlFlowSources
 	LLVMBasedBackwardICFGTest.cpp
 	LLVMBasedICFGExportTest.cpp
 	LLVMBasedICFGGlobCtorDtorTest.cpp
+	LLVMBasedICFGSerializationTest.cpp
 )
 
+set(LLVM_LINK_COMPONENTS Linker) # The CtorDtorTest needs the linker
 foreach(TEST_SRC ${ControlFlowSources})
 	add_phasar_unittest(${TEST_SRC})
 endforeach(TEST_SRC)

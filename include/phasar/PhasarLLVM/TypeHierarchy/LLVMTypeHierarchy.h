@@ -24,8 +24,6 @@
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
-#include "gtest/gtest_prod.h"
-#include "nlohmann/json.hpp"
 
 #include <optional>
 #include <set>
@@ -131,10 +129,6 @@ private:
 
   std::vector<const llvm::Function *>
   getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
-
-  // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
-  FRIEND_TEST(LTHTest, GraphConstruction);
-  FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
 protected:
   void buildLLVMTypeHierarchy(const llvm::Module &M);

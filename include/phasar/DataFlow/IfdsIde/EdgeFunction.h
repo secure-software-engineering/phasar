@@ -7,13 +7,15 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H
+#define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/TypeName.h"
@@ -21,6 +23,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <atomic>
+#include <cstddef>
 #include <ostream>
 #include <tuple>
 #include <type_traits>
@@ -58,12 +61,18 @@ template <typename T>
 concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_t>& TEEF, EdgeFunctionRef<T> CEF, typename T::l_t Src) {
   typename T::l_t;
   {EF.computeTarget(Src)}   -> std::convertible_to<typename T::l_t>;
-  {T::compose(CEF, TEEF)}  -> std::convertible_to<EdgeFunction<typename T::l_t>>;
-  {T::join(CEF, TEEF)}     -> std::convertible_to<EdgeFunction<typename T::l_t>>;
+  {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
+  {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
 };
   // clang-format on
 
 #endif
+
+enum class EdgeFunctionAllocationPolicy {
+  SmallObjectOptimized,
+  DefaultHeapAllocated,
+  CustomHeapAllocated,
+};
 
 class EdgeFunctionBase {
 public:
@@ -73,12 +82,9 @@ public:
                        alignof(ConcreteEF) <= alignof(void *) &&
                        std::is_trivially_copyable_v<ConcreteEF>;
 
+  using AllocationPolicy = EdgeFunctionAllocationPolicy;
+
 protected:
-  enum class AllocationPolicy {
-    SmallObjectOptimized,
-    DefaultHeapAllocated,
-    CustomHeapAllocated,
-  };
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
@@ -222,10 +228,8 @@ public:
 
   /// Implicit-conversion constructor from EdgeFunctionRef. Increments the
   /// ref-count if not small-object optimized
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
+  template <typename ConcreteEF, typename = std::enable_if_t<!std::is_same_v<
+                                     EdgeFunction, std::decay_t<ConcreteEF>>>>
   EdgeFunction(EdgeFunctionRef<ConcreteEF> CEF) noexcept
       : EdgeFunction(CEF.Instance,
                      {&VTableFor<ConcreteEF>, [CEF] {
@@ -265,7 +269,7 @@ public:
       : EdgeFunction(
             [](auto &&...Args) {
               if constexpr (IsSOOCandidate<std::decay_t<ConcreteEF>>) {
-                void *Ret;
+                void *Ret = nullptr;
                 new (&Ret) ConcreteEF(std::forward<ArgTys>(Args)...);
                 return Ret;
               } else {
@@ -302,7 +306,7 @@ public:
                 new (&Ret) ConcreteEF(std::move(EF.EF));
                 return Ret;
               } else {
-                if (auto Mem = EF.Cache->lookup(EF.EF)) {
+                if (const auto *Mem = EF.Cache->lookup(EF.EF)) {
                   return static_cast<const RefCounted<ConcreteEF> *>(Mem);
                 }
 
@@ -328,7 +332,7 @@ public:
   /// details.
   ///
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> Source) const {
-    assert(!!*this && "computeTarget() called on nullptr!");
+    assert(isValid() && "computeTarget() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->computeTarget(EF, Source);
   }
 
@@ -359,8 +363,8 @@ public:
   /// SecondEF.computeTarget(FirstEF.computeTarget(x)).
   [[nodiscard]] static EdgeFunction compose(const EdgeFunction &FirstEF,
                                             const EdgeFunction &SecondEF) {
-    assert(!!FirstEF && "compose() called on LHS nullptr!");
-    assert(!!SecondEF && "compose() called on RHS nullptr!");
+    assert(FirstEF.isValid() && "compose() called on LHS nullptr!");
+    assert(SecondEF.isValid() && "compose() called on RHS nullptr!");
     return FirstEF.VTAndHeapAlloc.getPointer()->compose(
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
   }
@@ -400,10 +404,16 @@ public:
   /// connected with the value-lattice on l_t
   [[nodiscard]] static EdgeFunction join(const EdgeFunction &FirstEF,
                                          const EdgeFunction &SecondEF) {
-    assert(!!FirstEF && "join() called on LHS nullptr!");
-    assert(!!SecondEF && "join() called on RHS nullptr!");
+    assert(FirstEF.isValid() && "join() called on LHS nullptr!");
+    assert(SecondEF.isValid() && "join() called on RHS nullptr!");
     return FirstEF.VTAndHeapAlloc.getPointer()->join(
         FirstEF.EF, SecondEF, FirstEF.VTAndHeapAlloc.getInt());
+  }
+
+  [[nodiscard]] bool
+  referenceEquals(const EdgeFunction<L> &Other) const noexcept {
+    return VTAndHeapAlloc.getPointer() == Other.VTAndHeapAlloc.getPointer() &&
+           EF == Other.EF;
   }
 
   /// Checks for equality of two edge functions. Equality requires exact
@@ -548,14 +558,16 @@ public:
   /// Allows for better optimizations in compose and join and should be
   /// provided, whehever this knowledge is available.
   [[nodiscard]] bool isConstant() const noexcept {
-    assert(!!*this && "isConstant() called on nullptr!");
+    assert(isValid() && "isConstant() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->isConstant(EF);
   }
 
-  /// Performs a null-check. True, iff thie edge function is not null.
-  [[nodiscard]] explicit operator bool() const noexcept {
+  [[nodiscard]] bool isValid() const noexcept {
     return VTAndHeapAlloc.getOpaqueValue();
   }
+
+  /// Performs a null-check. True, iff thie edge function is not null.
+  [[nodiscard]] explicit operator bool() const noexcept { return isValid(); }
 
   /// Performs a runtime-typecheck. True, if the concrete type of the held edge
   /// function *exactly* equals ConcreteEF.
@@ -611,6 +623,10 @@ public:
     return VTAndHeapAlloc.getInt() == AllocationPolicy::CustomHeapAllocated;
   }
 
+  [[nodiscard]] auto getAllocationPolicy() const noexcept {
+    return VTAndHeapAlloc.getInt();
+  }
+
   /// Gets an opaque identifier for this edge function. Only meant for
   /// comparisons of object-identity. Do not dereference!
   [[nodiscard]] const void *getOpaqueValue() const noexcept { return EF; }
@@ -632,6 +648,36 @@ public:
     return static_cast<const CachedRefCounted<ConcreteEF> *>(EF)->Cache;
   }
 
+  [[nodiscard]] size_t getHashCode() const noexcept {
+    if (!VTAndHeapAlloc.getOpaqueValue()) {
+      return 0;
+    }
+
+    return VTAndHeapAlloc.getPointer()->getHashCode(
+        EF, VTAndHeapAlloc.getPointer());
+  }
+
+  [[nodiscard]] auto depth() const noexcept {
+    assert(isValid() && "depth() called on nullptr!");
+    return VTAndHeapAlloc.getPointer()->depth(EF);
+  }
+
+  friend size_t hash_value(const EdgeFunction &EF) noexcept { // NOLINT
+    return EF.getHashCode();
+  }
+
+  static EdgeFunction getEmptyKey() noexcept {
+    return EdgeFunction(nullptr,
+                        {llvm::DenseMapInfo<const VTable *>::getEmptyKey(),
+                         AllocationPolicy::SmallObjectOptimized});
+  }
+
+  static EdgeFunction getTombstoneKey() noexcept {
+    return EdgeFunction(nullptr,
+                        {llvm::DenseMapInfo<const VTable *>::getTombstoneKey(),
+                         AllocationPolicy::SmallObjectOptimized});
+  }
+
 private:
   struct VTable {
     // NOLINTBEGIN(readability-identifier-naming)
@@ -643,6 +689,8 @@ private:
     void (*print)(const void *, llvm::raw_ostream &);
     bool (*isConstant)(const void *) noexcept;
     void (*destroy)(const void *, AllocationPolicy) noexcept;
+    size_t (*getHashCode)(const void *, const void *) noexcept;
+    size_t (*depth)(const void *) noexcept;
     // NOLINTEND(readability-identifier-naming)
   };
 
@@ -706,6 +754,23 @@ private:
           }
         }
       },
+      [](const void *EF, const void *VT) noexcept -> size_t {
+        if constexpr (is_std_hashable_v<ConcreteEF>) {
+          return std::hash<ConcreteEF>{}(*getPtr<ConcreteEF>(EF));
+        } else if constexpr (is_llvm_hashable_v<ConcreteEF>) {
+          using llvm::hash_value;
+          return hash_value(*getPtr<ConcreteEF>(EF));
+        } else {
+          return llvm::hash_combine(EF, VT);
+        }
+      },
+      [](const void *EF) noexcept -> size_t {
+        if constexpr (HasDepth<ConcreteEF>) {
+          return getPtr<ConcreteEF>(EF)->depth();
+        } else {
+          return 1;
+        }
+      },
   };
 
   // Utility ctor for (copy) construction. Increments the ref-count if
@@ -730,6 +795,32 @@ private:
 } // namespace psr
 
 namespace llvm {
+
+template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
+  static inline auto getEmptyKey() noexcept {
+    return psr::EdgeFunction<L>::getEmptyKey();
+  }
+  static inline auto getTombstoneKey() noexcept {
+    return psr::EdgeFunction<L>::getTombstoneKey();
+  }
+  static inline auto getHashValue(const psr::EdgeFunction<L> &EF) noexcept {
+    return EF.getHashCode();
+  }
+  static inline auto isEqual(const psr::EdgeFunction<L> &EF1,
+                             const psr::EdgeFunction<L> &EF2) noexcept {
+    if (EF1.referenceEquals(EF2)) {
+      return true;
+    }
+    auto Empty = getEmptyKey();
+    auto Tombstone = getTombstoneKey();
+    if (EF1.referenceEquals(Empty) || EF2.referenceEquals(Empty) ||
+        EF1.referenceEquals(Tombstone) || EF2.referenceEquals(Tombstone)) {
+      return false;
+    }
+
+    return EF1 == EF2;
+  }
+};
 
 // LLVM is currently overhauling its casting system. Use the new variant once
 // possible!
@@ -806,4 +897,4 @@ struct CastInfo<To, const psr::EdgeFunction<L>>
 #endif
 } // namespace llvm
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTION_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H

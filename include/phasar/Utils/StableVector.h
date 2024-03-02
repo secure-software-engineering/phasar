@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_STABLEVECTOR_H_
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -20,6 +21,7 @@
 #include <iterator>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 namespace psr {
 
@@ -152,20 +154,21 @@ public:
   using allocator_type =
       typename std::allocator_traits<Allocator>::template rebind_alloc<T>;
 
-  StableVector(const allocator_type &Alloc = allocator_type()) noexcept(
+  StableVector() noexcept(
+      std::is_nothrow_default_constructible_v<allocator_type>) = default;
+
+  StableVector(const allocator_type &Alloc) noexcept(
       std::is_nothrow_copy_constructible_v<allocator_type>)
       : Alloc(Alloc) {}
 
   StableVector(StableVector &&Other) noexcept
-      : Blocks(std::move(Other.Blocks)), Start(Other.Start), Pos(Other.Pos),
-        End(Other.End), Size(Other.Size), BlockIdx(Other.BlockIdx),
-        Alloc(std::move(Other.Alloc)) {
-    Other.Start = nullptr;
-    Other.Pos = nullptr;
-    Other.End = nullptr;
-    Other.Size = 0;
-    Other.BlockIdx = 0;
-  }
+      : Blocks(std::move(Other.Blocks)),
+        Start(std::exchange(Other.Start, nullptr)),
+        Pos(std::exchange(Other.Pos, nullptr)),
+        End(std::exchange(Other.End, nullptr)),
+        Size(std::exchange(Other.Size, 0)),
+        BlockIdx(std::exchange(Other.BlockIdx, 0)),
+        Alloc(std::move(Other.Alloc)) {}
 
   explicit StableVector(const StableVector &Other)
       : Size(Other.Size), BlockIdx(Other.BlockIdx),
@@ -197,35 +200,36 @@ public:
     Start = Blck;
     End = Blck + Cap;
     Pos = Blck + (Other.Pos - Other.Start);
+
+    __asan_poison_memory_region(Pos, (End - Pos) * sizeof(T));
   }
 
-  friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
-    std::swap(LHS.Blocks, RHS.Blocks);
-    std::swap(LHS.Start, RHS.Start);
-    std::swap(LHS.Pos, RHS.Pos);
-    std::swap(LHS.End, RHS.End);
-    std::swap(LHS.Size, RHS.Size);
-    std::swap(LHS.BlockIdx, RHS.BlockIdx);
+  void swap(StableVector &Other) noexcept {
+    std::swap(Blocks, Other.Blocks);
+    std::swap(Start, Other.Start);
+    std::swap(Pos, Other.Pos);
+    std::swap(End, Other.End);
+    std::swap(Size, Other.Size);
+    std::swap(BlockIdx, Other.BlockIdx);
 
     if constexpr (std::allocator_traits<
                       allocator_type>::propagate_on_container_swap::value) {
-      std::swap(LHS.Alloc, RHS.Alloc);
+      std::swap(Alloc, Other.Alloc);
     } else {
-      assert(LHS.Alloc == RHS.Alloc &&
+      assert(Alloc == Other.Alloc &&
              "Do not swap two StableVectors with incompatible "
              "allocators that do not propagate on swap!");
     }
   }
-
-  void swap(StableVector &Other) noexcept { swap(*this, Other); }
-
-  StableVector &operator=(StableVector Other) noexcept {
-    swap(*this, Other);
-    return *this;
+  friend void swap(StableVector &LHS, StableVector &RHS) noexcept {
+    LHS.swap(RHS);
   }
 
+  // This would be silently expensive... If you really want this, call clone()
+  StableVector &operator=(const StableVector &) = delete;
+
   StableVector &operator=(StableVector &&Other) noexcept {
-    swap(*this, Other);
+    swap(Other);
     return *this;
   }
 
@@ -245,6 +249,7 @@ public:
     std::destroy(Start, Pos);
 
     for (size_t I = BlockIdx; I < Blocks.size(); ++I) {
+      __asan_unpoison_memory_region(Blocks[I], Cap * sizeof(T));
       std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
 
       Cap = TotalSize;
@@ -264,6 +269,7 @@ public:
     }
 
     auto Ret = Pos;
+    __asan_unpoison_memory_region(Ret, sizeof(T));
     std::allocator_traits<allocator_type>::construct(
         Alloc, Ret, std::forward<ArgTys>(Args)...);
     ++Pos;
@@ -344,6 +350,8 @@ public:
     assert(!empty() && "Do not call pop_back() on an empty StableVector!");
 
     std::destroy_at(--Pos);
+    __asan_poison_memory_region(Pos, sizeof(T));
+
     --Size;
     if (Pos != Start) {
       return;
@@ -375,11 +383,13 @@ public:
 
     for (size_t I = 0; I < BlockIdx; ++I) {
       std::destroy_n(Blocks[I], Cap);
+      __asan_poison_memory_region(Blocks[I], Cap * sizeof(T));
       Cap = TotalSize;
       TotalSize += Cap;
     }
 
     std::destroy(Start, Pos);
+    __asan_poison_memory_region(Start, (Pos - Start) * sizeof(T));
     BlockIdx = 0;
     Size = 0;
     if (!Blocks.empty()) {
@@ -400,10 +410,12 @@ public:
         Pos -= N;
         Size -= N;
         std::destroy_n(Pos, N);
+        __asan_poison_memory_region(Pos, N * sizeof(T));
         return;
       }
 
       std::destroy(Start, Pos);
+      __asan_poison_memory_region(Start, (Pos - Start) * sizeof(T));
       Size -= NumElementsInCurrBlock;
       N -= NumElementsInCurrBlock;
 
@@ -430,6 +442,7 @@ public:
 
     if (Size == 0) {
       assert(BlockIdx == 0);
+      __asan_unpoison_memory_region(Blocks[0], InitialCapacity * sizeof(T));
       std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[0],
                                                         InitialCapacity);
     }
@@ -438,6 +451,7 @@ public:
 
     for (size_t I = BlockIdx + 1, BlocksEnd = Blocks.size(); I < BlocksEnd;
          ++I) {
+      __asan_unpoison_memory_region(Blocks[I], Cap * sizeof(T));
       std::allocator_traits<allocator_type>::deallocate(Alloc, Blocks[I], Cap);
       Cap <<= 1;
     }
@@ -458,24 +472,16 @@ public:
     size_t Total = InitialCapacity;
 
     for (size_t I = 0; I < LHS.BlockIdx; ++I) {
-      for (T *LIt = LHS.Blocks[I], *RIt = RHS.Blocks[I], *LEnd = LIt + Cap;
-           LIt != LEnd; ++LIt, ++RIt) {
-        if (*LIt != *RIt) {
-          return false;
-        }
+      auto LIt = LHS.Blocks[I];
+      if (!std::equal(LIt, LIt + Cap, RHS.Blocks[I])) {
+        return false;
       }
 
       Cap = Total;
       Total <<= 1;
     }
 
-    for (T *LIt = LHS.Start, *RIt = RHS.Start, *LEnd = LHS.Pos; LIt != LEnd;
-         ++LIt, ++RIt) {
-      if (*LIt != *RIt) {
-        return false;
-      }
-    }
-    return true;
+    return std::equal(LHS.Start, LHS.Pos, RHS.Start);
   }
 
   [[nodiscard]] friend bool operator!=(const StableVector &LHS,
@@ -492,7 +498,9 @@ private:
   template <typename... ArgTys>
   [[nodiscard]] T &growAndEmplace(ArgTys &&...Args) {
     auto makeBlock = [this](size_t N) {
-      return std::allocator_traits<allocator_type>::allocate(Alloc, N);
+      auto *Ret = std::allocator_traits<allocator_type>::allocate(Alloc, N);
+      __asan_poison_memory_region(std::next(Ret), (N - 1) * sizeof(T));
+      return Ret;
     };
 
     if (Blocks.empty()) {
@@ -502,6 +510,7 @@ private:
       assert(llvm::isPowerOf2_64(Size));
       BlockIdx++;
       End = Blocks[BlockIdx] + Size;
+      __asan_unpoison_memory_region(Blocks[BlockIdx], sizeof(T));
     } else {
       assert(llvm::isPowerOf2_64(Size));
       BlockIdx++;
@@ -509,7 +518,7 @@ private:
       End = Blocks.back() + Size;
     }
 
-    auto Ret = Blocks[BlockIdx];
+    auto *Ret = Blocks[BlockIdx];
 
     Start = Ret;
     Pos = Ret + 1;
@@ -538,13 +547,13 @@ private:
     // return Blocks[LogIdx][Offset];
   }
 
-  llvm::SmallVector<T *, 0> Blocks;
+  llvm::SmallVector<T *, 0> Blocks{};
   T *Start = nullptr;
   T *Pos = nullptr;
   T *End = nullptr;
   size_t Size = 0;
   size_t BlockIdx = 0;
-  [[no_unique_address]] allocator_type Alloc;
+  [[no_unique_address]] allocator_type Alloc{};
 };
 
 // NOLINTEND(readability-identifier-naming)

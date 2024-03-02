@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
@@ -246,27 +246,9 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
-
-  EdgeFunctionType allTopFunction() override;
-
-  // JoinLattice
-
-  l_t topElement() override;
-
-  l_t bottomElement() override;
-
-  l_t join(l_t LHS, l_t RHS) override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
   // Printing functions
-
-  void printNode(llvm::raw_ostream &OS, n_t Inst) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printEdgeFact(llvm::raw_ostream &OS, l_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override;
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;

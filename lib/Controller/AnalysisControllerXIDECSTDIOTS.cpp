@@ -7,15 +7,15 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
-namespace psr {
+#include "AnalysisControllerInternalIDE.h"
 
-void AnalysisController::executeIDECSTDIOTS() {
+using namespace psr;
+
+void controller::executeIDECSTDIOTS(AnalysisController::ControllerData &Data) {
   CSTDFILEIOTypeStateDescription TSDesc;
-  executeIDEAnalysis<IDETypeStateAnalysis>(&TSDesc, EntryPoints);
+  executeIDEAnalysis<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>(
+      Data, &TSDesc, Data.EntryPoints);
 }
-
-} // namespace psr

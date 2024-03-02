@@ -7,12 +7,13 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H_
-#define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H_
+#ifndef PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H
+#define PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
 
@@ -265,11 +266,17 @@ template <typename L> struct EdgeFunctionComposer {
     return LHS.First == RHS.First && LHS.Second == RHS.Second;
   }
 
+  [[nodiscard]] size_t depth() const noexcept {
+    return First.depth() + Second.depth();
+  }
+
   // -- data members
 
   EdgeFunction<l_t> First{};
   EdgeFunction<l_t> Second{};
 };
+
+static_assert(HasDepth<EdgeFunctionComposer<int>>);
 
 template <typename L, uint8_t N> struct JoinEdgeFunction {
   using l_t = L;
@@ -425,6 +432,12 @@ ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
   if (auto Default = defaultJoinOrNull<l_t>(This, OtherFunction)) {
     return Default;
   }
+
+  if (llvm::isa<EdgeIdentity<L>>(OtherFunction)) {
+    // Prevent endless recursion
+    return AllBottom<L>{};
+  }
+
   if (!OtherFunction.isConstant()) {
     // do not know how to join; hence ask other function to decide on this
     return OtherFunction.joinWith(This);
@@ -467,4 +480,4 @@ JoinEdgeFunction<L, N>::join(EdgeFunctionRef<JoinEdgeFunction> This,
 
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_EDGEFUNCTIONUTILS_H
+#endif // PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H

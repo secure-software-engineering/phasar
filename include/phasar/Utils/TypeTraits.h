@@ -10,8 +10,10 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -19,25 +21,32 @@
 #include <variant>
 
 namespace psr {
+
+#if __cplusplus < 202002L
+template <typename T> struct type_identity { using type = T; };
+#else
+template <typename T> using type_identity = std::type_identity<T>;
+#endif
+
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
 
 template <typename T, typename = void>
 struct is_iterable : std::false_type {}; // NOLINT
 template <typename T>
-struct is_iterable<T, std::void_t< // NOLINT
-                          decltype(std::declval<T>().begin()),
-                          decltype(std::declval<T>().end())>> : std::true_type {
-};
+struct is_iterable<T, std::void_t<decltype(llvm::adl_begin(std::declval<T>())),
+                                  decltype(llvm::adl_end(std::declval<T>()))>>
+    : public std::true_type {};
+
 template <typename T, typename U, typename = void>
 struct is_iterable_over : std::false_type {}; // NOLINT
 template <typename T, typename U>
 struct is_iterable_over<
     T, U,
-    std::enable_if_t<
-        is_iterable<T>::value &&
-        std::is_convertible_v<decltype(*std::declval<T>().begin()), U>>>
-    : std::true_type {};
+    std::enable_if_t<is_iterable<T>::value &&
+                     std::is_same_v<U, std::decay_t<decltype(*llvm::adl_begin(
+                                           std::declval<T>()))>>>>
+    : public std::true_type {};
 
 template <typename T> struct is_pair : std::false_type {}; // NOLINT
 template <typename U, typename V>
@@ -66,6 +75,25 @@ template <typename T>
 struct has_str<T, decltype(std::declval<T>().str())> : std::true_type {
 }; // NOLINT
 
+template <typename T, typename = void> struct has_reserve : std::false_type {};
+template <typename T>
+struct has_reserve<
+    T, std::void_t<decltype(std::declval<T &>().reserve(size_t(0)))>>
+    : std::true_type {};
+
+template <typename T> struct has_adl_to_string {
+  template <typename TT = T, typename = decltype(std::string_view(
+                                 to_string(std::declval<TT>())))>
+  static std::true_type test(int);
+  template <typename TT = T,
+            typename = decltype(std::to_string(std::declval<TT>()))>
+  static std::true_type test(long);
+  template <typename TT = T> static std::false_type test(...);
+
+  static constexpr bool value =
+      std::is_same_v<std::true_type, decltype(test(0))>;
+};
+
 template <typename T, typename = void>
 struct has_erase_iterator : std::false_type {}; // NOLINT
 template <typename T>
@@ -83,6 +111,10 @@ template <typename T, typename = llvm::hash_code>
 struct is_llvm_hashable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
+    : std::true_type {};
+template <typename T>
+struct is_llvm_hashable<T,
+                        decltype(llvm::hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
 
 template <template <typename> typename Base, typename Derived>
@@ -126,6 +158,18 @@ struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
     : std::true_type {};
 
+template <typename T, typename = size_t> struct HasDepth : std::false_type {};
+template <typename T>
+struct HasDepth<T, decltype(std::declval<const T &>().depth())>
+    : std::true_type {};
+
+template <typename Var, typename T> struct variant_idx;
+template <typename... Ts, typename T>
+struct variant_idx<std::variant<Ts...>, T>
+    : std::integral_constant<
+          size_t,
+          std::variant<type_identity<Ts>...>(type_identity<T>{}).index()> {};
+
 } // namespace detail
 
 template <typename T>
@@ -154,6 +198,9 @@ constexpr bool is_printable_v = detail::is_printable<T, OS>::value; // NOLINT
 
 template <typename T>
 constexpr bool has_str_v = detail::has_str<T>::value; // NOLINT
+
+template <typename T>
+constexpr bool has_adl_to_string_v = detail::has_adl_to_string<T>::value;
 
 template <typename T>
 constexpr bool has_erase_iterator_v = // NOLINT
@@ -186,6 +233,9 @@ template <typename T>
 static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
 
 template <typename T>
+static inline constexpr bool HasDepth = detail::HasDepth<T>::value;
+
+template <typename T>
 static inline constexpr bool IsEqualityComparable =
     detail::IsEqualityComparable<T>::value;
 
@@ -193,13 +243,10 @@ template <typename T, typename U>
 static inline constexpr bool AreEqualityComparable =
     detail::AreEqualityComparable<T, U>::value;
 
-#if __cplusplus < 202002L
-template <typename T> struct type_identity { using type = T; };
-#else
-template <typename T> using type_identity = std::type_identity<T>;
-#endif
-
 template <typename T> using type_identity_t = typename type_identity<T>::type;
+
+template <typename Var, typename T>
+static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 struct TrueFn {
   template <typename... Args>
@@ -232,6 +279,22 @@ template <typename T> struct DefaultConstruct {
     return T(std::forward<U>(Val)...);
   }
 };
+
+struct IgnoreArgs {
+  template <typename... U> void operator()(U &&.../*Val*/) noexcept {}
+};
+
+template <typename T> void reserveIfPossible(T &Container, size_t Capacity) {
+  if constexpr (detail::has_reserve<T>::value) {
+    Container.reserve(Capacity);
+  }
+}
+
+template <typename T, typename = std::enable_if_t<has_adl_to_string_v<T>>>
+[[nodiscard]] decltype(auto) adl_to_string(const T &Val) {
+  using std::to_string;
+  return to_string(Val);
+}
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

@@ -29,32 +29,32 @@ IFDSSignAnalysis::IFDSSignAnalysis(const LLVMProjectIRDB *IRDB,
 IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t /*Curr*/,
                                         IFDSSignAnalysis::n_t /*Succ*/) {
-  return Identity<IFDSSignAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t /*CallSite*/,
                                       IFDSSignAnalysis::f_t /*DestFun*/) {
-  return Identity<IFDSSignAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType IFDSSignAnalysis::getRetFlowFunction(
     IFDSSignAnalysis::n_t /*CallSite*/, IFDSSignAnalysis::f_t /*CalleeFun*/,
     IFDSSignAnalysis::n_t /*ExitStmt*/, IFDSSignAnalysis::n_t /*RetSite*/) {
-  return Identity<IFDSSignAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t /*CallSite*/,
                                            IFDSSignAnalysis::n_t /*RetSite*/,
                                            llvm::ArrayRef<f_t> /*Callees*/) {
-  return Identity<IFDSSignAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSSignAnalysis::FlowFunctionPtrType
 IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t /*CallSite*/,
                                          IFDSSignAnalysis::f_t /*DestFun*/) {
-  return Identity<IFDSSignAnalysis::d_t>::getInstance();
+  return identityFlow();
 }
 
 InitialSeeds<IFDSSignAnalysis::n_t, IFDSSignAnalysis::d_t,
@@ -69,23 +69,8 @@ IFDSSignAnalysis::d_t IFDSSignAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t Fact) const {
+bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
-}
-
-void IFDSSignAnalysis::printNode(llvm::raw_ostream &OS,
-                                 IFDSSignAnalysis::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSSignAnalysis::printDataFlowFact(llvm::raw_ostream &OS,
-                                         IFDSSignAnalysis::d_t Fact) const {
-  OS << llvmIRToString(Fact);
-}
-
-void IFDSSignAnalysis::printFunction(llvm::raw_ostream &OS,
-                                     IFDSSignAnalysis::f_t Func) const {
-  OS << Func->getName();
 }
 
 } // namespace psr

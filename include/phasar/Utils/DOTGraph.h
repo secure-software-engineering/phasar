@@ -14,8 +14,8 @@
  *      Author: rleer
  */
 
-#ifndef PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
-#define PHASAR_PHASARLLVM_UTILS_DOTGRAPH_H_
+#ifndef PHASAR_UTILS_DOTGRAPH_H
+#define PHASAR_UTILS_DOTGRAPH_H
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/Utils/Utilities.h"

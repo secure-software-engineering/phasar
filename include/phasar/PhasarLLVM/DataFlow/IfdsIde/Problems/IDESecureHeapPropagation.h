@@ -7,10 +7,11 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -80,13 +81,7 @@ public:
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const override;
-
-  void printNode(llvm::raw_ostream &OS, n_t Stmt) const override;
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t Fact) const override;
-
-  void printFunction(llvm::raw_ostream &OS, f_t Func) const override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
   // in addition provide specifications for the IDE parts
 
@@ -110,19 +105,12 @@ public:
                                            n_t RetSite,
                                            d_t RetSiteNode) override;
 
-  l_t topElement() override;
-
-  l_t bottomElement() override;
-
-  l_t join(l_t Lhs, l_t Rhs) override;
-
-  EdgeFunction<l_t> allTopFunction() override;
-
-  void printEdgeFact(llvm::raw_ostream &OS, l_t L) const override;
-
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS) override;
 };
+
+llvm::StringRef DToString(SecureHeapFact Fact) noexcept;
+llvm::StringRef LToString(SecureHeapValue Val) noexcept;
 } // namespace psr
 
 #endif

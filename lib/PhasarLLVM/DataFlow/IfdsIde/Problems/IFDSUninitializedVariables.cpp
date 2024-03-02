@@ -13,9 +13,11 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Constants.h"
@@ -167,60 +169,49 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   }
   if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
-    return lambdaFlow<IFDSUninitializedVariables::d_t>(
-        [Alloc, this](IFDSUninitializedVariables::d_t Source)
-            -> std::set<IFDSUninitializedVariables::d_t> {
-          if (isZeroValue(Source)) {
-            if (Alloc->getAllocatedType()->isIntegerTy() ||
-                Alloc->getAllocatedType()->isFloatingPointTy() ||
-                Alloc->getAllocatedType()->isPointerTy() ||
-                Alloc->getAllocatedType()->isArrayTy()) {
-              //------------------------------------------------------------
-              // Why not generate for structs, but for arrays? (would be
-              // consistent to generate either both or none of them)
-              //------------------------------------------------------------
+    return lambdaFlow([Alloc, this](d_t Source) -> std::set<d_t> {
+      if (isZeroValue(Source)) {
+        if (Alloc->getAllocatedType()->isIntegerTy() ||
+            Alloc->getAllocatedType()->isFloatingPointTy() ||
+            Alloc->getAllocatedType()->isPointerTy() ||
+            Alloc->getAllocatedType()->isArrayTy()) {
+          //------------------------------------------------------------
+          // Why not generate for structs, but for arrays? (would be
+          // consistent to generate either both or none of them)
+          //------------------------------------------------------------
 
-              // generate the alloca
-              return {Source, Alloc};
-            }
-          }
-          // otherwise propagate all facts
-          return {Source};
-        });
-  }
-  // check if some instruction is using an undefined value (in)directly
-  struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-    const llvm::Instruction *Inst;
-    std::map<IFDSUninitializedVariables::n_t,
-             std::set<IFDSUninitializedVariables::d_t>> &UndefValueUses;
-    UVFF(const llvm::Instruction *Inst,
-         std::map<IFDSUninitializedVariables::n_t,
-                  std::set<IFDSUninitializedVariables::d_t>> &UVU)
-        : Inst(Inst), UndefValueUses(UVU) {}
-    std::set<IFDSUninitializedVariables::d_t>
-    computeTargets(IFDSUninitializedVariables::d_t Source) override {
-      for (const auto &Operand : Inst->operands()) {
-        const llvm::UndefValue *Undef =
-            llvm::dyn_cast<llvm::UndefValue>(Operand);
-        if (Operand == Source || Operand == Undef) {
-          //----------------------------------------------------------------
-          // It is not necessary and (from my point of view) not intended to
-          // report a leak on EVERY kind of instruction.
-          // For some of them (e.g. gep, bitcast, ...) propagating the dataflow
-          // facts may be enough
-          //----------------------------------------------------------------
-          if (!llvm::isa<llvm::GetElementPtrInst>(Inst) &&
-              !llvm::isa<llvm::CastInst>(Inst) &&
-              !llvm::isa<llvm::PHINode>(Inst)) {
-            UndefValueUses[Inst].insert(Operand);
-          }
-          return {Source, Inst};
+          // generate the alloca
+          return {Source, Alloc};
         }
       }
+      // otherwise propagate all facts
       return {Source};
+    });
+  }
+  // check if some instruction is using an undefined value (in)directly
+
+  return lambdaFlow([Curr, this](d_t Source) -> std::set<d_t> {
+    for (const auto &Operand : Curr->operands()) {
+      const llvm::UndefValue *Undef = llvm::dyn_cast<llvm::UndefValue>(Operand);
+      if (Operand == Source || Operand == Undef) {
+        //----------------------------------------------------------------
+        // It is not necessary and (from my point of view) not intended to
+        // report a leak on EVERY kind of instruction.
+        // For some of them (e.g. gep, bitcast, ...) propagating the dataflow
+        // facts may be enough
+        //----------------------------------------------------------------
+        if (!llvm::isa<llvm::GetElementPtrInst>(Curr) &&
+            !llvm::isa<llvm::CastInst>(Curr) &&
+            !llvm::isa<llvm::PHINode>(Curr)) {
+          UndefValueUses[Curr].insert(Operand);
+          Printer->onResult(Curr, Operand,
+                            DataFlowAnalysisType::IFDSUninitializedVariables);
+        }
+        return {Source, Curr};
+      }
     }
-  };
-  return std::make_shared<UVFF>(Curr, UndefValueUses);
+    return {Source};
+  });
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -303,7 +294,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
     };
     return std::make_shared<UVFF>(DestFun, CS, getZeroValue());
   }
-  return Identity<IFDSUninitializedVariables::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -348,7 +339,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
     return std::make_shared<UVFF>(CS, ExitStmt);
   }
   // kill everything else
-  return killAllFlows<d_t>();
+  return killAllFlows();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -360,23 +351,21 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
   if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
-    return lambdaFlow<IFDSUninitializedVariables::d_t>(
-        [CS](IFDSUninitializedVariables::d_t Source)
-            -> std::set<IFDSUninitializedVariables::d_t> {
-          if (Source->getType()->isPointerTy()) {
-            for (const auto &Arg : CS->args()) {
-              if (Arg.get() == Source) {
-                // do not propagate pointer arguments, since the function may
-                // initialize them (would be much more precise with
-                // field-sensitivity)
-                return {};
-              }
-            }
+    return lambdaFlow([CS](d_t Source) -> std::set<d_t> {
+      if (Source->getType()->isPointerTy()) {
+        for (const auto &Arg : CS->args()) {
+          if (Arg.get() == Source) {
+            // do not propagate pointer arguments, since the function may
+            // initialize them (would be much more precise with
+            // field-sensitivity)
+            return {};
           }
-          return {Source};
-        });
+        }
+      }
+      return {Source};
+    });
   }
-  return Identity<IFDSUninitializedVariables::d_t>::getInstance();
+  return identityFlow();
 }
 
 IFDSUninitializedVariables::FlowFunctionPtrType
@@ -401,23 +390,8 @@ IFDSUninitializedVariables::createZeroValue() const {
 }
 
 bool IFDSUninitializedVariables::isZeroValue(
-    IFDSUninitializedVariables::d_t Fact) const {
+    IFDSUninitializedVariables::d_t Fact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(Fact);
-}
-
-void IFDSUninitializedVariables::printNode(
-    llvm::raw_ostream &OS, IFDSUninitializedVariables::n_t Stmt) const {
-  OS << llvmIRToString(Stmt);
-}
-
-void IFDSUninitializedVariables::printDataFlowFact(
-    llvm::raw_ostream &OS, IFDSUninitializedVariables::d_t Fact) const {
-  OS << llvmIRToShortString(Fact);
-}
-
-void IFDSUninitializedVariables::printFunction(
-    llvm::raw_ostream &OS, IFDSUninitializedVariables::f_t Func) const {
-  OS << Func->getName();
 }
 
 void IFDSUninitializedVariables::emitTextReport(
@@ -439,13 +413,11 @@ void IFDSUninitializedVariables::emitTextReport(
       for (const auto &User : UndefValueUses) {
         OS << "\n---------------------------------  " << ++Count
            << ". Use  ---------------------------------\n\n";
-        OS << "At IR statement: ";
-        printNode(OS, User.first);
+        OS << "At IR statement: " << NToString(User.first);
         OS << "\n    in function: " << getFunctionNameFromIR(User.first);
         OS << "\n    in module  : " << getModuleIDFromIR(User.first) << "\n\n";
         for (const auto *UndefV : User.second) {
-          OS << "   Uninit Value: ";
-          printDataFlowFact(OS, UndefV);
+          OS << "   Uninit Value: " << DToString(UndefV);
           OS << '\n';
         }
       }
@@ -461,6 +433,7 @@ void IFDSUninitializedVariables::emitTextReport(
         Res.print(OS);
       }
     }
+    Printer->onFinalize();
   }
 }
 

@@ -4,6 +4,7 @@ Checks: '-*,
          misc-*,
            -misc-non-private-member-variables-in-classes,
            -misc-no-recursion,
+           -misc-use-anonymous-namespace,
          readability-*,
            -readability-function-cognitive-complexity,
            -readability-else-after*,
@@ -25,12 +26,13 @@ Checks: '-*,
            -cppcoreguidelines-non-private-member-variables-in-classes,
            -cppcoreguidelines-init-variables,
            -cppcoreguidelines-macro-usage,
+           -cppcoreguidelines-avoid-do-while,
          bugprone-*,
            -bugprone-easily-swappable-parameters,
          modernize-*,
            -modernize-use-trailing-return-type,
          performance-*,
-         clang-analyzer-*,
+         clang-analyzer-*
         '
 
 FormatStyle:  LLVM
@@ -55,7 +57,7 @@ CheckOptions:
   - key:             readability-identifier-naming.ParameterIgnoredRegexp
     value:           (d|d1|d2|d3|d4|d5|eP|f|n)
   - key:             readability-identifier-naming.FunctionIgnoredRegexp
-    value:           (try_emplace|from_json|to_json|equal_to|to_string)
+    value:           (try_emplace|from_json|to_json|equal_to|to_string|DToString|NToString|FToString|LToString)
   - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value:           1
   - key:             cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions

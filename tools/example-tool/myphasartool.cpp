@@ -7,17 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/ControlFlow/CallGraphAnalysisType.h"
-#include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
-#include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSolverTest.h"
-#include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar.h"
 
 #include <filesystem>
 #include <string>
@@ -38,6 +28,9 @@ int main(int Argc, const char **Argv) {
   std::vector EntryPoints = {"main"s};
 
   HelperAnalyses HA(Argv[1], EntryPoints);
+  if (!HA.getProjectIRDB().isValid()) {
+    return 1;
+  }
 
   if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
@@ -51,15 +44,16 @@ int main(int Argc, const char **Argv) {
     llvm::outs() << "Testing IFDS:\n";
     auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
     IFDSSolver S(L, &HA.getICFG());
-    S.solve();
-    S.dumpResults();
+    auto IFDSResults = S.solve();
+    IFDSResults.dumpResults(HA.getICFG());
+
     // IDE template parametrization test
     llvm::outs() << "Testing IDE:\n";
     auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+    // Alternative way of solving an IFDS/IDEProblem:
+    auto IDEResults = solveIDEProblem(M, HA.getICFG());
+    IDEResults.dumpResults(HA.getICFG());
 
-    IDESolver T(M, &HA.getICFG());
-    T.solve();
-    T.dumpResults();
   } else {
     llvm::errs() << "error: file does not contain a 'main' function!\n";
   }

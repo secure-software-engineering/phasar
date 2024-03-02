@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
@@ -18,6 +18,7 @@
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
@@ -29,6 +30,7 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Constant.h"
@@ -269,7 +271,7 @@ public:
     //
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
       PHASAR_LOG_LEVEL(DFADEBUG, "AllocaInst");
-      return generateFromZero(Alloca);
+      return this->generateFromZero(Alloca);
     }
 
     // Handle indirect taints, i. e., propagate values that depend on branch
@@ -292,7 +294,7 @@ public:
         //                                          v  v  v  v
         //                                          0  c  x  I
         //
-        return lambdaFlow<d_t>([Br](d_t Src) {
+        return this->lambdaFlow([Br](d_t Src) {
           container_type Facts;
           Facts.insert(Src);
           if (Src == Br->getCondition()) {
@@ -328,7 +330,7 @@ public:
         //              v  v  v
         //              0  Y  x
         //
-        return generateFlowIf<d_t>(
+        return this->generateFlowIf(
             Load, [PointerOp = Load->getPointerOperand(),
                    PTS = PT.getReachableAllocationSites(
                        Load->getPointerOperand(), OnlyConsiderLocalAliases)](
@@ -354,7 +356,7 @@ public:
         //             v  v  v
         //             0  x  Y
         //
-        return lambdaFlow<d_t>(
+        return this->lambdaFlow(
             [Store, PointerPTS = PT.getReachableAllocationSites(
                         Store->getPointerOperand(), OnlyConsiderLocalAliases,
                         Store)](d_t Src) -> container_type {
@@ -395,7 +397,7 @@ public:
     //              0  y  x
     //
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return generateFlow<d_t>(Load, Load->getPointerOperand());
+      return this->generateFlow(Load, Load->getPointerOperand());
     }
     // Handle store instructions
     //
@@ -408,7 +410,7 @@ public:
     //             0  x  y
     //
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      return lambdaFlow<d_t>([Store](d_t Src) -> container_type {
+      return this->lambdaFlow([Store](d_t Src) -> container_type {
         // Override old value, i.e., kill value that is written to and
         // generate from value that is stored.
         if (Store->getPointerOperand() == Src) {
@@ -447,7 +449,7 @@ public:
     //                       v  v  v  v
     //                       0  x  o  p
     //
-    return lambdaFlow<d_t>([Inst = Curr](d_t Src) {
+    return this->lambdaFlow([Inst = Curr](d_t Src) {
       container_type Facts;
       if (IDEInstInteractionAnalysisT::isZeroValueImpl(Src)) {
         // keep the zero flow fact
@@ -482,11 +484,11 @@ public:
                                                  f_t DestFun) override {
     if (this->ICF->isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     if (DestFun->isDeclaration()) {
       // We don't have anything that we could analyze, kill all facts.
-      return killAllFlows<d_t>();
+      return this->killAllFlows();
     }
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
@@ -508,9 +510,9 @@ public:
     auto SRetFormal = CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
 
     if (SRetFormal) {
-      return unionFlows(
+      return this->unionFlows(
           std::move(MapFactsToCalleeFF),
-          generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
+          this->generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
     }
 
     return MapFactsToCalleeFF;
@@ -521,7 +523,9 @@ public:
                                                 n_t /* RetSite */) override {
     // Map return value back to the caller. If pointer parameters hold at the
     // end of a callee function generate all of those in the caller context.
-
+    if (CallSite == nullptr) {
+      return this->killAllFlows();
+    }
     auto MapFactsToCallerFF =
         mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
                               {}, [](const llvm::Value *RetVal, d_t Src) {
@@ -581,9 +585,9 @@ public:
       }
     }
 
-    return lambdaFlow<d_t>([CallSite = llvm::cast<llvm::CallBase>(CallSite),
-                            OnlyDecls,
-                            AllVoidRetTys](d_t Source) -> container_type {
+    return this->lambdaFlow([CallSite = llvm::cast<llvm::CallBase>(CallSite),
+                             OnlyDecls,
+                             AllVoidRetTys](d_t Source) -> container_type {
       // There are a few things to consider, in case only declarations of
       // callee targets are available.
       if (OnlyDecls) {
@@ -626,26 +630,19 @@ public:
       // variables using generalized initial seeds
 
       // Generate zero value at the entry points
-      Seeds.addSeed(SP, this->getZeroValue(), bottomElement());
+      Seeds.addSeed(SP, this->getZeroValue(), Bottom{});
       // Generate formal parameters of entry points, e.g. main(). Formal
       // parameters will otherwise cause trouble by overriding alloca
       // instructions without being valid data-flow facts themselves.
       for (const auto &Arg : SP->getFunction()->args()) {
-        Seeds.addSeed(SP, &Arg, Bottom{});
+        Seeds.addSeed(SP, &Arg, BitVectorSet<e_t>());
       }
       // Generate all global variables using generalized initial seeds
 
       for (const auto &G : this->IRDB->getModule()->globals()) {
         if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-          l_t InitialValues = BitVectorSet<e_t>();
-          std::set<e_t> EdgeFacts;
-          if (EdgeFactGen) {
-            EdgeFacts = EdgeFactGen(GV);
-            // fill BitVectorSet
-            InitialValues =
-                BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-          }
-          Seeds.addSeed(SP, GV, InitialValues);
+          l_t InitialValues = bvSetFrom(invoke_or_default(EdgeFactGen, GV));
+          Seeds.addSeed(SP, GV, std::move(InitialValues));
         }
       }
     });
@@ -658,7 +655,9 @@ public:
     return LLVMZeroValue::getInstance();
   }
 
-  inline bool isZeroValue(d_t d) const override { return isZeroValueImpl(d); }
+  inline bool isZeroValue(d_t d) const noexcept override {
+    return isZeroValueImpl(d);
+  }
 
   // In addition provide specifications for the IDE parts.
 
@@ -686,7 +685,12 @@ public:
       if (SuccNode == Store->getPointerOperand() ||
           PT.isInReachableAllocationSites(Store->getPointerOperand(), SuccNode,
                                           true, Store)) {
-        return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+        if (isZeroValue(CurrNode)) {
+          return IIAAKillOrReplaceEFCache.createEdgeFunction(
+              std::move(UserEdgeFacts));
+        }
+        return IIAAAddLabelsEFCache.createEdgeFunction(
+            std::move(UserEdgeFacts));
       }
     }
 
@@ -704,7 +708,7 @@ public:
       //               v
       //               y
       //
-      if ((CurrNode == SuccNode) && CurrNode == Store->getPointerOperand()) {
+      if (CurrNode == SuccNode && CurrNode == Store->getPointerOperand()) {
         // y obtains its value(s) from its original allocation and the store
         // instruction under analysis.
         IF_LOG_ENABLED({
@@ -717,7 +721,8 @@ public:
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
         });
         // obtain label from the original allocation
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(UserEdgeFacts);
+        return IIAAKillOrReplaceEFCache.createEdgeFunction(
+            std::move(UserEdgeFacts));
       }
 
     } else {
@@ -795,7 +800,11 @@ public:
 
       // We generate Curr in this instruction, so we have to annotate it with
       // edge labels
-      return IIAAAddLabelsEFCache.createEdgeFunction(UserEdgeFacts);
+      if (isZeroValue(CurrNode)) {
+        return IIAAKillOrReplaceEFCache.createEdgeFunction(
+            std::move(UserEdgeFacts));
+      }
+      return IIAAAddLabelsEFCache.createEdgeFunction(std::move(UserEdgeFacts));
     }
 
     // Otherwise stick to identity.
@@ -830,7 +839,7 @@ public:
       }
     }
     if (isZeroValue(SrcNode) && SRetParams.count(DestNode)) {
-      return IIAAAddLabelsEFCache.createEdgeFunction();
+      return IIAAKillOrReplaceEFCache.createEdgeFunction();
     }
     // Everything else can be passed as identity.
     return EdgeIdentity<l_t>{};
@@ -858,14 +867,8 @@ public:
       if (const auto *CD =
               llvm::dyn_cast<llvm::ConstantData>(Ret->getReturnValue())) {
         // Check if the user has registered a fact generator function
-        l_t UserEdgeFacts = BitVectorSet<e_t>();
-        std::set<e_t> EdgeFacts;
-        if (EdgeFactGen) {
-          EdgeFacts = EdgeFactGen(ExitInst);
-          // fill BitVectorSet
-          UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-        }
-        return IIAAAddLabelsEFCache.createEdgeFunction(
+        l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, ExitInst));
+        return IIAAKillOrReplaceEFCache.createEdgeFunction(
             std::move(UserEdgeFacts));
       }
     }
@@ -878,34 +881,29 @@ public:
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override {
     // Check if the user has registered a fact generator function
-    l_t UserEdgeFacts = BitVectorSet<e_t>();
-    std::set<e_t> EdgeFacts;
-    if (EdgeFactGen) {
-      EdgeFacts = EdgeFactGen(CallSite);
-      // fill BitVectorSet
-      UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-    }
+    l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, CallSite));
+
     // Model call to heap allocating functions (new, new[], malloc, etc.) --
     // only model direct calls, though.
     if (Callees.size() == 1) {
-      for (const auto *Callee : Callees) {
-        if (this->ICF->isHeapAllocatingFunction(Callee)) {
-          // Let H be a heap allocating function.
-          //
-          // 0 --> x
-          //
-          // Edge function:
-          //
-          //               0
-          //                \
+      const auto *Callee = Callees.front();
+
+      if (this->ICF->isHeapAllocatingFunction(Callee)) {
+        // Let H be a heap allocating function.
+        //
+        // 0 --> x
+        //
+        // Edge function:
+        //
+        //               0
+        //                \
           // %i = call H     \ \x.x \cup { commit of('%i = call H') }
-          //                  v
-          //                  i
-          //
-          if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
-            return IIAAAddLabelsEFCache.createEdgeFunction(
-                std::move(UserEdgeFacts));
-          }
+        //                  v
+        //                  i
+        //
+        if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
+          return IIAAKillOrReplaceEFCache.createEdgeFunction(
+              std::move(UserEdgeFacts));
         }
       }
     }
@@ -939,13 +937,7 @@ public:
     return nullptr;
   }
 
-  inline l_t topElement() override { return Top{}; }
-
-  inline l_t bottomElement() override { return Bottom{}; }
-
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
-
-  inline EdgeFunctionType allTopFunction() override { return AllTop<l_t>(); }
 
   // Provide some handy helper edge functions to improve reuse.
 
@@ -953,7 +945,7 @@ public:
   // others).
   struct IIAAKillOrReplaceEF {
     using l_t = typename AnalysisDomainTy::l_t;
-    l_t Replacement{};
+    l_t Replacement = BitVectorSet<e_t>();
 
     l_t computeTarget(ByConstRef<l_t> /* Src */) const { return Replacement; }
 
@@ -969,27 +961,13 @@ public:
                                  "IIAAKillOrReplaceEF is too large for SOO");
 
       if (auto *AD = llvm::dyn_cast<IIAAAddLabelsEF>(SecondFunction)) {
-        auto ADCache =
-            SecondFunction.template getCacheOrNull<IIAAAddLabelsEF>();
-        assert(ADCache != nullptr);
-        if (This->isKillAll()) {
-          return ADCache->createEdgeFunction(*AD);
-        }
         auto Union =
             IDEInstInteractionAnalysisT::joinImpl(This->Replacement, AD->Data);
-        return ADCache->createEdgeFunction(std::move(Union));
+        return Cache->createEdgeFunction(std::move(Union));
       }
 
       if (auto *KR = llvm::dyn_cast<IIAAKillOrReplaceEF>(SecondFunction)) {
-        if (This->isKillAll()) {
-          return Cache->createEdgeFunction(*KR);
-        }
-        if (KR->isKillAll()) {
-          return SecondFunction;
-        }
-        auto Union = IDEInstInteractionAnalysisT::joinImpl(This->Replacement,
-                                                           KR->Replacement);
-        return Cache->createEdgeFunction(std::move(Union));
+        return SecondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAKillOrReplaceEF'");
@@ -1030,6 +1008,8 @@ public:
       return Replacement == Other.Replacement;
     }
 
+    [[nodiscard]] bool isConstant() const noexcept { return true; }
+
     friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const IIAAKillOrReplaceEF &EF) {
       OS << "EF: (IIAAKillOrReplaceEF)<->";
@@ -1058,7 +1038,7 @@ public:
   // add all labels provided by Data.
   struct IIAAAddLabelsEF {
     using l_t = typename AnalysisDomainTy::l_t;
-    l_t Data{};
+    l_t Data = BitVectorSet<e_t>();
 
     l_t computeTarget(ByConstRef<l_t> Src) const {
       return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
@@ -1080,7 +1060,7 @@ public:
         return Cache->createEdgeFunction(std::move(Union));
       }
       if (auto *KR = llvm::dyn_cast<IIAAKillOrReplaceEF>(SecondFunction)) {
-        return Cache->createEdgeFunction(KR->Replacement);
+        return SecondFunction;
       }
       llvm::report_fatal_error(
           "found unexpected edge function in 'IIAAAddLabelsEF'");
@@ -1134,23 +1114,6 @@ public:
 
   // Provide functionalities for printing things and emitting text reports.
 
-  void printNode(llvm::raw_ostream &OS, n_t n) const override {
-    OS << llvmIRToString(n);
-  }
-
-  void printDataFlowFact(llvm::raw_ostream &OS, d_t FlowFact) const override {
-    OS << llvmIRToString(FlowFact);
-  }
-
-  void printFunction(llvm::raw_ostream &OS, f_t Fun) const override {
-    OS << Fun->getName();
-  }
-
-  inline void printEdgeFact(llvm::raw_ostream &OS,
-                            l_t EdgeFact) const override {
-    printEdgeFactImpl(OS, EdgeFact);
-  }
-
   static void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
     for (auto It = Res.begin(); It != Res.end();) {
       if (It->second.isBottom()) {
@@ -1177,11 +1140,11 @@ public:
         auto Results = SR.resultsAt(Inst, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
-          OS << "At IR statement: " << this->NtoString(Inst) << '\n';
+          OS << "At IR statement: " << NToString(Inst) << '\n';
           for (auto Result : Results) {
             if (!Result.second.isBottom()) {
-              OS << "   Fact: " << this->DtoString(Result.first)
-                 << "\n  Value: " << this->LtoString(Result.second) << '\n';
+              OS << "   Fact: " << DToString(Result.first)
+                 << "\n  Value: " << LToString(Result.second) << '\n';
             }
           }
           OS << '\n';
@@ -1228,9 +1191,8 @@ public:
   }
 
 protected:
-  static inline bool isZeroValueImpl(d_t d) {
-    return LLVMZeroValue::isLLVMZeroValue(d);
-  }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  static constexpr auto isZeroValueImpl = LLVMZeroValue::isLLVMZeroValue;
 
   static void printEdgeFactImpl(llvm::raw_ostream &OS,
                                 ByConstRef<l_t> EdgeFact) {
@@ -1258,10 +1220,10 @@ protected:
   }
 
   static inline l_t joinImpl(ByConstRef<l_t> Lhs, ByConstRef<l_t> Rhs) {
-    if (Lhs.isTop() || Lhs.isBottom()) {
+    if (Lhs.isTop() || Rhs.isBottom()) {
       return Rhs;
     }
-    if (Rhs.isTop() || Rhs.isBottom()) {
+    if (Rhs.isTop() || Lhs.isBottom()) {
       return Lhs;
     }
     const auto &LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
@@ -1284,7 +1246,7 @@ private:
       // at some point. Therefore, we only care for the variables and their
       // associated values and ignore at which point a variable may holds as a
       // data-flow fact.
-      const auto Variable = Result.getColumnKey();
+      const auto &Variable = Result.getColumnKey();
       const auto &Value = Result.getValue();
       // skip result entry if variable is not in the set of all variables
       if (Variables.find(Variable) == Variables.end()) {

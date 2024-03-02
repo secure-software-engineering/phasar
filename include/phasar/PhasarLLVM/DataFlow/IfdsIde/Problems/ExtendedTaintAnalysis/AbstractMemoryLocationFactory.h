@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 
@@ -41,7 +41,7 @@ private:
       Block *Next = nullptr;
 
       static Block *create(Block *Next, size_t NumPointerEntries);
-      static void destroy(Block *Blck);
+      static void destroy(Block *Blck, size_t NumPointerEntries);
 
     private:
       Block(Block *Next);
@@ -49,6 +49,7 @@ private:
 
     Block *Root = nullptr;
     void **Pos = nullptr, **End = nullptr;
+    size_t InitialCapacity{};
 
     Allocator() noexcept = default;
     Allocator(size_t InitialCapacity);

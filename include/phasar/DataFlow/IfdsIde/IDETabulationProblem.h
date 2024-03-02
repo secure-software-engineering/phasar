@@ -12,6 +12,7 @@
 
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
@@ -19,6 +20,7 @@
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -36,15 +38,31 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
+template <typename AnalysisDomainTy, typename = void> class AllTopFnProvider {
+public:
+  virtual ~AllTopFnProvider() = default;
+  /// Returns an edge function that represents the top element of the analysis.
+  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() = 0;
+};
+
+template <typename AnalysisDomainTy>
+class AllTopFnProvider<
+    AnalysisDomainTy,
+    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
+public:
+  virtual ~AllTopFnProvider() = default;
+  /// Returns an edge function that represents the top element of the analysis.
+  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() {
+    return AllTop<typename AnalysisDomainTy::l_t>{};
+  }
+};
+
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
-                             public NodePrinter<AnalysisDomainTy>,
-                             public DataFlowFactPrinter<AnalysisDomainTy>,
-                             public FunctionPrinter<AnalysisDomainTy>,
                              public EdgeFunctions<AnalysisDomainTy>,
                              public JoinLattice<AnalysisDomainTy>,
-                             public EdgeFactPrinter<AnalysisDomainTy> {
+                             public AllTopFnProvider<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -58,22 +76,29 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  explicit IDETabulationProblem(const ProjectIRDBBase<db_t> *IRDB,
-                                std::vector<std::string> EntryPoints,
-                                std::optional<d_t> ZeroValue)
+  explicit IDETabulationProblem(
+      const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
+      std::optional<d_t>
+          ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
-        ZeroValue(std::move(ZeroValue)) {
+        ZeroValue(std::move(ZeroValue)),
+        Printer(NullAnalysisPrinter<AnalysisDomainTy>::getInstance()) {
     assert(IRDB != nullptr);
   }
 
-  virtual ~IDETabulationProblem() = default;
+  void setAnalysisPrinter(AnalysisPrinterBase<AnalysisDomainTy> *P) {
+    if (P) {
+      Printer = P;
+    } else {
+      Printer = NullAnalysisPrinter<AnalysisDomainTy>::getInstance();
+    }
+  }
 
-  /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunction<l_t> allTopFunction() = 0;
+  ~IDETabulationProblem() override = default;
 
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
-  [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const {
+  [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const noexcept {
     assert(ZeroValue.has_value());
     return FlowFact == *ZeroValue;
   }
@@ -83,23 +108,24 @@ public:
   [[nodiscard]] virtual InitialSeeds<n_t, d_t, l_t> initialSeeds() = 0;
 
   /// Returns the special tautological lambda (or zero) fact.
-  [[nodiscard]] d_t getZeroValue() const {
+  [[nodiscard]] ByConstRef<d_t> getZeroValue() const {
     assert(ZeroValue.has_value());
     return *ZeroValue;
   }
 
-  void initializeZeroValue(d_t Zero) {
+  void initializeZeroValue(d_t Zero) noexcept(
+      std::is_nothrow_assignable_v<std::optional<d_t> &, d_t &&>) {
     assert(!ZeroValue.has_value());
     ZeroValue = std::move(Zero);
   }
 
   /// Sets the configuration to be used by the IFDS/IDE solver.
-  void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
+  void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) noexcept {
     SolverConfig = Config;
   }
 
   /// Returns the configuration of the IFDS/IDE solver.
-  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() {
+  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() noexcept {
     return SolverConfig;
   }
 
@@ -126,7 +152,8 @@ public:
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
   generateFromZero(d_t FactToGenerate) {
-    return generateFlow(std::move(FactToGenerate), getZeroValue());
+    return FlowFunctions<AnalysisDomainTy, Container>::generateFlow(
+        std::move(FactToGenerate), getZeroValue());
   }
 
   /// Seeds that just start with ZeroValue and bottomElement() at the starting
@@ -152,6 +179,8 @@ protected:
   IFDSIDESolverConfig SolverConfig{};
 
   [[maybe_unused]] Soundness SF = Soundness::Soundy;
+
+  AnalysisPrinterBase<AnalysisDomainTy> *Printer;
 };
 
 } // namespace psr

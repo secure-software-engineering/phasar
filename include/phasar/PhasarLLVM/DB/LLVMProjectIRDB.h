@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_DB_LLVMPROJECTIRDB_H
-#define PHASAR_DB_LLVMPROJECTIRDB_H
+#ifndef PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
+#define PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
 
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
@@ -22,6 +22,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
@@ -40,18 +41,24 @@ class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
   friend ProjectIRDBBase;
 
 public:
-  /// Reads and parses the given LLVM IR file and owns the resulting IR Module
+  /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
-  /// ownership. The module is not being preprocessed.
+  /// ownership. The module is optionally being preprocessed.
   ///
   /// CAUTION: Do not manage the same LLVM Module with multiple LLVMProjectIRDB
   /// instances at the same time! This will confuse the ModulesToSlotTracker
-  explicit LLVMProjectIRDB(llvm::Module *Mod);
-  /// Initializes the new ProjectIRDB with the given IR Moduleand takes
-  /// ownership of it
+  explicit LLVMProjectIRDB(llvm::Module *Mod, bool DoPreprocessing = true);
+  /// Initializes the new ProjectIRDB with the given IR Module and takes
+  /// ownership of it. The module is optionally being preprocessed.
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
+  /// Parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
@@ -60,6 +67,9 @@ public:
 
   [[nodiscard]] static std::unique_ptr<llvm::Module>
   getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
+                          llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] static std::unique_ptr<llvm::Module>
+  getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
                           llvm::LLVMContext &Ctx) noexcept;
 
   /// Also use the const overload
@@ -78,7 +88,7 @@ public:
   /// Also use the const overload
   using ProjectIRDBBase::getModule;
   /// Non-const overload
-  [[nodiscard]] llvm::Module *getModule() { return Mod.get(); }
+  [[nodiscard]] llvm::Module *getModule() noexcept { return Mod.get(); }
 
   /// Similar to getInstruction(size_t), but is also able to return global
   /// variables by id
@@ -93,11 +103,13 @@ public:
   /// called twice for the same function. Use with care!
   void insertFunction(llvm::Function *F, bool DoPreprocessing = true);
 
+  explicit operator bool() const noexcept { return isValid(); }
+
 private:
   [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }
   [[nodiscard]] bool debugInfoAvailableImpl() const;
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const {
-    return llvm::map_range(Mod->functions(),
+    return llvm::map_range(ProjectIRDBBase::getModule()->functions(),
                            Ref2PointerConverter<llvm::Function>{});
   }
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef FunctionName) const {
@@ -165,4 +177,4 @@ const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
 extern template class ProjectIRDBBase<LLVMProjectIRDB>;
 } // namespace psr
 
-#endif // PHASAR_DB_LLVMPROJECTIRDB_H
+#endif // PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H

@@ -7,49 +7,125 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * MyHelloPass.cpp
- *
- *  Created on: 05.07.2016
- *      Author: pdschbrt
- */
-
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 
-#include "llvm/Analysis/LoopInfo.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/CFG.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InlineAsm.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
-
-using namespace std;
-using namespace psr;
+#include <type_traits>
 
 namespace psr {
+
+static bool isAddressTaken(const llvm::Function &Fun) noexcept {
+  for (const auto &Use : Fun.uses()) {
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(Use.getUser());
+    if (!Call || Use.get() != Call->getCalledOperand()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <typename Set>
+static void collectAllocatedTypes(const llvm::CallBase *CallSite, Set &Into) {
+  for (const auto *User : CallSite->users()) {
+    if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+      if (Cast->getDestTy()->getPointerElementType()->isStructTy()) {
+        // finally check for ctor call
+        for (const auto *User : Cast->users()) {
+          if (llvm::isa<llvm::CallInst>(User) ||
+              llvm::isa<llvm::InvokeInst>(User)) {
+            // potential call to the structures ctor
+            const auto *CTor = llvm::cast<llvm::CallBase>(User);
+            if (CTor->getCalledFunction() &&
+                CTor->getCalledFunction()->getArg(0)->getType() ==
+                    Cast->getDestTy()) {
+              Into.insert(Cast->getDestTy()->getPointerElementType());
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
 GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
-  static const std::set<std::string> MemAllocatingFunctions = {
-      "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
-      "calloc", "realloc"};
-  Stats.ModuleName = M.getName();
+  Stats.ModuleName = M.getName().str();
   for (auto &F : M) {
     ++Stats.Functions;
+
+    if (F.hasExternalLinkage()) {
+      ++Stats.ExternalFunctions;
+    }
+    if (!F.isDeclaration()) {
+      ++Stats.FunctionDefinitions;
+    }
+
+    if (isAddressTaken(F)) {
+      ++Stats.AddressTakenFunctions;
+    }
+
     for (auto &BB : F) {
       ++Stats.BasicBlocks;
+
+      {
+        auto PredSize = llvm::pred_size(&BB);
+        auto SuccSize = llvm::succ_size(&BB);
+        Stats.TotalNumPredecessorBBs += PredSize;
+        Stats.TotalNumSuccessorBBs += SuccSize;
+        if (PredSize > Stats.MaxNumPredecessorBBs) {
+          ++Stats.MaxNumPredecessorBBs;
+        }
+        if (SuccSize > Stats.MaxNumSuccessorBBs) {
+          ++Stats.MaxNumSuccessorBBs;
+        }
+      }
+
       for (auto &I : BB) {
         // found one more instruction
         ++Stats.Instructions;
+
+        {
+          auto NumOps = I.getNumOperands();
+          auto NumUses = I.getNumUses();
+          Stats.TotalNumOperands += NumOps;
+          Stats.TotalNumUses += NumUses;
+          if (NumOps > Stats.MaxNumOperands) {
+            ++Stats.MaxNumOperands;
+          }
+          if (NumUses > Stats.MaxNumUses) {
+            ++Stats.MaxNumUses;
+          }
+          if (NumUses > 1) {
+            ++Stats.NumInstWithMultipleUses;
+          }
+        }
+
+        if (!I.getType()->isVoidTy()) {
+          ++Stats.NonVoidInsts;
+        }
+
+        if (I.isUsedOutsideOfBlock(I.getParent())) {
+          ++Stats.NumInstsUsedOutsideBB;
+        }
+
         // check for alloca instruction for possible types
         if (const llvm::AllocaInst *Alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
@@ -63,6 +139,9 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         }
         if (llvm::isa<llvm::BranchInst>(I)) {
           ++Stats.Branches;
+        }
+        if (llvm::isa<llvm::SwitchInst>(I)) {
+          ++Stats.Switches;
         }
         if (llvm::isa<llvm::GetElementPtrInst>(I)) {
           ++Stats.GetElementPtrs;
@@ -79,59 +158,54 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         if (llvm::isa<llvm::LoadInst>(I)) {
           ++Stats.LoadInstructions;
         }
+        if (llvm::isa<llvm::LandingPadInst>(I)) {
+          ++Stats.LandingPads;
+        }
         // check for llvm's memory intrinsics
         if (llvm::isa<llvm::MemIntrinsic>(I)) {
           ++Stats.MemIntrinsics;
         }
+
+        if (llvm::isa<llvm::DbgInfoIntrinsic>(I)) {
+          ++Stats.DebugIntrinsics;
+        }
         // check for function calls
-        if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
+        if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(&I)) {
           ++Stats.CallSites;
-          const llvm::CallBase *CallSite = llvm::cast<llvm::CallBase>(&I);
-          if (CallSite->getCalledFunction()) {
-            if (MemAllocatingFunctions.count(llvm::demangle(
-                    CallSite->getCalledFunction()->getName().str()))) {
+
+          const auto *CalledOp =
+              CallSite->getCalledOperand()->stripPointerCastsAndAliases();
+
+          if (llvm::isa<llvm::InlineAsm>(CalledOp)) {
+            ++Stats.NumInlineAsm;
+          } else if (const auto *CalleeFun =
+                         llvm::dyn_cast<llvm::Function>(CalledOp)) {
+            if (isHeapAllocatingFunction(CalleeFun)) {
               // do not add allocas from llvm internal functions
               Stats.AllocaInstructions.insert(&I);
               ++Stats.AllocationSites;
               // check if an instance of a user-defined type is allocated on the
               // heap
-              for (auto *User : I.users()) {
-                if (auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
-                  if (Cast->getDestTy()
-                          ->getPointerElementType()
-                          ->isStructTy()) {
-                    // finally check for ctor call
-                    for (auto *User : Cast->users()) {
-                      if (llvm::isa<llvm::CallInst>(User) ||
-                          llvm::isa<llvm::InvokeInst>(User)) {
-                        // potential call to the structures ctor
-                        const llvm::CallBase *CTor =
-                            llvm::cast<llvm::CallBase>(User);
-                        if (CTor->getCalledFunction() &&
-                            CTor->getCalledFunction()->getArg(0)->getType() ==
-                                Cast->getDestTy()) {
-                          Stats.AllocatedTypes.insert(
-                              Cast->getDestTy()->getPointerElementType());
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              collectAllocatedTypes(CallSite, Stats.AllocatedTypes);
             }
+          } else {
+            ++Stats.IndCalls;
           }
         }
       }
     }
   }
   // check for global pointers
-  for (auto const &Global : M.globals()) {
-    if (Global.getType()->isPointerTy()) {
-      ++Stats.GlobalPointers;
-    }
+  for (const auto &Global : M.globals()) {
     ++Stats.Globals;
     if (Global.isConstant()) {
       ++Stats.GlobalConsts;
+    }
+    if (!Global.isDeclaration()) {
+      ++Stats.GlobalsDefinitions;
+    }
+    if (Global.hasExternalLinkage()) {
+      ++Stats.ExternalGlobals;
     }
   }
   // register stuff in PAMM
@@ -139,50 +213,38 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   // the counter with the values of the counter varibles, i.e. PAMM simply
   // holds the results.
   PAMM_GET_INSTANCE;
-  REG_COUNTER("GS Instructions", Stats.instructions, PAMM_SEVERITY_LEVEL::Core);
-  REG_COUNTER("GS Allocated Types", Stats.allocatedTypes.size(),
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Allocation-Sites", Stats.allocationsites,
-              PAMM_SEVERITY_LEVEL::Core);
-  REG_COUNTER("GS Basic Blocks", Stats.basicblocks, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Call-Sites", Stats.callsites, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Functions", Stats.functions, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Globals", Stats.globals, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Global Pointer", Stats.globalPointers,
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Memory Intrinsics", Stats.memIntrinsic,
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Store Instructions", Stats.storeInstructions,
-              PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Load Instructions", Stats.loadInstructions,
-              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Instructions", Stats.Instructions, Core);
+  REG_COUNTER("GS Allocated Types", Stats.AllocatedTypes.size(), Full);
+  REG_COUNTER("GS Basic Blocks", Stats.BasicBlocks, Full);
+  REG_COUNTER("GS Call-Sites", Stats.CallSites, Full);
+  REG_COUNTER("GS Functions", Stats.Functions, Full);
+  REG_COUNTER("GS Globals", Stats.Globals, Full);
+  REG_COUNTER("GS Memory Intrinsics", Stats.MemIntrinsics, Full);
+  REG_COUNTER("GS Store Instructions", Stats.StoreInstructions, Full);
+  REG_COUNTER("GS Load Instructions", Stats.LoadInstructions, Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
-  IF_LOG_ENABLED(
-      PHASAR_LOG_LEVEL(INFO, "GeneralStatisticsAnalysis summary for module: '"
-                                 << M.getName() << "'");
-      PHASAR_LOG_LEVEL(INFO, "Instructions       : " << Stats.Instructions);
-      PHASAR_LOG_LEVEL(INFO,
-                       "Allocated Types    : " << Stats.AllocatedTypes.size());
-      PHASAR_LOG_LEVEL(INFO, "Allocation Sites   : " << Stats.AllocationSites);
-      PHASAR_LOG_LEVEL(INFO, "Basic Blocks       : " << Stats.BasicBlocks);
-      PHASAR_LOG_LEVEL(INFO, "Calls Sites        : " << Stats.CallSites);
-      PHASAR_LOG_LEVEL(INFO, "Functions          : " << Stats.Functions);
-      PHASAR_LOG_LEVEL(INFO, "Globals            : " << Stats.Globals);
-      PHASAR_LOG_LEVEL(INFO, "Global Pointer     : " << Stats.GlobalPointers);
-      PHASAR_LOG_LEVEL(INFO, "Global Consts      : " << Stats.GlobalConsts);
-      PHASAR_LOG_LEVEL(INFO, "Memory Intrinsics  : " << Stats.MemIntrinsics);
-      PHASAR_LOG_LEVEL(INFO,
-                       "Store Instructions : " << Stats.StoreInstructions);
-      PHASAR_LOG_LEVEL(INFO, ' '); PHASAR_LOG_LEVEL(
-          INFO, "Allocated Types << " << Stats.AllocatedTypes.size());
-      for (const auto *Type
-           : Stats.AllocatedTypes) {
-        std::string TypeStr;
-        llvm::raw_string_ostream Rso(TypeStr);
-        Type->print(Rso);
-        PHASAR_LOG_LEVEL(INFO, "  " << Rso.str());
-      });
+  IF_LOG_LEVEL_ENABLED(INFO, {
+    PHASAR_LOG_LEVEL(INFO, "GeneralStatisticsAnalysis summary for module: '"
+                               << M.getName() << "'");
+    PHASAR_LOG_LEVEL(INFO, "Instructions       : " << Stats.Instructions);
+    PHASAR_LOG_LEVEL(INFO,
+                     "Allocated Types    : " << Stats.AllocatedTypes.size());
+    PHASAR_LOG_LEVEL(INFO, "Allocation Sites   : " << Stats.AllocationSites);
+    PHASAR_LOG_LEVEL(INFO, "Basic Blocks       : " << Stats.BasicBlocks);
+    PHASAR_LOG_LEVEL(INFO, "Calls Sites        : " << Stats.CallSites);
+    PHASAR_LOG_LEVEL(INFO, "Functions          : " << Stats.Functions);
+    PHASAR_LOG_LEVEL(INFO, "Globals            : " << Stats.Globals);
+    PHASAR_LOG_LEVEL(INFO, "Global Consts      : " << Stats.GlobalConsts);
+    PHASAR_LOG_LEVEL(INFO, "Memory Intrinsics  : " << Stats.MemIntrinsics);
+    PHASAR_LOG_LEVEL(INFO, "Store Instructions : " << Stats.StoreInstructions);
+    PHASAR_LOG_LEVEL(INFO, ' ');
+    PHASAR_LOG_LEVEL(INFO,
+                     "Allocated Types << " << Stats.AllocatedTypes.size());
+    for (const auto *Type : Stats.AllocatedTypes) {
+      PHASAR_LOG_LEVEL(INFO, "  " << llvmTypeToString(Type));
+    }
+  });
   // now we are done and can return the results
   return Stats;
 }
@@ -193,7 +255,7 @@ size_t GeneralStatistics::getFunctioncalls() const { return CallSites; }
 
 size_t GeneralStatistics::getInstructions() const { return Instructions; }
 
-size_t GeneralStatistics::getGlobalPointers() const { return GlobalPointers; }
+size_t GeneralStatistics::getGlobalPointers() const { return Globals; }
 
 size_t GeneralStatistics::getBasicBlocks() const { return BasicBlocks; }
 
@@ -209,58 +271,127 @@ size_t GeneralStatistics::getStoreInstructions() const {
   return StoreInstructions;
 }
 
-const set<const llvm::Type *> &GeneralStatistics::getAllocatedTypes() const {
+const std::set<const llvm::Type *> &
+GeneralStatistics::getAllocatedTypes() const {
   return AllocatedTypes;
 }
 
-const set<const llvm::Instruction *> &
+const std::set<const llvm::Instruction *> &
 GeneralStatistics::getAllocaInstructions() const {
   return AllocaInstructions;
 }
 
-const set<const llvm::Instruction *> &
+const std::set<const llvm::Instruction *> &
 GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
 }
 
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
-  OS << getAsJson().dump(4) << '\n';
+  OS << getAsJson() << '\n';
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {
   nlohmann::json J;
-  J["ModuleName"] = GeneralStatistics::ModuleName;
-  J["Instructions"] = getInstructions();
+  J["ModuleName"] = ModuleName;
+  J["Instructions"] = Instructions;
   J["Functions"] = Functions;
+  J["ExternalFunctions"] = ExternalFunctions;
+  J["FunctionDefinitions"] = FunctionDefinitions;
+  J["AddressTakenFunctions"] = AddressTakenFunctions;
   J["AllocaInstructions"] = AllocaInstructions.size();
   J["CallSites"] = CallSites;
+  J["IndirectCallSites"] = IndCalls;
+  J["MemoryIntrinsics"] = MemIntrinsics;
+  J["DebugIntrinsics"] = DebugIntrinsics;
+  J["InlineAssembly"] = NumInlineAsm;
   J["GlobalVariables"] = Globals;
   J["Branches"] = Branches;
   J["GetElementPtrs"] = GetElementPtrs;
   J["BasicBlocks"] = BasicBlocks;
   J["PhiNodes"] = PhiNodes;
+  J["LandingPads"] = LandingPads;
   J["GlobalConsts"] = GlobalConsts;
-  J["GlobalPointers"] = GlobalPointers;
   return J;
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const GeneralStatistics &Statistics) {
-  return OS << "General LLVM IR Statistics"
-            << "\n"
-            << "Module " << Statistics.ModuleName << ":\n"
-            << "LLVM IR instructions:\t" << Statistics.Instructions << "\n"
-            << "Functions:\t" << Statistics.Functions << "\n"
-            << "Global Variables:\t" << Statistics.Globals << "\n"
-            << "Global Variable Consts:\t" << Statistics.GlobalConsts << "\n"
-            << "Global Pointers:\t" << Statistics.GlobalPointers << "\n"
-            << "Alloca Instructions:\t" << Statistics.AllocaInstructions.size()
-            << "\n"
-            << "Call Sites:\t" << Statistics.CallSites << "\n"
-            << "Branches:\t" << Statistics.Branches << "\n"
-            << "GetElementPtrs:\t" << Statistics.GetElementPtrs << "\n"
-            << "Phi Nodes:\t" << Statistics.PhiNodes << "\n"
-            << "Basic Blocks:\t" << Statistics.BasicBlocks << "\n";
-}
-
 } // namespace psr
+
+namespace {
+template <typename T> struct AlignNum {
+  llvm::StringRef Name;
+  T Num;
+
+  AlignNum(llvm::StringRef Name, T Num) noexcept : Name(Name), Num(Num) {}
+  AlignNum(llvm::StringRef Name, size_t Numerator, size_t Denominator) noexcept
+      : Name(Name), Num(double(Numerator) / double(Denominator)) {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const AlignNum &AN) {
+    static constexpr size_t NumOffs = 32;
+
+    auto Len = AN.Name.size() + 1;
+    auto Diff = -(Len < NumOffs) & (NumOffs - Len);
+
+    OS << AN.Name << ':';
+    // Default is two fixed-point decimal places, so shift the output by three
+    // spaces
+    OS.indent(Diff + std::is_floating_point_v<T> * 3);
+    OS << llvm::formatv("{0,+7}\n", AN.Num);
+
+    return OS;
+  }
+};
+template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
+AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+} // namespace
+
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   const GeneralStatistics &Statistics) {
+  return OS
+         << "General LLVM IR Statistics\n"
+         << "Module " << Statistics.ModuleName << ":\n"
+         << "---------------------------------------\n"
+         << AlignNum("LLVM IR instructions", Statistics.Instructions)
+         << AlignNum("Functions", Statistics.Functions)
+         << AlignNum("External Functions", Statistics.ExternalFunctions)
+         << AlignNum("Function Definitions", Statistics.FunctionDefinitions)
+         << AlignNum("Address-Taken Functions",
+                     Statistics.AddressTakenFunctions)
+         << AlignNum("Globals", Statistics.Globals)
+         << AlignNum("Global Constants", Statistics.GlobalConsts)
+         << AlignNum("Global Variables",
+                     Statistics.Globals - Statistics.GlobalConsts)
+         << AlignNum("External Globals", Statistics.ExternalGlobals)
+         << AlignNum("Global Definitions", Statistics.GlobalsDefinitions)
+         << AlignNum("Alloca Instructions",
+                     Statistics.AllocaInstructions.size())
+         << AlignNum("Call Sites", Statistics.CallSites)
+         << AlignNum("Indirect Call Sites", Statistics.IndCalls)
+         << AlignNum("Inline Assemblies", Statistics.NumInlineAsm)
+         << AlignNum("Memory Intrinsics", Statistics.MemIntrinsics)
+         << AlignNum("Debug Intrinsics", Statistics.DebugIntrinsics)
+         << AlignNum("Switches", Statistics.Switches)
+         << AlignNum("GetElementPtrs", Statistics.GetElementPtrs)
+         << AlignNum("Phi Nodes", Statistics.PhiNodes)
+         << AlignNum("LandingPads", Statistics.LandingPads)
+         << AlignNum("Basic Blocks", Statistics.BasicBlocks)
+         << AlignNum("Avg #pred per BasicBlock",
+                     Statistics.TotalNumPredecessorBBs, Statistics.BasicBlocks)
+         << AlignNum("Max #pred per BasicBlock",
+                     Statistics.MaxNumPredecessorBBs)
+         << AlignNum("Avg #succ per BasicBlock",
+                     Statistics.TotalNumSuccessorBBs, Statistics.BasicBlocks)
+         << AlignNum("Max #succ per BasicBlock", Statistics.MaxNumSuccessorBBs)
+         << AlignNum("Avg #operands per Inst", Statistics.TotalNumOperands,
+                     Statistics.Instructions)
+         << AlignNum("Max #operands per Inst", Statistics.MaxNumOperands)
+         << AlignNum("Avg #uses per Inst", Statistics.TotalNumUses,
+                     Statistics.Instructions)
+         << AlignNum("Max #uses per Inst", Statistics.MaxNumUses)
+         << AlignNum("Insts with >1 uses", Statistics.NumInstWithMultipleUses)
+         << AlignNum("Non-void Insts", Statistics.NonVoidInsts)
+         << AlignNum("Insts used outside its BB",
+                     Statistics.NumInstsUsedOutsideBB)
+
+      ;
+}

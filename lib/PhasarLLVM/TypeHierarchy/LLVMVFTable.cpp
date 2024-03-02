@@ -56,7 +56,7 @@ LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct &VT) {
     if (const auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
       // Start iterating at offset 2, because offset 0 is vbase offset, offset 1
       // is RTTI
-      for (auto It = std::next(CA->operands().begin(), 2);
+      for (const auto *It = std::next(CA->operands().begin(), 2);
            It != CA->operands().end(); ++It) {
         const auto &COp = *It;
         if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {

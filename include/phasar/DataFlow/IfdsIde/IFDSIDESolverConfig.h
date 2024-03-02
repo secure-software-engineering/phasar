@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSIDESOLVERCONFIG_H_
+#ifndef PHASAR_DATAFLOW_IFDSIDE_IFDSIDESOLVERCONFIG_H
+#define PHASAR_DATAFLOW_IFDSIDE_IFDSIDESOLVERCONFIG_H
 
 #include "phasar/Utils/EnumFlags.h"
 
@@ -63,9 +63,8 @@ struct IFDSIDESolverConfig {
                                        const IFDSIDESolverConfig &SC);
 
 private:
-  SolverConfigOptions Options = SolverConfigOptions::AutoAddZero |
-                                SolverConfigOptions::ComputeValues |
-                                SolverConfigOptions::RecordEdges;
+  SolverConfigOptions Options =
+      SolverConfigOptions::AutoAddZero | SolverConfigOptions::ComputeValues;
 };
 
 } // namespace psr

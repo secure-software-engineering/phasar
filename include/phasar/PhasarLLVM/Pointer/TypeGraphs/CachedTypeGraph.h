@@ -22,11 +22,14 @@
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/reverse_graph.hpp"
-#include "gtest/gtest_prod.h"
 
 #include <set>
 #include <string>
 #include <unordered_map>
+
+#ifndef PSR_FRIEND_TEST
+#define PSR_FRIEND_TEST(TEST, CLASS)
+#endif
 
 namespace llvm {
 class StructType;
@@ -72,13 +75,13 @@ protected:
   graph_t G;
   bool AlreadyVisited = false;
 
-  FRIEND_TEST(TypeGraphTest, AddType);
-  FRIEND_TEST(TypeGraphTest, AddLinkSimple);
-  FRIEND_TEST(TypeGraphTest, AddLinkWithSubs);
-  FRIEND_TEST(TypeGraphTest, AddLinkWithRecursion);
-  FRIEND_TEST(TypeGraphTest, ReverseTypePropagation);
-  FRIEND_TEST(TypeGraphTest, TypeAggregation);
-  FRIEND_TEST(TypeGraphTest, Merging);
+  PSR_FRIEND_TEST(TypeGraphTest, AddType)
+  PSR_FRIEND_TEST(TypeGraphTest, AddLinkSimple)
+  PSR_FRIEND_TEST(TypeGraphTest, AddLinkWithSubs)
+  PSR_FRIEND_TEST(TypeGraphTest, AddLinkWithRecursion)
+  PSR_FRIEND_TEST(TypeGraphTest, ReverseTypePropagation)
+  PSR_FRIEND_TEST(TypeGraphTest, TypeAggregation)
+  PSR_FRIEND_TEST(TypeGraphTest, Merging)
 
   vertex_t addType(const llvm::StructType *NewType);
   void reverseTypePropagation(const llvm::StructType *BaseStruct);

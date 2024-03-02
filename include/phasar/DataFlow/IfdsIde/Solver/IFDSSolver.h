@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IFDSSOLVER_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
@@ -28,8 +28,10 @@
 
 namespace psr {
 
-template <typename AnalysisDomainTy>
-class IFDSSolver : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>> {
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class IFDSSolver
+    : public IDESolver<WithBinaryValueDomain<AnalysisDomainTy>, Container> {
 public:
   using ProblemTy = IFDSTabulationProblem<AnalysisDomainTy>;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -39,10 +41,11 @@ public:
   template <typename IfdsDomainTy,
             typename = std::enable_if_t<
                 std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy> &IFDSProblem, const i_t *ICF)
+  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
+             const i_t *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
 
-  virtual ~IFDSSolver() = default;
+  ~IFDSSolver() override = default;
 
   /// Returns the data-flow results at the given statement.
   [[nodiscard]] virtual std::set<d_t> ifdsResultsAt(n_t Inst) {
@@ -96,10 +99,23 @@ public:
 
 template <typename Problem, typename ICF>
 IFDSSolver(Problem &, ICF *)
-    -> IFDSSolver<typename Problem::ProblemAnalysisDomain>;
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type>;
 
 template <typename Problem>
-using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain>;
+using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                                typename Problem::container_type>;
+
+template <typename AnalysisDomainTy, typename Container>
+OwningSolverResults<typename AnalysisDomainTy::n_t,
+                    typename AnalysisDomainTy::d_t,
+                    typename AnalysisDomainTy::l_t>
+solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
+                 const typename AnalysisDomainTy::i_t &ICF) {
+  IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+  Solver.solve();
+  return Solver.consumeSolverResults();
+}
 
 } // namespace psr
 

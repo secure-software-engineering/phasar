@@ -19,9 +19,14 @@
 namespace psr {
 
 class LLVMBasedICFG;
+class LLVMBasedBackwardICFG;
+template <typename N, typename F> class CallGraph;
+
+template <>
+struct CFGTraits<LLVMBasedBackwardICFG> : CFGTraits<LLVMBasedBackwardCFG> {};
 
 class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
-                              public ICFGBase<LLVMBasedBackwardCFG> {
+                              public ICFGBase<LLVMBasedBackwardICFG> {
   friend ICFGBase;
 
   class LLVMBackwardRet {
@@ -60,6 +65,7 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   [[nodiscard]] nlohmann::json getAsJsonImpl() const;
+  [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
 
   llvm::LLVMContext BackwardRetsCtx;
   llvm::DenseMap<const llvm::Function *, LLVMBackwardRet> BackwardRets;
@@ -68,6 +74,8 @@ private:
 
   LLVMBasedICFG *ForwardICFG{};
 };
+
+extern template class ICFGBase<LLVMBasedBackwardICFG>;
 } // namespace psr
 
 #endif

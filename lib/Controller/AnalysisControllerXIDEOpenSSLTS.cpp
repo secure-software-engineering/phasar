@@ -7,15 +7,15 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
-namespace psr {
+#include "AnalysisControllerInternalIDE.h"
 
-void AnalysisController::executeIDEOpenSSLTS() {
+using namespace psr;
+
+void controller::executeIDEOpenSSLTS(AnalysisController::ControllerData &Data) {
   OpenSSLEVPKDFDescription TSDesc;
-  executeIDEAnalysis<IDETypeStateAnalysis>(&TSDesc, EntryPoints);
+  executeIDEAnalysis<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>(
+      Data, &TSDesc, Data.EntryPoints);
 }
-
-} // namespace psr

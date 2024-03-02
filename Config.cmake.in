@@ -1,14 +1,23 @@
-set(PHASAR_VERSION 1.0.0)
+set(PHASAR_VERSION 2403)
 
 @PACKAGE_INIT@
 set_and_check(PHASAR_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check(PHASAR_LIBRARY_DIR "@PACKAGE_LIBRARY_INSTALL_DIR@")
 
 include (CMakeFindDependencyMacro)
 find_dependency(nlohmann_json)
 find_dependency(nlohmann_json_schema_validator)
-find_package(Boost 1.65.1 COMPONENTS program_options graph REQUIRED)
 
-# TODO: The order seems to be important. Fix this!
+find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
+find_package(LLVM 14 REQUIRED CONFIG)
+
+set(PHASAR_USE_LLVM_FAT_LIB @USE_LLVM_FAT_LIB@)
+set(PHASAR_BUILD_DYNLIB @PHASAR_BUILD_DYNLIB@)
+set(PHASAR_USE_Z3 @PHASAR_USE_Z3@)
+
+if (PHASAR_USE_Z3)
+  find_dependency(Z3)
+endif()
 
 set(PHASAR_COMPONENTS
   utils
@@ -32,27 +41,37 @@ set(PHASAR_COMPONENTS
   controller
 )
 
-foreach(component ${PHASAR_COMPONENTS})
-  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-targets.cmake")
-  list(APPEND PHASAR_NEEDED_LIBS phasar::phasar_${component})
-endforeach()
+list(REMOVE_DUPLICATES phasar_FIND_COMPONENTS)
 
-list(REMOVE_DUPLICATES PHASAR_NEEDED_LIBS)
+set(PHASAR_NEEDED_LIBS)
 
-find_package(LLVM 14 REQUIRED CONFIG)
-include_directories(${LLVM_INCLUDE_DIRS})
-link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
-find_library(LLVM_LIBRARY NAMES LLVM HINTS ${LLVM_LIBRARY_DIRS})
+include("${CMAKE_CURRENT_LIST_DIR}/PhasarExports.cmake")
 
-function(phasar_config executable)
-  if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-    llvm_config(${executable} USE_SHARED ${PHASAR_LLVM_DEPS})
-  else()
-    llvm_config(${executable} ${PHASAR_LLVM_DEPS})
+foreach(component ${phasar_FIND_COMPONENTS})
+  if(NOT ${component} IN_LIST PHASAR_COMPONENTS)
+    set(phasar_FOUND false)
+    set(phasar_NOT_FOUND_MESSAGE "Unsupported component: ${component}. Valid components are: ${PHASAR_COMPONENTS}")
   endif()
 
-  target_link_libraries(${executable}
-    PUBLIC
-    ${PHASAR_NEEDED_LIBS}
-  )
-endfunction()
+  list(APPEND PHASAR_NEEDED_LIBS phasar::${component})
+endforeach()
+
+if (NOT DEFINED phasar_FOUND OR phasar_FOUND EQUAL TRUE)
+  foreach(component ${phasar_FIND_COMPONENTS})
+    # For backwards compatibility -- will be removed with next release
+    add_library(phasar::phasar_${component} ALIAS phasar::${component})
+  endforeach()
+
+  if (NOT phasar_FIND_COMPONENTS)
+    list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
+    # Default target
+    add_library(phasar ALIAS phasar::phasar)
+  endif()
+
+  function(phasar_config executable)
+    target_link_libraries(${executable}
+      PUBLIC
+        ${PHASAR_NEEDED_LIBS}
+    )
+  endfunction()
+endif()

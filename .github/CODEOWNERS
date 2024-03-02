@@ -26,3 +26,9 @@ Dockerfile @janniclas
 /.docker/ @janniclas
 
 /include/phasar/Utils/Logger.h @MMory
+/include/phasar/Utils/AnalysisPrinterBase.h @sritejakv
+/include/phasar/Utils/DefaultAnalysisPrinter.h @sritejakv
+/include/phasar/Utils/NullAnalysisPrinter.h @sritejakv
+/include/phasar/Utils/OnTheFlyAnalysisPrinter.h @sritejakv
+/include/phasar/PhasarLLVM/Utils/SourceMgrPrinter.h @sritejakv
+/lib/PhasarLLVM/Utils/SourceMgrPrinter.cpp @sritejakv

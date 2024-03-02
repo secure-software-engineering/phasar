@@ -1,4 +1,4 @@
-set(NoMem2regSources
+set(NoMem2RegSources
   type_hierarchy_1.cpp
   type_hierarchy_2.cpp
   type_hierarchy_3.cpp
@@ -17,8 +17,17 @@ set(NoMem2regSources
   type_hierarchy_13.cpp
   type_hierarchy_14.cpp
   type_hierarchy_15.cpp
+  type_hierarchy_16.cpp
+  type_hierarchy_17.cpp
+  type_hierarchy_18.cpp
+  type_hierarchy_19.cpp
+  type_hierarchy_20.cpp
+  type_hierarchy_21.cpp
 )
-
-foreach(TEST_SRC ${NoMem2regSources})
+foreach(TEST_SRC ${NoMem2RegSources})
   generate_ll_file(FILE ${TEST_SRC})
+endforeach(TEST_SRC)
+
+foreach(TEST_SRC ${NoMem2RegSources})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
