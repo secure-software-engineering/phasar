@@ -3,6 +3,10 @@ function(add_nlohmann_json)
   set(JSON_BuildTests OFF)
   set(JSON_Install OFF)
 
+  if (PHASAR_IN_TREE)
+    set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json)
+  endif()
+
   add_subdirectory(external/json)
   set_property(TARGET nlohmann_json APPEND PROPERTY
     INTERFACE_INCLUDE_DIRECTORIES $<INSTALL_INTERFACE:${PHASAR_DEPS_INSTALL_DESTINATION}/include>
