@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
 ARG LLVM_INSTALL_DIR="/usr/local/llvm-14"
-LABEL Name=phasar Version=1.0.0
+LABEL Name=phasar Version=2403
 
 RUN apt -y update && apt install bash sudo -y
 

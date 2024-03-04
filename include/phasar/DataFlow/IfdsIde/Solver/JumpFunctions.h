@@ -18,6 +18,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
 
@@ -155,6 +156,18 @@ public:
    */
   Table<d_t, d_t, EdgeFunction<l_t>> &lookupByTarget(n_t Target) {
     return NonEmptyLookupByTargetNode[Target];
+  }
+
+  template <typename HandlerFn>
+  void foreachEdgeFunction(HandlerFn Handler) const {
+    NonEmptyForwardLookup.foreachCell(
+        [Handler = std::move(Handler)](ByConstRef<d_t> /*Row*/,
+                                       ByConstRef<n_t> /*Col*/,
+                                       const auto &TargetFactAndEF) {
+          for (const auto &[TargetFact, EF] : TargetFactAndEF) {
+            std::invoke(Handler, EF);
+          }
+        });
   }
 
   /**

@@ -176,6 +176,16 @@ if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
   message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
 endif()
 
+if (PHASAR_DEBUG_LIBDEPS)
+  if (NOT BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+    message("PHASAR_DEBUG_LIBDEPS only works for shared libraries, so set BUILD_SHARED_LIBS=ON")
+  endif()
+  if (PHASAR_ENABLE_SANITIZERS)
+    message(FATAL_ERROR "PHASAR_DEBUG_LIBDEPS is incompatible with ASAN (see https://clang.llvm.org/docs/AddressSanitizer.html#usage)")
+  endif()
+endif ()
+
 option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
 if (PHASAR_ENABLE_PIC)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -555,7 +565,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake
-  VERSION 1.0.0
+  VERSION 2403
   COMPATIBILITY SameMajorVersion
 )
 

@@ -70,7 +70,6 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
-
   buildLLVMTypeHierarchy(*IRDB.getModule());
 }
 

@@ -19,8 +19,8 @@
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
-#include "phasar/PhasarLLVM/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -40,6 +40,7 @@ struct HasNoConfigurationType;
 
 template <typename AnalysisDomainTy, typename = void> class AllTopFnProvider {
 public:
+  virtual ~AllTopFnProvider() = default;
   /// Returns an edge function that represents the top element of the analysis.
   virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() = 0;
 };
@@ -49,6 +50,7 @@ class AllTopFnProvider<
     AnalysisDomainTy,
     std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
 public:
+  virtual ~AllTopFnProvider() = default;
   /// Returns an edge function that represents the top element of the analysis.
   virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() {
     return AllTop<typename AnalysisDomainTy::l_t>{};

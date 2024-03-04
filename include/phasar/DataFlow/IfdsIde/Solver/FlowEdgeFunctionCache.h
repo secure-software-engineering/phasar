@@ -32,6 +32,10 @@ class Value;
 } // namespace llvm
 
 namespace psr {
+
+enum class EdgeFunctionKind { Normal, Call, Return, CallToReturn, Summary };
+static constexpr size_t EdgeFunctionKindCount = 5;
+
 template <typename KeyT> class DefaultMapKeyCompressor {
 public:
   using KeyType = KeyT;
@@ -600,6 +604,32 @@ public:
     } else {
       PHASAR_LOG_LEVEL(
           INFO, "Cache statistics only recorded on PAMM severity level: Full.");
+    }
+  }
+
+  template <typename Handler> void foreachCachedEdgeFunction(Handler Fn) const {
+    for (const auto &[Key, NormalFns] : NormalFunctionCache) {
+      for (const auto &[Set, EF] : NormalFns.EdgeFunctionMap) {
+        std::invoke(Fn, EF, EdgeFunctionKind::Normal);
+      }
+    }
+
+    for (const auto &[Key, EF] : CallEdgeFunctionCache) {
+      std::invoke(Fn, EF, EdgeFunctionKind::Call);
+    }
+
+    for (const auto &[Key, EF] : ReturnEdgeFunctionCache) {
+      std::invoke(Fn, EF, EdgeFunctionKind::Return);
+    }
+
+    for (const auto &[Key, CTRFns] : CallToRetEdgeFunctionCache) {
+      for (const auto &[Set, EF] : CTRFns) {
+        std::invoke(Fn, EF, EdgeFunctionKind::CallToReturn);
+      }
+    }
+
+    for (const auto &[Key, EF] : SummaryEdgeFunctionCache) {
+      std::invoke(Fn, EF, EdgeFunctionKind::Summary);
     }
   }
 

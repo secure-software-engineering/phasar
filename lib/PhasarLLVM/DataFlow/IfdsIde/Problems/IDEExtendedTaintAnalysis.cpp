@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/PointsToInfo.h"
 #include "phasar/Utils/DebugOutput.h"
@@ -227,9 +228,8 @@ void IDEExtendedTaintAnalysis::reportLeakIfNecessary(
     const llvm::Value *LeakCandidate) {
   if (isSink(SinkCandidate, Inst)) {
     Leaks[Inst].insert(LeakCandidate);
-    Warning<IDEExtendedTaintAnalysisDomain> Warn(
-        Inst, makeFlowFact(LeakCandidate), Top{});
-    Printer->onResult(Warn);
+    Printer->onResult(Inst, makeFlowFact(LeakCandidate), Top{},
+                      DataFlowAnalysisType::IDEExtendedTaintAnalysis);
   }
 }
 
@@ -754,13 +754,12 @@ void IDEExtendedTaintAnalysis::emitTextReport(
 
   for (auto &[Inst, LeakSet] : Leaks) {
     for (const auto &Leak : LeakSet) {
-      Warning<IDEExtendedTaintAnalysisDomain> Warn(Inst, makeFlowFact(Leak),
-                                                   Top{});
-      Printer->onResult(Warn);
+      Printer->onResult(Inst, makeFlowFact(Leak), Top{},
+                        DataFlowAnalysisType::IDEExtendedTaintAnalysis);
     }
   }
 
-  Printer->onFinalize(OS);
+  Printer->onFinalize();
 }
 
 // Helpers:

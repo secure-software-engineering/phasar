@@ -1,7 +1,8 @@
 # Breaking Changes
 
-## Development HEAD
+## v2403
 
+- Versioning scheme has been changed from `<month><year>` to `<year><month>`
 - Default build mode is no longer `SHARED` but `STATIC`. To build in shared mode, use the cmake option `BUILD_SHARED_LIBS` which we don't recommend anymore. Consider using `PHASAR_BUILD_DYNLIB` instead to build one big libphasar.so.
 - Build type `DebugSan` has been removed in favor of a new CMake option `PHASAR_ENABLE_SANITIZERS` that not only works in `Debug` mode.
 
