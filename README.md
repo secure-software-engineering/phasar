@@ -186,9 +186,7 @@ In this case, just `add_subdirectory` the phasar submodule directory within your
 Assuming you have checked out phasar in `external/phasar`, the phasar-related cmake commands may look like this:
 
 ```cmake
-set(PHASAR_BUILD_UNITTESTS OFF)              # -- Don't build PhASAR's unittests with *your* tool
-set(PHASAR_BUILD_IR OFF)                     # --
-add_subdirectory(external/phasar)            # Build phasar with your tool
+add_subdirectory(external/phasar EXCLUDE_FROM_ALL)            # Build phasar with your tool
 
 ...
 
