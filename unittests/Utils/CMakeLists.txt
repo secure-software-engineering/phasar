@@ -1,4 +1,5 @@
 set(UtilsSources
+  CompilationTests.cpp
   BitVectorSetTest.cpp
   EquivalenceClassMapTest.cpp
   IOTest.cpp
@@ -7,6 +8,8 @@ set(UtilsSources
   PAMMTest.cpp
   StableVectorTest.cpp
   AnalysisPrinterTest.cpp
+  OnTheFlyAnalysisPrinterTest.cpp
+  SourceMgrPrinterTest.cpp
 )
 
 if(PHASAR_ENABLE_DYNAMIC_LOG)
@@ -16,3 +19,5 @@ endif()
 foreach(TEST_SRC ${UtilsSources})
   add_phasar_unittest(${TEST_SRC})
 endforeach(TEST_SRC)
+
+target_compile_options(CompilationTests PRIVATE -Wno-delete-incomplete)

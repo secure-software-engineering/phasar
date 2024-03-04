@@ -8,12 +8,11 @@ add_subdirectory(Controller)
 add_subdirectory(Pointer)
 add_subdirectory(ControlFlow)
 if(BUILD_PHASAR_CLANG)
+    if(PHASAR_IN_TREE)
+        add_dependencies(phasar_interface intrinsics_gen)
+    endif()
     add_subdirectory(PhasarClang)
 endif()
-
-# The fat lib relies on transitive dependencies...
-set(PHASAR_DEBUG_LIBDEPS_SAVE ${PHASAR_DEBUG_LIBDEPS})
-set(PHASAR_DEBUG_LIBDEPS OFF)
 
 if(PHASAR_BUILD_DYNLIB)
     set(PHASAR_DYNLIB_KIND SHARED)
@@ -52,5 +51,3 @@ add_phasar_library(phasar ${PHASAR_DYNLIB_KIND}
         Passes
         Demangle
 )
-
-set(PHASAR_DEBUG_LIBDEPS ${PHASAR_DEBUG_LIBDEPS_SAVE})

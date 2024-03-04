@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -410,9 +411,8 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
                          CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
-            Warning<LLVMIFDSAnalysisDomainDefault> Warn(CallSite, Source,
-                                                        topElement());
-            Printer->onResult(Warn);
+            Printer->onResult(CallSite, Source,
+                              DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
 
@@ -439,9 +439,8 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
     if (Leak.count(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
-        Warning<LLVMIFDSAnalysisDomainDefault> Warn(CallSite, Source,
-                                                    topElement());
-        Printer->onResult(Warn);
+        Printer->onResult(CallSite, Source,
+                          DataFlowAnalysisType::IFDSTaintAnalysis);
       }
     }
 
@@ -487,7 +486,7 @@ void IFDSTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
-  Printer->onFinalize(OS);
+  Printer->onFinalize();
 }
 
 } // namespace psr

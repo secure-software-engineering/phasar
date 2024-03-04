@@ -18,12 +18,12 @@ jobs:
           - build: Debug
             flags: -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
           - build: Release
-            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
 
     continue-on-error: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -64,7 +64,7 @@ jobs:
           cmake .. \
             -DCMAKE_BUILD_TYPE=${{ matrix.build }} \
             -DBUILD_SWIFT_TESTS=ON \
-            -DPHASAR_DEBUG_LIBDEPS=ON \
+            -DPHASAR_USE_Z3=ON \
             ${{ matrix.flags }} \
             -G Ninja
           cmake --build .

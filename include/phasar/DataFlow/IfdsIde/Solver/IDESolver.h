@@ -20,18 +20,21 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionStats.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
+#include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/JumpFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/AnalysisDomain.h"
+#include "phasar/Utils/Average.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
@@ -39,6 +42,7 @@
 #include "phasar/Utils/Table.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -255,6 +259,81 @@ public:
                                               std::move(ZeroValue));
   }
 
+  [[nodiscard]] EdgeFunctionStats getEdgeFunctionStatistics() const {
+    detail::EdgeFunctionStatsData Stats{};
+
+    // Cached Edge Functions
+    {
+      std::array<llvm::DenseSet<EdgeFunction<l_t>>, EdgeFunctionKindCount>
+          UniqueEFs{};
+      Sampler DepthSampler{};
+      Sampler UniqueDepthSampler{};
+      // TODO: Cache EFs
+      CachedFlowEdgeFunctions.foreachCachedEdgeFunction(
+          [&](EdgeFunction<l_t> EF, EdgeFunctionKind Kind) {
+            auto Depth = EF.depth();
+            DepthSampler.addSample(Depth);
+            if (Depth > Stats.MaxDepth) {
+              Stats.MaxDepth = Depth;
+            }
+
+            if (UniqueEFs[size_t(Kind)].insert(std::move(EF)).second) {
+              UniqueDepthSampler.addSample(Depth);
+            }
+            Stats.TotalEFCount[size_t(Kind)]++;
+            Stats.PerAllocCount[size_t(EF.getAllocationPolicy())]++;
+          });
+
+      size_t TotalUniqueNumEF = 0;
+      for (size_t I = 0, End = UniqueEFs.size(); I != End; ++I) {
+        Stats.UniqueEFCount[I] = UniqueEFs[I].size(); // NOLINT
+        TotalUniqueNumEF += UniqueEFs[I].size();
+      }
+
+      Stats.AvgDepth = DepthSampler.getAverage();
+      Stats.AvgUniqueDepth = UniqueDepthSampler.getAverage();
+    }
+
+    // Jump Functions
+    {
+      llvm::DenseSet<EdgeFunction<l_t>> UniqueJumpFns;
+      llvm::DenseSet<const void *> AllocatedJumpFns;
+      Sampler DepthSampler{};
+      Sampler UniqueDepthSampler{};
+      Sampler AllocDepthSampler{};
+
+      JumpFn->foreachEdgeFunction([&](EdgeFunction<l_t> JF) {
+        ++Stats.TotalNumJF;
+        auto Depth = JF.depth();
+        DepthSampler.addSample(Depth);
+        if (Depth > Stats.MaxJFDepth) {
+          Stats.MaxJFDepth = Depth;
+        }
+
+        if (AllocatedJumpFns.insert(JF.getOpaqueValue()).second) {
+          AllocDepthSampler.addSample(Depth);
+        }
+
+        Stats.PerAllocJFCount[size_t(JF.getAllocationPolicy())]++;
+
+        if (UniqueJumpFns.insert(std::move(JF)).second) {
+          UniqueDepthSampler.addSample(Depth);
+        }
+      });
+
+      Stats.UniqueNumJF = UniqueJumpFns.size();
+      Stats.NumJFObjects = AllocatedJumpFns.size();
+      Stats.AvgJFDepth = DepthSampler.getAverage();
+      Stats.AvgUniqueJFDepth = UniqueDepthSampler.getAverage();
+      Stats.AvgJFObjDepth = AllocDepthSampler.getAverage();
+    }
+    return Stats;
+  }
+
+  void printEdgeFunctionStatistics(llvm::raw_ostream &OS = llvm::outs()) const {
+    OS << getEdgeFunctionStatistics() << '\n';
+  }
+
 protected:
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
@@ -297,20 +376,25 @@ protected:
       }
     });
 
+    bool HasNoCalleeInformation = true;
+
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
       FlowFunctionPtrType SpecialSum =
           CachedFlowEdgeFunctions.getSummaryFlowFunction(n, SCalledProcN);
+
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
+
       if (SpecialSum) {
+        HasNoCalleeInformation = false;
         PHASAR_LOG_LEVEL(DEBUG, "Found and process special summary");
         for (n_t ReturnSiteN : ReturnSiteNs) {
           container_type Res = computeSummaryFlowFunction(SpecialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1, Full);
           ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
-          saveEdges(n, ReturnSiteN, d2, Res, false);
+          saveEdges(n, ReturnSiteN, d2, Res, ESGEdgeKind::Summary);
           for (d_t d3 : Res) {
             EdgeFunction<l_t> SumEdgFnE =
                 CachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
@@ -341,7 +425,8 @@ protected:
         }
         // if startPointsOf is empty, the called function is a declaration
         for (n_t SP : StartPointsOf) {
-          saveEdges(n, SP, d2, Res, true);
+          HasNoCalleeInformation = false;
+          saveEdges(n, SP, d2, Res, ESGEdgeKind::Call);
           // for each result node of the call-flow function
           for (d_t d3 : Res) {
             using TableCell = typename Table<n_t, d_t, EdgeFunction<l_t>>::Cell;
@@ -382,7 +467,7 @@ protected:
                     RetFunction, d3, d4, n, Container{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", ReturnedFacts.size(), 1,
                                  Full);
-                saveEdges(eP, RetSiteN, d4, ReturnedFacts, true);
+                saveEdges(eP, RetSiteN, d4, ReturnedFacts, ESGEdgeKind::Ret);
                 // for each target value of the function
                 for (d_t d5 : ReturnedFacts) {
                   // update the caller-side summary function
@@ -439,7 +524,9 @@ protected:
       container_type ReturnFacts =
           computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", ReturnFacts.size(), 1, Full);
-      saveEdges(n, ReturnSiteN, d2, ReturnFacts, false);
+      saveEdges(n, ReturnSiteN, d2, ReturnFacts,
+                HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
+                                       : ESGEdgeKind::CallToRet);
       for (d_t d3 : ReturnFacts) {
         EdgeFunction<l_t> EdgeFnE =
             CachedFlowEdgeFunctions.getCallToRetEdgeFunction(n, d2, ReturnSiteN,
@@ -478,7 +565,7 @@ protected:
       INC_COUNTER("FF Queries", 1, Full);
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
-      saveEdges(n, nPrime, d2, Res, false);
+      saveEdges(n, nPrime, d2, Res, ESGEdgeKind::Normal);
       for (d_t d3 : Res) {
         EdgeFunction<l_t> g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
@@ -690,12 +777,12 @@ protected:
   }
 
   virtual void saveEdges(n_t SourceNode, n_t SinkStmt, d_t SourceVal,
-                         const container_type &DestVals, bool InterP) {
+                         const container_type &DestVals, ESGEdgeKind Kind) {
     if (!SolverConfig.recordEdges()) {
       return;
     }
     Table<n_t, n_t, std::map<d_t, container_type>> &TgtMap =
-        (InterP) ? ComputedInterPathEdges : ComputedIntraPathEdges;
+        (isInterProc(Kind)) ? ComputedInterPathEdges : ComputedIntraPathEdges;
     TgtMap.get(SourceNode, SinkStmt)[SourceVal].insert(DestVals.begin(),
                                                        DestVals.end());
   }
@@ -716,7 +803,10 @@ protected:
                                     << ", value: " << LToString(Value));
         // initialize the initial seeds with the top element as we have no
         // information at the beginning of the value computation problem
-        setVal(StartPoint, Fact, Value);
+        l_t OldVal = val(StartPoint, Fact);
+        auto NewVal = IDEProblem.join(Value, std::move(OldVal));
+        setVal(StartPoint, Fact, std::move(NewVal));
+
         std::pair<n_t, d_t> SuperGraphNode(StartPoint, Fact);
         valuePropagationTask(std::move(SuperGraphNode));
       }
@@ -833,7 +923,7 @@ protected:
           const container_type Targets =
               computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
-          saveEdges(n, RetSiteC, d2, Targets, true);
+          saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           // for each target value at the return site
           // line 23
           for (d_t d5 : Targets) {
@@ -902,7 +992,7 @@ protected:
           const container_type Targets = computeReturnFlowFunction(
               RetFunction, d1, d2, Caller, Container{ZeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
-          saveEdges(n, RetSiteC, d2, Targets, true);
+          saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           for (d_t d5 : Targets) {
             EdgeFunction<l_t> f5 =
                 CachedFlowEdgeFunctions.getReturnEdgeFunction(

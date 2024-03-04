@@ -4,6 +4,7 @@ Checks: '-*,
          misc-*,
            -misc-non-private-member-variables-in-classes,
            -misc-no-recursion,
+           -misc-use-anonymous-namespace,
          readability-*,
            -readability-function-cognitive-complexity,
            -readability-else-after*,
@@ -31,7 +32,7 @@ Checks: '-*,
          modernize-*,
            -modernize-use-trailing-return-type,
          performance-*,
-         clang-analyzer-*,
+         clang-analyzer-*
         '
 
 FormatStyle:  LLVM

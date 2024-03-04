@@ -170,4 +170,9 @@ OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::error() const {
   return OpenSSLSecureMemoryState::ERROR;
 }
 
+[[nodiscard]] DataFlowAnalysisType
+OpenSSLSecureMemoryDescription::analysisType() const {
+  return DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis;
+}
+
 } // namespace psr

@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -33,19 +34,19 @@ namespace detail {
 template <typename T, typename = void>
 struct is_iterable : std::false_type {}; // NOLINT
 template <typename T>
-struct is_iterable<T, std::void_t< // NOLINT
-                          decltype(std::declval<T>().begin()),
-                          decltype(std::declval<T>().end())>> : std::true_type {
-};
+struct is_iterable<T, std::void_t<decltype(llvm::adl_begin(std::declval<T>())),
+                                  decltype(llvm::adl_end(std::declval<T>()))>>
+    : public std::true_type {};
+
 template <typename T, typename U, typename = void>
 struct is_iterable_over : std::false_type {}; // NOLINT
 template <typename T, typename U>
 struct is_iterable_over<
     T, U,
-    std::enable_if_t<
-        is_iterable<T>::value &&
-        std::is_convertible_v<decltype(*std::declval<T>().begin()), U>>>
-    : std::true_type {};
+    std::enable_if_t<is_iterable<T>::value &&
+                     std::is_same_v<U, std::decay_t<decltype(*llvm::adl_begin(
+                                           std::declval<T>()))>>>>
+    : public std::true_type {};
 
 template <typename T> struct is_pair : std::false_type {}; // NOLINT
 template <typename U, typename V>
@@ -111,6 +112,10 @@ struct is_llvm_hashable : std::false_type {}; // NOLINT
 template <typename T>
 struct is_llvm_hashable<T, decltype(hash_value(std::declval<T>()))> // NOLINT
     : std::true_type {};
+template <typename T>
+struct is_llvm_hashable<T,
+                        decltype(llvm::hash_value(std::declval<T>()))> // NOLINT
+    : std::true_type {};
 
 template <template <typename> typename Base, typename Derived>
 class template_arg {
@@ -151,6 +156,11 @@ struct AreEqualityComparable : std::false_type {};
 template <typename T, typename U>
 struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
+    : std::true_type {};
+
+template <typename T, typename = size_t> struct HasDepth : std::false_type {};
+template <typename T>
+struct HasDepth<T, decltype(std::declval<const T &>().depth())>
     : std::true_type {};
 
 template <typename Var, typename T> struct variant_idx;
@@ -221,6 +231,9 @@ constexpr bool is_crtp_base_of_v = // NOLINT
 
 template <typename T>
 static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
+
+template <typename T>
+static inline constexpr bool HasDepth = detail::HasDepth<T>::value;
 
 template <typename T>
 static inline constexpr bool IsEqualityComparable =

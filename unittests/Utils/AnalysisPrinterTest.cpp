@@ -7,9 +7,9 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
-#include "phasar/PhasarLLVM/Utils/DefaultAnalysisPrinter.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DefaultAnalysisPrinter.h"
 
 #include "llvm/ADT/DenseMap.h"
 
@@ -22,6 +22,11 @@ using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
 // Use template to variate between Typesate and Taint analysis
 class GroundTruthCollector
     : public DefaultAnalysisPrinter<IDEExtendedTaintAnalysisDomain> {
+
+  using n_t = IDEExtendedTaintAnalysisDomain::n_t;
+  using d_t = IDEExtendedTaintAnalysisDomain::d_t;
+  using l_t = IDEExtendedTaintAnalysisDomain::l_t;
+
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
@@ -38,20 +43,19 @@ public:
     }
   }
 
-  void onResult(Warning<IDEExtendedTaintAnalysisDomain> War) override {
+private:
+  void doOnResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
+                  DataFlowAnalysisType /*AnalysisType*/) override {
     llvm::DenseMap<int, std::set<std::string>> FoundLeak;
-    int SinkId = stoi(getMetaDataID(War.Instr));
+    int SinkId = stoi(getMetaDataID(Instr));
     std::set<std::string> LeakedValueIds;
-    LeakedValueIds.insert(getMetaDataID((War.Fact)->base()));
+    LeakedValueIds.insert(getMetaDataID((DfFact)->base()));
     FoundLeak.try_emplace(SinkId, LeakedValueIds);
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void onFinalize(llvm::raw_ostream & /*OS*/ = llvm::outs()) const override {
-    EXPECT_TRUE(GroundTruth.empty());
-  }
+  void doOnFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
 
-private:
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};
 };
 
