@@ -138,15 +138,18 @@ if (PHASAR_ENABLE_SANITIZERS)
 endif()
 
 # LTO
-if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
-  include(CheckIPOSupported)
-  check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
+option(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD "Use link-time-optimization (LTO) in Release builds, if possible (default is ON)" ON)
+if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
+  if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
 
-  if(LTO_SUPPORTED)
-    message(STATUS "IPO/LTO enabled in Release mode")
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
-  else()
-    message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+    if(LTO_SUPPORTED)
+      message(STATUS "IPO/LTO enabled in Release mode")
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
+    else()
+      message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+    endif()
   endif()
 endif()
 
@@ -209,7 +212,7 @@ else()
 endif()
 
 # Logger
-option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
+option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime; otherwise, it is turned off at compile-time (default is ON)" ON)
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
