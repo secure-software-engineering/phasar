@@ -207,8 +207,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-# RPATH
 if (NOT PHASAR_IN_TREE)
+  # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
   if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
@@ -217,6 +217,13 @@ if (NOT PHASAR_IN_TREE)
   endif()
 
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+  # Export set
+  set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
+  set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
+else()
+  # Export set
+  set(PHASAR_DEPS_EXPORT_SET LLVMExports)
 endif()
 
 # Filesystem
@@ -257,30 +264,11 @@ find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
 set(CMAKE_CXX_CLANG_TIDY "")
 
 # Nlohmann JSON
-set(JSON_BuildTests OFF)
-set(JSON_Install ON)
-add_subdirectory(external/json)
 
-# We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
-# The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
-# is not installed, leading to linker error. But just including nlohmann_json is not sufficient, as
-# in the installed state the nlohmann_json_schema_validator needs the nlohmann_json package which needs
-# to be installed.
-# The following workaround may collapse or become unnecessary once the issue is
-# changed or fixed in nlohmann_json_schema_validator.
+include(add_nlohmann_json)
 
-# Override option of nlohmann_json_schema_validator to not build its tests
-set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
-
-if (PHASAR_IN_TREE)
-  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
-
-  set (PHASAR_USE_Z3 OFF)
-endif()
-
-# Json Schema Validator
-set(JSON_VALIDATOR_INSTALL ON)
-add_subdirectory(external/json-schema-validator)
+add_nlohmann_json()
+add_json_schema_validator()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -350,7 +338,10 @@ if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
 endif()
 
 # Z3 Solver
-if(PHASAR_USE_Z3)
+if(PHASAR_IN_TREE)
+  set (PHASAR_USE_Z3 OFF)
+endif()
+if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
   # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
   # as it lacks some functionality (such as z3::expr::simplify()) that we require
   find_package(Z3 4.7.1 REQUIRED)
@@ -507,18 +498,17 @@ if(NOT PHASAR_IN_TREE)
     NAMESPACE phasar::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
   )
+  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+    NAMESPACE phasar::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+  )
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports
   )
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS phasar_interface)
 endif()
-
-# Install the header only json container ### TODO Fix this!
-install(DIRECTORY external/json/single_include/
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.hpp"
-)
 
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
