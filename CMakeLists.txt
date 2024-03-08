@@ -153,9 +153,6 @@ if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
   endif()
 endif()
 
-# Enable testing
-enable_testing()
-
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
@@ -300,9 +297,14 @@ add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
 # Googletest
 if (NOT PHASAR_IN_TREE)
   if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
-    set(BUILD_GMOCK OFF)
-    set(INSTALL_GTEST OFF)
-    add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.13.0
+    )
+    FetchContent_MakeAvailable(googletest)
   endif()
 else()
   # Set llvm distributed includes for gtest header
@@ -479,6 +481,8 @@ endif(BUILD_SWIFT_TESTS)
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
+
+  enable_testing()
   add_subdirectory(unittests)
   if(NOT PHASAR_BUILD_IR)
     message(WARNING "Set PHASAR_BUILD_IR=ON, because PHASAR_BUILD_UNITTESTS is ON")
