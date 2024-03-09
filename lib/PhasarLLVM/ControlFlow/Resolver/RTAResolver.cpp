@@ -27,6 +27,7 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
@@ -39,23 +40,8 @@ RTAResolver::RTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
   resolveAllocatedStructTypes();
 }
 
-// void RTAResolver::firstFunction(const llvm::Function *F) {
-//   auto func_type = F->getFunctionType();
-
-//   for (auto param : func_type->params()) {
-//     if (llvm::isa<llvm::PointerType>(param)) {
-//       if (auto struct_ty =
-//               llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-//         unsound_types.insert(struct_ty);
-//       }
-//     }
-//   }
-// }
-
 auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
-  // throw runtime_error("RTA is currently unabled to deal with already built "
-  //                     "library, it has been disable until this is fixed");
 
   FunctionSetTy PossibleCallTargets;
 
@@ -137,21 +123,22 @@ void RTAResolver::resolveAllocatedStructTypes() {
         /// PointerElementType anyway...
         for (const auto *User : Inst.users()) {
           const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User);
-          if (!Cast ||
-              !Cast->getDestTy()->getPointerElementType()->isStructTy()) {
+          if (!Cast || Cast->getDestTy()->isOpaquePointerTy() ||
+              !Cast->getDestTy()
+                   ->getNonOpaquePointerElementType()
+                   ->isStructTy()) {
             continue;
           }
           // finally check for ctor call
           for (const auto *User : Cast->users()) {
-            if (llvm::isa<llvm::CallInst>(User) ||
-                llvm::isa<llvm::InvokeInst>(User)) {
+            if (const auto *CTor = llvm::dyn_cast<llvm::CallBase>(User)) {
               // potential call to the structures ctor
-              const auto *CTor = llvm::cast<llvm::CallBase>(User);
               if (CTor->getCalledFunction() &&
                   getNthFunctionArgument(CTor->getCalledFunction(), 0)
-                          ->getType() == Cast->getDestTy()) {
+                          ->getType() == Cast->getDestTy() &&
+                  !Cast->getDestTy()->isOpaquePointerTy()) {
                 if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(
-                        Cast->getDestTy()->getPointerElementType())) {
+                        Cast->getDestTy()->getNonOpaquePointerElementType())) {
                   AllocatedStructTypes.insert(StructTy);
                 }
               }

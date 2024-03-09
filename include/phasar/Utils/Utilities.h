@@ -36,7 +36,15 @@ std::string createTimeStamp();
 
 bool isConstructor(llvm::StringRef MangledName);
 
+namespace legacy {
+// May need to call this function from a safe environment where we have already
+// checked that it does not take any harm. Surround it with the legacy namespace
+// as a marker that this function will be removed soon.
+
+/// [[deprecated("Requires non-opaque pointers, which will no longer be "
+///              "supported by LLVM in the next version!")]]
 const llvm::Type *stripPointer(const llvm::Type *Pointer);
+} // namespace legacy
 
 bool isMangled(llvm::StringRef Name);
 

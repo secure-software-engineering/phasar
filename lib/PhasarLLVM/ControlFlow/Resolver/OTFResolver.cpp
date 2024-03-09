@@ -27,6 +27,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
@@ -96,32 +97,27 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   //  const llvm::Value *Receiver = CallSite->getArgOperand(0);
 
-  if (CallSite->getCalledOperand() &&
-      CallSite->getCalledOperand()->getType()->isPointerTy()) {
-    if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CallSite->getCalledOperand()->getType()->getPointerElementType())) {
+  const auto *FTy = CallSite->getFunctionType();
 
-      auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
-      for (const auto *P : *PTS) {
-        if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
-          if (PGV->hasName() &&
-              PGV->getName().startswith(LLVMTypeHierarchy::VTablePrefix) &&
-              PGV->hasInitializer()) {
-            if (const auto *PCS = llvm::dyn_cast<llvm::ConstantStruct>(
-                    PGV->getInitializer())) {
-              auto VFs = LLVMVFTable::getVFVectorFromIRVTable(*PCS);
-              if (VtableIndex >= VFs.size()) {
-                continue;
-              }
-              const auto *Callee = VFs[VtableIndex];
-              if (Callee == nullptr || !Callee->hasName() ||
-                  Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName ||
-                  !isConsistentCall(CallSite, Callee)) {
-                continue;
-              }
-              PossibleCallTargets.insert(Callee);
-            }
+  auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
+  for (const auto *P : *PTS) {
+    if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+      if (PGV->hasName() &&
+          PGV->getName().startswith(LLVMTypeHierarchy::VTablePrefix) &&
+          PGV->hasInitializer()) {
+        if (const auto *PCS =
+                llvm::dyn_cast<llvm::ConstantStruct>(PGV->getInitializer())) {
+          auto VFs = LLVMVFTable::getVFVectorFromIRVTable(*PCS);
+          if (VtableIndex >= VFs.size()) {
+            continue;
           }
+          const auto *Callee = VFs[VtableIndex];
+          if (Callee == nullptr || !Callee->hasName() ||
+              Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName ||
+              !isConsistentCall(CallSite, Callee)) {
+            continue;
+          }
+          PossibleCallTargets.insert(Callee);
         }
       }
     }
@@ -153,12 +149,9 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     GlobalVariableWL.clear();
     ConstantAggregateWL.clear();
 
-    if (P->getType()->isPointerTy() &&
-        P->getType()->getPointerElementType()->isFunctionTy()) {
-      if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
-        if (isConsistentCall(CallSite, F)) {
-          Callees.insert(F);
-        }
+    if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
+      if (isConsistentCall(CallSite, F)) {
+        Callees.insert(F);
       }
     }
 

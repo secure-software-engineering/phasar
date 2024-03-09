@@ -143,9 +143,6 @@ static void executeWholeProgram(AnalysisController::ControllerData &Data) {
     case DataFlowAnalysisType::IFDSSolverTest:
       executeIFDSSolverTest(Data);
       continue;
-    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis:
-      executeIFDSFieldSensTaint(Data);
-      continue;
     case DataFlowAnalysisType::IDELinearConstantAnalysis:
       executeIDELinearConst(Data);
       continue;
