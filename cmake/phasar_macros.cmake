@@ -76,10 +76,10 @@ function(generate_ll_file)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14)
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
     list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
   endif()
-  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER 14)
+  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
     list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
   endif()
 
