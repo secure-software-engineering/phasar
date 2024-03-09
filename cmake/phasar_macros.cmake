@@ -72,9 +72,16 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -Xclang -no-opaque-pointers -S -w)
-  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -Xclang -no-opaque-pointers -S -w)
+  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S -w)
+  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
+
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14)
+    list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
+  endif()
+  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER 14)
+    list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
+  endif()
 
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
