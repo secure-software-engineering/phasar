@@ -72,8 +72,8 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -S -w)
-  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
+  set(GEN_CXX_FLAGS -std=c++17 -fno-discard-value-names -emit-llvm -Xclang -no-opaque-pointers -S -w)
+  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -Xclang -no-opaque-pointers -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
   if(GEN_LL_MEM2REG)
@@ -121,7 +121,7 @@ function(generate_ll_file)
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
