@@ -478,6 +478,17 @@ JoinEdgeFunction<L, N>::join(EdgeFunctionRef<JoinEdgeFunction> This,
   return create(This, OtherFunction);
 }
 
+template <typename L>
+struct JoinLatticeTraits<EdgeFunction<L>,
+                         std::enable_if_t<HasJoinLatticeTraits<L>>> {
+  static inline auto top() noexcept { return AllTop<L>{}; }
+  static inline auto bottom() noexcept { return AllBottom<L>{}; }
+  static inline EdgeFunction<L> join(const EdgeFunction<L> &Lhs,
+                                     const EdgeFunction<L> &Rhs) {
+    return Lhs.joinWith(Rhs);
+  }
+};
+
 } // namespace psr
 
 #endif // PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTIONUTILS_H

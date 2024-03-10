@@ -2,7 +2,9 @@ set(IfdsIdeProblemSources
 	IFDSConstAnalysisTest.cpp
 	IFDSTaintAnalysisTest.cpp
 	IDEInstInteractionAnalysisTest.cpp
+	IDEInstInteractionAnalysisLatticeTest.cpp
 	IDELinearConstantAnalysisTest.cpp
+	IDELinearConstantAnalysisLatticeTest.cpp
 	IDELinearConstantAnalysis_DotTest.cpp
 	IFDSUninitializedVariablesTest.cpp
 	IDEGeneralizedLCATest.cpp

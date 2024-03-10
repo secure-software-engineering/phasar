@@ -22,7 +22,7 @@
 
 namespace psr {
 
-template <typename L> struct JoinLatticeTraits {
+template <typename L, typename = void> struct JoinLatticeTraits {
   // static constexpr L top();
   // static constexpr L bottom();
   // static L join(L LHS, L RHS);

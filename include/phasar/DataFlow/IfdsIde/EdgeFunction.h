@@ -249,7 +249,7 @@ public:
   template <typename ConcreteEF,
             typename = std::enable_if_t<
                 !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
+                IsEdgeFunction<std::decay_t<ConcreteEF>>>>
   EdgeFunction(ConcreteEF &&CEF) noexcept(
       IsSOOCandidate<std::decay_t<ConcreteEF>>)
       : EdgeFunction(std::in_place_type<std::decay_t<ConcreteEF>>,
