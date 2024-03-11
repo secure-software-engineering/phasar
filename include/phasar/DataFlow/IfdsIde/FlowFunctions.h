@@ -905,7 +905,7 @@ class [[deprecated("Use lambdaFlow() instead")]] LambdaFlow
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  LambdaFlow(Fn &&F) : Flow(std::move(F)) {}
+  LambdaFlow(Fn && F) : Flow(std::move(F)) {}
   LambdaFlow(const Fn &F) : Flow(F) {}
   ~LambdaFlow() override = default;
   container_type computeTargets(D Source) override { return Flow(Source); }
