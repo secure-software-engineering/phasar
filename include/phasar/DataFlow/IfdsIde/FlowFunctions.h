@@ -905,7 +905,7 @@ class [[deprecated("Use lambdaFlow() instead")]] LambdaFlow
 public:
   using typename FlowFunction<D, Container>::container_type;
 
-  LambdaFlow(Fn && F) : Flow(std::move(F)) {}
+  LambdaFlow(Fn &&F) : Flow(std::move(F)) {}
   LambdaFlow(const Fn &F) : Flow(F) {}
   ~LambdaFlow() override = default;
   container_type computeTargets(D Source) override { return Flow(Source); }
@@ -929,13 +929,13 @@ public:
 
   using typename FlowFunction<D, Container>::container_type;
 
-  Compose(const std::vector<FlowFunction<D>> &Funcs) : Funcs(Funcs) {}
+  Compose(const std::vector<FlowFunctionPtrType> &Funcs) : Funcs(Funcs) {}
 
   ~Compose() override = default;
 
   container_type computeTargets(const D &Source) override {
-    container_type Current(Source);
-    for (const FlowFunctionType &Func : Funcs) {
+    container_type Current{Source};
+    for (const FlowFunctionPtrType &Func : Funcs) {
       container_type Next;
       for (const D &Fact : Current) {
         container_type Target = Func.computeTargets(Fact);
@@ -947,11 +947,11 @@ public:
   }
 
   static FlowFunctionPtrType
-  compose(const std::vector<FlowFunctionType> &Funcs) {
-    std::vector<FlowFunctionType> Vec;
-    for (const FlowFunctionType &Func : Funcs) {
+  compose(const std::vector<FlowFunctionPtrType> &Funcs) {
+    std::vector<FlowFunctionPtrType> Vec;
+    for (const FlowFunctionPtrType &Func : Funcs) {
       if (Func != Identity<D, Container>::getInstance()) {
-        Vec.insert(Func);
+        Vec.push_back(Func);
       }
     }
     if (Vec.size() == 1) { // NOLINT(readability-container-size-empty)
@@ -964,7 +964,7 @@ public:
   }
 
 protected:
-  const std::vector<FlowFunctionType> Funcs;
+  const std::vector<FlowFunctionPtrType> Funcs;
 };
 
 //===----------------------------------------------------------------------===//
