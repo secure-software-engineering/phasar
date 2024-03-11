@@ -41,14 +41,6 @@
 using namespace std;
 using namespace psr;
 
-bool psr::isFunctionPointer(const llvm::Value *V) noexcept {
-  if (V) {
-    return V->getType()->isPointerTy() &&
-           V->getType()->getPointerElementType()->isFunctionTy();
-  }
-  return false;
-}
-
 bool psr::isIntegerLikeType(const llvm::Type *T) noexcept {
   if (const auto *StructType = llvm::dyn_cast<llvm::StructType>(T)) {
     return StructType->isPacked() && StructType->elements().size() == 1 &&
@@ -93,11 +85,13 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
   // For PointerType delegate into its element type
   if (llvm::isa<llvm::PointerType>(Actual)) {
     // If formal argument is void *, we can pass anything.
-    if (Formal->getPointerElementType()->isIntegerTy(8)) {
+    if (Actual->isOpaquePointerTy() || Formal->isOpaquePointerTy() ||
+        Formal->getNonOpaquePointerElementType()->isIntegerTy(8)) {
       return true;
     }
-    return isTypeMatchForFunctionArgument(Actual->getPointerElementType(),
-                                          Formal->getPointerElementType());
+    return isTypeMatchForFunctionArgument(
+        Actual->getNonOpaquePointerElementType(),
+        Formal->getNonOpaquePointerElementType());
   }
   // For structs, Formal needs to be somehow contained in Actual.
   if (llvm::isa<llvm::StructType>(Actual)) {

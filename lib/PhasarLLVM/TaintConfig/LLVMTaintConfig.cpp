@@ -162,8 +162,8 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
         } else if (!StructConfigMap.empty()) {
           // Ignorning line numbers for getElementPtr instructions
           if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
-            const auto *StType = llvm::dyn_cast<llvm::StructType>(
-                Gep->getPointerOperandType()->getPointerElementType());
+            const auto *StType =
+                llvm::dyn_cast<llvm::StructType>(Gep->getSourceElementType());
             if (StType && StructConfigMap.count(StType)) {
               auto VarName = StructConfigMap.at(StType);
               // using substr to cover the edge case in which same variable

@@ -238,15 +238,19 @@ void LLVMBasedAliasAnalysis::print(llvm::raw_ostream &OS) const {
     for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
       auto I1Size = llvm::LocationSize::beforeOrAfterPointer();
       llvm::Type *I1ElTy =
-          llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
-      if (I1ElTy->isSized()) {
+          !(*I1)->getType()->isOpaquePointerTy()
+              ? (*I1)->getType()->getNonOpaquePointerElementType()
+              : nullptr;
+      if (!I1ElTy && I1ElTy->isSized()) {
         I1Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I1ElTy));
       }
       for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
         auto I2Size = llvm::LocationSize::beforeOrAfterPointer();
         llvm::Type *I2ElTy =
-            llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
-        if (I2ElTy->isSized()) {
+            !(*I2)->getType()->isOpaquePointerTy()
+                ? (*I2)->getType()->getNonOpaquePointerElementType()
+                : nullptr;
+        if (I2ElTy && I2ElTy->isSized()) {
           I2Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I2ElTy));
         }
         llvm::AliasResult AR = AA->alias(*I1, I1Size, *I2, I2Size);
@@ -326,8 +330,10 @@ void LLVMBasedAliasAnalysis::print(llvm::raw_ostream &OS) const {
       for (const auto *Pointer : Pointers) {
         auto Size = llvm::LocationSize::beforeOrAfterPointer();
         llvm::Type *ElTy =
-            llvm::cast<llvm::PointerType>(Pointer->getType())->getElementType();
-        if (ElTy->isSized()) {
+            !Pointer->getType()->isOpaquePointerTy()
+                ? Pointer->getType()->getNonOpaquePointerElementType()
+                : nullptr;
+        if (ElTy && ElTy->isSized()) {
           Size = llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy));
         }
 

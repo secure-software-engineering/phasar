@@ -15,7 +15,9 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
@@ -68,13 +70,11 @@ EdgeValue::EdgeValue(const llvm::Value *Val) : VariantType(Top) {
     } else if (llvm::isa<llvm::ConstantPointerNull>(Const)) {
       VariantType = String;
       ValVariant = std::string();
-    } else if (Const->getType()->isPointerTy() &&
-               Const->getType()->getPointerElementType()->isIntegerTy()) {
+    } else if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Const);
+               Gep && Gep->getResultElementType()->isIntegerTy()) {
       VariantType = String;
-      const auto *Gep = llvm::cast<llvm::ConstantExpr>(
-          Const); // already checked, hence cast instead of dyn_cast
       if (const auto *Glob =
-              llvm::dyn_cast<llvm::GlobalVariable>(Gep->getOperand(0))) {
+              llvm::dyn_cast<llvm::GlobalVariable>(Gep->getPointerOperand())) {
         ValVariant = std::string(
             llvm::cast<llvm::ConstantDataArray>(Glob->getInitializer())
                 ->getAsCString()
