@@ -22,6 +22,13 @@ if (NOT PHASAR_IN_TREE)
   set(CMAKE_PROJECT_NAME "phasar")
 endif ()
 
+# NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT ON)
+else()
+  set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT OFF)
+endif()
+
 option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -131,40 +138,44 @@ if (PHASAR_ENABLE_SANITIZERS)
 endif()
 
 # LTO
-if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
-  include(CheckIPOSupported)
-  check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
+option(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD "Use link-time-optimization (LTO) in Release builds, if possible (default is ON)" ON)
+if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
+  if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
 
-  if(LTO_SUPPORTED)
-    message(STATUS "IPO/LTO enabled in Release mode")
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
-  else()
-    message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+    if(LTO_SUPPORTED)
+      message(STATUS "IPO/LTO enabled in Release mode")
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
+    else()
+      message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+    endif()
   endif()
 endif()
 
-# Enable testing
-enable_testing()
-
-option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)" OFF)
 
-option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
+option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+
+option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+
+#option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
 
 if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
   message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
 endif()
 
-option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 if (PHASAR_DEBUG_LIBDEPS)
   if (NOT BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ON)
@@ -198,7 +209,7 @@ else()
 endif()
 
 # Logger
-option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
+option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime; otherwise, it is turned off at compile-time (default is ON)" ON)
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
@@ -259,7 +270,8 @@ set(CMAKE_CXX_CLANG_TIDY "")
 # Nlohmann JSON
 set(JSON_BuildTests OFF)
 set(JSON_Install ON)
-add_subdirectory(external/json)
+set(JSON_SystemInclude ON)
+add_subdirectory(external/json EXCLUDE_FROM_ALL)
 
 # We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
 # The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
@@ -280,14 +292,20 @@ endif()
 
 # Json Schema Validator
 set(JSON_VALIDATOR_INSTALL ON)
-add_subdirectory(external/json-schema-validator)
+add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
-  set(BUILD_GMOCK OFF)
-  set(INSTALL_GTEST OFF)
-  add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-  set(GTEST_INCLUDE_DIR "external/googletest/googletest/include")
+  if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.13.0
+    )
+    FetchContent_MakeAvailable(googletest)
+  endif()
 else()
   # Set llvm distributed includes for gtest header
   set(GTEST_INCLUDE_DIR "${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include")
@@ -435,7 +453,7 @@ endif()
 configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
 
 # Warnings
-option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
+option(PHASAR_ENABLE_WARNINGS "Enable warnings" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 if (PHASAR_ENABLE_WARNINGS)
   if (MSVC)
     string(APPEND CMAKE_CXX_FLAGS " /W4")
@@ -452,7 +470,9 @@ add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
 add_subdirectory(lib)
 
 # phasar-based binaries
-add_subdirectory(tools)
+if(PHASAR_BUILD_TOOLS)
+  add_subdirectory(tools)
+endif()
 
 # Swift tests
 option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
@@ -465,6 +485,8 @@ endif(BUILD_SWIFT_TESTS)
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
+
+  enable_testing()
   add_subdirectory(unittests)
   if(NOT PHASAR_BUILD_IR)
     message(WARNING "Set PHASAR_BUILD_IR=ON, because PHASAR_BUILD_UNITTESTS is ON")
