@@ -76,9 +76,11 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
     return nullptr;
   }
 
-  if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-          Receiver->getType()->getPointerElementType())) {
-    return ReceiverTy;
+  if (!Receiver->getType()->isOpaquePointerTy()) {
+    if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+            Receiver->getType()->getNonOpaquePointerElementType())) {
+      return ReceiverTy;
+    }
   }
 
   return nullptr;
@@ -141,19 +143,13 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
   PHASAR_LOG_LEVEL(DEBUG,
                    "Call function pointer: " << llvmIRToString(CallSite));
   FunctionSetTy CalleeTargets;
-  // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
-  // origin is still unknown)
-  if (CallSite->getCalledOperand() != nullptr &&
-      CallSite->getCalledOperand()->getType()->isPointerTy()) {
-    if (const auto *FTy = llvm::dyn_cast<llvm::FunctionType>(
-            CallSite->getCalledOperand()->getType()->getPointerElementType())) {
-      for (const auto *F : IRDB.getAllFunctions()) {
-        if (isConsistentCall(CallSite, F)) {
-          CalleeTargets.insert(F);
-        }
-      }
+
+  for (const auto *F : IRDB.getAllFunctions()) {
+    if (isConsistentCall(CallSite, F)) {
+      CalleeTargets.insert(F);
     }
   }
+
   return CalleeTargets;
 }
 

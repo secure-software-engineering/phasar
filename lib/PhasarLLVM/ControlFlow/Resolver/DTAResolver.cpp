@@ -70,20 +70,22 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   // We know that we are in a constructor and the source type of the bitcast is
   // the same as the this argument. We then check where the bitcast is against
   // the store instruction of the vtable.
-  const auto *StructTy = stripPointer(BitCast->getSrcTy());
-  if (StructTy == nullptr) {
-    throw std::runtime_error(
-        "StructTy == nullptr in the heuristic_anti_contructor");
-  }
+  if (!BitCast->getSrcTy()->isOpaquePointerTy()) {
+    const auto *StructTy = psr::legacy::stripPointer(BitCast->getSrcTy());
+    if (StructTy == nullptr) {
+      throw std::runtime_error(
+          "StructTy == nullptr in the heuristic_anti_contructor");
+    }
 
-  // If it doesn't contain vtable, there is no reason to call this class in the
-  // DTA graph, so no need to add it
-  if (StructTy->isStructTy()) {
-    if (Resolver::TH->hasVFTable(llvm::dyn_cast<llvm::StructType>(StructTy))) {
-      return false;
+    // If it doesn't contain vtable, there is no reason to call this class in
+    // the DTA graph, so no need to add it
+    if (StructTy->isStructTy()) {
+      if (Resolver::TH->hasVFTable(
+              llvm::dyn_cast<llvm::StructType>(StructTy))) {
+        return false;
+      }
     }
   }
-
   // So there is a vtable, the question is, where is it compared to the bitcast
   // instruction Carefull, there can be multiple vtable storage, we want to get
   // the last one vtable storage typically are : store i32 (...)** bitcast (i8**
@@ -138,15 +140,20 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
 }
 
 void DTAResolver::otherInst(const llvm::Instruction *Inst) {
+  if (Inst->getType()->isOpaquePointerTy()) {
+    /// XXX: We may want to get these information on a different way, e.g. by
+    /// analyzing the debug info
+    return;
+  }
   if (const auto *BitCast = llvm::dyn_cast<llvm::BitCastInst>(Inst)) {
     // We add the connection between the two types in the DTA graph
     auto *Src = BitCast->getSrcTy();
     auto *Dest = BitCast->getDestTy();
 
-    const auto *SrcStructType =
-        llvm::dyn_cast<llvm::StructType>(stripPointer(Src));
-    const auto *DestStructType =
-        llvm::dyn_cast<llvm::StructType>(stripPointer(Dest));
+    const auto *SrcStructType = llvm::dyn_cast<llvm::StructType>(
+        psr::legacy::stripPointer(Src)); // NOLINT
+    const auto *DestStructType = llvm::dyn_cast<llvm::StructType>(
+        psr::legacy::stripPointer(Dest)); // NOLINT
 
     if (SrcStructType && DestStructType &&
         heuristicAntiConstructorVtablePos(BitCast)) {

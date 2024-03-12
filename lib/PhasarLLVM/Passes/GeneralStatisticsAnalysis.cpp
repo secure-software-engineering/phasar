@@ -44,18 +44,20 @@ static bool isAddressTaken(const llvm::Function &Fun) noexcept {
 template <typename Set>
 static void collectAllocatedTypes(const llvm::CallBase *CallSite, Set &Into) {
   for (const auto *User : CallSite->users()) {
-    if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
-      if (Cast->getDestTy()->getPointerElementType()->isStructTy()) {
+    if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User);
+        Cast && Cast->getDestTy()->isPointerTy() &&
+        !Cast->getDestTy()->isOpaquePointerTy()) {
+      const auto *ElemTy = Cast->getDestTy()->getNonOpaquePointerElementType();
+      if (ElemTy->isStructTy()) {
         // finally check for ctor call
         for (const auto *User : Cast->users()) {
-          if (llvm::isa<llvm::CallInst>(User) ||
-              llvm::isa<llvm::InvokeInst>(User)) {
+          if (llvm::isa<llvm::CallBase>(User)) {
             // potential call to the structures ctor
             const auto *CTor = llvm::cast<llvm::CallBase>(User);
             if (CTor->getCalledFunction() &&
                 CTor->getCalledFunction()->getArg(0)->getType() ==
                     Cast->getDestTy()) {
-              Into.insert(Cast->getDestTy()->getPointerElementType());
+              Into.insert(ElemTy);
             }
           }
         }
