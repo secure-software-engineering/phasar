@@ -938,7 +938,7 @@ public:
     for (const FlowFunctionPtrType &Func : Funcs) {
       container_type Next;
       for (const D &Fact : Current) {
-        container_type Target = Func.computeTargets(Fact);
+        container_type Target = Func->computeTargets(Fact);
         Next.insert(Target.begin(), Target.end());
       }
       Current = Next;
