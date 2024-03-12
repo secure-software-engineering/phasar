@@ -933,7 +933,7 @@ public:
 
   ~Compose() override = default;
 
-  container_type computeTargets(const D &Source) override {
+  container_type computeTargets(D Source) override {
     container_type Current{Source};
     for (const FlowFunctionPtrType &Func : Funcs) {
       container_type Next;
