@@ -13,12 +13,17 @@ jobs:
       fail-fast: true
       matrix:
         compiler: [ [clang++-14, clang-14] ]
-        build: [ Debug, Release ]
+        build: [ Debug, Release, DebugLibdeps ]
         include:
           - build: Debug
-            flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+            cmake_build_type: Debug
+            flags: -DPHASAR_ENABLE_SANITIZERS=ON
           - build: Release
+            cmake_build_type: Release
             flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+          - build: DebugLibdeps
+            cmake_build_type: Debug
+            flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
 
     continue-on-error: false
     steps:
@@ -62,7 +67,7 @@ jobs:
           mkdir build
           cd build
           cmake .. \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
             -DBUILD_SWIFT_TESTS=ON \
             -DPHASAR_USE_Z3=ON \
             ${{ matrix.flags }} \
