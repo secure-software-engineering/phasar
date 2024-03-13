@@ -11,14 +11,18 @@
 #define PHASAR_CONTROLFLOW_CALLGRAPH_H
 
 #include "phasar/ControlFlow/CallGraphBase.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/Function.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
@@ -85,6 +89,36 @@ public:
   [[nodiscard]] size_t size() const noexcept { return getNumVertexFunctions(); }
 
   [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
+
+  void stringifyFunctionVertexTy(const FunctionVertexTy &FuncVal,
+                                 std::vector<std::string> &Container) const {
+    for (const auto &Curr : FuncVal) {
+      Container.push_back(NToString(Curr));
+    }
+  }
+
+  void stringifyCallersOf(CallGraphData &Container) const {
+    for (const auto &Curr : CallersOf) {
+      std::string FValueString = (FToString(Curr.first)).str();
+
+      std::vector<std::string> FunctionVertexTyString;
+      stringifyFunctionVertexTy(*Curr.second, FunctionVertexTyString);
+
+      CallersOfData COData;
+      COData.FToFunctionVertexTy.insert(
+          {std::move(FValueString), std::move(FunctionVertexTyString)});
+      Container.CallersOf.push_back(std::move(COData));
+    }
+  }
+
+  template <typename FunctionIdGetter, typename InstIdGetter>
+  void printAsJson(llvm::raw_ostream &OS) const {
+    CallGraphData CGData;
+
+    stringifyCallersOf(CGData);
+
+    CGData.printAsJson(OS);
+  }
 
   /// Creates a JSON representation of this call-graph suitable for presistent
   /// storage.

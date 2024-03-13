@@ -451,6 +451,10 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       [](n_t CS) { return llvmIRToStableString(CS); });
 }
 
+void LLVMBasedICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
+  CG.printAsJson<n_t, f_t>(OS);
+}
+
 [[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
   return CG.getAsJson(
       [](f_t F) { return F->getName().str(); },

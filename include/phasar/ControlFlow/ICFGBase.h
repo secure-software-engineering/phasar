@@ -106,6 +106,12 @@ public:
   void print(llvm::raw_ostream &OS = llvm::outs()) const {
     self().printImpl(OS);
   }
+
+  /// Prints the underlying call-graph as Json to the given output-stream
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const {
+    self().printAsJson(OS);
+  }
+
   /// Returns the underlying call-graph as JSON
   [[nodiscard]] nlohmann::json getAsJson() const {
     return self().getAsJsonImpl();

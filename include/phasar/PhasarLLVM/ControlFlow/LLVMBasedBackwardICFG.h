@@ -64,6 +64,7 @@ private:
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
+  void printAsJsonImpl() const;
   [[nodiscard]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
 
