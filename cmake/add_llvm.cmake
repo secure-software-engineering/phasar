@@ -51,7 +51,7 @@ macro(add_llvm)
 
 endmacro()
 
-function(add_clang)
+macro(add_clang)
   # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
   if(NOT PHASAR_IN_TREE)
     find_library(CLANG_LIBRARY NAMES clang-cpp libclang-cpp HINTS ${LLVM_LIBRARY_DIRS})
@@ -93,4 +93,4 @@ function(add_clang)
       ${PROJECT_BINARY_DIR}/tools/clang/include
     )
   endif()
-endfunction(add_clang)
+endmacro(add_clang)
