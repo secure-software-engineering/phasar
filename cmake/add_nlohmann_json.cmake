@@ -7,7 +7,7 @@ function(add_nlohmann_json)
     set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json)
   endif()
 
-  add_subdirectory(external/json)
+  add_subdirectory(external/json EXCLUDE_FROM_ALL)
   set_property(TARGET nlohmann_json APPEND PROPERTY
     INTERFACE_INCLUDE_DIRECTORIES $<INSTALL_INTERFACE:${PHASAR_DEPS_INSTALL_DESTINATION}/include>
   )
@@ -37,7 +37,7 @@ function(add_json_schema_validator)
 
   set(JSON_VALIDATOR_INSTALL OFF)
 
-  add_subdirectory(external/json-schema-validator)
+  add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
   set_property(TARGET nlohmann_json_schema_validator APPEND PROPERTY
     INTERFACE_INCLUDE_DIRECTORIES $<INSTALL_INTERFACE:${PHASAR_DEPS_INSTALL_DESTINATION}/include>
   )

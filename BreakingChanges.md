@@ -1,5 +1,9 @@
 # Breaking Changes
 
+## development HEAD
+
+- Removed IfdsFieldSensTaintAnalysis as it relies on LLVM's deprecated typed-pointers.
+
 ## v2403
 
 - Versioning scheme has been changed from `<month><year>` to `<year><month>`
