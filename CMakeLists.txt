@@ -218,8 +218,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-# RPATH
 if (NOT PHASAR_IN_TREE)
+  # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
   if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
@@ -228,6 +228,13 @@ if (NOT PHASAR_IN_TREE)
   endif()
 
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+  # Export set
+  set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
+  set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
+else()
+  # Export set
+  set(PHASAR_DEPS_EXPORT_SET LLVMExports)
 endif()
 
 # Filesystem
@@ -238,9 +245,9 @@ else()
 endif()
 
 # Config
-set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is ${CMAKE_INSTALL_PREFIX}/.phasar-config)")
 if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
-  set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+  set(PHASAR_CONFIG_INSTALL_DIR ".phasar-config/")
 else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
@@ -268,31 +275,10 @@ find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
 set(CMAKE_CXX_CLANG_TIDY "")
 
 # Nlohmann JSON
-set(JSON_BuildTests OFF)
-set(JSON_Install ON)
-set(JSON_SystemInclude ON)
-add_subdirectory(external/json EXCLUDE_FROM_ALL)
 
-# We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
-# The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
-# is not installed, leading to linker error. But just including nlohmann_json is not sufficient, as
-# in the installed state the nlohmann_json_schema_validator needs the nlohmann_json package which needs
-# to be installed.
-# The following workaround may collapse or become unnecessary once the issue is
-# changed or fixed in nlohmann_json_schema_validator.
-
-# Override option of nlohmann_json_schema_validator to not build its tests
-set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
-
-if (PHASAR_IN_TREE)
-  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
-
-  set (PHASAR_USE_Z3 OFF)
-endif()
-
-# Json Schema Validator
-set(JSON_VALIDATOR_INSTALL ON)
-add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
+include(add_nlohmann_json)
+add_nlohmann_json()
+add_json_schema_validator()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -318,57 +304,14 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
-if (NOT PHASAR_IN_TREE)
-  # Only search for LLVM if we build out of tree
-  find_package(LLVM 14 REQUIRED CONFIG)
-  find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
-
-  if(USE_LLVM_FAT_LIB AND ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-    message(WARNING "Did not find requested libLLVM.so. Link against individual modules instead")
-    set(USE_LLVM_FAT_LIB OFF)
-  elseif(BUILD_SHARED_LIBS AND NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-    message(STATUS "Found consolidated shared LLVM lib ${LLVM_LIBRARY} that will be linked against.")
-    set(USE_LLVM_FAT_LIB ON)
-  endif()
-
-  if (NOT USE_LLVM_FAT_LIB)
-    message(STATUS "Link against individual LLVM modules")
-    set(LLVM_REQUIRED_LIBRARIES
-      Core
-      Support
-      BitWriter
-      Analysis
-      Passes
-      Demangle
-      Analysis
-      IRReader
-      Linker
-    )
-    foreach(lib ${LLVM_REQUIRED_LIBRARIES})
-      find_library(LLVM_SMALL_LIB${lib} NAMES LLVM${lib} PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
-      if(LLVM_SMALL_LIB${lib} MATCHES "NOTFOUND$")
-        list(APPEND LLVM_SMALL_LIB_NOTFOUND "LLVM${lib}")
-      endif()
-    endforeach()
-
-    if(DEFINED LLVM_SMALL_LIB_NOTFOUND)
-      if(${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-        message(FATAL_ERROR "Did not find a complete version of LLVM: Did not find the fat lib libLLVM.so, but also did not find the individual modules ${LLVM_SMALL_LIB_NOTFOUND}.")
-      else()
-        set(USE_LLVM_FAT_LIB ON)
-        list(JOIN LLVM_SMALL_LIB_NOTFOUND ", " LLVM_SMALL_LIB_NOTFOUND_PRETTY)
-        message(WARNING "Did not find the LLVM modules ${LLVM_SMALL_LIB_NOTFOUND_PRETTY}. Fallback to link against ${LLVM_LIBRARY}. To silence this warning, set -DUSE_LLVM_FAT_LIB=ON in the cmake invocation.")
-      endif()
-    endif(DEFINED LLVM_SMALL_LIB_NOTFOUND)
-  endif(NOT USE_LLVM_FAT_LIB)
-endif(NOT PHASAR_IN_TREE)
-
-if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
-  message(FATAL_ERROR "PhASAR requires a LLVM version that is built with RTTI")
-endif()
+include(add_llvm)
+add_llvm()
 
 # Z3 Solver
-if(PHASAR_USE_Z3)
+if(PHASAR_IN_TREE)
+  set (PHASAR_USE_Z3 OFF)
+endif()
+if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
   # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
   # as it lacks some functionality (such as z3::expr::simplify()) that we require
   find_package(Z3 4.7.1 REQUIRED)
@@ -380,54 +323,13 @@ if(PHASAR_USE_Z3)
     set_property(TARGET z3 PROPERTY
              INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
   endif()
-endif(PHASAR_USE_Z3)
+endif()
 
 # Clang
 option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
-
 if(BUILD_PHASAR_CLANG)
-  # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
-  if(NOT PHASAR_IN_TREE)
-    find_library(CLANG_LIBRARY NAMES clang-cpp libclang-cpp HINTS ${LLVM_LIBRARY_DIRS})
-    if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
-      set(NEED_LIBCLANG_COMPONENT_LIBS on)
-    endif()
-  endif()
-  # As fallback, look for the small clang libraries
-  if(PHASAR_IN_TREE OR NEED_LIBCLANG_COMPONENT_LIBS)
-    set(CLANG_LIBRARY
-      clangTooling
-      clangFrontendTool
-      clangFrontend
-      clangDriver
-      clangSerialization
-      clangCodeGen
-      clangParse
-      clangSema
-      clangStaticAnalyzerFrontend
-      clangStaticAnalyzerCheckers
-      clangStaticAnalyzerCore
-      clangAnalysis
-      clangARCMigrate
-      clangRewrite
-      clangRewriteFrontend
-      clangEdit
-      clangAST
-      clangASTMatchers
-      clangLex
-      clangBasic
-      LLVMFrontendOpenMP)
-  endif()
-
-  if (PHASAR_IN_TREE)
-    # Phasar needs clang headers, specificaly some that are generated by clangs table-gen
-    include_directories(
-      ${CLANG_INCLUDE_DIR}
-      ${PHASAR_SRC_DIR}/../clang/include
-      ${PROJECT_BINARY_DIR}/tools/clang/include
-    )
-  endif()
-endif(BUILD_PHASAR_CLANG)
+  add_clang()
+endif()
 
 # Set up clang-tidy to run during PhASAR's compilation to indicate code smells
 if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
@@ -529,18 +431,17 @@ if(NOT PHASAR_IN_TREE)
     NAMESPACE phasar::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
   )
+  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+    NAMESPACE phasar::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+  )
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports
   )
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS phasar_interface)
 endif()
-
-# Install the header only json container ### TODO Fix this!
-install(DIRECTORY external/json/single_include/
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.hpp"
-)
 
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/

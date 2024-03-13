@@ -5,11 +5,10 @@ set_and_check(PHASAR_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
 set_and_check(PHASAR_LIBRARY_DIR "@PACKAGE_LIBRARY_INSTALL_DIR@")
 
 include (CMakeFindDependencyMacro)
-find_dependency(nlohmann_json)
-find_dependency(nlohmann_json_schema_validator)
 
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
-find_package(LLVM 14 REQUIRED CONFIG)
+include("${CMAKE_CURRENT_LIST_DIR}/PhasarDepsExports.cmake")
+find_dependency(Boost 1.65.1 COMPONENTS graph REQUIRED)
+find_dependency(LLVM 14 REQUIRED CONFIG)
 
 set(PHASAR_USE_LLVM_FAT_LIB @USE_LLVM_FAT_LIB@)
 set(PHASAR_BUILD_DYNLIB @PHASAR_BUILD_DYNLIB@)
