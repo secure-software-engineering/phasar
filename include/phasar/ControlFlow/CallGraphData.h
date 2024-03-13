@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 
 #include "llvm/Support/raw_ostream.h"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -18,7 +19,8 @@
 namespace psr {
 struct CallersOfData {
   CallersOfData() noexcept = default;
-  std::unordered_map<std::string, std::vector<std::string>> FToFunctionVertexTy{};
+  std::unordered_map<std::string, std::vector<std::string>>
+      FToFunctionVertexTy{};
 };
 
 struct CallGraphData {

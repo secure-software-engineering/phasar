@@ -109,7 +109,7 @@ public:
 
   /// Prints the underlying call-graph as Json to the given output-stream
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const {
-    self().printAsJson(OS);
+    self().printAsJsonImpl(OS);
   }
 
   /// Returns the underlying call-graph as JSON

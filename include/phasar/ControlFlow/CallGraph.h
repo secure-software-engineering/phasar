@@ -90,6 +90,7 @@ public:
 
   [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
 
+  template <typename FunctionIdGetter, typename InstIdGetter>
   void stringifyFunctionVertexTy(const FunctionVertexTy &FuncVal,
                                  std::vector<std::string> &Container) const {
     for (const auto &Curr : FuncVal) {
@@ -97,12 +98,13 @@ public:
     }
   }
 
+  template <typename FunctionIdGetter, typename InstIdGetter>
   void stringifyCallersOf(CallGraphData &Container) const {
     for (const auto &Curr : CallersOf) {
       std::string FValueString = (FToString(Curr.first)).str();
 
       std::vector<std::string> FunctionVertexTyString;
-      stringifyFunctionVertexTy(*Curr.second, FunctionVertexTyString);
+      stringifyFunctionVertexTy<n_t, f_t>(*Curr.second, FunctionVertexTyString);
 
       CallersOfData COData;
       COData.FToFunctionVertexTy.insert(
@@ -115,7 +117,7 @@ public:
   void printAsJson(llvm::raw_ostream &OS) const {
     CallGraphData CGData;
 
-    stringifyCallersOf(CGData);
+    stringifyCallersOf<n_t, f_t>(CGData);
 
     CGData.printAsJson(OS);
   }

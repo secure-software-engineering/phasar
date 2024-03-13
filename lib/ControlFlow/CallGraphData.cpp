@@ -8,20 +8,21 @@
  *****************************************************************************/
 
 #include "phasar/ControlFlow/CallGraphData.h"
+
 #include "phasar/Utils/NlohmannLogging.h"
 
 namespace psr {
-  void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
-    nlohmann::json JSON;
+void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
+  nlohmann::json JSON;
 
-    for (const auto &CurrentCallerOf : CallersOf) {
-      for (const auto &CurrentElement : CurrentCallerOf.FToFunctionVertexTy) {
-        for (const auto &NTValString : CurrentElement.second) {
-          JSON[CurrentElement.first].push_back(NTValString);
-        }
+  for (const auto &CurrentCallerOf : CallersOf) {
+    for (const auto &CurrentElement : CurrentCallerOf.FToFunctionVertexTy) {
+      for (const auto &NTValString : CurrentElement.second) {
+        JSON[CurrentElement.first].push_back(NTValString);
       }
     }
-
-    OS << JSON;
   }
+
+  OS << JSON;
+}
 } // namespace psr

@@ -135,6 +135,8 @@ public:
   using CFGBase::print;
   using ICFGBase::print;
 
+  using ICFGBase::printAsJson;
+
   using CFGBase::getAsJson;
   using ICFGBase::getAsJson;
 
