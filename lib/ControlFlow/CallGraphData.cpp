@@ -11,6 +11,9 @@
 
 #include "phasar/Utils/NlohmannLogging.h"
 #include "llvm/Support/ErrorHandling.h"
+#include <fstream>
+#include <sstream>
+#include <nlohmann/json_fwd.hpp>
 
 namespace psr {
 void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
@@ -26,7 +29,10 @@ void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
 }
 
 void CallGraphData::deserializeJson(const llvm::Twine &Path) {
-  nlohmann::json JSON(Path.str());
+  std::ifstream IFS(Path.str());
+  std::string Data((std::istreambuf_iterator<char>(IFS)),
+                       (std::istreambuf_iterator<char>()));
+  nlohmann::json JSON = nlohmann::json::parse(Data);
 
   if (!JSON.is_object()) {
     llvm::report_fatal_error("Invalid Json: not an object!");
