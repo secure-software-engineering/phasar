@@ -35,8 +35,6 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <memory>
 
 namespace psr {
@@ -93,7 +91,7 @@ public:
                          LLVMTypeHierarchy *TH = nullptr);
 
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                         const nlohmann::json &SerializedCG,
+                         const CallGraphData &SerializedCG,
                          LLVMTypeHierarchy *TH = nullptr);
 
   // Deleter of LLVMTypeHierarchy may be unknown here...

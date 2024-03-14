@@ -17,16 +17,11 @@
 #include <vector>
 
 namespace psr {
-struct CallersOfData {
-  CallersOfData() noexcept = default;
-  std::unordered_map<std::string, std::vector<std::string>>
-      FToFunctionVertexTy{};
-};
-
 struct CallGraphData {
-  CallGraphData() noexcept = default;
-  std::vector<CallersOfData> CallersOf{};
+  CallGraphData() noexcept = default;std::unordered_map<std::string, std::vector<std::string>>
+      FToFunctionVertexTy{};
   void printAsJson(llvm::raw_ostream &OS);
+  void deserializeJson(const llvm::Twine &Path);
 };
 
 } // namespace psr

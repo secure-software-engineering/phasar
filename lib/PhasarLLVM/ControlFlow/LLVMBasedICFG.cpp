@@ -12,6 +12,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -367,7 +368,7 @@ LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
 }
 
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                             const nlohmann::json &SerializedCG,
+                             const CallGraphData &SerializedCG,
                              LLVMTypeHierarchy *TH)
     : CG(CallGraph<n_t, f_t>::deserialize(
           SerializedCG,

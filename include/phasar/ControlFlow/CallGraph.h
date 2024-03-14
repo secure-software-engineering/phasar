@@ -62,7 +62,7 @@ public:
   /// Deserializes a previously computed call-graph
   template <typename FunctionGetter, typename InstructionGetter>
   [[nodiscard]] static CallGraph
-  deserialize(const nlohmann::json &PrecomputedCG,
+  deserialize(const CallGraphData &PrecomputedCG,
               FunctionGetter GetFunctionFromName,
               InstructionGetter GetInstructionFromId);
 
@@ -106,10 +106,8 @@ public:
       std::vector<std::string> FunctionVertexTyString;
       stringifyFunctionVertexTy<n_t, f_t>(*Curr.second, FunctionVertexTyString);
 
-      CallersOfData COData;
-      COData.FToFunctionVertexTy.insert(
+      Container.FToFunctionVertexTy.insert(
           {std::move(FValueString), std::move(FunctionVertexTyString)});
-      Container.CallersOf.push_back(std::move(COData));
     }
   }
 
@@ -290,18 +288,13 @@ private:
 template <typename N, typename F>
 template <typename FunctionGetter, typename InstructionGetter>
 [[nodiscard]] CallGraph<N, F>
-CallGraph<N, F>::deserialize(const nlohmann::json &PrecomputedCG,
+CallGraph<N, F>::deserialize(const CallGraphData &PrecomputedCG,
                              FunctionGetter GetFunctionFromName,
                              InstructionGetter GetInstructionFromId) {
-  if (!PrecomputedCG.is_object()) {
-    PHASAR_LOG_LEVEL_CAT(ERROR, "CallGraph", "Invalid Json. Expected object");
-    return {};
-  }
-
   CallGraphBuilder<N, F> CGBuilder;
-  CGBuilder.reserve(PrecomputedCG.size());
+  CGBuilder.reserve(PrecomputedCG.FToFunctionVertexTy.size());
 
-  for (const auto &[FunName, CallerIDs] : PrecomputedCG.items()) {
+  for (const auto &[FunName, CallerIDs] : PrecomputedCG.FToFunctionVertexTy) {
     const auto &Fun = std::invoke(GetFunctionFromName, FunName);
     if (!Fun) {
       PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
@@ -313,7 +306,7 @@ CallGraph<N, F>::deserialize(const nlohmann::json &PrecomputedCG,
     CEdges->reserve(CallerIDs.size());
 
     for (const auto &JId : CallerIDs) {
-      auto Id = JId.get<size_t>();
+      auto Id = JId.size();
       const auto &CS = std::invoke(GetInstructionFromId, Id);
       if (!CS) {
         PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
