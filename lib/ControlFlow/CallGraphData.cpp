@@ -9,19 +9,25 @@
 
 #include "phasar/ControlFlow/CallGraphData.h"
 
+#include "phasar/Utils/IO.h"
 #include "phasar/Utils/NlohmannLogging.h"
+
 #include "llvm/Support/ErrorHandling.h"
+
 #include <fstream>
 #include <sstream>
+#include <string>
+
 #include <nlohmann/json_fwd.hpp>
 
 namespace psr {
+
 void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
   nlohmann::json JSON;
 
   for (const auto &CurrentElement : FToFunctionVertexTy) {
-    for (const auto &NTValString : CurrentElement.second) {
-      JSON[CurrentElement.first].push_back(NTValString);
+    for (const auto &NTVal : CurrentElement.second) {
+      JSON[CurrentElement.first].push_back(NTVal);
     }
   }
 
@@ -29,24 +35,18 @@ void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
 }
 
 void CallGraphData::deserializeJson(const llvm::Twine &Path) {
-  std::ifstream IFS(Path.str());
-  std::string Data((std::istreambuf_iterator<char>(IFS)),
-                       (std::istreambuf_iterator<char>()));
-  nlohmann::json JSON = nlohmann::json::parse(Data);
+  nlohmann::json JSON = readJsonFile(Path);
 
-  if (!JSON.is_object()) {
-    llvm::report_fatal_error("Invalid Json: not an object!");
-  }
   // map F to vector of n_t's
-
   for (const auto &CurrentFVal : JSON.get<nlohmann::json::object_t>()) {
     std::string FValueString = CurrentFVal.first;
-    std::vector<std::string> FunctionVertexTyStrings(CurrentFVal.second.size());
+    std::vector<int> FunctionVertexTyVals(CurrentFVal.second.size());
+
     for (const auto &CurrentFunctionVertexTy : CurrentFVal.second) {
-      FunctionVertexTyStrings.push_back(CurrentFunctionVertexTy);
+      FunctionVertexTyVals.push_back(CurrentFunctionVertexTy);
     }
 
-    FToFunctionVertexTy.insert({FValueString, FunctionVertexTyStrings});
+    FToFunctionVertexTy.insert({FValueString, FunctionVertexTyVals});
   }
 }
 } // namespace psr

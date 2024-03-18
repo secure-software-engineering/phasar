@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -18,7 +19,8 @@
 
 namespace psr {
 struct CallGraphData {
-  CallGraphData() noexcept = default;std::unordered_map<std::string, std::vector<std::string>>
+  CallGraphData() noexcept = default;
+  std::unordered_map<std::string, std::vector<int>>
       FToFunctionVertexTy{};
   void printAsJson(llvm::raw_ostream &OS);
   void deserializeJson(const llvm::Twine &Path);

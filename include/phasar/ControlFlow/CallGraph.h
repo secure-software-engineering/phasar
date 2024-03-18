@@ -27,6 +27,7 @@
 #include "nlohmann/json.hpp"
 
 #include <functional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -91,35 +92,36 @@ public:
   [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
 
   template <typename FunctionIdGetter, typename InstIdGetter>
-  void stringifyFunctionVertexTy(const FunctionVertexTy &FuncVal,
-                                 std::vector<std::string> &Container) const {
-    for (const auto &Curr : FuncVal) {
-      Container.push_back(NToString(Curr));
-    }
-  }
+  void stringifyCallersOf(CallGraphData &Container,
+                          FunctionIdGetter GetFunctionId,
+                          InstIdGetter GetInstructionId) const {
+    for (const auto &[Fun, Callers] : CallersOf) {
+      std::string FValueString = GetFunctionId(Fun);
 
-  template <typename FunctionIdGetter, typename InstIdGetter>
-  void stringifyCallersOf(CallGraphData &Container) const {
-    for (const auto &Curr : CallersOf) {
-      std::string FValueString = (FToString(Curr.first)).str();
+      std::vector<int> FunctionVertexTyVals;
+      for (const auto &CS : *Callers) {
+        FunctionVertexTyVals.push_back(std::stoi(NToString(GetInstructionId(CS))));
+      }
 
-      std::vector<std::string> FunctionVertexTyString;
-      stringifyFunctionVertexTy<n_t, f_t>(*Curr.second, FunctionVertexTyString);
-
+      if (Callers->size() == 0) {
+        Container.FToFunctionVertexTy.insert(
+          {FValueString, {0}});
+      }
       Container.FToFunctionVertexTy.insert(
-          {std::move(FValueString), std::move(FunctionVertexTyString)});
+          {std::move(FValueString), std::move(FunctionVertexTyVals)});
     }
   }
 
   template <typename FunctionIdGetter, typename InstIdGetter>
-  void printAsJson(llvm::raw_ostream &OS) const {
+  void printAsJson(llvm::raw_ostream &OS, FunctionIdGetter GetFunctionId,
+                   InstIdGetter GetInstructionId) const {
     CallGraphData CGData;
 
-    stringifyCallersOf<n_t, f_t>(CGData);
+    stringifyCallersOf(CGData, GetFunctionId, GetInstructionId);
 
     CGData.printAsJson(OS);
   }
-
+  
   /// Creates a JSON representation of this call-graph suitable for presistent
   /// storage.
   /// Use the ctor taking a json object for deserialization
@@ -306,11 +308,10 @@ CallGraph<N, F>::deserialize(const CallGraphData &PrecomputedCG,
     CEdges->reserve(CallerIDs.size());
 
     for (const auto &JId : CallerIDs) {
-      auto Id = JId.size();
-      const auto &CS = std::invoke(GetInstructionFromId, Id);
+      const auto &CS = std::invoke(GetInstructionFromId, JId);
       if (!CS) {
         PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
-                             "Invalid CAll-Instruction Id: " << Id);
+                             "Invalid CAll-Instruction Id: " << JId);
       }
 
       CGBuilder.addCallEdge(CS, Fun);
