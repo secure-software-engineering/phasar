@@ -27,7 +27,7 @@ class Function;
 namespace psr {
 namespace detail {
 template <typename T>
-static constexpr bool IsSomehowPrintable =
+PSR_CONCEPT IsSomehowPrintable =
     has_str_v<T> || is_llvm_printable_v<T> || has_adl_to_string_v<T>;
 
 template <typename T> decltype(auto) printSomehow(const T &Val) {

@@ -10,12 +10,14 @@
 #ifndef PHASAR_UTILS_BYREF_H
 #define PHASAR_UTILS_BYREF_H
 
+#include "phasar/Utils/TypeTraits.h"
+
 #include <type_traits>
 
 namespace psr {
 
 template <typename T>
-static constexpr bool CanEfficientlyPassByValue =
+PSR_CONCEPT CanEfficientlyPassByValue =
     sizeof(T) <= 2 * sizeof(void *) && std::is_trivially_copyable_v<T>;
 
 template <typename T>

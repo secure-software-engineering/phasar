@@ -188,6 +188,8 @@ function(add_phasar_library name)
     EXPORT_NAME ${component_name}
   )
 
+  target_compile_features(${name} PUBLIC cxx_std_17)
+
   if(LLVM_COMMON_DEPENDS)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
   endif(LLVM_COMMON_DEPENDS)

@@ -163,7 +163,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     if constexpr (!std::is_same_v<value_type, llvm::NoneType>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
-    return psr::iota(size_t(0), G.Adj.size());
+    return psr::iota(vertex_t(0), G.Adj.size());
   }
 
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
@@ -292,8 +292,8 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
 
 #if __cplusplus >= 202002L
   static_assert(is_graph<AdjacencyList<T>>);
-  static_assert(is_reservable_graph_trait<GraphTraits<AdjacencyList<T>>>);
 #endif
+  static_assert(is_reservable_graph_trait_v<GraphTraits<AdjacencyList<T>>>);
 };
 
 } // namespace psr
