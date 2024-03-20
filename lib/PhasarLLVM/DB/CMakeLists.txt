@@ -4,7 +4,6 @@ add_phasar_library(phasar_llvm_db
   ${PSR_LLVM_DB_SRC}
 
   LINKS
-    phasar_db
     phasar_utils
     phasar_llvm_utils
 

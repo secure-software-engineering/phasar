@@ -16,8 +16,6 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/DenseMapInfo.h"
-#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Constants.h"
@@ -27,11 +25,8 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
-
-#include <memory>
 
 using namespace psr;
 
@@ -94,10 +89,6 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   auto VtableIndex = RetrievedVtableIndex.value();
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
-
-  //  const llvm::Value *Receiver = CallSite->getArgOperand(0);
-
-  const auto *FTy = CallSite->getFunctionType();
 
   auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
   for (const auto *P : *PTS) {
