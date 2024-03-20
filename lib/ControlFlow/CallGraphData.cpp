@@ -15,7 +15,7 @@
 #include <nlohmann/json_fwd.hpp>
 
 namespace psr {
-static CallGraphData stringifyJson(const nlohmann::json &Json) {
+static CallGraphData getDataFromJson(const nlohmann::json &Json) {
   CallGraphData ToReturn;
 
   // map F to vector of n_t's
@@ -28,7 +28,8 @@ static CallGraphData stringifyJson(const nlohmann::json &Json) {
       FunctionVertexTyVals.push_back(CurrentFunctionVertexTy);
     }
 
-    ToReturn.FToFunctionVertexTy.try_emplace(FValueString, FunctionVertexTyVals);
+    ToReturn.FToFunctionVertexTy.try_emplace(FValueString,
+                                             FunctionVertexTyVals);
   }
 
   return ToReturn;
@@ -47,13 +48,13 @@ void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
 }
 
 CallGraphData CallGraphData::deserializeJson(const llvm::Twine &Path) {
-  return stringifyJson(readJsonFile(Path));
+  return getDataFromJson(readJsonFile(Path));
 }
 
 CallGraphData CallGraphData::loadJsonString(const std::string &JsonAsString) {
   // nlohmann::json::parse needs a std::string, llvm::Twine won't work
   nlohmann::json ToStringify = nlohmann::json::parse(JsonAsString);
-  return stringifyJson(ToStringify);
+  return getDataFromJson(ToStringify);
 }
 
 } // namespace psr

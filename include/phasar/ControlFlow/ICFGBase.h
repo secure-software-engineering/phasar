@@ -113,7 +113,7 @@ public:
   }
 
   /// Returns the underlying call-graph as JSON
-  [[nodiscard]] [[deprecated("please use printAsJson in the future")]] nlohmann::json getAsJson() const {
+  [[nodiscard]] [[deprecated("Please use printAsJson() instead")]] nlohmann::json getAsJson() const {
     return self().getAsJsonImpl();
   }
 

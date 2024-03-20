@@ -19,8 +19,7 @@
 namespace psr {
 struct CallGraphData {
   CallGraphData() noexcept = default;
-  std::unordered_map<std::string, std::vector<int>>
-      FToFunctionVertexTy{};
+  std::unordered_map<std::string, std::vector<int>> FToFunctionVertexTy{};
   void printAsJson(llvm::raw_ostream &OS);
   static CallGraphData deserializeJson(const llvm::Twine &Path);
   static CallGraphData loadJsonString(const std::string &JsonAsString);

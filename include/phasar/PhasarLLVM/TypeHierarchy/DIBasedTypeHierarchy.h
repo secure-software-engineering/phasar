@@ -95,6 +95,12 @@ public:
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
+  /**
+   * @brief Prints the class hierarchy to an ostream in json format.
+   * @param an outputstream
+   */
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
+
 private:
   [[nodiscard]] llvm::iterator_range<const ClassType *>
   subTypesOf(size_t TypeIdx) const noexcept;

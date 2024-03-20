@@ -109,8 +109,8 @@ public:
       if (Callers->size() == 0) {
         Container.FToFunctionVertexTy.insert({FValueString, {0}});
       }
-      Container.FToFunctionVertexTy.insert(
-          {std::move(FValueString), std::move(FunctionVertexTyVals)});
+      Container.FToFunctionVertexTy.try_emplace(
+          std::move(FValueString), std::move(FunctionVertexTyVals));
     }
   }
 
@@ -129,7 +129,7 @@ public:
   /// Use the ctor taking a json object for deserialization
   template <typename FunctionIdGetter, typename InstIdGetter>
   [[nodiscard]] [[deprecated(
-      "please use printAsJson in the future")]] nlohmann::json
+      "Please use printAsJson() instead")]] nlohmann::json
   getAsJson(FunctionIdGetter GetFunctionId,
             InstIdGetter GetInstructionId) const {
     nlohmann::json J;

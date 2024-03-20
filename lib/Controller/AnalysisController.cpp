@@ -72,7 +72,7 @@ emitRequestedHelperAnalysisResults(AnalysisController::ControllerData &Data) {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
     WithResultFileOrStdout("/psr-cg.json",
-                           [&HA](auto &OS) { OS << HA.getICFG().getAsJson(); });
+                           [&HA](auto &OS) { HA.getICFG().printAsJson(OS); });
   }
 
   if (EmitterOptions &

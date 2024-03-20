@@ -95,7 +95,7 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] nlohmann::json getAsJson() const;
+  [[nodiscard]] [[deprecated("Please use printAsJson() instead")]] nlohmann::json getAsJson() const;
 
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
