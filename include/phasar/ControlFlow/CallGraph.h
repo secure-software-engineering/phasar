@@ -100,12 +100,14 @@ public:
 
       std::vector<int> FunctionVertexTyVals;
       for (const auto &CS : *Callers) {
-        FunctionVertexTyVals.push_back(std::stoi(NToString(GetInstructionId(CS))));
+        FunctionVertexTyVals.push_back(GetInstructionId(CS));
       }
 
+      // if a function exists but the callers size is zero, a value of null
+      // should be inserted, to represent the existance of that function. An
+      // example of this happening is __psrCRuntimeGlobalCtorsModel
       if (Callers->size() == 0) {
-        Container.FToFunctionVertexTy.insert(
-          {FValueString, {0}});
+        Container.FToFunctionVertexTy.insert({FValueString, {0}});
       }
       Container.FToFunctionVertexTy.insert(
           {std::move(FValueString), std::move(FunctionVertexTyVals)});
@@ -121,13 +123,15 @@ public:
 
     CGData.printAsJson(OS);
   }
-  
+
   /// Creates a JSON representation of this call-graph suitable for presistent
   /// storage.
   /// Use the ctor taking a json object for deserialization
   template <typename FunctionIdGetter, typename InstIdGetter>
-  [[nodiscard]] nlohmann::json getAsJson(FunctionIdGetter GetFunctionId,
-                                         InstIdGetter GetInstructionId) const {
+  [[nodiscard]] [[deprecated(
+      "please use printAsJson in the future")]] nlohmann::json
+  getAsJson(FunctionIdGetter GetFunctionId,
+            InstIdGetter GetInstructionId) const {
     nlohmann::json J;
 
     for (const auto &[Fun, Callers] : CallersOf) {

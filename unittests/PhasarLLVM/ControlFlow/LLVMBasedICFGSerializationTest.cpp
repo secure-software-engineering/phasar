@@ -4,15 +4,15 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/IO.h"
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
-#include "phasar/Utils/IO.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-#include <nlohmann/json_fwd.hpp>
 
 class LLVMBasedICFGGSerializationTest : public ::testing::Test {
 protected:
@@ -23,24 +23,16 @@ protected:
 
     psr::LLVMProjectIRDB IRDB(PathToLLFiles + IRFile);
     psr::LLVMBasedICFG ICF(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"s});
-    
-    llvm::StringRef PathToJson = "JSONTest.json";
-    std::error_code ErrorCode;
+
+    std::string Ser;
     // stream ICF data into a json file using the printAsJson() function
-    llvm::raw_fd_ostream OutStream(PathToJson, ErrorCode);
+    llvm::raw_string_ostream StringStream(Ser);
 
-    if (ErrorCode) {
-      llvm::report_fatal_error(("File could not be opened!\n" + ErrorCode.message()).c_str());
-    }
-
-    ICF.printAsJson(OutStream);
-    OutStream.close();
+    ICF.printAsJson(StringStream);
 
     // deserialize data into CallGraphData object
-    psr::CallGraphData CGData;
-    CGData.deserializeJson(PathToJson);
-    auto Ser = ICF.getAsJson();
-    psr::LLVMBasedICFG DeserializedICF(&IRDB, CGData);
+    psr::LLVMBasedICFG DeserializedICF(&IRDB,
+                                       psr::CallGraphData::loadJsonString(Ser));
 
     compareResults(ICF, DeserializedICF);
   }
@@ -60,7 +52,7 @@ protected:
             << Fun->getName().str();
       }
     }
-    
+
     for (const auto *Fun : Orig.getAllVertexFunctions()) {
 
       const auto &Calls = Orig.getCallsFromWithin(Fun);
