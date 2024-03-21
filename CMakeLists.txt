@@ -231,11 +231,12 @@ if (NOT PHASAR_IN_TREE)
 
   # Export set
   set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
-  set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 else()
   # Export set
   set(PHASAR_DEPS_EXPORT_SET LLVMExports)
 endif()
+
+set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 
 # Filesystem
 if (LLVM_ENABLE_LIBCXX)
