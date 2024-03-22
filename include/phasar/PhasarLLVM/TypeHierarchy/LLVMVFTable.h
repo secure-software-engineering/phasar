@@ -68,6 +68,8 @@ public:
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
 
+  void printAsJson(llvm::raw_ostream &OS) const override;
+
   [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() {
     return VFT.begin();
   }

@@ -26,6 +26,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <utility>
@@ -92,34 +93,22 @@ public:
   [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
 
   template <typename FunctionIdGetter, typename InstIdGetter>
-  void stringifyCallersOf(CallGraphData &Container,
-                          FunctionIdGetter GetFunctionId,
-                          InstIdGetter GetInstructionId) const {
-    for (const auto &[Fun, Callers] : CallersOf) {
-      std::string FValueString = GetFunctionId(Fun);
-
-      std::vector<int> FunctionVertexTyVals;
-      for (const auto &CS : *Callers) {
-        FunctionVertexTyVals.push_back(GetInstructionId(CS));
-      }
-
-      // if a function exists but the callers size is zero, a value of null
-      // should be inserted, to represent the existance of that function. An
-      // example of this happening is __psrCRuntimeGlobalCtorsModel
-      if (Callers->size() == 0) {
-        Container.FToFunctionVertexTy.insert({FValueString, {0}});
-      }
-      Container.FToFunctionVertexTy.try_emplace(
-          std::move(FValueString), std::move(FunctionVertexTyVals));
-    }
-  }
-
-  template <typename FunctionIdGetter, typename InstIdGetter>
   void printAsJson(llvm::raw_ostream &OS, FunctionIdGetter GetFunctionId,
                    InstIdGetter GetInstructionId) const {
     CallGraphData CGData;
+    CGData.FToFunctionVertexTy.reserve(CallersOf.size());
 
-    stringifyCallersOf(CGData, GetFunctionId, GetInstructionId);
+    for (const auto &[Fun, Callers] : CallersOf) {
+      auto &JCallers = CGData.FToFunctionVertexTy[std::invoke(GetFunctionId, Fun)];
+      
+      CGData.FToFunctionVertexTy.reserve(Callers->size());
+      // set null value to represent a function with no callers
+      // example: __psrCRuntimeGlobalCtorsModel
+      //JCallers.push_back(0);
+      for (const auto &CS : *Callers) {
+        JCallers.push_back(std::invoke(GetInstructionId, CS));
+      }
+    }
 
     CGData.printAsJson(OS);
   }

@@ -39,6 +39,8 @@ public:
   virtual void print(llvm::raw_ostream &OS) const = 0;
 
   [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
+
+  virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
 };
 
 template <typename T, typename F>

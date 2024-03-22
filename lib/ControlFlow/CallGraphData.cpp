@@ -36,13 +36,15 @@ static CallGraphData getDataFromJson(const nlohmann::json &Json) {
 }
 
 void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
-  nlohmann::json JSON;
+    nlohmann::json JSON;
 
-  for (const auto &CurrentElement : FToFunctionVertexTy) {
-    for (const auto &NTVal : CurrentElement.second) {
-      JSON[CurrentElement.first].push_back(NTVal);
+    for (const auto &[Fun, Callers] : FToFunctionVertexTy) {
+      auto &JCallers = JSON[Fun];
+
+      for (const auto &CS : Callers) {
+        JCallers.push_back(CS);
+      }
     }
-  }
 
   OS << JSON;
 }

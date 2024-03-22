@@ -30,6 +30,8 @@ protected:
 
     ICF.printAsJson(StringStream);
 
+    auto DebugTest = ICF.getAsJson();
+
     // deserialize data into CallGraphData object
     psr::LLVMBasedICFG DeserializedICF(&IRDB,
                                        psr::CallGraphData::loadJsonString(Ser));

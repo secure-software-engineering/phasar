@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalAlias.h"
@@ -47,6 +48,11 @@ void LLVMVFTable::print(llvm::raw_ostream &OS) const {
 nlohmann::json LLVMVFTable::getAsJson() const {
   nlohmann::json J = "{}"_json;
   return J;
+}
+
+void LLVMVFTable::printAsJson(llvm::raw_ostream &OS) const {
+  nlohmann::json Json = "{}"_json;
+  OS << Json;
 }
 
 std::vector<const llvm::Function *>
