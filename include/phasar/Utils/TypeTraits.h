@@ -13,6 +13,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -170,6 +171,12 @@ struct variant_idx<std::variant<Ts...>, T>
           size_t,
           std::variant<type_identity<Ts>...>(type_identity<T>{}).index()> {};
 
+template <typename Container> struct ElementType {
+  using IteratorTy =
+      std::decay_t<decltype(llvm::adl_begin(std::declval<Container>()))>;
+  using type = typename std::iterator_traits<IteratorTy>::value_type;
+};
+
 } // namespace detail
 
 template <typename T>
@@ -247,6 +254,9 @@ template <typename T> using type_identity_t = typename type_identity<T>::type;
 
 template <typename Var, typename T>
 static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
+
+template <typename Container>
+using ElementType = typename detail::ElementType<Container>::type;
 
 struct TrueFn {
   template <typename... Args>

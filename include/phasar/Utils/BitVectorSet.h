@@ -56,19 +56,22 @@ inline bool isLess(const llvm::BitVector &Lhs, const llvm::BitVector &Rhs) {
  *
  * @brief Implements a set that requires minimal space.
  */
-template <typename T> class BitVectorSet {
-private:
+template <typename T, typename BitVectorTy = llvm::BitVector>
+class BitVectorSet {
+public:
   // Using boost::hash<T> causes ambiguity for hash_value():
   //  -<llvm/ADT/Hashing.h>
   //  -<boost/functional/hash/extensions.hpp>
   //  -<boost/graph/adjacency_list.hpp>
   using bimap_t = boost::bimap<boost::bimaps::unordered_set_of<T, std::hash<T>>,
                                boost::bimaps::unordered_set_of<size_t>>;
+
+private:
   inline static bimap_t Position; // NOLINT
-  llvm::BitVector Bits;
+  BitVectorTy Bits;
 
   template <typename D> class BitVectorSetIterator {
-    llvm::BitVector Bits;
+    BitVectorTy Bits;
 
   public:
     using iterator_category = std::forward_iterator_tag;
@@ -83,7 +86,7 @@ private:
       return *this;
     }
 
-    void setBits(const llvm::BitVector &OtherBits) { Bits = OtherBits; }
+    void setBits(const BitVectorTy &OtherBits) { Bits = OtherBits; }
 
     bool operator==(const BitVectorSetIterator<D> &OtherIterator) const {
       return PosPtr == OtherIterator.getPtr();
@@ -152,7 +155,7 @@ private:
 
     // T getVal() {return pos_ptr->second;}
 
-    [[nodiscard]] llvm::BitVector getBits() const { return Bits; }
+    [[nodiscard]] BitVectorTy getBits() const { return Bits; }
 
   private:
     D PosPtr;
@@ -174,6 +177,12 @@ public:
 
   template <typename InputIt> BitVectorSet(InputIt First, InputIt Last) {
     insert(First, Last);
+  }
+
+  static BitVectorSet fromBits(BitVectorTy Bits) {
+    BitVectorSet Ret;
+    Ret.Bits = std::move(Bits);
+    return Ret;
   }
 
   [[nodiscard]] BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
@@ -270,6 +279,10 @@ public:
   }
 
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
+
+  [[nodiscard]] const BitVectorTy &getBits() const &noexcept { return Bits; }
+  [[nodiscard]] BitVectorTy &getBits() &noexcept { return Bits; }
+  [[nodiscard]] BitVectorTy &&getBits() &&noexcept { return std::move(Bits); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
     bool LeftEmpty = Lhs.empty();
