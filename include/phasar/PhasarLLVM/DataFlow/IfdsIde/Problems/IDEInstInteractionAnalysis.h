@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONANALYSIS_H
 
-#include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/MultiEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -686,10 +686,10 @@ public:
           PT.isInReachableAllocationSites(Store->getPointerOperand(), SuccNode,
                                           true, Store)) {
         if (isZeroValue(CurrNode)) {
-          return IIAAKillOrReplaceEFCache.createEdgeFunction(
+          return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>(
               std::move(UserEdgeFacts));
         }
-        return IIAAAddLabelsEFCache.createEdgeFunction(
+        return EFCache.template createEdgeFunction<IIAAAddLabelsEF>(
             std::move(UserEdgeFacts));
       }
     }
@@ -721,7 +721,7 @@ public:
           PHASAR_LOG_LEVEL(DFADEBUG, '\n');
         });
         // obtain label from the original allocation
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(
+        return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>(
             std::move(UserEdgeFacts));
       }
 
@@ -745,7 +745,8 @@ public:
                                    this->PT.isInReachableAllocationSites(
                                        Store->getPointerOperand(), CurrNode,
                                        OnlyConsiderLocalAliases))) {
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(BitVectorSet<e_t>());
+        return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>(
+            BitVectorSet<e_t>());
       }
     }
 
@@ -801,10 +802,11 @@ public:
       // We generate Curr in this instruction, so we have to annotate it with
       // edge labels
       if (isZeroValue(CurrNode)) {
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(
+        return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>(
             std::move(UserEdgeFacts));
       }
-      return IIAAAddLabelsEFCache.createEdgeFunction(std::move(UserEdgeFacts));
+      return EFCache.template createEdgeFunction<IIAAAddLabelsEF>(
+          std::move(UserEdgeFacts));
     }
 
     // Otherwise stick to identity.
@@ -839,7 +841,7 @@ public:
       }
     }
     if (isZeroValue(SrcNode) && SRetParams.count(DestNode)) {
-      return IIAAKillOrReplaceEFCache.createEdgeFunction();
+      return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>();
     }
     // Everything else can be passed as identity.
     return EdgeIdentity<l_t>{};
@@ -868,7 +870,7 @@ public:
               llvm::dyn_cast<llvm::ConstantData>(Ret->getReturnValue())) {
         // Check if the user has registered a fact generator function
         l_t UserEdgeFacts = bvSetFrom(invoke_or_default(EdgeFactGen, ExitInst));
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(
+        return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>(
             std::move(UserEdgeFacts));
       }
     }
@@ -902,7 +904,7 @@ public:
         //                  i
         //
         if (isZeroValue(CallNode) && RetSiteNode == CallSite) {
-          return IIAAKillOrReplaceEFCache.createEdgeFunction(
+          return EFCache.template createEdgeFunction<IIAAKillOrReplaceEF>(
               std::move(UserEdgeFacts));
         }
       }
@@ -922,7 +924,7 @@ public:
       //                 o_i
       //
       if (CallNode == Arg && CallNode == RetSiteNode) {
-        return IIAAAddLabelsEFCache.createEdgeFunction(
+        return EFCache.template createEdgeFunction<IIAAAddLabelsEF>(
             std::move(UserEdgeFacts));
       }
     }
@@ -1265,9 +1267,11 @@ private:
     return Variables;
   }
 
-  DefaultEdgeFunctionSingletonCache<IIAAAddLabelsEF> IIAAAddLabelsEFCache;
-  DefaultEdgeFunctionSingletonCache<IIAAKillOrReplaceEF>
-      IIAAKillOrReplaceEFCache;
+  MultiEdgeFunctionSingletonCache<IIAAAddLabelsEF, IIAAKillOrReplaceEF> EFCache;
+
+  // DefaultEdgeFunctionSingletonCache<IIAAAddLabelsEF> IIAAAddLabelsEFCache;
+  // DefaultEdgeFunctionSingletonCache<IIAAKillOrReplaceEF>
+  //     IIAAKillOrReplaceEFCache;
 
   const LLVMBasedICFG *ICF{};
   LLVMAliasInfoRef PT{};

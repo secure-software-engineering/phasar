@@ -246,6 +246,7 @@ PHASAR_SKIP_TEST(TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
 
   auto *M = IRDB.getModule();
   auto *F = M->getFunction("_ZNSt8ios_base4InitC1Ev");
+  ASSERT_NE(nullptr, F);
   LLVMBasedCFG CFG;
   ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
             SpecialMemberFunctionType::Constructor);
