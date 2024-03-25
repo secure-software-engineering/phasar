@@ -37,7 +37,13 @@ function(add_json_schema_validator)
 
   set(JSON_VALIDATOR_INSTALL OFF)
 
+  set(BUILD_SHARED_LIBS_SAVE ${BUILD_SHARED_LIBS})
+  set(BUILD_SHARED_LIBS OFF)
+
   add_subdirectory(external/json-schema-validator EXCLUDE_FROM_ALL)
+
+  set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVE})
+
   set_property(TARGET nlohmann_json_schema_validator APPEND PROPERTY
     INTERFACE_INCLUDE_DIRECTORIES $<INSTALL_INTERFACE:${PHASAR_DEPS_INSTALL_DESTINATION}/include>
   )
