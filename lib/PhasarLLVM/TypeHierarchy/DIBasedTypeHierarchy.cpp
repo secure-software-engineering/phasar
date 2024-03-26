@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchyData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -29,6 +30,9 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+#include <cstdint>
+#include <string>
+#include <utility>
 
 namespace psr {
 using ClassType = DIBasedTypeHierarchy::ClassType;
@@ -189,6 +193,11 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   buildTypeHierarchy(TG, VertexTypes, TransitiveDerivedIndex, Hierarchy);
 }
 
+DIBasedTypeHierarchy::DIBasedTypeHierarchy(
+    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedCG) {
+  /// TODO: implement
+}
+
 auto DIBasedTypeHierarchy::subTypesOf(size_t TypeIdx) const noexcept
     -> llvm::iterator_range<const ClassType *> {
   const auto *Data = Hierarchy.data();
@@ -258,9 +267,49 @@ DIBasedTypeHierarchy::getAsJson() const {
   llvm::report_fatal_error("Not implemented");
 }
 
+DIBasedTypeHierarchyData DIBasedTypeHierarchy::stringifyTypeHierarchy() const {
+  DIBasedTypeHierarchyData Data;
+
+  for (const auto &Curr : NameToType) {
+    Data.NameToType.try_emplace(Curr.getKey(),
+                                Curr.getValue()->getName().str());
+  }
+
+  for (const auto &Curr : TypeToVertex) {
+    Data.TypeToVertex.try_emplace(Curr.getFirst()->getName().str(),
+                                  Curr.getSecond());
+  }
+
+  for (const auto &Curr : VertexTypes) {
+    Data.VertexTypes.push_back(Curr->getName().str());
+  }
+
+  for (const auto &Curr : TransitiveDerivedIndex) {
+    Data.TransitiveDerivedIndex.emplace_back(
+        std::pair<uint32_t, uint32_t>(Curr.first, Curr.second));
+  }
+
+  for (const auto &Curr : Hierarchy) {
+    Data.Hierarchy.push_back(Curr->getName().str());
+  }
+
+  for (const auto &Curr : VTables) {
+    std::vector<std::string> CurrVTableAsString;
+    CurrVTableAsString.reserve(Curr.getAllFunctions().size());
+
+    for (const auto &Func : Curr.getAllFunctions()) {
+      CurrVTableAsString.push_back(Func->getName().str());
+    }
+
+    Data.VTables.emplace_back(std::move(CurrVTableAsString));
+  }
+
+  return Data;
+}
+
 void DIBasedTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
-  /// TODO: implement
-  llvm::report_fatal_error("Not implemented");
+  DIBasedTypeHierarchyData Data = stringifyTypeHierarchy();
+  Data.printAsJson(OS);
 }
 
 void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {

@@ -241,7 +241,11 @@ private:
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
       [](const void *AA) {
-        return static_cast<const ConcreteAA *>(AA)->getAsJson();
+        if (static_cast<const ConcreteAA *>(AA)->getAsJson()) {
+          return static_cast<const ConcreteAA *>(AA)->getAsJson();
+        }
+        
+        return nlohmann::json();
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);

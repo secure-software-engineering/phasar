@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_DIBASEDTYPEHIERARCHY_H
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_DIBASEDTYPEHIERARCHY_H
 
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchyData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
@@ -32,6 +33,8 @@ public:
   using f_t = const llvm::Function *;
 
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
+  explicit DIBasedTypeHierarchy(const LLVMProjectIRDB *IRDB,
+                                const DIBasedTypeHierarchyData &SerializedCG);
   ~DIBasedTypeHierarchy() override = default;
 
   [[nodiscard]] bool hasType(ClassType Type) const override {
@@ -100,6 +103,8 @@ public:
    * @param an outputstream
    */
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
+
+  [[nodiscard]] DIBasedTypeHierarchyData stringifyTypeHierarchy() const;
 
 private:
   [[nodiscard]] llvm::iterator_range<const ClassType *>

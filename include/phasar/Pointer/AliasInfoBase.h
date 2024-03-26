@@ -48,7 +48,7 @@ auto testAliasInfo(
         CAI.isInterProcedural(), CAI.getAliasAnalysisType(),
         AI.alias(*VT, *VT, *NT), AI.getAliasSet(*VT, *NT),
         AI.getReachableAllocationSites(*VT, true, *NT),
-        AI.isInReachableAllocationSites(*VT, *VT, true, *NT), CAI.getAsJson(),
+        AI.isInReachableAllocationSites(*VT, *VT, true, *NT),
         CAI.getAnalysisProperties(), CAI.isContextSensitive(),
         CAI.isFieldSensitive(), CAI.isFlowSensitive()));
 template <typename T, typename = void, typename = void>
@@ -67,8 +67,7 @@ struct IsAliasInfo<
     std::enable_if_t<std::is_same_v<
         std::tuple<bool, AliasAnalysisType, AliasResult,
                    typename AliasInfoTraits<T>::AliasSetPtrTy,
-                   typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool,
-                   nlohmann::json, AnalysisProperties, bool, bool, bool>,
+                   typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool, AnalysisProperties, bool, bool, bool>,
         decltype(testAliasInfo(std::declval<T &>(),
                                std::declval<const T &>()))>>> : std::true_type {
 };
