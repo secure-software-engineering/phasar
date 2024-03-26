@@ -81,11 +81,13 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
   }
 
   // Fallback
-  return lambdaFlow([Inst = Curr](d_t Src) {
+  return lambdaFlow([Inst = Curr, GeneratesFact](d_t Src) {
     container_type Facts;
     Facts.insert(Src);
     if (LLVMZeroValue::isLLVMZeroValue(Src)) {
-      // keep the zero flow fact
+      if (GeneratesFact) {
+        Facts.insert(Inst);
+      }
       return Facts;
     }
 
