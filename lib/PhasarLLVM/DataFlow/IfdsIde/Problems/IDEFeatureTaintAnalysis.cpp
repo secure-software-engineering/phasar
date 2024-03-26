@@ -38,6 +38,13 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
     -> FlowFunctionPtrType {
   bool GeneratesFact = TaintGen.isSource(Curr);
 
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
+    if (GeneratesFact) {
+      return generateFromZero(Alloca);
+    }
+    return identityFlow();
+  }
+
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     return generateFlowIf(
         Load,
