@@ -495,8 +495,12 @@ auto IDEFeatureTaintAnalysis::getReturnEdgeFunction(
 }
 
 auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
-    n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/, d_t /*RetSiteNode*/,
+    n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
+  if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
+    // Generate user edge-facts from zero
+    return genEF(TaintGen.getGeneratedTaintsAt(CallSite));
+  }
   return EdgeIdentity<l_t>{};
 }
 
