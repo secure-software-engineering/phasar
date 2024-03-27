@@ -14,7 +14,6 @@
 #include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -99,12 +98,10 @@ public:
     CGData.FToFunctionVertexTy.reserve(CallersOf.size());
 
     for (const auto &[Fun, Callers] : CallersOf) {
-      auto &JCallers = CGData.FToFunctionVertexTy[std::invoke(GetFunctionId, Fun)];
-      
+      auto &JCallers =
+          CGData.FToFunctionVertexTy[std::invoke(GetFunctionId, Fun)];
+
       CGData.FToFunctionVertexTy.reserve(Callers->size());
-      // set null value to represent a function with no callers
-      // example: __psrCRuntimeGlobalCtorsModel
-      //JCallers.push_back(0);
       for (const auto &CS : *Callers) {
         JCallers.push_back(std::invoke(GetInstructionId, CS));
       }

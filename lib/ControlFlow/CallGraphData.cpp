@@ -12,24 +12,18 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
-#include <nlohmann/json_fwd.hpp>
-
 namespace psr {
 static CallGraphData getDataFromJson(const nlohmann::json &Json) {
   CallGraphData ToReturn;
 
   // map F to vector of n_t's
-  for (const auto &CurrentFVal : Json.get<nlohmann::json::object_t>()) {
-    std::string FValueString = CurrentFVal.first;
-    std::vector<int> FunctionVertexTyVals;
-    FunctionVertexTyVals.reserve(CurrentFVal.second.size());
+  for (const auto &[FVal, FunctionVertexTyVals] :
+       Json.get<nlohmann::json::object_t>()) {
+    ToReturn.FToFunctionVertexTy.reserve(FunctionVertexTyVals.size());
 
-    for (const auto &CurrentFunctionVertexTy : CurrentFVal.second) {
-      FunctionVertexTyVals.push_back(CurrentFunctionVertexTy);
+    for (const auto &Curr : FunctionVertexTyVals) {
+      ToReturn.FToFunctionVertexTy[FVal].push_back(Curr);
     }
-
-    ToReturn.FToFunctionVertexTy.try_emplace(FValueString,
-                                             FunctionVertexTyVals);
   }
 
   return ToReturn;
@@ -53,9 +47,9 @@ CallGraphData CallGraphData::deserializeJson(const llvm::Twine &Path) {
   return getDataFromJson(readJsonFile(Path));
 }
 
-CallGraphData CallGraphData::loadJsonString(const std::string &JsonAsString) {
-  // nlohmann::json::parse needs a std::string, llvm::Twine won't work
-  nlohmann::json ToStringify = nlohmann::json::parse(JsonAsString);
+CallGraphData CallGraphData::loadJsonString(llvm::StringRef JsonAsString) {
+  auto ToStringify =
+      nlohmann::json::parse(JsonAsString.begin(), JsonAsString.end());
   return getDataFromJson(ToStringify);
 }
 

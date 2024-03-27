@@ -104,9 +104,8 @@ public:
    */
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  [[nodiscard]] DIBasedTypeHierarchyData stringifyTypeHierarchy() const;
-
 private:
+  [[nodiscard]] DIBasedTypeHierarchyData getTypeHierarchyData() const;
   [[nodiscard]] llvm::iterator_range<const ClassType *>
   subTypesOf(size_t TypeIdx) const noexcept;
 

@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -18,11 +19,13 @@
 
 namespace psr {
 struct CallGraphData {
-  CallGraphData() noexcept = default;
   std::unordered_map<std::string, std::vector<int>> FToFunctionVertexTy{};
+
+  CallGraphData() noexcept = default;
   void printAsJson(llvm::raw_ostream &OS);
+
   static CallGraphData deserializeJson(const llvm::Twine &Path);
-  static CallGraphData loadJsonString(const std::string &JsonAsString);
+  static CallGraphData loadJsonString(llvm::StringRef JsonAsString);
 };
 
 } // namespace psr

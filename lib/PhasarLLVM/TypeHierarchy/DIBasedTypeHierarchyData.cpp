@@ -12,12 +12,14 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
-#include <nlohmann/json_fwd.hpp>
+#include "llvm/ADT/StringRef.h"
 
 namespace psr {
 
 static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   DIBasedTypeHierarchyData ToReturn;
+
+  /// TODO:
 
   return ToReturn;
 }
@@ -46,14 +48,7 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
   }
 
   for (const auto &CurrVTable : VTables) {
-    std::vector<std::string> ToAdd;
-    ToAdd.reserve(CurrVTable.size());
-
-    for (const auto &Curr : CurrVTable) {
-      ToAdd.push_back(Curr);
-    }
-
-    JSON["VTables"].push_back(ToAdd);
+    JSON["VTables"].push_back(CurrVTable);
   }
 
   OS << JSON;
@@ -65,9 +60,10 @@ DIBasedTypeHierarchyData::deserializeJson(const llvm::Twine &Path) {
 }
 
 DIBasedTypeHierarchyData
-DIBasedTypeHierarchyData::loadJsonString(const std::string &JsonAsString) {
+DIBasedTypeHierarchyData::loadJsonString(llvm::StringRef JsonAsString) {
   // nlohmann::json::parse needs a std::string, llvm::Twine won't work
-  nlohmann::json ToStringify = nlohmann::json::parse(JsonAsString);
+  nlohmann::json ToStringify =
+      nlohmann::json::parse(JsonAsString.begin(), JsonAsString.end());
   return getDataFromJson(ToStringify);
 }
 

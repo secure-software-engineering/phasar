@@ -193,9 +193,88 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   buildTypeHierarchy(TG, VertexTypes, TransitiveDerivedIndex, Hierarchy);
 }
 
+static llvm::SmallVector<const llvm::Function *>
+findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
+  llvm::SmallVector<const llvm::Function *> FnDefs;
+  llvm::DebugInfoFinder DIF;
+  const auto *Mod = IRDB.getModule();
+
+  DIF.processModule(*Mod);
+  for (const auto &SubProgram : DIF.subprograms()) {
+    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
+        (SubProgram->getName() == Name ||
+         SubProgram->getLinkageName() == Name)) {
+      FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
+    }
+  }
+  DIF.reset();
+
+  if (FnDefs.empty()) {
+    const auto *F = IRDB.getFunction(Name);
+    if (F) {
+      FnDefs.push_back(F);
+    }
+  } else if (FnDefs.size() > 1) {
+    llvm::errs() << "The function name '" << Name
+                 << "' is ambiguous. Possible candidates are:\n";
+    for (const auto *F : FnDefs) {
+      llvm::errs() << "> " << F->getName() << "\n";
+    }
+    llvm::errs() << "Please further specify the function's name, such that it "
+                    "becomes unambiguous\n";
+  }
+
+  return FnDefs;
+}
+
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedCG) {
-  /// TODO: implement
+  for (const auto &Curr : SerializedCG.NameToType) {
+    NameToType.try_emplace(Curr.first(), Curr.second);
+  }
+
+  llvm::DebugInfoFinder DIF;
+  const auto *Mod = IRDB->getModule();
+  DIF.processModule(*Mod);
+
+  for (const auto &Curr : SerializedCG.TypeToVertex) {
+    llvm::SmallVector<const llvm::Function *> FnDefs;
+    for (const auto &SubProgram : DIF.subprograms()) {
+      if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
+          (SubProgram->getName() == Curr.getFirst() ||
+           SubProgram->getLinkageName() == Curr.getFirst())) {
+        FnDefs.push_back(IRDB->getFunction(SubProgram->getLinkageName()));
+      }
+    }
+
+    DIF.reset();
+    FnDefs = findAllFunctionDefs(*IRDB, Curr.getFirst());
+
+    if (FnDefs.empty()) {
+      llvm::errs() << "WARNING: Cannot retrieve function " << Curr.getFirst()
+                   << "\n";
+      continue;
+    }
+
+    const auto *Fun = FnDefs[0];
+    TypeToVertex.try_emplace(Fun, Curr.getSecond());
+  }
+
+  for (const auto &Curr : SerializedCG.VertexTypes) {
+    VertexTypes.emplace_back(Curr);
+  }
+
+  for (const auto &Curr : SerializedCG.TransitiveDerivedIndex) {
+    TransitiveDerivedIndex.emplace_back(Curr);
+  }
+
+  for (const auto &Curr : SerializedCG.Hierarchy) {
+    Hierarchy.emplace_back();
+  }
+
+  for (const auto &Curr : SerializedCG.VTables) {
+    VTables.emplace_back();
+  }
 }
 
 auto DIBasedTypeHierarchy::subTypesOf(size_t TypeIdx) const noexcept
@@ -267,12 +346,12 @@ DIBasedTypeHierarchy::getAsJson() const {
   llvm::report_fatal_error("Not implemented");
 }
 
-DIBasedTypeHierarchyData DIBasedTypeHierarchy::stringifyTypeHierarchy() const {
+DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
 
   for (const auto &Curr : NameToType) {
     Data.NameToType.try_emplace(Curr.getKey(),
-                                Curr.getValue()->getName().str());
+                                Curr.getValue()->getMetadataID());
   }
 
   for (const auto &Curr : TypeToVertex) {
@@ -281,7 +360,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::stringifyTypeHierarchy() const {
   }
 
   for (const auto &Curr : VertexTypes) {
-    Data.VertexTypes.push_back(Curr->getName().str());
+    Data.VertexTypes.push_back(Curr->getMetadataID());
   }
 
   for (const auto &Curr : TransitiveDerivedIndex) {
@@ -308,7 +387,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::stringifyTypeHierarchy() const {
 }
 
 void DIBasedTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
-  DIBasedTypeHierarchyData Data = stringifyTypeHierarchy();
+  DIBasedTypeHierarchyData Data = getTypeHierarchyData();
   Data.printAsJson(OS);
 }
 
