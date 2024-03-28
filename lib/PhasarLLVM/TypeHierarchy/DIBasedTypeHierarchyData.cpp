@@ -17,11 +17,42 @@
 namespace psr {
 
 static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
-  DIBasedTypeHierarchyData ToReturn;
+  DIBasedTypeHierarchyData Data;
 
-  /// TODO:
+  // NameToType
+  for (const auto &[Key, Value] :
+       Json["NameToType"].get<nlohmann::json::object_t>()) {
+    Data.NameToType.try_emplace(Key, Value);
+  }
 
-  return ToReturn;
+  // TypeToVertex
+  for (const auto &[Key, Value] :
+       Json["TypeToVertex"].get<nlohmann::json::object_t>()) {
+    Data.TypeToVertex.try_emplace(Key, Value);
+  }
+
+  // VertexTypes
+  for (const auto &Value : Json["VertexTypes"]) {
+    Data.VertexTypes.push_back(Value);
+  }
+
+  // TransitiveDerivedIndex
+  for (const auto &[First, Second] :
+       Json["TransitiveDerivedIndex"].get<nlohmann::json::object_t>()) {
+    Data.TransitiveDerivedIndex.emplace_back(First, Second);
+  }
+  // Hierarchy
+  for (const auto &Value : Json["Hierarchy"]) {
+    Data.Hierarchy.push_back(Value);
+  }
+  // VTables
+  for (const auto &CurrVTable : Json["VTables"]) {
+    for (const auto &CurrVFunc : CurrVTable) {
+      /// TODO: find out how to deserialize this
+    }
+  }
+
+  return Data;
 }
 
 void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {

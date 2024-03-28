@@ -10,44 +10,57 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-class LLVMBasedICFGGSerializationTest : public ::testing::Test {
-  void serAndDeser(const llvm::Twine &IRFile) {
-    using namespace std::string_literals;
+using namespace psr;
 
-    /// TODO: add all IRFiles in an array and run tests over these files
+/* ============== TEST FIXTURE ============== */
+class TypeHierarchySerialization
+    : public ::testing::TestWithParam<std::string_view> {
+protected:
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("type_hierarchies/");
+  const std::vector<std::string> EntryPoints = {"main"};
 
-    psr::LLVMProjectIRDB IRDB(IRFile);
-    psr::DIBasedTypeHierarchy DIBTH(IRDB);
+}; // Test Fixture
 
-    std::string Ser;
-    // stream data into a json file using the printAsJson() function
-    llvm::raw_string_ostream StringStream(Ser);
+void compareResults(const psr::DIBasedTypeHierarchy &Orig,
+                    const psr::DIBasedTypeHierarchy &Deser) {
+  ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
+  ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
-    DIBTH.printAsJson(StringStream);
-
-    psr::DIBasedTypeHierarchy DeserializedDIBTH(
-        &IRDB, psr::DIBasedTypeHierarchyData::loadJsonString(Ser));
-
-    compareResults(DIBTH, DeserializedDIBTH);
+  for (const auto &OrigCurrentType : Orig.getAllTypes()) {
+    EXPECT_EQ(OrigCurrentType, Deser.getType(OrigCurrentType->getName().str()));
+    EXPECT_EQ(Orig.getVFTable(OrigCurrentType),
+              Deser.getVFTable(OrigCurrentType));
   }
+}
 
-  void compareResults(const psr::DIBasedTypeHierarchy &Orig,
-                      const psr::DIBasedTypeHierarchy &Deser) {
+TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
+  using namespace std::string_literals;
 
-    ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
-    ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
+  psr::LLVMProjectIRDB IRDB(psr::unittest::PathToLLTestFiles + GetParam());
+  psr::DIBasedTypeHierarchy DIBTH(IRDB);
 
-    for (const auto &OrigCurrentType : Orig.getAllTypes()) {
-      EXPECT_EQ(OrigCurrentType,
-                Deser.getType(OrigCurrentType->getName().str()));
-      EXPECT_EQ(Orig.getVFTable(OrigCurrentType),
-                Deser.getVFTable(OrigCurrentType));
-    }
-  }
+  std::string Ser;
+  // stream data into a json file using the printAsJson() function
+  llvm::raw_string_ostream StringStream(Ser);
 
-  int main(int Argc, char **Argv) {
-    ::testing::InitGoogleTest(&Argc, Argv);
-    auto Res = RUN_ALL_TESTS();
-    return Res;
-  }
-};
+  DIBTH.printAsJson(StringStream);
+
+  psr::DIBasedTypeHierarchy DeserializedDIBTH(
+      &IRDB, psr::DIBasedTypeHierarchyData::loadJsonString(Ser));
+
+  compareResults(DIBTH, DeserializedDIBTH);
+}
+
+static constexpr std::string_view TypeHierarchyTestFiles[] = {
+    "type_hierarchy_1_cpp_dbg.ll", "type_hierarchy_2_cpp_dbg.ll"};
+
+INSTANTIATE_TEST_SUITE_P(TypeHierarchySerializationTest,
+                         TypeHierarchySerialization,
+                         ::testing::ValuesIn(TypeHierarchyTestFiles));
+
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
+  auto Res = RUN_ALL_TESTS();
+  return Res;
+}
