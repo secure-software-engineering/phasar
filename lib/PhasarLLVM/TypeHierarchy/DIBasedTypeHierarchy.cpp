@@ -272,13 +272,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     NameToType.try_emplace(Curr.getKey(),
                            stringToDIType(IRDB, Curr.getValue()));
   }
-  /// TODO:
-  /*
-    for (const auto &Curr : SerializedData.TypeToVertex) {
-      TypeToVertex.try_emplace(stringToDIType(IRDB, Curr.getFirst()),
-                               Curr.getSecond());
-    }
-  */
+
+  for (const auto &Curr : SerializedData.TypeToVertex) {
+    TypeToVertex.try_emplace(stringToDIType(IRDB, Curr.getKey()),
+                             Curr.getValue());
+  }
+
   for (const auto &Curr : SerializedData.TransitiveDerivedIndex) {
     TransitiveDerivedIndex.emplace_back(
         std::pair<uint32_t, uint32_t>(Curr.first, Curr.second));
@@ -375,13 +374,12 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
     Data.NameToType.try_emplace(Curr.getKey().str(),
                                 Curr.getValue()->getName().str());
   }
-  /// TODO:
-  /*
-    for (const auto &Curr : TypeToVertex) {
-      Data.TypeToVertex.try_emplace(Curr.getFirst()->getName().str(),
-                                    Curr.getSecond());
-    }
-  */
+
+  for (const auto &Curr : TypeToVertex) {
+    Data.TypeToVertex.try_emplace(Curr.getFirst()->getName().str(),
+                                  Curr.getSecond());
+  }
+
   for (const auto &Curr : VertexTypes) {
     Data.VertexTypes.push_back(Curr->getName().str());
   }

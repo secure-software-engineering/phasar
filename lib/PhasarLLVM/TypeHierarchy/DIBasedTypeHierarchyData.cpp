@@ -30,10 +30,10 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   // TypeToVertex
   // Data.TypeToVertex.reserve(
   //    Json["TypeToVertex"].get<nlohmann::json::object_t>().size());
-  // for (const auto &[Key, Value] :
-  //     Json["TypeToVertex"].get<nlohmann::json::object_t>()) {
-  //  Data.TypeToVertex.try_emplace(Key, Value);
-  //}
+  for (const auto &[Key, Value] :
+       Json["TypeToVertex"].get<nlohmann::json::object_t>()) {
+    Data.TypeToVertex.try_emplace(Key, Value);
+  }
 
   // VertexTypes
   for (const auto &Value : Json["VertexTypes"]) {

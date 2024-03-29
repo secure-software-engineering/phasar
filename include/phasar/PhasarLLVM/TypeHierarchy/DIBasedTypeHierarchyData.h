@@ -10,12 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_DIBASEDTYPEHIERARCHYDATA_H
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_DIBASEDTYPEHIERARCHYDATA_H
 
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
 #include <deque>
+#include <string>
 
 namespace psr {
 struct DIBasedTypeHierarchyData {
@@ -27,7 +27,9 @@ struct DIBasedTypeHierarchyData {
   llvm::StringMap<std::string> NameToType;
   // llvm::DenseMap<ClassType, size_t> TypeToVertex
   // using ClassType = const llvm::DIType *
-  /// TODO: llvm::DenseMap<std::string, size_t> TypeToVertex;
+  // Note: Using DenseMap<std::string, size_t> creates an error, therefore I've
+  // resorted to using a StringMap
+  llvm::StringMap<size_t> TypeToVertex;
   // std::vector<const llvm::DICompositeType *> VertexTypes
   std::vector<std::string> VertexTypes;
   // std::vector<std::pair<uint32_t, uint32_t>> TransitiveDerivedIndex
