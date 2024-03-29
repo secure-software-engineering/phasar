@@ -18,8 +18,10 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -33,6 +35,7 @@
 #include <cstdint>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace psr {
 using ClassType = DIBasedTypeHierarchy::ClassType;
@@ -194,7 +197,9 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 }
 
 static llvm::SmallVector<const llvm::Function *>
-findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
+findAllDITypes(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
+  /// TODO: umschreiben, so dass diese Funktion alle DITypes mithilfe des Debug
+  /// Info Finders findet
   llvm::SmallVector<const llvm::Function *> FnDefs;
   llvm::DebugInfoFinder DIF;
   const auto *Mod = IRDB.getModule();
@@ -207,6 +212,7 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
       FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
     }
   }
+
   DIF.reset();
 
   if (FnDefs.empty()) {
@@ -227,53 +233,69 @@ findAllFunctionDefs(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
   return FnDefs;
 }
 
-DIBasedTypeHierarchy::DIBasedTypeHierarchy(
-    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedCG) {
-  for (const auto &Curr : SerializedCG.NameToType) {
-    NameToType.try_emplace(Curr.first(), Curr.second);
-  }
-
+static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
+                                          const llvm::StringRef DITypeName) {
   llvm::DebugInfoFinder DIF;
-  const auto *Mod = IRDB->getModule();
-  DIF.processModule(*Mod);
+  const auto *Module = IRDB->getModule();
+  DIF.processModule(*Module);
 
-  for (const auto &Curr : SerializedCG.TypeToVertex) {
-    llvm::SmallVector<const llvm::Function *> FnDefs;
-    for (const auto &SubProgram : DIF.subprograms()) {
-      if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
-          (SubProgram->getName() == Curr.getFirst() ||
-           SubProgram->getLinkageName() == Curr.getFirst())) {
-        FnDefs.push_back(IRDB->getFunction(SubProgram->getLinkageName()));
+  for (const auto &SubProgram : DIF.subprograms()) {
+    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
+        (SubProgram->getName() == DITypeName ||
+         SubProgram->getLinkageName() == DITypeName)) {
+      if (const auto *DIT = llvm::dyn_cast<llvm::DIType>(SubProgram)) {
+        return DIT;
       }
+
+      llvm::report_fatal_error("Subprogram with DITypeName isn't a DIType");
+    }
+  }
+
+  llvm::report_fatal_error("DIType doesn't exist");
+}
+
+static const llvm::Function *
+stringToFunction(const LLVMProjectIRDB *IRDB,
+                 const llvm::StringRef FunctionName) {
+  if (const auto *Func = llvm::dyn_cast<llvm::Function>(
+          psr::fromMetaDataId(*IRDB, FunctionName))) {
+    return Func;
+  }
+
+  llvm::report_fatal_error("Function doesn't exist");
+}
+
+DIBasedTypeHierarchy::DIBasedTypeHierarchy(
+    const LLVMProjectIRDB *IRDB,
+    const DIBasedTypeHierarchyData &SerializedData) {
+  for (const auto &Curr : SerializedData.NameToType) {
+    NameToType.try_emplace(Curr.getKey(),
+                           stringToDIType(IRDB, Curr.getValue()));
+  }
+  /// TODO:
+  /*
+    for (const auto &Curr : SerializedData.TypeToVertex) {
+      TypeToVertex.try_emplace(stringToDIType(IRDB, Curr.getFirst()),
+                               Curr.getSecond());
+    }
+  */
+  for (const auto &Curr : SerializedData.TransitiveDerivedIndex) {
+    TransitiveDerivedIndex.emplace_back(
+        std::pair<uint32_t, uint32_t>(Curr.first, Curr.second));
+  }
+
+  for (const auto &Curr : SerializedData.Hierarchy) {
+    Hierarchy.push_back(stringToDIType(IRDB, Curr));
+  }
+
+  for (const auto &Curr : SerializedData.VTables) {
+    LLVMVFTable CurrVTable;
+
+    for (const auto &FuncName : Curr) {
+      CurrVTable.VFT.push_back(stringToFunction(IRDB, FuncName));
     }
 
-    DIF.reset();
-    FnDefs = findAllFunctionDefs(*IRDB, Curr.getFirst());
-
-    if (FnDefs.empty()) {
-      llvm::errs() << "WARNING: Cannot retrieve function " << Curr.getFirst()
-                   << "\n";
-      continue;
-    }
-
-    const auto *Fun = FnDefs[0];
-    TypeToVertex.try_emplace(Fun, Curr.getSecond());
-  }
-
-  for (const auto &Curr : SerializedCG.VertexTypes) {
-    VertexTypes.emplace_back(Curr);
-  }
-
-  for (const auto &Curr : SerializedCG.TransitiveDerivedIndex) {
-    TransitiveDerivedIndex.emplace_back(Curr);
-  }
-
-  for (const auto &Curr : SerializedCG.Hierarchy) {
-    Hierarchy.emplace_back();
-  }
-
-  for (const auto &Curr : SerializedCG.VTables) {
-    VTables.emplace_back();
+    VTables.push_back(CurrVTable);
   }
 }
 
@@ -350,17 +372,18 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
 
   for (const auto &Curr : NameToType) {
-    Data.NameToType.try_emplace(Curr.getKey(),
-                                Curr.getValue()->getMetadataID());
+    Data.NameToType.try_emplace(Curr.getKey().str(),
+                                Curr.getValue()->getName().str());
   }
-
-  for (const auto &Curr : TypeToVertex) {
-    Data.TypeToVertex.try_emplace(Curr.getFirst()->getName().str(),
-                                  Curr.getSecond());
-  }
-
+  /// TODO:
+  /*
+    for (const auto &Curr : TypeToVertex) {
+      Data.TypeToVertex.try_emplace(Curr.getFirst()->getName().str(),
+                                    Curr.getSecond());
+    }
+  */
   for (const auto &Curr : VertexTypes) {
-    Data.VertexTypes.push_back(Curr->getMetadataID());
+    Data.VertexTypes.push_back(Curr->getName().str());
   }
 
   for (const auto &Curr : TransitiveDerivedIndex) {
@@ -380,7 +403,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
       CurrVTableAsString.push_back(Func->getName().str());
     }
 
-    Data.VTables.emplace_back(std::move(CurrVTableAsString));
+    Data.VTables.push_back(std::move(CurrVTableAsString));
   }
 
   return Data;

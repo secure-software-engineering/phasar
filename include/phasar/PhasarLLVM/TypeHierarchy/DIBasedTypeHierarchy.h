@@ -34,7 +34,7 @@ public:
 
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB *IRDB,
-                                const DIBasedTypeHierarchyData &SerializedCG);
+                                const DIBasedTypeHierarchyData &SerializedData);
   ~DIBasedTypeHierarchy() override = default;
 
   [[nodiscard]] bool hasType(ClassType Type) const override {

@@ -14,6 +14,8 @@
 
 #include "llvm/ADT/StringRef.h"
 
+#include <string>
+
 namespace psr {
 
 static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
@@ -26,10 +28,12 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   }
 
   // TypeToVertex
-  for (const auto &[Key, Value] :
-       Json["TypeToVertex"].get<nlohmann::json::object_t>()) {
-    Data.TypeToVertex.try_emplace(Key, Value);
-  }
+  // Data.TypeToVertex.reserve(
+  //    Json["TypeToVertex"].get<nlohmann::json::object_t>().size());
+  // for (const auto &[Key, Value] :
+  //     Json["TypeToVertex"].get<nlohmann::json::object_t>()) {
+  //  Data.TypeToVertex.try_emplace(Key, Value);
+  //}
 
   // VertexTypes
   for (const auto &Value : Json["VertexTypes"]) {
@@ -39,17 +43,25 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   // TransitiveDerivedIndex
   for (const auto &[First, Second] :
        Json["TransitiveDerivedIndex"].get<nlohmann::json::object_t>()) {
-    Data.TransitiveDerivedIndex.emplace_back(First, Second);
+    // Data.TransitiveDerivedIndex.emplace_back(First, Second);
   }
   // Hierarchy
   for (const auto &Value : Json["Hierarchy"]) {
     Data.Hierarchy.push_back(Value);
   }
   // VTables
+  /// TODO: Fabian fragen, wie ich hier am besten mit der deque arbeiten soll
+  int Counter = 0;
   for (const auto &CurrVTable : Json["VTables"]) {
+    Data.VTables.emplace_back(std::vector<std::string>());
+
+    std::string NameOfCurrentVTable = std::to_string(Counter);
+
     for (const auto &CurrVFunc : CurrVTable) {
-      /// TODO: find out how to deserialize this
+      Data.VTables[Counter].push_back(CurrVFunc);
     }
+
+    Counter++;
   }
 
   return Data;
@@ -62,9 +74,9 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
     JSON["NameToType"][Curr.first()] = Curr.second;
   }
 
-  for (const auto &Curr : TypeToVertex) {
-    JSON["TypeToVertex"][Curr.first] = Curr.second;
-  }
+  // for (const auto &Curr : TypeToVertex) {
+  //   JSON["TypeToVertex"][Curr.first] = Curr.second;
+  // }
 
   for (const auto &Curr : VertexTypes) {
     JSON["VertexTypes"].push_back(Curr);
@@ -78,8 +90,15 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
     JSON["Hierarchy"].push_back(Curr);
   }
 
+  int Counter = 0;
   for (const auto &CurrVTable : VTables) {
-    JSON["VTables"].push_back(CurrVTable);
+    std::string NameForVTable = std::to_string(Counter);
+
+    for (const auto &CurrVFunc : CurrVTable) {
+      JSON["VTables"][NameForVTable].push_back(CurrVFunc);
+    }
+
+    Counter++;
   }
 
   OS << JSON;
