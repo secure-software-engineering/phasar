@@ -28,6 +28,9 @@ class SparseLLVMBasedCFG : public LLVMBasedCFG,
   friend class SparseLLVMBasedICFG;
 
 public:
+  using vgraph_t =
+      llvm::SmallDenseMap<const llvm::Instruction *, const llvm::Instruction *>;
+
   SparseLLVMBasedCFG() noexcept = default;
   SparseLLVMBasedCFG(
       llvm::SmallDenseMap<const llvm::Instruction *, const llvm::Instruction *>
@@ -39,8 +42,7 @@ private:
     return VGraph.lookup(FromInstruction);
   }
 
-  llvm::SmallDenseMap<const llvm::Instruction *, const llvm::Instruction *>
-      VGraph;
+  vgraph_t VGraph;
 };
 } // namespace psr
 
