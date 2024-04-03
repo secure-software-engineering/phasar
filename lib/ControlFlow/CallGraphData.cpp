@@ -19,10 +19,11 @@ static CallGraphData getDataFromJson(const nlohmann::json &Json) {
   // map F to vector of n_t's
   for (const auto &[FVal, FunctionVertexTyVals] :
        Json.get<nlohmann::json::object_t>()) {
-    ToReturn.FToFunctionVertexTy.reserve(FunctionVertexTyVals.size());
+    auto &FValMappedVector = ToReturn.FToFunctionVertexTy[FVal];
+    FValMappedVector.reserve(FunctionVertexTyVals.size());
 
     for (const auto &Curr : FunctionVertexTyVals) {
-      ToReturn.FToFunctionVertexTy[FVal].push_back(Curr);
+      FValMappedVector.push_back(Curr.get<int>());
     }
   }
 

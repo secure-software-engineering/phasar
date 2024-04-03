@@ -196,41 +196,24 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   buildTypeHierarchy(TG, VertexTypes, TransitiveDerivedIndex, Hierarchy);
 }
 
-static llvm::SmallVector<const llvm::Function *>
-findAllDITypes(const LLVMProjectIRDB &IRDB, llvm::StringRef Name) {
-  /// TODO: umschreiben, so dass diese Funktion alle DITypes mithilfe des Debug
-  /// Info Finders findet
-  llvm::SmallVector<const llvm::Function *> FnDefs;
+static const llvm::DICompositeType *
+stringToDICompositeType(const LLVMProjectIRDB *IRDB,
+                        const llvm::StringRef DITypeName) {
   llvm::DebugInfoFinder DIF;
-  const auto *Mod = IRDB.getModule();
+  const auto *Module = IRDB->getModule();
+  DIF.processModule(*Module);
 
-  DIF.processModule(*Mod);
-  for (const auto &SubProgram : DIF.subprograms()) {
-    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
-        (SubProgram->getName() == Name ||
-         SubProgram->getLinkageName() == Name)) {
-      FnDefs.push_back(IRDB.getFunction(SubProgram->getLinkageName()));
+  for (const auto &Type : DIF.types()) {
+    if (Type) {
+      if (Type->getName() == DITypeName) {
+        if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+          return DICT;
+        }
+      }
     }
   }
 
-  DIF.reset();
-
-  if (FnDefs.empty()) {
-    const auto *F = IRDB.getFunction(Name);
-    if (F) {
-      FnDefs.push_back(F);
-    }
-  } else if (FnDefs.size() > 1) {
-    llvm::errs() << "The function name '" << Name
-                 << "' is ambiguous. Possible candidates are:\n";
-    for (const auto *F : FnDefs) {
-      llvm::errs() << "> " << F->getName() << "\n";
-    }
-    llvm::errs() << "Please further specify the function's name, such that it "
-                    "becomes unambiguous\n";
-  }
-
-  return FnDefs;
+  llvm::report_fatal_error("DIType doesn't exist");
 }
 
 static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
@@ -239,15 +222,13 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
   const auto *Module = IRDB->getModule();
   DIF.processModule(*Module);
 
-  for (const auto &SubProgram : DIF.subprograms()) {
-    if (SubProgram->isDistinct() && !SubProgram->getLinkageName().empty() &&
-        (SubProgram->getName() == DITypeName ||
-         SubProgram->getLinkageName() == DITypeName)) {
-      if (const auto *DIT = llvm::dyn_cast<llvm::DIType>(SubProgram)) {
-        return DIT;
+  for (const auto &Type : DIF.types()) {
+    if (Type) {
+      if (Type->getName() == DITypeName) {
+        if (const auto *DIT = llvm::dyn_cast<llvm::DIType>(Type)) {
+          return DIT;
+        }
       }
-
-      llvm::report_fatal_error("Subprogram with DITypeName isn't a DIType");
     }
   }
 
@@ -257,17 +238,21 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
 static const llvm::Function *
 stringToFunction(const LLVMProjectIRDB *IRDB,
                  const llvm::StringRef FunctionName) {
-  if (const auto *Func = llvm::dyn_cast<llvm::Function>(
-          psr::fromMetaDataId(*IRDB, FunctionName))) {
+  if (const auto *Func = IRDB->getFunction(FunctionName)) {
     return Func;
   }
 
-  llvm::report_fatal_error("Function doesn't exist");
+  llvm::errs() << "Function " << FunctionName << " doesn't exist";
+  return nullptr;
 }
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB,
     const DIBasedTypeHierarchyData &SerializedData) {
+  for (const auto &Curr : SerializedData.VertexTypes) {
+    VertexTypes.push_back(stringToDICompositeType(IRDB, Curr));
+  }
+
   for (const auto &Curr : SerializedData.NameToType) {
     NameToType.try_emplace(Curr.getKey(),
                            stringToDIType(IRDB, Curr.getValue()));
@@ -288,13 +273,13 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
   }
 
   for (const auto &Curr : SerializedData.VTables) {
-    LLVMVFTable CurrVTable;
+    LLVMVFTable CurrVTable = LLVMVFTable();
 
     for (const auto &FuncName : Curr) {
       CurrVTable.VFT.push_back(stringToFunction(IRDB, FuncName));
     }
 
-    VTables.push_back(CurrVTable);
+    VTables.push_back(std::move(CurrVTable));
   }
 }
 
@@ -398,7 +383,11 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
     CurrVTableAsString.reserve(Curr.getAllFunctions().size());
 
     for (const auto &Func : Curr.getAllFunctions()) {
-      CurrVTableAsString.push_back(Func->getName().str());
+      if (Func) {
+        CurrVTableAsString.push_back(Func->getName().str());
+        continue;
+      }
+      CurrVTableAsString.emplace_back("Null");
     }
 
     Data.VTables.push_back(std::move(CurrVTableAsString));

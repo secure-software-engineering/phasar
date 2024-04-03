@@ -29,15 +29,19 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
 
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
     EXPECT_EQ(OrigCurrentType, Deser.getType(OrigCurrentType->getName().str()));
-    EXPECT_EQ(Orig.getVFTable(OrigCurrentType),
-              Deser.getVFTable(OrigCurrentType));
+
+    for (const auto &CurrVFunc :
+         Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {
+      EXPECT_TRUE(Deser.getVFTable(OrigCurrentType)
+                      ->getFunction(CurrVFunc->getValueID()));
+    }
   }
 }
 
 TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
   using namespace std::string_literals;
 
-  psr::LLVMProjectIRDB IRDB(psr::unittest::PathToLLTestFiles + GetParam());
+  psr::LLVMProjectIRDB IRDB(PathToLlFiles + GetParam());
   psr::DIBasedTypeHierarchy DIBTH(IRDB);
 
   std::string Ser;
@@ -53,7 +57,19 @@ TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
 }
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {
-    "type_hierarchy_1_cpp_dbg.ll", "type_hierarchy_2_cpp_dbg.ll"};
+    "type_hierarchy_1_cpp_dbg.ll",    "type_hierarchy_2_cpp_dbg.ll",
+    "type_hierarchy_3_cpp_dbg.ll",    "type_hierarchy_4_cpp_dbg.ll",
+    "type_hierarchy_5_cpp_dbg.ll",    "type_hierarchy_6_cpp_dbg.ll",
+    "type_hierarchy_7_cpp_dbg.ll",    "type_hierarchy_7_b_cpp_dbg.ll",
+    "type_hierarchy_8_cpp_dbg.ll",    "type_hierarchy_9_cpp_dbg.ll",
+    "type_hierarchy_10_cpp_dbg.ll",   "type_hierarchy_11_cpp_dbg.ll",
+    "type_hierarchy_12_cpp_dbg.ll",   "type_hierarchy_12_b_cpp_dbg.ll",
+    "type_hierarchy_12_c_cpp_dbg.ll", "type_hierarchy_13_cpp_dbg.ll",
+    "type_hierarchy_14_cpp_dbg.ll",   "type_hierarchy_15_cpp_dbg.ll",
+    "type_hierarchy_16_cpp_dbg.ll",   "type_hierarchy_17_cpp_dbg.ll",
+    "type_hierarchy_18_cpp_dbg.ll",   "type_hierarchy_19_cpp_dbg.ll",
+    "type_hierarchy_20_cpp_dbg.ll",   "type_hierarchy_21_cpp_dbg.ll",
+};
 
 INSTANTIATE_TEST_SUITE_P(TypeHierarchySerializationTest,
                          TypeHierarchySerialization,

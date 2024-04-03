@@ -1,4 +1,5 @@
 set(PointerSources
+    DIBasedTypeHierarchySerializationTest.cpp
 	DIBasedTypeHierarchyTest.cpp
 	LLVMTypeHierarchyTest.cpp
 	TypeGraphTest.cpp
