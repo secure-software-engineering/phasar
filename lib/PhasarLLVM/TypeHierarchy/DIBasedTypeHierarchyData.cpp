@@ -33,9 +33,13 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
     Data.TypeToVertex.try_emplace(Key, Value.get<size_t>());
   }
 
+  int Counter = 0;
   for (const auto &Value : Json["VertexTypes"]) {
     Data.VertexTypes.push_back(Value.get<std::string>());
+    Counter++;
   }
+  llvm::outs() << "DIBTH getDataFromJson: " << Counter << "\n";
+  llvm::outs().flush();
 
   for (const auto &CurrPair : Json["TransitiveDerivedIndex"]) {
     Data.TransitiveDerivedIndex.emplace_back(CurrPair[0].get<uint32_t>(),
@@ -68,9 +72,13 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
     JSON["TypeToVertex"][Curr.getKey()] = Curr.getValue();
   }
 
+  int Counter = 0;
   for (const auto &Curr : VertexTypes) {
     JSON["VertexTypes"].push_back(Curr);
+    Counter++;
   }
+  llvm::outs() << "DIBTHData: " << Counter << "\n";
+  llvm::outs().flush();
 
   /// TODO: geschachteltes Array verwenden, statt Counter
   int Number = 0;

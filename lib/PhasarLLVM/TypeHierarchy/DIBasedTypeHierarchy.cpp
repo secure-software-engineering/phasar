@@ -242,16 +242,24 @@ stringToFunction(const LLVMProjectIRDB *IRDB,
     return Func;
   }
 
-  llvm::errs() << "Function " << FunctionName << " doesn't exist\n";
   return nullptr;
 }
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB,
     const DIBasedTypeHierarchyData &SerializedData) {
+  llvm::outs() << "Size: " << SerializedData.VertexTypes.size() << "\n";
+  llvm::outs().flush();
+
+  int Counter = 0;
+  VertexTypes.reserve(SerializedData.VertexTypes.size());
   for (const auto &Curr : SerializedData.VertexTypes) {
     VertexTypes.push_back(stringToDICompositeType(IRDB, Curr));
+    Counter++;
   }
+  llvm::outs() << "Constr: " << Counter << "\n";
+  llvm::outs() << "VertexTypes: " << VertexTypes.size() << "\n";
+  llvm::outs().flush();
 
   for (const auto &Curr : SerializedData.NameToType) {
     NameToType.try_emplace(Curr.getKey(),
@@ -365,9 +373,13 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
                                   Curr.getSecond());
   }
 
+  int Counter = 0;
   for (const auto &Curr : VertexTypes) {
     Data.VertexTypes.push_back(Curr->getName().str());
+    Counter++;
   }
+  llvm::outs() << Counter << "\n";
+  llvm::outs().flush();
 
   for (const auto &Curr : TransitiveDerivedIndex) {
     Data.TransitiveDerivedIndex.emplace_back(
