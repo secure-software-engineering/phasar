@@ -242,7 +242,7 @@ stringToFunction(const LLVMProjectIRDB *IRDB,
     return Func;
   }
 
-  llvm::errs() << "Function " << FunctionName << " doesn't exist";
+  llvm::errs() << "Function " << FunctionName << " doesn't exist\n";
   return nullptr;
 }
 

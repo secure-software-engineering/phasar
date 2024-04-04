@@ -47,10 +47,10 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   }
 
   for (const auto &CurrVTable : Json["VTables"]) {
-    auto &Test = Data.VTables.emplace_back();
+    auto &DataPos = Data.VTables.emplace_back();
 
     for (const auto &CurrVFunc : CurrVTable) {
-      Test.push_back(CurrVFunc.get<std::string>());
+      DataPos.push_back(CurrVFunc.get<std::string>());
     }
   }
 
@@ -84,8 +84,10 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
   }
 
   for (const auto &CurrVTable : VTables) {
+    auto &DataPos = JSON["VTables"].emplace_back();
+
     for (const auto &CurrVFunc : CurrVTable) {
-      JSON["VTables"].push_back(CurrVFunc);
+      DataPos.push_back(CurrVFunc);
     }
   }
 

@@ -32,8 +32,19 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
 
     for (const auto &CurrVFunc :
          Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {
-      EXPECT_TRUE(Deser.getVFTable(OrigCurrentType)
-                      ->getFunction(CurrVFunc->getValueID()));
+      bool FoundFunction = false;
+      for (const auto &DeserFunc :
+           Deser.getVFTable(OrigCurrentType)->getAllFunctions()) {
+        if (DeserFunc) {
+          if (CurrVFunc) {
+            if (DeserFunc->getName() == CurrVFunc->getName()) {
+              FoundFunction = true;
+              break;
+            }
+          }
+        }
+      }
+      EXPECT_TRUE(FoundFunction);
     }
   }
 }
@@ -45,7 +56,6 @@ TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
   psr::DIBasedTypeHierarchy DIBTH(IRDB);
 
   std::string Ser;
-  // stream data into a json file using the printAsJson() function
   llvm::raw_string_ostream StringStream(Ser);
 
   DIBTH.printAsJson(StringStream);
@@ -54,6 +64,12 @@ TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
       &IRDB, psr::DIBasedTypeHierarchyData::loadJsonString(Ser));
 
   compareResults(DIBTH, DeserializedDIBTH);
+  /*
+    DIBTH.printAsJson();
+    llvm::outs() << "\n----------------------------\n";
+    llvm::outs() << Ser << "\n----------------------------\n";
+    llvm::outs().flush();
+  */
 }
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {
