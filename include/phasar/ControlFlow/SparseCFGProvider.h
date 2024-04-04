@@ -15,6 +15,8 @@
 #include <type_traits>
 
 namespace psr {
+template <typename T> T valueOf(T Val) { return Val; }
+
 template <typename Derived, typename F, typename V> class SparseCFGProvider {
 public:
   using f_t = F;
@@ -23,6 +25,7 @@ public:
   template <typename D>
   [[nodiscard]] decltype(auto) getSparseCFG(ByConstRef<f_t> Fun,
                                             const D &Val) const {
+    using psr::valueOf;
     static_assert(std::is_convertible_v<decltype(valueOf(Val)), v_t>);
     return self().getSparseCFGImpl(Fun, valueOf(Val));
   }
@@ -34,6 +37,18 @@ private:
   }
 };
 
+template <typename T, typename D, typename = void>
+struct has_getSparseCFG : std::false_type {}; // NOLINT
+template <typename T, typename D>
+struct has_getSparseCFG<
+    T, D,
+    std::void_t<decltype(std::declval<const T>().getSparseCFG(
+        std::declval<typename T::f_t>(), std::declval<D>()))>>
+    : std::true_type {};
+
+template <typename T, typename D>
+// NOLINTNEXTLINE
+static constexpr bool has_getSparseCFG_v = has_getSparseCFG<T, D>::value;
 } // namespace psr
 
 #endif // PHASAR_CONTROLFLOW_SPARSECFGPROVIDER_H

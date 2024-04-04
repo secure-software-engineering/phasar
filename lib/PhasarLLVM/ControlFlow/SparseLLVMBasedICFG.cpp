@@ -1,11 +1,13 @@
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFG.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
@@ -85,10 +87,21 @@ static bool fuzzyMayAlias(const llvm::Value * /*Ptr1*/,
   return PointeeTy1 == PointeeTy2;
 }
 
+static bool isFirstInBB(const llvm::Instruction *Inst) {
+  return !Inst->getPrevNode();
+}
+
+static bool isLastInst(const llvm::Instruction *Inst) {
+  return !Inst->getNextNode() && llvm::succ_empty(Inst);
+}
+
 static bool shouldKeepInst(const llvm::Instruction *Inst,
                            const llvm::Value *Val) {
-  if (Inst == Val || llvm::pred_size(Inst->getParent()) != 1) {
+  if (Inst == Val || isFirstInBB(Inst) || isLastInst(Inst)) {
     // First in BB always stays for now
+
+    // llvm::errs() << "[shouldKeepInst]: 1: " << llvmIRToString(Inst)
+    //              << " :: " << llvmIRToShortString(Val) << '\n';
     return true;
   }
 
@@ -98,6 +111,8 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
 
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
     if (llvm::isa<llvm::GlobalValue>(Val)) {
+      // llvm::errs() << "[shouldKeepInst]: 2: " << llvmIRToString(Inst)
+      //              << " :: " << llvmIRToShortString(Val) << '\n';
       return true;
     }
   }
@@ -118,6 +133,8 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
     }
 
     if (fuzzyMayAlias(Val, PointeeTy, Op, getPointeeTypeOrNull(Op))) {
+      // llvm::errs() << "[shouldKeepInst]: 3: " << llvmIRToString(Inst)
+      //              << " :: " << llvmIRToShortString(Val) << '\n';
       return true;
     }
   }
@@ -129,6 +146,9 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
 static void buildSparseCFG(const LLVMBasedCFG &CFG,
                            SparseLLVMBasedCFG::vgraph_t &SCFG,
                            const llvm::Function *Fun, const llvm::Value *Val) {
+
+  // llvm::errs() << "Build SCFG for '" << Fun->getName() << "' and value "
+  //              << llvmIRToString(Val) << '\n';
   llvm::SmallVector<
       std::pair<const llvm::Instruction *, const llvm::Instruction *>>
       WL;

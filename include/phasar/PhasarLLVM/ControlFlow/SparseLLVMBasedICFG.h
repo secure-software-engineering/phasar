@@ -21,6 +21,8 @@ class SparseLLVMBasedCFG;
 class SparseLLVMBasedICFG
     : public LLVMBasedICFG,
       public SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG> {
+  friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG>;
+
 public:
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
                                CallGraphAnalysisType CGType,

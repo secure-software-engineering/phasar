@@ -26,6 +26,7 @@ template <> struct CFGTraits<SparseLLVMBasedCFG> : CFGTraits<LLVMBasedCFG> {
 class SparseLLVMBasedCFG : public LLVMBasedCFG,
                            public SparseCFGBase<SparseLLVMBasedCFG> {
   friend class SparseLLVMBasedICFG;
+  friend SparseCFGBase<SparseLLVMBasedCFG>;
 
 public:
   using vgraph_t =
