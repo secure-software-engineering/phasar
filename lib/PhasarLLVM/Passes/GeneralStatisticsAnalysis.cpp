@@ -9,9 +9,9 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysisData.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 
 #include "llvm/IR/CFG.h"
@@ -288,8 +288,36 @@ GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
 }
 
+/// TODO: Fabian fragen, welche Impl hier zu verwenden ist.
+/// Alte Impl:
+/*
+nlohmann::json GeneralStatistics::getAsJson() const {
+  nlohmann::json J;
+  J["ModuleName"] = ModuleName;
+  J["Instructions"] = Instructions;
+  J["Functions"] = Functions;
+  J["ExternalFunctions"] = ExternalFunctions;
+  J["FunctionDefinitions"] = FunctionDefinitions;
+  J["AddressTakenFunctions"] = AddressTakenFunctions;
+  J["AllocaInstructions"] = AllocaInstructions.size();
+  J["CallSites"] = CallSites;
+  J["IndirectCallSites"] = IndCalls;
+  J["MemoryIntrinsics"] = MemIntrinsics;
+  J["DebugIntrinsics"] = DebugIntrinsics;
+  J["InlineAssembly"] = NumInlineAsm;
+  J["GlobalVariables"] = Globals;
+  J["Branches"] = Branches;
+  J["GetElementPtrs"] = GetElementPtrs;
+  J["BasicBlocks"] = BasicBlocks;
+  J["PhiNodes"] = PhiNodes;
+  J["LandingPads"] = LandingPads;
+  J["GlobalConsts"] = GlobalConsts;
+  return J;
+}
+*/
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
-  OS << getAsJson() << '\n';
+  GeneralStatisticsAnalysisData Data;
+  Data.printAsJson(OS);
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {

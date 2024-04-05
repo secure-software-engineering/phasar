@@ -204,11 +204,9 @@ stringToDICompositeType(const LLVMProjectIRDB *IRDB,
   DIF.processModule(*Module);
 
   for (const auto &Type : DIF.types()) {
-    if (Type) {
-      if (Type->getName() == DITypeName) {
-        if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
-          return DICT;
-        }
+    if (Type->getName() == DITypeName) {
+      if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+        return DICT;
       }
     }
   }
@@ -235,16 +233,6 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
   llvm::report_fatal_error("DIType doesn't exist");
 }
 
-static const llvm::Function *
-stringToFunction(const LLVMProjectIRDB *IRDB,
-                 const llvm::StringRef FunctionName) {
-  if (const auto *Func = IRDB->getFunction(FunctionName)) {
-    return Func;
-  }
-
-  return nullptr;
-}
-
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB,
     const DIBasedTypeHierarchyData &SerializedData) {
@@ -253,10 +241,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
 
   int Counter = 0;
   VertexTypes.reserve(SerializedData.VertexTypes.size());
+
   for (const auto &Curr : SerializedData.VertexTypes) {
     VertexTypes.push_back(stringToDICompositeType(IRDB, Curr));
     Counter++;
   }
+
   llvm::outs() << "Constr: " << Counter << "\n";
   llvm::outs() << "VertexTypes: " << VertexTypes.size() << "\n";
   llvm::outs().flush();
@@ -284,7 +274,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     LLVMVFTable CurrVTable = LLVMVFTable();
 
     for (const auto &FuncName : Curr) {
-      CurrVTable.VFT.push_back(stringToFunction(IRDB, FuncName));
+      CurrVTable.VFT.push_back(IRDB->getFunction(FuncName));
     }
 
     VTables.push_back(std::move(CurrVTable));
@@ -378,7 +368,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
     Data.VertexTypes.push_back(Curr->getName().str());
     Counter++;
   }
-  llvm::outs() << Counter << "\n";
+  llvm::outs() << "getTypeHierarchyData: " << Counter << "\n";
   llvm::outs().flush();
 
   for (const auto &Curr : TransitiveDerivedIndex) {

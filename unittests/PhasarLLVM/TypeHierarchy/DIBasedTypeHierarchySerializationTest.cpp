@@ -24,26 +24,6 @@ protected:
 
 void compareResults(const psr::DIBasedTypeHierarchy &Orig,
                     const psr::DIBasedTypeHierarchy &Deser) {
-  llvm::outs() << "----------------------------------\n";
-  llvm::outs() << "--------Orig.getAllTypes()--------\n";
-  llvm::outs() << "----------------------------------\n";
-  llvm::outs().flush();
-  int Counter = 0;
-  for (const auto &Curr : Orig.getAllTypes()) {
-    llvm::outs() << Counter++ << ": " << Curr->getName() << "\n";
-    llvm::outs().flush();
-  }
-
-  llvm::outs() << "----------------------------------\n";
-  llvm::outs() << "-------Deser.getAllTypes()--------\n";
-  llvm::outs() << "----------------------------------\n";
-  llvm::outs().flush();
-
-  Counter = 0;
-  for (const auto &Curr : Deser.getAllTypes()) {
-    llvm::outs() << Counter++ << ": " << Curr->getName() << "\n";
-    llvm::outs().flush();
-  }
   ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
   ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
