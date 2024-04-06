@@ -10,11 +10,8 @@
 #include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
-#include "phasar/Controller/AnalysisController.h"
-#include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/IO.h"
@@ -24,11 +21,11 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/CommandLine.h"
 
-#include "nlohmann/json.hpp"
+#include "Controller/AnalysisController.h"
+#include "Controller/AnalysisControllerEmitterOptions.h"
 
 #include <cstdlib>
 #include <filesystem>
-#include <set>
 #include <string>
 #include <vector>
 

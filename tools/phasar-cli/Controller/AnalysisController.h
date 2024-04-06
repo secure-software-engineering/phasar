@@ -11,10 +11,11 @@
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLER_H
 
 #include "phasar/AnalysisStrategy/Strategies.h"
-#include "phasar/Controller/AnalysisControllerEmitterOptions.h"
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+
+#include "AnalysisControllerEmitterOptions.h"
 
 #include <filesystem>
 namespace psr {

@@ -10,7 +10,6 @@
 #ifndef PHASAR_CONTROLLER_ANALYSISCONTROLLERINTERNAL_H
 #define PHASAR_CONTROLLER_ANALYSISCONTROLLERINTERNAL_H
 
-#include "phasar/Controller/AnalysisController.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -21,6 +20,8 @@
 #include "phasar/Utils/Timer.h"
 
 #include "llvm/Support/Compiler.h"
+
+#include "AnalysisController.h"
 
 namespace psr {
 template <typename T, typename U> class IDESolver;

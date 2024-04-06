@@ -20,12 +20,13 @@ else()
   )
 endif()
 
+add_subdirectory(Controller)
+
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar-cli
   PRIVATE
     phasar_config
-    phasar_controller
     phasar_llvm_controlflow
     phasar_llvm_utils
     phasar_analysis_strategy
@@ -49,9 +50,5 @@ if (NOT PHASAR_IN_TREE)
     llvm_config(phasar-cli ${LLVM_LINK_COMPONENTS})
   endif()
 
-  install(TARGETS phasar-cli
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-  )
+  install(TARGETS phasar-cli)
 endif()

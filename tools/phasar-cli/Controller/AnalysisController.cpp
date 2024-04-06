@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
+#include "AnalysisController.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
