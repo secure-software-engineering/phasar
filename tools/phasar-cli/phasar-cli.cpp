@@ -27,6 +27,7 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -37,6 +38,10 @@ namespace cl = llvm::cl;
 namespace {
 
 cl::OptionCategory PsrCat("PhASAR");
+
+static auto values(std::initializer_list<cl::OptionEnumValue> IList) {
+  return cl::ValuesClass(IList);
+}
 
 #define PSR_OPTION_FLAG(NAME, CMDFLAG, DESC, ...)                              \
   cl::opt<bool> NAME(CMDFLAG, cl::desc(DESC), cl::cat(PsrCat), ##__VA_ARGS__)
@@ -68,27 +73,28 @@ PSR_SHORTLONG_OPTION_TYPE(
     "Set the entry point(s) to be used; use '__ALL__' to specify all available "
     "function definitions as entry points");
 
-cl::list<DataFlowAnalysisType> DataFlowAnalysisOpt(
-    "data-flow-analysis", cl::desc("Set the analyses to be run"),
-    cl::values(
+cl::list<DataFlowAnalysisType>
+    DataFlowAnalysisOpt("data-flow-analysis",
+                        cl::desc("Set the analyses to be run"),
+                        values({
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, DESC)                          \
   clEnumValN(DataFlowAnalysisType::NAME, CMDFLAG, DESC),
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
-        clEnumValN(DataFlowAnalysisType::None, "none", "No-op")),
-    cl::cat(PsrCat));
+                        }),
+                        cl::cat(PsrCat));
 cl::alias DataFlowAnalysisAlias("D", cl::aliasopt(DataFlowAnalysisOpt),
                                 cl::desc("Alias for --data-flow-analysis"),
                                 cl::cat(PsrCat));
 
-cl::opt<AnalysisStrategy>
-    StrategyOpt("analysis-strategy", cl::desc("The analysis strategy"),
-                cl::values(
+cl::opt<AnalysisStrategy> StrategyOpt("analysis-strategy",
+                                      cl::desc("The analysis strategy"),
+                                      values({
 #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC)                           \
   clEnumValN(AnalysisStrategy::NAME, CMDFLAG, DESC),
 #include "phasar/AnalysisStrategy/Strategies.def"
-                    clEnumValN(AnalysisStrategy::None, "none", "none")),
-                cl::init(AnalysisStrategy::WholeProgram), cl::cat(PsrCat),
-                cl::Hidden);
+                                      }),
+                                      cl::init(AnalysisStrategy::WholeProgram),
+                                      cl::cat(PsrCat), cl::Hidden);
 
 cl::opt<std::string> AnalysisConfigOpt(
     "analysis-config",
@@ -100,36 +106,38 @@ cl::opt<AliasAnalysisType> AliasTypeOpt(
     cl::desc("Set the alias analysis to be used (CFLSteens, "
              "CFLAnders).  CFLSteens is ~O(N) but inaccurate while "
              "CFLAnders O(N^3) but more accurate."),
-    cl::values(
+    values({
 #define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                               \
   clEnumValN(AliasAnalysisType::NAME, CMDFLAG, DESC),
 #include "phasar/Pointer/AliasAnalysisType.def"
-        clEnumValN(AliasAnalysisType::Invalid, "invalid", "invalid")),
+    }),
     cl::init(AliasAnalysisType::CFLAnders), cl::cat(PsrCat));
 cl::alias AliasTypeAlias("P", cl::aliasopt(AliasTypeOpt),
                          cl::desc("Alias for --alias-analysis"),
                          cl::cat(PsrCat));
 
-cl::opt<CallGraphAnalysisType> CGTypeOpt(
-    "call-graph-analysis", cl::desc("Set the call-graph algorithm to be used"),
-    cl::values(
+cl::opt<CallGraphAnalysisType>
+    CGTypeOpt("call-graph-analysis",
+              cl::desc("Set the call-graph algorithm to be used"),
+              values({
 #define CALL_GRAPH_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                          \
   clEnumValN(CallGraphAnalysisType::NAME, CMDFLAG, DESC),
 #include "phasar/ControlFlow/CallGraphAnalysisType.def"
-        clEnumValN(CallGraphAnalysisType::Invalid, "invalid", "invalid")),
-    cl::init(CallGraphAnalysisType::OTF), cl::cat(PsrCat));
+              }),
+              cl::init(CallGraphAnalysisType::OTF), cl::cat(PsrCat));
 cl::alias CGTypeAlias("C", cl::aliasopt(CGTypeOpt),
                       cl::desc("Alias for --call-graph-analysis"),
                       cl::cat(PsrCat));
 
-cl::opt<Soundness>
-    SoundnessOpt("soundness", cl::desc("Set the soundiness level to be used"),
-                 cl::values(
+cl::opt<Soundness> SoundnessOpt("soundness",
+                                cl::desc("Set the soundiness level to be used"),
+                                values({
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, DESC)                               \
   clEnumValN(Soundness::NAME, CMDFLAG, DESC),
 #include "phasar/Utils/Soundness.def"
-                     clEnumValN(Soundness::Invalid, "invalid", "invalid")),
-                 cl::init(Soundness::Soundy), cl::cat(PsrCat), cl::Hidden);
+                                }),
+                                cl::init(Soundness::Soundy), cl::cat(PsrCat),
+                                cl::Hidden);
 PSR_OPTION_FLAG(AutoGlobalsOpt, "auto-globals",
                 "Enable automated support for global initializers",
                 cl::init(true));
@@ -147,10 +155,10 @@ cl::opt<SeverityLevel> LogSeverityOpt(
         "printed. Has no effect if logging is disabled. You can enable "
         "logging with --log/-L or by specifying at least one --log-cat."),
     cl::cat(PsrCat),
-    cl::values(
+    values({
 #define SEVERITY_LEVEL(NAME, TYPE) clEnumValN(SeverityLevel::TYPE, NAME, NAME),
 #include "phasar/Utils/SeverityLevel.def"
-        clEnumValN(SeverityLevel::INVALID, "INVALID", "INVALID")),
+    }),
     cl::init(SeverityLevel::DEBUG));
 
 cl::list<std::string>
