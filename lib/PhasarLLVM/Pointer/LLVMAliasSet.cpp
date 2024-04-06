@@ -723,8 +723,37 @@ nlohmann::json LLVMAliasSet::getAsJson() const {
   return J;
 }
 
+LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
+  LLVMAliasSetData Data;
+
+  /// Serialize the AliasSets
+  auto &Sets = Data.AliasSets;
+
+  for (const AliasSetTy *PTS : Owner.getAllAliasSets()) {
+    auto PtsJson = nlohmann::json::array();
+    for (const auto *Alias : *PTS) {
+      auto Id = getMetaDataID(Alias);
+      if (Id != "-1") {
+        PtsJson.push_back(std::move(Id));
+      }
+    }
+    if (!PtsJson.empty()) {
+      Sets.push_back(std::move(PtsJson));
+    }
+  }
+
+  /// Serialize the AnalyzedFunctions
+  auto &Fns = Data.AnalyzedFunctions;
+  for (const auto *F : AnalyzedFunctions) {
+    Fns.push_back(F->getName().str());
+  }
+
+  return Data;
+}
+
 void LLVMAliasSet::printAsJson(llvm::raw_ostream &OS) const {
-  OS << getAsJson();
+  LLVMAliasSetData Data = getLLVMAliasSetData();
+  Data.printAsJson(OS);
 }
 
 void LLVMAliasSet::print(llvm::raw_ostream &OS) const {
