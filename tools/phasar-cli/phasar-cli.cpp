@@ -15,6 +15,7 @@
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/InitPhasar.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/Utilities.h"
@@ -325,6 +326,8 @@ void validatePTAJsonFile() {
 } // anonymous namespace
 
 int main(int Argc, const char **Argv) {
+  PSR_INITIALIZER(Argc, Argv);
+
   cl::SetVersionPrinter([](llvm::raw_ostream &OS) {
     OS << "PhASAR " << PhasarConfig::PhasarVersion() << '\n';
   });
