@@ -17,6 +17,7 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/CommandLine.h"
@@ -455,8 +456,25 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 
-  AnalysisController Controller(
-      HA, DataFlowAnalysisOpt, {AnalysisConfigOpt.getValue()}, EntryOpt,
-      StrategyOpt, EmitterOptions, SolverConfig, ProjectIdOpt, OutDirOpt);
+  AnalysisController Controller{
+      &HA,
+      DataFlowAnalysisOpt,
+      {AnalysisConfigOpt.getValue()},
+      EntryOpt,
+      StrategyOpt,
+      EmitterOptions,
+      SolverConfig,
+      ProjectIdOpt.getValue(),
+      OutDirOpt.getValue(),
+  };
+  if (!OutDirOpt.empty()) {
+    // create directory for results
+    Controller.ResultDirectory /=
+        Controller.ProjectID + "-" + createTimeStamp();
+    std::filesystem::create_directory(Controller.ResultDirectory);
+  }
+
+  Controller.emitRequestedHelperAnalysisResults();
+  Controller.run();
   return 0;
 }

@@ -13,7 +13,6 @@
 
 using namespace psr;
 
-void controller::executeIDELinearConst(
-    AnalysisController::ControllerData &Data) {
+void controller::executeIDELinearConst(AnalysisController &Data) {
   executeIDEAnalysis<IDELinearConstantAnalysis>(Data, Data.EntryPoints);
 }

@@ -13,8 +13,7 @@
 
 using namespace psr;
 
-void controller::executeInterMonoTaint(
-    AnalysisController::ControllerData &Data) {
+void controller::executeInterMonoTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
   executeInterMonoAnalysis<InterMonoTaintAnalysis>(Data, Config,
                                                    Data.EntryPoints);

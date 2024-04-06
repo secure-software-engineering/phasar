@@ -13,7 +13,6 @@
 
 using namespace psr;
 
-void controller::executeIFDSSolverTest(
-    AnalysisController::ControllerData &Data) {
+void controller::executeIFDSSolverTest(AnalysisController &Data) {
   executeIFDSAnalysis<IFDSSolverTest>(Data, Data.EntryPoints);
 }

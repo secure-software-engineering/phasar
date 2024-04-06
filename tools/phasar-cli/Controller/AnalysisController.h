@@ -20,29 +20,17 @@
 #include <filesystem>
 namespace psr {
 
-class AnalysisController {
-public:
-  struct ControllerData {
-    HelperAnalyses *HA{};
-    std::vector<DataFlowAnalysisType> DataFlowAnalyses;
-    std::vector<std::string> AnalysisConfigs;
-    std::vector<std::string> EntryPoints;
-    [[maybe_unused]] AnalysisStrategy Strategy;
-    AnalysisControllerEmitterOptions EmitterOptions =
-        AnalysisControllerEmitterOptions::None;
-    std::string ProjectID;
-    std::filesystem::path ResultDirectory;
-    IFDSIDESolverConfig SolverConfig{};
-  };
-
-  explicit AnalysisController(
-      HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-      std::vector<std::string> AnalysisConfigs,
-      std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
-      AnalysisControllerEmitterOptions EmitterOptions,
-      IFDSIDESolverConfig SolverConfig,
-      std::string ProjectID = "default-phasar-project",
-      std::string OutDirectory = "");
+struct AnalysisController {
+  HelperAnalyses *HA{};
+  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
+  std::vector<std::string> AnalysisConfigs;
+  std::vector<std::string> EntryPoints;
+  [[maybe_unused]] AnalysisStrategy Strategy{};
+  AnalysisControllerEmitterOptions EmitterOptions =
+      AnalysisControllerEmitterOptions::None;
+  IFDSIDESolverConfig SolverConfig{};
+  std::string ProjectID = "default-phasar-project";
+  std::filesystem::path ResultDirectory;
 
   static constexpr bool
   needsToEmitPTA(AnalysisControllerEmitterOptions EmitterOptions) {
@@ -51,8 +39,8 @@ public:
            (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText);
   }
 
-private:
-  ControllerData Data;
+  void emitRequestedHelperAnalysisResults();
+  void run();
 };
 
 } // namespace psr

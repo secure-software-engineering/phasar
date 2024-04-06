@@ -13,7 +13,6 @@
 
 using namespace psr;
 
-void controller::executeIntraMonoSolverTest(
-    AnalysisController::ControllerData &Data) {
+void controller::executeIntraMonoSolverTest(AnalysisController &Data) {
   executeIntraMonoAnalysis<IntraMonoSolverTest>(Data, Data.EntryPoints);
 }

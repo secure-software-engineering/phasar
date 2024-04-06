@@ -14,7 +14,7 @@
 
 using namespace psr;
 
-void controller::executeIDECSTDIOTS(AnalysisController::ControllerData &Data) {
+void controller::executeIDECSTDIOTS(AnalysisController &Data) {
   CSTDFILEIOTypeStateDescription TSDesc;
   executeIDEAnalysis<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>(
       Data, &TSDesc, Data.EntryPoints);

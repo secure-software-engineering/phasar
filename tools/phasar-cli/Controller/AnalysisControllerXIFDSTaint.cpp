@@ -13,7 +13,7 @@
 
 using namespace psr;
 
-void controller::executeIFDSTaint(AnalysisController::ControllerData &Data) {
+void controller::executeIFDSTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
   executeIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints);
 }

@@ -13,7 +13,6 @@
 
 using namespace psr;
 
-void controller::executeIFDSUninitVar(
-    AnalysisController::ControllerData &Data) {
+void controller::executeIFDSUninitVar(AnalysisController &Data) {
   executeIFDSAnalysis<IFDSUninitializedVariables>(Data, Data.EntryPoints);
 }

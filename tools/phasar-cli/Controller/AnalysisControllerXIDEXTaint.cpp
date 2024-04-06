@@ -13,7 +13,7 @@
 
 using namespace psr;
 
-void controller::executeIDEXTaint(AnalysisController::ControllerData &Data) {
+void controller::executeIDEXTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
   executeIDEAnalysis<IDEExtendedTaintAnalysis<>>(Data, Config,
                                                  Data.EntryPoints);

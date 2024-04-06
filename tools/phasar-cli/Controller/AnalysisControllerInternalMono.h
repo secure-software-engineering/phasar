@@ -18,8 +18,7 @@
 namespace psr::controller {
 
 template <typename SolverTy, typename ProblemTy, typename... ArgTys>
-static void executeMonoAnalysis(AnalysisController::ControllerData &Data,
-                                ArgTys &&...Args) {
+static void executeMonoAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   auto Problem =
       createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
   SolverTy Solver(Problem);
@@ -28,14 +27,14 @@ static void executeMonoAnalysis(AnalysisController::ControllerData &Data,
 }
 
 template <typename ProblemTy, typename... ArgTys>
-static void executeIntraMonoAnalysis(AnalysisController::ControllerData &Data,
+static void executeIntraMonoAnalysis(AnalysisController &Data,
                                      ArgTys &&...Args) {
   executeMonoAnalysis<IntraMonoSolver_P<ProblemTy>, ProblemTy>(
       Data, std::forward<ArgTys>(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
-static void executeInterMonoAnalysis(AnalysisController::ControllerData &Data,
+static void executeInterMonoAnalysis(AnalysisController &Data,
                                      ArgTys &&...Args) {
   executeMonoAnalysis<InterMonoSolver_P<ProblemTy, K>, ProblemTy>(
       Data, std::forward<ArgTys>(Args)...);

@@ -13,7 +13,6 @@
 
 using namespace psr;
 
-void controller::executeIDESolverTest(
-    AnalysisController::ControllerData &Data) {
+void controller::executeIDESolverTest(AnalysisController &Data) {
   executeIDEAnalysis<IDESolverTest>(Data, Data.EntryPoints);
 }

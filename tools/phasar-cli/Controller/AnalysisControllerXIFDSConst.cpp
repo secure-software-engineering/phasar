@@ -13,6 +13,6 @@
 
 using namespace psr;
 
-void controller::executeIFDSConst(AnalysisController::ControllerData &Data) {
+void controller::executeIFDSConst(AnalysisController &Data) {
   executeIFDSAnalysis<IFDSConstAnalysis>(Data, Data.EntryPoints);
 }
