@@ -77,6 +77,38 @@ template <typename L, typename = void> struct NonTopBotValue {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename AnalysisDomainTy, typename AnalysisDataTy, typename = void>
+class JoinLatticeProvider {
+public:
+  using l_t = typename AnalysisDomainTy::l_t;
+  using analysis_data_t = AnalysisDataTy;
+
+  virtual ~JoinLatticeProvider() = default;
+  virtual l_t topElement() const = 0;
+  virtual l_t bottomElement() const = 0;
+  virtual l_t join(analysis_data_t &Analysis, l_t Lhs, l_t Rhs) const = 0;
+};
+
+template <typename AnalysisDomainTy, typename AnalysisDataTy>
+class JoinLatticeProvider<
+    AnalysisDomainTy, AnalysisDataTy,
+    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
+public:
+  using l_t = typename AnalysisDomainTy::l_t;
+  using analysis_data_t = AnalysisDataTy;
+
+  virtual ~JoinLatticeProvider() = default;
+  virtual l_t topElement() const { return JoinLatticeTraits<l_t>::top(); };
+  virtual l_t bottomElement() const {
+    return JoinLatticeTraits<l_t>::bottom();
+  };
+  virtual l_t join(analysis_data_t & /*Analysis*/, l_t Lhs, l_t Rhs) const {
+    return JoinLatticeTraits<l_t>::join(std::move(Lhs), std::move(Rhs));
+  };
+};
+
 } // namespace psr
 
 #endif

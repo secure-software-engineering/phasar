@@ -12,6 +12,7 @@
 
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/DataFlow/IfdsIde/AllTopFnProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
@@ -37,25 +38,6 @@
 namespace psr {
 
 struct HasNoConfigurationType;
-
-template <typename AnalysisDomainTy, typename = void> class AllTopFnProvider {
-public:
-  virtual ~AllTopFnProvider() = default;
-  /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() = 0;
-};
-
-template <typename AnalysisDomainTy>
-class AllTopFnProvider<
-    AnalysisDomainTy,
-    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
-public:
-  virtual ~AllTopFnProvider() = default;
-  /// Returns an edge function that represents the top element of the analysis.
-  virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() {
-    return AllTop<typename AnalysisDomainTy::l_t>{};
-  }
-};
 
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
