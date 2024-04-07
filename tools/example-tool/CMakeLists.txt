@@ -16,7 +16,3 @@ target_link_libraries(myphasartool
     phasar
     ${PHASAR_STD_FILESYSTEM}
 )
-
-install(TARGETS myphasartool
-  RUNTIME DESTINATION bin
-)

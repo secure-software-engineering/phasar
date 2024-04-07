@@ -22,6 +22,13 @@ if (NOT PHASAR_IN_TREE)
   set(CMAKE_PROJECT_NAME "phasar")
 endif ()
 
+# NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT ON)
+else()
+  set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT OFF)
+endif()
+
 option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -45,7 +52,7 @@ set(PHASAR_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
-if (NOT CMAKE_BUILD_TYPE AND NOT GENERATOR_IS_MULTI_CONFIG)
+if (NOT CMAKE_BUILD_TYPE AND NOT GENERATOR_IS_MULTI_CONFIG AND NOT PHASAR_IN_TREE)
   message(STATUS "No CMAKE_BUILD_TYPE specified, setting it to Debug")
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
@@ -131,40 +138,44 @@ if (PHASAR_ENABLE_SANITIZERS)
 endif()
 
 # LTO
-if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
-  include(CheckIPOSupported)
-  check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
+option(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD "Use link-time-optimization (LTO) in Release builds, if possible (default is ON)" ON)
+if(PHASAR_ALLOW_LTO_IN_RELEASE_BUILD)
+  if (GENERATOR_IS_MULTI_CONFIG OR CMAKE_BUILD_TYPE STREQUAL "Release")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_SUPPORT_ERROR)
 
-  if(LTO_SUPPORTED)
-    message(STATUS "IPO/LTO enabled in Release mode")
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
-  else()
-    message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+    if(LTO_SUPPORTED)
+      message(STATUS "IPO/LTO enabled in Release mode")
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON) # LTO
+    else()
+      message(STATUS "IPO/LTO not supported: ${LTO_SUPPORT_ERROR}")
+    endif()
   endif()
 endif()
 
-# Enable testing
-enable_testing()
-
-option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ON)
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
 option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)" OFF)
 
-option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ON)
+option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
 option(PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD "Run clang-tidy during build (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+
+option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+
+#option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
 
 if(PHASAR_BUILD_DYNLIB AND BUILD_SHARED_LIBS)
   message(FATAL_ERROR "PHASAR_BUILD_DYNLIB is incompatible with BUILD_SHARED_LIBS")
 endif()
 
-option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 if (PHASAR_DEBUG_LIBDEPS)
   if (NOT BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ON)
@@ -198,7 +209,7 @@ else()
 endif()
 
 # Logger
-option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
+option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime; otherwise, it is turned off at compile-time (default is ON)" ON)
 
 if (PHASAR_ENABLE_DYNAMIC_LOG)
   message(STATUS "Dynamic log enabled")
@@ -207,8 +218,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-# RPATH
 if (NOT PHASAR_IN_TREE)
+  # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
   if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
@@ -217,7 +228,15 @@ if (NOT PHASAR_IN_TREE)
   endif()
 
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+  # Export set
+  set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
+else()
+  # Export set
+  set(PHASAR_DEPS_EXPORT_SET LLVMExports)
 endif()
+
+set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 
 # Filesystem
 if (LLVM_ENABLE_LIBCXX)
@@ -227,9 +246,9 @@ else()
 endif()
 
 # Config
-set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is /usr/local/.phasar-config)")
+set(PHASAR_CUSTOM_CONFIG_INSTALL_DIR "" CACHE STRING "If set, customizes the directory, where configuration files for PhASAR are installed (default is ${CMAKE_INSTALL_PREFIX}/.phasar-config)")
 if ("${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}" STREQUAL "")
-  set(PHASAR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/.phasar-config/")
+  set(PHASAR_CONFIG_INSTALL_DIR ".phasar-config/")
 else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
@@ -257,37 +276,23 @@ find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
 set(CMAKE_CXX_CLANG_TIDY "")
 
 # Nlohmann JSON
-set(JSON_BuildTests OFF)
-set(JSON_Install ON)
-add_subdirectory(external/json)
 
-# We need to work around the behavior of nlohmann_json_schema_validator and nlohmann_json here
-# The validator needs the json part, but if you include it, the library of nlohmann_json_schema_validator
-# is not installed, leading to linker error. But just including nlohmann_json is not sufficient, as
-# in the installed state the nlohmann_json_schema_validator needs the nlohmann_json package which needs
-# to be installed.
-# The following workaround may collapse or become unnecessary once the issue is
-# changed or fixed in nlohmann_json_schema_validator.
-
-# Override option of nlohmann_json_schema_validator to not build its tests
-set(BUILD_TESTS OFF CACHE BOOL "Build json-schema-validator-tests")
-
-if (PHASAR_IN_TREE)
-  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json_schema_validator)
-
-  set (PHASAR_USE_Z3 OFF)
-endif()
-
-# Json Schema Validator
-set(JSON_VALIDATOR_INSTALL ON)
-add_subdirectory(external/json-schema-validator)
+include(add_nlohmann_json)
+add_nlohmann_json()
+add_json_schema_validator()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
-  set(BUILD_GMOCK OFF)
-  set(INSTALL_GTEST OFF)
-  add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-  set(GTEST_INCLUDE_DIR "external/googletest/googletest/include")
+  if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.13.0
+    )
+    FetchContent_MakeAvailable(googletest)
+  endif()
 else()
   # Set llvm distributed includes for gtest header
   set(GTEST_INCLUDE_DIR "${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include")
@@ -300,57 +305,14 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
-if (NOT PHASAR_IN_TREE)
-  # Only search for LLVM if we build out of tree
-  find_package(LLVM 14 REQUIRED CONFIG)
-  find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
-
-  if(USE_LLVM_FAT_LIB AND ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-    message(WARNING "Did not find requested libLLVM.so. Link against individual modules instead")
-    set(USE_LLVM_FAT_LIB OFF)
-  elseif(BUILD_SHARED_LIBS AND NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-    message(STATUS "Found consolidated shared LLVM lib ${LLVM_LIBRARY} that will be linked against.")
-    set(USE_LLVM_FAT_LIB ON)
-  endif()
-
-  if (NOT USE_LLVM_FAT_LIB)
-    message(STATUS "Link against individual LLVM modules")
-    set(LLVM_REQUIRED_LIBRARIES
-      Core
-      Support
-      BitWriter
-      Analysis
-      Passes
-      Demangle
-      Analysis
-      IRReader
-      Linker
-    )
-    foreach(lib ${LLVM_REQUIRED_LIBRARIES})
-      find_library(LLVM_SMALL_LIB${lib} NAMES LLVM${lib} PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
-      if(LLVM_SMALL_LIB${lib} MATCHES "NOTFOUND$")
-        list(APPEND LLVM_SMALL_LIB_NOTFOUND "LLVM${lib}")
-      endif()
-    endforeach()
-
-    if(DEFINED LLVM_SMALL_LIB_NOTFOUND)
-      if(${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-        message(FATAL_ERROR "Did not find a complete version of LLVM: Did not find the fat lib libLLVM.so, but also did not find the individual modules ${LLVM_SMALL_LIB_NOTFOUND}.")
-      else()
-        set(USE_LLVM_FAT_LIB ON)
-        list(JOIN LLVM_SMALL_LIB_NOTFOUND ", " LLVM_SMALL_LIB_NOTFOUND_PRETTY)
-        message(WARNING "Did not find the LLVM modules ${LLVM_SMALL_LIB_NOTFOUND_PRETTY}. Fallback to link against ${LLVM_LIBRARY}. To silence this warning, set -DUSE_LLVM_FAT_LIB=ON in the cmake invocation.")
-      endif()
-    endif(DEFINED LLVM_SMALL_LIB_NOTFOUND)
-  endif(NOT USE_LLVM_FAT_LIB)
-endif(NOT PHASAR_IN_TREE)
-
-if(NOT LLVM_ENABLE_RTTI AND NOT PHASAR_IN_TREE)
-  message(FATAL_ERROR "PhASAR requires a LLVM version that is built with RTTI")
-endif()
+include(add_llvm)
+add_llvm()
 
 # Z3 Solver
-if(PHASAR_USE_Z3)
+if(PHASAR_IN_TREE)
+  set (PHASAR_USE_Z3 OFF)
+endif()
+if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
   # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
   # as it lacks some functionality (such as z3::expr::simplify()) that we require
   find_package(Z3 4.7.1 REQUIRED)
@@ -362,54 +324,13 @@ if(PHASAR_USE_Z3)
     set_property(TARGET z3 PROPERTY
              INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
   endif()
-endif(PHASAR_USE_Z3)
+endif()
 
 # Clang
 option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
-
 if(BUILD_PHASAR_CLANG)
-  # The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
-  if(NOT PHASAR_IN_TREE)
-    find_library(CLANG_LIBRARY NAMES clang-cpp libclang-cpp HINTS ${LLVM_LIBRARY_DIRS})
-    if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
-      set(NEED_LIBCLANG_COMPONENT_LIBS on)
-    endif()
-  endif()
-  # As fallback, look for the small clang libraries
-  if(PHASAR_IN_TREE OR NEED_LIBCLANG_COMPONENT_LIBS)
-    set(CLANG_LIBRARY
-      clangTooling
-      clangFrontendTool
-      clangFrontend
-      clangDriver
-      clangSerialization
-      clangCodeGen
-      clangParse
-      clangSema
-      clangStaticAnalyzerFrontend
-      clangStaticAnalyzerCheckers
-      clangStaticAnalyzerCore
-      clangAnalysis
-      clangARCMigrate
-      clangRewrite
-      clangRewriteFrontend
-      clangEdit
-      clangAST
-      clangASTMatchers
-      clangLex
-      clangBasic
-      LLVMFrontendOpenMP)
-  endif()
-
-  if (PHASAR_IN_TREE)
-    # Phasar needs clang headers, specificaly some that are generated by clangs table-gen
-    include_directories(
-      ${CLANG_INCLUDE_DIR}
-      ${PHASAR_SRC_DIR}/../clang/include
-      ${PROJECT_BINARY_DIR}/tools/clang/include
-    )
-  endif()
-endif(BUILD_PHASAR_CLANG)
+  add_clang()
+endif()
 
 # Set up clang-tidy to run during PhASAR's compilation to indicate code smells
 if (PHASAR_ENABLE_CLANG_TIDY_DURING_BUILD)
@@ -431,7 +352,7 @@ endif()
 configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
 
 # Warnings
-option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
+option(PHASAR_ENABLE_WARNINGS "Enable warnings" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 if (PHASAR_ENABLE_WARNINGS)
   if (MSVC)
     string(APPEND CMAKE_CXX_FLAGS " /W4")
@@ -448,7 +369,9 @@ add_cxx_compile_definitions(PHASAR_BUILD_DIR="${CMAKE_BINARY_DIR}")
 add_subdirectory(lib)
 
 # phasar-based binaries
-add_subdirectory(tools)
+if(PHASAR_BUILD_TOOLS)
+  add_subdirectory(tools)
+endif()
 
 # Swift tests
 option(BUILD_SWIFT_TESTS "Builds the Swift tests (Swift compiler has to be installed manually beforehand!)" OFF)
@@ -461,6 +384,8 @@ endif(BUILD_SWIFT_TESTS)
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
+
+  enable_testing()
   add_subdirectory(unittests)
   if(NOT PHASAR_BUILD_IR)
     message(WARNING "Set PHASAR_BUILD_IR=ON, because PHASAR_BUILD_UNITTESTS is ON")
@@ -507,18 +432,17 @@ if(NOT PHASAR_IN_TREE)
     NAMESPACE phasar::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
   )
+  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+    NAMESPACE phasar::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+  )
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports
   )
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS phasar_interface)
 endif()
-
-# Install the header only json container ### TODO Fix this!
-install(DIRECTORY external/json/single_include/
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.hpp"
-)
 
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
