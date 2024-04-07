@@ -4,12 +4,15 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Argument.h"
+#include "llvm/IR/Attributes.h"
 #include "llvm/IR/CFG.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
 #include <cassert>
@@ -67,9 +70,50 @@ static const llvm::Type *getPointeeTypeOrNull(const llvm::Value *V) {
   return nullptr;
 }
 
-static bool fuzzyMayAlias(const llvm::Value * /*Ptr1*/,
-                          const llvm::Type *PointeeTy1,
-                          const llvm::Value * /*Ptr2*/,
+static bool isNonPointerType(const llvm::Type *Ty) {
+  if (const auto *Struct = llvm::dyn_cast<llvm::StructType>(Ty)) {
+    for (const auto *ElemTy : Struct->elements()) {
+      // TODO: Go into nested structs recursively
+      if (!ElemTy->isSingleValueType() || ElemTy->isVectorTy()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (const auto *Vec = llvm::dyn_cast<llvm::VectorType>(Ty)) {
+    return !Vec->getElementType()->isPointerTy();
+  }
+  return Ty->isSingleValueType();
+}
+
+static bool isNonAddressTakenVariable(const llvm::Value *Val) {
+  const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Val);
+  if (!Alloca) {
+    return false;
+  }
+  for (const auto &Use : Alloca->uses()) {
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Use.getUser())) {
+      if (Use == Store->getValueOperand()) {
+        return false;
+      }
+    } else if (const auto *Call =
+                   llvm::dyn_cast<llvm::CallBase>(Use.getUser())) {
+      auto ArgNo = Use.getOperandNo();
+      if (Call->paramHasAttr(ArgNo, llvm::Attribute::StructRet)) {
+        continue;
+      }
+      if (Call->paramHasAttr(ArgNo, llvm::Attribute::NoCapture) &&
+          isNonPointerType(Call->getType())) {
+        continue;
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool fuzzyMayAlias(const llvm::Value *Ptr1, const llvm::Type *PointeeTy1,
+                          const llvm::Value *Ptr2,
                           const llvm::Type *PointeeTy2) {
   // Pointers to pointers may alias with any pointer, because the analysis may
   // not be field-sensitive.
@@ -84,6 +128,10 @@ static bool fuzzyMayAlias(const llvm::Value * /*Ptr1*/,
     return true;
   }
 
+  if (isNonAddressTakenVariable(Ptr1) || isNonAddressTakenVariable(Ptr2)) {
+    return false;
+  }
+
   return PointeeTy1 == PointeeTy2;
 }
 
@@ -91,13 +139,28 @@ static bool isFirstInBB(const llvm::Instruction *Inst) {
   return !Inst->getPrevNode();
 }
 
-static bool isLastInst(const llvm::Instruction *Inst) {
-  return !Inst->getNextNode() && llvm::succ_empty(Inst);
+static bool isLastInBB(const llvm::Instruction *Inst, const llvm::Value *Val) {
+  if (Inst->getNextNode()) {
+    return false;
+  }
+
+  if (Val->getType()->isPointerTy()) {
+    return true;
+  }
+
+  const auto *InstBB = Inst->getParent();
+  for (const auto *User : Val->users()) {
+    const auto *UserInst = llvm::dyn_cast<llvm::Instruction>(User);
+    if (!UserInst || UserInst->getParent() != InstBB) {
+      return true;
+    }
+  }
+  return llvm::succ_empty(Inst);
 }
 
 static bool shouldKeepInst(const llvm::Instruction *Inst,
                            const llvm::Value *Val) {
-  if (Inst == Val || isFirstInBB(Inst) || isLastInst(Inst)) {
+  if (Inst == Val || isFirstInBB(Inst) || isLastInBB(Inst, Val)) {
     // First in BB always stays for now
 
     // llvm::errs() << "[shouldKeepInst]: 1: " << llvmIRToString(Inst)
@@ -119,16 +182,18 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
 
   for (const auto *Op : Inst->operand_values()) {
     if (Op == Val) {
+      // llvm::errs() << "[shouldKeepInst]: 3.1: " << llvmIRToString(Inst)
+      //              << " :: " << llvmIRToShortString(Val) << '\n';
       return true;
+    }
+    if (!ValPtr) {
+      continue;
     }
     const auto *OpTy = Op->getType();
     bool OpPtr = OpTy->isPointerTy();
 
-    if (ValPtr != OpPtr) {
+    if (!OpPtr) {
       // Pointers cannot influence non-pointers
-      continue;
-    }
-    if (!ValPtr) {
       continue;
     }
 
@@ -139,6 +204,8 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
     }
   }
 
+  // llvm::errs() << "[shouldKeepInst]: FALSE: " << llvmIRToString(Inst)
+  //              << " :: " << llvmIRToShortString(Val) << '\n';
   // TODO
   return false;
 }
@@ -166,16 +233,28 @@ static void buildSparseCFG(const LLVMBasedCFG &CFG,
 
   // -- Fixpoint Iteration
 
+  llvm::SmallDenseSet<const llvm::Instruction *> Handled;
+
   while (!WL.empty()) {
     auto [From, To] = WL.pop_back_val();
 
     const auto *Curr = From;
     if (shouldKeepInst(To, Val)) {
       Curr = To;
-      auto Inserted = SCFG.try_emplace(From, To).second;
+      auto [It, Inserted] = SCFG.try_emplace(From, To);
       if (!Inserted) {
-        continue;
+        if (It->second != To) {
+          // llvm::errs() << "[buildSparseCFG]: Ambiguity at "
+          //              << llvmIRToString(From) << " ::> "
+          //              << llvmIRToShortString(It->second) << " VS "
+          //              << llvmIRToShortString(To) << '\n';
+          It->second = nullptr;
+        }
       }
+    }
+
+    if (!Handled.insert(To).second) {
+      continue;
     }
 
     for (const auto *Succ : CFG.getSuccsOf(To)) {
@@ -195,6 +274,7 @@ SparseLLVMBasedICFG::getSparseCFGImpl(const llvm::Function *Fun,
       SparseCFGCache->Cache.try_emplace(std::make_pair(Fun, Val));
   if (Inserted) {
     buildSparseCFG(*this, It->second.VGraph, Fun, Val);
+    // llvm::errs() << "\n";
   }
 
   return It->second;

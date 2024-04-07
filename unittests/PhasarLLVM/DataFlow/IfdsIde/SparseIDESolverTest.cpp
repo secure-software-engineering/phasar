@@ -57,7 +57,9 @@ TEST_P(LinearConstant, SparseResultsEquivalent) {
   for (auto &&Cell : SparseResults.getAllResultEntries()) {
     auto DenseRes =
         DenseResults.resultAt(Cell.getRowKey(), Cell.getColumnKey());
-    EXPECT_EQ(DenseRes, Cell.getValue());
+    EXPECT_EQ(DenseRes, Cell.getValue())
+        << "At " << llvmIRToString(Cell.getRowKey())
+        << " :: " << llvmIRToShortString(Cell.getColumnKey());
   }
 
   // TODO: Check for existing results
