@@ -69,7 +69,7 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
     } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
   {
     GraphTrait::vertices(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
+    } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
   {
     GraphTrait::node(cgraph, vtx)
     } -> std::convertible_to<typename GraphTrait::value_type>;

@@ -36,12 +36,12 @@ struct is_PointsToTraits<
     : std::true_type {};
 
 template <typename T>
-static constexpr bool is_PointsToTraits_v = // NOLINT
+PSR_CONCEPT is_PointsToTraits_v = // NOLINT
     is_PointsToTraits<T>::value;
 
 // clang-format off
 template <typename T1, typename T2>
-static constexpr bool is_equivalent_PointsToTraits_v = // NOLINT
+PSR_CONCEPT is_equivalent_PointsToTraits_v = // NOLINT
     is_PointsToTraits_v<T1> && is_PointsToTraits_v<T2> &&
     std::is_same_v<typename T1::n_t, typename T2::n_t> &&
     std::is_same_v<typename T1::v_t, typename T2::v_t> &&

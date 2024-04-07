@@ -83,7 +83,7 @@ template <typename FF> struct IsFlowFunction {
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 template <typename FF>
-static constexpr bool is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
+PSR_CONCEPT is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
 
 /// Given a flow-function type FF, returns a (smart) pointer type pointing to FF
 template <typename FF, typename = std::enable_if_t<is_flowfunction_v<FF>>>
