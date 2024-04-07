@@ -13,12 +13,17 @@ jobs:
       fail-fast: true
       matrix:
         compiler: [ [clang++-14, clang-14] ]
-        build: [ Debug, Release ]
+        build: [ Debug, Release, DebugLibdeps ]
         include:
           - build: Debug
-            flags: -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+            cmake_build_type: Debug
+            flags: -DPHASAR_ENABLE_SANITIZERS=ON
           - build: Release
-            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+            cmake_build_type: Release
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+          - build: DebugLibdeps
+            cmake_build_type: Debug
+            flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
 
     continue-on-error: false
     steps:
@@ -50,7 +55,7 @@ jobs:
               clang-tidy-14 \
               libclang-rt-14-dev
 
-      - uses: swift-actions/setup-swift@v1
+      - uses: swift-actions/setup-swift@v2
         with:
           swift-version: "5.8.1"
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
@@ -62,7 +67,7 @@ jobs:
           mkdir build
           cd build
           cmake .. \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
             -DBUILD_SWIFT_TESTS=ON \
             -DPHASAR_USE_Z3=ON \
             ${{ matrix.flags }} \

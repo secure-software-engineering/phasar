@@ -320,14 +320,19 @@ static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
   assert(V->getType()->isPointerTy());
   assert(Rep->getType()->isPointerTy());
 
-  auto VSize = V->getType()->getPointerElementType()->isSized()
-                   ? DL.getTypeStoreSize(V->getType()->getPointerElementType())
-                   : llvm::MemoryLocation::UnknownSize;
+  auto *ElTy = !V->getType()->isOpaquePointerTy()
+                   ? V->getType()->getNonOpaquePointerElementType()
+                   : nullptr;
+  auto *RepElTy = !Rep->getType()->isOpaquePointerTy()
+                      ? Rep->getType()->getNonOpaquePointerElementType()
+                      : nullptr;
 
-  auto RepSize =
-      Rep->getType()->getPointerElementType()->isSized()
-          ? DL.getTypeStoreSize(Rep->getType()->getPointerElementType())
-          : llvm::MemoryLocation::UnknownSize;
+  auto VSize = ElTy && ElTy->isSized() ? DL.getTypeStoreSize(ElTy)
+                                       : llvm::MemoryLocation::UnknownSize;
+
+  auto RepSize = RepElTy && RepElTy->isSized()
+                     ? DL.getTypeStoreSize(RepElTy)
+                     : llvm::MemoryLocation::UnknownSize;
 
   if (AA.alias(V, VSize, Rep, RepSize) != llvm::AliasResult::NoAlias) {
     return true;

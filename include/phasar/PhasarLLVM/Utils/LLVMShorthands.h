@@ -41,14 +41,6 @@ namespace psr {
 class LLVMProjectIRDB;
 
 /**
- * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
- * @param V LLVM Value.
- * @return True, if given LLVM Value is a LLVM Function Pointer. False,
- * otherwise.
- */
-bool isFunctionPointer(const llvm::Value *V) noexcept;
-
-/**
  * @brief Checks if the given LLVM Type is a integer like struct.
  * @param V LLVM Type.
  * @return True, if given LLVM Type is a struct like this %TSi = type <{ i64 }>.
