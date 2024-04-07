@@ -6,10 +6,13 @@
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -24,13 +27,16 @@ namespace {
 /* ============== TEST FIXTURE ============== */
 class LinearConstant : public ::testing::TestWithParam<std::string_view> {
 protected:
-  static constexpr auto PathToLlFiles =
-      PHASAR_BUILD_SUBFOLDER("linear_constant/");
   const std::vector<std::string> EntryPoints = {"main"};
-
-}; // Test Fixture
+};
+class DoubleFreeTA : public ::testing::TestWithParam<std::string_view> {
+protected:
+  const std::vector<std::string> EntryPoints = {"main"};
+};
 
 TEST_P(LinearConstant, SparseResultsEquivalent) {
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("linear_constant/");
   LLVMProjectIRDB IRDB(PathToLlFiles + GetParam());
   LLVMTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
@@ -63,6 +69,60 @@ TEST_P(LinearConstant, SparseResultsEquivalent) {
   }
 
   // TODO: Check for existing results
+}
+
+static LLVMTaintConfig getDoubleFreeConfig() {
+  auto SourceCB = [](const llvm::Instruction *Inst) {
+    std::set<const llvm::Value *> Ret;
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+        Call && Call->getCalledFunction() &&
+        Call->getCalledFunction()->getName() == "free") {
+      Ret.insert(Call->getArgOperand(0));
+    }
+    return Ret;
+  };
+
+  return LLVMTaintConfig(SourceCB, SourceCB);
+}
+
+TEST_P(DoubleFreeTA, SparseLeaksEquivalent) {
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("taint_analysis/");
+  LLVMProjectIRDB IRDB(PathToLlFiles + GetParam());
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMAliasSet PT(&IRDB);
+
+  LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
+  auto HasGlobalCtor = IRDB.getFunctionDefinition(
+                           LLVMBasedICFG::GlobalCRuntimeModelName) != nullptr;
+  std::vector Entry = {
+      HasGlobalCtor ? LLVMBasedICFG::GlobalCRuntimeModelName.str() : "main"};
+  SparseLLVMBasedICFG SICF(&IRDB, CallGraphAnalysisType::OTF, Entry, &TH, &PT,
+                           psr::Soundness::Soundy, false);
+
+  static_assert(has_getSparseCFG_v<SparseLLVMBasedICFG, const llvm::Value *>);
+
+  auto Config = getDoubleFreeConfig();
+  IFDSTaintAnalysis TaintProblem(&IRDB, &PT, &Config, Entry);
+  IFDSTaintAnalysis STaintProblem(&IRDB, &PT, &Config, Entry);
+
+  auto DenseResults = IDESolver(TaintProblem, &ICF).solve();
+  auto SparseResults = IDESolver(STaintProblem, &SICF).solve();
+
+  for (const auto &[LeakInst, Leaks] : TaintProblem.Leaks) {
+    auto LeakIt = STaintProblem.Leaks.find(LeakInst);
+    EXPECT_NE(LeakIt, STaintProblem.Leaks.end())
+        << "SparseIDE did not find expected leak(s) at "
+        << llvmIRToString(LeakInst);
+
+    if (LeakIt == STaintProblem.Leaks.end()) {
+      continue;
+    }
+
+    const auto &SLeaks = LeakIt->second;
+    EXPECT_EQ(Leaks, SLeaks)
+        << "Leak sets at " << llvmIRToString(LeakInst) << " do not match";
+  }
 }
 
 static constexpr std::string_view LCATestFiles[] = {
@@ -136,8 +196,15 @@ static constexpr std::string_view LCATestFiles[] = {
     "ub_modulo_by_zero_cpp_dbg.ll",
 };
 
-INSTANTIATE_TEST_SUITE_P(InteractiveIDESolverTest, LinearConstant,
+static constexpr std::string_view TaintTestFiles[] = {
+    "double_free_01_c.ll",
+    "double_free_02_c.ll",
+};
+
+INSTANTIATE_TEST_SUITE_P(SparseIDETest, LinearConstant,
                          ::testing::ValuesIn(LCATestFiles));
+INSTANTIATE_TEST_SUITE_P(SparseIDETest, DoubleFreeTA,
+                         ::testing::ValuesIn(TaintTestFiles));
 } // namespace
 
 int main(int Argc, char **Argv) {
