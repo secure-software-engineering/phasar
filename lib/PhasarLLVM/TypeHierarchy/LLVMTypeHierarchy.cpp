@@ -401,8 +401,37 @@ void LLVMTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   OS << S.str();
 }
 
+LLVMTypeHierarchyData LLVMTypeHierarchy::getTypeHierarchyData() const {
+  LLVMTypeHierarchyData Data;
+
+  /// TODO:
+
+  return Data;
+}
+
 void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
-  OS << getAsJson();
+  LLVMTypeHierarchyData Data = getTypeHierarchyData();
+  Data.PhasarConfigJsonTypeHierarchyID =
+      PhasarConfig::JsonTypeHierarchyID().str();
+
+  vertex_iterator VIv;
+  vertex_iterator VIvEnd;
+  out_edge_iterator EI;
+
+  out_edge_iterator EIEnd;
+  // iterate all graph vertices
+  for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
+       ++VIv) {
+    Data.TypeGraph[TypeGraph[*VIv].getTypeName()];
+    // iterate all out edges of vertex vi_v
+    for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, TypeGraph); EI != EIEnd;
+         ++EI) {
+      Data.TypeGraph[TypeGraph[*VIv].getTypeName()].push_back(
+          TypeGraph[boost::target(*EI, TypeGraph)].getTypeName());
+    }
+  }
+
+  Data.printAsJson(OS);
 }
 
 // void LLVMTypeHierarchy::printGraphAsDot(ostream &out) {

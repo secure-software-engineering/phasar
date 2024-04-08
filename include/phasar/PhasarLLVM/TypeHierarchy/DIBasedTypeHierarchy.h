@@ -96,7 +96,9 @@ public:
    */
   void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] nlohmann::json getAsJson() const override;
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson() const override;
 
   /**
    * @brief Prints the class hierarchy to an ostream in json format.

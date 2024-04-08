@@ -62,19 +62,19 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
 }
 
 void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
-  nlohmann::json JSON;
+  nlohmann::json Json;
 
   for (const auto &Curr : NameToType) {
-    JSON["NameToType"][Curr.getKey()] = Curr.getValue();
+    Json["NameToType"][Curr.getKey()] = Curr.getValue();
   }
 
   for (const auto &Curr : TypeToVertex) {
-    JSON["TypeToVertex"][Curr.getKey()] = Curr.getValue();
+    Json["TypeToVertex"][Curr.getKey()] = Curr.getValue();
   }
 
   int Counter = 0;
   for (const auto &Curr : VertexTypes) {
-    JSON["VertexTypes"].push_back(Curr);
+    Json["VertexTypes"].push_back(Curr);
     Counter++;
   }
   llvm::outs() << "DIBTHData: " << Counter << "\n";
@@ -83,23 +83,23 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
   /// TODO: geschachteltes Array verwenden, statt Counter
   int Number = 0;
   for (const auto &Curr : TransitiveDerivedIndex) {
-    JSON["TransitiveDerivedIndex"][Number].push_back(Curr.first);
-    JSON["TransitiveDerivedIndex"][Number++].push_back(Curr.second);
+    Json["TransitiveDerivedIndex"][Number].push_back(Curr.first);
+    Json["TransitiveDerivedIndex"][Number++].push_back(Curr.second);
   }
 
   for (const auto &Curr : Hierarchy) {
-    JSON["Hierarchy"].push_back(Curr);
+    Json["Hierarchy"].push_back(Curr);
   }
 
   for (const auto &CurrVTable : VTables) {
-    auto &DataPos = JSON["VTables"].emplace_back();
+    auto &DataPos = Json["VTables"].emplace_back();
 
     for (const auto &CurrVFunc : CurrVTable) {
       DataPos.push_back(CurrVFunc);
     }
   }
 
-  OS << JSON;
+  OS << Json;
 }
 
 DIBasedTypeHierarchyData

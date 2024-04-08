@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchyData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
@@ -204,6 +205,8 @@ public:
   [[nodiscard]] inline bool empty() const override { return size() == 0; };
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
+
+  LLVMTypeHierarchyData getTypeHierarchyData() const;
 
   [[nodiscard]] [[deprecated(
       "Please use printAsJson() instead")]] nlohmann::json

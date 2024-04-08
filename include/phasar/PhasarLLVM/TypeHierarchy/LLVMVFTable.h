@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLE_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLE_H_
 
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTableData.h"
 #include "phasar/TypeHierarchy/VFTable.h"
 
 #include "nlohmann/json.hpp"
@@ -66,7 +67,11 @@ public:
 
   void print(llvm::raw_ostream &OS) const override;
 
-  [[nodiscard]] nlohmann::json getAsJson() const override;
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson() const override;
+
+  [[nodiscard]] LLVMVFTableData getVFTableData() const;
 
   void printAsJson(llvm::raw_ostream &OS) const override;
 
