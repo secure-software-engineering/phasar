@@ -9,7 +9,7 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
-#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysisData.h"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysisSerializer.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -288,36 +288,30 @@ GeneralStatistics::getRetResInstructions() const {
   return RetResInstructions;
 }
 
-/// TODO: Fabian fragen, welche Impl hier zu verwenden ist.
-/// Alte Impl:
-/*
-nlohmann::json GeneralStatistics::getAsJson() const {
-  nlohmann::json J;
-  J["ModuleName"] = ModuleName;
-  J["Instructions"] = Instructions;
-  J["Functions"] = Functions;
-  J["ExternalFunctions"] = ExternalFunctions;
-  J["FunctionDefinitions"] = FunctionDefinitions;
-  J["AddressTakenFunctions"] = AddressTakenFunctions;
-  J["AllocaInstructions"] = AllocaInstructions.size();
-  J["CallSites"] = CallSites;
-  J["IndirectCallSites"] = IndCalls;
-  J["MemoryIntrinsics"] = MemIntrinsics;
-  J["DebugIntrinsics"] = DebugIntrinsics;
-  J["InlineAssembly"] = NumInlineAsm;
-  J["GlobalVariables"] = Globals;
-  J["Branches"] = Branches;
-  J["GetElementPtrs"] = GetElementPtrs;
-  J["BasicBlocks"] = BasicBlocks;
-  J["PhiNodes"] = PhiNodes;
-  J["LandingPads"] = LandingPads;
-  J["GlobalConsts"] = GlobalConsts;
-  return J;
-}
-*/
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
-  GeneralStatisticsAnalysisData Data;
-  Data.printAsJson(OS);
+  GeneralStatisticsAnalysisSerializer Ser;
+
+  Ser.Functions = Functions;
+  Ser.ExternalFunctions = ExternalFunctions;
+  Ser.FunctionDefinitions = FunctionDefinitions;
+  Ser.AddressTakenFunctions = AddressTakenFunctions;
+  Ser.Globals = Globals;
+  Ser.GlobalConsts = GlobalConsts;
+  Ser.BasicBlocks = BasicBlocks;
+  Ser.CallSites = CallSites;
+  Ser.DebugIntrinsics = DebugIntrinsics;
+  Ser.Instructions = Instructions;
+  Ser.MemIntrinsics = MemIntrinsics;
+  Ser.Branches = Branches;
+  Ser.GetElementPtrs = GetElementPtrs;
+  Ser.LandingPads = LandingPads;
+  Ser.PhiNodes = PhiNodes;
+  Ser.NumInlineAsm = NumInlineAsm;
+  Ser.IndCalls = IndCalls;
+  Ser.NumberOfAllocaInstructions = AllocaInstructions.size();
+  Ser.ModuleName = ModuleName;
+
+  Ser.printAsJson(OS);
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {

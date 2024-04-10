@@ -204,8 +204,12 @@ stringToDICompositeType(const LLVMProjectIRDB *IRDB,
   DIF.processModule(*Module);
 
   for (const auto &Type : DIF.types()) {
-    if (Type->getName() == DITypeName) {
-      if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+    if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+      if (DICT->getName() == DITypeName) {
+        return DICT;
+      }
+
+      if (DICT->getIdentifier() == DITypeName) {
         return DICT;
       }
     }
@@ -352,7 +356,6 @@ DIBasedTypeHierarchy::getAsJson() const {
 
 DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
-
   for (const auto &Curr : NameToType) {
     Data.NameToType.try_emplace(Curr.getKey().str(),
                                 Curr.getValue()->getName().str());
@@ -365,8 +368,27 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
 
   int Counter = 0;
   for (const auto &Curr : VertexTypes) {
-    Data.VertexTypes.push_back(Curr->getName().str());
-    Counter++;
+    if (!Curr) {
+      Data.VertexTypes.emplace_back("");
+      llvm::errs() << "VertexType is null\n";
+    }
+
+    if (!Curr->getName().empty()) {
+      Data.VertexTypes.push_back(Curr->getName().str());
+      Counter++;
+      llvm::outs() << "NAME: " << Curr->getName() << "\n";
+      continue;
+    }
+
+    if (!Curr->getIdentifier().empty()) {
+      Data.VertexTypes.push_back(Curr->getIdentifier().str());
+      Counter++;
+      llvm::outs() << "IDENTIFIER: " << Curr->getIdentifier() << "\n";
+      continue;
+    }
+
+    Data.VertexTypes.emplace_back("");
+    llvm::errs() << "VertexType has no valid name or identifier\n";
   }
   llvm::outs() << "getTypeHierarchyData: " << Counter << "\n";
   llvm::outs().flush();

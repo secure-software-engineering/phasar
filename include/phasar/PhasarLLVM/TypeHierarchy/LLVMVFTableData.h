@@ -19,7 +19,7 @@ struct LLVMVFTableData {
   std::vector<std::string> VFT;
 
   LLVMVFTableData() noexcept = default;
-  void printAsJson(llvm::raw_ostream &OS);
+  void printAsJson(llvm::raw_ostream &OS) const;
 
   static LLVMVFTableData deserializeJson(const llvm::Twine &Path);
   static LLVMVFTableData loadJsonString(llvm::StringRef JsonAsString);

@@ -16,8 +16,7 @@
 
 namespace psr {
 struct LLVMAliasSetData {
-  // AliasSets
-  std::vector<std::string> AliasSets;
+  std::vector<std::vector<std::string>> AliasSets;
   std::vector<std::string> AnalyzedFunctions;
 
   LLVMAliasSetData() noexcept = default;

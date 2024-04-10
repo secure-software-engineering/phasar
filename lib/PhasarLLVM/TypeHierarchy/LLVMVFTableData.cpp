@@ -24,7 +24,7 @@ static LLVMVFTableData getDataFromJson(const nlohmann::json &Json) {
   return Data;
 }
 
-void LLVMVFTableData::printAsJson(llvm::raw_ostream &OS) {
+void LLVMVFTableData::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json JSON;
 
   for (const auto &Curr : VFT) {

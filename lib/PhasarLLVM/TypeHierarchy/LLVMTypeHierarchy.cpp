@@ -24,8 +24,10 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/StringMap.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
@@ -71,6 +73,50 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
   buildLLVMTypeHierarchy(*IRDB.getModule());
+}
+
+LLVMTypeHierarchy::LLVMTypeHierarchy(
+    LLVMProjectIRDB &IRDB, const LLVMTypeHierarchyData &SerializedData) {
+  const auto &IRDBModule = IRDB.getModule();
+
+  VisitedModules.insert(IRDBModule);
+  auto StructTypes = IRDBModule->getIdentifiedStructTypes();
+
+  llvm::StringMap<llvm::StructType *> NameToStructType;
+  for (const auto &SerElement : SerializedData.TypeGraph) {
+    bool MatchFound = false;
+
+    for (const auto &StructTypeElement : StructTypes) {
+      if (SerElement.getKey() == StructTypeElement->getName()) {
+        NameToStructType.try_emplace(SerElement.getKey(), StructTypeElement);
+        MatchFound = true;
+        break;
+      }
+    }
+
+    if (!MatchFound) {
+      llvm::errs() << "No matching StructType found for Type with name: "
+                   << SerElement.getKey();
+    }
+  }
+
+  // add all vertices
+  for (const auto &Curr : NameToStructType) {
+    const auto &StructType = Curr.getValue();
+    auto Vertex = boost::add_vertex(TypeGraph);
+    TypeGraph[Vertex] = VertexProperties(StructType);
+    TypeVFTMap[StructType] = getVirtualFunctions(*IRDBModule, *StructType);
+  }
+
+  // add all edges
+  for (auto *StructType : StructTypes) {
+    // use type information to check if it is really a subtype
+    auto SubTypes = getSubTypes(*IRDBModule, *StructType);
+    for (const auto *SubType : SubTypes) {
+      boost::add_edge(TypeVertexMap[SubType], TypeVertexMap[StructType],
+                      TypeGraph);
+    }
+  }
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {

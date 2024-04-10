@@ -142,6 +142,8 @@ public:
    *  @param IRDB ProjectIRCompiledDB object.
    */
   LLVMTypeHierarchy(LLVMProjectIRDB &IRDB);
+  LLVMTypeHierarchy(LLVMProjectIRDB &IRDB,
+                    const LLVMTypeHierarchyData &SerializedData);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
@@ -194,6 +196,10 @@ public:
   getTypeName(const llvm::StructType *Type) const override;
 
   [[nodiscard]] bool hasVFTable(const llvm::StructType *Type) const override;
+
+  [[nodiscard]] const auto &getAllVTables() const noexcept {
+    return TypeVFTMap;
+  }
 
   [[nodiscard]] const LLVMVFTable *
   getVFTable(const llvm::StructType *Type) const override;

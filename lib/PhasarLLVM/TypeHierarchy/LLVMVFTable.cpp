@@ -56,6 +56,7 @@ nlohmann::json LLVMVFTable::getAsJson() const {
   LLVMVFTableData Data;
 
   for (const auto &Curr : VFT) {
+    /// TODO: check if Curr null
     Data.VFT.push_back(Curr->getName().str());
   }
 

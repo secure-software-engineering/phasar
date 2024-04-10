@@ -2,6 +2,7 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -13,7 +14,7 @@
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-class TypeHierarchySerialization
+class LLVMTypeHierarchySerialization
     : public ::testing::TestWithParam<std::string_view> {
 protected:
   static constexpr auto PathToLlFiles =
@@ -22,20 +23,8 @@ protected:
 
 }; // Test Fixture
 
-void compareResults(const psr::DIBasedTypeHierarchy &Orig,
-                    const psr::DIBasedTypeHierarchy &Deser) {
-
-  llvm::outs() << "Original\n";
-  for (const auto &Curr : Orig.getAllTypes()) {
-    Curr->print(llvm::outs());
-    llvm::outs() << "\n";
-  }
-
-  llvm::outs() << "Deser\n";
-  for (const auto &Curr : Deser.getAllTypes()) {
-    Curr->print(llvm::outs());
-    llvm::outs() << "\n";
-  }
+void compareResults(const psr::LLVMTypeHierarchy &Orig,
+                    const psr::LLVMTypeHierarchy &Deser) {
   ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
   ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
@@ -67,27 +56,21 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
   }
 }
 
-TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
+TEST_P(LLVMTypeHierarchySerialization, OrigAndDeserEqual) {
   using namespace std::string_literals;
 
   psr::LLVMProjectIRDB IRDB(PathToLlFiles + GetParam());
-  psr::DIBasedTypeHierarchy DIBTH(IRDB);
+  psr::LLVMTypeHierarchy TypeHierarchy(IRDB);
 
   std::string Ser;
   llvm::raw_string_ostream StringStream(Ser);
 
-  DIBTH.printAsJson(StringStream);
+  TypeHierarchy.printAsJson(StringStream);
 
-  psr::DIBasedTypeHierarchy DeserializedDIBTH(
-      &IRDB, psr::DIBasedTypeHierarchyData::loadJsonString(Ser));
+  psr::LLVMTypeHierarchy DeserializedTypeHierarchy(
+      IRDB, psr::LLVMTypeHierarchyData::loadJsonString(Ser));
 
-  compareResults(DIBTH, DeserializedDIBTH);
-  /*
-    DIBTH.printAsJson();
-    llvm::outs() << "\n----------------------------\n";
-    llvm::outs() << Ser << "\n----------------------------\n";
-    llvm::outs().flush();
-  */
+  compareResults(TypeHierarchy, DeserializedTypeHierarchy);
 }
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {
@@ -105,8 +88,8 @@ static constexpr std::string_view TypeHierarchyTestFiles[] = {
     "type_hierarchy_20_cpp_dbg.ll",   "type_hierarchy_21_cpp_dbg.ll",
 };
 
-INSTANTIATE_TEST_SUITE_P(TypeHierarchySerializationTest,
-                         TypeHierarchySerialization,
+INSTANTIATE_TEST_SUITE_P(LLVMTypeHierarchySerializationTest,
+                         LLVMTypeHierarchySerialization,
                          ::testing::ValuesIn(TypeHierarchyTestFiles));
 
 int main(int Argc, char **Argv) {

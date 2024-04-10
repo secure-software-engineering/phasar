@@ -241,16 +241,7 @@ private:
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
       [](const void *AA) {
-        /// TODO:
-        /// durchlesen, wie type traits in c++ funktionieren
-        /// ->in aliasinfo.h checken ob getAsJson existiert, ansonsten leeres
-        /// JSON
-
-        if (static_cast<const ConcreteAA *>(AA)->getAsJson()) {
-          return static_cast<const ConcreteAA *>(AA)->getAsJson();
-        }
-
-        return nlohmann::json();
+        return static_cast<const ConcreteAA *>(AA)->getAsJson();
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);

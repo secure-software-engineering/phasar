@@ -18,6 +18,7 @@
 namespace psr {
 struct LLVMTypeHierarchyData {
   std::string PhasarConfigJsonTypeHierarchyID;
+  // key = vertex, value = edges
   llvm::StringMap<std::vector<std::string>> TypeGraph;
 
   LLVMTypeHierarchyData() noexcept = default;

@@ -89,6 +89,16 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
 
   LLVMAliasSet Deser(&IRDB, Ser);
   checkDeser(*IRDB.getModule(), PTS, Deser);
+
+  // printAsJson serialization
+  std::string SerString;
+  llvm::raw_string_ostream StringStream(SerString);
+  PTS.printAsJson(StringStream);
+  nlohmann::json PrintAsJsonSer = nlohmann::json::parse(SerString);
+  checkSer(PrintAsJsonSer, Gt);
+
+  LLVMAliasSet PrintAsJsonDeser(&IRDB, PrintAsJsonSer);
+  checkDeser(*IRDB.getModule(), PTS, PrintAsJsonDeser);
 }
 
 TEST(LLVMAliasSetSerializationTest, Ser_Intra01) {

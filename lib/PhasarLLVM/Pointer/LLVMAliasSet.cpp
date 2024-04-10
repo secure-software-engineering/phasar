@@ -727,10 +727,11 @@ LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
   LLVMAliasSetData Data;
 
   /// Serialize the AliasSets
-  auto &Sets = Data.AliasSets;
+  auto &AliasSetsDataPosition = Data.AliasSets.emplace_back();
 
   for (const AliasSetTy *PTS : Owner.getAllAliasSets()) {
-    auto PtsJson = nlohmann::json::array();
+
+    std::vector<std::string> PtsJson{};
     for (const auto *Alias : *PTS) {
       auto Id = getMetaDataID(Alias);
       if (Id != "-1") {
@@ -738,14 +739,15 @@ LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
       }
     }
     if (!PtsJson.empty()) {
-      Sets.push_back(std::move(PtsJson));
+      for (const auto &Curr : PtsJson) {
+        AliasSetsDataPosition.push_back(Curr);
+      }
     }
   }
 
   /// Serialize the AnalyzedFunctions
-  auto &Fns = Data.AnalyzedFunctions;
   for (const auto *F : AnalyzedFunctions) {
-    Fns.push_back(F->getName().str());
+    Data.AnalyzedFunctions.push_back(F->getName().str());
   }
 
   return Data;

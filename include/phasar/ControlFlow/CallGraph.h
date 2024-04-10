@@ -17,15 +17,10 @@
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Function.h"
-#include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
 
-#include <cstddef>
 #include <functional>
 #include <string>
 #include <utility>

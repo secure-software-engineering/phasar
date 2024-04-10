@@ -18,7 +18,7 @@ static LLVMAliasSetData getDataFromJson(const nlohmann::json &Json) {
   LLVMAliasSetData Data;
 
   for (const auto &Value : Json["AliasSets"]) {
-    Data.AliasSets.push_back(Value.get<std::string>());
+    Data.AliasSets.push_back(Value.get<std::vector<std::string>>());
   }
 
   for (const auto &Value : Json["AnalyzedFunctions"]) {
