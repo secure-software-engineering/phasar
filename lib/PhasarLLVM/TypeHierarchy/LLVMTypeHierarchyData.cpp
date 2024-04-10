@@ -16,14 +16,21 @@ namespace psr {
 
 static LLVMTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   LLVMTypeHierarchyData Data;
+  Data.PhasarConfigJsonTypeHierarchyID =
+      Json["PhasarConfigJsonTypeHierarchyID"];
 
-  for (const auto &CurrOuterType : Json[Data.PhasarConfigJsonTypeHierarchyID]) {
-    Data.TypeGraph.try_emplace(CurrOuterType.get<std::string>(),
-                               std::vector<std::string>{});
+  llvm::outs() << "Before array :"
+               << "\n";
+  llvm::outs().flush();
+  for (const auto &[Key, ValueArray] :
+       Json[Data.PhasarConfigJsonTypeHierarchyID]
+           .get<nlohmann::json::object_t>()) {
+    Data.TypeGraph.try_emplace(Key, std::vector<std::string>{});
+    llvm::outs() << "Key :" << Key << "\n";
+    llvm::outs().flush();
 
-    for (const auto &CurrInnerType : CurrOuterType) {
-      Data.TypeGraph[CurrOuterType.get<std::string>()].push_back(
-          CurrInnerType.get<std::string>());
+    for (const auto &CurrInnerType : ValueArray) {
+      Data.TypeGraph[Key].push_back(CurrInnerType.get<std::string>());
     }
   }
 
@@ -32,6 +39,8 @@ static LLVMTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
 
 void LLVMTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
   nlohmann::json Json;
+
+  Json["PhasarConfigJsonTypeHierarchyID"] = PhasarConfigJsonTypeHierarchyID;
 
   for (const auto &Curr : TypeGraph) {
     auto &DataPos =

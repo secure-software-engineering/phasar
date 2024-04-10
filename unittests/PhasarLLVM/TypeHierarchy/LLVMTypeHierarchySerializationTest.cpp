@@ -65,12 +65,18 @@ TEST_P(LLVMTypeHierarchySerialization, OrigAndDeserEqual) {
   std::string Ser;
   llvm::raw_string_ostream StringStream(Ser);
 
+  llvm::outs() << "before print\n";
   TypeHierarchy.printAsJson(StringStream);
 
+  llvm::outs() << Ser << "\n";
+
+  llvm::outs() << "before DeserializedTypeHierarchy\n";
   psr::LLVMTypeHierarchy DeserializedTypeHierarchy(
       IRDB, psr::LLVMTypeHierarchyData::loadJsonString(Ser));
 
+  llvm::outs() << "before compareResults\n";
   compareResults(TypeHierarchy, DeserializedTypeHierarchy);
+  llvm::outs() << "before after\n";
 }
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {
