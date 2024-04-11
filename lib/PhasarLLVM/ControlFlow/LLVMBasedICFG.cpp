@@ -40,11 +40,11 @@
 namespace psr {
 struct LLVMBasedICFG::Builder {
   LLVMProjectIRDB *IRDB = nullptr;
-  LLVMAliasInfoRef PT{};
+  // LLVMAliasInfoRef PT{};
   LLVMTypeHierarchy *TH{};
+  Resolver *Res = nullptr;
   CallGraphBuilder<const llvm::Instruction *, const llvm::Function *>
       CGBuilder{};
-  std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
 
@@ -321,27 +321,12 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
   return NewTargetsFound;
 }
 
-LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                             CallGraphAnalysisType CGType,
-                             llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
-                             Soundness S, bool IncludeGlobals)
-    : IRDB(IRDB), TH(TH) {
-  assert(IRDB != nullptr);
+void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                               llvm::ArrayRef<std::string> EntryPoints,
+                               LLVMTypeHierarchy *TH, Soundness S,
+                               bool IncludeGlobals) {
+  Builder B{IRDB, this->TH.get(), &CGResolver};
 
-  if (!TH) {
-    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
-  }
-
-  Builder B{IRDB, PT, this->TH.get()};
-  LLVMAliasInfo PTOwn;
-
-  if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
-    B.PT = PTOwn.asRef();
-  }
-
-  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT);
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 
@@ -356,6 +341,43 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
       INFO, "LLVMBasedICFG",
       "Finished ICFG construction "
           << std::chrono::steady_clock::now().time_since_epoch().count());
+}
+
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                             CallGraphAnalysisType CGType,
+                             llvm::ArrayRef<std::string> EntryPoints,
+                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
+                             Soundness S, bool IncludeGlobals)
+    : IRDB(IRDB), TH(TH) {
+  assert(IRDB != nullptr);
+
+  if (!TH) {
+    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+  }
+
+  LLVMAliasInfo PTOwn;
+
+  if (!PT && CGType == CallGraphAnalysisType::OTF) {
+    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
+    PT = PTOwn.asRef();
+  }
+
+  auto CGRes = Resolver::create(CGType, IRDB, this->TH.get(), this, PT);
+  initialize(IRDB, *CGRes, EntryPoints, TH, S, IncludeGlobals);
+}
+
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                             llvm::ArrayRef<std::string> EntryPoints,
+                             LLVMTypeHierarchy *TH, Soundness S,
+                             bool IncludeGlobals)
+    : IRDB(IRDB), TH(TH) {
+  assert(IRDB != nullptr);
+
+  if (!TH) {
+    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+  }
+
+  initialize(IRDB, CGResolver, EntryPoints, TH, S, IncludeGlobals);
 }
 
 LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
