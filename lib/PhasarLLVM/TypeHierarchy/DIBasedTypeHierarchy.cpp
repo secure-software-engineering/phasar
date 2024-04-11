@@ -176,6 +176,10 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
     for (const auto *Ty : DIF.types()) {
       if (const auto *Composite = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
+        /// TODO: find a way to add an empty Entry
+        if (Composite->getTag() == llvm::dwarf::DW_TAG_array_type) {
+          continue;
+        }
         TypeToVertex.try_emplace(Composite, VertexTypes.size());
         VertexTypes.push_back(Composite);
         NameToType.try_emplace(Composite->getName(), Composite);
@@ -240,8 +244,6 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB,
     const DIBasedTypeHierarchyData &SerializedData) {
-  llvm::outs() << "Size: " << SerializedData.VertexTypes.size() << "\n";
-  llvm::outs().flush();
 
   int Counter = 0;
   VertexTypes.reserve(SerializedData.VertexTypes.size());
@@ -250,10 +252,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     VertexTypes.push_back(stringToDICompositeType(IRDB, Curr));
     Counter++;
   }
-
-  llvm::outs() << "Constr: " << Counter << "\n";
-  llvm::outs() << "VertexTypes: " << VertexTypes.size() << "\n";
-  llvm::outs().flush();
 
   for (const auto &Curr : SerializedData.NameToType) {
     NameToType.try_emplace(Curr.getKey(),
@@ -376,22 +374,18 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
     if (!Curr->getName().empty()) {
       Data.VertexTypes.push_back(Curr->getName().str());
       Counter++;
-      llvm::outs() << "NAME: " << Curr->getName() << "\n";
       continue;
     }
 
     if (!Curr->getIdentifier().empty()) {
       Data.VertexTypes.push_back(Curr->getIdentifier().str());
       Counter++;
-      llvm::outs() << "IDENTIFIER: " << Curr->getIdentifier() << "\n";
       continue;
     }
 
     Data.VertexTypes.emplace_back("");
     llvm::errs() << "VertexType has no valid name or identifier\n";
   }
-  llvm::outs() << "getTypeHierarchyData: " << Counter << "\n";
-  llvm::outs().flush();
 
   for (const auto &Curr : TransitiveDerivedIndex) {
     Data.TransitiveDerivedIndex.emplace_back(

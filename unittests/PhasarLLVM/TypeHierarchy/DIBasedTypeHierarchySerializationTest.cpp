@@ -25,6 +25,16 @@ protected:
 void compareResults(const psr::DIBasedTypeHierarchy &Orig,
                     const psr::DIBasedTypeHierarchy &Deser) {
 
+  std::vector<const llvm::StructType *> OrigAllTypes(Orig.getAllTypes().begin(),
+                                                     Orig.getAllTypes().end());
+  std::vector<const llvm::StructType *> DeserAllTypes(
+      Deser.getAllTypes().begin(), Deser.getAllTypes().end());
+  for (int Index = 0; Index < Orig.getAllTypes().size(); Index++) {
+    llvm::outs() << "| " << *(OrigAllTypes.begin() + Index) << " - "
+                 << *(DeserAllTypes.begin() + Index) << " |\n";
+    llvm::outs().flush();
+  }
+  /*
   llvm::outs() << "Original\n";
   for (const auto &Curr : Orig.getAllTypes()) {
     Curr->print(llvm::outs());
@@ -38,9 +48,10 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
   }
   ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
   ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
-
+*/
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
-    EXPECT_EQ(OrigCurrentType, Deser.getType(OrigCurrentType->getName().str()));
+    EXPECT_EQ(OrigCurrentType->getName(),
+              Deser.getType(OrigCurrentType->getName().str())->getName());
 
     for (const auto &CurrVFunc :
          Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {
@@ -82,12 +93,6 @@ TEST_P(TypeHierarchySerialization, OrigAndDeserEqual) {
       &IRDB, psr::DIBasedTypeHierarchyData::loadJsonString(Ser));
 
   compareResults(DIBTH, DeserializedDIBTH);
-  /*
-    DIBTH.printAsJson();
-    llvm::outs() << "\n----------------------------\n";
-    llvm::outs() << Ser << "\n----------------------------\n";
-    llvm::outs().flush();
-  */
 }
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {

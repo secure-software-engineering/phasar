@@ -22,6 +22,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 #include <memory>
 #include <type_traits>
@@ -141,7 +142,10 @@ public:
   }
 
   [[nodiscard]] nlohmann::json getAsJson() const {
-    assert(VT != nullptr);
+    if (VT == nullptr) {
+      return {};
+    }
+
     return VT->GetAsJson(AA);
   }
 
