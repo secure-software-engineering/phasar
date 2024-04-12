@@ -176,7 +176,6 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
     for (const auto *Ty : DIF.types()) {
       if (const auto *Composite = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
-        /// TODO: find a way to add an empty Entry
         if (Composite->getTag() == llvm::dwarf::DW_TAG_array_type) {
           continue;
         }

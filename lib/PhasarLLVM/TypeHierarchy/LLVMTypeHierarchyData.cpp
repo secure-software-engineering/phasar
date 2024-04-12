@@ -25,7 +25,9 @@ static LLVMTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
     Data.TypeGraph.try_emplace(Key, std::vector<std::string>{});
 
     for (const auto &CurrInnerType : ValueArray) {
-      Data.TypeGraph[Key].push_back(CurrInnerType.get<std::string>());
+      for (const auto &CurrString : CurrInnerType) {
+        Data.TypeGraph[Key].push_back(CurrString.get<std::string>());
+      }
     }
   }
 

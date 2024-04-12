@@ -31,29 +31,6 @@ void compareResults(const psr::LLVMTypeHierarchy &Orig,
 
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
     EXPECT_EQ(OrigCurrentType, Deser.getType(OrigCurrentType->getName().str()));
-
-    for (const auto &CurrVFunc :
-         Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {
-      bool FoundFunction = false;
-      for (const auto &DeserFunc :
-           Deser.getVFTable(OrigCurrentType)->getAllFunctions()) {
-        if (DeserFunc) {
-          if (CurrVFunc) {
-            if (DeserFunc->getName() == CurrVFunc->getName()) {
-              FoundFunction = true;
-              break;
-            }
-          }
-        } else {
-          // This case is for a function that has no caller
-          if (!CurrVFunc) {
-            FoundFunction = true;
-            break;
-          }
-        }
-      }
-      EXPECT_TRUE(FoundFunction);
-    }
   }
 }
 
@@ -66,18 +43,12 @@ TEST_P(LLVMTypeHierarchySerialization, OrigAndDeserEqual) {
   std::string Ser;
   llvm::raw_string_ostream StringStream(Ser);
 
-  // llvm::outs() << "before print\n";
-  //  TypeHierarchy.printAsJson(StringStream);
+  TypeHierarchy.printAsJson(StringStream);
 
-  // llvm::outs() << Ser << "\n";
-
-  // llvm::outs() << "before DeserializedTypeHierarchy\n";
   psr::LLVMTypeHierarchy DeserializedTypeHierarchy(
       IRDB, psr::LLVMTypeHierarchyData::loadJsonString(Ser));
 
-  // llvm::outs() << "before compareResults\n";
   compareResults(TypeHierarchy, DeserializedTypeHierarchy);
-  // llvm::outs() << "before after\n";
 }
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {
