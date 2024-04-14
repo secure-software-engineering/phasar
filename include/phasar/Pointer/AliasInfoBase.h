@@ -11,6 +11,7 @@
 #define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
@@ -67,14 +68,14 @@ struct IsAliasInfo<
     std::enable_if_t<std::is_same_v<
         std::tuple<bool, AliasAnalysisType, AliasResult,
                    typename AliasInfoTraits<T>::AliasSetPtrTy,
-                   typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool, AnalysisProperties, bool, bool, bool>,
+                   typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool,
+                   AnalysisProperties, bool, bool, bool>,
         decltype(testAliasInfo(std::declval<T &>(),
                                std::declval<const T &>()))>>> : std::true_type {
 };
 } // namespace detail
 
-template <typename T>
-static constexpr bool IsAliasInfo = detail::IsAliasInfo<T>::value;
+template <typename T> PSR_CONCEPT IsAliasInfo = detail::IsAliasInfo<T>::value;
 
 } // namespace psr
 
