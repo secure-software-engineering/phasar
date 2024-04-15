@@ -110,8 +110,13 @@ buildTypeGraph(llvm::ArrayRef<const llvm::DICompositeType *> VertexTypes,
       if (const auto *Inheritenace = llvm::dyn_cast<llvm::DIDerivedType>(Fld);
           Inheritenace &&
           Inheritenace->getTag() == llvm::dwarf::DW_TAG_inheritance) {
-        auto BaseIdx = TypeToVertex.lookup(Inheritenace->getBaseType());
-        assert(BaseIdx != 0 || VertexTypes[0] == Inheritenace->getBaseType());
+        const auto *Base = Inheritenace->getBaseType();
+        while (Base->getTag() == llvm::dwarf::DW_TAG_typedef) {
+          Base = llvm::cast<llvm::DIDerivedType>(Base)->getBaseType();
+        }
+
+        auto BaseIdx = TypeToVertex.lookup(Base);
+        assert(BaseIdx != 0 || VertexTypes[0] == Base);
 
         TG.DerivedTypesOf[BaseIdx].push_back(DerivedIdx);
         TG.Roots.reset(DerivedIdx);
