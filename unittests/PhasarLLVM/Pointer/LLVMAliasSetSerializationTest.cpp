@@ -39,7 +39,6 @@ static SetTy makeSet(const nlohmann::json &J) {
 }
 
 static void checkSer(const nlohmann::json &Ser, const GroundTruthTy &Gt) {
-
   ASSERT_TRUE(Ser.count("AliasSets"));
   ASSERT_TRUE(Ser.count("AnalyzedFunctions"));
 
@@ -77,20 +76,11 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   ValueAnnotationPass::resetValueID();
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + File);
 
-  // llvm::outs() << *IRDB.getWPAModule() << '\n';
-
   LLVMAliasSet PTS(&IRDB, false);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
                     &PTS);
 
-  auto Ser = PTS.getAsJson();
-  checkSer(Ser, Gt);
-
-  LLVMAliasSet Deser(&IRDB, Ser);
-  checkDeser(*IRDB.getModule(), PTS, Deser);
-
-  // printAsJson serialization
   std::string SerString;
   llvm::raw_string_ostream StringStream(SerString);
   PTS.printAsJson(StringStream);

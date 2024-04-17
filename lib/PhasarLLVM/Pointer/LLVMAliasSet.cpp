@@ -727,8 +727,6 @@ LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
   LLVMAliasSetData Data;
 
   /// Serialize the AliasSets
-  auto &AliasSetsDataPosition = Data.AliasSets.emplace_back();
-
   for (const AliasSetTy *PTS : Owner.getAllAliasSets()) {
 
     std::vector<std::string> PtsJson{};
@@ -739,6 +737,7 @@ LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
       }
     }
     if (!PtsJson.empty()) {
+      auto &AliasSetsDataPosition = Data.AliasSets.emplace_back();
       for (const auto &Curr : PtsJson) {
         AliasSetsDataPosition.push_back(Curr);
       }
