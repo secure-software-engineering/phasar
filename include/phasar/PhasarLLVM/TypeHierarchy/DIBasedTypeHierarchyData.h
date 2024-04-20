@@ -22,7 +22,7 @@ struct DIBasedTypeHierarchyData {
   // DITypes and llvm::Function * are serialized by serializing their names and
   // using the DebugInfoFinder to deserialize them
 
-  llvm::StringMap<size_t> TypeToVertex;
+  std::vector<std::string> VertexTypes;
   std::vector<std::pair<uint32_t, uint32_t>> TransitiveDerivedIndex;
   std::vector<std::string> Hierarchy;
   std::vector<std::vector<std::string>> VTables;

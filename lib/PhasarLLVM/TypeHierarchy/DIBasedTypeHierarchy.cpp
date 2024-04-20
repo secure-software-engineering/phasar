@@ -259,17 +259,23 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
   llvm::report_fatal_error("DIType doesn't exist");
 }
 
+// NOLINTNEXTLINE
+static constexpr char NullFunName[] = "__null__";
+
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedData)
     : TransitiveDerivedIndex(SerializedData.TransitiveDerivedIndex) {
 
-  VertexTypes.resize(SerializedData.TypeToVertex.size());
-  TypeToVertex.reserve(SerializedData.TypeToVertex.size());
-  for (const auto &Curr : SerializedData.TypeToVertex) {
-    const auto *Ty = stringToDICompositeType(IRDB, Curr.getKey());
-    TypeToVertex.try_emplace(Ty, Curr.getValue());
-    NameToType.try_emplace(Curr.getKey(), Ty);
-    VertexTypes.at(Curr.getValue()) = Ty;
+  VertexTypes.reserve(SerializedData.VertexTypes.size());
+  TypeToVertex.reserve(SerializedData.VertexTypes.size());
+  size_t Idx = 0;
+  for (const auto &Curr : SerializedData.VertexTypes) {
+    const auto *Ty = stringToDICompositeType(IRDB, Curr);
+    VertexTypes.push_back(Ty);
+    TypeToVertex.try_emplace(Ty, Idx);
+    NameToType.try_emplace(Curr, Ty);
+
+    ++Idx;
   }
 
   Hierarchy.reserve(SerializedData.Hierarchy.size());
@@ -282,6 +288,9 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
 
     CurrVTable.reserve(Curr.size());
     for (const auto &FuncName : Curr) {
+      if (FuncName == NullFunName) {
+        CurrVTable.push_back(nullptr);
+      }
       CurrVTable.push_back(IRDB->getFunction(FuncName));
     }
 
@@ -368,9 +377,10 @@ DIBasedTypeHierarchy::getAsJson() const {
 DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
 
-  for (const auto &Curr : TypeToVertex) {
-    Data.TypeToVertex.try_emplace(getTypeName(Curr.getFirst()),
-                                  Curr.getSecond());
+  Data.VertexTypes.reserve(VertexTypes.size());
+
+  for (const auto &Curr : VertexTypes) {
+    Data.VertexTypes.push_back(getTypeName(Curr));
   }
 
   Data.TransitiveDerivedIndex = TransitiveDerivedIndex;
@@ -389,7 +399,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
         CurrVTableAsString.push_back(Func->getName().str());
         continue;
       }
-      CurrVTableAsString.emplace_back("Null");
+      CurrVTableAsString.emplace_back(NullFunName);
     }
 
     Data.VTables.push_back(std::move(CurrVTableAsString));
