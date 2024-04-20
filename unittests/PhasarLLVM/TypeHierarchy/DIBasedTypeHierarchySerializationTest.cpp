@@ -31,9 +31,13 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
   for (const auto *OrigCurrentType : Orig.getAllTypes()) {
 
     const auto *DeserTy = Deser.getType(Orig.getTypeName(OrigCurrentType));
-    EXPECT_EQ(OrigCurrentType, DeserTy)
-        << "Mismatched types: Orig " << Orig.getTypeName(OrigCurrentType)
-        << " vs Deser: " << Deser.getTypeName(DeserTy);
+    EXPECT_EQ(OrigCurrentType, DeserTy);
+
+    if (OrigCurrentType != DeserTy) {
+      llvm::errs() << "Mismatched types:\n> OrigTy: " << *OrigCurrentType
+                   << '\n';
+      llvm::errs() << "> DeserTy: " << *DeserTy << '\n';
+    }
 
     for (const auto &CurrVFunc :
          Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {

@@ -166,8 +166,8 @@ static void buildTypeHierarchy(
 }
 
 static llvm::StringRef getCompositeTypeName(const llvm::DICompositeType *Ty) {
-  auto Name = Ty->getName();
-  return Name.empty() ? Ty->getIdentifier() : Name;
+  auto Ident = Ty->getIdentifier();
+  return Ident.empty() ? Ty->getName() : Ident;
 }
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
@@ -196,11 +196,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         if (!llvm::is_contained(DwarfTags, Composite->getTag())) {
           continue;
         }
-        TypeToVertex.try_emplace(Composite, VertexTypes.size());
-        VertexTypes.push_back(Composite);
-        NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
+        if (TypeToVertex.try_emplace(Composite, VertexTypes.size()).second) {
+          VertexTypes.push_back(Composite);
+          NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
 
-        assert(!getCompositeTypeName(Composite).empty());
+          assert(!getCompositeTypeName(Composite).empty());
+        }
       }
     }
 
@@ -227,11 +228,11 @@ stringToDICompositeType(const LLVMProjectIRDB *IRDB,
 
   for (const auto *Type : DIF.types()) {
     if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
-      if (DICT->getName() == DITypeName) {
+      auto Ident = DICT->getIdentifier();
+      if (Ident == DITypeName) {
         return DICT;
       }
-
-      if (DICT->getIdentifier() == DITypeName) {
+      if (Ident.empty() && DICT->getName() == DITypeName) {
         return DICT;
       }
     }
