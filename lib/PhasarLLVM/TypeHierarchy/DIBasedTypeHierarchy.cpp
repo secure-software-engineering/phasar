@@ -179,9 +179,16 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
     // -- Filter all struct- or class types
 
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+    static constexpr llvm::dwarf::Tag DwarfTags[] = {
+        llvm::dwarf::DW_TAG_class_type,
+        llvm::dwarf::DW_TAG_structure_type,
+        llvm::dwarf::DW_TAG_union_type,
+    };
+
     for (const auto *Ty : DIF.types()) {
       if (const auto *Composite = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
-        if (Composite->getTag() == llvm::dwarf::DW_TAG_array_type) {
+        if (!llvm::is_contained(DwarfTags, Composite->getTag())) {
           continue;
         }
         TypeToVertex.try_emplace(Composite, VertexTypes.size());
@@ -359,16 +366,15 @@ DIBasedTypeHierarchy::getAsJson() const {
 DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
   for (const auto &Curr : NameToType) {
-    Data.NameToType.try_emplace(Curr.getKey().str(),
+    Data.NameToType.try_emplace(Curr.getKey(),
                                 Curr.getValue()->getName().str());
   }
 
   for (const auto &Curr : TypeToVertex) {
-    Data.TypeToVertex.try_emplace(Curr.getFirst()->getName().str(),
-                                  Curr.getSecond());
+    Data.TypeToVertex.try_emplace(Curr.getFirst()->getName(), Curr.getSecond());
   }
 
-  int Counter = 0;
+  Data.VertexTypes.reserve(VertexTypes.size());
   for (const auto &Curr : VertexTypes) {
     if (!Curr) {
       Data.VertexTypes.emplace_back("");
@@ -377,13 +383,11 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
 
     if (!Curr->getName().empty()) {
       Data.VertexTypes.push_back(Curr->getName().str());
-      Counter++;
       continue;
     }
 
     if (!Curr->getIdentifier().empty()) {
       Data.VertexTypes.push_back(Curr->getIdentifier().str());
-      Counter++;
       continue;
     }
 
@@ -391,11 +395,9 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
     llvm::errs() << "VertexType has no valid name or identifier\n";
   }
 
-  for (const auto &Curr : TransitiveDerivedIndex) {
-    Data.TransitiveDerivedIndex.emplace_back(
-        std::pair<uint32_t, uint32_t>(Curr.first, Curr.second));
-  }
+  Data.TransitiveDerivedIndex = TransitiveDerivedIndex;
 
+  Data.Hierarchy.reserve(Hierarchy.size());
   for (const auto &Curr : Hierarchy) {
     Data.Hierarchy.push_back(Curr->getName().str());
   }

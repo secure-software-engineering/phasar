@@ -24,8 +24,9 @@ protected:
 
 void compareResults(const psr::DIBasedTypeHierarchy &Orig,
                     const psr::DIBasedTypeHierarchy &Deser) {
-  ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
-  ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
+
+  EXPECT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
+  EXPECT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
     EXPECT_EQ(OrigCurrentType->getName(),
