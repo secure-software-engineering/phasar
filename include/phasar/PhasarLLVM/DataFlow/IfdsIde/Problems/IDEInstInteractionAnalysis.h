@@ -1078,10 +1078,9 @@ public:
     const auto &OtherData = getData(OtherFunction);
     auto Union = IDEInstInteractionAnalysisT::joinImpl(ThisData, OtherData);
 
-    if (llvm::isa<IIAAKillOrReplaceEF>(FirstFunction)) {
-      if (llvm::isa<IIAAKillOrReplaceEF>(OtherFunction)) {
-        return IIAAKillOrReplaceEFCache.createEdgeFunction(std::move(Union));
-      }
+    if (llvm::isa<IIAAKillOrReplaceEF>(FirstFunction) &&
+        llvm::isa<IIAAKillOrReplaceEF>(OtherFunction)) {
+      return IIAAKillOrReplaceEFCache.createEdgeFunction(std::move(Union));
     }
     return IIAAAddLabelsEFCache.createEdgeFunction(std::move(Union));
   }
@@ -1147,7 +1146,7 @@ public:
       }
       if (const auto *H = llvm::dyn_cast<llvm::CallBase>(I)) {
         if (!H->isIndirectCall() && H->getCalledFunction() &&
-            this->ICF->isHeapAllocatingFunction(H->getCalledFunction())) {
+            psr::isHeapAllocatingFunction(H->getCalledFunction())) {
           Variables.insert(H);
         }
       }

@@ -177,11 +177,11 @@ public:
   }
 
   [[nodiscard]] BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
-    size_t MaxSize = std::max(Bits.size(), Other.Bits.size());
-    BitVectorSet<T> Res;
-    Res.Bits.reserve(MaxSize);
-    Res.Bits = Bits;
-    Res.Bits |= Other.Bits;
+    BitVectorSet<T> Res = Bits.size() < Other.Bits.size() ? Other : *this;
+    const BitVectorSet &Smaller =
+        Bits.size() < Other.Bits.size() ? *this : Other;
+
+    Res.Bits |= Smaller.Bits;
     return Res;
   }
 
