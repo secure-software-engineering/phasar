@@ -28,9 +28,12 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
   EXPECT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
   EXPECT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
-  for (const auto &OrigCurrentType : Orig.getAllTypes()) {
-    EXPECT_EQ(OrigCurrentType->getName(),
-              Deser.getType(OrigCurrentType->getName().str())->getName());
+  for (const auto *OrigCurrentType : Orig.getAllTypes()) {
+
+    const auto *DeserTy = Deser.getType(Orig.getTypeName(OrigCurrentType));
+    EXPECT_EQ(OrigCurrentType, DeserTy)
+        << "Mismatched types: Orig " << Orig.getTypeName(OrigCurrentType)
+        << " vs Deser: " << Deser.getTypeName(DeserTy);
 
     for (const auto &CurrVFunc :
          Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {

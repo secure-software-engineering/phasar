@@ -165,6 +165,11 @@ static void buildTypeHierarchy(
   }
 }
 
+static llvm::StringRef getCompositeTypeName(const llvm::DICompositeType *Ty) {
+  auto Name = Ty->getName();
+  return Name.empty() ? Ty->getIdentifier() : Name;
+}
+
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // -- Find all types
   {
@@ -193,7 +198,9 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         }
         TypeToVertex.try_emplace(Composite, VertexTypes.size());
         VertexTypes.push_back(Composite);
-        NameToType.try_emplace(Composite->getName(), Composite);
+        NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
+
+        assert(!getCompositeTypeName(Composite).empty());
       }
     }
 
@@ -218,7 +225,7 @@ stringToDICompositeType(const LLVMProjectIRDB *IRDB,
   const auto *Module = IRDB->getModule();
   DIF.processModule(*Module);
 
-  for (const auto &Type : DIF.types()) {
+  for (const auto *Type : DIF.types()) {
     if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
       if (DICT->getName() == DITypeName) {
         return DICT;
@@ -239,7 +246,7 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
   const auto *Module = IRDB->getModule();
   DIF.processModule(*Module);
 
-  for (const auto &Type : DIF.types()) {
+  for (const auto *Type : DIF.types()) {
     if (Type) {
       if (Type->getName() == DITypeName) {
         if (const auto *DIT = llvm::dyn_cast<llvm::DIType>(Type)) {
@@ -253,44 +260,32 @@ static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
 }
 
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
-    const LLVMProjectIRDB *IRDB,
-    const DIBasedTypeHierarchyData &SerializedData) {
+    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedData)
+    : TransitiveDerivedIndex(SerializedData.TransitiveDerivedIndex) {
 
-  int Counter = 0;
-  VertexTypes.reserve(SerializedData.VertexTypes.size());
-
-  for (const auto &Curr : SerializedData.VertexTypes) {
-    VertexTypes.push_back(stringToDICompositeType(IRDB, Curr));
-    Counter++;
-  }
-
-  for (const auto &Curr : SerializedData.NameToType) {
-    NameToType.try_emplace(Curr.getKey(),
-                           stringToDIType(IRDB, Curr.getValue()));
-  }
-
+  VertexTypes.resize(SerializedData.TypeToVertex.size());
+  TypeToVertex.reserve(SerializedData.TypeToVertex.size());
   for (const auto &Curr : SerializedData.TypeToVertex) {
-    TypeToVertex.try_emplace(stringToDIType(IRDB, Curr.getKey()),
-                             Curr.getValue());
+    const auto *Ty = stringToDICompositeType(IRDB, Curr.getKey());
+    TypeToVertex.try_emplace(Ty, Curr.getValue());
+    NameToType.try_emplace(Curr.getKey(), Ty);
+    VertexTypes.at(Curr.getValue()) = Ty;
   }
 
-  for (const auto &Curr : SerializedData.TransitiveDerivedIndex) {
-    TransitiveDerivedIndex.emplace_back(
-        std::pair<uint32_t, uint32_t>(Curr.first, Curr.second));
-  }
-
+  Hierarchy.reserve(SerializedData.Hierarchy.size());
   for (const auto &Curr : SerializedData.Hierarchy) {
     Hierarchy.push_back(stringToDIType(IRDB, Curr));
   }
 
   for (const auto &Curr : SerializedData.VTables) {
-    LLVMVFTable CurrVTable = LLVMVFTable();
+    std::vector<const llvm::Function *> CurrVTable;
 
+    CurrVTable.reserve(Curr.size());
     for (const auto &FuncName : Curr) {
-      CurrVTable.VFT.push_back(IRDB->getFunction(FuncName));
+      CurrVTable.push_back(IRDB->getFunction(FuncName));
     }
 
-    VTables.push_back(std::move(CurrVTable));
+    VTables.emplace_back(std::move(CurrVTable));
   }
 }
 
@@ -321,6 +316,13 @@ auto DIBasedTypeHierarchy::subTypesOf(ClassType Ty) const noexcept
     -> std::set<ClassType> {
   // TODO: implement (low priority)
   llvm::report_fatal_error("Not implemented");
+}
+
+std::string DIBasedTypeHierarchy::getTypeName(ClassType Type) const {
+  if (const auto *CT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+    return getCompositeTypeName(CT).str();
+  }
+  return Type->getName().str();
 }
 
 [[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
@@ -365,34 +367,10 @@ DIBasedTypeHierarchy::getAsJson() const {
 
 DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
-  for (const auto &Curr : NameToType) {
-    Data.NameToType.try_emplace(Curr.getKey(),
-                                Curr.getValue()->getName().str());
-  }
 
   for (const auto &Curr : TypeToVertex) {
-    Data.TypeToVertex.try_emplace(Curr.getFirst()->getName(), Curr.getSecond());
-  }
-
-  Data.VertexTypes.reserve(VertexTypes.size());
-  for (const auto &Curr : VertexTypes) {
-    if (!Curr) {
-      Data.VertexTypes.emplace_back("");
-      llvm::errs() << "VertexType is null\n";
-    }
-
-    if (!Curr->getName().empty()) {
-      Data.VertexTypes.push_back(Curr->getName().str());
-      continue;
-    }
-
-    if (!Curr->getIdentifier().empty()) {
-      Data.VertexTypes.push_back(Curr->getIdentifier().str());
-      continue;
-    }
-
-    Data.VertexTypes.emplace_back("");
-    llvm::errs() << "VertexType has no valid name or identifier\n";
+    Data.TypeToVertex.try_emplace(getTypeName(Curr.getFirst()),
+                                  Curr.getSecond());
   }
 
   Data.TransitiveDerivedIndex = TransitiveDerivedIndex;

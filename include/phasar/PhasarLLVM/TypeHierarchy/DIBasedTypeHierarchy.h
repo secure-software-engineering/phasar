@@ -70,9 +70,7 @@ public:
 
   [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
-  [[nodiscard]] std::string getTypeName(ClassType Type) const override {
-    return Type->getName().str();
-  }
+  [[nodiscard]] std::string getTypeName(ClassType Type) const override;
 
   [[nodiscard]] bool hasVFTable(ClassType Type) const override;
 

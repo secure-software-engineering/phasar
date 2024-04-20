@@ -23,30 +23,15 @@ namespace psr {
 static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   DIBasedTypeHierarchyData Data;
 
-  for (const auto &[Key, Value] :
-       Json["NameToType"].get<nlohmann::json::object_t>()) {
-    Data.NameToType.try_emplace(Key, Value.get<std::string>());
-  }
-
-  for (const auto &[Key, Value] :
-       Json["TypeToVertex"].get<nlohmann::json::object_t>()) {
+  for (const auto &[Key, Value] : Json["TypeToVertex"].items()) {
     Data.TypeToVertex.try_emplace(Key, Value.get<size_t>());
   }
 
-  int Counter = 0;
-  for (const auto &Value : Json["VertexTypes"]) {
-    Data.VertexTypes.push_back(Value.get<std::string>());
-    Counter++;
-  }
+  Data.TransitiveDerivedIndex =
+      Json["TransitiveDerivedIndex"]
+          .get<std::vector<std::pair<uint32_t, uint32_t>>>();
 
-  for (const auto &CurrPair : Json["TransitiveDerivedIndex"]) {
-    Data.TransitiveDerivedIndex.emplace_back(CurrPair[0].get<uint32_t>(),
-                                             CurrPair[1].get<uint32_t>());
-  }
-
-  for (const auto &Value : Json["Hierarchy"]) {
-    Data.Hierarchy.push_back(Value.get<std::string>());
-  }
+  Data.Hierarchy = Json["Hierarchy"].get<std::vector<std::string>>();
 
   for (const auto &CurrVTable : Json["VTables"]) {
     auto &DataPos = Data.VTables.emplace_back();
@@ -62,32 +47,18 @@ static DIBasedTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
 void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
   nlohmann::json Json;
 
-  for (const auto &Curr : NameToType) {
-    Json["NameToType"][Curr.getKey()] = Curr.getValue();
-  }
-
+  auto &JTypeToVertex = Json["TypeToVertex"];
   for (const auto &Curr : TypeToVertex) {
-    Json["TypeToVertex"][Curr.getKey()] = Curr.getValue();
+    JTypeToVertex[Curr.getKey()] = Curr.getValue();
   }
 
-  int Counter = 0;
-  for (const auto &Curr : VertexTypes) {
-    Json["VertexTypes"].push_back(Curr);
-    Counter++;
-  }
+  Json["TransitiveDerivedIndex"] = TransitiveDerivedIndex;
 
-  int Number = 0;
-  for (const auto &Curr : TransitiveDerivedIndex) {
-    Json["TransitiveDerivedIndex"][Number].push_back(Curr.first);
-    Json["TransitiveDerivedIndex"][Number++].push_back(Curr.second);
-  }
+  Json["Hierarchy"] = Hierarchy;
 
-  for (const auto &Curr : Hierarchy) {
-    Json["Hierarchy"].push_back(Curr);
-  }
-
+  auto &JVTables = Json["VTables"];
   for (const auto &CurrVTable : VTables) {
-    auto &DataPos = Json["VTables"].emplace_back();
+    auto &DataPos = JVTables.emplace_back();
 
     for (const auto &CurrVFunc : CurrVTable) {
       DataPos.push_back(CurrVFunc);
