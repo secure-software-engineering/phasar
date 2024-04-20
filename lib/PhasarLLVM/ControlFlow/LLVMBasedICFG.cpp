@@ -362,7 +362,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
     PT = PTOwn.asRef();
   }
 
-  auto CGRes = Resolver::create(CGType, IRDB, this->TH.get(), this, PT);
+  auto CGRes = Resolver::create(CGType, IRDB, this->TH.get(), PT);
   initialize(IRDB, *CGRes, EntryPoints, TH, S, IncludeGlobals);
 }
 

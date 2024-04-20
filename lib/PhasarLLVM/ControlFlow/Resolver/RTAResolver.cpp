@@ -99,8 +99,6 @@ void RTAResolver::resolveAllocatedStructTypes() {
   }
 
   llvm::DenseSet<const llvm::StructType *> AllocatedStructTypes;
-  const llvm::StringSet<> MemAllocatingFunctions = {"_Znwm", "_Znam", "malloc",
-                                                    "calloc", "realloc"};
 
   for (const auto *Fun : IRDB.getAllFunctions()) {
     for (const auto &Inst : llvm::instructions(Fun)) {
@@ -114,8 +112,7 @@ void RTAResolver::resolveAllocatedStructTypes() {
         // check if an instance of a user-defined type is allocated on the
         // heap
 
-        if (!MemAllocatingFunctions.contains(
-                CallSite->getCalledFunction()->getName())) {
+        if (!isHeapAllocatingFunction(CallSite->getCalledFunction())) {
           continue;
         }
         /// TODO: Does this iteration over the users make sense?
