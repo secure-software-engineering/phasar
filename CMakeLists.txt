@@ -31,13 +31,7 @@ endif()
 
 option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-if(PHASAR_EXPERIMENTAL_CXX20)
-  message(STATUS "Selected experimental C++20 build")
-  set(CMAKE_CXX_STANDARD 20)
-else()
-  set(CMAKE_CXX_STANDARD 17)
-endif()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -52,7 +46,7 @@ set(PHASAR_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
-if (NOT CMAKE_BUILD_TYPE AND NOT GENERATOR_IS_MULTI_CONFIG)
+if (NOT CMAKE_BUILD_TYPE AND NOT GENERATOR_IS_MULTI_CONFIG AND NOT PHASAR_IN_TREE)
   message(STATUS "No CMAKE_BUILD_TYPE specified, setting it to Debug")
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')" FORCE)
 endif ()
@@ -231,11 +225,12 @@ if (NOT PHASAR_IN_TREE)
 
   # Export set
   set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
-  set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 else()
   # Export set
   set(PHASAR_DEPS_EXPORT_SET LLVMExports)
 endif()
+
+set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 
 # Filesystem
 if (LLVM_ENABLE_LIBCXX)

@@ -24,8 +24,10 @@
 namespace psr {
 
 #if __cplusplus < 202002L
+#define PSR_CONCEPT static constexpr bool
 template <typename T> struct type_identity { using type = T; };
 #else
+#define PSR_CONCEPT concept
 template <typename T> using type_identity = std::type_identity<T>;
 #endif
 
@@ -180,44 +182,44 @@ template <typename Container> struct ElementType {
 } // namespace detail
 
 template <typename T>
-constexpr bool is_iterable_v = detail::is_iterable<T>::value; // NOLINT
+PSR_CONCEPT is_iterable_v = detail::is_iterable<T>::value; // NOLINT
 
 template <typename T, typename Over>
-constexpr bool is_iterable_over_v = // NOLINT
+PSR_CONCEPT is_iterable_over_v = // NOLINT
     detail::is_iterable_over<T, Over>::value;
 
 template <typename T>
-constexpr bool is_pair_v = detail::is_pair<T>::value; // NOLINT
+PSR_CONCEPT is_pair_v = detail::is_pair<T>::value; // NOLINT
 
 template <typename T>
-constexpr bool is_tuple_v = detail::is_tuple<T>::value; // NOLINT
+PSR_CONCEPT is_tuple_v = detail::is_tuple<T>::value; // NOLINT
 
 template <typename T>
-constexpr bool is_llvm_printable_v = // NOLINT
+PSR_CONCEPT is_llvm_printable_v = // NOLINT
     detail::is_llvm_printable<T>::value;
 
 template <typename T>
-constexpr bool is_std_printable_v = // NOLINT
+PSR_CONCEPT is_std_printable_v = // NOLINT
     detail::is_std_printable<T>::value;
 
 template <typename T, typename OS>
-constexpr bool is_printable_v = detail::is_printable<T, OS>::value; // NOLINT
+PSR_CONCEPT is_printable_v = detail::is_printable<T, OS>::value; // NOLINT
 
 template <typename T>
-constexpr bool has_str_v = detail::has_str<T>::value; // NOLINT
+PSR_CONCEPT has_str_v = detail::has_str<T>::value; // NOLINT
 
 template <typename T>
-constexpr bool has_adl_to_string_v = detail::has_adl_to_string<T>::value;
+PSR_CONCEPT has_adl_to_string_v = detail::has_adl_to_string<T>::value;
 
 template <typename T>
-constexpr bool has_erase_iterator_v = // NOLINT
+PSR_CONCEPT has_erase_iterator_v = // NOLINT
     detail::has_erase_iterator<T>::value;
 
 template <typename T>
-constexpr bool is_std_hashable_v = detail::is_std_hashable<T>::value; // NOLINT
+PSR_CONCEPT is_std_hashable_v = detail::is_std_hashable<T>::value; // NOLINT
 
 template <typename T>
-constexpr bool is_llvm_hashable_v = // NOLINT
+PSR_CONCEPT is_llvm_hashable_v = // NOLINT
     detail::is_llvm_hashable<T>::value;
 
 template <typename T> struct is_variant : std::false_type {}; // NOLINT
@@ -225,30 +227,26 @@ template <typename T> struct is_variant : std::false_type {}; // NOLINT
 template <typename... Args>
 struct is_variant<std::variant<Args...>> : std::true_type {}; // NOLINT
 
-template <typename T>
-inline constexpr bool is_variant_v = is_variant<T>::value; // NOLINT
+template <typename T> PSR_CONCEPT is_variant_v = is_variant<T>::value; // NOLINT
 
 template <typename T>
 // NOLINTNEXTLINE
-constexpr bool is_string_like_v = std::is_convertible_v<T, std::string_view>;
+PSR_CONCEPT is_string_like_v = std::is_convertible_v<T, std::string_view>;
 
 template <template <typename> typename Base, typename Derived>
-constexpr bool is_crtp_base_of_v = // NOLINT
+PSR_CONCEPT is_crtp_base_of_v = // NOLINT
     detail::is_crtp_base_of<Base, Derived>::value;
 
 template <typename T>
-static inline constexpr bool HasIsConstant = detail::HasIsConstant<T>::value;
+PSR_CONCEPT HasIsConstant = detail::HasIsConstant<T>::value;
+
+template <typename T> PSR_CONCEPT HasDepth = detail::HasDepth<T>::value;
 
 template <typename T>
-static inline constexpr bool HasDepth = detail::HasDepth<T>::value;
-
-template <typename T>
-static inline constexpr bool IsEqualityComparable =
-    detail::IsEqualityComparable<T>::value;
+PSR_CONCEPT IsEqualityComparable = detail::IsEqualityComparable<T>::value;
 
 template <typename T, typename U>
-static inline constexpr bool AreEqualityComparable =
-    detail::AreEqualityComparable<T, U>::value;
+PSR_CONCEPT AreEqualityComparable = detail::AreEqualityComparable<T, U>::value;
 
 template <typename T> using type_identity_t = typename type_identity<T>::type;
 

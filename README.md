@@ -17,8 +17,8 @@ Lead developers of PhASAR are:  Fabian Schiebel (@fabianbs96)(<fabian.schiebel@i
 
 PhASAR requires C++-17.
 
-However, building in C++20 mode is supported as an experimental feature. You may enable this by turning the cmake option `PHASAR_EXPERIMENTAL_CXX20` on.
-Although phasar currently does not make use of C++20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
+However, building in C++20 mode is supported as an experimental feature. You may enable this setting the cmake variable `CMAKE_CXX_STANDARD` to `20`.
+Although phasar currently does not make use of C++-20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
 
 ## Currently Supported Version of LLVM
 
@@ -124,7 +124,7 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | **PHASAR_ENABLE_PAMM** : STRING | Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is Off) |
 | **PHASAR_ENABLE_PIC** : BOOL | Build Position-Independed Code (default is ON) |
 | **PHASAR_ENABLE_WARNINGS** : BOOL | Enable compiler warnings (default is ON) |
-| **PHASAR_EXPERIMENTAL_CXX20** : BOOL|Build phasar in C++20 mode. This is an experimental feature  (default is OFF)|
+| **CMAKE_CXX_STANDARD** : INT|Build phasar in C++17 or C++20 mode (default is 17)|
 
 You can use these parameters either directly or modify the installer-script `bootstrap.sh`
 
