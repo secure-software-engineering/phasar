@@ -46,7 +46,7 @@ public:
   /// Checks whether the edge function EF is cached in this cache. Returns the
   /// cached entry if found, else nullptr.
   [[nodiscard]] virtual const void *
-  lookup(ByConstRef<EdgeFunctionTy> EF) const noexcept = 0;
+  lookup(const EdgeFunctionTy &EF) const noexcept = 0;
 
   /// Inserts the cache-entry Mem for the edge function *EF into the cache.
   /// Typically, EF points into the buffer pointed to by Mem. Both pointers are
@@ -57,7 +57,7 @@ public:
 
   /// Erases the cache-entry associated with the edge function EF from the
   /// cache.
-  virtual void erase(ByConstRef<EdgeFunctionTy> EF) noexcept = 0;
+  virtual void erase(const EdgeFunctionTy &EF) noexcept = 0;
 
   template <typename... ArgTys>
   [[nodiscard]] auto createEdgeFunction(ArgTys &&...Args) {

@@ -1066,7 +1066,8 @@ public:
     if (llvm::isa<EdgeIdentity<l_t>>(FirstFunction)) {
       return OtherFunction;
     }
-    if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
+    if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction) &&
+        !llvm::isa<AllTop<l_t>>(FirstFunction)) {
       return FirstFunction;
     }
 

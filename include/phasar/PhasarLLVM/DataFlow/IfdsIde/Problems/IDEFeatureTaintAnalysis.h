@@ -10,12 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEFEATURETAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEFEATURETAINTANALYSIS_H
 
+#include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/FunctionExtras.h"
@@ -36,7 +39,7 @@ namespace psr {
 class LLVMProjectIRDB;
 
 struct IDEFeatureTaintEdgeFact {
-  llvm::SmallBitVector Taints{};
+  llvm::SmallBitVector Taints;
 
   static llvm::SmallBitVector fromBits(uintptr_t Bits) {
 #if __has_builtin(__builtin_constant_p)
@@ -56,6 +59,7 @@ struct IDEFeatureTaintEdgeFact {
       : Taints(Taints) {}
   IDEFeatureTaintEdgeFact(uintptr_t Taints) noexcept
       : Taints(fromBits(Taints)) {}
+  explicit IDEFeatureTaintEdgeFact() noexcept { Taints.invalid(); }
 
   void unionWith(uintptr_t Facts) {
     auto RequiredSize = llvm::findLastSet(Facts) + 1;
@@ -68,9 +72,9 @@ struct IDEFeatureTaintEdgeFact {
     Taints |= Facts.Taints;
   }
 
-  [[nodiscard]] inline bool isBottom() const noexcept {
-    // TODO
-    return false;
+  [[nodiscard]] inline bool isBottom() const noexcept { return Taints.empty(); }
+  [[nodiscard]] inline bool isTop() const noexcept {
+    return Taints.isInvalid();
   }
 
   friend llvm::hash_code
@@ -114,20 +118,44 @@ struct IDEFeatureTaintEdgeFact {
                        [](auto Word) { return Word == 0; });
   }
 
-  template <typename E> [[nodiscard]] std::string str() {
+  template <typename E> [[nodiscard]] std::string str() const {
     auto BV = BitVectorSet<E, llvm::SmallBitVector>::fromBits(Taints);
     return LToString(BV);
   }
+
+  template <typename E> [[nodiscard]] auto toBVSet() const {
+    return BitVectorSet<E, llvm::SmallBitVector>::fromBits(Taints);
+  }
+
+  template <typename E> [[nodiscard]] auto toSet() const {
+    std::set<E> Ret;
+
+    for (const auto &Elem : this->template toBVSet<E>()) {
+      Ret.insert(Elem);
+    }
+    return Ret;
+  }
 };
 
+std::string LToString(const IDEFeatureTaintEdgeFact &EdgeFact);
+
 template <> struct JoinLatticeTraits<IDEFeatureTaintEdgeFact> {
-  inline static IDEFeatureTaintEdgeFact top() { return 0; }
+  inline static IDEFeatureTaintEdgeFact top() {
+    IDEFeatureTaintEdgeFact Ret{};
+    return Ret;
+  }
   inline static IDEFeatureTaintEdgeFact bottom() {
     // TODO
     return 0;
   }
   inline static IDEFeatureTaintEdgeFact join(const IDEFeatureTaintEdgeFact &L,
                                              const IDEFeatureTaintEdgeFact &R) {
+    if (L.isTop()) {
+      return R;
+    }
+    if (R.isTop()) {
+      return L;
+    }
     auto Ret = L;
     Ret.Taints |= R.Taints;
     return Ret;
@@ -153,9 +181,13 @@ public:
   static GenerateTaintsFn createGenerateTaints(EdgeFactGenerator &&EFGen) {
     return [EFGen{std::forward<EdgeFactGenerator>(EFGen)}](InstOrGlobal IG) {
       const auto &TaintSet = std::invoke(EFGen, IG);
-      BitVectorSet<ElementType<decltype(TaintSet)>> BV(
+      BitVectorSet<ElementType<decltype(TaintSet)>, llvm::SmallBitVector> BV(
           llvm::adl_begin(TaintSet), llvm::adl_end(TaintSet));
-      return IDEFeatureTaintEdgeFact{std::move(BV).getBits()};
+
+      auto Ret = IDEFeatureTaintEdgeFact{std::move(BV).getBits()};
+
+      llvm::errs() << "generateTaints: " << LToString(Ret) << '\n';
+      return Ret;
     };
   }
 
@@ -240,6 +272,9 @@ public:
             FeatureTaintGenerator(std::forward<SourceDetector>(SrcDetector),
                                   std::forward<EdgeFactGenerator>(EFGen))) {}
 
+  // The EF Caches are incomplete, so move the dtor into the .cpp
+  ~IDEFeatureTaintAnalysis();
+
   //////////////////////////////////////////////////////////////////////////////
   ///                              Flow Functions
   //////////////////////////////////////////////////////////////////////////////
@@ -290,9 +325,19 @@ public:
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
+  EdgeFunction<l_t> extend(const EdgeFunction<l_t> &FirstEF,
+                           const EdgeFunction<l_t> &SecondEF) override;
+  EdgeFunction<l_t> combine(const EdgeFunction<l_t> &FirstEF,
+                            const EdgeFunction<l_t> &OtherEF) override;
+
 private:
   FeatureTaintGenerator TaintGen;
   LLVMAliasInfoRef PT;
+
+  struct GenerateEF;
+  struct AddFactsEF;
+  DefaultEdgeFunctionSingletonCacheImpl<GenerateEF, l_t> GenEFCache;
+  DefaultEdgeFunctionSingletonCacheImpl<AddFactsEF, l_t> AddEFCache;
 };
 
 } // namespace psr

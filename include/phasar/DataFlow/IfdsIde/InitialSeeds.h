@@ -11,6 +11,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_INITIALSEEDS_H
 
 #include "phasar/Domain/BinaryDomain.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/Support/Compiler.h"
@@ -75,36 +76,13 @@ public:
   [[nodiscard]] GeneralizedSeeds getSeeds() && { return std::move(Seeds); }
 
   void dump(llvm::raw_ostream &OS = llvm::errs()) const {
-
-    auto printNode = [&](auto &&Node) { // NOLINT
-      if constexpr (std::is_pointer_v<N> &&
-                    is_llvm_printable_v<std::remove_pointer_t<N>>) {
-        OS << *Node;
-      } else {
-        OS << Node;
-      }
-    };
-
-    auto printFact = [&](auto &&Node) { // NOLINT
-      if constexpr (std::is_pointer_v<D> &&
-                    is_llvm_printable_v<std::remove_pointer_t<D>>) {
-        OS << *Node;
-      } else {
-        OS << Node;
-      }
-    };
-
     OS << "======================== Initial Seeds ========================\n";
     for (const auto &[Node, Facts] : Seeds) {
-      OS << "At ";
-      printNode(Node);
-      OS << "\n";
+      OS << "At " << NToString(Node) << '\n';
       for (const auto &[Fact, Value] : Facts) {
-        OS << "> ";
-        printFact(Fact);
-        OS << " --> \\." << Value << "\n";
+        OS << "> " << DToString(Fact) << " --> \\." << LToString(Value) << '\n';
       }
-      OS << "\n";
+      OS << '\n';
     }
     OS << "========================== End Seeds ==========================\n";
   }

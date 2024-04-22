@@ -12,6 +12,7 @@
 
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -20,16 +21,18 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <initializer_list>
 
 namespace psr {
 namespace internal {
+
 inline bool isLess(const llvm::BitVector &Lhs, const llvm::BitVector &Rhs) {
   unsigned LhsBits = Lhs.size();
   unsigned RhsBits = Rhs.size();
 
   if (LhsBits > RhsBits) {
-    if (Lhs.find_first_in(RhsBits, LhsBits) != -1) {
+    if (Lhs.find_next(RhsBits) != -1) {
       return false;
     }
   } else if (LhsBits < RhsBits) {
@@ -46,6 +49,15 @@ inline bool isLess(const llvm::BitVector &Lhs, const llvm::BitVector &Rhs) {
     }
   }
   return false;
+}
+
+inline llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
+                                          uintptr_t & /*Store*/) {
+  return BV.getData();
+}
+inline llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
+                                          uintptr_t &Store) {
+  return BV.getData(Store);
 }
 } // namespace internal
 
@@ -292,8 +304,10 @@ public:
     }
     // Check, whether Lhs and Rhs actually have the same bits set and not
     // whether their internal representation is exactly identitcal
-    auto LhsWords = Lhs.Bits.getData();
-    auto RhsWords = Rhs.Bits.getData();
+
+    uintptr_t LStore{}, RStore{};
+    auto LhsWords = internal::getWords(Lhs.Bits, LStore);
+    auto RhsWords = internal::getWords(Rhs.Bits, RStore);
     if (LhsWords.size() == RhsWords.size()) {
       return LhsWords == RhsWords;
     }
@@ -320,7 +334,8 @@ public:
     if (BV.Bits.empty()) {
       return {};
     }
-    auto Words = BV.Bits.getData();
+    uintptr_t Store{};
+    auto Words = internal::getWords(BV.Bits, Store);
     size_t Idx = Words.size();
     while (Idx && Words[Idx - 1] == 0) {
       --Idx;
