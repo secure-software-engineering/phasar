@@ -141,12 +141,8 @@ public:
     VT->Print(AA, OS);
   }
 
-  [[nodiscard, deprecated("Use printAsJson() instead")]] nlohmann::json
-  getAsJson() const {
-    if (VT == nullptr) {
-      return {};
-    }
-
+  [[nodiscard]] nlohmann::json getAsJson() const {
+    assert(VT != nullptr);
     return VT->GetAsJson(AA);
   }
 
@@ -190,6 +186,16 @@ public:
     assert(isa<T>() && "Invalid AliasInfo cast!");
     return static_cast<T *>(AA);
   }
+  /*
+    template <typename T>
+    [[nodiscard]] auto hasGetAsJsonImpl() -> decltype(nlohmann::json()) {
+      return static_cast<T *>(AA)->getAsJson();
+    }
+  */
+
+  template <class T>
+  using hasGetAsJson =
+      decltype(std::declval<T &>().getAsJson(std::declval<nlohmann::json>()));
 
 private:
   struct VTable {
@@ -245,11 +251,10 @@ private:
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
-      [](const void *AA) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-        return static_cast<const ConcreteAA *>(AA)->getAsJson();
-#pragma GCC diagnostic pop
+      [](const void *AA) noexcept {
+        /// TODO: hier bei Compile-Time checken ob getAsJson in dem ConcreteAA
+        /// existiert. Wenn nein, leeres json.
+        return hasGetAsJson(AA);
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);
