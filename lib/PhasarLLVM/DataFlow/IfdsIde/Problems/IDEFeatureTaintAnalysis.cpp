@@ -139,7 +139,7 @@ auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
   // Map actual to formal parameters.
-  return mapFactsToCallee<d_t>(
+  auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
       CS, DestFun, [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
         if (d_t(ActualArg) != Src) {
           return false;
@@ -151,6 +151,18 @@ auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
 
         return true;
       });
+
+  // Generate the artificially introduced RVO parameters from zero value.
+  const auto *SRetFormal =
+      CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
+
+  if (SRetFormal && TaintGen.isSource(CallSite)) {
+    return unionFlows(
+        std::move(MapFactsToCalleeFF),
+        generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
+  }
+
+  return MapFactsToCalleeFF;
 }
 
 auto IDEFeatureTaintAnalysis::getRetFlowFunction(n_t CallSite,
@@ -164,7 +176,10 @@ auto IDEFeatureTaintAnalysis::getRetFlowFunction(n_t CallSite,
     return killAllFlows();
   }
 
-  bool GeneratesFact = TaintGen.isSource(ExitInst);
+  const auto *RetInst = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
+  auto *RetVal = RetInst ? RetInst->getReturnValue() : nullptr;
+  bool GeneratesFact = llvm::isa_and_nonnull<llvm::ConstantData>(RetVal) &&
+                       TaintGen.isSource(ExitInst);
   return mapFactsToCaller<d_t>(
       llvm::cast<llvm::CallBase>(CallSite), ExitInst, {},
       [GeneratesFact](const llvm::Value *RetVal, d_t Src) {
@@ -185,10 +200,9 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
     n_t CallSite, n_t /* RetSite */, llvm::ArrayRef<f_t> Callees)
     -> FlowFunctionPtrType {
 
-  bool GeneratesFact =
-      !CallSite->getType()->isVoidTy() && TaintGen.isSource(CallSite);
-
   if (llvm::all_of(Callees, [](f_t Fun) { return Fun->isDeclaration(); })) {
+    bool GeneratesFact =
+        !CallSite->getType()->isVoidTy() && TaintGen.isSource(CallSite);
     if (GeneratesFact) {
       return generateFromZero(CallSite);
     }
@@ -203,10 +217,11 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
       },
       /*PropagateGlobals*/ false);
 
-  if (GeneratesFact) {
-    return unionFlows(std::move(Mapper),
-                      generateFlowAndKillAllOthers(CallSite, getZeroValue()));
-  }
+  // if (GeneratesFact) {
+  //   return unionFlows(std::move(Mapper),
+  //                     generateFlowAndKillAllOthers(CallSite,
+  //                     getZeroValue()));
+  // }
   return Mapper;
 }
 
@@ -614,11 +629,11 @@ auto IDEFeatureTaintAnalysis::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
 }
 
 auto IDEFeatureTaintAnalysis::getReturnEdgeFunction(
-    n_t CallSite, f_t /*CalleeFunction*/, n_t /*ExitStmt*/, d_t ExitNode,
+    n_t CallSite, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
     n_t /*RetSite*/, d_t RetNode) -> EdgeFunction<l_t> {
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
     // Generate user edge-facts from zero
-    return genEF(TaintGen.getGeneratedTaintsAt(CallSite), GenEFCache);
+    return genEF(TaintGen.getGeneratedTaintsAt(ExitStmt), GenEFCache);
   }
 
   return EdgeIdentity<l_t>{};
@@ -629,6 +644,9 @@ auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Generate user edge-facts from zero
+
+    llvm::errs() << "At CTR " << llvmIRToString(CallSite)
+                 << ": Gen from zero!\n";
     return genEF(TaintGen.getGeneratedTaintsAt(CallSite), GenEFCache);
   }
   return EdgeIdentity<l_t>{};

@@ -47,6 +47,11 @@ protected:
     HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
                HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
+
+    for (const auto *Inst : IRDB->getAllInstructions()) {
+      BitVectorSet<std::string, llvm::SmallBitVector> BV;
+      BV.insert(getMetaDataID(Inst));
+    }
   }
 
   void
