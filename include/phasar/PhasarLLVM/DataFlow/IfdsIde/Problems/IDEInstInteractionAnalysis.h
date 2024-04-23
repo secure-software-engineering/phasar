@@ -1037,7 +1037,8 @@ public:
       return KillOrReplace->Replacement;
     }
     llvm::report_fatal_error(
-        "found unexpected first edge function in 'getData'");
+        "found unexpected first edge function in 'getData': " +
+        llvm::Twine(to_string(EF)));
   }
 
   EdgeFunction<l_t> extend(const EdgeFunction<l_t> &FirstFunction,
