@@ -1,4 +1,4 @@
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureInteractionAnalysis.h"
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
@@ -48,6 +48,7 @@ protected:
                HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
 
+    // Initialze IDs
     for (const auto *Inst : IRDB->getAllInstructions()) {
       BitVectorSet<std::string, llvm::SmallBitVector> BV;
       BV.insert(getMetaDataID(Inst));
@@ -86,7 +87,7 @@ protected:
           Current);
     };
     assert(HA);
-    auto IIAProblem = createAnalysisProblem<IDEFeatureTaintAnalysis>(
+    auto IIAProblem = createAnalysisProblem<IDEFeatureInteractionAnalysis>(
         *HA, EntryPoints, Generator);
 
     // if (PrintDump) {

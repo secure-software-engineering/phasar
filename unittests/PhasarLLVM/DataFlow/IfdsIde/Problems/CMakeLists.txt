@@ -8,7 +8,7 @@ set(IfdsIdeProblemSources
 	IDEGeneralizedLCATest.cpp
 	IDEExtendedTaintAnalysisTest.cpp
 	IDETSAnalysisFileIOTest.cpp
-	IDEFeatureTaintAnalysisTest.cpp
+	IDEFeatureInteractionAnalysisTest.cpp
 )
 
 if(PHASAR_BUILD_OPENSSL_TS_UNITTESTS)

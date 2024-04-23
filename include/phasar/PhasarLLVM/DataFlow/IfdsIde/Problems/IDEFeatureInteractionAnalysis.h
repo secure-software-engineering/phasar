@@ -162,7 +162,7 @@ template <> struct JoinLatticeTraits<IDEFeatureTaintEdgeFact> {
   }
 };
 
-struct IDEFeatureTaintAnalysisDomain : LLVMAnalysisDomainDefault {
+struct IDEFeatureInteractionAnalysisDomain : LLVMAnalysisDomainDefault {
   using l_t = IDEFeatureTaintEdgeFact;
 };
 
@@ -186,7 +186,7 @@ public:
 
       auto Ret = IDEFeatureTaintEdgeFact{std::move(BV).getBits()};
 
-      llvm::errs() << "generateTaints: " << LToString(Ret) << '\n';
+      // llvm::errs() << "generateTaints: " << LToString(Ret) << '\n';
       return Ret;
     };
   }
@@ -246,34 +246,37 @@ private:
   PrinterFn Printer;
 };
 
-class IDEFeatureTaintAnalysis
-    : public IDETabulationProblem<IDEFeatureTaintAnalysisDomain> {
+class IDEFeatureInteractionAnalysis
+    : public IDETabulationProblem<IDEFeatureInteractionAnalysisDomain> {
 
 public:
-  IDEFeatureTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
-                          std::vector<std::string> EntryPoints,
-                          FeatureTaintGenerator &&TaintGen);
+  IDEFeatureInteractionAnalysis(const LLVMProjectIRDB *IRDB,
+                                LLVMAliasInfoRef PT,
+                                std::vector<std::string> EntryPoints,
+                                FeatureTaintGenerator &&TaintGen);
 
   template <typename EdgeFactGenerator>
-  IDEFeatureTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
-                          std::vector<std::string> EntryPoints,
-                          EdgeFactGenerator &&EFGen)
-      : IDEFeatureTaintAnalysis(
+  IDEFeatureInteractionAnalysis(const LLVMProjectIRDB *IRDB,
+                                LLVMAliasInfoRef PT,
+                                std::vector<std::string> EntryPoints,
+                                EdgeFactGenerator &&EFGen)
+      : IDEFeatureInteractionAnalysis(
             IRDB, PT, std::move(EntryPoints),
             FeatureTaintGenerator(std::forward<EdgeFactGenerator>(EFGen))) {}
 
   template <typename SourceDetector, typename EdgeFactGenerator>
-  IDEFeatureTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
-                          std::vector<std::string> EntryPoints,
-                          SourceDetector &&SrcDetector,
-                          EdgeFactGenerator &&EFGen)
-      : IDEFeatureTaintAnalysis(
+  IDEFeatureInteractionAnalysis(const LLVMProjectIRDB *IRDB,
+                                LLVMAliasInfoRef PT,
+                                std::vector<std::string> EntryPoints,
+                                SourceDetector &&SrcDetector,
+                                EdgeFactGenerator &&EFGen)
+      : IDEFeatureInteractionAnalysis(
             IRDB, PT, std::move(EntryPoints),
             FeatureTaintGenerator(std::forward<SourceDetector>(SrcDetector),
                                   std::forward<EdgeFactGenerator>(EFGen))) {}
 
   // The EF Caches are incomplete, so move the dtor into the .cpp
-  ~IDEFeatureTaintAnalysis();
+  ~IDEFeatureInteractionAnalysis();
 
   //////////////////////////////////////////////////////////////////////////////
   ///                              Flow Functions

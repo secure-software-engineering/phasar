@@ -1,4 +1,4 @@
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureInteractionAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
@@ -27,17 +27,17 @@
 
 using namespace psr;
 
-using l_t = IDEFeatureTaintAnalysisDomain::l_t;
-using d_t = IDEFeatureTaintAnalysisDomain::d_t;
+using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
+using d_t = IDEFeatureInteractionAnalysisDomain::d_t;
 
-IDEFeatureTaintAnalysis::IDEFeatureTaintAnalysis(
+IDEFeatureInteractionAnalysis::IDEFeatureInteractionAnalysis(
     const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints, FeatureTaintGenerator &&TaintGen)
-    : IDETabulationProblem<IDEFeatureTaintAnalysisDomain>(
+    : IDETabulationProblem<IDEFeatureInteractionAnalysisDomain>(
           IRDB, std::move(EntryPoints), LLVMZeroValue::getInstance()),
       TaintGen(std::move(TaintGen)), PT(PT) {}
 
-IDEFeatureTaintAnalysis::~IDEFeatureTaintAnalysis() = default;
+IDEFeatureInteractionAnalysis::~IDEFeatureInteractionAnalysis() = default;
 
 std::string psr::LToString(const IDEFeatureTaintEdgeFact &EdgeFact) {
   std::string Ret;
@@ -48,11 +48,13 @@ std::string psr::LToString(const IDEFeatureTaintEdgeFact &EdgeFact) {
   return Ret;
 }
 
-auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
+auto IDEFeatureInteractionAnalysis::getNormalFlowFunction(n_t Curr,
+                                                          n_t /* Succ */)
     -> FlowFunctionPtrType {
   bool GeneratesFact = TaintGen.isSource(Curr);
 
-  llvm::errs() << "[getNormalFlowFunction]: " << llvmIRToString(Curr) << '\n';
+  // llvm::errs() << "[getNormalFlowFunction]: " << llvmIRToString(Curr) <<
+  // '\n';
 
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (GeneratesFact) {
@@ -128,7 +130,8 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
   });
 }
 
-auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
+auto IDEFeatureInteractionAnalysis::getCallFlowFunction(n_t CallSite,
+                                                        f_t DestFun)
     -> FlowFunctionPtrType {
 
   if (DestFun->isDeclaration()) {
@@ -165,10 +168,10 @@ auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   return MapFactsToCalleeFF;
 }
 
-auto IDEFeatureTaintAnalysis::getRetFlowFunction(n_t CallSite,
-                                                 f_t /*CalleeFun*/,
-                                                 n_t ExitInst,
-                                                 n_t /* RetSite */)
+auto IDEFeatureInteractionAnalysis::getRetFlowFunction(n_t CallSite,
+                                                       f_t /*CalleeFun*/,
+                                                       n_t ExitInst,
+                                                       n_t /* RetSite */)
     -> FlowFunctionPtrType {
   // Map return value back to the caller. If pointer parameters hold at the
   // end of a callee function generate all of those in the caller context.
@@ -196,7 +199,7 @@ auto IDEFeatureTaintAnalysis::getRetFlowFunction(n_t CallSite,
       });
 }
 
-auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
+auto IDEFeatureInteractionAnalysis::getCallToRetFlowFunction(
     n_t CallSite, n_t /* RetSite */, llvm::ArrayRef<f_t> Callees)
     -> FlowFunctionPtrType {
 
@@ -225,8 +228,8 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
   return Mapper;
 }
 
-struct IDEFeatureTaintAnalysis::AddFactsEF {
-  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
+struct IDEFeatureInteractionAnalysis::AddFactsEF {
+  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
 
   IDEFeatureTaintEdgeFact Facts;
 
@@ -255,8 +258,8 @@ struct IDEFeatureTaintAnalysis::AddFactsEF {
   }
 };
 
-struct IDEFeatureTaintAnalysis::GenerateEF {
-  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
+struct IDEFeatureInteractionAnalysis::GenerateEF {
+  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
 
   IDEFeatureTaintEdgeFact Facts;
 
@@ -288,7 +291,7 @@ struct IDEFeatureTaintAnalysis::GenerateEF {
 
 namespace {
 struct AddSmallFactsEF {
-  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
+  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
 
   uintptr_t Facts{};
 
@@ -318,7 +321,7 @@ struct AddSmallFactsEF {
 };
 
 struct GenerateSmallEF {
-  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
+  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
 
   uintptr_t Facts{};
 
@@ -528,11 +531,11 @@ EdgeFunction<l_t> addEF(l_t &&Facts, CacheT &AddEFCache) {
 ////////////////////////////////////////////////////////////////////////////////
 
 EdgeFunction<l_t>
-IDEFeatureTaintAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
-                                const EdgeFunction<l_t> &SecondEF) {
+IDEFeatureInteractionAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
+                                      const EdgeFunction<l_t> &SecondEF) {
   auto Ret = [&] {
     if (auto Default = defaultComposeOrNull(FirstEF, SecondEF)) {
-      llvm::errs() << "defaultComposeOrNull>>\n";
+      // llvm::errs() << "defaultComposeOrNull>>\n";
       return Default;
     }
 
@@ -545,14 +548,15 @@ IDEFeatureTaintAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
     return addEF(std::move(Val), AddEFCache);
   }();
 
-  llvm::errs() << "Extend " << FirstEF << " with " << SecondEF << " --> " << Ret
-               << '\n';
+  // llvm::errs() << "Extend " << FirstEF << " with " << SecondEF << " --> " <<
+  // Ret
+  //              << '\n';
 
   return Ret;
 }
 EdgeFunction<l_t>
-IDEFeatureTaintAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
-                                 const EdgeFunction<l_t> &OtherEF) {
+IDEFeatureInteractionAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
+                                       const EdgeFunction<l_t> &OtherEF) {
   auto Ret = [&] {
     /// XXX: Here, we underapproximate joins with EdgeIdentity
     if (llvm::isa<EdgeIdentity<l_t>>(FirstEF)) {
@@ -577,24 +581,25 @@ IDEFeatureTaintAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
     return addEF(std::move(ThisFacts), AddEFCache);
   }();
 
-  llvm::errs() << "Combine " << FirstEF << " and " << OtherEF << " --> " << Ret
-               << '\n';
+  // llvm::errs() << "Combine " << FirstEF << " and " << OtherEF << " --> " <<
+  // Ret
+  //              << '\n';
   return Ret;
 }
 
-auto IDEFeatureTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
-                                                    n_t /* Succ */,
-                                                    d_t SuccNode)
-    -> EdgeFunction<l_t> {
+auto IDEFeatureInteractionAnalysis::getNormalEdgeFunction(
+    n_t Curr, d_t CurrNode, n_t /* Succ */, d_t SuccNode) -> EdgeFunction<l_t> {
 
   if (isZeroValue(SuccNode) || CurrNode == SuccNode) {
     // We don't want to propagate any facts on zero
-    llvm::errs() << "Identity Edge\n";
+
+    // llvm::errs() << "Identity Edge\n";
     return EdgeIdentity<l_t>{};
   }
 
   if (isZeroValue(CurrNode)) {
-    llvm::errs() << "Generate from Zero\n";
+    // llvm::errs() << "Generate from Zero\n";
+
     // Generate user edge-facts from zero
     return genEF(TaintGen.getGeneratedTaintsAt(Curr), GenEFCache);
   }
@@ -606,19 +611,18 @@ auto IDEFeatureTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
       // propagate facts unchanged. User edge-facts are generated from zero.
 
-      llvm::errs() << "Store Identity\n";
+      // llvm::errs() << "Store Identity\n";
       return EdgeIdentity<l_t>{};
     }
   }
 
-  llvm::errs() << "Fallback Identity\n";
+  // llvm::errs() << "Fallback Identity\n";
   // Otherwise stick to identity.
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureTaintAnalysis::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                                  f_t /*DestinationFunction*/,
-                                                  d_t DestNode)
+auto IDEFeatureInteractionAnalysis::getCallEdgeFunction(
+    n_t CallSite, d_t SrcNode, f_t /*DestinationFunction*/, d_t DestNode)
     -> EdgeFunction<l_t> {
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     // Generate user edge-facts from zero
@@ -628,7 +632,7 @@ auto IDEFeatureTaintAnalysis::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureTaintAnalysis::getReturnEdgeFunction(
+auto IDEFeatureInteractionAnalysis::getReturnEdgeFunction(
     n_t CallSite, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
     n_t /*RetSite*/, d_t RetNode) -> EdgeFunction<l_t> {
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
@@ -639,20 +643,21 @@ auto IDEFeatureTaintAnalysis::getReturnEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
+auto IDEFeatureInteractionAnalysis::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Generate user edge-facts from zero
 
-    llvm::errs() << "At CTR " << llvmIRToString(CallSite)
-                 << ": Gen from zero!\n";
+    // llvm::errs() << "At CTR " << llvmIRToString(CallSite)
+    //              << ": Gen from zero!\n";
     return genEF(TaintGen.getGeneratedTaintsAt(CallSite), GenEFCache);
   }
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
+auto IDEFeatureInteractionAnalysis::initialSeeds()
+    -> InitialSeeds<n_t, d_t, l_t> {
   InitialSeeds<n_t, d_t, l_t> Seeds;
 
   LLVMBasedCFG CFG;
@@ -682,16 +687,16 @@ auto IDEFeatureTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
     }
   });
 
-  Seeds.dump(llvm::errs());
+  // Seeds.dump(llvm::errs());
 
   return Seeds;
 }
 
-bool IDEFeatureTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
+bool IDEFeatureInteractionAnalysis::isZeroValue(d_t FlowFact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
-void IDEFeatureTaintAnalysis::emitTextReport(
+void IDEFeatureInteractionAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
   OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
         "======================\n";
