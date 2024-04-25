@@ -31,8 +31,8 @@
 using namespace psr;
 
 OTFResolver::OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
-                         LLVMBasedICFG &ICF, LLVMAliasInfoRef PT)
-    : Resolver(IRDB, TH), ICF(ICF), PT(PT) {}
+                         LLVMAliasInfoRef PT)
+    : Resolver(IRDB, TH), PT(PT) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 
@@ -55,7 +55,7 @@ void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
       }
       // handle return value
       if (CalleeTarget->getReturnType()->isPointerTy()) {
-        for (const auto &ExitPoint : ICF.getExitPointsOf(CalleeTarget)) {
+        for (const auto &ExitPoint : psr::getAllExitPoints(CalleeTarget)) {
           // get the function's return value
           if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitPoint)) {
             // introduce alias to the returned value
