@@ -5,7 +5,6 @@ add_phasar_library(phasar_taintconfig
 
   LINKS
     phasar_utils
-    phasar_db
     phasar_llvm_db
     phasar_llvm_utils
     phasar_controlflow
