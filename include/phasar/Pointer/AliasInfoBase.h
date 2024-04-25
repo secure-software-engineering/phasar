@@ -11,6 +11,7 @@
 #define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
@@ -74,8 +75,7 @@ struct IsAliasInfo<
 };
 } // namespace detail
 
-template <typename T>
-static constexpr bool IsAliasInfo = detail::IsAliasInfo<T>::value;
+template <typename T> PSR_CONCEPT IsAliasInfo = detail::IsAliasInfo<T>::value;
 
 } // namespace psr
 
