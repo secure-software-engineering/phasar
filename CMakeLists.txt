@@ -293,8 +293,12 @@ else()
 endif()
 
 # SQL
-find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
-find_library(SQLITE3_LIBRARY NAMES sqlite3)
+find_package(SQLite3)
+if(SQLite3_FOUND)
+  set(PHASAR_HAS_SQLITE ON)
+else()
+  set(PHASAR_HAS_SQLITE OFF)
+endif()
 
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 

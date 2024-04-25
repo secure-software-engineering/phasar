@@ -436,7 +436,13 @@ template <typename CFLAA> class CFLGraphBuilder {
       // introduce any aliases.
       // TODO: address other common library functions such as realloc(),
       // strdup(), etc.
-      if (isMallocOrCallocLikeFn(&Call, &TLI) || isFreeCall(&Call, &TLI))
+      if (isMallocOrCallocLikeFn(&Call, &TLI) ||
+#if LLVM_VERSION_MAJOR >= 15
+          getFreedOperand(&Call, &TLI)
+#else
+          isFreeCall(&Call, &TLI)
+#endif
+      )
         return;
 
       // TODO: Add support for noalias args/all the other fun function
