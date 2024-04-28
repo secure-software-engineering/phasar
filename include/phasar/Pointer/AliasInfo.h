@@ -138,7 +138,8 @@ public:
     VT->Print(AA, OS);
   }
 
-  [[nodiscard]] nlohmann::json getAsJson() const {
+  [[nodiscard, deprecated("Use printAsJson() instead")]] nlohmann::json
+  getAsJson() const {
     assert(VT != nullptr);
     return VT->GetAsJson(AA);
   }
@@ -239,11 +240,13 @@ private:
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
       [](const void *AA) noexcept {
-        /// TODO: die commit changes von fabian nehmen
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
         if constexpr (has_getAsJson<ConcreteAA>::value) {
           return static_cast<const ConcreteAA *>(AA)->getAsJson();
         }
         return nlohmann::json();
+#pragma GCC diagnostic pop
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);
