@@ -9,9 +9,9 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
-#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysisSerializer.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
 
 #include "llvm/IR/CFG.h"
@@ -289,53 +289,42 @@ GeneralStatistics::getRetResInstructions() const {
 }
 
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
-  GeneralStatisticsAnalysisSerializer Ser;
+  nlohmann::json Json;
 
-  Ser.Functions = Functions;
-  Ser.ExternalFunctions = ExternalFunctions;
-  Ser.FunctionDefinitions = FunctionDefinitions;
-  Ser.AddressTakenFunctions = AddressTakenFunctions;
-  Ser.Globals = Globals;
-  Ser.GlobalConsts = GlobalConsts;
-  Ser.BasicBlocks = BasicBlocks;
-  Ser.CallSites = CallSites;
-  Ser.DebugIntrinsics = DebugIntrinsics;
-  Ser.Instructions = Instructions;
-  Ser.MemIntrinsics = MemIntrinsics;
-  Ser.Branches = Branches;
-  Ser.GetElementPtrs = GetElementPtrs;
-  Ser.LandingPads = LandingPads;
-  Ser.PhiNodes = PhiNodes;
-  Ser.NumInlineAsm = NumInlineAsm;
-  Ser.IndCalls = IndCalls;
-  Ser.NumberOfAllocaInstructions = AllocaInstructions.size();
-  Ser.ModuleName = ModuleName;
+  Json["Instructions"] = Instructions;
+  Json["Functions"] = Functions;
+  Json["ExternalFunctions"] = ExternalFunctions;
+  Json["FunctionDefinitions"] = FunctionDefinitions;
+  Json["AddressTakenFunctions"] = AddressTakenFunctions;
+  Json["Globals"] = Globals;
+  Json["GlobalConsts"] = GlobalConsts;
+  Json["ExternalGlobals"] = ExternalGlobals;
+  Json["GlobalsDefinitions"] = GlobalsDefinitions;
+  Json["AllocaInstructions"] = AllocaInstructions.size();
+  Json["BasicBlocks"] = BasicBlocks;
+  Json["TotalNumPredecessorBBs"] = TotalNumPredecessorBBs;
+  Json["CallSites"] = CallSites;
+  Json["NumInlineAsm"] = NumInlineAsm;
+  Json["MemIntrinsics"] = MemIntrinsics;
+  Json["IndCalls"] = IndCalls;
+  Json["DebugIntrinsics"] = DebugIntrinsics;
+  Json["Switches"] = Switches;
+  Json["Branches"] = Branches;
+  Json["GetElementPtrs"] = GetElementPtrs;
+  Json["LandingPads"] = LandingPads;
+  Json["PhiNodes"] = PhiNodes;
+  Json["NonVoidInsts"] = NonVoidInsts;
+  Json["ModuleName"] = ModuleName;
 
-  Ser.printAsJson(OS);
+  OS << Json;
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {
-  nlohmann::json J;
-  J["ModuleName"] = ModuleName;
-  J["Instructions"] = Instructions;
-  J["Functions"] = Functions;
-  J["ExternalFunctions"] = ExternalFunctions;
-  J["FunctionDefinitions"] = FunctionDefinitions;
-  J["AddressTakenFunctions"] = AddressTakenFunctions;
-  J["AllocaInstructions"] = AllocaInstructions.size();
-  J["CallSites"] = CallSites;
-  J["IndirectCallSites"] = IndCalls;
-  J["MemoryIntrinsics"] = MemIntrinsics;
-  J["DebugIntrinsics"] = DebugIntrinsics;
-  J["InlineAssembly"] = NumInlineAsm;
-  J["GlobalVariables"] = Globals;
-  J["Branches"] = Branches;
-  J["GetElementPtrs"] = GetElementPtrs;
-  J["BasicBlocks"] = BasicBlocks;
-  J["PhiNodes"] = PhiNodes;
-  J["LandingPads"] = LandingPads;
-  J["GlobalConsts"] = GlobalConsts;
-  return J;
+  std::string GeneralStatisticsAsString;
+  llvm::raw_string_ostream Stream(GeneralStatisticsAsString);
+  printAsJson(Stream);
+
+  return nlohmann::json::parse(GeneralStatisticsAsString);
 }
 
 } // namespace psr

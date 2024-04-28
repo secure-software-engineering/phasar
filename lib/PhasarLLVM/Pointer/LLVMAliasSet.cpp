@@ -737,10 +737,7 @@ LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
       }
     }
     if (!PtsJson.empty()) {
-      auto &AliasSetsDataPosition = Data.AliasSets.emplace_back();
-      for (const auto &Curr : PtsJson) {
-        AliasSetsDataPosition.push_back(Curr);
-      }
+      Data.AliasSets.push_back(std::move(PtsJson));
     }
   }
 

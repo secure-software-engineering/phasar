@@ -29,10 +29,28 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
   EXPECT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
   for (const auto *OrigCurrentType : Orig.getAllTypes()) {
-
+    // check types
     const auto *DeserTy = Deser.getType(Orig.getTypeName(OrigCurrentType));
     EXPECT_EQ(OrigCurrentType, DeserTy);
 
+    // check edges
+    const auto OrigSubTypes = Orig.subTypesOf(OrigCurrentType);
+    const auto DeserSubTypes = Deser.subTypesOf(OrigCurrentType);
+
+    for (const auto &CurrOrigSubType : OrigSubTypes) {
+      bool DeserHasSubType = false;
+
+      for (const auto &CurrDeserSubType : DeserSubTypes) {
+        if (CurrDeserSubType->getName() == CurrOrigSubType->getName()) {
+          DeserHasSubType = true;
+          break;
+        }
+      }
+
+      EXPECT_TRUE(DeserHasSubType);
+    }
+
+    // check virtual functions and vtables
     if (OrigCurrentType != DeserTy) {
       llvm::errs() << "Mismatched types:\n> OrigTy: " << *OrigCurrentType
                    << '\n';

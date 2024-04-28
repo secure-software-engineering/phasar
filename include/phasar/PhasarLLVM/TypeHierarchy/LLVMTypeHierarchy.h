@@ -212,8 +212,6 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  LLVMTypeHierarchyData getTypeHierarchyData() const;
-
   [[nodiscard]] [[deprecated(
       "Please use printAsJson() instead")]] nlohmann::json
   getAsJson() const override;

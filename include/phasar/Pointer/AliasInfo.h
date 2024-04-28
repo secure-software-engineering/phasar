@@ -21,9 +21,6 @@
 #include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-#include "nlohmann/json_fwd.hpp"
-
 #include <memory>
 #include <type_traits>
 
@@ -186,16 +183,6 @@ public:
     assert(isa<T>() && "Invalid AliasInfo cast!");
     return static_cast<T *>(AA);
   }
-  /*
-    template <typename T>
-    [[nodiscard]] auto hasGetAsJsonImpl() -> decltype(nlohmann::json()) {
-      return static_cast<T *>(AA)->getAsJson();
-    }
-  */
-
-  template <class T>
-  using hasGetAsJson =
-      decltype(std::declval<T &>().getAsJson(std::declval<nlohmann::json>()));
 
 private:
   struct VTable {
@@ -252,9 +239,11 @@ private:
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
       [](const void *AA) noexcept {
-        /// TODO: hier bei Compile-Time checken ob getAsJson in dem ConcreteAA
-        /// existiert. Wenn nein, leeres json.
-        return hasGetAsJson(AA);
+        /// TODO: die commit changes von fabian nehmen
+        if constexpr (has_getAsJson<ConcreteAA>::value) {
+          return static_cast<const ConcreteAA *>(AA)->getAsJson();
+        }
+        return nlohmann::json();
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);

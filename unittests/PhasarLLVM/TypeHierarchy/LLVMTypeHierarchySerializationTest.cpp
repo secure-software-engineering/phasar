@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -24,12 +25,13 @@ protected:
 
 }; // Test Fixture
 
-void compareResults(const psr::LLVMTypeHierarchy &Orig,
-                    const psr::LLVMTypeHierarchy &Deser) {
+void compareResults(psr::LLVMTypeHierarchy &Orig,
+                    psr::LLVMTypeHierarchy &Deser) {
   ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
   ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
+    // check types
     EXPECT_EQ(OrigCurrentType, Deser.getType(OrigCurrentType->getName().str()));
   }
 }

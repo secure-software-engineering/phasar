@@ -15,6 +15,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalAlias.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
 #include <utility>
@@ -56,8 +57,13 @@ nlohmann::json LLVMVFTable::getAsJson() const {
   LLVMVFTableData Data;
 
   for (const auto &Curr : VFT) {
-    /// TODO: check if Curr null
-    Data.VFT.push_back(Curr->getName().str());
+    if (Curr) {
+      Data.VFT.push_back(Curr->getName().str());
+      continue;
+    }
+
+    Data.VFT.emplace_back("");
+    llvm::errs() << "Function was null";
   }
 
   return Data;

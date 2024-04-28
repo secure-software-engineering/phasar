@@ -220,12 +220,8 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 }
 
 static const llvm::DICompositeType *
-stringToDICompositeType(const LLVMProjectIRDB *IRDB,
+stringToDICompositeType(const llvm::DebugInfoFinder &DIF,
                         const llvm::StringRef DITypeName) {
-  llvm::DebugInfoFinder DIF;
-  const auto *Module = IRDB->getModule();
-  DIF.processModule(*Module);
-
   for (const auto *Type : DIF.types()) {
     if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
       auto Ident = DICT->getIdentifier();
@@ -241,12 +237,8 @@ stringToDICompositeType(const LLVMProjectIRDB *IRDB,
   llvm::report_fatal_error("DIType doesn't exist");
 }
 
-static const llvm::DIType *stringToDIType(const LLVMProjectIRDB *IRDB,
+static const llvm::DIType *stringToDIType(const llvm::DebugInfoFinder &DIF,
                                           const llvm::StringRef DITypeName) {
-  llvm::DebugInfoFinder DIF;
-  const auto *Module = IRDB->getModule();
-  DIF.processModule(*Module);
-
   for (const auto *Type : DIF.types()) {
     if (Type) {
       if (Type->getName() == DITypeName) {
@@ -267,11 +259,15 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedData)
     : TransitiveDerivedIndex(SerializedData.TransitiveDerivedIndex) {
 
+  llvm::DebugInfoFinder DIF;
+  const auto *Module = IRDB->getModule();
+  DIF.processModule(*Module);
+
   VertexTypes.reserve(SerializedData.VertexTypes.size());
   TypeToVertex.reserve(SerializedData.VertexTypes.size());
   size_t Idx = 0;
   for (const auto &Curr : SerializedData.VertexTypes) {
-    const auto *Ty = stringToDICompositeType(IRDB, Curr);
+    const auto *Ty = stringToDICompositeType(DIF, Curr);
     VertexTypes.push_back(Ty);
     TypeToVertex.try_emplace(Ty, Idx);
     NameToType.try_emplace(Curr, Ty);
@@ -281,7 +277,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
 
   Hierarchy.reserve(SerializedData.Hierarchy.size());
   for (const auto &Curr : SerializedData.Hierarchy) {
-    Hierarchy.push_back(stringToDIType(IRDB, Curr));
+    Hierarchy.push_back(stringToDIType(DIF, Curr));
   }
 
   for (const auto &Curr : SerializedData.VTables) {

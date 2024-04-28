@@ -108,6 +108,9 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(
     TypeVFTMap[StructType] = getVirtualFunctions(*IRDBModule, *StructType);
   }
 
+  // build the hierarchy for the module
+  constructHierarchy(*IRDBModule);
+
   // add all edges
   for (auto *StructType : StructTypes) {
     // use type information to check if it is really a subtype
@@ -285,10 +288,12 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
       TypeVFTMap[StructType] = getVirtualFunctions(M, *StructType);
     }
   }
+
   // construct the edges between a type and its subtypes
   for (auto *StructType : StructTypes) {
     // use type information to check if it is really a subtype
     auto SubTypes = getSubTypes(M, *StructType);
+
     for (const auto *SubType : SubTypes) {
       boost::add_edge(TypeVertexMap[SubType], TypeVertexMap[StructType],
                       TypeGraph);
@@ -447,16 +452,8 @@ void LLVMTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   OS << S.str();
 }
 
-LLVMTypeHierarchyData LLVMTypeHierarchy::getTypeHierarchyData() const {
-  LLVMTypeHierarchyData Data;
-
-  /// TODO:
-
-  return Data;
-}
-
 void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
-  LLVMTypeHierarchyData Data = getTypeHierarchyData();
+  LLVMTypeHierarchyData Data;
   Data.PhasarConfigJsonTypeHierarchyID =
       PhasarConfig::JsonTypeHierarchyID().str();
 
