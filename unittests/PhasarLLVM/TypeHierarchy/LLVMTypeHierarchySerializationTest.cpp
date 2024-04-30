@@ -33,6 +33,38 @@ void compareResults(psr::LLVMTypeHierarchy &Orig,
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
     // check types
     EXPECT_EQ(OrigCurrentType, Deser.getType(OrigCurrentType->getName().str()));
+
+    // check edges
+    for (const auto &OrigEdgeCurrentType : Orig.getAllTypes()) {
+      // Deser.isSubType can take the same arguments as Orig.isSubType, since
+      // Deser should have the same types
+
+      llvm::outs() << "Orig subtypes SIZE of: "
+                   << OrigEdgeCurrentType->getName() << " - "
+                   << Orig.getSubTypes(OrigEdgeCurrentType).size() << "\n";
+
+      llvm::outs() << "Deser subtypes SIZE of: "
+                   << OrigEdgeCurrentType->getName() << " - "
+                   << Deser.getSubTypes(OrigEdgeCurrentType).size() << "\n";
+
+      llvm::outs() << "Orig subtypes of: " << OrigEdgeCurrentType->getName()
+                   << "\n";
+      for (const auto &Curr : Orig.getSubTypes(OrigEdgeCurrentType)) {
+        llvm::outs() << Curr->getName() << "\n";
+      }
+      llvm::outs() << "Deser subtypes of: " << OrigEdgeCurrentType->getName()
+                   << "\n";
+      for (const auto &Curr : Deser.getSubTypes(OrigEdgeCurrentType)) {
+        llvm::outs() << Curr->getName() << "\n";
+      }
+
+      bool ExpectedValue = Orig.isSubType(OrigCurrentType, OrigEdgeCurrentType);
+      bool DeserializedValue =
+          Deser.isSubType(Deser.getType(OrigCurrentType->getName().str()),
+                          Deser.getType(OrigEdgeCurrentType->getName().str()));
+
+      EXPECT_EQ(ExpectedValue, DeserializedValue);
+    }
   }
 }
 

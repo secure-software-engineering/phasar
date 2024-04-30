@@ -77,12 +77,14 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(
     LLVMProjectIRDB &IRDB, const LLVMTypeHierarchyData &SerializedData) {
+
+  llvm::StringMap<llvm::StructType *> NameToStructType;
   const auto &IRDBModule = IRDB.getModule();
 
   VisitedModules.insert(IRDBModule);
   auto StructTypes = IRDBModule->getIdentifiedStructTypes();
 
-  llvm::StringMap<llvm::StructType *> NameToStructType;
+  // find all struct types by name
   for (const auto &SerElement : SerializedData.TypeGraph) {
     bool MatchFound = false;
 
@@ -104,20 +106,33 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(
   for (const auto &Curr : NameToStructType) {
     const auto &StructType = Curr.getValue();
     auto Vertex = boost::add_vertex(TypeGraph);
+    TypeVertexMap[StructType] = Vertex;
     TypeGraph[Vertex] = VertexProperties(StructType);
     TypeVFTMap[StructType] = getVirtualFunctions(*IRDBModule, *StructType);
   }
-
-  // build the hierarchy for the module
-  constructHierarchy(*IRDBModule);
+  llvm::outs() << "NameToStructTypeSize: " << NameToStructType.size() << "\n\n";
+  llvm::outs() << "TypeVertexMap: " << TypeVertexMap.size() << "\n\n";
 
   // add all edges
-  for (auto *StructType : StructTypes) {
-    // use type information to check if it is really a subtype
-    auto SubTypes = getSubTypes(*IRDBModule, *StructType);
-    for (const auto *SubType : SubTypes) {
-      boost::add_edge(TypeVertexMap[SubType], TypeVertexMap[StructType],
-                      TypeGraph);
+  llvm::outs() << "Deser Edges:\n";
+  for (const auto &SerElement : SerializedData.TypeGraph) {
+    llvm::outs() << "Key: " << SerElement.getKey().str() << "\nValues:\n";
+    llvm::outs() << "SerElementTypeVert: "
+                 << TypeVertexMap[NameToStructType[SerElement.getKey().str()]]
+                 << "\n";
+    llvm::outs() << "SerElement.getValue: " << SerElement.getValue() << "\n";
+    for (const auto &CurrEdge : SerElement.getValue()) {
+      llvm::outs() << CurrEdge << "\n";
+
+      llvm::outs() << "CurrEdgeTypeVertex: "
+                   << TypeVertexMap[NameToStructType[CurrEdge]] << "\n";
+
+      /// TODO: find out why the edge isn't being added, despite all types
+      /// existing, all helper variables initialized and everything serialized
+      /// correctly.
+      boost::add_edge(
+          TypeVertexMap[NameToStructType[SerElement.getKey().str()]],
+          TypeVertexMap[NameToStructType[CurrEdge]], TypeGraph);
     }
   }
 }
@@ -201,11 +216,11 @@ void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
 
 std::vector<const llvm::StructType *>
 LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
-                               const llvm::StructType &Type) {
+                               const llvm::StructType &Type) const {
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
   std::string ClearName = removeStructOrClassPrefix(Type);
-  if (const auto *TI = ClearNameTIMap[ClearName]) {
+  if (const auto *TI = ClearNameTIMap.at(ClearName)) {
     if (!TI->hasInitializer()) {
       PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
                            ClearName << " does not have initializer");
@@ -221,7 +236,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
                     removeTypeInfoPrefix(llvm::demangle(Name.str()));
-                if (const auto *Type = ClearNameTypeMap[ClearName]) {
+                if (const auto *Type = ClearNameTypeMap.at(ClearName)) {
                   SubTypes.push_back(Type);
                 }
               }
@@ -459,20 +474,23 @@ void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
 
   vertex_iterator VIv;
   vertex_iterator VIvEnd;
+
   out_edge_iterator EI;
 
   out_edge_iterator EIEnd;
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
        ++VIv) {
-    Data.TypeGraph[TypeGraph[*VIv].getTypeName()];
-    // iterate all out edges of vertex vi_v
-    for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, TypeGraph); EI != EIEnd;
-         ++EI) {
+    llvm::outs() << "VertexName: " << TypeGraph[*VIv].getTypeName() << "\n";
+    // Data.TypeGraph[TypeGraph[*VIv].getTypeName()];
+    //  iterate all out edges of vertex vi_v
+    for (const auto &CurrReachable : TypeGraph[*VIv].ReachableTypes) {
       Data.TypeGraph[TypeGraph[*VIv].getTypeName()].push_back(
-          TypeGraph[boost::target(*EI, TypeGraph)].getTypeName());
+          CurrReachable->getName().str());
+      llvm::outs() << "Reachable: " << CurrReachable->getName().str() << "\n";
     }
   }
+  llvm::outs() << "\n\n\n";
 
   Data.printAsJson(OS);
 }

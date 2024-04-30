@@ -37,6 +37,9 @@ private:
   std::vector<const llvm::Function *> VFT;
 
 public:
+  // NOLINTNEXTLINE
+  static constexpr char NullFunName[] = "__null__";
+
   LLVMVFTable() = default;
   LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(std::move(Fs)) {}
   ~LLVMVFTable() override = default;

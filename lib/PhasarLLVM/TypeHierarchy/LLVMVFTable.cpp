@@ -62,8 +62,7 @@ nlohmann::json LLVMVFTable::getAsJson() const {
       continue;
     }
 
-    Data.VFT.emplace_back("");
-    llvm::errs() << "Function was null";
+    Data.VFT.emplace_back(NullFunName);
   }
 
   return Data;
