@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMVFTABLEPROVIDER_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMVFTABLEPROVIDER_H
 
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+
 #include <unordered_map>
 
 namespace llvm {
@@ -19,7 +21,6 @@ class GlobalVariable;
 } // namespace llvm
 
 namespace psr {
-class LLVMVFTable;
 class LLVMProjectIRDB;
 
 class LLVMVFTableProvider {
