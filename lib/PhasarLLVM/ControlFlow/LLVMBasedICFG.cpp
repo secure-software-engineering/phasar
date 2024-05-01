@@ -368,7 +368,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(std::move(VTP)) {
   assert(IRDB != nullptr);
-  initialize(IRDB, CGResolver, EntryPoints, VTP, S, IncludeGlobals);
+  initialize(IRDB, CGResolver, EntryPoints, this->VTP, S, IncludeGlobals);
 }
 
 LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB)
