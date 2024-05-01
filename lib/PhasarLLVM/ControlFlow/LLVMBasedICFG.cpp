@@ -359,7 +359,15 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
+  initialize(IRDB, CGResolver, EntryPoints, VTP, S, IncludeGlobals);
+}
 
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                             LLVMVFTableProvider VTP,
+                             llvm::ArrayRef<std::string> EntryPoints,
+                             Soundness S, bool IncludeGlobals)
+    : IRDB(IRDB), VTP(std::move(VTP)) {
+  assert(IRDB != nullptr);
   initialize(IRDB, CGResolver, EntryPoints, VTP, S, IncludeGlobals);
 }
 

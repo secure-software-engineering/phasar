@@ -90,6 +90,11 @@ public:
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                         LLVMVFTableProvider VTP,
+                         llvm::ArrayRef<std::string> EntryPoints = {},
+                         Soundness S = Soundness::Soundy,
+                         bool IncludeGlobals = true);
 
   /// Creates an ICFG with an already given call-graph
   explicit LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB);

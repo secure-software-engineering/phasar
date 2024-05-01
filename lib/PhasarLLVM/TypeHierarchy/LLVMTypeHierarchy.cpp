@@ -43,8 +43,6 @@
 #include <memory>
 #include <ostream>
 
-#include <boost/graph/detail/adjacency_list.hpp>
-
 using namespace std;
 
 namespace psr {
