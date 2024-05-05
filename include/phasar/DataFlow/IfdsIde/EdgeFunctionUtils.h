@@ -139,7 +139,8 @@ defaultComposeOrNull(const EdgeFunction<L> &This,
   if (llvm::isa<EdgeIdentity<L>>(SecondFunction)) {
     return This;
   }
-  if (SecondFunction.isConstant() || llvm::isa<AllTop<L>>(This)) {
+  if (SecondFunction.isConstant() || llvm::isa<AllTop<L>>(This) ||
+      llvm::isa<EdgeIdentity<L>>(This)) {
     return SecondFunction;
   }
   if (llvm::isa<AllBottom<L>>(This)) {
