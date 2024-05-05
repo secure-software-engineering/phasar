@@ -39,25 +39,6 @@ void compareResults(psr::LLVMTypeHierarchy &Orig,
       // Deser.isSubType can take the same arguments as Orig.isSubType, since
       // Deser should have the same types
 
-      llvm::outs() << "Orig subtypes SIZE of: "
-                   << OrigEdgeCurrentType->getName() << " - "
-                   << Orig.getSubTypes(OrigEdgeCurrentType).size() << "\n";
-
-      llvm::outs() << "Deser subtypes SIZE of: "
-                   << OrigEdgeCurrentType->getName() << " - "
-                   << Deser.getSubTypes(OrigEdgeCurrentType).size() << "\n";
-
-      llvm::outs() << "Orig subtypes of: " << OrigEdgeCurrentType->getName()
-                   << "\n";
-      for (const auto &Curr : Orig.getSubTypes(OrigEdgeCurrentType)) {
-        llvm::outs() << Curr->getName() << "\n";
-      }
-      llvm::outs() << "Deser subtypes of: " << OrigEdgeCurrentType->getName()
-                   << "\n";
-      for (const auto &Curr : Deser.getSubTypes(OrigEdgeCurrentType)) {
-        llvm::outs() << Curr->getName() << "\n";
-      }
-
       bool ExpectedValue = Orig.isSubType(OrigCurrentType, OrigEdgeCurrentType);
       bool DeserializedValue =
           Deser.isSubType(Deser.getType(OrigCurrentType->getName().str()),

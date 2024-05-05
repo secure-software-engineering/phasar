@@ -97,8 +97,9 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(
     }
 
     if (!MatchFound) {
-      llvm::errs() << "No matching StructType found for Type with name: "
-                   << SerElement.getKey();
+      PHASAR_LOG_LEVEL(WARNING,
+                       "No matching StructType found for Type with name: "
+                           << SerElement.getKey());
     }
   }
 
@@ -110,29 +111,23 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(
     TypeGraph[Vertex] = VertexProperties(StructType);
     TypeVFTMap[StructType] = getVirtualFunctions(*IRDBModule, *StructType);
   }
-  llvm::outs() << "NameToStructTypeSize: " << NameToStructType.size() << "\n\n";
-  llvm::outs() << "TypeVertexMap: " << TypeVertexMap.size() << "\n\n";
 
   // add all edges
-  llvm::outs() << "Deser Edges:\n";
   for (const auto &SerElement : SerializedData.TypeGraph) {
-    llvm::outs() << "Key: " << SerElement.getKey().str() << "\nValues:\n";
-    llvm::outs() << "SerElementTypeVert: "
-                 << TypeVertexMap[NameToStructType[SerElement.getKey().str()]]
-                 << "\n";
-    llvm::outs() << "SerElement.getValue: " << SerElement.getValue() << "\n";
+    const auto *SrcType = NameToStructType[SerElement.getKey()];
+    if (!SrcType) {
+      continue;
+    }
+    auto Vtx = TypeVertexMap.at(SrcType);
     for (const auto &CurrEdge : SerElement.getValue()) {
-      llvm::outs() << CurrEdge << "\n";
+      const auto *DestType = NameToStructType[CurrEdge];
+      if (!SrcType) {
+        continue;
+      }
+      auto DestVtx = TypeVertexMap.at(DestType);
 
-      llvm::outs() << "CurrEdgeTypeVertex: "
-                   << TypeVertexMap[NameToStructType[CurrEdge]] << "\n";
-
-      /// TODO: find out why the edge isn't being added, despite all types
-      /// existing, all helper variables initialized and everything serialized
-      /// correctly.
-      boost::add_edge(
-          TypeVertexMap[NameToStructType[SerElement.getKey().str()]],
-          TypeVertexMap[NameToStructType[CurrEdge]], TypeGraph);
+      TypeGraph[Vtx].ReachableTypes.insert(DestType);
+      boost::add_edge(Vtx, DestVtx, TypeGraph);
     }
   }
 }
@@ -220,7 +215,9 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
   std::string ClearName = removeStructOrClassPrefix(Type);
-  if (const auto *TI = ClearNameTIMap.at(ClearName)) {
+
+  if (auto It = ClearNameTIMap.find(ClearName); It != ClearNameTIMap.end()) {
+    const auto *TI = It->second;
     if (!TI->hasInitializer()) {
       PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMTypeHierarchy",
                            ClearName << " does not have initializer");
@@ -236,8 +233,9 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
                     removeTypeInfoPrefix(llvm::demangle(Name.str()));
-                if (const auto *Type = ClearNameTypeMap.at(ClearName)) {
-                  SubTypes.push_back(Type);
+                if (auto TypeIt = ClearNameTypeMap.find(ClearName);
+                    TypeIt != ClearNameTypeMap.end()) {
+                  SubTypes.push_back(TypeIt->second);
                 }
               }
             }
@@ -472,25 +470,14 @@ void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
   Data.PhasarConfigJsonTypeHierarchyID =
       PhasarConfig::JsonTypeHierarchyID().str();
 
-  vertex_iterator VIv;
-  vertex_iterator VIvEnd;
-
-  out_edge_iterator EI;
-
-  out_edge_iterator EIEnd;
   // iterate all graph vertices
-  for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
-       ++VIv) {
-    llvm::outs() << "VertexName: " << TypeGraph[*VIv].getTypeName() << "\n";
-    // Data.TypeGraph[TypeGraph[*VIv].getTypeName()];
+  for (auto Vtx : boost::make_iterator_range(boost::vertices(TypeGraph))) {
     //  iterate all out edges of vertex vi_v
-    for (const auto &CurrReachable : TypeGraph[*VIv].ReachableTypes) {
-      Data.TypeGraph[TypeGraph[*VIv].getTypeName()].push_back(
-          CurrReachable->getName().str());
-      llvm::outs() << "Reachable: " << CurrReachable->getName().str() << "\n";
+    auto &SerTypes = Data.TypeGraph[TypeGraph[Vtx].getTypeName()];
+    for (const auto &CurrReachable : TypeGraph[Vtx].ReachableTypes) {
+      SerTypes.push_back(CurrReachable->getName().str());
     }
   }
-  llvm::outs() << "\n\n\n";
 
   Data.printAsJson(OS);
 }
