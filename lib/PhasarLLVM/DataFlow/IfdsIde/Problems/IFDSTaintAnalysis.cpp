@@ -155,7 +155,7 @@ void IFDSTaintAnalysis::populateWithMayAliases(
     container_type &Facts, const llvm::Instruction *Context) const {
   container_type Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT.getAliasSet(Fact);
+    auto Aliases = PT.getAliasSet(Fact, Context);
     for (const auto *Alias : *Aliases) {
       if (canSkipAtContext(Alias, Context)) {
         continue;

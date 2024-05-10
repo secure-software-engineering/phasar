@@ -112,11 +112,13 @@ static void fillAliasSet(FilteredLLVMAliasSet::AliasSetTy &Set,
 }
 
 FilteredLLVMAliasSet::FilteredLLVMAliasSet(LLVMAliasSet *AS) noexcept
-    : AS(AS) {}
+    : AS(AS), Owner(&AS->MRes) {}
 
 FilteredLLVMAliasSet::FilteredLLVMAliasSet(
     MaybeUniquePtr<LLVMAliasSet, true> AS) noexcept
-    : AS(std::move(AS)) {}
+    : AS(std::move(AS)), Owner(&this->AS->MRes) {}
+
+FilteredLLVMAliasSet::~FilteredLLVMAliasSet() = default;
 
 AliasAnalysisType FilteredLLVMAliasSet::getAliasAnalysisType() const noexcept {
   return AS->getAliasAnalysisType();

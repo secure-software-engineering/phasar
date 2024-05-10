@@ -16,7 +16,6 @@
 #include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
-#include "phasar/Utils/StableVector.h"
 
 #include "llvm/Support/ErrorHandling.h"
 
@@ -53,8 +52,9 @@ public:
 
   FilteredLLVMAliasSet(const FilteredLLVMAliasSet &) = delete;
   FilteredLLVMAliasSet &operator=(const FilteredLLVMAliasSet &) = delete;
-  FilteredLLVMAliasSet(FilteredLLVMAliasSet &&) = delete;
   FilteredLLVMAliasSet &operator=(FilteredLLVMAliasSet &&) = delete;
+
+  FilteredLLVMAliasSet(FilteredLLVMAliasSet &&) noexcept = default;
 
   ~FilteredLLVMAliasSet();
 
@@ -95,9 +95,9 @@ public:
     llvm::report_fatal_error("Not Supported");
   }
 
-  void introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
-                      const llvm::Instruction *I = nullptr,
-                      AliasResult Kind = AliasResult::MustAlias) {
+  void introduceAlias(const llvm::Value * /*V1*/, const llvm::Value * /*V2*/,
+                      const llvm::Instruction * /*I*/ = nullptr,
+                      AliasResult /*Kind*/ = AliasResult::MustAlias) {
     llvm::report_fatal_error("Not Supported");
   }
 
@@ -115,8 +115,7 @@ private:
   FilteredLLVMAliasSet(MaybeUniquePtr<LLVMAliasSet, true> AS) noexcept;
 
   MaybeUniquePtr<LLVMAliasSet, true> AS;
-  AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
-  AliasSetOwner<AliasSetTy> Owner{&MRes};
+  AliasSetOwner<AliasSetTy> Owner;
   llvm::DenseMap<std::pair<const llvm::Function *, v_t>, AliasSetPtrTy>
       AliasSetMap;
 };
