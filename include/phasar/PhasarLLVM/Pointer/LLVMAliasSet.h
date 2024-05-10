@@ -43,6 +43,8 @@ struct AliasInfoTraits<LLVMAliasSet>
 
 class LLVMAliasSet : public AnalysisPropertiesMixin<LLVMAliasSet>,
                      public AliasInfoBaseUtils {
+  // For int*IsReachableAllocationSiteTy:
+  friend class FilteredLLVMAliasSet;
 
 public:
   using traits_t = AliasInfoTraits<LLVMAliasSet>;
