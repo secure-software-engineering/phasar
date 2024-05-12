@@ -81,7 +81,7 @@ public:
 
   constexpr MaybeUniquePtr(MaybeUniquePtr &&Other) noexcept
       : detail::MaybeUniquePtrBase<T, RequireAlignment>(std::move(Other)) {
-    Data = {};
+    Other.Data = {};
   }
 
   constexpr void swap(MaybeUniquePtr &Other) noexcept {
