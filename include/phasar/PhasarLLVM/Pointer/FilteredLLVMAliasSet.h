@@ -41,12 +41,12 @@ struct AliasInfoTraits<FilteredLLVMAliasSet>
 
 class FilteredLLVMAliasSet {
 public:
-  using traits_t = AliasInfoTraits<FilteredLLVMAliasSet>;
-  using n_t = traits_t::n_t;
-  using v_t = traits_t::v_t;
-  using AliasSetTy = traits_t::AliasSetTy;
-  using AliasSetPtrTy = traits_t::AliasSetPtrTy;
-  using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
+  using alias_traits_t = AliasInfoTraits<FilteredLLVMAliasSet>;
+  using n_t = alias_traits_t::n_t;
+  using v_t = alias_traits_t::v_t;
+  using AliasSetTy = alias_traits_t::AliasSetTy;
+  using AliasSetPtrTy = alias_traits_t::AliasSetPtrTy;
+  using AllocationSiteSetPtrTy = alias_traits_t::AllocationSiteSetPtrTy;
 
   FilteredLLVMAliasSet(LLVMAliasSet *AS) noexcept;
 
@@ -114,7 +114,7 @@ public:
 private:
   FilteredLLVMAliasSet(MaybeUniquePtr<LLVMAliasSet, true> AS) noexcept;
 
-  MaybeUniquePtr<LLVMAliasSet, true> AS;
+  MaybeUniquePtr<LLVMAliasSet, /*RequireAlignment=*/true> AS;
   AliasSetOwner<AliasSetTy> Owner;
   llvm::DenseMap<std::pair<const llvm::Function *, v_t>, AliasSetPtrTy>
       AliasSetMap;

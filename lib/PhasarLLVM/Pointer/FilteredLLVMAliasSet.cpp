@@ -25,7 +25,8 @@ static const llvm::Function *getFunction(const llvm::Value *V) {
   return nullptr;
 }
 
-[[nodiscard]] static bool isConstantGlob(const llvm::GlobalValue *GlobV) {
+[[nodiscard]] static bool
+isConstantGlobalValue(const llvm::GlobalValue *GlobV) {
   if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(GlobV)) {
     return Glob->isConstant();
   }
@@ -60,14 +61,14 @@ static bool mustNoalias(const llvm::Value *p1, const llvm::Value *p2) {
              !Alloca2->getAllocatedType()->isPointerTy();
     }
   } else if (const auto *Glob1 = llvm::dyn_cast<llvm::GlobalValue>(p1)) {
-    if (llvm::isa<llvm::AllocaInst>(p2) || isConstantGlob(Glob1)) {
+    if (llvm::isa<llvm::AllocaInst>(p2) || isConstantGlobalValue(Glob1)) {
       return true;
     }
     if (const auto *Glob2 = llvm::dyn_cast<llvm::GlobalValue>(p2)) {
       return true; // approximation
     }
   } else if (const auto *Glob2 = llvm::dyn_cast<llvm::GlobalValue>(p2)) {
-    return isConstantGlob(Glob2);
+    return isConstantGlobalValue(Glob2);
   }
 
   return false;
@@ -95,8 +96,7 @@ static void fillAliasSet(FilteredLLVMAliasSet::AliasSetTy &Set,
       continue;
     }
 
-    if (llvm::isa<llvm::ConstantExpr>(Alias) ||
-        llvm::isa<llvm::ConstantData>(Alias)) {
+    if (llvm::isa<llvm::ConstantExpr, llvm::ConstantData>(Alias)) {
       // Assume: Compile-time constants are not generated as data-flow facts!
       continue;
     }
