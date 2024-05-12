@@ -5,12 +5,15 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasResult.h"
+#include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instructions.h"
 
 #include "nlohmann/json_fwd.hpp"
 
+#include <memory>
 #include <type_traits>
 
 using namespace psr;
@@ -74,11 +77,12 @@ static bool mustNoalias(const llvm::Value *p1, const llvm::Value *p2) {
   return false;
 }
 
-static void fillAliasSet(FilteredLLVMAliasSet::AliasSetTy &Set,
-                         LLVMAliasSet::AliasSetPtrTy AS, const llvm::Value *V,
-                         const llvm::Function *Fun) {
+template <typename WithAliasFn>
+static void foreachValidAliasIn(LLVMAliasSet::AliasSetPtrTy AS,
+                                const llvm::Value *V, const llvm::Function *Fun,
+                                WithAliasFn &&WithAlias) {
   if (!Fun) {
-    Set.insert(AS->begin(), AS->end());
+    llvm::for_each(*AS, WithAlias);
     return;
   }
 
@@ -92,7 +96,7 @@ static void fillAliasSet(FilteredLLVMAliasSet::AliasSetTy &Set,
     }
 
     if (V == Alias) {
-      Set.insert(Alias);
+      std::invoke(WithAlias, Alias);
       continue;
     }
 
@@ -107,7 +111,7 @@ static void fillAliasSet(FilteredLLVMAliasSet::AliasSetTy &Set,
       continue;
     }
 
-    Set.insert(Alias);
+    std::invoke(WithAlias, Alias);
   }
 }
 
@@ -144,10 +148,15 @@ AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
 auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
                                        const llvm::Function *Fun)
     -> AliasSetPtrTy {
+  if (!isInterestingPointer(V)) {
+    return AS->getEmptyAliasSet();
+  }
+
   auto &Entry = AliasSetMap[{Fun, V}];
   if (!Entry) {
     auto Set = Owner.acquire();
-    fillAliasSet(*Set, AS->getAliasSet(V), V, Fun);
+    foreachValidAliasIn(AS->getAliasSet(V), V, Fun,
+                        [&Set](v_t Alias) { Set->insert(Alias); });
     Entry = Set;
   }
   return Entry;
@@ -163,36 +172,48 @@ auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
 auto FilteredLLVMAliasSet::getReachableAllocationSites(
     const llvm::Value *V, bool IntraProcOnly, const llvm::Instruction *I)
     -> AllocationSiteSetPtrTy {
-  auto AllocSites = std::make_unique<AliasSetTy>();
 
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
-    return AllocSites;
+    return &getDefaultValue<AliasSetTy>();
   }
 
-  const auto PTS = getAliasSet(V, I);
+  const auto *Fun = I->getFunction();
+  auto &AllocSites = ReachableAllocationSitesMap[ReachableAllocationSitesKey{
+      {Fun, IntraProcOnly}, V}];
+  if (AllocSites) {
+    return AllocSites.get();
+  }
+
+  AllocSites = std::make_unique<AliasSetTy>();
+
   // consider the full inter-procedural points-to/alias information
   if (!IntraProcOnly) {
-    for (const auto *P : *PTS) {
-      if (AS->interIsReachableAllocationSiteTy(V, P)) {
-        AllocSites->insert(P);
-      }
-    }
+    foreachValidAliasIn(AS->getAliasSet(V), V, Fun,
+                        [Set = AllocSites.get(), AS = AS.get(), V](v_t Alias) {
+                          if (AS->interIsReachableAllocationSiteTy(V, Alias)) {
+                            Set->insert(Alias);
+                          }
+                        });
+
   } else {
     // consider the function-local, i.e. intra-procedural, points-to/alias
     // information only
-    const auto *VFun = getFunction(V);
-    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+
     // We may not be able to retrieve a function for the given value since some
     // pointer values can exist outside functions, for instance, in case of
     // vtables, etc.
-    for (const auto *P : *PTS) {
-      if (AS->intraIsReachableAllocationSiteTy(V, P, VFun, VG)) {
-        AllocSites->insert(P);
-      }
-    }
+    const auto *VFun = getFunction(V);
+    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    foreachValidAliasIn(
+        AS->getAliasSet(V), V, Fun,
+        [Set = AllocSites.get(), AS = AS.get(), V, VFun, VG](v_t Alias) {
+          if (AS->intraIsReachableAllocationSiteTy(V, Alias, VFun, VG)) {
+            Set->insert(Alias);
+          }
+        });
   }
-  return AllocSites;
+  return AllocSites.get();
 }
 
 // Checks if PotentialValue is in the reachable allocation sites of V.

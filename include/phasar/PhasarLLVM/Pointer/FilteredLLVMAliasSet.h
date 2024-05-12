@@ -17,6 +17,11 @@
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/PointerIntPair.h"
+#include "llvm/IR/Function.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include "nlohmann/json_fwd.hpp"
@@ -27,7 +32,6 @@
 namespace llvm {
 class Value;
 class Instruction;
-class Function;
 } // namespace llvm
 
 namespace psr {
@@ -112,12 +116,38 @@ public:
   }
 
 private:
+  struct ReachableAllocationSitesKey {
+    llvm::PointerIntPair<const llvm::Function *, 1, bool> FunAndIntraProcOnly;
+    v_t Value{};
+  };
+
+  struct ReachableAllocationSitesKeyDMI {
+    inline static ReachableAllocationSitesKey getEmptyKey() noexcept {
+      return {{}, llvm::DenseMapInfo<v_t>::getEmptyKey()};
+    }
+    inline static ReachableAllocationSitesKey getTombstoneKey() noexcept {
+      return {{}, llvm::DenseMapInfo<v_t>::getTombstoneKey()};
+    }
+    inline static auto getHashValue(ReachableAllocationSitesKey Key) noexcept {
+      return llvm::hash_combine(Key.FunAndIntraProcOnly.getOpaqueValue(),
+                                Key.Value);
+    }
+    inline static bool isEqual(ReachableAllocationSitesKey Key1,
+                               ReachableAllocationSitesKey Key2) noexcept {
+      return Key1.FunAndIntraProcOnly == Key2.FunAndIntraProcOnly &&
+             Key1.Value == Key2.Value;
+    }
+  };
+
   FilteredLLVMAliasSet(MaybeUniquePtr<LLVMAliasSet, true> AS) noexcept;
 
   MaybeUniquePtr<LLVMAliasSet, /*RequireAlignment=*/true> AS;
   AliasSetOwner<AliasSetTy> Owner;
   llvm::DenseMap<std::pair<const llvm::Function *, v_t>, AliasSetPtrTy>
       AliasSetMap;
+  llvm::DenseMap<ReachableAllocationSitesKey, std::unique_ptr<AliasSetTy>,
+                 ReachableAllocationSitesKeyDMI>
+      ReachableAllocationSitesMap;
 };
 } // namespace psr
 
