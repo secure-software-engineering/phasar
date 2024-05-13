@@ -56,7 +56,7 @@ public:
 
   FilteredLLVMAliasSet(const FilteredLLVMAliasSet &) = delete;
   FilteredLLVMAliasSet &operator=(const FilteredLLVMAliasSet &) = delete;
-  FilteredLLVMAliasSet &operator=(FilteredLLVMAliasSet &&) = delete;
+  FilteredLLVMAliasSet &operator=(FilteredLLVMAliasSet &&) noexcept = delete;
 
   FilteredLLVMAliasSet(FilteredLLVMAliasSet &&) noexcept = default;
 
