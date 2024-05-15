@@ -2,7 +2,8 @@ macro(add_llvm)
 
   if (NOT PHASAR_IN_TREE)
     # Only search for LLVM if we build out of tree
-    find_package(LLVM 14 REQUIRED CONFIG)
+    set(LLVM 15 "/usr/local/llvm-15")
+    find_package(LLVM 15 REQUIRED CONFIG)
     find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
 
     if(USE_LLVM_FAT_LIB AND ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
@@ -94,3 +95,4 @@ macro(add_clang)
     )
   endif()
 endmacro(add_clang)
+
