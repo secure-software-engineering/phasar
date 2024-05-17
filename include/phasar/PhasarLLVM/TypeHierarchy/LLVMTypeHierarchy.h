@@ -199,6 +199,9 @@ public:
   [[nodiscard]] const llvm::GlobalVariable *
   getVFTableGlobal(const llvm::StructType *Type) const;
 
+  [[nodiscard]] const llvm::GlobalVariable *
+  getVFTableGlobal(const std::string &ClearTypeName) const;
+
   [[nodiscard]] inline size_t size() const override {
     return boost::num_vertices(TypeGraph);
   };

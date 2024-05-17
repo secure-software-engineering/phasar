@@ -304,7 +304,13 @@ LLVMTypeHierarchy::getVFTable(const llvm::StructType *Type) const {
 const llvm::GlobalVariable *
 LLVMTypeHierarchy::getVFTableGlobal(const llvm::StructType *Type) const {
   auto Name = removeStructOrClassPrefix(*Type);
-  if (auto It = ClearNameTVMap.find(Name); It != ClearNameTVMap.end()) {
+  return getVFTableGlobal(Name);
+}
+
+const llvm::GlobalVariable *
+LLVMTypeHierarchy::getVFTableGlobal(const std::string &ClearTypeName) const {
+  if (auto It = ClearNameTVMap.find(ClearTypeName);
+      It != ClearNameTVMap.end()) {
     return It->second;
   }
   return nullptr;

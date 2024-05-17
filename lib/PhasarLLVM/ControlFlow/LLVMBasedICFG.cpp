@@ -246,7 +246,6 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
       // the current function
       for (const auto *PossibleTarget : PossibleTargets) {
         CGBuilder.addCallEdge(CS, CallSiteId, PossibleTarget);
-
         FunctionWL.push_back(PossibleTarget);
       }
 
