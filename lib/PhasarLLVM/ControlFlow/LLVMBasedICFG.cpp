@@ -116,6 +116,8 @@ auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
                        "Starting CallGraphAnalysisType: " << Res->str());
   VisitedFunctions.reserve(IRDB->getNumFunctions());
 
+  bool RequiresSecondFixpoint = !Res->isIndependent();
+
   bool FixpointReached;
 
   do {
@@ -128,8 +130,10 @@ auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
     /// XXX This can probably be done more efficiently.
     /// However, we cannot just work on the IndirectCalls-delta as we are
     /// mutating the points-to-info on the fly
-    for (auto [CS, _] : IndirectCalls) {
-      FixpointReached &= !constructDynamicCall(CS);
+    if (RequiresSecondFixpoint) {
+      for (auto [CS, _] : IndirectCalls) {
+        FixpointReached &= !constructDynamicCall(CS);
+      }
     }
 
   } while (!FixpointReached);
@@ -148,6 +152,27 @@ auto LLVMBasedICFG::Builder::buildCallGraph(Soundness /*S*/)
   PHASAR_LOG_LEVEL_CAT(INFO, "LLVMBasedICFG",
                        "Call graph has been constructed");
   return CGBuilder.consumeCallGraph();
+}
+
+static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
+                                          const LLVMTypeHierarchy &TH) {
+  assert(Inst != nullptr);
+  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
+  if (!CallSite) {
+    return false;
+  }
+  // check potential receiver type
+  const auto *RecType = getReceiverType(CallSite);
+  if (!RecType) {
+    return false;
+  }
+  if (!TH.hasType(RecType)) {
+    return false;
+  }
+  if (!TH.hasVFTable(RecType)) {
+    return false;
+  }
+  return getVFTIndex(CallSite) >= 0;
 }
 
 bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
@@ -198,11 +223,14 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
           PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
                                "Found dynamic call-site: "
                                    << "  " << llvmIRToString(CS));
-          IndirectCalls[CS] = 0;
-          std::ignore = CGBuilder.addInstructionVertex(CS);
 
+          assert(TH != nullptr);
+          PossibleTargets = internalIsVirtualFunctionCall(CS, *TH)
+                                ? Res->resolveVirtualCall(CS)
+                                : Res->resolveFunctionPointer(CS);
+
+          IndirectCalls[CS] = PossibleTargets.size();
           FixpointReached = false;
-          continue;
         }
       }
 
@@ -230,27 +258,6 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
   }
 
   return FixpointReached;
-}
-
-static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
-                                          const LLVMTypeHierarchy &TH) {
-  assert(Inst != nullptr);
-  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
-  if (!CallSite) {
-    return false;
-  }
-  // check potential receiver type
-  const auto *RecType = getReceiverType(CallSite);
-  if (!RecType) {
-    return false;
-  }
-  if (!TH.hasType(RecType)) {
-    return false;
-  }
-  if (!TH.hasVFTable(RecType)) {
-    return false;
-  }
-  return getVFTIndex(CallSite) >= 0;
 }
 
 bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {

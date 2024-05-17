@@ -20,7 +20,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
 // To switch the TypeGraph
-//#include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
+// #include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 
 #include <string>
 
@@ -62,6 +62,8 @@ public:
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   void otherInst(const llvm::Instruction *Inst) override;
+
+  [[nodiscard]] bool isIndependent() const noexcept override { return true; }
 
   [[nodiscard]] std::string str() const override;
 };

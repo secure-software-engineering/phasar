@@ -33,6 +33,8 @@ public:
 
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
+  [[nodiscard]] bool isIndependent() const noexcept override { return true; }
+
   [[nodiscard]] std::string str() const override;
 };
 } // namespace psr

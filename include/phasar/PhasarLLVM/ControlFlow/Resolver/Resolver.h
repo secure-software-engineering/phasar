@@ -80,6 +80,12 @@ public:
 
   virtual void otherInst(const llvm::Instruction *Inst);
 
+  /// Whether the ICFG needs to reconsider all dynamic call-sites once there
+  /// have been changes through handlePossibleTargets().
+  ///
+  /// Make true for performance (may be less sound then)
+  [[nodiscard]] virtual bool isIndependent() const noexcept { return false; }
+
   [[nodiscard]] virtual std::string str() const = 0;
 
   static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,

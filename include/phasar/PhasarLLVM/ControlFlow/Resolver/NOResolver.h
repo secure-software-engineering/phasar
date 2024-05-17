@@ -43,6 +43,8 @@ public:
 
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
+  [[nodiscard]] bool isIndependent() const noexcept override { return true; }
+
   void otherInst(const llvm::Instruction *Inst) override;
 
   [[nodiscard]] std::string str() const override;
