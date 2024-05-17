@@ -22,9 +22,9 @@ struct FunctionData {
 
   std::string Name;
   TaintCategory ReturnCat{};
-  std::vector<uint32_t> SourceValues;
-  std::vector<uint32_t> SinkValues;
-  std::vector<uint32_t> SanitizerValues;
+  std::vector<uint32_t> SourceValues{};
+  std::vector<uint32_t> SinkValues{};
+  std::vector<uint32_t> SanitizerValues{};
   bool HasAllSinkParam = false;
 };
 

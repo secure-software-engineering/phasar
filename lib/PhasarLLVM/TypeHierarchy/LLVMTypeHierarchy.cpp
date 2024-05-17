@@ -353,6 +353,15 @@ LLVMTypeHierarchy::getTypeName(const llvm::StructType *Type) const {
   return Type->getStructName();
 }
 
+const llvm::GlobalVariable *
+LLVMTypeHierarchy::getVFTableGlobal(const llvm::StructType *Type) const {
+  auto Name = removeStructOrClassPrefix(*Type);
+  if (auto It = ClearNameTVMap.find(Name); It != ClearNameTVMap.end()) {
+    return It->second;
+  }
+  return nullptr;
+}
+
 void LLVMTypeHierarchy::print(llvm::raw_ostream &OS) const {
   OS << "Type Hierarchy:\n";
   vertex_iterator UI;
