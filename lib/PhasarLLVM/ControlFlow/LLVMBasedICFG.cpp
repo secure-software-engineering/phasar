@@ -98,8 +98,8 @@ void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
                                                     bool IncludeGlobals) {
   FunctionWL.reserve(IRDB->getNumFunctions());
   if (IncludeGlobals) {
-    const auto *GlobCtor = ICFG->buildCRuntimeGlobalCtorsDtorsModel(
-        *IRDB->getModule(), UserEntryPoints);
+    const auto *GlobCtor =
+        ICFG->buildCRuntimeGlobalCtorsDtorsModel(*IRDB, UserEntryPoints);
     FunctionWL.push_back(GlobCtor);
   } else {
     FunctionWL.insert(FunctionWL.end(), UserEntryPoints.begin(),
@@ -374,8 +374,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
   initialize(IRDB, CGResolver, EntryPoints, TH, S, IncludeGlobals);
 }
 
-LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
-                             LLVMTypeHierarchy *TH)
+LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG,
+                             const LLVMProjectIRDB *IRDB, LLVMTypeHierarchy *TH)
     : CG(std::move(CG)), IRDB(IRDB), TH(TH) {
   if (!TH) {
     this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);

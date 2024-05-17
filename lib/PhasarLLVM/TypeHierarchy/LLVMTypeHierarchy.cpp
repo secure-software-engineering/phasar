@@ -68,7 +68,7 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
   return Type->getStructName().str();
 }
 
-LLVMTypeHierarchy::LLVMTypeHierarchy(LLVMProjectIRDB &IRDB) {
+LLVMTypeHierarchy::LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
   buildLLVMTypeHierarchy(*IRDB.getModule());
 }
@@ -297,6 +297,15 @@ const LLVMVFTable *
 LLVMTypeHierarchy::getVFTable(const llvm::StructType *Type) const {
   if (TypeVFTMap.count(Type)) {
     return &TypeVFTMap.at(Type);
+  }
+  return nullptr;
+}
+
+const llvm::GlobalVariable *
+LLVMTypeHierarchy::getVFTableGlobal(const llvm::StructType *Type) const {
+  auto Name = removeStructOrClassPrefix(*Type);
+  if (auto It = ClearNameTVMap.find(Name); It != ClearNameTVMap.end()) {
+    return It->second;
   }
   return nullptr;
 }

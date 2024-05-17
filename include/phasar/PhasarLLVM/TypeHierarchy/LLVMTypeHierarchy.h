@@ -139,7 +139,7 @@ public:
    *         given ProjectIRCompiledDB.
    *  @param IRDB ProjectIRCompiledDB object.
    */
-  LLVMTypeHierarchy(LLVMProjectIRDB &IRDB);
+  LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
@@ -195,6 +195,9 @@ public:
 
   [[nodiscard]] const LLVMVFTable *
   getVFTable(const llvm::StructType *Type) const override;
+
+  [[nodiscard]] const llvm::GlobalVariable *
+  getVFTableGlobal(const llvm::StructType *Type) const;
 
   [[nodiscard]] inline size_t size() const override {
     return boost::num_vertices(TypeGraph);
