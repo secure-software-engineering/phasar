@@ -22,6 +22,7 @@
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
@@ -50,8 +51,6 @@ template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
 
 class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
-
-  struct Builder;
 
 public:
   // For backward compatibility
@@ -152,7 +151,7 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   [[nodiscard]] nlohmann::json getAsJsonImpl() const;
-  [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept {
+  [[nodiscard]] const LLVMBasedCallGraph &getCallGraphImpl() const noexcept {
     return CG;
   }
 
@@ -160,12 +159,12 @@ private:
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
   void initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
-                  llvm::ArrayRef<std::string> EntryPoints,
-                  LLVMTypeHierarchy *TH, Soundness S, bool IncludeGlobals);
+                  llvm::ArrayRef<std::string> EntryPoints, Soundness S,
+                  bool IncludeGlobals);
 
   // ---
 
-  CallGraph<const llvm::Instruction *, const llvm::Function *> CG;
+  LLVMBasedCallGraph CG;
   LLVMProjectIRDB *IRDB = nullptr;
   MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
 };

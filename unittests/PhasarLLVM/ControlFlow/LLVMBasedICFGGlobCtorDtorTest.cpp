@@ -9,6 +9,7 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -93,10 +94,9 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   // GlobalCtor->print(llvm::outs());
 
-  ensureFunctionOrdering(
-      GlobalCtor, ICFG,
-      {{"_GLOBAL__sub_I_globals_ctor_1.cpp", "main"},
-       {"main", LLVMBasedICFG::GlobalCRuntimeDtorModelName}});
+  ensureFunctionOrdering(GlobalCtor, ICFG,
+                         {{"_GLOBAL__sub_I_globals_ctor_1.cpp", "main"},
+                          {"main", GlobalCtorsDtorsModel::DtorModelName}});
 }
 
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
@@ -145,12 +145,11 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
   ensureFunctionOrdering(
       GlobalCtor, ICFG,
       {{"_GLOBAL__sub_I_globals_dtor_1.cpp", "main"},
-       {"main", LLVMBasedICFG::GlobalCRuntimeDtorsCallerName.str() +
+       {"main", GlobalCtorsDtorsModel::DtorsCallerName.str() +
                     ".globals_dtor_1_cpp.ll"}});
 
-  auto *GlobalDtor =
-      IRDB.getFunction(LLVMBasedICFG::GlobalCRuntimeDtorsCallerName.str() +
-                       ".globals_dtor_1_cpp.ll");
+  auto *GlobalDtor = IRDB.getFunction(
+      GlobalCtorsDtorsModel::DtorsCallerName.str() + ".globals_dtor_1_cpp.ll");
 
   ASSERT_NE(nullptr, GlobalDtor);
 
