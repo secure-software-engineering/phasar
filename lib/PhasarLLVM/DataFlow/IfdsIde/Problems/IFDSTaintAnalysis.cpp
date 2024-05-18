@@ -117,16 +117,17 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
       [this](const auto &Arg) { return Config->isSanitizer(&Arg); });
 }
 
-static bool canSkipAtContext(const llvm::Value *Val,
-                             const llvm::Instruction *Context) noexcept {
+static bool
+canSkipAtQueryInst(const llvm::Value *Val,
+                   const llvm::Instruction *AliasQueryInst) noexcept {
   if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Val)) {
     /// Mapping instructions between functions is done via the call-FF and
     /// ret-FF
-    if (Inst->getFunction() != Context->getFunction()) {
+    if (Inst->getFunction() != AliasQueryInst->getFunction()) {
       return true;
     }
-    if (Inst->getParent() == Context->getParent() &&
-        Context->comesBefore(Inst)) {
+    if (Inst->getParent() == AliasQueryInst->getParent() &&
+        AliasQueryInst->comesBefore(Inst)) {
       // We will see that inst later
       return true;
     }
@@ -135,7 +136,7 @@ static bool canSkipAtContext(const llvm::Value *Val,
 
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Val)) {
     // An argument is only valid in the function it belongs to
-    if (Arg->getParent() != Context->getFunction()) {
+    if (Arg->getParent() != AliasQueryInst->getFunction()) {
       return true;
     }
   }
@@ -152,12 +153,12 @@ static bool isCompiletimeConstantData(const llvm::Value *Val) noexcept {
 }
 
 void IFDSTaintAnalysis::populateWithMayAliases(
-    container_type &Facts, const llvm::Instruction *Context) const {
+    container_type &Facts, const llvm::Instruction *AliasQueryInst) const {
   container_type Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT.getAliasSet(Fact, Context);
+    auto Aliases = PT.getAliasSet(Fact, AliasQueryInst);
     for (const auto *Alias : *Aliases) {
-      if (canSkipAtContext(Alias, Context)) {
+      if (canSkipAtQueryInst(Alias, AliasQueryInst)) {
         continue;
       }
 
@@ -179,7 +180,7 @@ void IFDSTaintAnalysis::populateWithMayAliases(
 }
 
 void IFDSTaintAnalysis::populateWithMustAliases(
-    container_type &Facts, const llvm::Instruction *Context) const {
+    container_type &Facts, const llvm::Instruction *AliasQueryInst) const {
   /// TODO: Find must-aliases; Currently the AliasSet only contains
   /// may-aliases
 }
