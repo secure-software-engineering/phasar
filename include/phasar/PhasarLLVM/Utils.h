@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/PhasarLLVM/Utils/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
