@@ -499,13 +499,13 @@ public:
     struct GenManyAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
       GenManyAndKillAllOthers(Container &&GenValues, d_t FromValue)
-          : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
+          : GenValues(std::move(GenValues)), FromValue(FromValue) {
+        this->GenValues.insert(std::move(FromValue));
+      }
 
       container_type computeTargets(d_t Source) override {
         if (Source == FromValue) {
-          auto Ret = GenValues;
-          Ret.insert(std::move(Source));
-          return Ret;
+          return GenValues;
         }
         return {};
       }

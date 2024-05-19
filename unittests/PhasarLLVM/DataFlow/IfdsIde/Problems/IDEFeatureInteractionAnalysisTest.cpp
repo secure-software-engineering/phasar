@@ -249,7 +249,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   GroundTruth.emplace(
       "main", 14, "k",
       std::set<std::string>{"15", "1", "2", "13", "12", "9", "10", "11"});
-  doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, true);
+  doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {

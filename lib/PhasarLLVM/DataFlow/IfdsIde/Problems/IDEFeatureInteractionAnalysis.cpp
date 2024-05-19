@@ -186,9 +186,6 @@ auto IDEFeatureInteractionAnalysis::getRetFlowFunction(n_t CallSite,
   return mapFactsToCaller<d_t>(
       llvm::cast<llvm::CallBase>(CallSite), ExitInst, {},
       [GeneratesFact](const llvm::Value *RetVal, d_t Src) {
-        // ASK: Should all parameters be mapped back? Or just pointer params?
-        // ASK: IDEInstInteractionAnalysisTest.HandleCallTest_01: Should 14
-        // (%call) hold for 'k' at ret?
         if (Src == RetVal) {
           return true;
         }
@@ -203,8 +200,9 @@ auto IDEFeatureInteractionAnalysis::getCallToRetFlowFunction(
     n_t CallSite, n_t /* RetSite */, llvm::ArrayRef<f_t> Callees)
     -> FlowFunctionPtrType {
 
+  bool GeneratesFact = false;
   if (llvm::all_of(Callees, [](f_t Fun) { return Fun->isDeclaration(); })) {
-    bool GeneratesFact =
+    GeneratesFact =
         !CallSite->getType()->isVoidTy() && TaintGen.isSource(CallSite);
     if (GeneratesFact) {
       return generateFromZero(CallSite);
@@ -212,19 +210,20 @@ auto IDEFeatureInteractionAnalysis::getCallToRetFlowFunction(
     return identityFlow();
   }
 
+  const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   auto Mapper = mapFactsAlongsideCallSite(
-      llvm::cast<llvm::CallBase>(CallSite),
+      Call,
       [](d_t Arg) {
-        return !Arg->getType()->isPointerTy();
-        // return llvm::isa<llvm::Constant>(Arg);
+        return true;
+        // return !Arg->getType()->isPointerTy();
+        //  return llvm::isa<llvm::Constant>(Arg);
       },
       /*PropagateGlobals*/ false);
 
-  // if (GeneratesFact) {
-  //   return unionFlows(std::move(Mapper),
-  //                     generateFlowAndKillAllOthers(CallSite,
-  //                     getZeroValue()));
-  // }
+  if (GeneratesFact) {
+    return unionFlows(std::move(Mapper),
+                      generateFlowAndKillAllOthers(CallSite, getZeroValue()));
+  }
   return Mapper;
 }
 
@@ -653,6 +652,26 @@ auto IDEFeatureInteractionAnalysis::getCallToRetEdgeFunction(
     //              << ": Gen from zero!\n";
     return genEF(TaintGen.getGeneratedTaintsAt(CallSite), GenEFCache);
   }
+
+  // Capture interactions of the call instruction and its arguments.
+  const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite);
+  for (const auto &Arg : CS->args()) {
+    //
+    // o_i --> o_i
+    //
+    // Edge function:
+    //
+    //                 o_i
+    //                 |
+    // %i = call o_i   | \ \x.x \cup { commit of('%i = call H') }
+    //                 v
+    //                 o_i
+    //
+    if (CallNode == Arg && CallNode == RetSiteNode) {
+      return addEF(TaintGen.getGeneratedTaintsAt(CallSite), AddEFCache);
+    }
+  }
+
   return EdgeIdentity<l_t>{};
 }
 
