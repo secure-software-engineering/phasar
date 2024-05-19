@@ -14,6 +14,7 @@
 
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/Support/Casting.h"
 
 #include <memory>
 
@@ -119,6 +120,45 @@ static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
   return getVFTIndex(CallSite) >= 0;
 }
 
+static bool fillPossibleTargets(
+    Resolver::FunctionSetTy &PossibleTargets, Resolver &Res,
+    const llvm::CallBase *CS, LLVMTypeHierarchy &TH,
+    llvm::DenseMap<const llvm::Instruction *, unsigned int> &IndirectCalls) {
+  if (const auto *StaticCallee = CS->getCalledFunction()) {
+    PossibleTargets.insert(StaticCallee);
+
+    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                         "Found static call-site: "
+                             << "  " << llvmIRToString(CS));
+    return true;
+  }
+
+  // still try to resolve the called function statically
+  const llvm::Value *SV = CS->getCalledOperand()->stripPointerCastsAndAliases();
+  if (const auto *ValueFunction = llvm::dyn_cast<llvm::Function>(SV)) {
+    PossibleTargets.insert(ValueFunction);
+    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                         "Found static call-site: " << llvmIRToString(CS));
+    return true;
+  }
+
+  if (llvm::isa<llvm::InlineAsm>(SV)) {
+    return true;
+  }
+
+  // the function call must be resolved dynamically
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                       "Found dynamic call-site: "
+                           << "  " << llvmIRToString(CS));
+
+  PossibleTargets = internalIsVirtualFunctionCall(CS, TH)
+                        ? Res.resolveVirtualCall(CS)
+                        : Res.resolveFunctionPointer(CS);
+
+  IndirectCalls[CS] = PossibleTargets.size();
+  return false;
+}
+
 bool Builder::processFunction(const llvm::Function *F) {
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
                        "Walking in function: " << F->getName());
@@ -139,68 +179,34 @@ bool Builder::processFunction(const llvm::Function *F) {
   // iterate all instructions of the current function
   Resolver::FunctionSetTy PossibleTargets;
   for (const auto &I : llvm::instructions(F)) {
-    if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I)) {
-      Res->preCall(&I);
-
-      // check if function call can be resolved statically
-      if (CS->getCalledFunction() != nullptr) {
-        PossibleTargets.insert(CS->getCalledFunction());
-
-        PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                             "Found static call-site: "
-                                 << "  " << llvmIRToString(CS));
-      } else {
-        // still try to resolve the called function statically
-        const llvm::Value *SV =
-            CS->getCalledOperand()->stripPointerCastsAndAliases();
-        const llvm::Function *ValueFunction =
-            !SV->hasName() ? nullptr : IRDB->getFunction(SV->getName());
-        if (ValueFunction) {
-          PossibleTargets.insert(ValueFunction);
-          PHASAR_LOG_LEVEL_CAT(
-              DEBUG, "LLVMBasedICFG",
-              "Found static call-site: " << llvmIRToString(CS));
-        } else {
-          if (llvm::isa<llvm::InlineAsm>(SV)) {
-            continue;
-          }
-          // the function call must be resolved dynamically
-          PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                               "Found dynamic call-site: "
-                                   << "  " << llvmIRToString(CS));
-
-          assert(TH != nullptr);
-          PossibleTargets = internalIsVirtualFunctionCall(CS, *TH)
-                                ? Res->resolveVirtualCall(CS)
-                                : Res->resolveFunctionPointer(CS);
-
-          IndirectCalls[CS] = PossibleTargets.size();
-          std::ignore = CGBuilder.addInstructionVertex(CS);
-
-          FixpointReached = false;
-        }
-      }
-
-      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                           "Found " << PossibleTargets.size()
-                                    << " possible target(s)");
-
-      Res->handlePossibleTargets(CS, PossibleTargets);
-
-      auto *CallSiteId = CGBuilder.addInstructionVertex(CS);
-
-      // Insert possible target inside the graph and add the link with
-      // the current function
-      for (const auto *PossibleTarget : PossibleTargets) {
-        CGBuilder.addCallEdge(CS, CallSiteId, PossibleTarget);
-        FunctionWL.push_back(PossibleTarget);
-      }
-
-      Res->postCall(&I);
-    } else {
+    const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I);
+    if (!CS) {
       Res->otherInst(&I);
+      continue;
+    }
+
+    Res->preCall(&I);
+
+    FixpointReached &=
+        fillPossibleTargets(PossibleTargets, *Res, CS, *TH, IndirectCalls);
+
+    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                         "Found " << PossibleTargets.size()
+                                  << " possible target(s)");
+
+    Res->handlePossibleTargets(CS, PossibleTargets);
+
+    auto *CallSiteId = CGBuilder.addInstructionVertex(CS);
+
+    // Insert possible target inside the graph and add the link with
+    // the current function
+    for (const auto *PossibleTarget : PossibleTargets) {
+      CGBuilder.addCallEdge(CS, CallSiteId, PossibleTarget);
+      FunctionWL.push_back(PossibleTarget);
     }
     PossibleTargets.clear();
+
+    Res->postCall(&I);
   }
 
   return FixpointReached;
