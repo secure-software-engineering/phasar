@@ -29,6 +29,11 @@ public:
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
 };
 } // namespace psr
 

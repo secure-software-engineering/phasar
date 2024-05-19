@@ -37,6 +37,11 @@ public:
 
   [[nodiscard]] std::string str() const override;
 
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
+
 private:
   void resolveAllocatedStructTypes();
 

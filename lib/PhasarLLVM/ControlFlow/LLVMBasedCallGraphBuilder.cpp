@@ -64,6 +64,9 @@ auto Builder::buildCallGraph(Soundness S) -> LLVMBasedCallGraph {
                        "Starting CallGraphAnalysisType: " << Res->str());
   VisitedFunctions.reserve(IRDB->getNumFunctions());
 
+  bool RequiresIndirectCallsFixpoint =
+      S != psr::Soundness::Unsound && Res->mutatesHelperAnalysisInformation();
+
   bool FixpointReached;
 
   do {
@@ -73,7 +76,7 @@ auto Builder::buildCallGraph(Soundness S) -> LLVMBasedCallGraph {
       FixpointReached &= processFunction(F);
     }
 
-    if (S != psr::Soundness::Unsound) {
+    if (RequiresIndirectCallsFixpoint) {
       /// XXX This can probably be done more efficiently.
       /// However, we cannot just work on the IndirectCalls-delta as we are
       /// mutating the points-to-info on the fly
