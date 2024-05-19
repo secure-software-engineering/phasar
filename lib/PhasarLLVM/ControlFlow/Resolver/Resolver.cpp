@@ -145,7 +145,7 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
   FunctionSetTy CalleeTargets;
 
   for (const auto *F : IRDB.getAllFunctions()) {
-    if (isConsistentCall(CallSite, F)) {
+    if (F->hasAddressTaken() && isConsistentCall(CallSite, F)) {
       CalleeTargets.insert(F);
     }
   }
@@ -158,7 +158,6 @@ void Resolver::otherInst(const llvm::Instruction *Inst) {}
 std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
                                            LLVMProjectIRDB *IRDB,
                                            LLVMTypeHierarchy *TH,
-                                           LLVMBasedICFG *ICF,
                                            LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
 
@@ -179,9 +178,8 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
         "The VTA callgraph algorithm is not implemented yet");
   case CallGraphAnalysisType::OTF:
     assert(TH != nullptr);
-    assert(ICF != nullptr);
     assert(PT);
-    return std::make_unique<OTFResolver>(*IRDB, *TH, *ICF, PT);
+    return std::make_unique<OTFResolver>(*IRDB, *TH, PT);
   case CallGraphAnalysisType::Invalid:
     llvm::report_fatal_error("Invalid callgraph algorithm specified");
   }

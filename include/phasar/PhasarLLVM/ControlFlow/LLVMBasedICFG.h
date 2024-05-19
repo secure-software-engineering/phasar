@@ -40,6 +40,7 @@
 namespace psr {
 class LLVMTypeHierarchy;
 class LLVMProjectIRDB;
+class Resolver;
 
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
@@ -83,6 +84,11 @@ public:
                          llvm::ArrayRef<std::string> EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
                          LLVMAliasInfoRef PT = nullptr,
+                         Soundness S = Soundness::Soundy,
+                         bool IncludeGlobals = true);
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                         llvm::ArrayRef<std::string> EntryPoints = {},
+                         LLVMTypeHierarchy *TH = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
 
@@ -157,6 +163,10 @@ private:
 
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
+
+  void initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                  llvm::ArrayRef<std::string> EntryPoints,
+                  LLVMTypeHierarchy *TH, Soundness S, bool IncludeGlobals);
 
   // ---
 

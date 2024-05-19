@@ -36,7 +36,6 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 enum class CallGraphAnalysisType;
-class LLVMBasedICFG;
 class LLVMPointsToInfo;
 
 [[nodiscard]] std::optional<unsigned>
@@ -83,9 +82,10 @@ public:
 
   [[nodiscard]] virtual std::string str() const = 0;
 
-  static std::unique_ptr<Resolver>
-  create(CallGraphAnalysisType Ty, LLVMProjectIRDB *IRDB, LLVMTypeHierarchy *TH,
-         LLVMBasedICFG *ICF = nullptr, LLVMAliasInfoRef PT = nullptr);
+  static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,
+                                          LLVMProjectIRDB *IRDB,
+                                          LLVMTypeHierarchy *TH,
+                                          LLVMAliasInfoRef PT = nullptr);
 };
 } // namespace psr
 

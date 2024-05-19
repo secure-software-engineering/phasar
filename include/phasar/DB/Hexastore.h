@@ -10,16 +10,19 @@
 #ifndef PHASAR_DB_HEXASTORE_H_
 #define PHASAR_DB_HEXASTORE_H_
 
-#include "phasar/DB/Queries.h"
+#include "phasar/Config/phasar-config.h"
+#ifndef PHASAR_HAS_SQLITE
+#error                                                                         \
+    "Hexastore requires SQLite3. Please install libsqlite3-dev and reconfigure PhASAR."
+#endif
 
 #include "llvm/Support/raw_ostream.h"
-
-#include "boost/format.hpp"
-#include "sqlite3.h"
 
 #include <array>
 #include <string>
 #include <vector>
+
+struct sqlite3;
 
 namespace psr {
 /**
@@ -51,6 +54,7 @@ struct HSResult {
            LHS.Object == RHS.Object;
   }
 };
+
 /**
  * A Hexastore is an efficient approach to store large graphs.
  * This approach is based on the paper "Database-Backed Program Analysis
