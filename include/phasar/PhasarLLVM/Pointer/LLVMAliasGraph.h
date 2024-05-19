@@ -58,8 +58,9 @@ struct AliasInfoTraits<LLVMAliasGraph>
  *
  *	@brief Represents the points-to graph of a function.
  */
-class LLVMAliasGraph : public AnalysisPropertiesMixin<LLVMAliasGraph>,
-                       AliasInfoBaseUtils {
+class [[deprecated("Use LLVMAliasSet Instead")]] LLVMAliasGraph
+    : public AnalysisPropertiesMixin<LLVMAliasGraph>,
+      AliasInfoBaseUtils {
   using traits_t = AliasInfoTraits<LLVMAliasGraph>;
 
 public:
@@ -126,9 +127,9 @@ public:
    * considered. False, if May and Must Aliases should be
    * considered.
    */
-  explicit LLVMAliasGraph(
-      LLVMProjectIRDB &IRDB, bool UseLazyEvaluation = true,
-      AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
+  explicit LLVMAliasGraph(LLVMProjectIRDB & IRDB, bool UseLazyEvaluation = true,
+                          AliasAnalysisType PATy =
+                              AliasAnalysisType::CFLAnders);
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -162,15 +163,15 @@ public:
    * @param F Function pointer
    * @return Vector with pointers.
    */
-  std::vector<const llvm::Value *>
-  getPointersEscapingThroughReturnsForFunction(const llvm::Function *Fd) const;
+  std::vector<const llvm::Value *> getPointersEscapingThroughReturnsForFunction(
+      const llvm::Function *Fd) const;
 
   /**
    * @brief Checks if a given value is represented by a vertex in the points-to
    * graph.
    * @return True, the points-to graph contains the given value.
    */
-  bool containsValue(llvm::Value *V);
+  bool containsValue(llvm::Value * V);
 
   /**
    * The value-vertex-map maps each Value of the points-to graph to
@@ -192,8 +193,8 @@ public:
     const graph_t &PAG;
   };
 
-  static inline PointerVertexOrEdgePrinter
-  makePointerVertexOrEdgePrinter(const graph_t &PAG) {
+  static inline PointerVertexOrEdgePrinter makePointerVertexOrEdgePrinter(
+      const graph_t &PAG) {
     return {PAG};
   }
 
@@ -220,9 +221,9 @@ public:
   AliasSetPtrTy getAliasSet(const llvm::Value *V,
                             const llvm::Instruction *I = nullptr);
 
-  AllocationSiteSetPtrTy
-  getReachableAllocationSites(const llvm::Value *V, bool IntraProcOnly = false,
-                              const llvm::Instruction *I = nullptr);
+  AllocationSiteSetPtrTy getReachableAllocationSites(
+      const llvm::Value *V, bool IntraProcOnly = false,
+      const llvm::Instruction *I = nullptr);
 
   [[nodiscard]] bool isInReachableAllocationSites(
       const llvm::Value *V, const llvm::Value *PotentialValue,
@@ -251,7 +252,7 @@ private:
 
   void computeAliasGraph(const llvm::Value *V);
 
-  void computeAliasGraph(llvm::Function *F);
+  void computeAliasGraph(llvm::Function * F);
 
   struct AllocationSiteDFSVisitor;
   struct ReachabilityDFSVisitor;

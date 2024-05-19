@@ -458,7 +458,7 @@ void LLVMBasedICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
 }
 
-[[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
+nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
   return CG.getAsJson(
       [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
