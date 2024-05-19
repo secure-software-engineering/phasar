@@ -21,7 +21,6 @@
 
 namespace llvm {
 class CallBase;
-class Function;
 } // namespace llvm
 
 namespace psr {

@@ -34,8 +34,6 @@ OTFResolver::OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
                          LLVMAliasInfoRef PT)
     : Resolver(IRDB, TH), PT(PT) {}
 
-void OTFResolver::preCall(const llvm::Instruction *Inst) {}
-
 void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
                                         FunctionSetTy &CalleeTargets) {
   // if we have no inter-procedural points-to information, use call-graph
@@ -66,8 +64,6 @@ void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
     }
   }
 }
-
-void OTFResolver::postCall(const llvm::Instruction *Inst) {}
 
 auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {

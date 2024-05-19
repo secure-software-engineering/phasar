@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <set>
@@ -26,7 +26,6 @@
 #include <vector>
 
 namespace llvm {
-class Instruction;
 class CallBase;
 class Function;
 class Type;
@@ -38,21 +37,14 @@ namespace psr {
 class LLVMTypeHierarchy;
 
 class OTFResolver : public Resolver {
-protected:
-  LLVMAliasInfoRef PT;
-
 public:
   OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
               LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;
 
-  void preCall(const llvm::Instruction *Inst) override;
-
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
-
-  void postCall(const llvm::Instruction *Inst) override;
 
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
@@ -66,6 +58,9 @@ public:
                               const llvm::Function *CalleeTarget);
 
   [[nodiscard]] std::string str() const override;
+
+protected:
+  LLVMAliasInfoRef PT;
 };
 } // namespace psr
 

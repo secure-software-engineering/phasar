@@ -24,8 +24,6 @@
 namespace llvm {
 class CallBase;
 class StructType;
-class Function;
-class StructType;
 } // namespace llvm
 
 namespace psr {

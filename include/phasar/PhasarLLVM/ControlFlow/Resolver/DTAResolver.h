@@ -20,7 +20,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
 // To switch the TypeGraph
-//#include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
+// #include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 
 #include <string>
 
@@ -36,6 +36,16 @@ namespace psr {
 class DTAResolver : public CHAResolver {
 public:
   using TypeGraph_t = CachedTypeGraph;
+
+  DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+
+  ~DTAResolver() override = default;
+
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+
+  void otherInst(const llvm::Instruction *Inst) override;
+
+  [[nodiscard]] std::string str() const override;
 
 protected:
   TypeGraph_t TypeGraph;
@@ -53,17 +63,6 @@ protected:
    * of vtable)
    */
   bool heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
-
-public:
-  DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
-
-  ~DTAResolver() override = default;
-
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
-
-  void otherInst(const llvm::Instruction *Inst) override;
-
-  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

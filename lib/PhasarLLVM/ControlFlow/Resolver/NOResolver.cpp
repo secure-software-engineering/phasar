@@ -24,13 +24,6 @@ namespace psr {
 
 NOResolver::NOResolver(LLVMProjectIRDB &IRDB) : Resolver(IRDB) {}
 
-void NOResolver::preCall(const llvm::Instruction *Inst) {}
-
-void NOResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
-                                       FunctionSetTy &PossibleTargets) {}
-
-void NOResolver::postCall(const llvm::Instruction *Inst) {}
-
 auto NOResolver::resolveVirtualCall(const llvm::CallBase * /*CallSite*/)
     -> FunctionSetTy {
   return {};
@@ -40,8 +33,6 @@ auto NOResolver::resolveFunctionPointer(const llvm::CallBase * /*CallSite*/)
     -> FunctionSetTy {
   return {};
 }
-
-void NOResolver::otherInst(const llvm::Instruction *Inst) {}
 
 std::string NOResolver::str() const { return "NOResolver"; }
 

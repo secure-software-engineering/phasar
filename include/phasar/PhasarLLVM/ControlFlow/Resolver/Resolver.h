@@ -36,7 +36,6 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMTypeHierarchy;
 enum class CallGraphAnalysisType;
-class LLVMPointsToInfo;
 
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
