@@ -31,7 +31,7 @@ void LLVMVFTableData::printAsJson(llvm::raw_ostream &OS) const {
     JSON["VFT"].push_back(Curr);
   }
 
-  OS << JSON;
+  OS << JSON << '\n';
 }
 
 LLVMVFTableData LLVMVFTableData::deserializeJson(const llvm::Twine &Path) {

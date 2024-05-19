@@ -58,7 +58,7 @@ void DIBasedTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
     }
   }
 
-  OS << Json;
+  OS << Json << '\n';
 }
 
 DIBasedTypeHierarchyData

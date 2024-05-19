@@ -48,7 +48,7 @@ void LLVMTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
     }
   }
 
-  OS << Json;
+  OS << Json << '\n';
 }
 
 LLVMTypeHierarchyData

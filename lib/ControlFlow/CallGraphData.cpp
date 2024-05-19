@@ -41,7 +41,7 @@ void CallGraphData::printAsJson(llvm::raw_ostream &OS) {
     }
   }
 
-  OS << JSON;
+  OS << JSON << '\n';
 }
 
 CallGraphData CallGraphData::deserializeJson(const llvm::Twine &Path) {

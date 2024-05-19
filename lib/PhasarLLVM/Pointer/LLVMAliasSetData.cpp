@@ -39,7 +39,7 @@ void LLVMAliasSetData::printAsJson(llvm::raw_ostream &OS) {
     JSON["AnalyzedFunctions"].push_back(Curr);
   }
 
-  OS << JSON;
+  OS << JSON << '\n';
 }
 
 LLVMAliasSetData LLVMAliasSetData::deserializeJson(const llvm::Twine &Path) {

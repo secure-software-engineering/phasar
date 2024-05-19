@@ -23,6 +23,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/Format.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -291,6 +292,7 @@ GeneralStatistics::getRetResInstructions() const {
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json Json;
 
+  Json["ModuleName"] = ModuleName;
   Json["Instructions"] = Instructions;
   Json["Functions"] = Functions;
   Json["ExternalFunctions"] = ExternalFunctions;
@@ -298,15 +300,14 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   Json["AddressTakenFunctions"] = AddressTakenFunctions;
   Json["Globals"] = Globals;
   Json["GlobalConsts"] = GlobalConsts;
-  Json["GlobalVariables"].push_back(Globals);
-  Json["GlobalVariables"].push_back(GlobalConsts);
+  Json["GlobalVariables"] = Globals - GlobalConsts;
   Json["ExternalGlobals"] = ExternalGlobals;
   Json["GlobalsDefinitions"] = GlobalsDefinitions;
   Json["AllocaInstructions"] = AllocaInstructions.size();
   Json["CallSites"] = CallSites;
-  Json["IndCalls"] = IndCalls;
-  Json["NumInlineAsm"] = NumInlineAsm;
-  Json["MemIntrinsics"] = MemIntrinsics;
+  Json["IndirectCallSites"] = IndCalls;
+  Json["NumInlineAssembly"] = NumInlineAsm;
+  Json["MemoryIntrinsics"] = MemIntrinsics;
   Json["DebugIntrinsics"] = DebugIntrinsics;
   Json["Switches"] = Switches;
   Json["GetElementPtrs"] = GetElementPtrs;
@@ -315,25 +316,21 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   Json["BasicBlocks"] = BasicBlocks;
   Json["TotalNumPredecessorBBs"] = TotalNumPredecessorBBs;
   Json["Branches"] = Branches;
-  Json["NonVoidInsts"] = NonVoidInsts;
-  Json["ModuleName"] = ModuleName;
-  Json["AvgPredPerBasicBlock"].push_back(TotalNumPredecessorBBs);
-  Json["AvgPredPerBasicBlock"].push_back(BasicBlocks);
+  Json["AvgPredPerBasicBlock"] =
+      double(TotalNumPredecessorBBs) / double(BasicBlocks);
   Json["MaxPredPerBasicBlock"] = MaxNumPredecessorBBs;
-  Json["AvgSuccPerBasicBlock"].push_back(TotalNumSuccessorBBs);
-  Json["AvgSuccPerBasicBlock"].push_back(BasicBlocks);
+  Json["AvgSuccPerBasicBlock"] =
+      double(TotalNumSuccessorBBs) / double(BasicBlocks);
   Json["MaxSuccPerBasicBlock"] = MaxNumSuccessorBBs;
-  Json["AvgOperantsPerInst"].push_back(TotalNumOperands);
-  Json["AvgOperantsPerInst"].push_back(Instructions);
-  Json["MaxNumOperands"] = MaxNumOperands;
-  Json["AvgUsesPerInst"].push_back(TotalNumUses);
-  Json["AvgUsesPerInst"].push_back(Instructions);
+  Json["AvgOperandsPerInst"] = double(TotalNumOperands) / double(Instructions);
+  Json["MaxNumOperandsPerInst"] = MaxNumOperands;
+  Json["AvgUsesPerInst"] = double(TotalNumUses) / double(Instructions);
   Json["MaxUsesPerInst"] = MaxNumUses;
   Json["NumInstWithMultipleUses"] = NumInstWithMultipleUses;
   Json["NonVoidInsts"] = NonVoidInsts;
   Json["NumInstsUsedOutsideBB"] = NumInstsUsedOutsideBB;
 
-  OS << Json;
+  OS << Json << '\n';
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {
@@ -405,6 +402,7 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
          << AlignNum("Phi Nodes", Statistics.PhiNodes)
          << AlignNum("LandingPads", Statistics.LandingPads)
          << AlignNum("Basic Blocks", Statistics.BasicBlocks)
+         << AlignNum("Branches", Statistics.Branches)
          << AlignNum("Avg #pred per BasicBlock",
                      Statistics.TotalNumPredecessorBBs, Statistics.BasicBlocks)
          << AlignNum("Max #pred per BasicBlock",
