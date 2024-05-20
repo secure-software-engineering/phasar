@@ -2,6 +2,7 @@
 
 ## development HEAD
 
+- Removed the phasar-library `phasar_controller`. It is now part of the tool `phasar-cli`.
 - Removed IfdsFieldSensTaintAnalysis as it relies on LLVM's deprecated typed-pointers.
 
 ## v2403
