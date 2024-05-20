@@ -35,7 +35,6 @@ set(PHASAR_LINK_LIBS
     phasar_llvm
     phasar_llvm_ifdside
     phasar_analysis_strategy
-    phasar_controller
 )
 if(SQLite3_FOUND)
     list(APPEND PHASAR_LINK_LIBS phasar_db)
