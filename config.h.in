@@ -9,4 +9,6 @@
 #cmakedefine DYNAMIC_LOG
 #cmakedefine BUILD_PHASAR_CLANG
 
+#cmakedefine PHASAR_HAS_SQLITE
+
 #endif /* PHASAR_CONFIG_CONFIG_H  */

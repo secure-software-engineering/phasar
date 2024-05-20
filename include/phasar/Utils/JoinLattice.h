@@ -17,6 +17,8 @@
 #ifndef PHASAR_UTILS_JOINLATTICE_H
 #define PHASAR_UTILS_JOINLATTICE_H
 
+#include "phasar/Utils/TypeTraits.h"
+
 #include <type_traits>
 #include <utility>
 
@@ -41,8 +43,7 @@ struct HasJoinLatticeTraitsHelper<
                                  L>>> : std::true_type {};
 } // namespace detail
 template <typename L>
-static constexpr bool HasJoinLatticeTraits =
-    detail::HasJoinLatticeTraitsHelper<L>::value;
+PSR_CONCEPT HasJoinLatticeTraits = detail::HasJoinLatticeTraitsHelper<L>::value;
 
 template <typename AnalysisDomainTy, typename = void> class JoinLattice {
 public:
