@@ -53,6 +53,8 @@ executeIDESolverTest(AnalysisController::ControllerData &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeIDEIIA(AnalysisController::ControllerData &Data);
 LLVM_LIBRARY_VISIBILITY void
+executeIDEFIIA(AnalysisController::ControllerData &Data);
+LLVM_LIBRARY_VISIBILITY void
 executeIntraMonoFullConstant(AnalysisController::ControllerData &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeIntraMonoSolverTest(AnalysisController::ControllerData &Data);

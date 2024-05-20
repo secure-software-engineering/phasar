@@ -22,6 +22,7 @@ DATA_FLOW_ANALYSIS_TYPES(IFDSSolverTest, "ifds-solvertest", "Empty analysis. Jus
 DATA_FLOW_ANALYSIS_TYPES(IDELinearConstantAnalysis, "ide-lca", "Simple linear constant propagation")
 DATA_FLOW_ANALYSIS_TYPES(IDESolverTest, "ide-solvertest", "Empty analysis. Just to see that the IDE solver works")
 DATA_FLOW_ANALYSIS_TYPES(IDEInstInteractionAnalysis, "ide-iia", "Which instruction has influence on which other instructions?")
+DATA_FLOW_ANALYSIS_TYPES(IDEFeatureTaintAnalysis, "ide-fiia", "Which instruction has influence on which other instructions?")
 DATA_FLOW_ANALYSIS_TYPES(IntraMonoFullConstantPropagation, "intra-mono-fca", "Simple constant propagation without the restriction to linear binary operations. Only works inTRA-procedurally")
 DATA_FLOW_ANALYSIS_TYPES(IntraMonoSolverTest, "intra-mono-solvertest", "Empty analysis. Just to see that the intraprocedural monotone solver works")
 DATA_FLOW_ANALYSIS_TYPES(InterMonoSolverTest, "inter-mono-solvertest", "Empty analysis. Just to see that the interprocedural monotone solver works")

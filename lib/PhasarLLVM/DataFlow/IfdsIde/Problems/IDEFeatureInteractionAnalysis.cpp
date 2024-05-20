@@ -80,11 +80,14 @@ auto IDEFeatureInteractionAnalysis::getNormalFlowFunction(n_t Curr,
   }
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    return lambdaFlow([Store,
-                       PointerPTS = PT.getReachableAllocationSites(
-                           Store->getPointerOperand(), true, Store),
+    auto PointerPTS =
+        PT.getReachableAllocationSites(Store->getPointerOperand(), true, Store);
+    container_type PointerRet(PointerPTS->begin(), PointerPTS->end());
+    PointerRet.insert(Store->getPointerOperand());
+
+    return lambdaFlow([Store, PointerRet = std::move(PointerRet),
                        GeneratesFact](d_t Src) -> container_type {
-      if (Store->getPointerOperand() == Src || PointerPTS->count(Src)) {
+      if (Store->getPointerOperand() == Src || PointerRet.count(Src)) {
         // Here, we are unsound!
         return {};
       }
@@ -93,16 +96,15 @@ auto IDEFeatureInteractionAnalysis::getNormalFlowFunction(n_t Curr,
       // y/Y now obtains its new value(s) from x/X
       // If a value is stored that holds we must generate all potential
       // memory locations the store might write to.
-      if (Store->getValueOperand() == Src) {
-        Facts.insert(Store->getPointerOperand());
-        Facts.insert(PointerPTS->begin(), PointerPTS->end());
-      }
       // ... or from zero, if we manually generate a fact here
-      if (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src)) {
-        Facts.insert(Store->getPointerOperand());
-        Facts.insert(PointerPTS->begin(), PointerPTS->end());
+      if (Store->getValueOperand() == Src ||
+          (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src))) {
+        auto Facts = PointerRet;
+        Facts.insert(Src);
+        return Facts;
       }
-      return Facts;
+
+      return {Src};
     });
   }
 
@@ -278,12 +280,12 @@ struct IDEFeatureInteractionAnalysis::GenerateEF {
     llvm::report_fatal_error("Implemented in 'combine'");
   }
 
-  friend bool operator==(const GenerateEF &L, const GenerateEF &R) {
+  constexpr friend bool operator==(const GenerateEF &L, const GenerateEF &R) {
     return L.Facts == R.Facts;
   }
 
   // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
-  friend llvm::hash_code hash_value(const GenerateEF &EF) {
+  constexpr friend llvm::hash_code hash_value(const GenerateEF &EF) {
     return hash_value(EF.Facts);
   }
 };
@@ -525,6 +527,70 @@ EdgeFunction<l_t> addEF(l_t &&Facts, CacheT &AddEFCache) {
   return AddEFCache.createEdgeFunction(std::move(Facts));
 }
 
+template <typename GenerateEFTy, typename AddFactsEFTy>
+std::pair<uintptr_t, const IDEFeatureTaintEdgeFact *>
+extractFacts(const EdgeFunction<l_t> &EF) {
+  if (const auto *GenEF = llvm::dyn_cast<GenerateSmallEF>(EF)) {
+    return {GenEF->Facts, nullptr};
+  }
+  if (const auto *AddEF = llvm::dyn_cast<AddSmallFactsEF>(EF)) {
+    return {AddEF->Facts, nullptr};
+  }
+  if (const auto *GenEF = llvm::dyn_cast<GenerateEFTy>(EF)) {
+    return {0, &GenEF->Facts};
+  }
+  if (const auto *AddEF = llvm::dyn_cast<AddFactsEFTy>(EF)) {
+    return {0, &AddEF->Facts};
+  }
+  llvm_unreachable("All edge function types handled");
+}
+
+template <typename GenerateEFTy, typename AddFactsEFTy>
+IDEFeatureTaintEdgeFact unionTaints(const EdgeFunction<l_t> &FirstEF,
+                                    const EdgeFunction<l_t> &OtherEF) {
+
+  auto [FirstSmallFacts, FirstLargeFacts] =
+      extractFacts<GenerateEFTy, AddFactsEFTy>(FirstEF);
+  auto [OtherSmallFacts, OtherLargeFacts] =
+      extractFacts<GenerateEFTy, AddFactsEFTy>(OtherEF);
+
+  if (FirstLargeFacts) {
+    IDEFeatureTaintEdgeFact Ret = *FirstLargeFacts;
+    if (OtherLargeFacts) {
+      Ret.unionWith(*OtherLargeFacts);
+    } else {
+      Ret.unionWith(OtherSmallFacts);
+    }
+    return Ret;
+  }
+  if (OtherLargeFacts) {
+    IDEFeatureTaintEdgeFact Ret = *OtherLargeFacts;
+    Ret.unionWith(FirstSmallFacts);
+    return Ret;
+  }
+  // Both Small
+  FirstSmallFacts |= OtherSmallFacts;
+  return FirstSmallFacts;
+}
+
+EdgeFunction<l_t> iiaDefaultJoinOrNull(const EdgeFunction<l_t> &This,
+                                       const EdgeFunction<l_t> &OtherFunction) {
+  if (llvm::isa<AllBottom<l_t>>(OtherFunction) ||
+      llvm::isa<AllTop<l_t>>(This)) {
+    return OtherFunction;
+  }
+
+  // Due to our caching, we can do a reference-equals here
+  if (llvm::isa<AllTop<l_t>>(OtherFunction) ||
+      OtherFunction.referenceEquals(This) || llvm::isa<AllBottom<l_t>>(This)) {
+    return This;
+  }
+  if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
+    return AllBottom<l_t>{};
+  }
+  return nullptr;
+}
+
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -566,12 +632,13 @@ IDEFeatureInteractionAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
       return FirstEF;
     }
 
-    if (auto Default = defaultJoinOrNull(FirstEF, OtherEF)) {
+    if (auto Default = iiaDefaultJoinOrNull(FirstEF, OtherEF)) {
       return Default;
     }
 
-    auto ThisFacts = FirstEF.computeTarget(0);
-    ThisFacts.unionWith(OtherEF.computeTarget(0));
+    // auto ThisFacts = FirstEF.computeTarget(0);
+    // ThisFacts.unionWith(OtherEF.computeTarget(0));
+    auto ThisFacts = unionTaints<GenerateEF, AddFactsEF>(FirstEF, OtherEF);
 
     if (FirstEF.isConstant() && OtherEF.isConstant()) {
       return genEF(std::move(ThisFacts), GenEFCache);
