@@ -1,4 +1,4 @@
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureTaintAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"

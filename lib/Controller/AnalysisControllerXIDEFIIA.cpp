@@ -7,7 +7,7 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureTaintAnalysis.h"
 
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Metadata.h"

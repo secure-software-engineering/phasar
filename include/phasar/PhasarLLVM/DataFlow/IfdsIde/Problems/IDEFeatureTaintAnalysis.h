@@ -275,8 +275,17 @@ public:
             FeatureTaintGenerator(std::forward<SourceDetector>(SrcDetector),
                                   std::forward<EdgeFactGenerator>(EFGen))) {}
 
+  IDEFeatureInteractionAnalysis(const IDEFeatureInteractionAnalysis &) = delete;
+  IDEFeatureInteractionAnalysis &
+  operator=(const IDEFeatureInteractionAnalysis &) = delete;
+
+  IDEFeatureInteractionAnalysis(IDEFeatureInteractionAnalysis &&) noexcept =
+      default;
+  IDEFeatureInteractionAnalysis &
+  operator=(IDEFeatureInteractionAnalysis &&) noexcept = delete;
+
   // The EF Caches are incomplete, so move the dtor into the .cpp
-  ~IDEFeatureInteractionAnalysis();
+  ~IDEFeatureInteractionAnalysis() override;
 
   //////////////////////////////////////////////////////////////////////////////
   ///                              Flow Functions
