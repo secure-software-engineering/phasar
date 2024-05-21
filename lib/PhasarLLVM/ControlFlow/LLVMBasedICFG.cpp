@@ -28,6 +28,7 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <utility>
@@ -199,8 +200,9 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
       Res->preCall(&I);
 
       // check if function call can be resolved statically
-      if (CS->getCalledFunction() != nullptr) {
-        PossibleTargets.insert(CS->getCalledFunction());
+      if (const auto *StaticCallee = llvm::dyn_cast<llvm::Function>(
+              CS->getCalledOperand()->stripPointerCastsAndAliases())) {
+        PossibleTargets.insert(StaticCallee);
 
         PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
                              "Found static call-site: "
@@ -208,30 +210,22 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
       } else {
         // still try to resolve the called function statically
         const llvm::Value *SV = CS->getCalledOperand()->stripPointerCasts();
-        const llvm::Function *ValueFunction =
-            !SV->hasName() ? nullptr : IRDB->getFunction(SV->getName());
-        if (ValueFunction) {
-          PossibleTargets.insert(ValueFunction);
-          PHASAR_LOG_LEVEL_CAT(
-              DEBUG, "LLVMBasedICFG",
-              "Found static call-site: " << llvmIRToString(CS));
-        } else {
-          if (llvm::isa<llvm::InlineAsm>(SV)) {
-            continue;
-          }
-          // the function call must be resolved dynamically
-          PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                               "Found dynamic call-site: "
-                                   << "  " << llvmIRToString(CS));
 
-          assert(TH != nullptr);
-          PossibleTargets = internalIsVirtualFunctionCall(CS, *TH)
-                                ? Res->resolveVirtualCall(CS)
-                                : Res->resolveFunctionPointer(CS);
-
-          IndirectCalls[CS] = PossibleTargets.size();
-          FixpointReached = false;
+        if (llvm::isa<llvm::InlineAsm>(SV)) {
+          continue;
         }
+        // the function call must be resolved dynamically
+        PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                             "Found dynamic call-site: "
+                                 << "  " << llvmIRToString(CS));
+
+        assert(TH != nullptr);
+        PossibleTargets = internalIsVirtualFunctionCall(CS, *TH)
+                              ? Res->resolveVirtualCall(CS)
+                              : Res->resolveFunctionPointer(CS);
+
+        IndirectCalls[CS] = PossibleTargets.size();
+        FixpointReached = false;
       }
 
       PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
