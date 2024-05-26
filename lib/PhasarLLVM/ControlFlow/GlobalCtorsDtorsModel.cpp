@@ -9,8 +9,8 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/Utils/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
