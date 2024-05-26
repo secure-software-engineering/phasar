@@ -26,11 +26,9 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
-#include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -38,8 +36,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
-
-#include <memory>
 
 namespace psr {
 class LLVMTypeHierarchy;

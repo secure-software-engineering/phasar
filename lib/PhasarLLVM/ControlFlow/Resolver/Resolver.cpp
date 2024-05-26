@@ -108,6 +108,27 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
   return true;
 }
 
+bool psr::isVirtualCall(const llvm::Instruction *Inst,
+                        const LLVMTypeHierarchy &TH) {
+  assert(Inst != nullptr);
+  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
+  if (!CallSite) {
+    return false;
+  }
+  // check potential receiver type
+  const auto *RecType = getReceiverType(CallSite);
+  if (!RecType) {
+    return false;
+  }
+  if (!TH.hasType(RecType)) {
+    return false;
+  }
+  if (!TH.hasVFTable(RecType)) {
+    return false;
+  }
+  return getVFTIndex(CallSite) >= 0;
+}
+
 namespace psr {
 
 Resolver::Resolver(LLVMProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
@@ -134,6 +155,14 @@ void Resolver::handlePossibleTargets(const llvm::CallBase *CallSite,
                                      FunctionSetTy &PossibleTargets) {}
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
+
+auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
+  if (isVirtualCall(CallSite, *TH)) {
+    return resolveVirtualCall(CallSite);
+  }
+  return resolveFunctionPointer(CallSite);
+}
 
 auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     -> FunctionSetTy {

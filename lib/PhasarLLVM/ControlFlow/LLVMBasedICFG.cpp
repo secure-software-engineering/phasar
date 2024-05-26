@@ -37,35 +37,14 @@
 
 namespace psr {
 
-static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
-                                          const LLVMTypeHierarchy &TH) {
-  assert(Inst != nullptr);
-  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
-  if (!CallSite) {
-    return false;
-  }
-  // check potential receiver type
-  const auto *RecType = getReceiverType(CallSite);
-  if (!RecType) {
-    return false;
-  }
-  if (!TH.hasType(RecType)) {
-    return false;
-  }
-  if (!TH.hasVFTable(RecType)) {
-    return false;
-  }
-  return getVFTIndex(CallSite) >= 0;
-}
-
 void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                                llvm::ArrayRef<std::string> EntryPoints,
                                Soundness S, bool IncludeGlobals) {
   if (IncludeGlobals) {
     auto *EntryFun = GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
-    this->CG = buildLLVMBasedCallGraph(*IRDB, CGResolver, {EntryFun}, *TH, S);
+    this->CG = buildLLVMBasedCallGraph(*IRDB, CGResolver, {EntryFun}, S);
   } else {
-    this->CG = buildLLVMBasedCallGraph(*IRDB, CGResolver, EntryPoints, *TH, S);
+    this->CG = buildLLVMBasedCallGraph(*IRDB, CGResolver, EntryPoints, S);
   }
 }
 
@@ -144,7 +123,7 @@ LLVMBasedICFG::~LLVMBasedICFG() = default;
 }
 
 [[nodiscard]] bool LLVMBasedICFG::isVirtualFunctionCallImpl(n_t Inst) const {
-  return internalIsVirtualFunctionCall(Inst, *TH);
+  return psr::isVirtualCall(Inst, *TH);
 }
 
 [[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const

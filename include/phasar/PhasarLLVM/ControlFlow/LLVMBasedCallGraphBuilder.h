@@ -29,7 +29,7 @@ buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
-                        LLVMTypeHierarchy &TH, Soundness S = Soundness::Soundy);
+                        Soundness S = Soundness::Soundy);
 
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
@@ -40,7 +40,7 @@ buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<std::string> EntryPoints,
-                        LLVMTypeHierarchy &TH, Soundness S = Soundness::Soundy);
+                        Soundness S = Soundness::Soundy);
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCALLGRAPHBUILDER_H

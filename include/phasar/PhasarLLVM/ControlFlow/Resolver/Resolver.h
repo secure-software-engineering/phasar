@@ -48,6 +48,9 @@ getReceiverType(const llvm::CallBase *CallSite);
 [[nodiscard]] bool isConsistentCall(const llvm::CallBase *CallSite,
                                     const llvm::Function *DestFun);
 
+[[nodiscard]] bool isVirtualCall(const llvm::Instruction *Inst,
+                                 const LLVMTypeHierarchy &TH);
+
 class Resolver {
 protected:
   LLVMProjectIRDB &IRDB;
@@ -72,6 +75,9 @@ public:
                                      FunctionSetTy &PossibleTargets);
 
   virtual void postCall(const llvm::Instruction *Inst);
+
+  [[nodiscard]] FunctionSetTy
+  resolveIndirectCall(const llvm::CallBase *CallSite);
 
   [[nodiscard]] virtual FunctionSetTy
   resolveVirtualCall(const llvm::CallBase *CallSite) = 0;
