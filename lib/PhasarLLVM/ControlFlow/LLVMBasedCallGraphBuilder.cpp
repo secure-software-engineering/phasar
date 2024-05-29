@@ -22,7 +22,7 @@
 namespace {
 using namespace psr;
 struct Builder {
-  LLVMProjectIRDB *IRDB = nullptr;
+  const LLVMProjectIRDB *IRDB = nullptr;
   Resolver *Res = nullptr;
   CallGraphBuilder<const llvm::Instruction *, const llvm::Function *>
       CGBuilder{};
@@ -249,7 +249,7 @@ bool Builder::constructDynamicCall(const llvm::Instruction *CS) {
 } // namespace
 
 auto psr::buildLLVMBasedCallGraph(
-    LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+    const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
     llvm::ArrayRef<const llvm::Function *> EntryPoints, Soundness S)
     -> LLVMBasedCallGraph {
   Builder B{&IRDB, &CGResolver};
@@ -297,7 +297,8 @@ auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB,
   return buildLLVMBasedCallGraph(IRDB, CGType, EntryPointFns, TH, VTP, PT, S);
 }
 
-auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+auto psr::buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB,
+                                  Resolver &CGResolver,
                                   llvm::ArrayRef<std::string> EntryPoints,
                                   Soundness S) -> LLVMBasedCallGraph {
   auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);

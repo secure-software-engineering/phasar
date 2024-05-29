@@ -29,7 +29,7 @@ buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                         Soundness S = Soundness::Soundy);
 
 [[nodiscard]] LLVMBasedCallGraph
-buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
                         Soundness S = Soundness::Soundy);
 
@@ -41,7 +41,7 @@ buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                         Soundness S = Soundness::Soundy);
 
 [[nodiscard]] LLVMBasedCallGraph
-buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<std::string> EntryPoints,
                         Soundness S = Soundness::Soundy);
 } // namespace psr

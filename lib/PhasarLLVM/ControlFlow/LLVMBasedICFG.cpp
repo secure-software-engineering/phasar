@@ -86,10 +86,11 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
   initialize(IRDB, CGResolver, EntryPoints, S, IncludeGlobals);
 }
 
-LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB)
+LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG,
+                             const LLVMProjectIRDB *IRDB)
     : CG(std::move(CG)), IRDB(IRDB), VTP(*IRDB) {}
 
-LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+LLVMBasedICFG::LLVMBasedICFG(const LLVMProjectIRDB *IRDB,
                              const nlohmann::json &SerializedCG)
     : CG(CallGraph<n_t, f_t>::deserialize(
           SerializedCG,
