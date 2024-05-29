@@ -35,8 +35,10 @@
 using namespace std;
 using namespace psr;
 
-RTAResolver::RTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
-    : CHAResolver(IRDB, TH) {
+RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP,
+                         const LLVMTypeHierarchy *TH)
+    : CHAResolver(IRDB, VTP, TH) {
   resolveAllocatedStructTypes();
 }
 
@@ -65,7 +67,7 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   const auto *ReceiverType = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
-  auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
+  auto ReachableTypes = TH->getSubTypes(ReceiverType);
 
   // also insert all possible subtypes vtable entries
 
@@ -100,7 +102,7 @@ void RTAResolver::resolveAllocatedStructTypes() {
 
   llvm::DenseSet<const llvm::StructType *> AllocatedStructTypes;
 
-  for (const auto *Fun : IRDB.getAllFunctions()) {
+  for (const auto *Fun : IRDB->getAllFunctions()) {
     for (const auto &Inst : llvm::instructions(Fun)) {
       if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&Inst)) {
         if (const auto *StructTy =
@@ -150,5 +152,4 @@ void RTAResolver::resolveAllocatedStructTypes() {
   this->AllocatedStructTypes.insert(this->AllocatedStructTypes.end(),
                                     AllocatedStructTypes.begin(),
                                     AllocatedStructTypes.end());
-  /// TODO: implement
 }

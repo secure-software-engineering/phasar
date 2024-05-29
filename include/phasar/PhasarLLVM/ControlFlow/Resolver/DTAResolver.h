@@ -37,7 +37,8 @@ class DTAResolver : public CHAResolver {
 public:
   using TypeGraph_t = CachedTypeGraph;
 
-  DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const LLVMTypeHierarchy *TH);
 
   ~DTAResolver() override = default;
 

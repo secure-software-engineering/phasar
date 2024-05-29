@@ -17,6 +17,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
@@ -36,7 +37,6 @@
 
 #include <memory>
 #include <optional>
-#include <set>
 
 std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
@@ -109,7 +109,7 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
 }
 
 bool psr::isVirtualCall(const llvm::Instruction *Inst,
-                        const LLVMTypeHierarchy &TH) {
+                        const LLVMVFTableProvider &VTP) {
   assert(Inst != nullptr);
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
   if (!CallSite) {
@@ -120,10 +120,8 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   if (!RecType) {
     return false;
   }
-  if (!TH.hasType(RecType)) {
-    return false;
-  }
-  if (!TH.hasVFTable(RecType)) {
+
+  if (!VTP.hasVFTable(RecType)) {
     return false;
   }
   return getVFTIndex(CallSite) >= 0;
@@ -131,16 +129,19 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
 
 namespace psr {
 
-Resolver::Resolver(LLVMProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
-
-Resolver::Resolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
-    : IRDB(IRDB), TH(&TH) {}
+Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
+    : IRDB(IRDB), VTP(VTP) {
+  assert(VTP != nullptr);
+}
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
                                     const llvm::CallBase *CallSite) {
-  if (TH && TH->hasVFTable(T)) {
-    const auto *Target = TH->getVFTable(T)->getFunction(Idx);
+  if (!VTP) {
+    return nullptr;
+  }
+  if (const auto *VT = VTP->getVFTableOrNull(T)) {
+    const auto *Target = VT->getFunction(Idx);
     if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
         isConsistentCall(CallSite, Target)) {
       return Target;
@@ -158,7 +159,7 @@ void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
-  if (isVirtualCall(CallSite, *TH)) {
+  if (VTP && isVirtualCall(CallSite, *VTP)) {
     return resolveVirtualCall(CallSite);
   }
   return resolveFunctionPointer(CallSite);
@@ -173,7 +174,7 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
                    "Call function pointer: " << llvmIRToString(CallSite));
   FunctionSetTy CalleeTargets;
 
-  for (const auto *F : IRDB.getAllFunctions()) {
+  for (const auto *F : IRDB->getAllFunctions()) {
     if (F->hasAddressTaken() && isConsistentCall(CallSite, F)) {
       CalleeTargets.insert(F);
     }
@@ -185,30 +186,31 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
 
 std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
-                                           LLVMProjectIRDB *IRDB,
-                                           LLVMTypeHierarchy *TH,
+                                           const LLVMProjectIRDB *IRDB,
+                                           const LLVMVFTableProvider *VTP,
+                                           const LLVMTypeHierarchy *TH,
                                            LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
+  assert(VTP != nullptr);
 
   switch (Ty) {
   case CallGraphAnalysisType::NORESOLVE:
-    return std::make_unique<NOResolver>(*IRDB);
+    return std::make_unique<NOResolver>(IRDB, VTP);
   case CallGraphAnalysisType::CHA:
     assert(TH != nullptr);
-    return std::make_unique<CHAResolver>(*IRDB, *TH);
+    return std::make_unique<CHAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::RTA:
     assert(TH != nullptr);
-    return std::make_unique<RTAResolver>(*IRDB, *TH);
+    return std::make_unique<RTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::DTA:
     assert(TH != nullptr);
-    return std::make_unique<DTAResolver>(*IRDB, *TH);
+    return std::make_unique<DTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::VTA:
     llvm::report_fatal_error(
         "The VTA callgraph algorithm is not implemented yet");
   case CallGraphAnalysisType::OTF:
-    assert(TH != nullptr);
     assert(PT);
-    return std::make_unique<OTFResolver>(*IRDB, *TH, PT);
+    return std::make_unique<OTFResolver>(IRDB, VTP, PT);
   case CallGraphAnalysisType::Invalid:
     llvm::report_fatal_error("Invalid callgraph algorithm specified");
   }

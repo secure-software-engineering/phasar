@@ -38,7 +38,7 @@ class LLVMTypeHierarchy;
 
 class OTFResolver : public Resolver {
 public:
-  OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
+  OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;

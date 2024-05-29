@@ -20,7 +20,7 @@ namespace psr {
 
 class NOResolver final : public Resolver {
 public:
-  NOResolver(LLVMProjectIRDB &IRDB);
+  NOResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
 
   ~NOResolver() override = default;
 

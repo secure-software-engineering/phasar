@@ -22,7 +22,9 @@ using namespace psr;
 
 namespace psr {
 
-NOResolver::NOResolver(LLVMProjectIRDB &IRDB) : Resolver(IRDB) {}
+NOResolver::NOResolver(const LLVMProjectIRDB *IRDB,
+                       const LLVMVFTableProvider *VTP)
+    : Resolver(IRDB, VTP) {}
 
 auto NOResolver::resolveVirtualCall(const llvm::CallBase * /*CallSite*/)
     -> FunctionSetTy {
