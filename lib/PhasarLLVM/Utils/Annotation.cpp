@@ -75,20 +75,14 @@ llvm::StringRef VarAnnotation::retrieveString(unsigned Idx) const {
 const llvm::Value *VarAnnotation::getOriginalValueOrOriginalArg(
     const llvm::Value *AnnotatedValue) {
 
-  if (const auto *BitCast =
-          llvm::dyn_cast<llvm::BitCastOperator>(AnnotatedValue)) {
-    // this may be already the original value
-    const auto *Value = BitCast->getOperand(0);
-    // check if that values originates from a formal parameter
-    for (const auto &User : Value->users()) {
-      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User);
-          Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
-        return Store->getValueOperand();
-      }
+  // check if that values originates from a formal parameter
+  for (const auto &User : AnnotatedValue->users()) {
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User);
+        Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
+      return Store->getValueOperand();
     }
-    return Value;
   }
-  return nullptr;
+  return AnnotatedValue;
 }
 
 GlobalAnnotation::GlobalAnnotation(

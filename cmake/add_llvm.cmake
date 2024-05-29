@@ -2,7 +2,6 @@ macro(add_llvm)
 
   if (NOT PHASAR_IN_TREE)
     # Only search for LLVM if we build out of tree
-    set(LLVM 15 "/usr/local/llvm-15")
     find_package(LLVM 15 REQUIRED CONFIG)
     find_library(LLVM_LIBRARY NAMES LLVM PATHS ${LLVM_LIBRARY_DIRS} NO_DEFAULT_PATH)
 
