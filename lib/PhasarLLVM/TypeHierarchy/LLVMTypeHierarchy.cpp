@@ -166,15 +166,12 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
         if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
-            if (BC->getOperand(0)->hasName()) {
-              auto Name = BC->getOperand(0)->getName();
-              if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
-                auto ClearName =
-                    removeTypeInfoPrefix(llvm::demangle(Name.str()));
-                if (const auto *Type = ClearNameTypeMap[ClearName]) {
-                  SubTypes.push_back(Type);
-                }
+          if (CE->getOperand(0)->hasName()) {
+            auto Name = CE->getOperand(0)->getName();
+            if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
+              auto ClearName = removeTypeInfoPrefix(llvm::demangle(Name.str()));
+              if (const auto *Type = ClearNameTypeMap[ClearName]) {
+                SubTypes.push_back(Type);
               }
             }
           }

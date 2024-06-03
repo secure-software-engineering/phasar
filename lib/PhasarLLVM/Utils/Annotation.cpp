@@ -91,12 +91,12 @@ GlobalAnnotation::GlobalAnnotation(
 
 const llvm::Function *GlobalAnnotation::getFunction() const {
   const auto *FunCastOp = AnnotationStruct->getOperand(0);
-  if (const auto *BitCast = llvm::dyn_cast<llvm::BitCastOperator>(FunCastOp)) {
-    if (const auto *Fun =
-            llvm::dyn_cast<llvm::Function>(BitCast->getOperand(0))) {
-      return Fun;
-    }
+
+  if (const auto *Fun =
+          llvm::dyn_cast<llvm::Function>(FunCastOp->getOperand(0))) {
+    return Fun;
   }
+
   return nullptr;
 }
 

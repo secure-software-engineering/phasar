@@ -57,7 +57,7 @@ protected:
   void doAnalysis(
       const llvm::Twine &IRFile, const map<int, set<string>> &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
-      bool DumpResults = false) {
+      bool DumpResults = true) {
     HelperAnalyses HA(IRFile, EntryPoints);
 
     auto TC =

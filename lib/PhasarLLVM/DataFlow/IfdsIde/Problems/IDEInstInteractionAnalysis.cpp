@@ -69,7 +69,8 @@ IDEIIAFlowFact IDEIIAFlowFact::create(const llvm::Value *BaseVal) {
     }
     return {BaseVal, FieldDesc};
   }
-  llvm::report_fatal_error("Unexpected instruction!");
+  llvm::report_fatal_error("Unexpected instruction!" +
+                           llvm::Twine(llvmIRToString(BaseVal)));
 }
 
 bool IDEIIAFlowFact::flowFactEqual(const IDEIIAFlowFact &Other) const {

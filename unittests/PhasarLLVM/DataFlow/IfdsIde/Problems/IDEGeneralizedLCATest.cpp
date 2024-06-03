@@ -133,6 +133,7 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
                          3,
                          std::stoi(getMetaDataID(LastMainInstruction))});
   compareResults(GroundTruth);
+  LCASolver->dumpResults();
 }
 
 TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {

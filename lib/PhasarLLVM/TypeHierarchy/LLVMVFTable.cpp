@@ -60,17 +60,14 @@ LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct &VT) {
            It != CA->operands().end(); ++It) {
         const auto &COp = *It;
         if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-          if (const auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
-            // if the entry is a GlobalAlias, get its Aliasee
-            auto *Entry = BC->getOperand(0);
-            while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(Entry)) {
-              Entry = GA->getAliasee();
-            }
-            auto *F = llvm::dyn_cast<llvm::Function>(Entry);
-            VFS.push_back(F);
-          } else {
-            VFS.push_back(nullptr);
+          // if the entry is a GlobalAlias, get its Aliasee
+          auto *Entry = CE->getOperand(0);
+          while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(Entry)) {
+            Entry = GA->getAliasee();
           }
+          auto *F = llvm::dyn_cast<llvm::Function>(Entry);
+          VFS.push_back(F);
+
         } else {
           VFS.push_back(nullptr);
         }
