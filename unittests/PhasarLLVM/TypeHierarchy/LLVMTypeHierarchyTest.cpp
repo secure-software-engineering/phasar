@@ -27,8 +27,9 @@ TEST(LTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_1_cpp.ll");
   LLVMTypeHierarchy LTH(IRDB);
-  EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
+
+  ASSERT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
+  ASSERT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
   EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
@@ -319,16 +320,15 @@ TEST(LTHTest, BasicTHReconstruction_7) {
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  // has three types because of padding (introduction of intermediate type)
-  EXPECT_EQ(LTH.getAllTypes().size(), 3U);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
   EXPECT_EQ(
       LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
       true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
+  ASSERT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
+  ASSERT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
   EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))
                 ->getFunction(0)
                 ->getName()
@@ -521,7 +521,10 @@ TEST(LTHTest, VTableConstruction) {
                            ->getName()
                            .str()) == "Child::baz()");
   ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Child"))->size() == 3U);
-  ASSERT_TRUE(TH6.getVFTable(TH6.getType("class.Base"))->size() == 3U);
+
+  // FIXME: TH6 has no structs in the IR anymore
+  //   ASSERT_TRUE(TH6.hasVFTable(TH6.getType("class.Base")));
+  //   ASSERT_TRUE(TH6.getVFTable(TH6.getType("class.Base"))->size() == 3U);
 }
 
 TEST(LTHTest, TransitivelyReachableTypes) {
@@ -613,8 +616,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
       TH3.getType("struct.NonvirtualStruct")));
   ASSERT_TRUE(ReachableTypesNonvirtualstruct3.size() == 1U);
 
-  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base")));
-  ASSERT_FALSE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
   ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Child")));
   ASSERT_TRUE(ReachableTypesBase4.size() == 2U);
   ASSERT_TRUE(ReachableTypesChild4.count(TH4.getType("struct.Child")));

@@ -58,19 +58,10 @@ LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct &VT) {
       // is RTTI
       for (const auto *It = std::next(CA->operands().begin(), 2);
            It != CA->operands().end(); ++It) {
-        const auto &COp = *It;
-        if (const auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
-          // if the entry is a GlobalAlias, get its Aliasee
-          auto *Entry = CE->getOperand(0);
-          while (auto *GA = llvm::dyn_cast<llvm::GlobalAlias>(Entry)) {
-            Entry = GA->getAliasee();
-          }
-          auto *F = llvm::dyn_cast<llvm::Function>(Entry);
-          VFS.push_back(F);
+        const auto *Entry = It->get()->stripPointerCastsAndAliases();
 
-        } else {
-          VFS.push_back(nullptr);
-        }
+        const auto *F = llvm::dyn_cast<llvm::Function>(Entry);
+        VFS.push_back(F);
       }
     }
   }

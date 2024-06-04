@@ -88,12 +88,14 @@ std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(const std::string &TypeName) {
   llvm::StringRef SR(TypeName);
   if (SR.startswith(StructPrefix)) {
-    return SR.drop_front(StructPrefix.size()).str();
+    SR = SR.drop_front(StructPrefix.size());
+  } else if (SR.startswith(ClassPrefix)) {
+    SR = SR.drop_front(ClassPrefix.size());
   }
-  if (SR.startswith(ClassPrefix)) {
-    return SR.drop_front(ClassPrefix.size()).str();
+  if (SR.endswith(".base")) {
+    SR = SR.drop_back(llvm::StringRef(".base").size());
   }
-  return TypeName;
+  return SR.str();
 }
 
 std::string LLVMTypeHierarchy::removeTypeInfoPrefix(std::string VarName) {
@@ -165,14 +167,14 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
     if (const auto *I =
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
-        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          if (CE->getOperand(0)->hasName()) {
-            auto Name = CE->getOperand(0)->getName();
-            if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
-              auto ClearName = removeTypeInfoPrefix(llvm::demangle(Name.str()));
-              if (const auto *Type = ClearNameTypeMap[ClearName]) {
-                SubTypes.push_back(Type);
-              }
+        const auto *CE = Op->stripPointerCastsAndAliases();
+
+        if (CE->hasName()) {
+          auto Name = CE->getName();
+          if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
+            auto ClearName = removeTypeInfoPrefix(llvm::demangle(Name.str()));
+            if (const auto *Type = ClearNameTypeMap[ClearName]) {
+              SubTypes.push_back(Type);
             }
           }
         }
@@ -262,13 +264,24 @@ LLVMTypeHierarchy::getSuperTypes(const llvm::StructType * /*Type*/) {
   return ReachableTypes;
 }
 
-const llvm::StructType *LLVMTypeHierarchy::getType(std::string TypeName) const {
+template <typename GraphT>
+static const llvm::StructType *getTypeImpl(const GraphT &TypeGraph,
+                                           llvm::StringRef TypeName) {
   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
     if (TypeGraph[V].Type->getName() == TypeName) {
       return TypeGraph[V].Type;
     }
   }
   return nullptr;
+}
+
+const llvm::StructType *LLVMTypeHierarchy::getType(std::string TypeName) const {
+  if (const auto *Ty = getTypeImpl(TypeGraph, TypeName)) {
+    return Ty;
+  }
+
+  TypeName += ".base";
+  return getTypeImpl(TypeGraph, TypeName);
 }
 
 std::set<const llvm::StructType *> LLVMTypeHierarchy::getAllTypes() const {
