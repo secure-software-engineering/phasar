@@ -143,11 +143,11 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 14);
+  Inst = getNthInstruction(Main, 13);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 17);
+  Inst = getNthInstruction(Main, 16);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
