@@ -79,7 +79,7 @@ TEST_F(TaintConfigTest, Basic_02) {
   psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
   const llvm::Value *I1 = IR.getInstruction(9);
-  const llvm::Value *I2 = IR.getInstruction(23);
+  const llvm::Value *I2 = IR.getInstruction(21);
   ASSERT_TRUE(Config.isSource(I1));
   ASSERT_TRUE(Config.isSource(I2));
 }
@@ -143,10 +143,10 @@ TEST_F(TaintConfigTest, FunMember_02) {
   psr::LLVMTaintConfig TConfig(IR);
   // IR.emitPreprocessedIR(llvm::outs(), false);
   llvm::outs() << TConfig << '\n';
-  const llvm::Value *I1 = IR.getInstruction(22);
-  const llvm::Value *I2 = IR.getInstruction(61);
-  const llvm::Value *I3 = IR.getInstruction(73);
-  const llvm::Value *I4 = IR.getInstruction(84);
+  const llvm::Value *I1 = IR.getInstruction(20);
+  const llvm::Value *I2 = IR.getInstruction(57);
+  const llvm::Value *I3 = IR.getInstruction(67);
+  const llvm::Value *I4 = IR.getInstruction(76);
   ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
   ASSERT_TRUE(TConfig.isSource(I3));
@@ -365,10 +365,12 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  const llvm::Value *I1 = IR.getInstruction(18);
-  const llvm::Value *I2 = IR.getInstruction(54);
-  const llvm::Value *I3 = IR.getInstruction(63);
-  const llvm::Value *I4 = IR.getInstruction(71);
+  llvm::outs() << TConfig << '\n';
+
+  const llvm::Value *I1 = IR.getInstruction(16);
+  const llvm::Value *I2 = IR.getInstruction(52);
+  const llvm::Value *I3 = IR.getInstruction(61);
+  const llvm::Value *I4 = IR.getInstruction(69);
   ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
   ASSERT_TRUE(TConfig.isSource(I3));
