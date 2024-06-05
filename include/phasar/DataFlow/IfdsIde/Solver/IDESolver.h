@@ -117,7 +117,7 @@ public:
             llvm::StringRef(NToString(Cells[I].getRowKey())).trim().str();
 
         std::string NodeStr =
-            ICF->getFunctionName(ICF->getFunctionOf(Curr)) + "::" + NStr;
+            ICF->getFunctionName(ICF->getFunctionOf(Curr)).str() + "::" + NStr;
         J[DataFlowID][NodeStr];
         std::string FactStr =
             llvm::StringRef(DToString(Cells[I].getColumnKey())).trim().str();

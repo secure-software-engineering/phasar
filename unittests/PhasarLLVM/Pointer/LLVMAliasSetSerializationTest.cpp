@@ -103,11 +103,11 @@ TEST(LLVMAliasSetSerializationTest, Ser_Inter01) {
 
 TEST(LLVMAliasSetSerializationTest, Ser_Global01) {
   analyze("pointers/global_01_cpp.ll",
-          {{{"0", "15", "17", "2", "3", "9", "_Z3fooPi.0"},
+          {{{"0", "14", "16", "2", "8", "_Z3fooPi.0"},
             {"1"},
+            {"11"},
             {"12"},
-            {"13"},
-            {"7"}},
+            {"6"}},
            {"_GLOBAL__sub_I_global_01.cpp", "_Z3fooPi", "__cxx_global_var_init",
             "main"}});
 }

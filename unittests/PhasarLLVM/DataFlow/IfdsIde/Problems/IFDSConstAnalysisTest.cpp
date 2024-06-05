@@ -175,7 +175,7 @@ TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
   initialize({PathToLlFiles + "pointer/pointer_04_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({4}, Llvmconstsolver);
+  compareResults({3}, Llvmconstsolver);
 }
 
 /* ============== GLOBAL TESTS ============== */
@@ -352,7 +352,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_08) {
   initialize({PathToLlFiles + "array/array_08_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({}, Llvmconstsolver);
+  compareResults({0}, Llvmconstsolver);
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
