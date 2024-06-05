@@ -94,4 +94,3 @@ macro(add_clang)
     )
   endif()
 endmacro(add_clang)
-

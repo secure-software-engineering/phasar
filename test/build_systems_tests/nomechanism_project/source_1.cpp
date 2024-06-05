@@ -1,4 +1,5 @@
 #include "source_1.h"
+
 #include "source_2.h"
 
 const int src1_const = 42;

@@ -254,4 +254,3 @@ macro(subdirlist result curdir)
 
   set(${result} ${dirlist})
 endmacro(subdirlist)
-

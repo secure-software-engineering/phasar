@@ -59,4 +59,3 @@ RUN mkdir -p build && cd build && \
           cmake --build .
 
 ENTRYPOINT [ "./build/tools/phasar-cli/phasar-cli" ]
-
