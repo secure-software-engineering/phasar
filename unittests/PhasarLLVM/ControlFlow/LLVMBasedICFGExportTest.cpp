@@ -321,7 +321,7 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
   auto Results =
       exportICFG("exceptions/exceptions_01_cpp_dbg.ll", /*asSrcCode*/ true);
-  // llvm::errs() << Results.dump(4) << '\n';
+  llvm::errs() << Results.dump(4) << '\n';
   verifySourceCodeJSON(Results,
                        readJson("exceptions/exceptions_01_cpp_icfg.json"));
 }

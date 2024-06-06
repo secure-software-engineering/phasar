@@ -33,6 +33,10 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(VFuncB);
 
   const auto *CallToAFunc = getNthInstruction(F, 19);
+  // TODO: find out why call void %5(%struct.A* noundef nonnull align 8
+  // dereferenceable(8) %3), !psr.id !32 is gone and which function to call
+  // instead
+  llvm::outs() << "CallToAFunc: " << *CallToAFunc << '\n';
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
   const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
   ASSERT_EQ(AsCallees.size(), 2U);

@@ -367,6 +367,7 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
 
 TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
   initializeIR("struct_02_cpp.ll");
+  IRDB->dump();
   const auto *Main = IRDB->getFunction("main");
   const auto *Inst = getNthInstruction(Main, 2);
   auto FlowFact = IDEIIAFlowFact::create(Inst);
@@ -397,8 +398,10 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
   Inst = getNthInstruction(Main, 6);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   Inst = getNthInstruction(Main, 9);
+  llvm::outs() << "Instruction to create flow fact from 2: " << *Inst << '\n';
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 }

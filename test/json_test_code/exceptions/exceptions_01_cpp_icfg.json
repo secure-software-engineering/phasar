@@ -1,28 +1,460 @@
 [
   {
     "from": {
+      "IR": "%retval = alloca i32, align 4 | ID: 17",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    },
+    "to": {
+      "IR": "%a = alloca i32, align 4 | ID: 18",
+      "column": 7,
+      "line": 16,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "int a = 3;"
+    }
+  },
+  {
+    "from": {
+      "IR": "%a = alloca i32, align 4 | ID: 18",
+      "column": 7,
+      "line": 16,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "int a = 3;"
+    },
+    "to": {
+      "IR": "%exn.slot = alloca ptr, align 8 | ID: 19",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    }
+  },
+  {
+    "from": {
+      "IR": "%exn.slot = alloca ptr, align 8 | ID: 19",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    },
+    "to": {
+      "IR": "%ehselector.slot = alloca i32, align 4 | ID: 20",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    }
+  },
+  {
+    "from": {
+      "IR": "%ehselector.slot = alloca i32, align 4 | ID: 20",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    },
+    "to": {
+      "IR": "store i32 0, ptr %retval, align 4 | ID: 21",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    }
+  },
+  {
+    "from": {
+      "IR": "store i32 0, ptr %retval, align 4 | ID: 21",
+      "column": 0,
+      "line": 0,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": ""
+    },
+    "to": {
+      "IR": "store i32 3, ptr %a, align 4 | ID: 23",
+      "column": 7,
+      "line": 16,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "int a = 3;"
+    }
+  },
+  {
+    "from": {
+      "IR": "store i32 3, ptr %a, align 4 | ID: 23",
+      "column": 7,
+      "line": 16,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "int a = 3;"
+    },
+    "to": {
+      "IR": "%call = invoke noundef i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad | ID: 24",
+      "column": 9,
+      "line": 18,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = foo();"
+    }
+  },
+  {
+    "from": {
+      "IR": "%call = invoke noundef i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad | ID: 24",
+      "column": 9,
+      "line": 18,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = foo();"
+    },
+    "to": {
       "IR": "%x = alloca i32, align 4 | ID: 1",
       "column": 7,
       "line": 5,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "int x = 42;"
-    },
-    "to": {
-      "IR": "store i32 42, i32* %x, align 4 | ID: 3",
-      "column": 7,
-      "line": 5,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "int x = 42;"
     }
   },
   {
     "from": {
-      "IR": "store i32 42, i32* %x, align 4 | ID: 3",
+      "IR": "ret i32 %1 | ID: 16",
+      "column": 3,
+      "line": 12,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "foo()",
+      "sourceCodeLine": "return x;"
+    },
+    "to": {
+      "IR": "store i32 %call, ptr %a, align 4 | ID: 25",
+      "column": 7,
+      "line": 18,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = foo();"
+    }
+  },
+  {
+    "from": {
+      "IR": "%call = invoke noundef i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad | ID: 24",
+      "column": 9,
+      "line": 18,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = foo();"
+    },
+    "to": {
+      "IR": "%x = alloca i32, align 4 | ID: 1",
       "column": 7,
       "line": 5,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "foo()",
+      "sourceCodeLine": "int x = 42;"
+    }
+  },
+  {
+    "from": {
+      "IR": "ret i32 %1 | ID: 16",
+      "column": 3,
+      "line": 12,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "foo()",
+      "sourceCodeLine": "return x;"
+    },
+    "to": {
+      "IR": "%0 = landingpad { ptr, i32 }\n          catch ptr null | ID: 27",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "store i32 %call, ptr %a, align 4 | ID: 25",
+      "column": 7,
+      "line": 18,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = foo();"
+    },
+    "to": {
+      "IR": "br label %try.cont | ID: 26",
+      "column": 3,
+      "line": 19,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "} catch (...) {"
+    }
+  },
+  {
+    "from": {
+      "IR": "br label %try.cont | ID: 26",
+      "column": 3,
+      "line": 19,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "} catch (...) {"
+    },
+    "to": {
+      "IR": "%4 = load i32, ptr %a, align 4 | ID: 38",
+      "column": 10,
+      "line": 22,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "return a;"
+    }
+  },
+  {
+    "from": {
+      "IR": "%0 = landingpad { ptr, i32 }\n          catch ptr null | ID: 27",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "%1 = extractvalue { ptr, i32 } %0, 0 | ID: 28",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "%1 = extractvalue { ptr, i32 } %0, 0 | ID: 28",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "store ptr %1, ptr %exn.slot, align 8 | ID: 29",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "store ptr %1, ptr %exn.slot, align 8 | ID: 29",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "%2 = extractvalue { ptr, i32 } %0, 1 | ID: 30",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "%2 = extractvalue { ptr, i32 } %0, 1 | ID: 30",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "store i32 %2, ptr %ehselector.slot, align 4 | ID: 31",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "store i32 %2, ptr %ehselector.slot, align 4 | ID: 31",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "br label %catch | ID: 32",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "br label %catch | ID: 32",
+      "column": 1,
+      "line": 23,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "%exn = load ptr, ptr %exn.slot, align 8 | ID: 33",
+      "column": 3,
+      "line": 19,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "} catch (...) {"
+    }
+  },
+  {
+    "from": {
+      "IR": "%exn = load ptr, ptr %exn.slot, align 8 | ID: 33",
+      "column": 3,
+      "line": 19,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "} catch (...) {"
+    },
+    "to": {
+      "IR": "%3 = call ptr @__cxa_begin_catch(ptr %exn) | ID: 34",
+      "column": 3,
+      "line": 19,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "} catch (...) {"
+    }
+  },
+  {
+    "from": {
+      "IR": "%3 = call ptr @__cxa_begin_catch(ptr %exn) | ID: 34",
+      "column": 3,
+      "line": 19,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "} catch (...) {"
+    },
+    "to": {
+      "IR": "store i32 -1, ptr %a, align 4 | ID: 35",
+      "column": 7,
+      "line": 20,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = -1;"
+    }
+  },
+  {
+    "from": {
+      "IR": "store i32 -1, ptr %a, align 4 | ID: 35",
+      "column": 7,
+      "line": 20,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "a = -1;"
+    },
+    "to": {
+      "IR": "call void @__cxa_end_catch() | ID: 36",
+      "column": 3,
+      "line": 21,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "call void @__cxa_end_catch() | ID: 36",
+      "column": 3,
+      "line": 21,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "br label %try.cont | ID: 37",
+      "column": 3,
+      "line": 21,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    }
+  },
+  {
+    "from": {
+      "IR": "br label %try.cont | ID: 37",
+      "column": 3,
+      "line": 21,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "}"
+    },
+    "to": {
+      "IR": "%4 = load i32, ptr %a, align 4 | ID: 38",
+      "column": 10,
+      "line": 22,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "return a;"
+    }
+  },
+  {
+    "from": {
+      "IR": "%4 = load i32, ptr %a, align 4 | ID: 38",
+      "column": 10,
+      "line": 22,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "return a;"
+    },
+    "to": {
+      "IR": "ret i32 %4 | ID: 39",
+      "column": 3,
+      "line": 22,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "main",
+      "sourceCodeLine": "return a;"
+    }
+  },
+  {
+    "from": {
+      "IR": "%x = alloca i32, align 4 | ID: 1",
+      "column": 7,
+      "line": 5,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "foo()",
+      "sourceCodeLine": "int x = 42;"
+    },
+    "to": {
+      "IR": "store i32 42, ptr %x, align 4 | ID: 3",
+      "column": 7,
+      "line": 5,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFunctionName": "foo()",
+      "sourceCodeLine": "int x = 42;"
+    }
+  },
+  {
+    "from": {
+      "IR": "store i32 42, ptr %x, align 4 | ID: 3",
+      "column": 7,
+      "line": 5,
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "int x = 42;"
     },
@@ -30,7 +462,7 @@
       "IR": "%call = call i32 @rand() | ID: 4",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     }
@@ -40,7 +472,7 @@
       "IR": "%call = call i32 @rand() | ID: 4",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     },
@@ -48,7 +480,7 @@
       "IR": "%tobool = icmp ne i32 %call, 0 | ID: 5",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     }
@@ -58,7 +490,7 @@
       "IR": "%tobool = icmp ne i32 %call, 0 | ID: 5",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     },
@@ -66,7 +498,7 @@
       "IR": "br i1 %tobool, label %if.then, label %if.else | ID: 6",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     }
@@ -76,15 +508,15 @@
       "IR": "br i1 %tobool, label %if.then, label %if.else | ID: 6",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     },
     "to": {
-      "IR": "%0 = load i32, i32* %x, align 4 | ID: 7",
+      "IR": "%0 = load i32, ptr %x, align 4 | ID: 7",
       "column": 7,
       "line": 7,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "x += 4;"
     }
@@ -94,25 +526,25 @@
       "IR": "br i1 %tobool, label %if.then, label %if.else | ID: 6",
       "column": 7,
       "line": 6,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "if (rand()) {"
     },
     "to": {
-      "IR": "%exception = call i8* @__cxa_allocate_exception(i64 4) | ID: 11",
+      "IR": "%exception = call ptr @__cxa_allocate_exception(i64 4) | ID: 11",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     }
   },
   {
     "from": {
-      "IR": "%0 = load i32, i32* %x, align 4 | ID: 7",
+      "IR": "%0 = load i32, ptr %x, align 4 | ID: 7",
       "column": 7,
       "line": 7,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "x += 4;"
     },
@@ -120,7 +552,7 @@
       "IR": "%add = add nsw i32 %0, 4 | ID: 8",
       "column": 7,
       "line": 7,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "x += 4;"
     }
@@ -130,25 +562,25 @@
       "IR": "%add = add nsw i32 %0, 4 | ID: 8",
       "column": 7,
       "line": 7,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "x += 4;"
     },
     "to": {
-      "IR": "store i32 %add, i32* %x, align 4 | ID: 9",
+      "IR": "store i32 %add, ptr %x, align 4 | ID: 9",
       "column": 7,
       "line": 7,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "x += 4;"
     }
   },
   {
     "from": {
-      "IR": "store i32 %add, i32* %x, align 4 | ID: 9",
+      "IR": "store i32 %add, ptr %x, align 4 | ID: 9",
       "column": 7,
       "line": 7,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "x += 4;"
     },
@@ -156,7 +588,7 @@
       "IR": "br label %if.end | ID: 10",
       "column": 3,
       "line": 8,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "} else {"
     }
@@ -166,539 +598,89 @@
       "IR": "br label %if.end | ID: 10",
       "column": 3,
       "line": 8,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "} else {"
     },
     "to": {
-      "IR": "%2 = load i32, i32* %x, align 4 | ID: 16",
+      "IR": "%1 = load i32, ptr %x, align 4 | ID: 15",
       "column": 10,
       "line": 12,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "return x;"
     }
   },
   {
     "from": {
-      "IR": "%exception = call i8* @__cxa_allocate_exception(i64 4) | ID: 11",
+      "IR": "%exception = call ptr @__cxa_allocate_exception(i64 4) | ID: 11",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     },
     "to": {
-      "IR": "%1 = bitcast i8* %exception to i32* | ID: 12",
+      "IR": "store i32 2353782, ptr %exception, align 16 | ID: 12",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     }
   },
   {
     "from": {
-      "IR": "%1 = bitcast i8* %exception to i32* | ID: 12",
+      "IR": "store i32 2353782, ptr %exception, align 16 | ID: 12",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     },
     "to": {
-      "IR": "store i32 2353782, i32* %1, align 16 | ID: 13",
+      "IR": "call void @__cxa_throw(ptr %exception, ptr @_ZTIi, ptr null) | ID: 13",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     }
   },
   {
     "from": {
-      "IR": "store i32 2353782, i32* %1, align 16 | ID: 13",
+      "IR": "call void @__cxa_throw(ptr %exception, ptr @_ZTIi, ptr null) | ID: 13",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     },
     "to": {
-      "IR": "call void @__cxa_throw(i8* %exception, i8* bitcast (i8** @_ZTIi to i8*), i8* null) | ID: 14",
+      "IR": "unreachable | ID: 14",
       "column": 5,
       "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "throw 2353782;"
     }
   },
   {
     "from": {
-      "IR": "call void @__cxa_throw(i8* %exception, i8* bitcast (i8** @_ZTIi to i8*), i8* null) | ID: 14",
-      "column": 5,
-      "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "throw 2353782;"
-    },
-    "to": {
-      "IR": "unreachable | ID: 15",
-      "column": 5,
-      "line": 9,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "throw 2353782;"
-    }
-  },
-  {
-    "from": {
-      "IR": "%2 = load i32, i32* %x, align 4 | ID: 16",
+      "IR": "%1 = load i32, ptr %x, align 4 | ID: 15",
       "column": 10,
       "line": 12,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "return x;"
     },
     "to": {
-      "IR": "ret i32 %2 | ID: 17",
+      "IR": "ret i32 %1 | ID: 16",
       "column": 3,
       "line": 12,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
+      "sourceCodeFileName": "/home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-clang-15/test/llvm_test_code/exceptions/exceptions_01.cpp",
       "sourceCodeFunctionName": "foo()",
       "sourceCodeLine": "return x;"
-    }
-  },
-  {
-    "from": {
-      "IR": "%retval = alloca i32, align 4 | ID: 18",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    },
-    "to": {
-      "IR": "%a = alloca i32, align 4 | ID: 19",
-      "column": 7,
-      "line": 16,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "int a = 3;"
-    }
-  },
-  {
-    "from": {
-      "IR": "%a = alloca i32, align 4 | ID: 19",
-      "column": 7,
-      "line": 16,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "int a = 3;"
-    },
-    "to": {
-      "IR": "%exn.slot = alloca i8*, align 8 | ID: 20",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    }
-  },
-  {
-    "from": {
-      "IR": "%exn.slot = alloca i8*, align 8 | ID: 20",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    },
-    "to": {
-      "IR": "%ehselector.slot = alloca i32, align 4 | ID: 21",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    }
-  },
-  {
-    "from": {
-      "IR": "%ehselector.slot = alloca i32, align 4 | ID: 21",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    },
-    "to": {
-      "IR": "store i32 0, i32* %retval, align 4 | ID: 22",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    }
-  },
-  {
-    "from": {
-      "IR": "store i32 0, i32* %retval, align 4 | ID: 22",
-      "column": 0,
-      "line": 0,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": ""
-    },
-    "to": {
-      "IR": "store i32 3, i32* %a, align 4 | ID: 24",
-      "column": 7,
-      "line": 16,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "int a = 3;"
-    }
-  },
-  {
-    "from": {
-      "IR": "store i32 3, i32* %a, align 4 | ID: 24",
-      "column": 7,
-      "line": 16,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "int a = 3;"
-    },
-    "to": {
-      "IR": "%call = invoke i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad | ID: 25",
-      "column": 9,
-      "line": 18,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = foo();"
-    }
-  },
-  {
-    "from": {
-      "IR": "%call = invoke i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad | ID: 25",
-      "column": 9,
-      "line": 18,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = foo();"
-    },
-    "to": {
-      "IR": "%x = alloca i32, align 4 | ID: 1",
-      "column": 7,
-      "line": 5,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "int x = 42;"
-    }
-  },
-  {
-    "from": {
-      "IR": "ret i32 %2 | ID: 17",
-      "column": 3,
-      "line": 12,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "return x;"
-    },
-    "to": {
-      "IR": "store i32 %call, i32* %a, align 4 | ID: 26",
-      "column": 7,
-      "line": 18,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = foo();"
-    }
-  },
-  {
-    "from": {
-      "IR": "%call = invoke i32 @_Z3foov()\n          to label %invoke.cont unwind label %lpad | ID: 25",
-      "column": 9,
-      "line": 18,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = foo();"
-    },
-    "to": {
-      "IR": "%x = alloca i32, align 4 | ID: 1",
-      "column": 7,
-      "line": 5,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "int x = 42;"
-    }
-  },
-  {
-    "from": {
-      "IR": "ret i32 %2 | ID: 17",
-      "column": 3,
-      "line": 12,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "foo()",
-      "sourceCodeLine": "return x;"
-    },
-    "to": {
-      "IR": "%0 = landingpad { i8*, i32 }\n          catch i8* null | ID: 28",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "store i32 %call, i32* %a, align 4 | ID: 26",
-      "column": 7,
-      "line": 18,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = foo();"
-    },
-    "to": {
-      "IR": "br label %try.cont | ID: 27",
-      "column": 3,
-      "line": 19,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "} catch (...) {"
-    }
-  },
-  {
-    "from": {
-      "IR": "br label %try.cont | ID: 27",
-      "column": 3,
-      "line": 19,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "} catch (...) {"
-    },
-    "to": {
-      "IR": "%4 = load i32, i32* %a, align 4 | ID: 39",
-      "column": 10,
-      "line": 22,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "return a;"
-    }
-  },
-  {
-    "from": {
-      "IR": "%0 = landingpad { i8*, i32 }\n          catch i8* null | ID: 28",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "%1 = extractvalue { i8*, i32 } %0, 0 | ID: 29",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "%1 = extractvalue { i8*, i32 } %0, 0 | ID: 29",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "store i8* %1, i8** %exn.slot, align 8 | ID: 30",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "store i8* %1, i8** %exn.slot, align 8 | ID: 30",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "%2 = extractvalue { i8*, i32 } %0, 1 | ID: 31",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "%2 = extractvalue { i8*, i32 } %0, 1 | ID: 31",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "store i32 %2, i32* %ehselector.slot, align 4 | ID: 32",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "store i32 %2, i32* %ehselector.slot, align 4 | ID: 32",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "br label %catch | ID: 33",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "br label %catch | ID: 33",
-      "column": 1,
-      "line": 23,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "%exn = load i8*, i8** %exn.slot, align 8 | ID: 34",
-      "column": 3,
-      "line": 19,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "} catch (...) {"
-    }
-  },
-  {
-    "from": {
-      "IR": "%exn = load i8*, i8** %exn.slot, align 8 | ID: 34",
-      "column": 3,
-      "line": 19,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "} catch (...) {"
-    },
-    "to": {
-      "IR": "%3 = call i8* @__cxa_begin_catch(i8* %exn) | ID: 35",
-      "column": 3,
-      "line": 19,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "} catch (...) {"
-    }
-  },
-  {
-    "from": {
-      "IR": "%3 = call i8* @__cxa_begin_catch(i8* %exn) | ID: 35",
-      "column": 3,
-      "line": 19,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "} catch (...) {"
-    },
-    "to": {
-      "IR": "store i32 -1, i32* %a, align 4 | ID: 36",
-      "column": 7,
-      "line": 20,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = -1;"
-    }
-  },
-  {
-    "from": {
-      "IR": "store i32 -1, i32* %a, align 4 | ID: 36",
-      "column": 7,
-      "line": 20,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "a = -1;"
-    },
-    "to": {
-      "IR": "call void @__cxa_end_catch() | ID: 37",
-      "column": 3,
-      "line": 21,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "call void @__cxa_end_catch() | ID: 37",
-      "column": 3,
-      "line": 21,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "br label %try.cont | ID: 38",
-      "column": 3,
-      "line": 21,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    }
-  },
-  {
-    "from": {
-      "IR": "br label %try.cont | ID: 38",
-      "column": 3,
-      "line": 21,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "}"
-    },
-    "to": {
-      "IR": "%4 = load i32, i32* %a, align 4 | ID: 39",
-      "column": 10,
-      "line": 22,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "return a;"
-    }
-  },
-  {
-    "from": {
-      "IR": "%4 = load i32, i32* %a, align 4 | ID: 39",
-      "column": 10,
-      "line": 22,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "return a;"
-    },
-    "to": {
-      "IR": "ret i32 %4 | ID: 40",
-      "column": 3,
-      "line": 22,
-      "sourceCodeFileName": "/home/ubuntu/phasar/test/llvm_test_code/exceptions/exceptions_01.cpp",
-      "sourceCodeFunctionName": "main",
-      "sourceCodeLine": "return a;"
     }
   }
 ]
