@@ -11,6 +11,7 @@
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
@@ -108,9 +109,7 @@ bool IDEIIAFlowFact::operator==(const IDEIIAFlowFact &Other) const {
   }
   auto EqualGEPDescriptor = [](const llvm::GetElementPtrInst *Lhs,
                                const llvm::GetElementPtrInst *Rhs) {
-    const auto *LhsI = llvm::dyn_cast<llvm::Instruction>(Lhs);
-    const auto *RhsI = llvm::dyn_cast<llvm::Instruction>(Rhs);
-    return LhsI->isSameOperationAs(RhsI);
+    return llvm::equal(Lhs->indices(), Rhs->indices());
   };
   for (unsigned Idx = 0; Idx < FieldDesc.size(); ++Idx) {
     if (!EqualGEPDescriptor(FieldDesc[Idx], Other.FieldDesc[Idx])) {
