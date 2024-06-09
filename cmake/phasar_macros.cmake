@@ -127,11 +127,10 @@ function(generate_ll_file)
   if(GEN_LL_MEM2REG)
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       get_filename_component(COMPILER_PATH_STR ${CMAKE_CXX_COMPILER} DIRECTORY)
-      set(COMPILER_PATH PATHS ${COMPILER_PATH_STR})
+      find_program(OPT_TOOL opt REQUIRED HINTS ${COMPILER_PATH_STR})
     else()
-      set(COMPILER_PATH)
+      find_program(OPT_TOOL opt REQUIRED)
     endif()
-    find_program(OPT_TOOL opt REQUIRED HINTS ${COMPILER_PATH})
 
     add_custom_command(
       OUTPUT ${test_code_ll_file}
