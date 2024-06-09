@@ -89,7 +89,8 @@ public:
   template <typename I>
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
             const I *ICF)
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
+      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
+        ICF(&static_cast<const i_t &>(*ICF)), SVFG(ICF),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>()),
@@ -97,9 +98,9 @@ public:
     assert(ICF != nullptr);
 
     if constexpr (has_getSparseCFG_v<I, d_t>) {
-      NextUserOrNullCB = [](const i_t *ICF, ByConstRef<f_t> Fun,
+      NextUserOrNullCB = [](const void *SVFG, ByConstRef<f_t> Fun,
                             ByConstRef<d_t> d3, ByConstRef<n_t> n) {
-        auto &&SCFG = static_cast<const I &>(*ICF).getSparseCFG(Fun, d3);
+        auto &&SCFG = static_cast<const I *>(SVFG)->getSparseCFG(Fun, d3);
         return SCFG.nextUserOrNull(n);
       };
     }
@@ -355,7 +356,7 @@ protected:
       return {};
     }
 
-    return NextUserOrNullCB(ICF, Fun, d3, n);
+    return NextUserOrNullCB(SVFG, Fun, d3, n);
   }
 
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
@@ -1863,8 +1864,9 @@ private:
   IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
   d_t ZeroValue;
   const i_t *ICF;
+  const void *SVFG;
   IFDSIDESolverConfig &SolverConfig;
-  Nullable<n_t> (*NextUserOrNullCB)(const i_t *, ByConstRef<f_t>,
+  Nullable<n_t> (*NextUserOrNullCB)(const void *, ByConstRef<f_t>,
                                     ByConstRef<d_t>, ByConstRef<n_t>) = nullptr;
 
   std::vector<std::pair<PathEdge<n_t, d_t>, EdgeFunction<l_t>>> WorkList;

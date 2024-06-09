@@ -25,7 +25,7 @@ template <> struct CFGTraits<SparseLLVMBasedCFG> : CFGTraits<LLVMBasedCFG> {
 
 class SparseLLVMBasedCFG : public LLVMBasedCFG,
                            public SparseCFGBase<SparseLLVMBasedCFG> {
-  friend class SparseLLVMBasedICFG;
+  friend struct SVFGCache;
   friend SparseCFGBase<SparseLLVMBasedCFG>;
 
 public:

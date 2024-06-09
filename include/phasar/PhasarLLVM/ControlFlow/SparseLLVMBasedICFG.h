@@ -17,6 +17,7 @@
 
 namespace psr {
 class SparseLLVMBasedCFG;
+struct SVFGCache;
 
 class SparseLLVMBasedICFG
     : public LLVMBasedICFG,
@@ -46,9 +47,7 @@ private:
   [[nodiscard]] const SparseLLVMBasedCFG &
   getSparseCFGImpl(const llvm::Function *Fun, const llvm::Value *Val) const;
 
-  struct CacheData;
-
-  std::unique_ptr<CacheData> SparseCFGCache;
+  std::unique_ptr<SVFGCache> SparseCFGCache;
 };
 } // namespace psr
 

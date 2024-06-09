@@ -35,6 +35,8 @@ executeIFDSConst(AnalysisController::ControllerData &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeIFDSTaint(AnalysisController::ControllerData &Data);
 LLVM_LIBRARY_VISIBILITY void
+executeSparseIFDSTaint(AnalysisController::ControllerData &Data);
+LLVM_LIBRARY_VISIBILITY void
 executeIFDSType(AnalysisController::ControllerData &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeIFDSSolverTest(AnalysisController::ControllerData &Data);
