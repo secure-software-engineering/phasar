@@ -40,6 +40,7 @@
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
@@ -403,7 +404,7 @@ protected:
     auto &&Fun = ICF->getFunctionOf(n);
     auto GetNextUse = [this, &Fun, &n](n_t nPrime, ByConstRef<d_t> d3) {
       if (auto &&NextUser = getNextUserOrNull(Fun, d3, n)) {
-        return psr::unwrapNullable(std::forward<decltype(NextUser)>(NextUser));
+        return psr::unwrapNullable(PSR_FWD(NextUser));
       }
 
       return nPrime;
@@ -612,8 +613,7 @@ protected:
 
         auto DestN = [&, &n = n] {
           if (auto &&NextUser = getNextUserOrNull(Fun, d3, n)) {
-            return psr::unwrapNullable(
-                std::forward<decltype(NextUser)>(NextUser));
+            return psr::unwrapNullable(PSR_FWD(NextUser));
           }
 
           return nPrime;
@@ -1016,8 +1016,7 @@ protected:
                   auto DestN = [&] {
                     if (auto &&NextUser =
                             getNextUserOrNull(Fun, d5_restoredCtx, c)) {
-                      return psr::unwrapNullable(
-                          std::forward<decltype(NextUser)>(NextUser));
+                      return psr::unwrapNullable(PSR_FWD(NextUser));
                     }
 
                     return RetSiteC;
