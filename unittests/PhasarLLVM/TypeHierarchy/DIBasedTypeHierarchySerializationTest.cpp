@@ -56,29 +56,6 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
                    << '\n';
       llvm::errs() << "> DeserTy: " << *DeserTy << '\n';
     }
-
-    for (const auto &CurrVFunc :
-         Orig.getVFTable(OrigCurrentType)->getAllFunctions()) {
-      bool FoundFunction = false;
-      for (const auto &DeserFunc :
-           Deser.getVFTable(OrigCurrentType)->getAllFunctions()) {
-        if (DeserFunc) {
-          if (CurrVFunc) {
-            if (DeserFunc->getName() == CurrVFunc->getName()) {
-              FoundFunction = true;
-              break;
-            }
-          }
-        } else {
-          // This case is for a function that has no caller
-          if (!CurrVFunc) {
-            FoundFunction = true;
-            break;
-          }
-        }
-      }
-      EXPECT_TRUE(FoundFunction);
-    }
   }
 }
 

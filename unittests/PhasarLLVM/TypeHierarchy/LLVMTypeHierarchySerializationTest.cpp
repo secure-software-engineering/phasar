@@ -28,7 +28,6 @@ protected:
 void compareResults(psr::LLVMTypeHierarchy &Orig,
                     psr::LLVMTypeHierarchy &Deser) {
   ASSERT_EQ(Orig.getAllTypes().size(), Deser.getAllTypes().size());
-  ASSERT_EQ(Orig.getAllVTables().size(), Deser.getAllVTables().size());
 
   for (const auto &OrigCurrentType : Orig.getAllTypes()) {
     // check types

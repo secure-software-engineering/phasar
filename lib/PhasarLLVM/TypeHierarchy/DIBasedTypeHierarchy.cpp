@@ -313,29 +313,6 @@ auto DIBasedTypeHierarchy::subTypesOf(ClassType Ty) const noexcept
   return subTypesOf(It->second);
 }
 
-[[nodiscard]] bool DIBasedTypeHierarchy::isSuperType(ClassType Type,
-                                                     ClassType SuperType) {
-  return isSubType(SuperType, Type); // NOLINT
-}
-
-[[nodiscard]] auto DIBasedTypeHierarchy::getSuperTypes(ClassType /*Type*/)
-    -> std::set<ClassType> {
-  // TODO: implement (low priority)
-  llvm::report_fatal_error("Not implemented");
-}
-
-std::string DIBasedTypeHierarchy::getTypeName(ClassType Type) const {
-  if (const auto *CT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
-    return getCompositeTypeName(CT).str();
-  }
-  return Type->getName().str();
-}
-
-[[nodiscard]] bool DIBasedTypeHierarchy::hasVFTable(ClassType Type) const {
-  const auto *StructTy = llvm::dyn_cast<llvm::DICompositeType>(Type);
-  return StructTy && StructTy->getVTableHolder();
-}
-
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   {
     OS << "Type Hierarchy:\n";
@@ -377,7 +354,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   Data.VertexTypes.reserve(VertexTypes.size());
 
   for (const auto &Curr : VertexTypes) {
-    Data.VertexTypes.push_back(getTypeName(Curr));
+    Data.VertexTypes.push_back(getTypeName(Curr).str());
   }
 
   Data.TransitiveDerivedIndex = TransitiveDerivedIndex;
