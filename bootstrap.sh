@@ -108,7 +108,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 echo "installing phasar dependencies..."
 if [ -x "$(command -v pacman)" ]; then
-    yes | sudo pacman -Syu --needed which zlib sqlite3 python3 doxygen gcc python-pip ninja cmake
+    yes | sudo pacman -Syu --needed which zlib python3 doxygen gcc ninja cmake
 else
     ./utils/InstallAptDependencies.sh
 fi

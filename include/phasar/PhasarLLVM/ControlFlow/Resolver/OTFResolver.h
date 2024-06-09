@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <set>
@@ -35,16 +35,14 @@ class Value;
 
 namespace psr {
 
-class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 
 class OTFResolver : public Resolver {
 protected:
-  LLVMBasedICFG &ICF;
   LLVMAliasInfoRef PT;
 
 public:
-  OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMBasedICFG &ICF,
+  OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;

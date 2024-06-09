@@ -76,6 +76,13 @@ function(generate_ll_file)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+    list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
+  endif()
+  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+    list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
+  endif()
+
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
     list(APPEND GEN_C_FLAGS -Xclang -disable-O0-optnone)
@@ -195,6 +202,8 @@ function(add_phasar_library name)
   set_target_properties(${name} PROPERTIES
     EXPORT_NAME ${component_name}
   )
+
+  target_compile_features(${name} PUBLIC cxx_std_17)
 
   if(LLVM_COMMON_DEPENDS)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})

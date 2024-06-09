@@ -21,14 +21,12 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
-#include "phasar/Utils/MemoryResource.h"
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -42,6 +40,7 @@
 namespace psr {
 class LLVMTypeHierarchy;
 class LLVMProjectIRDB;
+class Resolver;
 
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
@@ -87,14 +86,21 @@ public:
                          LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                         llvm::ArrayRef<std::string> EntryPoints = {},
+                         Soundness S = Soundness::Soundy,
+                         bool IncludeGlobals = true);
+  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                         LLVMVFTableProvider VTP,
+                         llvm::ArrayRef<std::string> EntryPoints = {},
+                         Soundness S = Soundness::Soundy,
+                         bool IncludeGlobals = true);
 
   /// Creates an ICFG with an already given call-graph
-  explicit LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
-                         LLVMTypeHierarchy *TH = nullptr);
+  explicit LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB);
 
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                         const nlohmann::json &SerializedCG,
-                         LLVMTypeHierarchy *TH = nullptr);
+                         const nlohmann::json &SerializedCG);
 
   // Deleter of LLVMTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
@@ -157,11 +163,16 @@ private:
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
+  void initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                  llvm::ArrayRef<std::string> EntryPoints,
+                  const LLVMVFTableProvider &VTP, Soundness S,
+                  bool IncludeGlobals);
+
   // ---
 
   CallGraph<const llvm::Instruction *, const llvm::Function *> CG;
   LLVMProjectIRDB *IRDB = nullptr;
-  MaybeUniquePtr<LLVMTypeHierarchy, true> TH;
+  LLVMVFTableProvider VTP;
 };
 
 extern template class ICFGBase<LLVMBasedICFG>;

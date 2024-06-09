@@ -31,13 +31,7 @@ endif()
 
 option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-if(PHASAR_EXPERIMENTAL_CXX20)
-  message(STATUS "Selected experimental C++20 build")
-  set(CMAKE_CXX_STANDARD 20)
-else()
-  set(CMAKE_CXX_STANDARD 17)
-endif()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -299,8 +293,12 @@ else()
 endif()
 
 # SQL
-find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
-find_library(SQLITE3_LIBRARY NAMES sqlite3)
+find_package(SQLite3)
+if(SQLite3_FOUND)
+  set(PHASAR_HAS_SQLITE ON)
+else()
+  set(PHASAR_HAS_SQLITE OFF)
+endif()
 
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 

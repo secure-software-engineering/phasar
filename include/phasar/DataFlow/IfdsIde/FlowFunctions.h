@@ -84,7 +84,7 @@ template <typename FF> struct IsFlowFunction {
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 template <typename FF>
-static constexpr bool is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
+PSR_CONCEPT is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
 
 /// Given a flow-function type FF, returns a (smart) pointer type pointing to FF
 template <typename FF, typename = std::enable_if_t<is_flowfunction_v<FF>>>
@@ -930,16 +930,16 @@ public:
 
   using typename FlowFunction<D, Container>::container_type;
 
-  Compose(const std::vector<FlowFunction<D>> &Funcs) : Funcs(Funcs) {}
+  Compose(const std::vector<FlowFunctionPtrType> &Funcs) : Funcs(Funcs) {}
 
   ~Compose() override = default;
 
-  container_type computeTargets(const D &Source) override {
-    container_type Current(Source);
-    for (const FlowFunctionType &Func : Funcs) {
+  container_type computeTargets(D Source) override {
+    container_type Current{Source};
+    for (const FlowFunctionPtrType &Func : Funcs) {
       container_type Next;
       for (const D &Fact : Current) {
-        container_type Target = Func.computeTargets(Fact);
+        container_type Target = Func->computeTargets(Fact);
         Next.insert(Target.begin(), Target.end());
       }
       Current = Next;
@@ -948,11 +948,11 @@ public:
   }
 
   static FlowFunctionPtrType
-  compose(const std::vector<FlowFunctionType> &Funcs) {
-    std::vector<FlowFunctionType> Vec;
-    for (const FlowFunctionType &Func : Funcs) {
+  compose(const std::vector<FlowFunctionPtrType> &Funcs) {
+    std::vector<FlowFunctionPtrType> Vec;
+    for (const FlowFunctionPtrType &Func : Funcs) {
       if (Func != Identity<D, Container>::getInstance()) {
-        Vec.insert(Func);
+        Vec.push_back(Func);
       }
     }
     if (Vec.size() == 1) { // NOLINT(readability-container-size-empty)
@@ -965,7 +965,7 @@ public:
   }
 
 protected:
-  const std::vector<FlowFunctionType> Funcs;
+  const std::vector<FlowFunctionPtrType> Funcs;
 };
 
 //===----------------------------------------------------------------------===//
