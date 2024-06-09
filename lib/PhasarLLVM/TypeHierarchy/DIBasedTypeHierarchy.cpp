@@ -221,35 +221,37 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
 static const llvm::DICompositeType *
 stringToDICompositeType(const llvm::DebugInfoFinder &DIF,
-                        const llvm::StringRef DITypeName) {
+                        llvm::StringRef DITypeName) {
+  const llvm::DICompositeType *ByName = nullptr;
+  bool HasUniqueByName = false;
   for (const auto *Type : DIF.types()) {
     if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
       auto Ident = DICT->getIdentifier();
       if (Ident == DITypeName) {
         return DICT;
       }
-      if (Ident.empty() && DICT->getName() == DITypeName) {
-        return DICT;
+      if (DICT->getName() == DITypeName) {
+        HasUniqueByName = ByName == nullptr;
+        ByName = DICT;
       }
     }
   }
+  if (HasUniqueByName) {
+    return ByName;
+  }
 
-  llvm::report_fatal_error("DIType doesn't exist");
+  llvm::report_fatal_error("DIType doesn't exist: " + DITypeName);
 }
 
 static const llvm::DIType *stringToDIType(const llvm::DebugInfoFinder &DIF,
-                                          const llvm::StringRef DITypeName) {
+                                          llvm::StringRef DITypeName) {
   for (const auto *Type : DIF.types()) {
-    if (Type) {
-      if (Type->getName() == DITypeName) {
-        if (const auto *DIT = llvm::dyn_cast<llvm::DIType>(Type)) {
-          return DIT;
-        }
-      }
+    if (Type->getName() == DITypeName) {
+      return Type;
     }
   }
 
-  llvm::report_fatal_error("DIType doesn't exist");
+  llvm::report_fatal_error("DIType doesn't exist " + DITypeName);
 }
 
 // NOLINTNEXTLINE

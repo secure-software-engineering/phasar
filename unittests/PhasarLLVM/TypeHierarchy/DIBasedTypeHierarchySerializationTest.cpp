@@ -31,7 +31,9 @@ void compareResults(const psr::DIBasedTypeHierarchy &Orig,
   for (const auto *OrigCurrentType : Orig.getAllTypes()) {
     // check types
     const auto *DeserTy = Deser.getType(Orig.getTypeName(OrigCurrentType));
-    EXPECT_EQ(OrigCurrentType, DeserTy);
+    EXPECT_EQ(OrigCurrentType, DeserTy)
+        << "Failed to match type with name '"
+        << Orig.getTypeName(OrigCurrentType).str() << "'";
 
     // check edges
     const auto OrigSubTypes = Orig.subTypesOf(OrigCurrentType);
