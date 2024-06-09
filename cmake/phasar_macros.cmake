@@ -131,7 +131,7 @@ function(generate_ll_file)
     else()
       set(COMPILER_PATH)
     endif()
-    find_program(OPT_TOOL opt REQUIRED ${COMPILER_PATH})
+    find_program(OPT_TOOL opt REQUIRED HINTS ${COMPILER_PATH})
 
     add_custom_command(
       OUTPUT ${test_code_ll_file}

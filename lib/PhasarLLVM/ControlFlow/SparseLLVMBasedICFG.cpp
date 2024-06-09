@@ -24,14 +24,12 @@ SparseLLVMBasedICFG::SparseLLVMBasedICFG(
       SparseCFGCache(new SVFGCache{}) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG,
-                                         LLVMProjectIRDB *IRDB,
-                                         LLVMTypeHierarchy *TH)
-    : LLVMBasedICFG(std::move(CG), IRDB, TH), SparseCFGCache(new SVFGCache{}) {}
+                                         LLVMProjectIRDB *IRDB)
+    : LLVMBasedICFG(std::move(CG), IRDB), SparseCFGCache(new SVFGCache{}) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                                         const nlohmann::json &SerializedCG,
-                                         LLVMTypeHierarchy *TH)
-    : LLVMBasedICFG(IRDB, SerializedCG, TH), SparseCFGCache(new SVFGCache{}) {}
+                                         const nlohmann::json &SerializedCG)
+    : LLVMBasedICFG(IRDB, SerializedCG), SparseCFGCache(new SVFGCache{}) {}
 
 const SparseLLVMBasedCFG &
 SparseLLVMBasedICFG::getSparseCFGImpl(const llvm::Function *Fun,

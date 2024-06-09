@@ -34,12 +34,10 @@ public:
                                bool IncludeGlobals = true);
 
   /// Creates an ICFG with an already given call-graph
-  explicit SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
-                               LLVMTypeHierarchy *TH = nullptr);
+  explicit SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB);
 
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                               const nlohmann::json &SerializedCG,
-                               LLVMTypeHierarchy *TH = nullptr);
+                               const nlohmann::json &SerializedCG);
 
   ~SparseLLVMBasedICFG();
 
