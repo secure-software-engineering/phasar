@@ -36,7 +36,6 @@ static std::vector<const llvm::Function *> getVirtualFunctions(
 
 LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
   auto StructTypes = Mod.getIdentifiedStructTypes();
-  llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
 
   for (const auto &Glob : Mod.globals()) {
     if (LLVMTypeHierarchy::isVTable(Glob.getName())) {
@@ -62,4 +61,19 @@ const LLVMVFTable *
 LLVMVFTableProvider::getVFTableOrNull(const llvm::StructType *Type) const {
   auto It = TypeVFTMap.find(Type);
   return It != TypeVFTMap.end() ? &It->second : nullptr;
+}
+
+const llvm::GlobalVariable *
+LLVMVFTableProvider::getVFTableGlobal(const llvm::StructType *Type) const {
+  auto Name = LLVMTypeHierarchy::removeStructOrClassPrefix(*Type);
+  return getVFTableGlobal(Name);
+}
+
+const llvm::GlobalVariable *
+LLVMVFTableProvider::getVFTableGlobal(const std::string &ClearTypeName) const {
+  if (auto It = ClearNameTVMap.find(ClearTypeName);
+      It != ClearNameTVMap.end()) {
+    return It->second;
+  }
+  return nullptr;
 }
