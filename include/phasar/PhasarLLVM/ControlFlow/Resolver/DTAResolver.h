@@ -55,7 +55,8 @@ protected:
   bool heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
 
 public:
-  DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const LLVMTypeHierarchy *TH);
 
   ~DTAResolver() override = default;
 
