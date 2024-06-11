@@ -162,7 +162,7 @@ template <> struct JoinLatticeTraits<IDEFeatureTaintEdgeFact> {
   }
 };
 
-struct IDEFeatureInteractionAnalysisDomain : LLVMAnalysisDomainDefault {
+struct IDEFeatureTaintAnalysisDomain : LLVMAnalysisDomainDefault {
   using l_t = IDEFeatureTaintEdgeFact;
 };
 
@@ -247,7 +247,7 @@ private:
 };
 
 class IDEFeatureInteractionAnalysis
-    : public IDETabulationProblem<IDEFeatureInteractionAnalysisDomain> {
+    : public IDETabulationProblem<IDEFeatureTaintAnalysisDomain> {
 
 public:
   IDEFeatureInteractionAnalysis(const LLVMProjectIRDB *IRDB,
