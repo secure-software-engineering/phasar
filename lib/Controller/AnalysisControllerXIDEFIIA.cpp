@@ -39,6 +39,6 @@ void controller::executeIDEFIIA(AnalysisController::ControllerData &Data) {
         Current);
   };
 
-  executeIDEAnalysis<IDEFeatureInteractionAnalysis>(Data, Data.EntryPoints,
-                                                    Generator);
+  executeIDEAnalysis<IDEFeatureTaintAnalysis>(Data, Data.EntryPoints,
+                                              Generator);
 }

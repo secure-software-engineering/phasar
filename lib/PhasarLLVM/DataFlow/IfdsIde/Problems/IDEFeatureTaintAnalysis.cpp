@@ -27,17 +27,17 @@
 
 using namespace psr;
 
-using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
-using d_t = IDEFeatureInteractionAnalysisDomain::d_t;
+using l_t = IDEFeatureTaintAnalysisDomain::l_t;
+using d_t = IDEFeatureTaintAnalysisDomain::d_t;
 
-IDEFeatureInteractionAnalysis::IDEFeatureInteractionAnalysis(
+IDEFeatureTaintAnalysis::IDEFeatureTaintAnalysis(
     const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints, FeatureTaintGenerator &&TaintGen)
-    : IDETabulationProblem<IDEFeatureInteractionAnalysisDomain>(
+    : IDETabulationProblem<IDEFeatureTaintAnalysisDomain>(
           IRDB, std::move(EntryPoints), LLVMZeroValue::getInstance()),
       TaintGen(std::move(TaintGen)), PT(PT) {}
 
-IDEFeatureInteractionAnalysis::~IDEFeatureInteractionAnalysis() = default;
+IDEFeatureTaintAnalysis::~IDEFeatureTaintAnalysis() = default;
 
 std::string psr::LToString(const IDEFeatureTaintEdgeFact &EdgeFact) {
   std::string Ret;
@@ -48,8 +48,7 @@ std::string psr::LToString(const IDEFeatureTaintEdgeFact &EdgeFact) {
   return Ret;
 }
 
-auto IDEFeatureInteractionAnalysis::getNormalFlowFunction(n_t Curr,
-                                                          n_t /* Succ */)
+auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
     -> FlowFunctionPtrType {
   bool GeneratesFact = TaintGen.isSource(Curr);
 
@@ -132,8 +131,7 @@ auto IDEFeatureInteractionAnalysis::getNormalFlowFunction(n_t Curr,
   });
 }
 
-auto IDEFeatureInteractionAnalysis::getCallFlowFunction(n_t CallSite,
-                                                        f_t DestFun)
+auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
     -> FlowFunctionPtrType {
 
   if (DestFun->isDeclaration()) {
@@ -170,10 +168,10 @@ auto IDEFeatureInteractionAnalysis::getCallFlowFunction(n_t CallSite,
   return MapFactsToCalleeFF;
 }
 
-auto IDEFeatureInteractionAnalysis::getRetFlowFunction(n_t CallSite,
-                                                       f_t /*CalleeFun*/,
-                                                       n_t ExitInst,
-                                                       n_t /* RetSite */)
+auto IDEFeatureTaintAnalysis::getRetFlowFunction(n_t CallSite,
+                                                 f_t /*CalleeFun*/,
+                                                 n_t ExitInst,
+                                                 n_t /* RetSite */)
     -> FlowFunctionPtrType {
   // Map return value back to the caller. If pointer parameters hold at the
   // end of a callee function generate all of those in the caller context.
@@ -198,7 +196,7 @@ auto IDEFeatureInteractionAnalysis::getRetFlowFunction(n_t CallSite,
       });
 }
 
-auto IDEFeatureInteractionAnalysis::getCallToRetFlowFunction(
+auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
     n_t CallSite, n_t /* RetSite */, llvm::ArrayRef<f_t> Callees)
     -> FlowFunctionPtrType {
 
@@ -229,8 +227,8 @@ auto IDEFeatureInteractionAnalysis::getCallToRetFlowFunction(
   return Mapper;
 }
 
-struct IDEFeatureInteractionAnalysis::AddFactsEF {
-  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
+struct IDEFeatureTaintAnalysis::AddFactsEF {
+  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
 
   IDEFeatureTaintEdgeFact Facts;
 
@@ -259,8 +257,8 @@ struct IDEFeatureInteractionAnalysis::AddFactsEF {
   }
 };
 
-struct IDEFeatureInteractionAnalysis::GenerateEF {
-  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
+struct IDEFeatureTaintAnalysis::GenerateEF {
+  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
 
   IDEFeatureTaintEdgeFact Facts;
 
@@ -292,7 +290,7 @@ struct IDEFeatureInteractionAnalysis::GenerateEF {
 
 namespace {
 struct AddSmallFactsEF {
-  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
+  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
 
   uintptr_t Facts{};
 
@@ -322,7 +320,7 @@ struct AddSmallFactsEF {
 };
 
 struct GenerateSmallEF {
-  using l_t = IDEFeatureInteractionAnalysisDomain::l_t;
+  using l_t = IDEFeatureTaintAnalysisDomain::l_t;
 
   uintptr_t Facts{};
 
@@ -596,8 +594,8 @@ EdgeFunction<l_t> iiaDefaultJoinOrNull(const EdgeFunction<l_t> &This,
 ////////////////////////////////////////////////////////////////////////////////
 
 EdgeFunction<l_t>
-IDEFeatureInteractionAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
-                                      const EdgeFunction<l_t> &SecondEF) {
+IDEFeatureTaintAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
+                                const EdgeFunction<l_t> &SecondEF) {
   auto Ret = [&] {
     if (auto Default = defaultComposeOrNull(FirstEF, SecondEF)) {
       // llvm::errs() << "defaultComposeOrNull>>\n";
@@ -620,8 +618,8 @@ IDEFeatureInteractionAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
   return Ret;
 }
 EdgeFunction<l_t>
-IDEFeatureInteractionAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
-                                       const EdgeFunction<l_t> &OtherEF) {
+IDEFeatureTaintAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
+                                 const EdgeFunction<l_t> &OtherEF) {
   auto Ret = [&] {
     /// XXX: Here, we underapproximate joins with EdgeIdentity
     if (llvm::isa<EdgeIdentity<l_t>>(FirstEF)) {
@@ -653,8 +651,10 @@ IDEFeatureInteractionAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
   return Ret;
 }
 
-auto IDEFeatureInteractionAnalysis::getNormalEdgeFunction(
-    n_t Curr, d_t CurrNode, n_t /* Succ */, d_t SuccNode) -> EdgeFunction<l_t> {
+auto IDEFeatureTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                    n_t /* Succ */,
+                                                    d_t SuccNode)
+    -> EdgeFunction<l_t> {
 
   if (isZeroValue(SuccNode) || CurrNode == SuccNode) {
     // We don't want to propagate any facts on zero
@@ -687,8 +687,9 @@ auto IDEFeatureInteractionAnalysis::getNormalEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureInteractionAnalysis::getCallEdgeFunction(
-    n_t CallSite, d_t SrcNode, f_t /*DestinationFunction*/, d_t DestNode)
+auto IDEFeatureTaintAnalysis::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                                  f_t /*DestinationFunction*/,
+                                                  d_t DestNode)
     -> EdgeFunction<l_t> {
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     // Generate user edge-facts from zero
@@ -698,7 +699,7 @@ auto IDEFeatureInteractionAnalysis::getCallEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureInteractionAnalysis::getReturnEdgeFunction(
+auto IDEFeatureTaintAnalysis::getReturnEdgeFunction(
     n_t CallSite, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
     n_t /*RetSite*/, d_t RetNode) -> EdgeFunction<l_t> {
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
@@ -709,7 +710,7 @@ auto IDEFeatureInteractionAnalysis::getReturnEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureInteractionAnalysis::getCallToRetEdgeFunction(
+auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
@@ -742,8 +743,7 @@ auto IDEFeatureInteractionAnalysis::getCallToRetEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto IDEFeatureInteractionAnalysis::initialSeeds()
-    -> InitialSeeds<n_t, d_t, l_t> {
+auto IDEFeatureTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
   InitialSeeds<n_t, d_t, l_t> Seeds;
 
   LLVMBasedCFG CFG;
@@ -778,11 +778,11 @@ auto IDEFeatureInteractionAnalysis::initialSeeds()
   return Seeds;
 }
 
-bool IDEFeatureInteractionAnalysis::isZeroValue(d_t FlowFact) const noexcept {
+bool IDEFeatureTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
   return LLVMZeroValue::isLLVMZeroValue(FlowFact);
 }
 
-void IDEFeatureInteractionAnalysis::emitTextReport(
+void IDEFeatureTaintAnalysis::emitTextReport(
     const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
   OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
         "======================\n";

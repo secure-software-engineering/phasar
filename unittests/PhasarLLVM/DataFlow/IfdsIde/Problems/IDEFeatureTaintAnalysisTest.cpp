@@ -87,7 +87,7 @@ protected:
           Current);
     };
     assert(HA);
-    auto IIAProblem = createAnalysisProblem<IDEFeatureInteractionAnalysis>(
+    auto IIAProblem = createAnalysisProblem<IDEFeatureTaintAnalysis>(
         *HA, EntryPoints, Generator);
 
     // if (PrintDump) {
