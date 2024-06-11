@@ -26,16 +26,13 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdlib>
 #include <filesystem>
 #include <system_error>
 #include <type_traits>
-
-namespace llvm {
-class DbgInfoIntrinsic;
-} // namespace llvm
 
 namespace psr {
 template <typename Derived, typename AnalysisDomainTy, typename GraphType>
