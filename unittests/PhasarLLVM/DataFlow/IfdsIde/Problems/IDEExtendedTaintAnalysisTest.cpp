@@ -208,7 +208,7 @@ TEST_F(IDETaintAnalysisTest, XTaint09_1) {
 TEST_F(IDETaintAnalysisTest, XTaint09) {
   map<int, set<string>> Gt;
 
-  Gt[34] = {"33"};
+  Gt[33] = {"32"};
 
   doAnalysis({PathToLLFiles + "xtaint09_cpp.ll"}, Gt, std::monostate{});
 }
