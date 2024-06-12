@@ -30,9 +30,9 @@
 
 using namespace psr;
 
-OTFResolver::OTFResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
-                         LLVMAliasInfoRef PT)
-    : Resolver(IRDB, TH), PT(PT) {}
+OTFResolver::OTFResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP, LLVMAliasInfoRef PT)
+    : Resolver(IRDB, VTP), PT(PT) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {}
 

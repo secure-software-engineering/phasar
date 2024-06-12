@@ -18,6 +18,7 @@
 #include "llvm/ADT/STLExtras.h"
 
 #include <array>
+#include <tuple>
 #include <utility>
 
 namespace llvm {
@@ -151,6 +152,9 @@ class DummyFieldSensitivePointsToAnalysis
 
   PointsToInfo<PointsToTraits<DummyFieldSensitivePointsToAnalysis>> TEPTA4(
       std::in_place_type<DummyFieldSensitivePointsToAnalysis>);
+
+  // Make sure, the template gets instantiated:
+  std::ignore = TEPTA1.getInterestingPointersAt(nullptr);
 }
 
 template class PointsToInfoBase<DummyFieldSensitivePointsToAnalysis>;
