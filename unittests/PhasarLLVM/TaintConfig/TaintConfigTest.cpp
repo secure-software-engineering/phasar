@@ -367,10 +367,10 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
 
-  const llvm::Value *I1 = IR.getInstruction(16);
-  const llvm::Value *I2 = IR.getInstruction(52);
-  const llvm::Value *I3 = IR.getInstruction(61);
-  const llvm::Value *I4 = IR.getInstruction(69);
+  const llvm::Value *I1 = IR.getInstruction(18);
+  const llvm::Value *I2 = IR.getInstruction(54);
+  const llvm::Value *I3 = IR.getInstruction(63);
+  const llvm::Value *I4 = IR.getInstruction(71);
   ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
   ASSERT_TRUE(TConfig.isSource(I3));

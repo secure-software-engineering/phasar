@@ -143,11 +143,11 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 13);
+  Inst = getNthInstruction(Main, 14);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 16);
+  Inst = getNthInstruction(Main, 17);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -248,20 +248,20 @@ TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_01) {
 
   Inst = getNthInstruction(Main, 4);
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 13);
+  Inst = getNthInstruction(Main, 14);
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 13);
+  Inst = getNthInstruction(Main, 14);
 
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 18);
+  Inst = getNthInstruction(Main, 19);
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 16);
+  Inst = getNthInstruction(Main, 17);
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 21);
+  Inst = getNthInstruction(Main, 22);
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 }
@@ -852,10 +852,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
           "main", 17, "retval", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "i", {"5", "6"}));
+          "main", 17, "i", {"6", "7"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "j", {"5", "6", "7", "8", "9"}));
+          "main", 17, "j", {"6", "7", "8", "9", "10"}));
   doAnalysisAndCompareResults("heap_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 

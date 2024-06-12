@@ -193,7 +193,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[14] = set<string>{"13"};
+  GroundTruth[15] = set<string>{"14"};
   compareResults(GroundTruth);
 }
 
@@ -203,7 +203,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[5] = set<string>{"0"};
+  GroundTruth[6] = set<string>{"0"};
   compareResults(GroundTruth);
 }
 
@@ -213,7 +213,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[16] = set<string>{"15"};
+  GroundTruth[17] = set<string>{"16"};
   compareResults(GroundTruth);
 }
 
@@ -224,7 +224,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[11] = set<string>{"10"};
-  GroundTruth[20] = set<string>{"19"};
+  GroundTruth[21] = set<string>{"20"};
   compareResults(GroundTruth);
 }
 
@@ -234,7 +234,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[32] = set<string>{"31"};
+  GroundTruth[33] = set<string>{"32"};
   compareResults(GroundTruth);
 }
 
@@ -245,7 +245,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
   TaintSolver.solve();
 
   map<int, set<string>> GroundTruth;
-  GroundTruth[32] = set<string>{"31"};
+  GroundTruth[33] = set<string>{"32"};
   compareResults(GroundTruth);
 }
 
@@ -255,7 +255,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[14] = set<string>{"13"};
+  GroundTruth[15] = set<string>{"14"};
   compareResults(GroundTruth);
 }
 
@@ -265,7 +265,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[30] = set<string>{"29"};
+  GroundTruth[31] = set<string>{"30"};
   compareResults(GroundTruth);
 }
 
@@ -275,7 +275,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[32] = set<string>{"31"};
+  GroundTruth[33] = set<string>{"32"};
   compareResults(GroundTruth);
 }
 
@@ -285,7 +285,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[62] = set<string>{"61"};
+  GroundTruth[64] = set<string>{"63"};
   compareResults(GroundTruth);
 }
 
@@ -295,7 +295,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[60] = set<string>{"59"};
+  GroundTruth[62] = set<string>{"61"};
   compareResults(GroundTruth);
 }
 
