@@ -23,6 +23,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/MemoryLocation.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -36,6 +37,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
+#include "llvm/Support/TypeSize.h"
 
 #include "nlohmann/json.hpp"
 
@@ -315,24 +317,42 @@ bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
   return false;
 }
 
+static llvm::Type *getPointeeTypeOrNull(const llvm::Value *Ptr) {
+  assert(Ptr->getType()->isPointerTy());
+
+  if (!Ptr->getType()->isOpaquePointerTy()) {
+    return Ptr->getType()->getNonOpaquePointerElementType();
+  }
+
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Ptr)) {
+    if (auto *Ty = Arg->getParamByValType()) {
+      return Ty;
+    }
+    if (auto *Ty = Arg->getParamStructRetType()) {
+      return Ty;
+    }
+  }
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Ptr)) {
+    return Alloca->getAllocatedType();
+  }
+  return nullptr;
+}
+
 static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
                      const llvm::Value *V, const llvm::Value *Rep) {
   assert(V->getType()->isPointerTy());
   assert(Rep->getType()->isPointerTy());
 
-  auto *ElTy = !V->getType()->isOpaquePointerTy()
-                   ? V->getType()->getNonOpaquePointerElementType()
-                   : nullptr;
-  auto *RepElTy = !Rep->getType()->isOpaquePointerTy()
-                      ? Rep->getType()->getNonOpaquePointerElementType()
-                      : nullptr;
+  auto *ElTy = getPointeeTypeOrNull(V);
+  auto *RepElTy = getPointeeTypeOrNull(Rep);
 
-  auto VSize = ElTy && ElTy->isSized() ? DL.getTypeStoreSize(ElTy)
-                                       : llvm::MemoryLocation::UnknownSize;
+  auto VSize = ElTy && ElTy->isSized()
+                   ? llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy))
+                   : llvm::LocationSize::precise(1);
 
   auto RepSize = RepElTy && RepElTy->isSized()
-                     ? DL.getTypeStoreSize(RepElTy)
-                     : llvm::MemoryLocation::UnknownSize;
+                     ? llvm::LocationSize::precise(DL.getTypeStoreSize(RepElTy))
+                     : llvm::LocationSize::precise(1);
 
   if (AA.alias(V, VSize, Rep, RepSize) != llvm::AliasResult::NoAlias) {
     return true;
