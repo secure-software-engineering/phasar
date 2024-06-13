@@ -19,7 +19,7 @@ using namespace psr;
 
 TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "call_graphs/virtual_call_7_cpp.ll");
+                       "call_graphs/virtual_call_7_cpp_dbg.ll");
   LLVMTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);

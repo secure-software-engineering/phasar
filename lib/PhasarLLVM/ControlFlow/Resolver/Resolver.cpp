@@ -29,8 +29,10 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -71,16 +73,38 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite,
     return nullptr;
   }
 
+  llvm::DebugInfoFinder DIF;
+  const auto *M = IRDB->getModule();
+  // IRDB->dump();
+
+  DIF.processModule(*M);
+
+  for (const auto &SubP : DIF.subprograms()) {
+    llvm::outs() << "SubP: " << SubP << "\n";
+    llvm::outs() << "Name: " << SubP->getName() << "\n";
+    llvm::outs() << "VirtualIndex: " << SubP->getVirtualIndex() << "\n";
+    llvm::outs() << "Metadata ID: " << SubP->getMetadataID() << "\n";
+  }
+
   if (Receiver->getType()->isOpaquePointerTy()) {
+    /*
+        OpaquePtrTypeInfoMap OpaquePtrTypeInfo(IRDB);
 
-    OpaquePtrTypeInfoMap OpaquePtrTypeInfo(IRDB);
-
-    if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-            IRDB->getValueFromId(
-                    OpaquePtrTypeInfo.TypeInfo[Receiver->getValueID()])
-                ->getType())) {
-      return ReceiverTy;
-    }
+        if (const auto &ReceiverInstr =
+                llvm::dyn_cast<llvm::Instruction>(Receiver)) {
+          llvm::outs() << "ReceiverInstr opcode name: "
+                       << ReceiverInstr->getOpcodeName() << "\n";
+          for (const auto *Instr : IRDB->getAllInstructions()) {
+            llvm::outs() << "Instr opcode name: " << Instr->getOpcodeName() <<
+       "\n"; if (Instr->getOpcodeName() == ReceiverInstr->getOpcodeName()) {
+       if (const auto *ReceiverTy =
+                      llvm::dyn_cast<llvm::StructType>(Instr->getType())) {
+                llvm::outs() << "\nReceiverTy\n" << ReceiverTy << "\n";
+                return ReceiverTy;
+              }
+            }
+          }
+        } */
 
     return nullptr;
   }

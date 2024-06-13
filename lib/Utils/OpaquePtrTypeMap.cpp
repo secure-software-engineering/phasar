@@ -7,7 +7,7 @@ namespace psr {
 OpaquePtrTypeInfoMap::OpaquePtrTypeInfoMap(const psr::LLVMProjectIRDB *Code) {
   for (const auto &Instr : Code->getAllInstructions()) {
     if (Instr->getType()->isOpaquePointerTy()) {
-      TypeInfo.try_emplace(Instr->getValueID());
+      TypeInfo.try_emplace(Instr->getOpcodeName());
     }
   }
 
@@ -16,7 +16,7 @@ OpaquePtrTypeInfoMap::OpaquePtrTypeInfoMap(const psr::LLVMProjectIRDB *Code) {
       const auto &Operand = Store->getPointerOperand();
 
       if (Operand->getType()->isPointerTy()) {
-        TypeInfo[Store->getValueID()] = Store->getValueOperand()->getValueID();
+        TypeInfo[Store->getOpcodeName()] = Store->getValueOperand()->getName();
       }
     }
   }
