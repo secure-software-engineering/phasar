@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/Utils/OpaquePtrTypeMap.h"
 
 #include "llvm/ADT/DenseSet.h"
 
@@ -42,9 +43,10 @@ enum class CallGraphAnalysisType;
 getVFTIndex(const llvm::CallBase *CallSite);
 
 [[nodiscard]] const llvm::StructType *
-getReceiverType(const llvm::CallBase *CallSite);
+getReceiverType(const llvm::CallBase *CallSite, const LLVMProjectIRDB *IRDB);
 
-[[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
+[[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite,
+                                              const LLVMProjectIRDB *IRDB);
 
 [[nodiscard]] bool isConsistentCall(const llvm::CallBase *CallSite,
                                     const llvm::Function *DestFun);
@@ -62,6 +64,8 @@ protected:
 
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
+
+  OpaquePtrTypeInfoMap OpaquePtrTypeInfo;
 
   Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
 

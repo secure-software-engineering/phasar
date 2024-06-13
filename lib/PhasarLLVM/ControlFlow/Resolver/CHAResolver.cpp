@@ -63,7 +63,7 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverTy = getReceiverType(CallSite);
+  const auto *ReceiverTy = getReceiverType(CallSite, IRDB);
 
   // also insert all possible subtypes vtable entries
   auto FallbackTys = TH->getSubTypes(ReceiverTy);

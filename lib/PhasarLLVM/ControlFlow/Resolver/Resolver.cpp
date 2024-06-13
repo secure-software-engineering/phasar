@@ -57,7 +57,8 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
+const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite,
+                                             const LLVMProjectIRDB *IRDB) {
   if (CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
     return nullptr;
@@ -71,8 +72,16 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   }
 
   if (Receiver->getType()->isOpaquePointerTy()) {
-    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
-                    "which are not supported by phasar yet!\n";
+
+    OpaquePtrTypeInfoMap OpaquePtrTypeInfo(IRDB);
+
+    if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+            IRDB->getValueFromId(
+                    OpaquePtrTypeInfo.TypeInfo[Receiver->getValueID()])
+                ->getType())) {
+      return ReceiverTy;
+    }
+
     return nullptr;
   }
 
@@ -86,8 +95,9 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   return nullptr;
 }
 
-std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite) {
-  const auto *RT = getReceiverType(CallSite);
+std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite,
+                                     const LLVMProjectIRDB *IRDB) {
+  const auto *RT = getReceiverType(CallSite, IRDB);
   if (RT) {
     return RT->getName().str();
   }
@@ -110,12 +120,13 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
 
 namespace psr {
 
-Resolver::Resolver(const LLVMProjectIRDB *IRDB) : IRDB(IRDB), VTP(nullptr) {
+Resolver::Resolver(const LLVMProjectIRDB *IRDB)
+    : IRDB(IRDB), VTP(nullptr), OpaquePtrTypeInfo(IRDB) {
   assert(IRDB != nullptr);
 }
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
-    : IRDB(IRDB), VTP(VTP) {}
+    : IRDB(IRDB), VTP(VTP), OpaquePtrTypeInfo(IRDB) {}
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,

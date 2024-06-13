@@ -185,7 +185,7 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CallSite);
+  const auto *ReceiverType = getReceiverType(CallSite, IRDB);
 
   auto PossibleTypes = TypeGraph.getTypes(ReceiverType);
 

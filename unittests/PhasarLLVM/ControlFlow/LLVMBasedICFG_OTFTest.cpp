@@ -32,8 +32,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(VFuncA);
   ASSERT_TRUE(VFuncB);
 
-  const auto *CallToAFunc = getNthInstruction(F, 27);
-  llvm::outs() << "CallToAFunc: " << *CallToAFunc << '\n';
+  const auto *CallToAFunc = getNthInstruction(F, 19);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
   const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
   ASSERT_EQ(AsCallees.size(), 2U);

@@ -234,14 +234,15 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
 }
 
 static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
-                                          const LLVMVFTableProvider &VTP) {
+                                          const LLVMVFTableProvider &VTP,
+                                          const LLVMProjectIRDB *IRDB) {
   assert(Inst != nullptr);
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
   if (!CallSite) {
     return false;
   }
   // check potential receiver type
-  const auto *RecType = getReceiverType(CallSite);
+  const auto *RecType = getReceiverType(CallSite, IRDB);
   if (!RecType) {
     return false;
   }
@@ -273,7 +274,7 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
     // call the resolve routine
 
     assert(VTP != nullptr);
-    auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *VTP)
+    auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *VTP, IRDB)
                                ? Res->resolveVirtualCall(CallSite)
                                : Res->resolveFunctionPointer(CallSite);
 
@@ -412,7 +413,7 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
 }
 
 [[nodiscard]] bool LLVMBasedICFG::isVirtualFunctionCallImpl(n_t Inst) const {
-  return internalIsVirtualFunctionCall(Inst, VTP);
+  return internalIsVirtualFunctionCall(Inst, VTP, IRDB);
 }
 
 [[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const
