@@ -11,6 +11,18 @@ class FunctionDataFlowFacts {
     private :
         std::unordered_map<std::string, std::unordered_map<int, std::set<DataFlowFact>>> fdff;
 
+        bool getDataFlowFactsOf (std::string funcKey, std::unordered_map<int, std::set<DataFlowFact>> *output) {
+            auto const it = this->fdff.find (funcKey);
+            if (it == this->fdff.end()) {
+                return false;
+            }
+
+            else {
+                *output = it->second;
+                return true;
+            }
+        }
+
     public :
         FunctionDataFlowFacts ();
 
@@ -27,17 +39,16 @@ class FunctionDataFlowFacts {
             }
         }
 
-        const std::unordered_map<int, std::set<DataFlowFact>>& getDataFlowFactsOf (std::string funcKey) const {
-            auto const it = this->fdff.find (funcKey);
-            if (it == this->fdff.end()) {
-                std::unordered_map<int, std::set<DataFlowFact>> ret;
-                return ret;
+         bool getDataFlowFacts (std::string funcKey, int index, std::set<DataFlowFact> *out) {
+            std::unordered_map<int, std::set<DataFlowFact>> *output = new std::unordered_map<int, std::set<DataFlowFact>> ();
+            if (this->getDataFlowFactsOf (funcKey, output)) {
+                auto it = (*output).find (index);
+                *out = it->second;
+                return true;
             }
 
             else {
-                return it->second;
+                return false;
             }
         }
-
-        //method to get num of parameters/flow facts
 };
