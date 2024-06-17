@@ -30,6 +30,7 @@
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -73,39 +74,7 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite,
     return nullptr;
   }
 
-  llvm::DebugInfoFinder DIF;
-  const auto *M = IRDB->getModule();
-  // IRDB->dump();
-
-  DIF.processModule(*M);
-
-  for (const auto &SubP : DIF.subprograms()) {
-    llvm::outs() << "SubP: " << SubP << "\n";
-    llvm::outs() << "Name: " << SubP->getName() << "\n";
-    llvm::outs() << "VirtualIndex: " << SubP->getVirtualIndex() << "\n";
-    llvm::outs() << "Metadata ID: " << SubP->getMetadataID() << "\n";
-  }
-
   if (Receiver->getType()->isOpaquePointerTy()) {
-    /*
-        OpaquePtrTypeInfoMap OpaquePtrTypeInfo(IRDB);
-
-        if (const auto &ReceiverInstr =
-                llvm::dyn_cast<llvm::Instruction>(Receiver)) {
-          llvm::outs() << "ReceiverInstr opcode name: "
-                       << ReceiverInstr->getOpcodeName() << "\n";
-          for (const auto *Instr : IRDB->getAllInstructions()) {
-            llvm::outs() << "Instr opcode name: " << Instr->getOpcodeName() <<
-       "\n"; if (Instr->getOpcodeName() == ReceiverInstr->getOpcodeName()) {
-       if (const auto *ReceiverTy =
-                      llvm::dyn_cast<llvm::StructType>(Instr->getType())) {
-                llvm::outs() << "\nReceiverTy\n" << ReceiverTy << "\n";
-                return ReceiverTy;
-              }
-            }
-          }
-        } */
-
     return nullptr;
   }
 
@@ -145,12 +114,12 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
 namespace psr {
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB)
-    : IRDB(IRDB), VTP(nullptr), OpaquePtrTypeInfo(IRDB) {
+    : IRDB(IRDB), VTP(nullptr), OpaquePtrTypes(IRDB) {
   assert(IRDB != nullptr);
 }
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
-    : IRDB(IRDB), VTP(VTP), OpaquePtrTypeInfo(IRDB) {}
+    : IRDB(IRDB), VTP(VTP), OpaquePtrTypes(IRDB) {}
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,

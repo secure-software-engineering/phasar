@@ -18,7 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/Utils/OpaquePtrTypeMap.h"
+#include "phasar/Utils/IRDBOpaquePtrTypes.h"
 
 #include "llvm/ADT/DenseSet.h"
 
@@ -55,6 +55,7 @@ class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;
   const LLVMVFTableProvider *VTP;
+  IRDBOpaquePtrTypes OpaquePtrTypes;
 
   Resolver(const LLVMProjectIRDB *IRDB);
 
@@ -64,8 +65,6 @@ protected:
 
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
-
-  OpaquePtrTypeInfoMap OpaquePtrTypeInfo;
 
   Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
 
