@@ -12,6 +12,7 @@
 
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasResult.h"
+#include "phasar/Pointer/BasicAliasInfo.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/ByRef.h"
 
@@ -135,6 +136,12 @@ public:
                                             IntraProcOnly, AtInstruction);
   }
 
+  void foreachAliasOf(v_t Fact, n_t AtInst,
+                      BasicAliasHandler<v_t> Handler) const {
+    assert(VT != nullptr);
+    VT->ForeachAliasOf(AA, Fact, AtInst, Handler);
+  }
+
   void print(llvm::raw_ostream &OS = llvm::outs()) const {
     assert(VT != nullptr);
     VT->Print(AA, OS);
@@ -186,6 +193,10 @@ public:
     return static_cast<T *>(AA);
   }
 
+  operator BasicAliasInfoRef<v_t, n_t>() const noexcept {
+    return BasicAliasInfoRef<v_t, n_t>(AA, VT->ForeachAliasOf);
+  }
+
 private:
   struct VTable {
     bool (*IsInterProcedural)(const void *) noexcept;
@@ -199,6 +210,9 @@ private:
     bool (*IsInReachableAllocationSites)(void *, ByConstRef<v_t>,
                                          ByConstRef<v_t>, bool,
                                          ByConstRef<n_t>);
+    void (*ForeachAliasOf)(void *, ByConstRef<v_t>, ByConstRef<n_t>,
+                           BasicAliasHandler<v_t>);
+
     void (*Print)(const void *, llvm::raw_ostream &);
     nlohmann::json (*GetAsJson)(const void *);
     void (*PrintAsJson)(const void *, llvm::raw_ostream &);
@@ -236,6 +250,17 @@ private:
          bool IntraProcOnly, ByConstRef<n_t> AtInstruction) {
         return static_cast<ConcreteAA *>(AA)->isInReachableAllocationSites(
             Pointer1, Pointer2, IntraProcOnly, AtInstruction);
+      },
+      [](void *AA, v_t Fact, n_t AtInst, BasicAliasHandler<v_t> Handler) {
+        if constexpr (IsBasicAliasInfo<ConcreteAA>) {
+          static_cast<const ConcreteAA *>(AA)->foreachAliasOf(Fact, AtInst,
+                                                              Handler);
+        } else {
+          for (const auto &Alias :
+               *static_cast<ConcreteAA *>(AA)->getAliasSet(Fact, AtInst)) {
+            Handler(Alias);
+          }
+        }
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->print(OS);
@@ -323,6 +348,12 @@ public:
       this->AA = nullptr;
     }
   }
+
+  operator BasicAliasInfoRef<v_t, n_t>() const &noexcept {
+    return static_cast<BasicAliasInfoRef<v_t, n_t>>(
+        static_cast<const AliasInfoRef<v_t, n_t>>(*this));
+  }
+  operator BasicAliasInfoRef<v_t, n_t>() && = delete;
 
   [[nodiscard]] base_t asRef() &noexcept { return *this; }
   [[nodiscard]] AliasInfoRef<V, N> asRef() const &noexcept { return *this; }
