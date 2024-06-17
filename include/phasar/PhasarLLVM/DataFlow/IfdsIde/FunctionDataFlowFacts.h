@@ -12,6 +12,9 @@ struct Parameter {
 struct ReturnValue {};
 
 struct DataFlowFact {
+  DataFlowFact(Parameter Param) noexcept : Fact(Param) {}
+  DataFlowFact(ReturnValue Ret) noexcept : Fact(Ret) {}
+
   std::variant<Parameter, ReturnValue> Fact;
 };
 
@@ -97,6 +100,8 @@ private:
   //     }
   //   }^
 
+  // TODO: Remove public and use stable API instead!
+public:
   std::unordered_map<std::string,
                      std::unordered_map<uint32_t, std::vector<DataFlowFact>>>
       fdff;
