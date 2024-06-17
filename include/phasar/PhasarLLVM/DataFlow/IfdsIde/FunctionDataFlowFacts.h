@@ -1,5 +1,4 @@
 #include <unordered_map>
-#include <set>
 #include <string>
 #include <variant>
 #include <vector>
@@ -25,7 +24,7 @@ class FunctionDataFlowFacts {
             }
 
             else {
-                output = it->second.second;
+                *output = *(it->second.second);
                 return true;
             }
         }
@@ -57,7 +56,7 @@ class FunctionDataFlowFacts {
             }
         }
 
-         bool getDataFlowFacts (std::string funcKey, DataFlowFactIN dff_in, std::vector<DataFlowFactOUT> *out) {
+         bool getDataFlowFacts (std::string funcKey, DataFlowFactIN dff_in, std::vector<DataFlowFactOUT> *out) const {
             std::unordered_map<int, std::vector<DataFlowFactOUT>> *output = new std::unordered_map<int, std::vector<DataFlowFactOUT>> ();
             if (this->getDataFlowFactsOf (funcKey, output)) {
                 auto it = (*output).find (dff_in.index);
