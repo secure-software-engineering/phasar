@@ -20,7 +20,7 @@ using namespace psr;
 TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_7_cpp_dbg.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
@@ -50,7 +50,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 // TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
 //   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
 //                    IRDBOptions::WPA);
-//   LLVMTypeHierarchy TH(IRDB);
+//   DIBasedTypeHierarchy TH(IRDB);
 //   LLVMAliasInfo PT(IRDB);
 //   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 //   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -71,7 +71,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/function_pointer_2_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
@@ -109,7 +109,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/function_pointer_3_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 

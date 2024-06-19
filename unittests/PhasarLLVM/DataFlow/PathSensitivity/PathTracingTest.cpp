@@ -11,7 +11,7 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/AdjacencyList.h"
 #include "phasar/Utils/DFAMinimizer.h"
@@ -81,7 +81,7 @@ protected:
   psr::FlowPathSequence<const llvm::Instruction *>
   doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
     IRDB = std::make_unique<psr::LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
-    psr::LLVMTypeHierarchy TH(*IRDB);
+    psr::DIBasedTypeHierarchy TH(*IRDB);
     psr::LLVMAliasSet PT(IRDB.get());
     psr::LLVMBasedICFG ICFG(IRDB.get(), psr::CallGraphAnalysisType::OTF,
                             {"main"}, &TH, &PT, psr::Soundness::Soundy,
@@ -113,7 +113,7 @@ protected:
   doLambdaAnalysis(const std::string &LlvmFilePath,
                    size_t MaxDAGDepth = SIZE_MAX) {
     IRDB = std::make_unique<psr::LLVMProjectIRDB>(PathToLlFiles + LlvmFilePath);
-    psr::LLVMTypeHierarchy TH(*IRDB);
+    psr::DIBasedTypeHierarchy TH(*IRDB);
     psr::LLVMAliasSet PT(IRDB.get());
     psr::LLVMBasedICFG ICFG(IRDB.get(), psr::CallGraphAnalysisType::OTF,
                             {"main"}, &TH, &PT, psr::Soundness::Soundy,
@@ -797,7 +797,7 @@ std::vector<std::vector<std::string>> getPaths(const GraphTy &G) {
 
 TEST(PathsDAGTest, InLLVMSSA) {
   psr::LLVMProjectIRDB IRDB(PathTracingTest::PathToLlFiles + "inter_01_cpp.ll");
-  psr::LLVMTypeHierarchy TH(IRDB);
+  psr::DIBasedTypeHierarchy TH(IRDB);
   psr::LLVMAliasSet PT(&IRDB);
   psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"}, &TH,
                           &PT, psr::Soundness::Soundy,

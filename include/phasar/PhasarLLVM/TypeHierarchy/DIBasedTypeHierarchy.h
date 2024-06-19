@@ -31,6 +31,9 @@ public:
   using ClassType = const llvm::DIType *;
   using f_t = const llvm::Function *;
 
+  static inline constexpr llvm::StringLiteral PureVirtualCallName =
+      "__cxa_pure_virtual";
+
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
   ~DIBasedTypeHierarchy() override = default;
 
@@ -83,6 +86,7 @@ public:
   void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
   [[nodiscard]] nlohmann::json getAsJson() const override;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 
 private:
   [[nodiscard]] llvm::iterator_range<const ClassType *>

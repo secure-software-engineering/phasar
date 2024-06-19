@@ -17,12 +17,13 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
@@ -30,6 +31,8 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include <memory>
 
@@ -37,7 +40,7 @@ using namespace psr;
 
 DTAResolver::DTAResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP,
-                         const LLVMTypeHierarchy *TH)
+                         const DIBasedTypeHierarchy *TH)
     : CHAResolver(IRDB, VTP, TH) {}
 
 bool DTAResolver::heuristicAntiConstructorThisType(
@@ -185,9 +188,9 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CallSite, IRDB);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
-  auto PossibleTypes = TypeGraph.getTypes(ReceiverType);
+  auto PossibleTypes = TypeGraph.getTypes(DITypeToStructType[ReceiverType]);
 
   // WARNING We deactivated the check on allocated because it is
   // unabled to get the types allocated in the used libraries
@@ -197,10 +200,15 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      const auto *Target =
-          getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CallSite);
-      if (Target) {
-        PossibleCallTargets.insert(Target);
+      if (const auto *Val = llvm::dyn_cast<llvm::Value>(PossibleTypeStruct)) {
+        if (const auto *DITy =
+                llvm::dyn_cast<llvm::DIType>(getDILocalVariable(Val))) {
+          const auto *Target =
+              getNonPureVirtualVFTEntry(DITy, VtableIndex, CallSite);
+          if (Target) {
+            PossibleCallTargets.insert(Target);
+          }
+        }
       }
     }
   }

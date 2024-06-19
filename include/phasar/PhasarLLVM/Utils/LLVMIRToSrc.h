@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 #define PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 #include "nlohmann/json.hpp"
 
 #include <optional>
@@ -57,6 +59,8 @@ getLineAndColFromIR(const llvm::Value *V);
                                            bool Trim = true);
 
 [[nodiscard]] std::string getModuleIDFromIR(const llvm::Value *V);
+
+[[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
 
 struct SourceCodeInfo {
   std::string SourceCodeLine;

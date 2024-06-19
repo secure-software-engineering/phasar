@@ -23,6 +23,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -38,7 +39,7 @@
 #include <memory>
 
 namespace psr {
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMProjectIRDB;
 class Resolver;
 
@@ -82,7 +83,7 @@ public:
   /// IRDB. True by default
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
-                         LLVMTypeHierarchy *TH = nullptr,
+                         DIBasedTypeHierarchy *TH = nullptr,
                          LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
@@ -102,7 +103,7 @@ public:
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                          const nlohmann::json &SerializedCG);
 
-  // Deleter of LLVMTypeHierarchy may be unknown here...
+  // Deleter of DIBasedTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
 
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;
@@ -173,6 +174,7 @@ private:
   CallGraph<const llvm::Instruction *, const llvm::Function *> CG;
   LLVMProjectIRDB *IRDB = nullptr;
   LLVMVFTableProvider VTP;
+  std::map<const llvm::DIType *, const llvm::StructType *> DITypeToValueType;
 };
 
 extern template class ICFGBase<LLVMBasedICFG>;

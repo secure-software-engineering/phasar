@@ -15,7 +15,7 @@ using namespace psr;
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_5_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -43,7 +43,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_6_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");

@@ -32,7 +32,7 @@ namespace psr {
 class RTAResolver : public CHAResolver {
 public:
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
   ~RTAResolver() override = default;
 

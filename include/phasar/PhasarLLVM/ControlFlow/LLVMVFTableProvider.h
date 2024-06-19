@@ -12,6 +12,8 @@
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 #include <unordered_map>
 
 namespace llvm {
@@ -29,11 +31,13 @@ public:
   explicit LLVMVFTableProvider(const LLVMProjectIRDB &IRDB);
 
   [[nodiscard]] bool hasVFTable(const llvm::StructType *Type) const;
+  [[nodiscard]] bool hasVFTable(const llvm::DIType *Type) const;
   [[nodiscard]] const LLVMVFTable *
   getVFTableOrNull(const llvm::StructType *Type) const;
 
 private:
   std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;
+  std::map<const llvm::DIType *, const llvm::StructType *> DITypeToStructType;
 };
 } // namespace psr
 

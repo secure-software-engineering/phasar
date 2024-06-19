@@ -17,7 +17,9 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -37,7 +39,7 @@ using namespace psr;
 
 RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP,
-                         const LLVMTypeHierarchy *TH)
+                         const DIBasedTypeHierarchy *TH)
     : CHAResolver(IRDB, VTP, TH) {
   resolveAllocatedStructTypes();
 }
@@ -64,7 +66,7 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CallSite, IRDB);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
   auto ReachableTypes = TH->getSubTypes(ReceiverType);
@@ -75,11 +77,16 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   for (const auto *PossibleType : AllocatedStructTypes) {
     if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
-      if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
-        const auto *Target = getNonPureVirtualVFTEntry(PossibleTypeStruct,
-                                                       VtableIndex, CallSite);
-        if (Target) {
-          PossibleCallTargets.insert(Target);
+      if (const auto *Val = llvm::dyn_cast<llvm::Value>(PossibleTypeStruct)) {
+        if (const auto *DITy =
+                llvm::dyn_cast<llvm::DIType>(getDILocalVariable(Val))) {
+          if (ReachableTypes.find(DITy) != EndIt) {
+            const auto *Target =
+                getNonPureVirtualVFTEntry(DITy, VtableIndex, CallSite);
+            if (Target) {
+              PossibleCallTargets.insert(Target);
+            }
+          }
         }
       }
     }

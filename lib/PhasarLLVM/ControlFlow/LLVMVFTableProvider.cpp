@@ -3,11 +3,13 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
 
 using namespace psr;
 
@@ -49,6 +51,13 @@ LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
   for (const auto *Ty : StructTypes) {
     TypeVFTMap.try_emplace(Ty, getVirtualFunctions(ClearNameTVMap, *Ty));
   }
+
+  for (const auto *StructTy : StructTypes) {
+    if (const auto *Val = llvm::dyn_cast<llvm::Value>(StructTy)) {
+      const auto *DILocalVar = getDILocalVariable(Val);
+      DITypeToStructType[DILocalVar->getType()] = StructTy;
+    }
+  }
 }
 
 LLVMVFTableProvider::LLVMVFTableProvider(const LLVMProjectIRDB &IRDB)
@@ -56,6 +65,10 @@ LLVMVFTableProvider::LLVMVFTableProvider(const LLVMProjectIRDB &IRDB)
 
 bool LLVMVFTableProvider::hasVFTable(const llvm::StructType *Type) const {
   return TypeVFTMap.count(Type);
+}
+
+bool LLVMVFTableProvider::hasVFTable(const llvm::DIType *Type) const {
+  return DITypeToStructType.count(Type);
 }
 
 const LLVMVFTable *

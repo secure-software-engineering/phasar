@@ -33,10 +33,10 @@ using namespace psr;
 
 CHAResolver::CHAResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP,
-                         const LLVMTypeHierarchy *TH)
+                         const DIBasedTypeHierarchy *TH)
     : Resolver(IRDB, VTP), TH(TH) {
   if (!TH) {
-    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+    this->TH = std::make_unique<DIBasedTypeHierarchy>(*IRDB);
   }
 }
 
@@ -63,7 +63,7 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverTy = getReceiverType(CallSite, IRDB);
+  const auto *ReceiverTy = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
   auto FallbackTys = TH->getSubTypes(ReceiverTy);

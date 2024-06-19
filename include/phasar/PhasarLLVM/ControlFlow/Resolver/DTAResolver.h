@@ -19,6 +19,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 // To switch the TypeGraph
 // #include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 
@@ -56,7 +57,7 @@ protected:
 
 public:
   DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
   ~DTAResolver() override = default;
 

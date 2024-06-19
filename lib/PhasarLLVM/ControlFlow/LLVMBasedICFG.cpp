@@ -17,7 +17,6 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -234,15 +233,14 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
 }
 
 static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
-                                          const LLVMVFTableProvider &VTP,
-                                          const LLVMProjectIRDB *IRDB) {
+                                          const LLVMVFTableProvider &VTP) {
   assert(Inst != nullptr);
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
   if (!CallSite) {
     return false;
   }
   // check potential receiver type
-  const auto *RecType = getReceiverType(CallSite, IRDB);
+  const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
     return false;
   }
@@ -274,7 +272,7 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
     // call the resolve routine
 
     assert(VTP != nullptr);
-    auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *VTP, IRDB)
+    auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *VTP)
                                ? Res->resolveVirtualCall(CallSite)
                                : Res->resolveFunctionPointer(CallSite);
 
@@ -339,7 +337,7 @@ void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
+                             DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
@@ -413,7 +411,7 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
 }
 
 [[nodiscard]] bool LLVMBasedICFG::isVirtualFunctionCallImpl(n_t Inst) const {
-  return internalIsVirtualFunctionCall(Inst, VTP, IRDB);
+  return internalIsVirtualFunctionCall(Inst, VTP);
 }
 
 [[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const

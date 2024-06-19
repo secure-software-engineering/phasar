@@ -241,6 +241,11 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   llvm::report_fatal_error("Not implemented");
 }
 
+void DIBasedTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
+  /// TODO: implement
+  llvm::report_fatal_error("Not implemented");
+}
+
 void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   OS << "digraph TypeHierarchy{\n";
   scope_exit CloseBrace = [&OS] { OS << "}\n"; };

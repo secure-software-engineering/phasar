@@ -24,7 +24,8 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -37,6 +38,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 #include <optional>
@@ -60,8 +62,7 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite,
-                                             const LLVMProjectIRDB *IRDB) {
+const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   if (CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
     return nullptr;
@@ -75,22 +76,31 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite,
   }
 
   if (Receiver->getType()->isOpaquePointerTy()) {
-    return nullptr;
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Receiver)) {
+      if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+              getDILocalVariable(Load->getPointerOperand())->getType())) {
+        return DerivedTy->getBaseType();
+      }
+    }
   }
 
   if (!Receiver->getType()->isOpaquePointerTy()) {
     if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
             Receiver->getType()->getNonOpaquePointerElementType())) {
-      return ReceiverTy;
+      if (const auto *ValueTy = llvm::dyn_cast<llvm::Value>(ReceiverTy)) {
+        if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+                getDILocalVariable(ValueTy))) {
+          return DerivedTy->getBaseType();
+        }
+      }
     }
   }
 
   return nullptr;
 }
 
-std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite,
-                                     const LLVMProjectIRDB *IRDB) {
-  const auto *RT = getReceiverType(CallSite, IRDB);
+std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite) {
+  const auto *RT = getReceiverType(CallSite);
   if (RT) {
     return RT->getName().str();
   }
@@ -113,27 +123,35 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
 
 namespace psr {
 
-Resolver::Resolver(const LLVMProjectIRDB *IRDB)
-    : IRDB(IRDB), VTP(nullptr), OpaquePtrTypes(IRDB) {
+Resolver::Resolver(const LLVMProjectIRDB *IRDB) : IRDB(IRDB), VTP(nullptr) {
   assert(IRDB != nullptr);
+  initializeTypeMap();
 }
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
-    : IRDB(IRDB), VTP(VTP), OpaquePtrTypes(IRDB) {}
+    : IRDB(IRDB), VTP(VTP) {
+  initializeTypeMap();
+}
 
 const llvm::Function *
-Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+Resolver::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                                     const llvm::CallBase *CallSite) {
   if (!VTP) {
     return nullptr;
   }
-  if (const auto *VT = VTP->getVFTableOrNull(T)) {
-    const auto *Target = VT->getFunction(Idx);
-    if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
-        isConsistentCall(CallSite, Target)) {
-      return Target;
+
+  if (const auto *StructTy =
+          llvm::dyn_cast<llvm::StructType>(DITypeToStructType[T])) {
+    if (const auto *VT = VTP->getVFTableOrNull(StructTy)) {
+      const auto *Target = VT->getFunction(Idx);
+      if (Target &&
+          Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
+          isConsistentCall(CallSite, Target)) {
+        return Target;
+      }
     }
   }
+
   return nullptr;
 }
 
@@ -167,7 +185,7 @@ void Resolver::otherInst(const llvm::Instruction *Inst) {}
 std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
                                            const LLVMProjectIRDB *IRDB,
                                            const LLVMVFTableProvider *VTP,
-                                           const LLVMTypeHierarchy *TH,
+                                           const DIBasedTypeHierarchy *TH,
                                            LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
   assert(VTP != nullptr);
@@ -196,6 +214,18 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
 
   llvm_unreachable("All possible callgraph algorithms should be handled in the "
                    "above switch");
+}
+
+void Resolver::initializeTypeMap() {
+  for (const auto *Instr : IRDB->getAllInstructions()) {
+    if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
+      const auto *DILocalVar = getDILocalVariable(Val);
+      if (const auto *StructTy =
+              llvm::dyn_cast<llvm::StructType>(Val->getType())) {
+        DITypeToStructType[DILocalVar->getType()] = StructTy;
+      }
+    }
+  }
 }
 
 } // namespace psr
