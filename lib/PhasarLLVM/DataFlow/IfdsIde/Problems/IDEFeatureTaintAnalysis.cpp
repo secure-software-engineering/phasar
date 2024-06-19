@@ -16,7 +16,9 @@
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -46,6 +48,56 @@ std::string psr::LToString(const IDEFeatureTaintEdgeFact &EdgeFact) {
   llvm::interleaveComma(EdgeFact.Taints.set_bits(), ROS);
   ROS << '>';
   return Ret;
+}
+
+static bool isMustAlias(const llvm::Value *Val1,
+                        const llvm::Value *Val2) noexcept {
+
+  const auto *Base1 = Val1->stripPointerCastsAndAliases();
+  const auto *Base2 = Val2->stripPointerCastsAndAliases();
+  if (Base1 == Base2) {
+    return true;
+  }
+
+  // Note: We are not field-sensitive
+
+  const auto *Load1 = llvm::dyn_cast<llvm::LoadInst>(Base1);
+  if (Load1 &&
+      Load1->getPointerOperand()->stripPointerCastsAndAliases() == Base2) {
+    return true;
+  }
+
+  const auto *Load2 = llvm::dyn_cast<llvm::LoadInst>(Base2);
+  if (Load2 &&
+      Load2->getPointerOperand()->stripPointerCastsAndAliases() == Base1) {
+    return true;
+  }
+  if (Load1 && Load2 &&
+      Load1->getPointerOperand() == Load2->getPointerOperand()) {
+    return true;
+  }
+
+  // TODO: handle more cases
+
+  return false;
+}
+
+static bool canKillPointerOp(const llvm::Value *PointerOp,
+                             const llvm::Value *Src,
+                             const IDEFeatureTaintAnalysis::container_type
+                                 &PointerOpMayAliases) noexcept {
+  if (PointerOp == Src || isMustAlias(PointerOp, Src)) {
+    return true;
+  }
+
+  // For precision, we may want to kill some facts unsoundly
+
+  if (llvm::isa<llvm::Instruction>(Src) ||
+      llvm::isa<llvm::Instruction>(PointerOp)) {
+    return PointerOpMayAliases.count(Src);
+  }
+
+  return false;
 }
 
 auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
@@ -86,8 +138,7 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
 
     return lambdaFlow([Store, PointerRet = std::move(PointerRet),
                        GeneratesFact](d_t Src) -> container_type {
-      if (Store->getPointerOperand() == Src || PointerRet.count(Src)) {
-        // Here, we are unsound!
+      if (canKillPointerOp(Store->getPointerOperand(), Src, PointerRet)) {
         return {};
       }
       container_type Facts;
@@ -97,6 +148,7 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
       // memory locations the store might write to.
       // ... or from zero, if we manually generate a fact here
       if (Store->getValueOperand() == Src ||
+          Store->getValueOperand()->stripPointerCastsAndAliases() == Src ||
           (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src))) {
         auto Facts = PointerRet;
         Facts.insert(Src);
@@ -144,7 +196,8 @@ auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   // Map actual to formal parameters.
   auto MapFactsToCalleeFF = mapFactsToCallee<d_t>(
       CS, DestFun, [CS](const llvm::Value *ActualArg, ByConstRef<d_t> Src) {
-        if (d_t(ActualArg) != Src) {
+        if (ActualArg != Src &&
+            ActualArg->stripPointerCastsAndAliases() != Src) {
           return false;
         }
 
@@ -225,6 +278,43 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
                       generateFlowAndKillAllOthers(CallSite, getZeroValue()));
   }
   return Mapper;
+}
+
+auto IDEFeatureTaintAnalysis::getSummaryFlowFunction(n_t CallSite, f_t DestFun)
+    -> FlowFunctionPtrType {
+  if (const auto *MemTrn = llvm::dyn_cast<llvm::MemTransferInst>(CallSite)) {
+
+    bool GeneratesFact = TaintGen.isSource(CallSite);
+
+    auto PointerPTS =
+        PT.getReachableAllocationSites(MemTrn->getDest(), true, MemTrn);
+    container_type PointerRet(PointerPTS->begin(), PointerPTS->end());
+    PointerRet.insert(MemTrn->getDest());
+    return lambdaFlow([MemTrn, PointerRet = std::move(PointerRet),
+                       GeneratesFact](d_t Src) -> container_type {
+      if (canKillPointerOp(MemTrn->getDest(), Src, PointerRet)) {
+        return {};
+      }
+      container_type Facts;
+      Facts.insert(Src);
+      // y/Y now obtains its new value(s) from x/X
+      // If a value is stored that holds we must generate all potential
+      // memory locations the store might write to.
+      // ... or from zero, if we manually generate a fact here
+      if (MemTrn->getSource() == Src ||
+          MemTrn->getSource()->stripInBoundsConstantOffsets() == Src ||
+          (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src))) {
+
+        auto Facts = PointerRet;
+        Facts.insert(Src);
+        return Facts;
+      }
+
+      return {Src};
+    });
+  }
+
+  return nullptr;
 }
 
 struct IDEFeatureTaintAnalysis::AddFactsEF {
@@ -671,16 +761,16 @@ auto IDEFeatureTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   }
 
   // Overrides at store instructions
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    if (CurrNode == Store->getValueOperand()) {
-      // Store tainted value
+  // if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  //   if (CurrNode == Store->getValueOperand()) {
+  //     // Store tainted value
 
-      // propagate facts unchanged. User edge-facts are generated from zero.
+  //     // propagate facts unchanged. User edge-facts are generated from zero.
 
-      // llvm::errs() << "Store Identity\n";
-      return EdgeIdentity<l_t>{};
-    }
-  }
+  //     // llvm::errs() << "Store Identity\n";
+  //     return EdgeIdentity<l_t>{};
+  //   }
+  // }
 
   // llvm::errs() << "Fallback Identity\n";
   // Otherwise stick to identity.
@@ -738,6 +828,18 @@ auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
     if (CallNode == Arg && CallNode == RetSiteNode) {
       return addEF(TaintGen.getGeneratedTaintsAt(CallSite), AddEFCache);
     }
+  }
+
+  return EdgeIdentity<l_t>{};
+}
+
+auto IDEFeatureTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
+                                                     n_t Succ, d_t SuccNode)
+    -> EdgeFunction<l_t> {
+  if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
+    // Generate user edge-facts from zero
+
+    return genEF(TaintGen.getGeneratedTaintsAt(Curr), GenEFCache);
   }
 
   return EdgeIdentity<l_t>{};

@@ -93,7 +93,7 @@ struct IDEFeatureTaintEdgeFact {
   }
 
   friend bool operator==(const IDEFeatureTaintEdgeFact &Lhs,
-                         const IDEFeatureTaintEdgeFact &Rhs) {
+                         const IDEFeatureTaintEdgeFact &Rhs) noexcept {
     bool LeftEmpty = Lhs.Taints.none();
     bool RightEmpty = Rhs.Taints.none();
     if (LeftEmpty || RightEmpty) {
@@ -118,17 +118,28 @@ struct IDEFeatureTaintEdgeFact {
                        [](auto Word) { return Word == 0; });
   }
 
+  friend bool operator!=(const IDEFeatureTaintEdgeFact &Lhs,
+                         const IDEFeatureTaintEdgeFact &Rhs) noexcept {
+    return !(Lhs == Rhs);
+  }
+
   template <typename E> [[nodiscard]] std::string str() const {
     auto BV = BitVectorSet<E, llvm::SmallBitVector>::fromBits(Taints);
     return LToString(BV);
   }
 
   template <typename E> [[nodiscard]] auto toBVSet() const {
+    if (isTop()) {
+      return BitVectorSet<E, llvm::SmallBitVector>();
+    }
     return BitVectorSet<E, llvm::SmallBitVector>::fromBits(Taints);
   }
 
   template <typename E> [[nodiscard]] auto toSet() const {
     std::set<E> Ret;
+    if (isTop()) {
+      return Ret;
+    }
 
     for (const auto &Elem : this->template toBVSet<E>()) {
       Ret.insert(Elem);
@@ -295,8 +306,8 @@ public:
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) override;
-  // FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
-  //                                            f_t DestFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                             f_t DestFun) override;
 
   //////////////////////////////////////////////////////////////////////////////
   ///                              Edge Functions
@@ -318,8 +329,8 @@ public:
                            d_t RetSiteNode,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  // EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-  //                                          d_t SuccNode) override;
+  EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                           d_t SuccNode) override;
 
   //////////////////////////////////////////////////////////////////////////////
   ///                                  Misc

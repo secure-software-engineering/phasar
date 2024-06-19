@@ -4,6 +4,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
@@ -13,6 +14,8 @@
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/Twine.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -47,6 +50,11 @@ protected:
     HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
                HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
+
+    for (const auto &Glob : IRDB->getModule()->globals()) {
+      BitVectorSet<std::string, llvm::SmallBitVector> BV;
+      BV.insert(getMetaDataID(&Glob));
+    }
 
     // Initialze IDs
     for (const auto *Inst : IRDB->getAllInstructions()) {
@@ -97,8 +105,9 @@ protected:
     IDESolver IIASolver(IIAProblem, &HA->getICFG());
     IIASolver.solve();
     if (PrintDump) {
-      IRDB->emitPreprocessedIR(llvm::outs());
-      IIASolver.dumpResults();
+      // IRDB->emitPreprocessedIR(llvm::outs());
+      // IIASolver.dumpResults();
+      printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
     }
     // do the comparison
     for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
@@ -129,6 +138,62 @@ protected:
   }
 
   void TearDown() override {}
+
+  // See vara::PhasarTaintAnalysis::taintsForInst
+  [[nodiscard]] inline std::set<std::string>
+  taintsForInst(const llvm::Instruction *Inst,
+                SolverResults<const llvm::Instruction *, const llvm::Value *,
+                              IDEFeatureTaintEdgeFact>
+                    SR) {
+
+    if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
+      if (Ret->getNumOperands() == 0) {
+        return {};
+      }
+    } else if (llvm::isa<llvm::UnreachableInst>(Inst)) {
+      return {};
+    }
+
+    std::set<std::string> AggregatedTaints;
+
+    if (Inst->getType()->isVoidTy()) { // For void types, we need to look what
+                                       // taints flow into the inst
+
+      // auto Results = SR.resultsAt(Inst);
+      assert(Inst->getNumOperands() >= 1 &&
+             "Found case without first operand.");
+      AggregatedTaints =
+          SR.resultAt(Inst, Inst->getOperand(0)).toSet<std::string>();
+
+    } else {
+      auto Results = SR.resultsAtInLLVMSSA(Inst);
+      auto SearchPosTaints = Results.find(Inst);
+      if (SearchPosTaints != Results.end()) {
+        AggregatedTaints = SearchPosTaints->second.toSet<std::string>();
+      }
+    }
+
+    // additionalStaticTaints
+    AggregatedTaints.insert(getMetaDataID(Inst));
+
+    return AggregatedTaints;
+  }
+
+  void printDump(const LLVMProjectIRDB &IRDB,
+                 SolverResults<const llvm::Instruction *, const llvm::Value *,
+                               IDEFeatureTaintEdgeFact>
+                     SR) {
+    const llvm::Function *CurrFun = nullptr;
+    for (const auto *Inst : IRDB.getAllInstructions()) {
+      if (CurrFun != Inst->getFunction()) {
+        CurrFun = Inst->getFunction();
+        llvm::outs() << "\n=================== '" << CurrFun->getName()
+                     << "' ===================\n";
+      }
+      llvm::outs() << "  N: " << llvmIRToString(Inst) << '\n';
+      llvm::outs() << "  D: " << printSet(taintsForInst(Inst, SR)) << "\n\n";
+    }
+  }
 
 }; // Test Fixture
 
@@ -323,7 +388,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
   GroundTruth.emplace("main", 9, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 9, "i", std::set<std::string>{"7"});
   GroundTruth.emplace("main", 9, "j", std::set<std::string>{"0", "5", "6"});
-  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, false);
+  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
@@ -409,6 +474,39 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
                       std::set<std::string>{"66", "9", "72", "73", "71"});
   doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
 })
+
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_02) {
+  // GTEST_SKIP() << "This test heavily depends on the used stdlib version.
+  // TODO: "
+  //                 "add a better one";
+
+  std::set<IIACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
+  // "76"}); GroundTruth.emplace("main", 16, "str",
+  //                     std::set<std::string>{"70", "65", "72", "74", "77"});
+  // GroundTruth.emplace("main", 16, "ref.tmp",
+  //                     std::set<std::string>{"66", "9", "72", "73", "71"});
+  doAnalysisAndCompareResults("rvo_02_cpp.ll", {"main"}, GroundTruth, true);
+
+  ASSERT_FALSE(true) << "Add GroundTruth!";
+})
+
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
+  // GTEST_SKIP() << "This test heavily depends on the used stdlib version.
+  // TODO: "
+  //                 "add a better one";
+
+  std::set<IIACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
+  // "76"}); GroundTruth.emplace("main", 16, "str",
+  //                     std::set<std::string>{"70", "65", "72", "74", "77"});
+  // GroundTruth.emplace("main", 16, "ref.tmp",
+  //                     std::set<std::string>{"66", "9", "72", "73", "71"});
+  doAnalysisAndCompareResults("rvo_03_cpp.ll", {"main"}, GroundTruth, true);
+
+  ASSERT_FALSE(true) << "Add GroundTruth!";
+})
+
 } // namespace
 
 int main(int Argc, char **Argv) {
