@@ -188,9 +188,9 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  const auto *ReceiverType = getReceiverType(CallSite);
+  const auto *ReceiverType = getReceiverStructType(CallSite);
 
-  auto PossibleTypes = TypeGraph.getTypes(DITypeToStructType[ReceiverType]);
+  auto PossibleTypes = TypeGraph.getTypes(ReceiverType);
 
   // WARNING We deactivated the check on allocated because it is
   // unabled to get the types allocated in the used libraries
@@ -200,15 +200,10 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      if (const auto *Val = llvm::dyn_cast<llvm::Value>(PossibleTypeStruct)) {
-        if (const auto *DITy =
-                llvm::dyn_cast<llvm::DIType>(getDILocalVariable(Val))) {
-          const auto *Target =
-              getNonPureVirtualVFTEntry(DITy, VtableIndex, CallSite);
-          if (Target) {
-            PossibleCallTargets.insert(Target);
-          }
-        }
+      const auto *Target =
+          getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CallSite);
+      if (Target) {
+        PossibleCallTargets.insert(Target);
       }
     }
   }

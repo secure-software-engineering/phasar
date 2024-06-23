@@ -12,6 +12,8 @@
 
 #include "phasar/Domain/AnalysisDomain.h"
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 namespace llvm {
 class Value;
 class Instruction;
@@ -28,7 +30,7 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
   using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
+  using t_t = const llvm::DIType *;
   using v_t = const llvm::Value *;
   using c_t = LLVMBasedCFG;
   using i_t = LLVMBasedICFG;

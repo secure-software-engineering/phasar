@@ -86,20 +86,20 @@ TEST(VTableTest, VTableConstruction_04) {
                         "type_hierarchies/type_hierarchy_9_cpp.ll"});
   LLVMVFTableProvider TH(IRDB);
 
-  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "struct.Base")));
+  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "struct.Base.base")));
   ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "struct.Child")));
 
-  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base"))
+  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base.base"))
                          ->getFunction(0)
                          ->getName()
                          .str()),
             "Base::foo()");
-  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base"))
+  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base.base"))
                          ->getFunction(1)
                          ->getName()
                          .str()),
             "Base::bar()");
-  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "struct.Base"))->size(), 2U);
+  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "struct.Base.base"))->size(), 2U);
   EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Child"))
                          ->getFunction(0)
                          ->getName()
@@ -123,20 +123,20 @@ TEST(VTableTest, VTableConstruction_05) {
                         "type_hierarchies/type_hierarchy_10_cpp.ll"});
   LLVMVFTableProvider TH(IRDB);
 
-  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "struct.Base")));
+  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "struct.Base.base")));
   ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "struct.Child")));
 
-  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base"))
+  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base.base"))
                          ->getFunction(0)
                          ->getName()
                          .str()),
             "__cxa_pure_virtual");
-  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base"))
+  EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Base.base"))
                          ->getFunction(1)
                          ->getName()
                          .str()),
             "Base::bar()");
-  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "struct.Base"))->size(), 2U);
+  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "struct.Base.base"))->size(), 2U);
   EXPECT_EQ(demangle(TH.getVFTableOrNull(getType(IRDB, "struct.Child"))
                          ->getFunction(0)
                          ->getName()
@@ -161,8 +161,15 @@ TEST(VTableTest, VTableConstruction_6) {
 
   LLVMVFTableProvider TH(IRDB);
 
-  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "class.Base")));
-  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "class.Base"))->size(), 3U);
+  llvm::outs() << "Number of Struct Types: "
+               << IRDB.getModule()->getIdentifiedStructTypes().size() << "\n";
+  int Counter = 0;
+  for (const auto *StructTy : IRDB.getModule()->getIdentifiedStructTypes()) {
+    llvm::outs() << Counter++ << ": " << StructTy->getName() << "\n";
+  }
+
+  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "class.Base.base")));
+  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "class.Base.base"))->size(), 3U);
 }
 } // namespace
 

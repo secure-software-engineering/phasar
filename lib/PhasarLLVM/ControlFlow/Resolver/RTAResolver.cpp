@@ -18,7 +18,6 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -72,20 +71,16 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   auto ReachableTypes = TH->getSubTypes(ReceiverType);
 
   // also insert all possible subtypes vtable entries
-
   auto EndIt = ReachableTypes.end();
   for (const auto *PossibleType : AllocatedStructTypes) {
     if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
-      if (const auto *Val = llvm::dyn_cast<llvm::Value>(PossibleTypeStruct)) {
-        if (const auto *DITy =
-                llvm::dyn_cast<llvm::DIType>(getDILocalVariable(Val))) {
-          if (ReachableTypes.find(DITy) != EndIt) {
-            const auto *Target =
-                getNonPureVirtualVFTEntry(DITy, VtableIndex, CallSite);
-            if (Target) {
-              PossibleCallTargets.insert(Target);
-            }
+      if (const auto *Ty = llvm::dyn_cast<llvm::Type>(PossibleTypeStruct)) {
+        if (ReachableTypes.find(TypeToDIType[Ty]) != EndIt) {
+          const auto *Target = getNonPureVirtualVFTEntry(TypeToDIType[Ty],
+                                                         VtableIndex, CallSite);
+          if (Target) {
+            PossibleCallTargets.insert(Target);
           }
         }
       }

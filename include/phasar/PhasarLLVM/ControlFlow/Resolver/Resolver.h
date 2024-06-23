@@ -45,6 +45,9 @@ getVFTIndex(const llvm::CallBase *CallSite);
 [[nodiscard]] const llvm::DIType *
 getReceiverType(const llvm::CallBase *CallSite);
 
+[[nodiscard]] const llvm::StructType *
+getReceiverStructType(const llvm::CallBase *CallSite);
+
 [[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
 
 [[nodiscard]] bool isConsistentCall(const llvm::CallBase *CallSite,
@@ -54,13 +57,18 @@ class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;
   const LLVMVFTableProvider *VTP;
-  std::map<const llvm::DIType *, const llvm::StructType *> DITypeToStructType;
+  std::map<const llvm::DIType *, const llvm::Type *> DITypeToType;
+  std::map<const llvm::Type *, const llvm::DIType *> TypeToDIType;
 
   Resolver(const LLVMProjectIRDB *IRDB);
   void initializeTypeMap();
 
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
+                            const llvm::CallBase *CallSite);
+
+  const llvm::Function *
+  getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
                             const llvm::CallBase *CallSite);
 
 public:

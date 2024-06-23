@@ -75,24 +75,63 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
     return nullptr;
   }
 
-  if (Receiver->getType()->isOpaquePointerTy()) {
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Receiver)) {
-      if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
-              getDILocalVariable(Load->getPointerOperand())->getType())) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Receiver)) {
+    if (const auto *DITy = getDILocalVariable(Load->getPointerOperand())) {
+      if (const auto *DerivedTy =
+              llvm::dyn_cast<llvm::DIDerivedType>(DITy->getType())) {
         return DerivedTy->getBaseType();
       }
     }
+  }
+  /*
+    if (Receiver->getType()->isOpaquePointerTy()) {
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Receiver)) {
+        if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+                getDILocalVariable(Load->getPointerOperand())->getType())) {
+          return DerivedTy->getBaseType();
+        }
+      }
+    }
+
+    if (!Receiver->getType()->isOpaquePointerTy()) {
+      if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+              Receiver->getType()->getNonOpaquePointerElementType())) {
+        if (const auto *ValueTy = llvm::dyn_cast<llvm::Type>(ReceiverTy)) {
+          if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
+                  getDILocalVariable(TypeToDIType[ValueTy]))) {
+            return DerivedTy->getBaseType();
+          }
+        }
+      }
+    }
+*/
+  return nullptr;
+}
+
+const llvm::StructType *
+psr::getReceiverStructType(const llvm::CallBase *CallSite) {
+  if (CallSite->arg_empty() ||
+      (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
+    return nullptr;
+  }
+
+  const auto *Receiver =
+      CallSite->getArgOperand(unsigned(CallSite->hasStructRetAttr()));
+
+  if (!Receiver->getType()->isPointerTy()) {
+    return nullptr;
+  }
+
+  if (Receiver->getType()->isOpaquePointerTy()) {
+    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
+                    "which are not supported by phasar yet!\n";
+    return nullptr;
   }
 
   if (!Receiver->getType()->isOpaquePointerTy()) {
     if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
             Receiver->getType()->getNonOpaquePointerElementType())) {
-      if (const auto *ValueTy = llvm::dyn_cast<llvm::Value>(ReceiverTy)) {
-        if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
-                getDILocalVariable(ValueTy))) {
-          return DerivedTy->getBaseType();
-        }
-      }
+      return ReceiverTy;
     }
   }
 
@@ -141,7 +180,7 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
   }
 
   if (const auto *StructTy =
-          llvm::dyn_cast<llvm::StructType>(DITypeToStructType[T])) {
+          llvm::dyn_cast<llvm::StructType>(DITypeToType[T])) {
     if (const auto *VT = VTP->getVFTableOrNull(StructTy)) {
       const auto *Target = VT->getFunction(Idx);
       if (Target &&
@@ -152,6 +191,23 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
     }
   }
 
+  return nullptr;
+}
+
+const llvm::Function *
+Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+                                    const llvm::CallBase *CallSite) {
+  if (!VTP) {
+    return nullptr;
+  }
+  if (const auto *VT = VTP->getVFTableOrNull(T)) {
+    const auto *Target = VT->getFunction(Idx);
+    if (Target &&
+        Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
+        isConsistentCall(CallSite, Target)) {
+      return Target;
+    }
+  }
   return nullptr;
 }
 
@@ -219,10 +275,9 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
 void Resolver::initializeTypeMap() {
   for (const auto *Instr : IRDB->getAllInstructions()) {
     if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
-      const auto *DILocalVar = getDILocalVariable(Val);
-      if (const auto *StructTy =
-              llvm::dyn_cast<llvm::StructType>(Val->getType())) {
-        DITypeToStructType[DILocalVar->getType()] = StructTy;
+      if (const auto *DITy = getDILocalVariable(Val)) {
+        DITypeToType[DITy->getType()] = Val->getType();
+        TypeToDIType[Val->getType()] = DITy->getType();
       }
     }
   }

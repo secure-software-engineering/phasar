@@ -32,14 +32,14 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(VFuncA);
   ASSERT_TRUE(VFuncB);
 
-  const auto *CallToAFunc = getNthInstruction(F, 19);
+  const auto *CallToAFunc = getNthInstruction(F, 22);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
   const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
   ASSERT_EQ(AsCallees.size(), 2U);
   ASSERT_TRUE(llvm::is_contained(AsCallees, VFuncA));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), CallToAFunc));
 
-  const auto *CallToBFunc = getNthInstruction(F, 25);
+  const auto *CallToBFunc = getNthInstruction(F, 29);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
   const auto &BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
   ASSERT_EQ(BsCallees.size(), 2U);

@@ -37,7 +37,8 @@ public:
 
 private:
   std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;
-  std::map<const llvm::DIType *, const llvm::StructType *> DITypeToStructType;
+  std::unordered_map<const llvm::DIType *, LLVMVFTable> DITypeVFTMap;
+  std::map<const llvm::DIType *, const llvm::Type *> DITypeToType;
 };
 } // namespace psr
 

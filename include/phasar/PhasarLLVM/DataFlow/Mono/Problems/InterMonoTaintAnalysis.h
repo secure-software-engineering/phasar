@@ -37,7 +37,7 @@ class StructType;
 
 namespace psr {
 
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 
 struct InterMonoTaintAnalysisDomain : LLVMAnalysisDomainDefault {
   using mono_container_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
@@ -56,8 +56,9 @@ public:
   using ConfigurationTy = LLVMTaintConfig;
 
   InterMonoTaintAnalysis(const LLVMProjectIRDB *IRDB,
-                         const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
-                         LLVMAliasInfoRef PT, const LLVMTaintConfig &Config,
+                         const DIBasedTypeHierarchy *TH,
+                         const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
+                         const LLVMTaintConfig &Config,
                          std::vector<std::string> EntryPoints = {});
 
   ~InterMonoTaintAnalysis() override = default;
