@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace psr {
+
 struct Parameter {
   uint16_t Index{};
 };
@@ -18,65 +19,60 @@ struct DataFlowFact {
   std::variant<Parameter, ReturnValue> Fact;
 };
 
-struct DataFlowFactIN {
-  std::variant<int, long, float, double, char, std::string> fact;
-  int index;
-};
-
-struct DataFlowFactOUT {
-  std::variant<int, long, float, double, char, std::string> fact;
-};
 
 class FunctionDataFlowFacts {
 public:
   FunctionDataFlowFacts();
 
-  void insert(std::string funcKey, DataFlowFactIN dff_in,
-              std::vector<DataFlowFactOUT> dff_out) {
-    const auto it = this->fdff.find(funcKey);
-    if (it == this->fdff.end()) {
-      // new hash map to store the data flow facts of the out set
-      auto *new_out_facts =
-          new std::unordered_map<int, std::vector<DataFlowFactOUT>>();
-      new_out_facts->insert({dff_in.index, dff_out});
-      // new set to store data flow facts for the in set
-      std::vector<DataFlowFactIN> new_in_facts = {};
-      new_in_facts.push_back(dff_in);
-      // pair with data flow facts of the in set and the hash map
-      std::pair<std::vector<DataFlowFactIN>,
-                std::unordered_map<int, std::vector<DataFlowFactOUT>> *>
-          new_in_out_facts;
-      new_in_out_facts.first = new_in_facts;
-      new_in_out_facts.second = new_out_facts;
-      // store in and out set
-      this->fdff.insert({funcKey, new_in_out_facts});
+  // insert a set of data flow facts
+  void insertSet(const std::string &FuncKey, const uint32_t &Index, const std::vector<DataFlowFact> &OutSet) {
+    auto const It = this->fdff.find (FuncKey);
+    if (It != this->fdff.end ()) {
+      It->second.insert ({Index, OutSet});
     }
-
+    
     else {
-      it->second.first.push_back(dff_in);
-      it->second.second->insert({dff_in.index, dff_out});
-      // it->second.insert ({index, dff_out});
+      std::unordered_map<uint32_t, std::vector<DataFlowFact>> Tmp;
+      Tmp.insert ({Index, OutSet});
+      this->fdff.insert ({FuncKey, Tmp});
     }
   }
 
-  bool getDataFlowFacts(std::string funcKey, DataFlowFactIN dff_in,
-                        std::vector<DataFlowFactOUT> *out) const {
-    std::unordered_map<int, std::vector<DataFlowFactOUT>> *output =
-        new std::unordered_map<int, std::vector<DataFlowFactOUT>>();
-    if (this->getDataFlowFactsOf(funcKey, output)) {
-      auto it = (*output).find(dff_in.index);
-      *out = it->second;
-      return true;
+  //insert a single data flow fact
+  void addElement(const std::string &FuncKey, const uint32_t &Index, const DataFlowFact &Out) {
+    auto const It1 = this->fdff.find (FuncKey);
+    if (It1 != this->fdff.end ()) {
+      auto const It2 = It1->second.find (Index);
+      if (It2 != It1->second.end ()) {
+          this->fdff[FuncKey][Index].emplace_back(Out);
+      }
     }
-
+    
     else {
-      return false;
+      std::vector NewOutSet = {Out};
+      std::unordered_map<uint32_t, std::vector<DataFlowFact>> Tmp;
+      Tmp.insert ({Index, NewOutSet});
+      this->fdff.insert ({FuncKey, Tmp});
     }
   }
+
+  //get out set for a function an the parameter index
+  const std::vector<DataFlowFact> &getDataFlowFacts(const std::string &FuncKey, uint32_t &Index) const {
+    auto const It = this->fdff.find (FuncKey);
+    if (It != this->fdff.end()) {
+      auto const Itt = It->second.find (Index);
+      return Itt->second;
+    }
+
+    const static std::vector<DataFlowFact> Empty = {};
+    return Empty;
+  }
+
+  //prints the data structure of given keys to terminal
 
 private:
-  const auto &getDataFlowFactsOrEmpty(const std::string &funcKey) const {
-    auto const it = this->fdff.find(funcKey);
+  const auto &getDataFlowFactsOrEmpty(const std::string &FuncKey) const {
+    auto const it = this->fdff.find(FuncKey);
     if (it != this->fdff.end()) {
       return it->second;
     }
@@ -84,21 +80,6 @@ private:
     static std::unordered_map<uint32_t, std::vector<DataFlowFact>> Empty;
     return Empty;
   }
-
-  //   bool getDataFlowFactsOf(
-  //       const std::string &funcKey,
-  //       std::unordered_map<int, std::vector<DataFlowFactOUT>> *output) const
-  //       {
-  //     auto const it = this->fdff.find(funcKey);
-  //     if (it == this->fdff.end()) {
-  //       return false;
-  //     }
-
-  //     else {
-  //       *output = *(it->second.second);
-  //       return true;
-  //     }
-  //   }^
 
   // TODO: Remove public and use stable API instead!
 public:
