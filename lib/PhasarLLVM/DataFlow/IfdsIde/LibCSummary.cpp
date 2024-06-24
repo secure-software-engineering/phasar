@@ -222,6 +222,143 @@ static FunctionDataFlowFacts createLibCSummary() {
 
   //ccos
   Sum.addElement("ccos", 0, ReturnValue{});
+
+  //ccosf
+  Sum.addElement("ccosf", 0, ReturnValue{});
+
+  //ccosh
+  Sum.addElement("ccosh", 0, ReturnValue{});
+
+  //ccoshf
+  Sum.addElement("ccoshf", 0, ReturnValue{});
+
+  //ccoshl
+  Sum.addElement("ccoshl", 0, ReturnValue{});
+
+  //ccosl
+  Sum.addElement("ccosl", 0, ReturnValue{});
+
+  //ceil
+  Sum.addElement("ceil", 0, ReturnValue{});
+
+  //ceilf
+  Sum.addElement("ceilf", 0, ReturnValue{});
+
+  //ceill
+  Sum.addElement("ceill", 0, ReturnValue{});
+
+  //cexp
+  Sum.addElement("cexp", 0, ReturnValue{});
+
+  //cexpf
+  Sum.addElement("cexpf", 0, ReturnValue{});
+
+  //cexpl
+  Sum.addElement("cexpl", 0, ReturnValue{});
+
+  //cfgetispeed
+  Sum.addElement("cfgetispeed", 0, ReturnValue{});
+
+  //cfgetospeed
+  Sum.addElement("cfgetospeed", 0, ReturnValue{});
+
+  //cimag
+  Sum.addElement("cimag", 0, ReturnValue{});
+
+  //cimagf
+  Sum.addElement("cimagf", 0, ReturnValue{});
+
+  //cimagl
+  Sum.addElement("cimagl", 0, ReturnValue{});
+
+  //clog
+  Sum.addElement("clog", 0, ReturnValue{});
+
+  //clog10
+  Sum.addElement("clog10", 0, ReturnValue{});
+
+  //clog10f
+  Sum.addElement("clog10f", 0, ReturnValue{});
+
+  //clog10l
+  Sum.addElement("clog10l",0, ReturnValue{});
+
+  //clogf
+  Sum.addElement("clogf", 0, ReturnValue{});
+
+  //clogl
+  Sum.addElement("clogl", 0, ReturnValue{});
+
+  //conj
+  Sum.addElement("conj", 0, ReturnValue{});
+
+  //conjf
+  Sum.addElement("conjf", 0, ReturnValue{});
+
+  //conjl
+  Sum.addElement("conjl", 0, ReturnValue{});
+
+  //copysign
+  Sum.addElement("copysign", 0, ReturnValue{});
+  Sum.addElement("copysign", 1, ReturnValue{});
+
+  //copysignf
+  Sum.addElement("copysignf", 0, ReturnValue{});
+  Sum.addElement("copysign", 1, ReturnValue{});
+
+  //copysignl
+  Sum.addElement("copysignl", 0, ReturnValue{});
+  Sum.addElement("copysignl", 1, ReturnValue{});
+
+  //cos
+  Sum.addElement("cos", 0, ReturnValue{});
+
+  //cosf
+  Sum.addElement("cosf", 0, ReturnValue{});
+
+  //cosh
+  Sum.addElement("cosh", 0, ReturnValue{});
+
+  //coshf
+  Sum.addElement("coshf", 0, ReturnValue{});
+
+  //coshl
+  Sum.addElement("coshl", 0, ReturnValue{});
+
+  //cosl
+  Sum.addElement("cosl", 0, ReturnValue{});
+
+  //cpow
+  Sum.addElement("cpow", 0, ReturnValue{});
+  Sum.addElement("cpow", 1, ReturnValue{});
+
+  //cpowf
+  Sum.addElement("cpowf", 0, ReturnValue{});
+  Sum.addElement("cpowf", 1, ReturnValue{});
+
+  //cpowl
+  Sum.addElement("cpowl", 0, ReturnValue{});
+  Sum.addElement("cpowl", 1, ReturnValue{});
+
+  //cproj
+  Sum.addElement("cproj", 0, ReturnValue{});
+
+  //cprojf
+  Sum.addElement("cproj", 0, ReturnValue{});
+
+  //cprojl
+  Sum.addElement("cprojl", 0, ReturnValue{});
+
+  //creal
+  Sum.addElement("creal", 0, ReturnValue{});
+
+  //crealf
+  Sum.addElement("crealf", 0, ReturnValue{});
+
+  //creall
+  Sum.addElement("creall", 0, ReturnValue{});
+
+  
   // TODO
   return Sum;
 }
