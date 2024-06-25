@@ -2,11 +2,14 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -23,6 +26,21 @@ static const llvm::StructType *getType(const LLVMProjectIRDB &IRDB,
   for (const auto *Ty : IRDB.getModule()->getIdentifiedStructTypes()) {
     if (Ty->getName() == Name) {
       return Ty;
+    }
+  }
+  return nullptr;
+}
+
+static const llvm::DIType *getDIType(const LLVMProjectIRDB &IRDB,
+                                     llvm::StringRef Name) {
+  // TODO: Optimize
+  for (const auto *Instr : IRDB.getAllInstructions()) {
+    if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
+      if (const auto *DILocVal = getDILocalVariable(Val)) {
+        if (DILocVal->getName() == Name) {
+          return DILocVal->getType();
+        }
+      }
     }
   }
   return nullptr;
@@ -161,15 +179,9 @@ TEST(VTableTest, VTableConstruction_6) {
 
   LLVMVFTableProvider TH(IRDB);
 
-  llvm::outs() << "Number of Struct Types: "
-               << IRDB.getModule()->getIdentifiedStructTypes().size() << "\n";
-  int Counter = 0;
-  for (const auto *StructTy : IRDB.getModule()->getIdentifiedStructTypes()) {
-    llvm::outs() << Counter++ << ": " << StructTy->getName() << "\n";
-  }
-
-  ASSERT_TRUE(TH.hasVFTable(getType(IRDB, "class.Base.base")));
-  EXPECT_EQ(TH.getVFTableOrNull(getType(IRDB, "class.Base.base"))->size(), 3U);
+  ASSERT_TRUE(TH.hasVFTable(getDIType(IRDB, "class.Base.base")));
+  EXPECT_EQ(TH.getVFTableOrNull(getDIType(IRDB, "class.Base.base"))->size(),
+            3U);
 }
 } // namespace
 

@@ -43,6 +43,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
   const auto &BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
   ASSERT_EQ(BsCallees.size(), 2U);
+
   ASSERT_TRUE(llvm::is_contained(BsCallees, VFuncB));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), CallToBFunc));
 }
@@ -70,7 +71,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "call_graphs/function_pointer_2_cpp.ll");
+                       "call_graphs/function_pointer_2_cpp_dbg.ll");
   DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
@@ -108,7 +109,7 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
 
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "call_graphs/function_pointer_3_cpp.ll");
+                       "call_graphs/function_pointer_3_cpp_dbg.ll");
   DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);

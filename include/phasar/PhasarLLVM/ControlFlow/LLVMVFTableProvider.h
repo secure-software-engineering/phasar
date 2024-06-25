@@ -34,6 +34,8 @@ public:
   [[nodiscard]] bool hasVFTable(const llvm::DIType *Type) const;
   [[nodiscard]] const LLVMVFTable *
   getVFTableOrNull(const llvm::StructType *Type) const;
+  [[nodiscard]] const LLVMVFTable *
+  getVFTableOrNull(const llvm::DIType *Type) const;
 
 private:
   std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;

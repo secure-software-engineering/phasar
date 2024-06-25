@@ -9,6 +9,7 @@
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
 
@@ -94,6 +95,7 @@ LLVMVFTableProvider::LLVMVFTableProvider(const LLVMProjectIRDB &IRDB)
       }
     }
   }
+
   llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
 
   for (const auto &Glob : IRDB.getModule()->globals()) {
@@ -122,4 +124,15 @@ const LLVMVFTable *
 LLVMVFTableProvider::getVFTableOrNull(const llvm::StructType *Type) const {
   auto It = TypeVFTMap.find(Type);
   return It != TypeVFTMap.end() ? &It->second : nullptr;
+}
+
+const LLVMVFTable *
+LLVMVFTableProvider::getVFTableOrNull(const llvm::DIType *Type) const {
+  if (const auto *Ty = DITypeToType.at(Type)) {
+    if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
+      return getVFTableOrNull(StructTy);
+    }
+  }
+
+  return nullptr;
 }
