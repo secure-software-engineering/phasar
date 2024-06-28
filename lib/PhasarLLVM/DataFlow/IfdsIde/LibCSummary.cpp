@@ -588,9 +588,44 @@ static FunctionDataFlowFacts createLibCSummary() {
   //floorl
   Sum.addElement("floorl", 0, ReturnValue{});
 
-  
+  //fma
+  Sum.addElement("fma", 0, ReturnValue{});
+  Sum.addElement("fma", 1, ReturnValue{});
+  Sum.addElement("fma", 2, ReturnValue{});
 
+  //fmaf
+  Sum.addElement("fmaf", 0, ReturnValue{});
+  Sum.addElement("fmaf", 1, ReturnValue{});
+  Sum.addElement("fmaf", 2, ReturnValue{});
 
+  //fmal
+  Sum.addElement("fmal", 0, ReturnValue{});
+  Sum.addElement("fmal", 1, ReturnValue{});
+  Sum.addElement("fmal", 2, ReturnValue{});
+
+  //fmax
+  Sum.addElement("fmax", 0, ReturnValue{});
+  Sum.addElement("fmax", 1, ReturnValue{});
+
+  //fmaxf
+  Sum.addElement("fmaxf", 0, ReturnValue{});
+  Sum.addElement("fmaxf", 1, ReturnValue{});
+
+  //fmaxl
+  Sum.addElement("fmaxl", 0, ReturnValue{});
+  Sum.addElement("fmaxl", 1, ReturnValue{});
+
+  //fmaxmag
+  Sum.addElement("fmaxmag", 0, ReturnValue{});
+  Sum.addElement("fmaxmag", 1, ReturnValue{});
+
+  //fmaxmagf
+  Sum.addElement("fmaxmag", 0, ReturnValue{});
+  Sum.addElement("fmaxmagf", 1, ReturnValue{});
+
+  //fmaxmagl
+  Sum.addElement("fmaxmagl", 0, ReturnValue{});
+  Sum.addElement("fmaxmag", 1, ReturnValue{});
 
 
   // TODO
