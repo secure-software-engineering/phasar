@@ -358,7 +358,89 @@ static FunctionDataFlowFacts createLibCSummary() {
   //creall
   Sum.addElement("creall", 0, ReturnValue{});
 
+  //crypt
+  Sum.addElement("crypt", 0, ReturnValue{});
+  //Sum.addElement("crypt", 1, ReturnValue{});
+
+  //crypt_r
+  Sum.addElement("crypt_r", 0, ReturnValue{});
+  //Sum.addElement("crypt_r", 1, ReturnValue{});
+
+  //csin
+  Sum.addElement("csin", 0, ReturnValue{});
+
+  //csinf
+  Sum.addElement("csinf", 0, ReturnValue{});
+
+  //csinh
+  Sum.addElement("csinh", 0, ReturnValue{});
+
+  //csinhf
+  Sum.addElement("csinhf", 0, ReturnValue{});
+
+  //csinhl
+  Sum.addElement("csinhl", 0, ReturnValue{});
+
+  //csinl
+  Sum.addElement("csinl", 0, ReturnValue{});
+
+  //csprt
+  Sum.addElement("csqrt", 0, ReturnValue{});
+
+  //csqrtf
+  Sum.addElement("csqrtf", 0, ReturnValue{});
+
+  //csqrtl
+  Sum.addElement("csqrtl", 0, ReturnValue{});
+
+  //ctan
+  Sum.addElement("ctan", 0, ReturnValue{});
+
+  //ctanf
+  Sum.addElement("ctanf", 0, ReturnValue{});
+
+  //ctanh
+  Sum.addElement("ctanh", 0, ReturnValue{});
+
+  //ctanhf
+  Sum.addElement("ctanhf", 0, ReturnValue{});
+
+  //ctanhl
+  Sum.addElement("ctanhl", 0, ReturnValue{});
+
+  //ctanl
+  Sum.addElement("ctanl", 0, ReturnValue{});
+
+  //ctermid
+  Sum.addElement("ctermid", 0, ReturnValue{});
+
+  //ctime
+  Sum.addElement("ctime", 0, ReturnValue{});  //?
+
+  //ctime_r
+  Sum.addElement("ctime_r", 0, Parameter{1});
+
+  //cuserid
+  Sum.addElement("cuserid", 0, ReturnValue{});
+
+  //dcgettext
+  Sum.addElement("dcgettext", 1, ReturnValue{});
+
+  //dcngettext
+  Sum.addElement("dcngettext", 1, ReturnValue{});
+
+  //dgettext
+  Sum.addElement("dgettext", 1, ReturnValue{});
+
+  //difftime
+  Sum.addElement("difftime", 0, ReturnValue{});
+  Sum.addElement("difftime", 1, ReturnValue{});
+
+  //dirname
+  Sum.addElement("dirname", 0, ReturnValue{});
+
   
+
   // TODO
   return Sum;
 }

@@ -26,32 +26,26 @@ public:
 
   // insert a set of data flow facts
   void insertSet(const std::string &FuncKey, const uint32_t &Index, const std::vector<DataFlowFact> &OutSet) {
-    auto const It = this->fdff.find (FuncKey);
-    if (It != this->fdff.end ()) {
-      It->second.insert ({Index, OutSet});
+    if (this->fdff.find (FuncKey) != this->fdff.end ()) {
+      this->fdff[FuncKey][Index] = OutSet;
     }
     
     else {
       std::unordered_map<uint32_t, std::vector<DataFlowFact>> Tmp;
-      Tmp.insert ({Index, OutSet});
+      Tmp[Index] = OutSet;
       this->fdff.insert ({FuncKey, Tmp});
     }
   }
 
   //insert a single data flow fact
   void addElement(const std::string &FuncKey, const uint32_t &Index, const DataFlowFact &Out) {
-    auto const It1 = this->fdff.find (FuncKey);
-    if (It1 != this->fdff.end ()) {
-      auto const It2 = It1->second.find (Index);
-      if (It2 != It1->second.end ()) {
+    if (this->fdff.find (FuncKey) != this->fdff.end ()) {
           this->fdff[FuncKey][Index].emplace_back(Out);
-      }
     }
     
     else {
-      std::vector NewOutSet = {Out};
       std::unordered_map<uint32_t, std::vector<DataFlowFact>> Tmp;
-      Tmp.insert ({Index, NewOutSet});
+      Tmp[Index] = {Out};
       this->fdff.insert ({FuncKey, Tmp});
     }
   }
