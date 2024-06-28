@@ -439,7 +439,94 @@ static FunctionDataFlowFacts createLibCSummary() {
   //dirname
   Sum.addElement("dirname", 0, ReturnValue{});
 
+  //div
+  Sum.addElement("div", 0, ReturnValue{});
+  Sum.addElement("div", 1, ReturnValue{});
+
+  //dngettext
+  Sum.addElement("dngettext", 1, ReturnValue{});
+
+  //drem
+  Sum.addElement("drem", 0, ReturnValue{});
+  Sum.addElement("drem", 1, ReturnValue{});
+
+  //dremf
+  Sum.addElement("dremf", 0, ReturnValue{});
+  Sum.addElement("dremf", 1, ReturnValue{});
+
+  //dreml
+  Sum.addElement("dreml", 0, ReturnValue{});
+  Sum.addElement("dreml", 1, ReturnValue{});
+
+  //dup
+  Sum.addElement("dup", 0, ReturnValue{});
+
+  //dup2
+  Sum.addElement("dup2", 0, ReturnValue{});
+
+  //envz_add
+  Sum.addElement("envz_add", 2, Parameter{0});
+  Sum.addElement("envz_add", 3, Parameter{0});
+
+  //envz_entry
+  Sum.addElement("envz_entry", 0, ReturnValue{});
+
+  //envz_get
+  Sum.addElement("envz_get", 0, ReturnValue{});
+
+  //envz_merge
+  Sum.addElement("envz_merge", 2, ReturnValue{});
+
+  //erf
+  Sum.addElement("erf", 0, ReturnValue{});
+
+  //erfc
+  Sum.addElement("erfc", 0, ReturnValue{});
+
+  //erfcf
+  Sum.addElement("erfcf", 0, ReturnValue{});
+
+  //erfcl
+  Sum.addElement("erfcf", 0, ReturnValue{});
+
+  //erff
+  Sum.addElement("erff", 0, ReturnValue{});
+
+  //erfl
+  Sum.addElement("erfl", 0, ReturnValue{});
+
+  //exp
+  Sum.addElement("exp", 0, ReturnValue{});
+
+  //exp10
+  Sum.addElement("exp10", 0, ReturnValue{});
+
+  //exp10f
+  Sum.addElement("exp10f", 0, ReturnValue{});
+
+  //exp10l
+  Sum.addElement("exp10l", 0, ReturnValue{});
+
+  //exp2
+  Sum.addElement("exp2", 0, ReturnValue{});
+
+  //exp2f
+  Sum.addElement("exp2f", 0, ReturnValue{});
+
+  //exp2l
+  Sum.addElement("exp2l", 0, ReturnValue{});
+
+  //expf
+  Sum.addElement("expf", 0, ReturnValue{});
+
+  //expl
+  Sum.addElement("expl", 0, ReturnValue{});
+
+  //expm1
+  Sum.addElement("expm1", 0, ReturnValue{});
+
   
+
 
   // TODO
   return Sum;
