@@ -627,6 +627,77 @@ static FunctionDataFlowFacts createLibCSummary() {
   Sum.addElement("fmaxmagl", 0, ReturnValue{});
   Sum.addElement("fmaxmag", 1, ReturnValue{});
 
+  //fmin
+  Sum.addElement("fmin", 0, ReturnValue{});
+  Sum.addElement("fmin", 1, ReturnValue{});
+
+  //fminf
+  Sum.addElement("fminf", 0, ReturnValue{});
+  Sum.addElement("fminf", 1, ReturnValue{});
+
+  //fminl
+  Sum.addElement("fminl", 0, ReturnValue{});
+  Sum.addElement("fminl", 1, ReturnValue{});
+
+  //fminmag
+  Sum.addElement("fminmag", 0, ReturnValue{});
+  Sum.addElement("fminmag", 1, ReturnValue{});
+
+  //fminmagf
+  Sum.addElement("fminmagf", 0, ReturnValue{});
+  Sum.addElement("fminmagf", 1, ReturnValue{});
+
+  //fminmagl
+  Sum.addElement("fminmagl", 0, ReturnValue{});
+  Sum.addElement("fminmagl", 1, ReturnValue{});
+
+  //fmod
+  Sum.addElement("fmod", 0, ReturnValue{});
+  Sum.addElement("fmod", 1, ReturnValue{});
+
+  //fmodf
+  Sum.addElement("fmodf", 0, ReturnValue{});
+  Sum.addElement("fmodf", 1, ReturnValue{});
+
+  //fmodl
+  Sum.addElement("fmodl", 0, ReturnValue{});
+  Sum.addElement("fmodl", 1, ReturnValue{});
+
+  //fprintf
+  Sum.addElement("fprintf", 1, Parameter{0});
+  Sum.addElement("fprintf", 2, Parameter{0});
+  Sum.addElement("fprintf", 3, Parameter{0});
+  //....
+
+  //fputc
+  Sum.addElement("fputc", 0, Parameter{1});
+
+  //fputs
+  Sum.addElement("fputs", 0, Parameter{1});
+
+  //fputwc
+  Sum.addElement("fputwc", 0, Parameter{1});
+
+  //fputws
+  Sum.addElement("fputws", 0, Parameter{1});
+
+  //fread
+  Sum.addElement("fread", 3, Parameter{0});
+
+  //frexp
+  Sum.addElement("frexp", 0, Parameter{1});
+  Sum.addElement("frexp", 0, ReturnValue{});
+
+  //frexpf
+  Sum.addElement("frexpf", 0, Parameter{1});
+  Sum.addElement("frexpf", 0, ReturnValue{});
+
+  //frexpl
+  Sum.addElement("frexpl", 0, Parameter{1});
+  Sum.addElement("frexpl", 0, ReturnValue{});
+
+
+
 
   // TODO
   return Sum;
