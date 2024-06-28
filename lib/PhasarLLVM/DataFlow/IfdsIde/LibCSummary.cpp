@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
+#include "clang/AST/Attrs.inc"
 
 using namespace psr;
 
@@ -525,7 +526,71 @@ static FunctionDataFlowFacts createLibCSummary() {
   //expm1
   Sum.addElement("expm1", 0, ReturnValue{});
 
+  //expm1f
+  Sum.addElement("expm1f", 0, ReturnValue{});
+
+  //expm1l
+  Sum.addElement("expm1l", 0, ReturnValue{});
+
+  //fabs
+  Sum.addElement("fabs", 0, ReturnValue{});
+
+  //fabsf
+  Sum.addElement("fabsf", 0, ReturnValue{});
+
+  //fabsl
+  Sum.addElement("fabsl", 0, ReturnValue{});
+
+  //fdim
+  Sum.addElement("fdim", 0, ReturnValue{});
+
+  //fdimf
+  Sum.addElement("fdimf", 0, ReturnValue{});
+
+  //fdiml
+  Sum.addElement("fdiml", 0, ReturnValue{});
+
+  //fgetc
+  Sum.addElement("fgetc", 0, ReturnValue{});
+
+  //fgetpwent
+  Sum.addElement("fgetpwent", 0, ReturnValue{});
+
+  //fgetpwent_f
+  Sum.addElement("fgetpwent_r", 0, Parameter{1});
+
+  //fgets
+  Sum.addElement("fgets", 2, Parameter{0});
+  Sum.addElement("fgets", 0, ReturnValue{});
+
+  //fgetwc
+  Sum.addElement("fgetwc", 0, ReturnValue{});
+
+  //fgetws
+  Sum.addElement("fgetws", 2, Parameter{0});
+  Sum.addElement("fgetws", 0, ReturnValue{});
+
+  //finite
+  Sum.addElement("finite", 0, ReturnValue{});
+
+  //finitef
+  Sum.addElement("finitef", 0, ReturnValue{});
+
+  //finitel
+  Sum.addElement("finitel", 0, ReturnValue{});
+
+  //floor
+  Sum.addElement("floor", 0, ReturnValue{});
+
+  //floorf
+  Sum.addElement("floorf", 0, ReturnValue{});
+
+  //floorl
+  Sum.addElement("floorl", 0, ReturnValue{});
+
   
+
+
 
 
   // TODO
