@@ -696,6 +696,85 @@ static FunctionDataFlowFacts createLibCSummary() {
   Sum.addElement("frexpl", 0, Parameter{1});
   Sum.addElement("frexpl", 0, ReturnValue{});
 
+  //fromfp
+  Sum.addElement("fromfp", 0, ReturnValue{});
+
+  //fromfpf
+  Sum.addElement("fromfpf", 0, ReturnValue{});
+
+  //fromfpl
+  Sum.addElement("fromfpl", 0, ReturnValue{});
+
+  //fromfpx
+  Sum.addElement("fromfpx", 0, ReturnValue{});
+
+  //fromfpxf
+  Sum.addElement("fromfpxf", 0, ReturnValue{});
+
+  //fromfpxl
+  Sum.addElement("fromfpxl", 0, ReturnValue{});
+
+  //fscanf
+  Sum.addElement("fscanf", 0, Parameter{2});
+
+  //fstat
+  Sum.addElement("fstat", 0, Parameter{1});
+
+  //fstat64
+  Sum.addElement("fstat64", 0, Parameter{});
+
+  //fwprintf
+  Sum.addElement("fwprintf", 1, Parameter{0});
+  Sum.addElement("fwprintf", 2, Parameter{0});
+  Sum.addElement("fwprintf", 3, Parameter{0});
+
+  //fwrite
+  Sum.addElement("fwrite", 0, Parameter{3});
+
+  //fwscanf
+  Sum.addElement("fwscanf", 0, Parameter{2});
+
+  //gamma
+  Sum.addElement("gamma", 0, ReturnValue{});
+
+  //gammaf
+  Sum.addElement("gammaf", 0, ReturnValue{});
+
+  //gammal
+  Sum.addElement("gammal", 0, ReturnValue{});
+
+  //gcvt
+  Sum.addElement("gcvt", 0, Parameter{2});
+  Sum.addElement("gcvt", 2, ReturnValue{});
+
+  //getauxval
+  Sum.addElement("getauxval", 0, ReturnValue{});
+
+  //getc
+  Sum.addElement("getc", 0, ReturnValue{});
+
+  //getc_unlocked
+  Sum.addElement("getc_unlocked", 0, ReturnValue{});
+
+  //getchar
+  Sum.addElement("getchar", 0, ReturnValue{});
+
+  //getchar_unlocked
+  Sum.addElement("getchar_unlocked", 0, ReturnValue{});
+
+  //getcwd
+  Sum.addElement("getcwd", 0, ReturnValue{});
+
+  //getdate
+  Sum.addElement("getdate", 0, ReturnValue{});
+
+  //getdate_r
+  Sum.addElement("getdate_r", 0, Parameter{1});
+
+  //getdelim
+  Sum.addElement("getdelim", 3, Parameter{0});
+
+  
 
 
 
