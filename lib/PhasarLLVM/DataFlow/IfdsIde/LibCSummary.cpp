@@ -774,6 +774,46 @@ static FunctionDataFlowFacts createLibCSummary() {
   //getdelim
   Sum.addElement("getdelim", 3, Parameter{0});
 
+  //getline
+  Sum.addElement("getline", 2, Parameter{0});
+
+  //getpayload
+  Sum.addElement("getpayoad", 0, Return{});
+
+  //getpayloadf
+  Sum.addElement("getpayloadf", 0, ReturnValue{});
+
+  //getpayloadl
+  Sum.addElement("getpayloadl", 0, ReturnValue{});
+
+  //getpeername
+  Sum.addElement("getpeername", 0, Parameter{});
+
+  //getrlimit
+  Sum.addElement("getrlimit", 1, ReturnValue{});
+
+  //gets
+  Sum.addElement("gets", 0, ReturnValue{});
+
+  //gettext
+  Sum.addElement("gettext", 0, ReturnValue{});
+
+  //gettimeofday
+  Sum.addElement("gettimeofday", 0, Parameter{1});
+
+  //getutent_r
+  Sum.addElement("getutent_r", 0, Parameter{1});
+
+  //getutid
+  Sum.addElement("getutid", 0, ReturnValue{});
+
+  //getutid_r
+  Sum.addElement("getutid", 0, Parameter{1});
+  Sum.addElement("getutid", 1, Parameter{2});
+
+  //getutline
+  Sum.addElement("getutline", 0, ReturnValue{});
+
   
 
 
