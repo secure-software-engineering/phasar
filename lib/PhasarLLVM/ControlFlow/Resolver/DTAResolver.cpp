@@ -33,6 +33,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <memory>
 
@@ -45,6 +46,10 @@ DTAResolver::DTAResolver(const LLVMProjectIRDB *IRDB,
 
 bool DTAResolver::heuristicAntiConstructorThisType(
     const llvm::BitCastInst *BitCast) {
+
+  llvm::report_fatal_error("Does not work with opaque pointers anymore");
+
+#if 0
   // We check if the caller is a constructor, and if the this argument has the
   // same type as the source type of the bitcast. If it is the case, it returns
   // false, true otherwise.
@@ -62,12 +67,19 @@ bool DTAResolver::heuristicAntiConstructorThisType(
   }
 
   return true;
+#endif
 }
 
 bool DTAResolver::heuristicAntiConstructorVtablePos(
     const llvm::BitCastInst *BitCast) {
+
+  llvm::report_fatal_error("Does not work with opaque pointers anymore");
+
+#if 0 
+
   // Better heuristic than the previous one, can handle the CRTP. Based on the
   // previous one.
+
 
   if (heuristicAntiConstructorThisType(BitCast)) {
     return true;
@@ -142,9 +154,14 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   }
 
   return (BitcastNum > VtableNum);
+#endif
 }
 
 void DTAResolver::otherInst(const llvm::Instruction *Inst) {
+
+  llvm::report_fatal_error("Does not work with opaque pointers anymore");
+
+#if 0
   if (Inst->getType()->isOpaquePointerTy()) {
     /// XXX: We may want to get these information on a different way, e.g. by
     /// analyzing the debug info
@@ -165,10 +182,13 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
       TypeGraph.addLink(DestStructType, SrcStructType);
     }
   }
+#endif
 }
-
 auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
+  llvm::report_fatal_error("Does not work with opaque pointers anymore");
+
+#if 0
   FunctionSetTy PossibleCallTargets;
 
   PHASAR_LOG_LEVEL(DEBUG,
@@ -220,6 +240,7 @@ auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 #endif
 
   return PossibleCallTargets;
+#endif
 }
 
 std::string DTAResolver::str() const { return "DTA"; }

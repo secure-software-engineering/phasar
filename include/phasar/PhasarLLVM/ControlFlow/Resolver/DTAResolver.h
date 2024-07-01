@@ -45,7 +45,7 @@ protected:
    * An heuristic that return true if the bitcast instruction is interesting to
    * take into the DTA relational graph
    */
-  static bool
+  [[deprecated("Does not work with opaque pointers anymore")]] static bool
   heuristicAntiConstructorThisType(const llvm::BitCastInst *BitCast);
 
   /**
@@ -53,19 +53,25 @@ protected:
    * interesting to take into the DTA relational graph (use the presence or not
    * of vtable)
    */
-  bool heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
+  [[deprecated("Does not work with opaque pointers anymore")]] bool
+  heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
 
 public:
-  DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const DIBasedTypeHierarchy *TH);
+  [[deprecated("Does not work with opaque pointers anymore")]] DTAResolver(
+      const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+      const DIBasedTypeHierarchy *TH);
 
   ~DTAResolver() override = default;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  [[deprecated("Does not work with opaque pointers anymore")]] FunctionSetTy
+  resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
-  void otherInst(const llvm::Instruction *Inst) override;
+  [[deprecated("Does not work with opaque pointers anymore")]] void
+  otherInst(const llvm::Instruction *Inst) override;
 
-  [[nodiscard]] std::string str() const override;
+  [[nodiscard]] [[deprecated(
+      "Does not work with opaque pointers anymore")]] std::string
+  str() const override;
 };
 } // namespace psr
 

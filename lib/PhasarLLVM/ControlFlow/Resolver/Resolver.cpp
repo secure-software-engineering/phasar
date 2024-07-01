@@ -179,27 +179,6 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
     return nullptr;
   }
 
-  if (const auto *StructTy =
-          llvm::dyn_cast<llvm::StructType>(DITypeToType[T])) {
-    if (const auto *VT = VTP->getVFTableOrNull(StructTy)) {
-      const auto *Target = VT->getFunction(Idx);
-      if (Target &&
-          Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
-          isConsistentCall(CallSite, Target)) {
-        return Target;
-      }
-    }
-  }
-
-  return nullptr;
-}
-
-const llvm::Function *
-Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    const llvm::CallBase *CallSite) {
-  if (!VTP) {
-    return nullptr;
-  }
   if (const auto *VT = VTP->getVFTableOrNull(T)) {
     const auto *Target = VT->getFunction(Idx);
     if (Target &&
@@ -208,6 +187,7 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
       return Target;
     }
   }
+
   return nullptr;
 }
 

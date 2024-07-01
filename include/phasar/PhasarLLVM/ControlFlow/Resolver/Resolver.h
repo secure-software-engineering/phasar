@@ -67,10 +67,6 @@ protected:
   getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                             const llvm::CallBase *CallSite);
 
-  const llvm::Function *
-  getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                            const llvm::CallBase *CallSite);
-
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
 

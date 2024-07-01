@@ -31,7 +31,6 @@ namespace psr {
  */
 class LLVMVFTable : public VFTable<const llvm::Function *> {
 private:
-  friend class LLVMTypeHierarchy;
   friend class DIBasedTypeHierarchy;
   std::vector<const llvm::Function *> VFT;
 

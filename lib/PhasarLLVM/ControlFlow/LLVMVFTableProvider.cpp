@@ -6,6 +6,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -15,57 +16,41 @@
 
 using namespace psr;
 
-static std::vector<const llvm::Function *> getVirtualFunctions(
-    const llvm::StringMap<const llvm::GlobalVariable *> &ClearNameTVMap,
-    const llvm::StructType &Type) {
-  auto ClearName =
-      DIBasedTypeHierarchy::removeStructOrClassPrefix(Type.getName());
-
-  auto It = ClearNameTVMap.find(ClearName);
-
-  if (It != ClearNameTVMap.end()) {
-    if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(It->second)) {
-      if (!TI->hasInitializer()) {
-        PHASAR_LOG_LEVEL_CAT(DEBUG, "DIBasedTypeHierarchy",
-                             ClearName << " does not have initializer");
-        return {};
-      }
-      if (const auto *I =
-              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        return LLVMVFTable::getVFVectorFromIRVTable(*I);
-      }
-    }
+static std::string getTypeName(const llvm::DIType *DITy) {
+  if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
+    auto Ident = CompTy->getIdentifier();
+    return Ident.empty() ? llvm::demangle(CompTy->getName().str())
+                         : llvm::demangle(Ident.str());
   }
-  return {};
+  return llvm::demangle(DITy->getName().str());
 }
 
-static std::vector<const llvm::Function *> getVirtualFunctionsDIBased(
+static std::vector<const llvm::Function *> getVirtualFunctions(
     const llvm::StringMap<const llvm::GlobalVariable *> &ClearNameTVMap,
-    const llvm::DIType &Type) {
-  auto ClearName =
-      DIBasedTypeHierarchy::removeStructOrClassPrefix(Type.getName());
+    const llvm::DIType *Type) {
+  auto ClearName = getTypeName(Type);
+
+  if (ClearName.substr(0, 18) == "typeinfo name for ") {
+    ClearName = ClearName.substr(18, ClearName.size() - 1);
+  }
 
   auto It = ClearNameTVMap.find(ClearName);
 
   if (It != ClearNameTVMap.end()) {
-    if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(It->second)) {
-      if (!TI->hasInitializer()) {
-        PHASAR_LOG_LEVEL_CAT(DEBUG, "DIBasedTypeHierarchy",
-                             ClearName << " does not have initializer");
-        return {};
-      }
-      if (const auto *I =
-              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        return LLVMVFTable::getVFVectorFromIRVTable(*I);
-      }
+    if (!It->second->hasInitializer()) {
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "DIBasedTypeHierarchy",
+                           ClearName << " does not have initializer");
+      return {};
+    }
+    if (const auto *I = llvm::dyn_cast<llvm::ConstantStruct>(
+            It->second->getInitializer())) {
+      return LLVMVFTable::getVFVectorFromIRVTable(*I);
     }
   }
   return {};
 }
 
 LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
-  auto StructTypes = Mod.getIdentifiedStructTypes();
-
   llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
 
   for (const auto &Glob : Mod.globals()) {
@@ -76,63 +61,33 @@ LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
     }
   }
 
-  for (const auto *Ty : StructTypes) {
-    TypeVFTMap.try_emplace(Ty, getVirtualFunctions(ClearNameTVMap, *Ty));
+  llvm::DebugInfoFinder DIF;
+  DIF.processModule(Mod);
+  for (const auto *Ty : DIF.types()) {
+    if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(Ty)) {
+      if (const auto *BaseTy = DerivedTy->getBaseType()) {
+        if (const auto *CompTy =
+                llvm::dyn_cast<llvm::DICompositeType>(BaseTy)) {
+          if (CompTy->getTag() == llvm::dwarf::DW_TAG_class_type ||
+              CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type) {
+            TypeVFTMap.try_emplace(CompTy,
+                                   getVirtualFunctions(ClearNameTVMap, CompTy));
+          }
+        }
+      }
+    }
   }
 }
 
 LLVMVFTableProvider::LLVMVFTableProvider(const LLVMProjectIRDB &IRDB)
-    : LLVMVFTableProvider(*IRDB.getModule()) {
-  for (const auto *Instr : IRDB.getAllInstructions()) {
-    if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
-      if (const auto *DILocalVar = getDILocalVariable(Val)) {
-        if (const auto *DerivedTy =
-                llvm::dyn_cast<llvm::DIDerivedType>(DILocalVar->getType())) {
-          DITypeToType[DerivedTy->getBaseType()] = Val->getType();
-          continue;
-        }
-        DITypeToType[DILocalVar->getType()] = Val->getType();
-      }
-    }
-  }
-
-  llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
-
-  for (const auto &Glob : IRDB.getModule()->globals()) {
-    if (DIBasedTypeHierarchy::isVTable(Glob.getName())) {
-      auto Demang = llvm::demangle(Glob.getName().str());
-      auto ClearName = DIBasedTypeHierarchy::removeVTablePrefix(Demang);
-      ClearNameTVMap.try_emplace(ClearName, &Glob);
-    }
-  }
-
-  for (const auto &Elem : DITypeToType) {
-    DITypeVFTMap.try_emplace(
-        Elem.first, getVirtualFunctionsDIBased(ClearNameTVMap, *Elem.first));
-  }
-}
-
-bool LLVMVFTableProvider::hasVFTable(const llvm::StructType *Type) const {
-  return TypeVFTMap.count(Type);
-}
+    : LLVMVFTableProvider(*IRDB.getModule()) {}
 
 bool LLVMVFTableProvider::hasVFTable(const llvm::DIType *Type) const {
-  return DITypeToType.count(Type);
-}
-
-const LLVMVFTable *
-LLVMVFTableProvider::getVFTableOrNull(const llvm::StructType *Type) const {
-  auto It = TypeVFTMap.find(Type);
-  return It != TypeVFTMap.end() ? &It->second : nullptr;
+  return TypeVFTMap.count(Type);
 }
 
 const LLVMVFTable *
 LLVMVFTableProvider::getVFTableOrNull(const llvm::DIType *Type) const {
-  if (const auto *Ty = DITypeToType.at(Type)) {
-    if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
-      return getVFTableOrNull(StructTy);
-    }
-  }
-
-  return nullptr;
+  auto It = TypeVFTMap.find(Type);
+  return It != TypeVFTMap.end() ? &It->second : nullptr;
 }
