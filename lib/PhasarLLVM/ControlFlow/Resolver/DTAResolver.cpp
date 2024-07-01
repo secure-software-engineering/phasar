@@ -46,9 +46,7 @@ DTAResolver::DTAResolver(const LLVMProjectIRDB *IRDB,
 
 bool DTAResolver::heuristicAntiConstructorThisType(
     const llvm::BitCastInst *BitCast) {
-
   llvm::report_fatal_error("Does not work with opaque pointers anymore");
-
 #if 0
   // We check if the caller is a constructor, and if the this argument has the
   // same type as the source type of the bitcast. If it is the case, it returns
@@ -72,10 +70,8 @@ bool DTAResolver::heuristicAntiConstructorThisType(
 
 bool DTAResolver::heuristicAntiConstructorVtablePos(
     const llvm::BitCastInst *BitCast) {
-
   llvm::report_fatal_error("Does not work with opaque pointers anymore");
-
-#if 0 
+#if 0
 
   // Better heuristic than the previous one, can handle the CRTP. Based on the
   // previous one.
@@ -158,9 +154,7 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
 }
 
 void DTAResolver::otherInst(const llvm::Instruction *Inst) {
-
   llvm::report_fatal_error("Does not work with opaque pointers anymore");
-
 #if 0
   if (Inst->getType()->isOpaquePointerTy()) {
     /// XXX: We may want to get these information on a different way, e.g. by
@@ -187,7 +181,6 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
 auto DTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
   llvm::report_fatal_error("Does not work with opaque pointers anymore");
-
 #if 0
   FunctionSetTy PossibleCallTargets;
 
