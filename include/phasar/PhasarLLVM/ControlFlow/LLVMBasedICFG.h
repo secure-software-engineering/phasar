@@ -34,10 +34,6 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
-#include <memory>
-
 namespace psr {
 class DIBasedTypeHierarchy;
 class LLVMProjectIRDB;
@@ -174,7 +170,6 @@ private:
   CallGraph<const llvm::Instruction *, const llvm::Function *> CG;
   LLVMProjectIRDB *IRDB = nullptr;
   LLVMVFTableProvider VTP;
-  std::map<const llvm::DIType *, const llvm::StructType *> DITypeToValueType;
 };
 
 extern template class ICFGBase<LLVMBasedICFG>;

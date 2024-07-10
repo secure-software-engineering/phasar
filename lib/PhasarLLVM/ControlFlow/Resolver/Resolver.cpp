@@ -164,12 +164,11 @@ namespace psr {
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB) : IRDB(IRDB), VTP(nullptr) {
   assert(IRDB != nullptr);
-  initializeTypeMap();
 }
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
-  initializeTypeMap();
+  assert(IRDB != nullptr);
 }
 
 const llvm::Function *
@@ -250,17 +249,6 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
 
   llvm_unreachable("All possible callgraph algorithms should be handled in the "
                    "above switch");
-}
-
-void Resolver::initializeTypeMap() {
-  for (const auto *Instr : IRDB->getAllInstructions()) {
-    if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
-      if (const auto *DITy = getDILocalVariable(Val)) {
-        DITypeToType[DITy->getType()] = Val->getType();
-        TypeToDIType[Val->getType()] = DITy->getType();
-      }
-    }
-  }
 }
 
 } // namespace psr

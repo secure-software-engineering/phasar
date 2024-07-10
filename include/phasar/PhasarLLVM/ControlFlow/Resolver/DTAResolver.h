@@ -34,7 +34,8 @@ class BitCastInst;
 
 namespace psr {
 
-class DTAResolver : public CHAResolver {
+class [[deprecated("Does not work with opaque pointers anymore")]] DTAResolver
+    : public CHAResolver {
 public:
   using TypeGraph_t = CachedTypeGraph;
 
@@ -45,7 +46,7 @@ protected:
    * An heuristic that return true if the bitcast instruction is interesting to
    * take into the DTA relational graph
    */
-  [[deprecated("Does not work with opaque pointers anymore")]] static bool
+  static bool
   heuristicAntiConstructorThisType(const llvm::BitCastInst *BitCast);
 
   /**
@@ -53,25 +54,19 @@ protected:
    * interesting to take into the DTA relational graph (use the presence or not
    * of vtable)
    */
-  [[deprecated("Does not work with opaque pointers anymore")]] bool
-  heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
+  bool heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
 
 public:
-  [[deprecated("Does not work with opaque pointers anymore")]] DTAResolver(
-      const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-      const DIBasedTypeHierarchy *TH);
+  DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const DIBasedTypeHierarchy *TH);
 
   ~DTAResolver() override = default;
 
-  [[deprecated("Does not work with opaque pointers anymore")]] FunctionSetTy
-  resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
-  [[deprecated("Does not work with opaque pointers anymore")]] void
-  otherInst(const llvm::Instruction *Inst) override;
+  void otherInst(const llvm::Instruction *Inst) override;
 
-  [[nodiscard]] [[deprecated(
-      "Does not work with opaque pointers anymore")]] std::string
-  str() const override;
+  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

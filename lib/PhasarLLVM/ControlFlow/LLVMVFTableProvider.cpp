@@ -6,11 +6,11 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
-#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
 
@@ -30,7 +30,7 @@ static std::vector<const llvm::Function *> getVirtualFunctions(
     const llvm::DIType *Type) {
   auto ClearName = getTypeName(Type);
 
-  if (ClearName.substr(0, 18) == "typeinfo name for ") {
+  if (llvm::StringRef(ClearName).startswith("typeinfo name for ")) {
     ClearName = ClearName.substr(18, ClearName.size() - 1);
   }
 

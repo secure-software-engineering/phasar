@@ -43,7 +43,6 @@ public:
   ~DIBasedTypeHierarchy() override = default;
 
   static bool isVTable(llvm::StringRef VarName);
-  static std::string removeStructOrClassPrefix(llvm::StringRef TypeName);
   static std::string removeVTablePrefix(llvm::StringRef VarName);
 
   [[nodiscard]] bool hasType(ClassType Type) const override {

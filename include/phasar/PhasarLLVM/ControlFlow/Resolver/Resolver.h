@@ -57,11 +57,8 @@ class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;
   const LLVMVFTableProvider *VTP;
-  std::map<const llvm::DIType *, const llvm::Type *> DITypeToType;
-  std::map<const llvm::Type *, const llvm::DIType *> TypeToDIType;
 
   Resolver(const LLVMProjectIRDB *IRDB);
-  void initializeTypeMap();
 
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,

@@ -216,19 +216,6 @@ bool DIBasedTypeHierarchy::isVTable(llvm::StringRef VarName) {
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
 
-std::string
-DIBasedTypeHierarchy::removeStructOrClassPrefix(llvm::StringRef TypeName) {
-  if (TypeName.startswith(StructPrefix)) {
-    TypeName = TypeName.drop_front(StructPrefix.size());
-  } else if (TypeName.startswith(ClassPrefix)) {
-    TypeName = TypeName.drop_front(ClassPrefix.size());
-  }
-  if (TypeName.endswith(".base")) {
-    TypeName = TypeName.drop_back(llvm::StringRef(".base").size());
-  }
-  return TypeName.str();
-}
-
 std::string DIBasedTypeHierarchy::removeVTablePrefix(llvm::StringRef VarName) {
   if (VarName.startswith(VTablePrefixDemang)) {
     return VarName.drop_front(VTablePrefixDemang.size()).str();
