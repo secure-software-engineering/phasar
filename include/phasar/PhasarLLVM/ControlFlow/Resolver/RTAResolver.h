@@ -19,6 +19,8 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 #include <vector>
 
 namespace llvm {
@@ -41,10 +43,9 @@ public:
   [[nodiscard]] std::string str() const override;
 
 private:
-  void resolveAllocatedStructTypes();
+  void resolveAllocatedCompositeTypes();
 
-  std::vector<const llvm::StructType *> AllocatedStructTypes;
-  std::map<const llvm::Type *, const llvm::DIType *> TypeToDIType;
+  std::vector<const llvm::DICompositeType *> AllocatedCompositeTypes;
 };
 } // namespace psr
 

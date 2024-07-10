@@ -23,6 +23,7 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
@@ -30,6 +31,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
 
 using namespace std;
 using namespace psr;
@@ -38,15 +40,7 @@ RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP,
                          const DIBasedTypeHierarchy *TH)
     : CHAResolver(IRDB, VTP, TH) {
-  resolveAllocatedStructTypes();
-
-  for (const auto *Instr : IRDB->getAllInstructions()) {
-    if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
-      if (const auto *DITy = getDILocalVariable(Val)) {
-        TypeToDIType[Val->getType()] = DITy->getType();
-      }
-    }
-  }
+  resolveAllocatedCompositeTypes();
 }
 
 auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
@@ -78,17 +72,12 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
   // also insert all possible subtypes vtable entries
   auto EndIt = ReachableTypes.end();
-  for (const auto *PossibleType : AllocatedStructTypes) {
-    if (const auto *PossibleTypeStruct =
-            llvm::dyn_cast<llvm::StructType>(PossibleType)) {
-      if (const auto *Ty = llvm::dyn_cast<llvm::Type>(PossibleTypeStruct)) {
-        if (ReachableTypes.find(TypeToDIType[Ty]) != EndIt) {
-          const auto *Target = getNonPureVirtualVFTEntry(TypeToDIType[Ty],
-                                                         VtableIndex, CallSite);
-          if (Target) {
-            PossibleCallTargets.insert(Target);
-          }
-        }
+  for (const auto *PossibleType : AllocatedCompositeTypes) {
+    if (ReachableTypes.find(PossibleType) != EndIt) {
+      const auto *Target =
+          getNonPureVirtualVFTEntry(PossibleType, VtableIndex, CallSite);
+      if (Target) {
+        PossibleCallTargets.insert(Target);
       }
     }
   }
@@ -103,61 +92,23 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 std::string RTAResolver::str() const { return "RTA"; }
 
 /// More or less copied from GeneralStatisticsAnalysis
-void RTAResolver::resolveAllocatedStructTypes() {
-  if (!AllocatedStructTypes.empty()) {
+void RTAResolver::resolveAllocatedCompositeTypes() {
+  if (!AllocatedCompositeTypes.empty()) {
     return;
   }
 
-  llvm::DenseSet<const llvm::StructType *> AllocatedStructTypes;
+  llvm::DebugInfoFinder DIF;
+  DIF.processModule(*IRDB->getModule());
+  llvm::DenseSet<const llvm::DICompositeType *> AllocatedCompositeTypes;
 
-  for (const auto *Fun : IRDB->getAllFunctions()) {
-    for (const auto &Inst : llvm::instructions(Fun)) {
-      if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&Inst)) {
-        if (const auto *StructTy =
-                llvm::dyn_cast<llvm::StructType>(Alloca->getAllocatedType())) {
-          AllocatedStructTypes.insert(StructTy);
-        }
-      } else if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(&Inst);
-                 CallSite && CallSite->getCalledFunction()) {
-        // check if an instance of a user-defined type is allocated on the
-        // heap
-
-        if (!isHeapAllocatingFunction(CallSite->getCalledFunction())) {
-          continue;
-        }
-        /// TODO: Does this iteration over the users make sense?
-        /// After LLVM 15 we will probably not be able to access the
-        /// PointerElementType anyway...
-        for (const auto *User : Inst.users()) {
-          const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User);
-          if (!Cast || Cast->getDestTy()->isOpaquePointerTy() ||
-              !Cast->getDestTy()
-                   ->getNonOpaquePointerElementType()
-                   ->isStructTy()) {
-            continue;
-          }
-          // finally check for ctor call
-          for (const auto *User : Cast->users()) {
-            if (const auto *CTor = llvm::dyn_cast<llvm::CallBase>(User)) {
-              // potential call to the structures ctor
-              if (CTor->getCalledFunction() &&
-                  getNthFunctionArgument(CTor->getCalledFunction(), 0)
-                          ->getType() == Cast->getDestTy() &&
-                  !Cast->getDestTy()->isOpaquePointerTy()) {
-                if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(
-                        Cast->getDestTy()->getNonOpaquePointerElementType())) {
-                  AllocatedStructTypes.insert(StructTy);
-                }
-              }
-            }
-          }
-        }
-      }
+  for (const auto *Ty : DIF.types()) {
+    if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
+      AllocatedCompositeTypes.insert(CompTy);
     }
   }
 
-  this->AllocatedStructTypes.reserve(AllocatedStructTypes.size());
-  this->AllocatedStructTypes.insert(this->AllocatedStructTypes.end(),
-                                    AllocatedStructTypes.begin(),
-                                    AllocatedStructTypes.end());
+  this->AllocatedCompositeTypes.reserve(AllocatedCompositeTypes.size());
+  this->AllocatedCompositeTypes.insert(this->AllocatedCompositeTypes.end(),
+                                       AllocatedCompositeTypes.begin(),
+                                       AllocatedCompositeTypes.end());
 }
