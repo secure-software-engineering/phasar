@@ -105,7 +105,7 @@ void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
                       UserEntryPoints.end());
   }
   // Note: Pre-allocate the call-graph builder *after* adding the
-  // CRuntimeGlobalCtorsDtorsModel
+  // CRuntimeGlobalCtorsDtorsModel.
   CGBuilder.reserve(IRDB->getNumFunctions());
 }
 
@@ -177,8 +177,8 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
         PossibleTargets.insert(CS->getCalledFunction());
 
         PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                             "Found static call-site: " << "  "
-                                                        << llvmIRToString(CS));
+                             "Found static call-site: "
+                                 << "  " << llvmIRToString(CS));
       } else {
         // still try to resolve the called function statically
         const llvm::Value *SV = CS->getCalledOperand()->stripPointerCasts();
@@ -194,9 +194,9 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
             continue;
           }
           // the function call must be resolved dynamically
-          PHASAR_LOG_LEVEL_CAT(
-              DEBUG, "LLVMBasedICFG",
-              "Found dynamic call-site: " << "  " << llvmIRToString(CS));
+          PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                               "Found dynamic call-site: "
+                                   << "  " << llvmIRToString(CS));
           IndirectCalls[CS] = 0;
           std::ignore = CGBuilder.addInstructionVertex(CS);
 
@@ -399,8 +399,8 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
   return IRDB->getAllFunctions();
 }
 
-[[nodiscard]] auto
-LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const -> f_t {
+[[nodiscard]] auto LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const
+    -> f_t {
   return IRDB->getFunction(Fun);
 }
 
@@ -413,8 +413,8 @@ LLVMBasedICFG::getFunctionImpl(llvm::StringRef Fun) const -> f_t {
   return internalIsVirtualFunctionCall(Inst, VTP);
 }
 
-[[nodiscard]] auto
-LLVMBasedICFG::allNonCallStartNodesImpl() const -> std::vector<n_t> {
+[[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const
+    -> std::vector<n_t> {
   std::vector<n_t> NonCallStartNodes;
   NonCallStartNodes.reserve(2 * IRDB->getNumFunctions());
   for (const auto *Inst : IRDB->getAllInstructions()) {
@@ -426,8 +426,8 @@ LLVMBasedICFG::allNonCallStartNodesImpl() const -> std::vector<n_t> {
   return NonCallStartNodes;
 }
 
-[[nodiscard]] auto
-LLVMBasedICFG::getCallsFromWithinImpl(f_t Fun) const -> llvm::SmallVector<n_t> {
+[[nodiscard]] auto LLVMBasedICFG::getCallsFromWithinImpl(f_t Fun) const
+    -> llvm::SmallVector<n_t> {
   llvm::SmallVector<n_t> CallSites;
   for (const auto &I : llvm::instructions(Fun)) {
     if (llvm::isa<llvm::CallBase>(I)) {
