@@ -44,6 +44,7 @@ private:
   void resolveAllocatedStructTypes();
 
   std::vector<const llvm::StructType *> AllocatedStructTypes;
+  std::map<const llvm::Type *, const llvm::DIType *> TypeToDIType;
 };
 } // namespace psr
 

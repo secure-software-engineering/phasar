@@ -23,8 +23,6 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/StringSet.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
@@ -41,6 +39,14 @@ RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
                          const DIBasedTypeHierarchy *TH)
     : CHAResolver(IRDB, VTP, TH) {
   resolveAllocatedStructTypes();
+
+  for (const auto *Instr : IRDB->getAllInstructions()) {
+    if (const auto *Val = llvm::dyn_cast<llvm::Value>(Instr)) {
+      if (const auto *DITy = getDILocalVariable(Val)) {
+        TypeToDIType[Val->getType()] = DITy->getType();
+      }
+    }
+  }
 }
 
 auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
