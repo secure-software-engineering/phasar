@@ -1078,6 +1078,167 @@ static FunctionDataFlowFacts createLibCSummary() {
   Sum.addElement("lsearch", 1, ReturnValue{});
   Sum.addElement("lsearch", 0, Parameter{});
 
+  // lstat
+  Sum.addElement("lstat", 0, Parameter{1});
+
+  // lstat64
+  Sum.addElement("lstat64", 0, Parameter{1});
+
+  // lutimes
+  Sum.addElement("lutimes", 1, Parameter{0});
+
+  // mbrtowc
+  Sum.addElement("mbrtowc", 1, Parameter{0});
+
+  // mbsnrtowcs
+  Sum.addElement("mbsnrtowcs", 1, Parameter{0});
+
+  // mbsrtowcs
+  Sum.addElement("mbsrtowcs", 1, Parameter{0});
+
+  // mbstowcs
+  Sum.addElement("mbstowcs", 1, Parameter{0});
+
+  // memccpy
+  Sum.addElement("memccpy", 1, Parameter{0});
+
+  // memcpy
+  Sum.addElement("memcpy", 1, Parameter{0});
+
+  // memfrob
+  Sum.addElement("memfrob", 0, ReturnValue{});
+
+  // memmem
+  Sum.addElement("memmem", 0, ReturnValue{});
+
+  // memmove
+  Sum.addElement("memmove", 1, Parameter{});
+  Sum.addElement("memmove", 0, ReturnValue{});
+
+  // mempcpy
+  Sum.addElement("mempcpy", 1, Parameter{0});
+  Sum.addElement("mempcpy", 1, ReturnValue{});
+
+  // memchr
+  Sum.addElement("memchr", 0, ReturnValue{});
+
+  // memrchr
+  Sum.addElement("memrchr", 0, ReturnValue{});
+
+  // memset
+  Sum.addElement("memset", 1, Parameter{0});
+  Sum.addElement("memset", 0, ReturnValue{});
+
+  // mkdtemp
+  Sum.addElement("mkdtemp", 0, ReturnValue{});
+
+  // mktemp
+  Sum.addElement("mktemp", 0, ReturnValue{});
+
+  // mktime
+  Sum.addElement("mktime", 0, ReturnValue{});
+
+  // modf
+  Sum.addElement("modf", 0, Parameter{1});
+  Sum.addElement("modf", 0, ReturnValue{});
+
+  // modff
+  Sum.addElement("modff", 0, Parameter{1});
+  Sum.addElement("modff", 0, ReturnValue{});
+
+  // modfl
+  Sum.addElement("modfl", 0, Parameter{1});
+  Sum.addElement("modfl", 0, ReturnValue{});
+
+  // mount
+  Sum.addElement("mount", 0, Parameter{});
+
+  // mremap
+  Sum.addElement("mremap", 0, ReturnValue{});
+  Sum.addElement("mremap", 4, ReturnValue{});
+
+  // nan
+  Sum.addElement("nan", 0, ReturnValue{});
+
+  // nanf
+  Sum.addElement("nanf", 0, ReturnValue{});
+
+  // nanl
+  Sum.addElement("nanl", 0, ReturnValue{});
+
+  // nearbyint
+  Sum.addElement("nearbyint", 0, ReturnValue{});
+
+  // nearbyintf
+  Sum.addElement("nearbyintf", 0, ReturnValue{});
+
+  // nearbyintl
+  Sum.addElement("nearbyintl", 0, ReturnValue{});
+
+  // nextafter
+  Sum.addElement("nextafter", 0, ReturnValue{});
+
+  // nextafterf
+  Sum.addElement("nextafterl", 0, ReturnValue{});
+
+  // nextafterl
+  Sum.addElement("nextafterl", 0, ReturnValue{});
+
+  // nextdown
+  Sum.addElement("nextdown", 0, ReturnValue{});
+
+  // nextdownf
+  Sum.addElement("nextdownf", 0, ReturnValue{});
+
+  // nextdownl
+  Sum.addElement("nextdownl", 0, ReturnValue{});
+
+  // nexttoward
+  Sum.addElement("nexttoward", 0, ReturnValue{});
+
+  // nexttowardf
+  Sum.addElement("nexttowardf", 0, ReturnValue{});
+
+  // nexttowardl
+  Sum.addElement("nexttowardl", 0, ReturnValue{});
+
+  // nextup
+  Sum.addElement("nextup", 0, ReturnValue{});
+
+  // nextupf
+  Sum.addElement("nextupf", 0, ReturnValue{});
+
+  // nextupl
+  Sum.addElement("nextupl", 0, ReturnValue{});
+
+  // ngettext
+  Sum.addElement("ngettext", 0, ReturnValue{});
+
+  // nice
+  Sum.addElement("nice", 0, ReturnValue{});
+
+  // nl_langinfo
+  Sum.addElement("nl_langinfo", 0, ReturnValue{});
+
+  // ntohl
+  Sum.addElement("ntohl", 0, ReturnValue{});
+
+  // ntohs
+  Sum.addElement("ntohs", 0, ReturnValue{});
+
+  // pow
+  Sum.addElement("pow", 0, ReturnValue{});
+  Sum.addElement("pow", 1, ReturnValue{});
+
+  // pow10
+  Sum.addElement("pow10", 0, ReturnValue{});
+
+  // pow10f
+  Sum.addElement("powf", 0, ReturnValue{});
+
+  // pow10l
+  Sum.addElement("pow10l", 0, ReturnValue{});
+
   // TODO
   return Sum;
 }

@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
@@ -87,6 +88,7 @@ private:
   const LLVMTaintConfig *Config{};
   LLVMAliasInfoRef PT{};
   bool TaintMainArgs{};
+  LLVMFunctionDataFlowFacts Llvmfdff;
 
   bool isSourceCall(const llvm::CallBase *CB,
                     const llvm::Function *Callee) const;

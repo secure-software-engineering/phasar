@@ -33,7 +33,7 @@ public:
 
   // insert a set of data flow facts
   void insertSet(const llvm::Function *Fun, const llvm::Argument *Arg,
-                 std::vector<LLVMDataFlowFact> &OutSet) {
+                 std::vector<LLVMDataFlowFact> OutSet) {
 
     LLVMFdff[Fun].try_emplace(Arg, std::move(OutSet));
   }
@@ -44,24 +44,28 @@ public:
   }
 
   static LLVMFunctionDataFlowFacts
-  readFromFDFF(const FunctionDataFlowFacts &Fdff, LLVMProjectIRDB &Irdb) {
+  readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb) {
     LLVMFunctionDataFlowFacts Llvmfdff;
+    // It to [key-name, value-name]
     for (const auto &It : Fdff) {
-      llvm::Function *Fun = Irdb.getFunction(It.first());
+      const llvm::Function *Fun = Irdb.getFunction(It.first());
+      // Itt to [key-name, value-name]
       for (const auto &Itt : It.second) {
-        llvm::Argument *Arg = Fun->getArg(Itt.first);
+        const llvm::Argument *Arg = Fun->getArg(Itt.first);
         for (const auto &I : Itt.second) {
-          if (typeid(I).name() == "ReturnValue") {
+          if (std::get_if<ReturnValue>(&I.Fact)) {
             LLVMReturnValue Ret;
             Llvmfdff.addElement(Fun, Arg, Ret);
-          } else {
-            LLVMParameter LLVMParam = {
-                Fun->getArg(std::get<Parameter>(I.Fact).Index)};
-            Llvmfdff.addElement(Fun, Arg, LLVMParam);
+          } else if (const auto *Param = std::get_if<Parameter>(&I.Fact)) {
+            if (Param->Index < Fun->arg_size()) {
+              LLVMParameter LLVMParam = {Fun->getArg(Param->Index)};
+              Llvmfdff.addElement(Fun, Arg, LLVMParam);
+            }
           }
         }
       }
     }
+    return Llvmfdff;
   }
 
 private:

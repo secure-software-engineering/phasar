@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -49,7 +50,9 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      std::vector<std::string> EntryPoints,
                                      bool TaintMainArgs)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
-      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs) {
+      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
+      Llvmfdff(
+          LLVMFunctionDataFlowFacts::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
 }
@@ -404,7 +407,10 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
       Kill.insert(SRet);
     }
   }
-
+  if (Gen.empty() && Leak.empty() && Kill.empty()) {
+    if (DestFun)
+      return lambdaFlow([this, CallSite](d_t Source) -> container_type {});
+  }
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
       return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
