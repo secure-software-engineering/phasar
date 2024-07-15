@@ -408,8 +408,9 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
     }
   }
   if (Gen.empty() && Leak.empty() && Kill.empty()) {
-    if (DestFun)
+    if (Llvmfdff.contains(DestFun)) {
       return lambdaFlow([this, CallSite](d_t Source) -> container_type {});
+    }
   }
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {

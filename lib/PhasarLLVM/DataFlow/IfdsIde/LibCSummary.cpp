@@ -1239,6 +1239,422 @@ static FunctionDataFlowFacts createLibCSummary() {
   // pow10l
   Sum.addElement("pow10l", 0, ReturnValue{});
 
+  // powf
+  Sum.addElement("powf", 0, ReturnValue{});
+  Sum.addElement("powf", 1, ReturnValue{});
+
+  // powl
+  Sum.addElement("powl", 0, ReturnValue{});
+  Sum.addElement("powl", 1, ReturnValue{});
+
+  // pread
+  Sum.addElement("pread", 0, Parameter{});
+
+  // pread64
+  Sum.addElement("pread64", 0, Parameter{});
+
+  // ptsname_r
+  Sum.addElement("ptsname_r", 0, Parameter{1});
+
+  // putc
+  Sum.addElement("putc", 0, Parameter{1});
+
+  // putc_unlocked
+  Sum.addElement("putc_unlocked", 0, Parameter{1});
+
+  // putpwent
+  Sum.addElement("putpwent", 0, Parameter{1});
+
+  // pututline
+  Sum.addElement("pututline", 0, ReturnValue{});
+
+  // putw
+  Sum.addElement("putw", 0, ReturnValue{});
+
+  // putwc
+  Sum.addElement("putwc", 0, Parameter{1});
+
+  // putwc_unlocked
+  Sum.addElement("putwc_unlocked", 0, Parameter{1});
+
+  // pwrite
+  Sum.addElement("pwrite", 1, Parameter{0});
+
+  // pwrite64
+  Sum.addElement("pwrite64", 1, Parameter{0});
+
+  // qecvt
+  Sum.addElement("qecvt", 0, ReturnValue{});
+  Sum.addElement("qecvt", 0, Parameter{3});
+  Sum.addElement("qecvt", 0, Parameter{2});
+
+  // qecvt_r
+  Sum.addElement("qecvt_r", 0, Parameter{4});
+  Sum.addElement("qecvt_r", 0, Parameter{3});
+  Sum.addElement("qecvt_r", 0, Parameter{2});
+
+  // qfcvt
+  Sum.addElement("qfcvt", 0, ReturnValue{});
+  Sum.addElement("qfcvt", 0, Parameter{3});
+  Sum.addElement("qfcvt", 0, Parameter{2});
+
+  // qfcvt_r
+  Sum.addElement("qfcvt_r", 0, Parameter{4});
+  Sum.addElement("qfcvt_r", 0, Parameter{3});
+  Sum.addElement("qfcvt_r", 0, Parameter{2});
+
+  // qgcvt
+  Sum.addElement("qgcvt", 0, Parameter{2});
+  Sum.addElement("qgcvt", 2, ReturnValue{});
+
+  // rawmemchr
+  Sum.addElement("rawmemchr", 0, ReturnValue{});
+
+  // read
+  Sum.addElement("read", 0, Parameter{1});
+
+  // readdir
+  Sum.addElement("readdir", 0, ReturnValue{});
+
+  // readdir_r
+  Sum.addElement("readdrir_r", 0, Parameter{1});
+  Sum.addElement("readdir_r", 1, Parameter{2});
+
+  // readlink
+  Sum.addElement("readlink", 0, Parameter{1});
+
+  // readv
+  Sum.addElement("readv", 0, Parameter{1});
+
+  // realloc
+  Sum.addElement("realloc", 0, ReturnValue{});
+
+  // realpath
+  Sum.addElement("realpath", 0, Parameter{});
+  Sum.addElement("realpath", 1, ReturnValue{});
+
+  // regcomp
+  Sum.addElement("regcomp", 1, Parameter{});
+
+  // regerror
+  Sum.addElement("regerror", 0, Parameter{2});
+  Sum.addElement("regerror", 1, Parameter{});
+
+  // remainder
+  Sum.addElement("remainder", 0, ReturnValue{});
+  Sum.addElement("remainder", 1, ReturnValue{});
+
+  // remainderf
+  Sum.addElement("remainderf", 0, ReturnValue{});
+  Sum.addElement("remainderf", 1, ReturnValue{});
+
+  // remainderl
+  Sum.addElement("remainderl", 0, ReturnValue{});
+  Sum.addElement("remainderl", 1, ReturnValue{});
+
+  // rindex
+  Sum.addElement("rindex", 0, ReturnValue{});
+
+  // rint
+  Sum.addElement("rint", 0, ReturnValue{});
+
+  // rintf
+  Sum.addElement("rintf", 0, ReturnValue{});
+
+  // rintl
+  Sum.addElement("rintl", 0, ReturnValue{});
+
+  // round
+  Sum.addElement("round", 0, ReturnValue{});
+
+  // roundeven
+  Sum.addElement("roundeven", 0, ReturnValue{});
+
+  // roundevenf
+  Sum.addElement("roundevenf", 0, ReturnValue{});
+
+  // roundevenl
+  Sum.addElement("roundevenl", 0, ReturnValue{});
+
+  // roundf
+  Sum.addElement("roundf", 0, ReturnValue{});
+
+  // roundl
+  Sum.addElement("roundl", 0, ReturnValue{});
+
+  // rpmatch
+  Sum.addElement("rpmatch", 0, ReturnValue{});
+
+  // scalb
+  Sum.addElement("scalb", 0, ReturnValue{});
+  Sum.addElement("scalb", 1, ReturnValue{});
+
+  // scalbf
+  Sum.addElement("scalbf", 0, ReturnValue{});
+  Sum.addElement("scalbf", 1, ReturnValue{});
+
+  // scalbl
+  Sum.addElement("scalbl", 0, ReturnValue{});
+  Sum.addElement("scalbf", 1, ReturnValue{});
+
+  // scalbln
+  Sum.addElement("scalbln", 0, ReturnValue{});
+  Sum.addElement("scalbln", 1, ReturnValue{});
+
+  // scalblnf
+  Sum.addElement("scalblnf", 0, ReturnValue{});
+  Sum.addElement("scalblnf", 0, ReturnValue{});
+
+  // scalblnl
+  Sum.addElement("scalblnl", 0, ReturnValue{});
+  Sum.addElement("scalblnl", 1, ReturnValue{});
+
+  // scalbn
+  Sum.addElement("scalbn", 0, ReturnValue{});
+  Sum.addElement(scalbn, 1, ReturnValue{});
+
+  // scalbnf
+  Sum.addElement("scalbnf", 0, ReturnValue{});
+  Sum.addElement("scalbnf", 1, ReturnValue{});
+
+  // scalbnl
+  Sum.addElement("scalbnl", 0, ReturnValue{});
+  Sum.addElement("scalbnl", 1, ReturnValue{});
+
+  // scandir
+  Sum.addElement("scandir", 0, Parameter{});
+
+  // secure_getenv
+  Sum.addElement("secure_getenv", 0, ReturnValue{});
+
+  // sem_getvalue
+  Sum.addElement("sem_getvalue", 0, Parameter{});
+
+  // sem_init
+  Sum.addElement("sem_init", 2, Parameter{0});
+
+  // setitimer
+  Sum.addElement("setitimer", 0, Parameter{2});
+  Sum.addElement("setitimer", 1, Parameter{0});
+
+  // setlocale
+  Sum.addElement("setlocale", 1, ReturnValue{});
+
+  // setpayload
+  Sum.addElement("setpayload", 1, Parameter{0});
+
+  // setpayloadf
+  Sum.addElement("setpayloadf", 1, Parameter{});
+
+  // setpayloadl
+  Sum.addElement("setpayloadl", 1, Parameter{});
+
+  // setpayloadsig
+  Sum.addElement("setpayloadsig", 1, Parameter{0});
+
+  // setpayloadsigf
+  Sum.addElement("setpayloadsigf", 1, Parameter{0});
+
+  // setpayloadsigl
+  Sum.addElement("setpayloadsigl", 1, Parameter{0});
+
+  // setstate_r
+  Sum.addElement("setstate_r", 0, Parameter{1});
+
+  // sigaddset
+  Sum.addElement("sigaddset", 1, Parameter{0});
+
+  // signbit
+  Sum.addElement("signbit", 0, ReturnValue{});
+
+  // significand
+  Sum.addElement("significand", 0, ReturnValue{});
+
+  // significandf
+  Sum.addElement("significandf", 0, ReturnValue{});
+
+  // significandl
+  Sum.addElement("significandl", 0, ReturnValue{});
+
+  // sin
+  Sum.addElement("sin", 0, ReturnValue{});
+
+  // sincos
+  Sum.addElement("sincos", 0, Parameter{1});
+  Sum.addElement("sincos", 0, Parameter{2});
+
+  // sincosf
+  Sum.addElement("sincosf", 0, Parameter{1});
+  Sum.addElement("sincosf", 0, Parameter{2});
+
+  // sincosl
+  Sum.addElement("sincosl", 0, Parameter{1});
+  Sum.addElement("sincosl", 0, Parameter{2});
+
+  // sinf
+  Sum.addElement("sinf", 0, ReturnValue{});
+
+  // sinl
+  Sum.addElement("sinl", 0, ReturnValue{});
+
+  // sinh
+  Sum.addElement("sinh", 0, ReturnValue{});
+
+  // sinhf
+  Sum.addElement("sinhf", 0, ReturnValue{});
+
+  // sinhl
+  Sum.addElement("sinhl", 0, ReturnValue{});
+
+  // snprintf
+  Sum.addElement("snprintf", 1, Parameter{1});
+  Sum.addElement("snprintf", 1, Parameter{2});
+  Sum.addElement("snprintf", 1, Parameter{3});
+
+  // sqrt
+  Sum.addElement("sqrt", 0, ReturnValue{});
+
+  // sqrtf
+  Sum.addElement("sqrtf", 0, ReturnValue{});
+
+  // sqrtl
+  Sum.addElement("sqrtl", 0, ReturnValue{});
+
+  // sscanf
+  Sum.addElement("sscanf", 0, Parameter{2});
+  Sum.addElement("sscanf", 1, Parameter{2});
+
+  // stat
+  Sum.addElement("stat", 0, Parameter{1});
+
+  // stpcpy
+  Sum.addElement("stpcpy", 1, Parameter{0});
+  Sum.addElement("stpcpy", 0, ReturnValue{});
+
+  // stpncpy
+  Sum.addElement("stpncpy", 1, Parameter{0});
+  Sum.addElement("stpncpy", 0, ReturnValue{});
+
+  // strcat
+  Sum.addElement("strcat", 1, Parameter{0});
+  Sum.addElement("strcat", 0, ReturnValue{});
+
+  // strchrnul
+  Sum.addElement("strchrnul", 0, ReturnValue{});
+
+  // strcpy
+  Sum.addElement("strcpy", 1, Parameter{0});
+  Sum.addElement("strcpy", 0, ReturnValue{});
+
+  // strdup
+  Sum.addElement("strdup", 0, ReturnValue{});
+
+  // strdupa
+  Sum.addElement("strdupa", 0, ReturnValue{});
+
+  // strerror
+  Sum.addElement("strerror", 0, ReturnValue{});
+
+  // strerror_r
+  Sum.addElement("strerror_r", 0, Parameter{1});
+  Sum.addElement("strerror_r", 1, ReturnValue{});
+
+  // strfromd
+  Sum.addElement("strfromd", 2, Parameter{0});
+  Sum.addElement("strfromd", 3, Parameter{0});
+
+  // strfromf
+  Sum.addElement("strfromf", 2, Parameter{0});
+  Sum.addElement("strfromf", 3, Parameter{0});
+
+  // strfroml
+  Sum.addElement("strfroml", 2, Parameter{0});
+  Sum.addElement("strfroml", 3, Parameter{0});
+
+  // strfry
+  Sum.addElement("strfry", 0, ReturnValue{});
+
+  // strftime
+  Sum.addElement("strftime", 3, Parameter{0});
+
+  // strncat
+  Sum.addElement("strncat", 1, Parameter{0});
+  Sum.addElement("strncat", 0, ReturnValue{});
+
+  // strncpy
+  Sum.addElement("strncpy", 1, Parameter{0});
+  Sum.addElement("strncpy", 0, ReturnValue{});
+
+  // strndup
+  Sum.addElement("strndup", 0, ReturnValue{});
+
+  // strndupa
+  Sum.addElement("strndupa", 0, ReturnValue{});
+
+  // strpbrk
+  Sum.addElement("strpbrk", 0, ReturnValue{});
+
+  // strptime
+  Sum.addElement("strptime", 0, Parameter{2});
+  Sum.addElement("strptime", 0, ReturnValue{});
+
+  // strrchr
+  Sum.addElement("strrchr", 0, ReturnValue{});
+
+  // strsep
+  Sum.addElement("strsep", 0, ReturnValue{});
+
+  // strsignal
+  Sum.addElement("strsignal", 0, ReturnValue{});
+
+  // strstr
+  Sum.addElement("strstr", 0, ReturnValue{});
+
+  // strtod
+  Sum.addElement("strtod", 0, Parameter{1});
+  Sum.addElement("strtod", 0, ReturnValue{});
+
+  // strtof
+  Sum.addElement("strtof", 0, Parameter{1});
+  Sum.addElement("strtof", 0, ReturnValue{});
+
+  // strtoimax
+  Sum.addElement("strtoimax", 0, Parameter{1});
+  Sum.addElement("strtoimax", 0, ReturnValue{});
+
+  // strtok
+  Sum.addElement("strtok", 0, ReturnValue{});
+
+  // strtok_r
+  Sum.addElement("strtok_r", 0, ReturnValue{});
+
+  // strtol
+  Sum.addElement("strtol", 0, Parameter{1});
+  Sum.addElement("strtol", 0, ReturnValue{});
+
+  // strtold
+  Sum.addElement("strtold", 0, Parameter{1});
+  Sum.addElement("strtold", 0, ReturnValue{});
+
+  // strtoll
+  Sum.addElement("strtoll", 0, Parameter{1});
+  Sum.addElement("strtoll", 0, ReturnValue{});
+
+  // strtoul
+  Sum.addElement("strtoul", 0, Parameter{1});
+  Sum.addElement("strtoul", 0, ReturnValue{});
+
+  // strtoull
+  Sum.addElement("strtoull", 0, Parameter{1});
+  Sum.addElement("strtoull", 0, ReturnValue{});
+
+  // strtoumax
+  Sum.addElement("strtoumax", 0, Parameter{1});
+  Sum.addElement("strtoumax", 0, ReturnValue{});
+
+  // strxfrm
+  Sum.addElement("strxfrm", 1, Parameter{});
+
   // TODO
   return Sum;
 }

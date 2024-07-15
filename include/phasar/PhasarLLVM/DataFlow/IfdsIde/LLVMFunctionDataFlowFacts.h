@@ -43,6 +43,10 @@ public:
     LLVMFdff[Fun][Arg].emplace_back(Out);
   }
 
+  bool contains(const llvm::Function *Fn) {
+    return LLVMFdff.end() != LLVMFdff.find(Fn);
+  }
+
   static LLVMFunctionDataFlowFacts
   readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb) {
     LLVMFunctionDataFlowFacts Llvmfdff;
