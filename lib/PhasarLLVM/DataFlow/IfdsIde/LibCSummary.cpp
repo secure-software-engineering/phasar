@@ -1655,6 +1655,340 @@ static FunctionDataFlowFacts createLibCSummary() {
   // strxfrm
   Sum.addElement("strxfrm", 1, Parameter{});
 
+  // swapcontext
+  Sum.addElement("swapcontext", 0, Parameter{});
+
+  // swprintf
+  Sum.addElement("swprintf", 1, Parameter{0});
+  Sum.addElement("swprintf", 2, Parameter{0});
+  Sum.addElement("swprintf", 3, Parameter{0});
+
+  // swscanf
+  Sum.addElement("swscanf", 0, Parameter{2});
+  Sum.addElement("swscanf", 1, Parameter{2});
+
+  // symlink
+  Sum.addElement("symlink", 0, Parameter{1});
+
+  // tan
+  Sum.addElement("tan", 0, ReturnValue{});
+
+  // tanf
+  Sum.addElement("tanf", 0, ReturnValue{});
+
+  // tanh
+  Sum.addElement("tanh", 0, ReturnValue{});
+
+  // tanhf
+  Sum.addElement("tanhf", 0, ReturnValue{});
+
+  // tanhl
+  Sum.addElement("tanhl", 0, ReturnValue{});
+
+  // tanl
+  Sum.addElement("tanl", 0, ReturnValue{});
+
+  // tcgetattr
+  Sum.addElement("tcgetattr", 0, Parameter{1});
+
+  // telldir
+  Sum.addElement("telldir", 0, ReturnValue{});
+
+  // tempnam
+  Sum.addElement("tempnam", 0, ReturnValue{});
+  Sum.addElement("tempnam", 1, ReturnValue{});
+
+  // tfind
+  Sum.addElement("tfind", 1, ReturnValue{});
+
+  // tgamma
+  Sum.addElement("tgamma", 0, ReturnValue{});
+
+  // tgammaf
+  Sum.addElement("tgammaf", 0, ReturnValue{});
+
+  // tgammal
+  Sum.addElement("tgammal", 0, ReturnValue{});
+
+  // timegm
+  Sum.addElement("timegm", 0, ReturnValue{});
+
+  // timelocal
+  Sum.addElement("timelocal", 0, ReturnValue{});
+
+  // tmpnam
+  Sum.addElement("tmpnam", 0, ReturnValue{});
+
+  // tmpnam_r
+  Sum.addElement("tmpnam_r", 0, ReturnValue{});
+
+  // toascii
+  Sum.addElement("toascii", 0, ReturnValue{});
+
+  // tolower
+  Sum.addElement("tolower", 0, ReturnValue{});
+
+  // toupper
+  Sum.addElement("toupper", 0, ReturnValue{});
+
+  // towctrans
+  Sum.addElement("towctrans", 0, ReturnValue{});
+
+  // towlower
+  Sum.addElement("towlower", 0, ReturnValue{});
+
+  // towupper
+  Sum.addElement("towupper", 0, ReturnValue{});
+
+  // trunc
+  Sum.addElement("trunc", 0, ReturnValue{});
+
+  // truncf
+  Sum.addElement("truncf", 0, ReturnValue{});
+
+  // truncl
+  Sum.addElement("truncl", 0, ReturnValue{});
+
+  // truncate
+  Sum.addElement("truncate", 0, Parameter{0});
+
+  // tsearch
+  Sum.addElement("tsearch", 1, ReturnValue{});
+  Sum.addElement("tsearch", 0, Parameter{1});
+
+  // ufromfp
+  Sum.addElement("ufromfp", 0, ReturnValue{});
+
+  // ufromfpf
+  Sum.addElement("ufromfpf", 0, ReturnValue{});
+
+  // ufromfpl
+  Sum.addElement("ufromfpl", 0, ReturnValue{});
+
+  // ufromfpx
+  Sum.addElement("ufromfpx", 0, ReturnValue{});
+
+  // ufromfpxf
+  Sum.addElement("ufromfpxf", 0, ReturnValue{});
+
+  // ufromfpxl
+  Sum.addElement("ufromfpxl", 0, ReturnValue{});
+
+  // ungetc
+  Sum.addElement("ungetc", 0, Parameter{1});
+
+  // ungetwc
+  Sum.addElement("ungetwc", 0, Parameter{1});
+
+  // updwtmp
+  Sum.addElement("updwtmp", 1, Parameter{0});
+
+  // utime
+  Sum.addElement("utime", 1, Parameter{0});
+
+  // utimes
+  Sum.addElement("utimes", 1, Parameter{0});
+
+  // vasprintf
+  Sum.addElement("vasprintf", 1, Parameter{0});
+  Sum.addElement("vasprintf", 2, Parameter{0});
+
+  // va_copy
+  Sum.addElement("va_copy", 1, Parameter{0});
+
+  // vfprintf
+  Sum.addElement("vfprintf", 1, Parameter{0});
+  Sum.addElement("vfprintf", 2, Parameter{0});
+
+  // vfscanf
+  Sum.addElement("vfscanf", 0, Parameter{2});
+
+  // vfwprintf
+  Sum.addElement("vfwprintf", 1, Parameter{0});
+  Sum.addElement("vfwprintf", 2, Parameter{0});
+
+  // vfwscanf
+  Sum.addElement("vfwscanf", 0, Parameter{2});
+  Sum.addElement("vfwscanf", 1, Parameter{2});
+
+  // vsnprintf
+  Sum.addElement("vsnprintf", 3, Parameter{0});
+  Sum.addElement("vsnprintf", 2, Parameter{0});
+
+  // vsprintf
+  Sum.addElement("vsprintf", 2, Parameter{0});
+  Sum.addElement("vsprintf", 1, Parameter{0});
+
+  // vsscanf
+  Sum.addElement("vsscanf", 0, Parameter{2});
+  Sum.addElement("vsscanf", 1, Parameter{2});
+
+  // vswprintf
+  Sum.addElement("vswprintf", 2, Parameter{0});
+  Sum.addElement("vswprintf", 1, Parameter{0});
+
+  // vswscanf
+  Sum.addElement("vswscanf", 0, Parameter{2});
+  Sum.addElement("vswscanf", 1, Parameter{2});
+
+  // wcpcpy
+  Sum.addElement("wcpcpy", 1, Parameter{0});
+  Sum.addElement("wcpcpy", 0, ReturnValue{});
+
+  // wcpncpy
+  Sum.addElement("wcpncpy", 1, Parameter{0});
+  Sum.addElement("wcpncpy", 0, ReturnValue{});
+
+  // wcrtomb
+  Sum.addElement("wcrtomb", 1, Parameter{0});
+
+  // wcscat
+  Sum.addElement("wcscat", 1, Parameter{0});
+  Sum.addElement("wcscat", 0, ReturnValue{});
+
+  // wcschr
+  Sum.addElement("wcschr", 0, ReturnValue{});
+
+  // wcscpy
+  Sum.addElement("wcscpy", 1, Parameter{0});
+  Sum.addElement("wcscpy", 0, ReturnValue{});
+
+  // wcsdup
+  Sum.addElement("wcsdup", 0, ReturnValue{});
+
+  // wcsncat
+  Sum.addElement("wcsncat", 1, Parameter{0});
+  Sum.addElement("wcsncat", 0, ReturnValue{});
+
+  // wcsncpy
+  Sum.addElement("wcsncpy", 1, Parameter{0});
+  Sum.addElement("wcsncpy", 0, ReturnValue{});
+
+  // wcsnrtombs
+  Sum.addElement("wcsnrtombs", 1, Parameter{0});
+
+  // wcspbrk
+  Sum.addElement("wcspbrk", 0, ReturnValue{});
+
+  // wcsrchr
+  Sum.addElement("wcsrchr", 0, ReturnValue{});
+
+  // wcsrtombs
+  Sum.addElement("wcsrtombs", 1, Parameter{0});
+
+  // wcsstr
+  Sum.addElement("wcsstr", 0, ReturnValue{});
+
+  // wcstod
+  Sum.addElement("wcstod", 0, Parameter{1});
+  Sum.addElement("wcstod", 0, ReturnValue{});
+
+  // wcstof
+  Sum.addElement("wcstof", 0, Parameter{1});
+  Sum.addElement("wcstof", 0, ReturnValue{});
+
+  // wcstoimax
+  Sum.addElement("wcstoimax", 0, Parameter{0});
+  Sum.addElement("wcstoimax", 0, ReturnValue{});
+
+  // wcstok
+  Sum.addElement("wcstok", 0, ReturnValue{});
+  Sum.addElement("wcstok", 2, ReturnValue{});
+
+  // wcstol
+  Sum.addElement("wcstol", 0, Parameter{1});
+  Sum.addElement("wcstol", 0, ReturnValue{});
+
+  // wcstold
+  Sum.addElement("wcstold", 0, Parameter{1});
+  Sum.addElement("wcstold", 0, ReturnValue{});
+
+  // wcstoll
+  Sum.addElement("wcstoll", 0, Parameter{1});
+  Sum.addElement("wcstoll", 0, ReturnValue{});
+
+  // wcstombs
+  Sum.addElement("wcstombs", 1, Parameter{0});
+
+  // wcstoul
+  Sum.addElement("wcstoul", 0, Parameter{1});
+  Sum.addElement("wcstoul", 0, ReturnValue{});
+
+  // wcstoull
+  Sum.addElement("wcstoull", 0, Parameter{1});
+  Sum.addElement("wcstoull", 0, ReturnValue{});
+
+  // wcstoumax
+  Sum.addElement("wcstoumax", 0, Parameter{1});
+  Sum.addElement("wcstoumax", 0, ReturnValue{});
+
+  // wcsxfrm
+  Sum.addElement("wcsxfrm", 1, Parameter{0});
+
+  // wctob
+  Sum.addElement("wctob", 0, ReturnValue{});
+
+  // wctomb
+  Sum.addElement("wctomb", 1, Parameter{0});
+
+  // wctrans
+  Sum.addElement("wctrans", 0, ReturnValue{});
+
+  // wctype
+  Sum.addElement("wctype", 0, ReturnValue{});
+
+  // wmemchr
+  Sum.addElement("wmemchr", 0, ReturnValue{});
+
+  // wmemcpy
+  Sum.addElement("wmemcpy", 1, Parameter{0});
+  Sum.addElement("wmemcpy", 0, ReturnValue{});
+
+  // wmemmove
+  Sum.addElement("wmemmove", 1, Parameter{0});
+  Sum.addElement("wmemmove", 0, ReturnValue{});
+
+  // wmempcpy
+  Sum.addElement("wmempcpy", 1, Parameter{0});
+  Sum.addElement("wmempcpy", 0, ReturnValue{});
+
+  // wmemset
+  Sum.addElement("wmemset", 1, Parameter{0});
+  Sum.addElement("wmemset", 0, ReturnValue{});
+
+  // wordexp
+  Sum.addElement("wordexp", 0, Parameter{1});
+
+  // y0
+  Sum.addElement("y0", 0, ReturnValue{});
+
+  // y0f
+  Sum.addElement("y0f", 0, ReturnValue{});
+
+  // y0l
+  Sum.addElement("y0l", 0, ReturnValue{});
+
+  // y1
+  Sum.addElement("y1", 0, ReturnValue{});
+
+  // y1f
+  Sum.addElement("y1f", 0, ReturnValue{});
+
+  // y1l
+  Sum.addElement("y1l", 0, ReturnValue{});
+
+  // yn
+  Sum.addElement("yn", 0, ReturnValue{});
+  Sum.addElement("yn", 1, ReturnValue{});
+
+  // ynf
+  Sum.addElement("ynf", 0, ReturnValue{});
+  Sum.addElement("ynf", 1, ReturnValue{});
+
+  // ynl
+  Sum.addElement("ynl", 0, ReturnValue{});
+  Sum.addElement("ynl", 1, ReturnValue{});
+
   // TODO
   return Sum;
 }
