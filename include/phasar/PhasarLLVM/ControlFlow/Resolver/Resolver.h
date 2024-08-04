@@ -18,9 +18,9 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/IR/DerivedTypes.h"
 
 #include <memory>
 #include <optional>
@@ -44,9 +44,6 @@ getVFTIndex(const llvm::CallBase *CallSite);
 
 [[nodiscard]] const llvm::DIType *
 getReceiverType(const llvm::CallBase *CallSite);
-
-[[nodiscard]] const llvm::StructType *
-getReceiverStructType(const llvm::CallBase *CallSite);
 
 [[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
 

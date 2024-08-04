@@ -19,8 +19,6 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
-#include "llvm/IR/DebugInfoMetadata.h"
-
 #include <vector>
 
 namespace llvm {
@@ -28,9 +26,11 @@ class CallBase;
 class StructType;
 class Function;
 class StructType;
+class DICompositeType;
 } // namespace llvm
 
 namespace psr {
+class DIBasedTypeHierarchy;
 class RTAResolver : public CHAResolver {
 public:
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,

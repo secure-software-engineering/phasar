@@ -18,11 +18,11 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -99,16 +99,10 @@ void RTAResolver::resolveAllocatedCompositeTypes() {
 
   llvm::DebugInfoFinder DIF;
   DIF.processModule(*IRDB->getModule());
-  llvm::DenseSet<const llvm::DICompositeType *> AllocatedCompositeTypes;
 
   for (const auto *Ty : DIF.types()) {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
-      AllocatedCompositeTypes.insert(CompTy);
+      AllocatedCompositeTypes.push_back(CompTy);
     }
   }
-
-  this->AllocatedCompositeTypes.reserve(AllocatedCompositeTypes.size());
-  this->AllocatedCompositeTypes.insert(this->AllocatedCompositeTypes.end(),
-                                       AllocatedCompositeTypes.begin(),
-                                       AllocatedCompositeTypes.end());
 }

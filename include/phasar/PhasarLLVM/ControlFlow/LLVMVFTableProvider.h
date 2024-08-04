@@ -12,8 +12,6 @@
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
-#include "llvm/IR/DebugInfoMetadata.h"
-
 #include <unordered_map>
 
 namespace llvm {

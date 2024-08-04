@@ -30,8 +30,9 @@ static std::vector<const llvm::Function *> getVirtualFunctions(
     const llvm::DIType *Type) {
   auto ClearName = getTypeName(Type);
 
-  if (llvm::StringRef(ClearName).startswith("typeinfo name for ")) {
-    ClearName = ClearName.substr(18, ClearName.size() - 1);
+  static constexpr llvm::StringLiteral TIPrefix = "typeinfo name for ";
+  if (llvm::StringRef(ClearName).startswith(TIPrefix)) {
+    ClearName = ClearName.substr(TIPrefix.size());
   }
 
   auto It = ClearNameTVMap.find(ClearName);
@@ -64,16 +65,11 @@ LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
   llvm::DebugInfoFinder DIF;
   DIF.processModule(Mod);
   for (const auto *Ty : DIF.types()) {
-    if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(Ty)) {
-      if (const auto *BaseTy = DerivedTy->getBaseType()) {
-        if (const auto *CompTy =
-                llvm::dyn_cast<llvm::DICompositeType>(BaseTy)) {
-          if (CompTy->getTag() == llvm::dwarf::DW_TAG_class_type ||
-              CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type) {
-            TypeVFTMap.try_emplace(CompTy,
-                                   getVirtualFunctions(ClearNameTVMap, CompTy));
-          }
-        }
+    if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
+      if (CompTy->getTag() == llvm::dwarf::DW_TAG_class_type ||
+          CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type) {
+        TypeVFTMap.try_emplace(CompTy,
+                               getVirtualFunctions(ClearNameTVMap, CompTy));
       }
     }
   }

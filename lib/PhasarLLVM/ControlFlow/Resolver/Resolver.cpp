@@ -83,57 +83,6 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
       }
     }
   }
-  /*
-    if (Receiver->getType()->isOpaquePointerTy()) {
-      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Receiver)) {
-        if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
-                getDILocalVariable(Load->getPointerOperand())->getType())) {
-          return DerivedTy->getBaseType();
-        }
-      }
-    }
-
-    if (!Receiver->getType()->isOpaquePointerTy()) {
-      if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-              Receiver->getType()->getNonOpaquePointerElementType())) {
-        if (const auto *ValueTy = llvm::dyn_cast<llvm::Type>(ReceiverTy)) {
-          if (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(
-                  getDILocalVariable(TypeToDIType[ValueTy]))) {
-            return DerivedTy->getBaseType();
-          }
-        }
-      }
-    }
-*/
-  return nullptr;
-}
-
-const llvm::StructType *
-psr::getReceiverStructType(const llvm::CallBase *CallSite) {
-  if (CallSite->arg_empty() ||
-      (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
-    return nullptr;
-  }
-
-  const auto *Receiver =
-      CallSite->getArgOperand(unsigned(CallSite->hasStructRetAttr()));
-
-  if (!Receiver->getType()->isPointerTy()) {
-    return nullptr;
-  }
-
-  if (Receiver->getType()->isOpaquePointerTy()) {
-    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
-                    "which are not supported by phasar yet!\n";
-    return nullptr;
-  }
-
-  if (!Receiver->getType()->isOpaquePointerTy()) {
-    if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-            Receiver->getType()->getNonOpaquePointerElementType())) {
-      return ReceiverTy;
-    }
-  }
 
   return nullptr;
 }

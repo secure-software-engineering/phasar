@@ -367,7 +367,6 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
 
 TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
   initializeIR("struct_02_cpp.ll");
-  IRDB->dump();
   const auto *Main = IRDB->getFunction("main");
   const auto *Inst = getNthInstruction(Main, 2);
   auto FlowFact = IDEIIAFlowFact::create(Inst);

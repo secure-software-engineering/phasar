@@ -208,7 +208,7 @@ auto DIBasedTypeHierarchy::subTypesOf(ClassType Ty) const noexcept
 }
 
 bool DIBasedTypeHierarchy::isVTable(llvm::StringRef VarName) {
-  if (VarName.startswith("_ZTV")) {
+  if (VarName.startswith(VTablePrefix)) {
     return true;
   }
   // In LLVM 16 demangle() takes a StringRef

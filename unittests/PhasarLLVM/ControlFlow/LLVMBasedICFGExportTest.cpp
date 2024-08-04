@@ -151,12 +151,6 @@ protected:
                             const nlohmann::json &GroundTruth) {
     ASSERT_TRUE(ExportedICFG.is_array());
 
-    // llvm::outs() << "JSONs: GroundTruth\n";
-    // llvm::outs() << GroundTruth.dump() << "\n";
-    // llvm::outs() << "\n\n------------------------------------------\n\n";
-    // llvm::outs() << "JSONs: ExportedICFG\n";
-    // llvm::outs() << ExportedICFG.dump() << "\n";
-
     EXPECT_EQ(GroundTruth.size(), ExportedICFG.size());
     bool HasError = false;
     for (const auto &GTJson : GroundTruth) {
@@ -178,7 +172,7 @@ protected:
     }
 
     if (HasError) {
-      // llvm::errs() << "Errorneous json: " << ExportedICFG.dump(4) << '\n';
+      llvm::errs() << "Errorneous json: " << ExportedICFG.dump(4) << '\n';
     }
   }
 

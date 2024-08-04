@@ -3,6 +3,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -12,7 +13,7 @@
 using namespace std;
 using namespace psr;
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
-#if 0
+  GTEST_SKIP();
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_5_cpp.ll");
   DIBasedTypeHierarchy TH(IRDB);
@@ -38,7 +39,6 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
     ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), I));
     ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), I));
   }
-#endif
 }
 
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {

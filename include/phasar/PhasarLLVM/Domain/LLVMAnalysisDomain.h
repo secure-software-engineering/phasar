@@ -12,13 +12,12 @@
 
 #include "phasar/Domain/AnalysisDomain.h"
 
-#include "llvm/IR/DebugInfoMetadata.h"
-
 namespace llvm {
 class Value;
 class Instruction;
 class StructType;
 class Function;
+class DIType;
 } // namespace llvm
 
 namespace psr {

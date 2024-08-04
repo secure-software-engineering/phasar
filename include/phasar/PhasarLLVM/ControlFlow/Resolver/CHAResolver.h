@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_CHARESOLVER_H_
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
 namespace llvm {
