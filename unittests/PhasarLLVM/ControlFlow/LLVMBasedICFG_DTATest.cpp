@@ -10,10 +10,10 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-using namespace std;
 using namespace psr;
+
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
-  GTEST_SKIP();
+  GTEST_SKIP() << "Requires typed pointers!";
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_5_cpp.ll");
   DIBasedTypeHierarchy TH(IRDB);
@@ -42,7 +42,7 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 }
 
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
-#if 0
+  GTEST_SKIP() << "Requires typed pointers!";
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_6_cpp.ll");
   DIBasedTypeHierarchy TH(IRDB);
@@ -59,7 +59,6 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
   const auto &Callers = ICFG.getCallersOf(VFuncA);
   ASSERT_EQ(Callers.size(), 1U);
   ASSERT_TRUE(llvm::is_contained(Callers, I));
-#endif
 }
 
 int main(int Argc, char **Argv) {

@@ -185,7 +185,10 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
     return std::make_unique<RTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::DTA:
     assert(TH != nullptr);
-    return std::make_unique<DTAResolver>(IRDB, VTP, TH);
+    PHASAR_LOG_LEVEL(ERROR, "Do not use the DTA resolver anymore. It relies on "
+                            "the removed 'typed-pointers' feature of LLVM.");
+    std::exit(1);
+    // return std::make_unique<DTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::VTA:
     llvm::report_fatal_error(
         "The VTA callgraph algorithm is not implemented yet");

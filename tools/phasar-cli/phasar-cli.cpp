@@ -332,6 +332,8 @@ int main(int Argc, const char **Argv) {
   }
   if (LogOpt) {
     Logger::initializeStderrLogger(LogSeverityOpt);
+  } else if (!SilentOpt) {
+    Logger::initializeStderrLogger(SeverityLevel::ERROR);
   }
   for (const auto &LogCat : LogCategoriesOpt) {
     Logger::initializeStderrLogger(LogSeverityOpt, LogCat);
