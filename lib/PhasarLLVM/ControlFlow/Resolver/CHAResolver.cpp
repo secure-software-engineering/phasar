@@ -26,11 +26,19 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
 
+#include <memory>
+
 using namespace std;
 using namespace psr;
 
-CHAResolver::CHAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
-    : Resolver(IRDB, TH) {}
+CHAResolver::CHAResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP,
+                         const LLVMTypeHierarchy *TH)
+    : Resolver(IRDB, VTP), TH(TH) {
+  if (!TH) {
+    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+  }
+}
 
 auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
@@ -58,7 +66,7 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   const auto *ReceiverTy = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
-  auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
+  auto FallbackTys = TH->getSubTypes(ReceiverTy);
 
   FunctionSetTy PossibleCallees;
 

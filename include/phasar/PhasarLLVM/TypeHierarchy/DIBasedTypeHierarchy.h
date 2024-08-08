@@ -38,11 +38,12 @@ public:
     return TypeToVertex.count(Type);
   }
 
-  [[nodiscard]] bool isSubType(ClassType Type, ClassType SubType) override {
+  [[nodiscard]] bool isSubType(ClassType Type,
+                               ClassType SubType) const override {
     return llvm::is_contained(subTypesOf(Type), SubType);
   }
 
-  [[nodiscard]] std::set<ClassType> getSubTypes(ClassType Type) override {
+  [[nodiscard]] std::set<ClassType> getSubTypes(ClassType Type) const override {
     const auto &Range = subTypesOf(Type);
     return {Range.begin(), Range.end()};
   }
@@ -51,39 +52,27 @@ public:
   [[nodiscard]] llvm::iterator_range<const ClassType *>
   subTypesOf(ClassType Ty) const noexcept;
 
-  [[nodiscard]] bool isSuperType(ClassType Type, ClassType SuperType) override;
-
-  /// Not supported yet
-  [[nodiscard]] std::set<ClassType> getSuperTypes(ClassType Type) override;
-
   [[nodiscard]] ClassType
-  getType(std::string TypeName) const noexcept override {
+  getType(llvm::StringRef TypeName) const noexcept override {
     return NameToType.lookup(TypeName);
   }
 
-  [[nodiscard]] std::set<ClassType> getAllTypes() const override {
+  [[nodiscard]] std::vector<ClassType> getAllTypes() const override {
     return {VertexTypes.begin(), VertexTypes.end()};
   }
 
   [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
-  [[nodiscard]] std::string getTypeName(ClassType Type) const override {
-    return Type->getName().str();
+  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+    return Type->getName();
   }
 
-  [[nodiscard]] bool hasVFTable(ClassType Type) const override;
-
-  [[nodiscard]] const VFTable<f_t> *getVFTable(ClassType Type) const override {
-    auto It = TypeToVertex.find(Type);
-    if (It == TypeToVertex.end()) {
-      return nullptr;
-    }
-    return &VTables[It->second];
+  [[nodiscard]] size_t size() const noexcept override {
+    return VertexTypes.size();
   }
-
-  [[nodiscard]] size_t size() const override { return VertexTypes.size(); }
-
-  [[nodiscard]] bool empty() const override { return VertexTypes.empty(); }
+  [[nodiscard]] bool empty() const noexcept override {
+    return VertexTypes.empty();
+  }
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 

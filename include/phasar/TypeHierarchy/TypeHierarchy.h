@@ -10,14 +10,13 @@
 #ifndef PHASAR_TYPEHIERARCHY_TYPEHIERARCHY_H
 #define PHASAR_TYPEHIERARCHY_TYPEHIERARCHY_H
 
-#include "phasar/TypeHierarchy/VFTable.h"
+#include "phasar/Utils/Nullable.h"
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 #include <set>
-#include <string>
 
 namespace psr {
 
@@ -25,32 +24,21 @@ template <typename T, typename F> class TypeHierarchy {
 public:
   virtual ~TypeHierarchy() = default;
 
-  virtual bool hasType(T Type) const = 0;
+  [[nodiscard]] virtual bool hasType(T Type) const = 0;
+  [[nodiscard]] virtual bool isSubType(T Type, T SubType) const = 0;
 
-  virtual bool isSubType(T Type, T SubType) = 0;
+  [[nodiscard]] virtual std::set<T> getSubTypes(T Type) const = 0;
 
-  virtual std::set<T> getSubTypes(T Type) = 0;
+  [[nodiscard]] virtual Nullable<T> getType(llvm::StringRef TypeName) const = 0;
 
-  virtual bool isSuperType(T Type, T SuperType) = 0;
+  [[nodiscard]] virtual std::vector<T> getAllTypes() const = 0;
 
-  virtual std::set<T> getSuperTypes(T Type) = 0;
+  [[nodiscard]] virtual llvm::StringRef getTypeName(T Type) const = 0;
 
-  [[nodiscard]] virtual T getType(std::string TypeName) const = 0;
-
-  [[nodiscard]] virtual std::set<T> getAllTypes() const = 0;
-
-  [[nodiscard]] virtual std::string getTypeName(T Type) const = 0;
-
-  [[nodiscard]] virtual bool hasVFTable(T Type) const = 0;
-
-  [[nodiscard]] virtual const VFTable<F> *getVFTable(T Type) const = 0;
-
-  [[nodiscard]] virtual size_t size() const = 0;
-
-  [[nodiscard]] virtual bool empty() const = 0;
+  [[nodiscard]] virtual size_t size() const noexcept = 0;
+  [[nodiscard]] virtual bool empty() const noexcept = 0;
 
   virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
-
   [[nodiscard]] virtual nlohmann::json getAsJson() const = 0;
 };
 

@@ -16,6 +16,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -34,8 +35,10 @@
 
 using namespace psr;
 
-DTAResolver::DTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
-    : CHAResolver(IRDB, TH) {}
+DTAResolver::DTAResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP,
+                         const LLVMTypeHierarchy *TH)
+    : CHAResolver(IRDB, VTP, TH) {}
 
 bool DTAResolver::heuristicAntiConstructorThisType(
     const llvm::BitCastInst *BitCast) {
@@ -80,8 +83,7 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
     // If it doesn't contain vtable, there is no reason to call this class in
     // the DTA graph, so no need to add it
     if (StructTy->isStructTy()) {
-      if (Resolver::TH->hasVFTable(
-              llvm::dyn_cast<llvm::StructType>(StructTy))) {
+      if (VTP->hasVFTable(llvm::dyn_cast<llvm::StructType>(StructTy))) {
         return false;
       }
     }
