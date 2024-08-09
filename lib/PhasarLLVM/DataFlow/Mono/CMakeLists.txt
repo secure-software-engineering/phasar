@@ -8,7 +8,6 @@ add_phasar_library(phasar_mono
     phasar_utils
     phasar_llvm_utils
     phasar_llvm_controlflow
-    phasar_db
     phasar_taintconfig
 
   LLVM_LINK_COMPONENTS

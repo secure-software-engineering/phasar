@@ -9,10 +9,10 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
@@ -24,27 +24,22 @@
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
-#include "phasar/Utils/TypeTraits.h"
-#include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <cstdint>
 #include <utility>
 
 namespace psr {
 struct LLVMBasedICFG::Builder {
   LLVMProjectIRDB *IRDB = nullptr;
-  LLVMAliasInfoRef PT{};
-  LLVMTypeHierarchy *TH{};
+  const LLVMVFTableProvider *VTP{};
+  Resolver *Res = nullptr;
   CallGraphBuilder<const llvm::Instruction *, const llvm::Function *>
       CGBuilder{};
-  std::unique_ptr<Resolver> Res = nullptr;
   llvm::DenseSet<const llvm::Function *> VisitedFunctions{};
   llvm::SmallVector<llvm::Function *, 1> UserEntryPoints{};
 
@@ -239,7 +234,7 @@ bool LLVMBasedICFG::Builder::processFunction(const llvm::Function *F) {
 }
 
 static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
-                                          const LLVMTypeHierarchy &TH) {
+                                          const LLVMVFTableProvider &VTP) {
   assert(Inst != nullptr);
   const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
   if (!CallSite) {
@@ -250,10 +245,7 @@ static bool internalIsVirtualFunctionCall(const llvm::Instruction *Inst,
   if (!RecType) {
     return false;
   }
-  if (!TH.hasType(RecType)) {
-    return false;
-  }
-  if (!TH.hasVFTable(RecType)) {
+  if (!VTP.hasVFTable(RecType)) {
     return false;
   }
   return getVFTIndex(CallSite) >= 0;
@@ -280,8 +272,8 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG", "  " << llvmIRToString(CS));
     // call the resolve routine
 
-    assert(TH != nullptr);
-    auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *TH)
+    assert(VTP != nullptr);
+    auto PossibleTargets = internalIsVirtualFunctionCall(CallSite, *VTP)
                                ? Res->resolveVirtualCall(CallSite)
                                : Res->resolveFunctionPointer(CallSite);
 
@@ -321,27 +313,12 @@ bool LLVMBasedICFG::Builder::constructDynamicCall(const llvm::Instruction *CS) {
   return NewTargetsFound;
 }
 
-LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                             CallGraphAnalysisType CGType,
-                             llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
-                             Soundness S, bool IncludeGlobals)
-    : IRDB(IRDB), TH(TH) {
-  assert(IRDB != nullptr);
+void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                               llvm::ArrayRef<std::string> EntryPoints,
+                               const LLVMVFTableProvider &VTP, Soundness S,
+                               bool IncludeGlobals) {
+  Builder B{IRDB, &VTP, &CGResolver};
 
-  if (!TH) {
-    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
-  }
-
-  Builder B{IRDB, PT, this->TH.get()};
-  LLVMAliasInfo PTOwn;
-
-  if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
-    B.PT = PTOwn.asRef();
-  }
-
-  B.Res = Resolver::create(CGType, IRDB, this->TH.get(), this, B.PT);
   B.initEntryPoints(EntryPoints);
   B.initGlobalsAndWorkList(this, IncludeGlobals);
 
@@ -358,26 +335,52 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
           << std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
-LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
-                             LLVMTypeHierarchy *TH)
-    : CG(std::move(CG)), IRDB(IRDB), TH(TH) {
-  if (!TH) {
-    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
+                             CallGraphAnalysisType CGType,
+                             llvm::ArrayRef<std::string> EntryPoints,
+                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
+                             Soundness S, bool IncludeGlobals)
+    : IRDB(IRDB), VTP(*IRDB) {
+  assert(IRDB != nullptr);
+
+  LLVMAliasInfo PTOwn;
+
+  if (!PT && CGType == CallGraphAnalysisType::OTF) {
+    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
+    PT = PTOwn.asRef();
   }
+
+  auto CGRes = Resolver::create(CGType, IRDB, &VTP, TH, PT);
+  initialize(IRDB, *CGRes, EntryPoints, VTP, S, IncludeGlobals);
 }
 
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                             llvm::ArrayRef<std::string> EntryPoints,
+                             Soundness S, bool IncludeGlobals)
+    : IRDB(IRDB), VTP(*IRDB) {
+  assert(IRDB != nullptr);
+  initialize(IRDB, CGResolver, EntryPoints, VTP, S, IncludeGlobals);
+}
+
+LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
+                             LLVMVFTableProvider VTP,
+                             llvm::ArrayRef<std::string> EntryPoints,
+                             Soundness S, bool IncludeGlobals)
+    : IRDB(IRDB), VTP(std::move(VTP)) {
+  assert(IRDB != nullptr);
+  initialize(IRDB, CGResolver, EntryPoints, this->VTP, S, IncludeGlobals);
+}
+
+LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB)
+    : CG(std::move(CG)), IRDB(IRDB), VTP(*IRDB) {}
+
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                             const nlohmann::json &SerializedCG,
-                             LLVMTypeHierarchy *TH)
+                             const nlohmann::json &SerializedCG)
     : CG(CallGraph<n_t, f_t>::deserialize(
           SerializedCG,
           [IRDB](llvm::StringRef Name) { return IRDB->getFunction(Name); },
           [IRDB](size_t Id) { return IRDB->getInstruction(Id); })),
-      IRDB(IRDB) {
-  if (!TH) {
-    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
-  }
-}
+      IRDB(IRDB), VTP(*IRDB) {}
 
 LLVMBasedICFG::~LLVMBasedICFG() = default;
 
@@ -409,7 +412,7 @@ bool LLVMBasedICFG::isPhasarGenerated(const llvm::Function &F) noexcept {
 }
 
 [[nodiscard]] bool LLVMBasedICFG::isVirtualFunctionCallImpl(n_t Inst) const {
-  return internalIsVirtualFunctionCall(Inst, *TH);
+  return internalIsVirtualFunctionCall(Inst, VTP);
 }
 
 [[nodiscard]] auto LLVMBasedICFG::allNonCallStartNodesImpl() const

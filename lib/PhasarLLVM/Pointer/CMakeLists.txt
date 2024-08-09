@@ -5,7 +5,6 @@ add_phasar_library(phasar_llvm_pointer
 
   LINKS
     phasar_utils
-    phasar_db
     phasar_pointer
     phasar_llvm_utils
     phasar_llvm_db

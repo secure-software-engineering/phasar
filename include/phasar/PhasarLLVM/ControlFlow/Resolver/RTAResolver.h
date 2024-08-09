@@ -31,7 +31,8 @@ class StructType;
 namespace psr {
 class RTAResolver : public CHAResolver {
 public:
-  RTAResolver(LLVMProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const LLVMTypeHierarchy *TH);
 
   ~RTAResolver() override = default;
 

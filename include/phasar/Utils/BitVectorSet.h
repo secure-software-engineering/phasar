@@ -198,9 +198,9 @@ public:
   }
 
   [[nodiscard]] BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
-    BitVectorSet<T> Res = Bits.size() < Other.Bits.size() ? Other : *this;
-    const BitVectorSet &Smaller =
-        Bits.size() < Other.Bits.size() ? *this : Other;
+    const bool ThisSetIsSmaller = Bits.size() < Other.Bits.size();
+    BitVectorSet<T> Res = ThisSetIsSmaller ? Other : *this;
+    const BitVectorSet &Smaller = ThisSetIsSmaller ? *this : Other;
 
     Res.Bits |= Smaller.Bits;
     return Res;

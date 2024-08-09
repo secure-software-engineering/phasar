@@ -9,11 +9,16 @@
 
 #include "phasar/DB/Hexastore.h"
 
+#include "phasar/DB/Queries.h"
+
+#include "boost/format.hpp"
+#include "sqlite3.h"
+
 namespace psr {
 
 Hexastore::Hexastore(const std::string &Filename) {
   sqlite3_open(Filename.c_str(), &HSInternalDB);
-  const std::string Query = INIT;
+  const std::string &Query = INIT;
   char *Err;
   sqlite3_exec(HSInternalDB, Query.c_str(), callback, nullptr, &Err);
   if (Err != nullptr) {

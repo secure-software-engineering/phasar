@@ -29,11 +29,14 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include <regex>
 
 namespace psr {
 
@@ -669,11 +672,17 @@ bool IDEGeneralizedLCA::isEntryPoint(const std::string &Name) const {
 }
 
 bool IDEGeneralizedLCA::isStringConstructor(const llvm::Function *F) {
-  return (ICF->getSpecialMemberFunctionType(F) ==
-              SpecialMemberFunctionType::Constructor &&
-          llvm::demangle(F->getName().str())
-                  .find("::allocator<char> >::basic_string") !=
-              std::string::npos);
+  if (ICF->getSpecialMemberFunctionType(F) !=
+      SpecialMemberFunctionType::Constructor) {
+    return false;
+  }
+
+  static const std::regex StringCtorRex(
+      "::basic_string<std::allocator<char>[[:space:]]?>\\(",
+      std::regex::extended | std::regex::nosubs | std::regex::optimize);
+
+  auto DName = llvm::demangle(F->getName().str());
+  return std::regex_search(DName, StringCtorRex);
 }
 
 } // namespace psr

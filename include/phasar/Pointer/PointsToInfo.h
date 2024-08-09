@@ -14,10 +14,10 @@
 #include "phasar/Utils/ByRef.h"
 
 #include <cassert>
-#include <memory>
 #include <optional>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace psr {
 
@@ -39,8 +39,10 @@ struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 template <typename PTATraits>
 class PointsToInfoRef<PTATraits,
                       std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
-    : PointsToInfoBase<PointsToInfoRef<PTATraits>> {
+    : public PointsToInfoBase<PointsToInfoRef<PTATraits>> {
   friend class PointsToInfo<PTATraits>;
+  friend PointsToInfoBase<PointsToInfoRef<PTATraits>>;
+
   using base_t = PointsToInfoBase<PointsToInfoRef<PTATraits>>;
 
 public:

@@ -2,6 +2,15 @@
 
 ## development HEAD
 
+- The API of the `TypeHierarchy` interface (and thus the `LLVMTypeHierarchy` and `DIBasedTypeHierarchy` as well) has changed:
+  - No handling of the super-type relation (only sub-types)
+  - No VTable handling anymore -- has been out-sourced into `LLVMVFTableProvider`
+  - minor API changes
+- The constructors of the call-graph resolvers have changed. They:
+  - take the `LLVMProjectIRDB` as pointer-to-const
+  - take an additional second parameter of type `const LLVMVFTableProvider *`
+  - not necessarily require a `LLVMTypeHierarchy` anymore
+- Some constructors of `LLVMBasedICFG` do not accept a `LLVMTypeHierarchy` pointer anymore
 - Removed IfdsFieldSensTaintAnalysis as it relies on LLVM's deprecated typed-pointers.
 
 ## v2403

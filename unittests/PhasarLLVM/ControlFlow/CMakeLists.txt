@@ -10,6 +10,7 @@ set(ControlFlowSources
 	LLVMBasedICFGExportTest.cpp
 	LLVMBasedICFGGlobCtorDtorTest.cpp
 	LLVMBasedICFGSerializationTest.cpp
+	LLVMVFTableProviderTest.cpp
 )
 
 set(LLVM_LINK_COMPONENTS Linker) # The CtorDtorTest needs the linker

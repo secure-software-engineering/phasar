@@ -10,8 +10,12 @@
 #ifndef PHASAR_DB_H
 #define PHASAR_DB_H
 
-#include "phasar/DB/Hexastore.h"
+#include "phasar/Config/phasar-config.h"
 #include "phasar/DB/ProjectIRDBBase.h"
+
+#ifdef PHASAR_HAS_SQLITE
+#include "phasar/DB/Hexastore.h"
 #include "phasar/DB/Queries.h"
+#endif
 
 #endif // PHASAR_DB_H

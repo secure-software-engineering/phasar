@@ -24,7 +24,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 namespace psr {
 
@@ -368,18 +367,8 @@ public:
       }
       // Compute the data-flow facts using the respective kind of flows
       if (ICF->isCallSite(Src)) {
-        // Handle call flow(s)
-        if (!isIntraEdge(Edge)) {
-          // real call
-          for (auto &[Ctx, Facts] : Analysis[Src]) {
-            processCall(Edge); // TODO: decompose into processCall and
-                               // processCallToRet
-          }
-        } else {
-          // call-to-return
-          processCall(
-              Edge); // TODO: decompose into processCall and processCallToRet
-        }
+        // Handle call flow(s) and call-to-return flow
+        processCall(Edge);
       } else if (ICF->isExitInst(Src)) {
         // Handle return flow
         processExit(Edge);

@@ -6,7 +6,6 @@ add_phasar_library(phasar_pointer
 
   LINKS
     phasar_utils
-    phasar_db
 
   LLVM_LINK_COMPONENTS
     Support

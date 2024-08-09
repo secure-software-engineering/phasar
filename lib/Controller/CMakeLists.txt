@@ -15,6 +15,7 @@ add_phasar_library(phasar_controller
     phasar_utils
     phasar_analysis_strategy
     phasar_taintconfig
+    phasar_passes
 
   LLVM_LINK_COMPONENTS
     Core
