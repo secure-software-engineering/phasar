@@ -37,7 +37,6 @@ set(PHASAR_COMPONENTS
   llvm
   llvm_ifdside
   analysis_strategy
-  controller
 )
 
 list(REMOVE_DUPLICATES phasar_FIND_COMPONENTS)

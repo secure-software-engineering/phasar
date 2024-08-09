@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/Controller/AnalysisController.h"
+#include "AnalysisController.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
@@ -17,9 +17,8 @@
 
 namespace psr {
 
-static void
-emitRequestedHelperAnalysisResults(AnalysisController::ControllerData &Data) {
-  auto WithResultFileOrStdout = [&ResultDirectory = Data.ResultDirectory](
+void AnalysisController::emitRequestedHelperAnalysisResults() {
+  auto WithResultFileOrStdout = [&ResultDirectory = this->ResultDirectory](
                                     const auto &FileName, auto Callback) {
     if (!ResultDirectory.empty()) {
       if (auto OFS = openFileStream(ResultDirectory.string() + FileName)) {
@@ -30,8 +29,8 @@ emitRequestedHelperAnalysisResults(AnalysisController::ControllerData &Data) {
     }
   };
 
-  auto EmitterOptions = Data.EmitterOptions;
-  auto &HA = *Data.HA;
+  auto EmitterOptions = this->EmitterOptions;
+  auto &HA = *this->HA;
 
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
     WithResultFileOrStdout("/psr-preprocess-ir.ll", [&HA](auto &OS) {
@@ -96,24 +95,24 @@ emitRequestedHelperAnalysisResults(AnalysisController::ControllerData &Data) {
   }
 }
 
-static void executeDemandDriven(AnalysisController::ControllerData & /*Data*/) {
+static void executeDemandDriven(AnalysisController & /*Data*/) {
   llvm::report_fatal_error(
       "AnalysisStrategy 'demand-driven' not supported, yet!");
 }
-static void executeIncremental(AnalysisController::ControllerData & /*Data*/) {
+static void executeIncremental(AnalysisController & /*Data*/) {
   llvm::report_fatal_error(
       "AnalysisStrategy 'incremental' not supported, yet!");
 }
-static void executeModuleWise(AnalysisController::ControllerData & /*Data*/) {
+static void executeModuleWise(AnalysisController & /*Data*/) {
   llvm::report_fatal_error(
       "AnalysisStrategy 'module-wise' not supported, yet!");
 }
-static void executeVariational(AnalysisController::ControllerData & /*Data*/) {
+static void executeVariational(AnalysisController & /*Data*/) {
   llvm::report_fatal_error(
       "AnalysisStrategy 'variational' not supported, yet!");
 }
 
-static void executeWholeProgram(AnalysisController::ControllerData &Data) {
+static void executeWholeProgram(AnalysisController &Data) {
   for (auto DataFlowAnalysis : Data.DataFlowAnalyses) {
     using namespace controller;
     switch (DataFlowAnalysis) {
@@ -171,60 +170,31 @@ static void executeWholeProgram(AnalysisController::ControllerData &Data) {
   }
 }
 
-static void executeAs(AnalysisController::ControllerData &Data,
-                      AnalysisStrategy Strategy) {
+void AnalysisController::run() {
   switch (Strategy) {
   case AnalysisStrategy::None:
     return;
   case AnalysisStrategy::DemandDriven:
-    executeDemandDriven(Data);
+    executeDemandDriven(*this);
     return;
   case AnalysisStrategy::Incremental:
-    executeIncremental(Data);
+    executeIncremental(*this);
     return;
   case AnalysisStrategy::ModuleWise:
-    executeModuleWise(Data);
+    executeModuleWise(*this);
     return;
   case AnalysisStrategy::Variational:
-    executeVariational(Data);
+    executeVariational(*this);
     return;
   case AnalysisStrategy::WholeProgram:
-    executeWholeProgram(Data);
+    executeWholeProgram(*this);
     return;
   }
   llvm_unreachable(
       "All AnalysisStrategy variants should be handled in the switch above!");
 }
 
-AnalysisController::AnalysisController(
-    HelperAnalyses &HA, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-    std::vector<std::string> AnalysisConfigs,
-    std::vector<std::string> EntryPoints, AnalysisStrategy Strategy,
-    AnalysisControllerEmitterOptions EmitterOptions,
-    IFDSIDESolverConfig SolverConfig, std::string ProjectID,
-    std::string OutDirectory)
-    : Data{
-          &HA,
-          std::move(DataFlowAnalyses),
-          std::move(AnalysisConfigs),
-          std::move(EntryPoints),
-          Strategy,
-          EmitterOptions,
-          std::move(ProjectID),
-          std::move(OutDirectory),
-          SolverConfig,
-      } {
-  if (!Data.ResultDirectory.empty()) {
-    // create directory for results
-    Data.ResultDirectory /= Data.ProjectID + "-" + createTimeStamp();
-    std::filesystem::create_directory(Data.ResultDirectory);
-  }
-  emitRequestedHelperAnalysisResults(Data);
-  executeAs(Data, Strategy);
-}
-
-LLVMTaintConfig
-controller::makeTaintConfig(AnalysisController::ControllerData &Data) {
+LLVMTaintConfig controller::makeTaintConfig(AnalysisController &Data) {
   std::string AnalysisConfigPath =
       !Data.AnalysisConfigs.empty() ? Data.AnalysisConfigs[0] : "";
   return !AnalysisConfigPath.empty()

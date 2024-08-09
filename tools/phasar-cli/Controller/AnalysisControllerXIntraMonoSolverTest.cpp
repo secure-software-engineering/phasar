@@ -7,15 +7,12 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/InterMonoTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoSolverTest.h"
 
 #include "AnalysisControllerInternalMono.h"
 
 using namespace psr;
 
-void controller::executeInterMonoTaint(
-    AnalysisController::ControllerData &Data) {
-  auto Config = makeTaintConfig(Data);
-  executeInterMonoAnalysis<InterMonoTaintAnalysis>(Data, Config,
-                                                   Data.EntryPoints);
+void controller::executeIntraMonoSolverTest(AnalysisController &Data) {
+  executeIntraMonoAnalysis<IntraMonoSolverTest>(Data, Data.EntryPoints);
 }
