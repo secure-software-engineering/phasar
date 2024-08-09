@@ -106,7 +106,9 @@ protected:
     IIASolver.solve();
     if (PrintDump) {
       // IRDB->emitPreprocessedIR(llvm::outs());
-      // IIASolver.dumpResults();
+      IIASolver.dumpResults();
+      llvm::outs()
+          << "\n======================================================\n";
       printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
     }
     // do the comparison
@@ -261,7 +263,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
   GroundTruth.emplace("main", 19, "k", std::set<std::string>{"6"});
   GroundTruth.emplace("main", 19, "p",
                       std::set<std::string>{"1", "2", "9", "11"});
-  doAnalysisAndCompareResults("basic_06_cpp.ll", {"main"}, GroundTruth, false);
+  doAnalysisAndCompareResults("basic_06_cpp.ll", {"main"}, GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
@@ -388,7 +390,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
   GroundTruth.emplace("main", 9, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 9, "i", std::set<std::string>{"7"});
   GroundTruth.emplace("main", 9, "j", std::set<std::string>{"0", "5", "6"});
-  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, true);
+  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
@@ -491,11 +493,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_02) {
   ASSERT_FALSE(true) << "Add GroundTruth!";
 })
 
-PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
-  // GTEST_SKIP() << "This test heavily depends on the used stdlib version.
-  // TODO: "
-  //                 "add a better one";
-
+TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
   // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
   // "76"}); GroundTruth.emplace("main", 16, "str",
@@ -505,7 +503,19 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
   doAnalysisAndCompareResults("rvo_03_cpp.ll", {"main"}, GroundTruth, true);
 
   ASSERT_FALSE(true) << "Add GroundTruth!";
-})
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_04) {
+  std::set<IIACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
+  // "76"}); GroundTruth.emplace("main", 16, "str",
+  //                     std::set<std::string>{"70", "65", "72", "74", "77"});
+  // GroundTruth.emplace("main", 16, "ref.tmp",
+  //                     std::set<std::string>{"66", "9", "72", "73", "71"});
+  doAnalysisAndCompareResults("rvo_04_cpp.ll", {"main"}, GroundTruth, true);
+
+  ASSERT_FALSE(true) << "Add GroundTruth!";
+}
 
 } // namespace
 

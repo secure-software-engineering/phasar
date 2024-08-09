@@ -8,13 +8,11 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
-#include "llvm/IR/Constant.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -100,6 +98,64 @@ static bool canKillPointerOp(const llvm::Value *PointerOp,
   return false;
 }
 
+static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
+                       const llvm::Instruction *Inst, const llvm::Value *Dest,
+                       const llvm::Value *Value) {
+
+  using container_type = IDEFeatureTaintAnalysis::container_type;
+
+  auto PointerPTS = PT.getReachableAllocationSites(Dest, true, Inst);
+  container_type PointerRet(PointerPTS->begin(), PointerPTS->end());
+  PointerRet.insert(Dest);
+
+  auto ValuePTS = PT.getReachableAllocationSites(Value, true, Inst);
+
+  // llvm::errs() << "At " << llvmIRToString(Inst) << ":\n";
+  // llvm::errs() << "> PointerRet:\n";
+  // for (const auto *Ptr : PointerRet) {
+  //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
+  // }
+  // llvm::errs() << "> ValuePTS:\n";
+  // for (const auto *Ptr : *ValuePTS) {
+  //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
+  // }
+
+  return FlowFunctionTemplates<const llvm::Value *, container_type>::lambdaFlow(
+      [Dest, Value, PointerRet = std::move(PointerRet),
+       ValuePTS = std::move(ValuePTS),
+       GeneratesFact](d_t Src) -> container_type {
+        if (Dest == Src || (PointerRet.count(Src) &&
+                            canKillPointerOp(Dest, Src, PointerRet))) {
+          return {};
+        }
+        container_type Facts = [&] {
+          // y/Y now obtains its new value(s) from x/X
+          // If a value is stored that holds we must generate all potential
+          // memory locations the store might write to.
+          // ... or from zero, if we manually generate a fact here
+          if (Value == Src ||
+              (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src)) ||
+              ValuePTS->count(Src)) {
+            // llvm::errs() << "> Store\n";
+            return PointerRet;
+          }
+
+          return container_type();
+        }();
+
+        Facts.insert(Src);
+
+        // llvm::errs() << "Gen { ";
+
+        // llvm::interleaveComma(Facts, llvm::errs(), [](const auto *Ptr) {
+        //   llvm::errs() << llvmIRToShortString(Ptr);
+        // });
+        // llvm::errs() << " } at " << llvmIRToString(Inst) << '\n';
+
+        return Facts;
+      });
+}
+
 auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
     -> FlowFunctionPtrType {
   bool GeneratesFact = TaintGen.isSource(Curr);
@@ -131,51 +187,8 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
   }
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    auto PointerPTS =
-        PT.getReachableAllocationSites(Store->getPointerOperand(), true, Store);
-    container_type PointerRet(PointerPTS->begin(), PointerPTS->end());
-    PointerRet.insert(Store->getPointerOperand());
-
-    auto ValuePTS =
-        PT.getReachableAllocationSites(Store->getValueOperand(), true, Store);
-
-    // llvm::errs() << "At " << llvmIRToString(Store) << ":\n";
-    // llvm::errs() << "> PointerRet:\n";
-    // for (const auto *Ptr : PointerRet) {
-    //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
-    // }
-    // llvm::errs() << "> ValuePTS:\n";
-    // for (const auto *Ptr : *ValuePTS) {
-    //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
-    // }
-
-    return lambdaFlow([Store, PointerRet = std::move(PointerRet),
-                       ValuePTS = std::move(ValuePTS),
-                       GeneratesFact](d_t Src) -> container_type {
-      if (Store->getPointerOperand() == Src ||
-          (PointerRet.count(Src) &&
-           canKillPointerOp(Store->getPointerOperand(), Src, PointerRet))) {
-        // llvm::errs() << "Kill pointer op " << llvmIRToShortString(Src) << "
-        // at "
-        //              << llvmIRToString(Store) << '\n';
-        return {};
-      }
-      container_type Facts = [&] {
-        // y/Y now obtains its new value(s) from x/X
-        // If a value is stored that holds we must generate all potential
-        // memory locations the store might write to.
-        // ... or from zero, if we manually generate a fact here
-        if (Store->getValueOperand() == Src ||
-            (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src)) ||
-            ValuePTS->count(Src)) {
-          return PointerRet;
-        }
-        return container_type();
-      }();
-
-      Facts.insert(Src);
-      return Facts;
-    });
+    return getStoreFF(GeneratesFact, PT, Store, Store->getPointerOperand(),
+                      Store->getValueOperand());
   }
 
   // Fallback
@@ -283,9 +296,19 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
   }
 
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
+
+  // Assume, the sret param is at index 0
+  const auto *SRet =
+      Call->hasStructRetAttr() ? Call->getArgOperand(0) : nullptr;
+
   auto Mapper = mapFactsAlongsideCallSite(
       Call,
-      [](d_t Arg) {
+      [SRet](d_t Arg) {
+        if (SRet == Arg) {
+          // perform strong update here
+          return false;
+        }
+
         return true;
         // return !Arg->getType()->isPointerTy();
         //  return llvm::isa<llvm::Constant>(Arg);
@@ -299,38 +322,16 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
   return Mapper;
 }
 
-auto IDEFeatureTaintAnalysis::getSummaryFlowFunction(n_t CallSite, f_t DestFun)
+auto IDEFeatureTaintAnalysis::getSummaryFlowFunction(n_t CallSite,
+                                                     f_t /*DestFun*/)
     -> FlowFunctionPtrType {
   if (const auto *MemTrn = llvm::dyn_cast<llvm::MemTransferInst>(CallSite)) {
-
-    bool GeneratesFact = TaintGen.isSource(CallSite);
-
-    auto PointerPTS =
-        PT.getReachableAllocationSites(MemTrn->getDest(), true, MemTrn);
-    container_type PointerRet(PointerPTS->begin(), PointerPTS->end());
-    PointerRet.insert(MemTrn->getDest());
-    return lambdaFlow([MemTrn, PointerRet = std::move(PointerRet),
-                       GeneratesFact](d_t Src) -> container_type {
-      if (canKillPointerOp(MemTrn->getDest(), Src, PointerRet)) {
-        return {};
-      }
-      container_type Facts;
-      Facts.insert(Src);
-      // y/Y now obtains its new value(s) from x/X
-      // If a value is stored that holds we must generate all potential
-      // memory locations the store might write to.
-      // ... or from zero, if we manually generate a fact here
-      if (MemTrn->getSource() == Src ||
-          MemTrn->getSource()->stripInBoundsConstantOffsets() == Src ||
-          (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src))) {
-
-        auto Facts = PointerRet;
-        Facts.insert(Src);
-        return Facts;
-      }
-
-      return {Src};
-    });
+    return getStoreFF(TaintGen.isSource(CallSite), PT, MemTrn,
+                      MemTrn->getDest(), MemTrn->getSource());
+  }
+  if (const auto *MemSet = llvm::dyn_cast<llvm::MemSetInst>(CallSite)) {
+    return getStoreFF(TaintGen.isSource(CallSite), PT, MemSet,
+                      MemSet->getDest(), MemSet->getValue());
   }
 
   return nullptr;

@@ -29,6 +29,7 @@ set(Sources
   rvo_01.cpp
   rvo_02.cpp
   rvo_03.cpp
+  rvo_04.cpp
   struct_01.cpp
   struct_02.cpp
 )
