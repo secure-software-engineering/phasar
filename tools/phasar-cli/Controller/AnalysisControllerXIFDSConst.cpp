@@ -7,13 +7,12 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSConstAnalysis.h"
 
 #include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIDELinearConst(
-    AnalysisController::ControllerData &Data) {
-  executeIDEAnalysis<IDELinearConstantAnalysis>(Data, Data.EntryPoints);
+void controller::executeIFDSConst(AnalysisController &Data) {
+  executeIFDSAnalysis<IFDSConstAnalysis>(Data, Data.EntryPoints);
 }
