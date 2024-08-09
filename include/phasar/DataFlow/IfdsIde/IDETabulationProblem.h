@@ -22,6 +22,7 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/SemiRing.h"
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -62,6 +63,7 @@ template <typename AnalysisDomainTy,
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
                              public EdgeFunctions<AnalysisDomainTy>,
                              public JoinLattice<AnalysisDomainTy>,
+                             public SemiRing<AnalysisDomainTy>,
                              public AllTopFnProvider<AnalysisDomainTy> {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;

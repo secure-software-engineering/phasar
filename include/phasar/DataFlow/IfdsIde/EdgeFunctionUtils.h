@@ -132,6 +132,23 @@ defaultComposeOrNull(EdgeFunctionRef<ConcreteEF> This,
   return nullptr;
 }
 
+template <typename L>
+EdgeFunction<L>
+defaultComposeOrNull(const EdgeFunction<L> &This,
+                     const EdgeFunction<L> &SecondFunction) noexcept {
+  if (llvm::isa<EdgeIdentity<L>>(SecondFunction)) {
+    return This;
+  }
+  if (SecondFunction.isConstant() || llvm::isa<AllTop<L>>(This) ||
+      llvm::isa<EdgeIdentity<L>>(This)) {
+    return SecondFunction;
+  }
+  if (llvm::isa<AllBottom<L>>(This)) {
+    return This;
+  }
+  return nullptr;
+}
+
 template <typename L> struct ConstantEdgeFunction {
   using l_t = L;
   using JLattice = JoinLatticeTraits<L>;
@@ -397,6 +414,26 @@ EdgeFunction<L> defaultJoinOrNull(EdgeFunctionRef<ConcreteEF> This,
     return OtherFunction;
   }
   if (llvm::isa<AllTop<L>>(OtherFunction) || OtherFunction == This) {
+    return This;
+  }
+  if (llvm::isa<EdgeIdentity<L>>(OtherFunction)) {
+    if constexpr (N > 0) {
+      return JoinEdgeFunction<L, N>::create(This, OtherFunction);
+    } else if constexpr (HasJoinLatticeTraits<L>) {
+      return AllBottom<L>{};
+    }
+  }
+  return nullptr;
+}
+
+template <typename L, uint8_t N = 0>
+EdgeFunction<L> defaultJoinOrNull(const EdgeFunction<L> &This,
+                                  const EdgeFunction<L> &OtherFunction) {
+  if (llvm::isa<AllBottom<L>>(OtherFunction) || llvm::isa<AllTop<L>>(This)) {
+    return OtherFunction;
+  }
+  if (llvm::isa<AllTop<L>>(OtherFunction) || OtherFunction == This ||
+      llvm::isa<AllBottom<L>>(This)) {
     return This;
   }
   if (llvm::isa<EdgeIdentity<L>>(OtherFunction)) {
