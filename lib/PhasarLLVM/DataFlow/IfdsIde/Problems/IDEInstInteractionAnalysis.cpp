@@ -109,7 +109,8 @@ bool IDEIIAFlowFact::operator==(const IDEIIAFlowFact &Other) const {
   }
   auto EqualGEPDescriptor = [](const llvm::GetElementPtrInst *Lhs,
                                const llvm::GetElementPtrInst *Rhs) {
-    return llvm::equal(Lhs->indices(), Rhs->indices());
+    return Lhs->getSourceElementType() == Rhs->getSourceElementType() &&
+           llvm::equal(Lhs->indices(), Rhs->indices());
   };
   for (unsigned Idx = 0; Idx < FieldDesc.size(); ++Idx) {
     if (!EqualGEPDescriptor(FieldDesc[Idx], Other.FieldDesc[Idx])) {
