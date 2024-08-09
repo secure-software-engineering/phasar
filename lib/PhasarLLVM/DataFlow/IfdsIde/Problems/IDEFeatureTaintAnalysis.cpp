@@ -136,26 +136,45 @@ auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
     container_type PointerRet(PointerPTS->begin(), PointerPTS->end());
     PointerRet.insert(Store->getPointerOperand());
 
+    auto ValuePTS =
+        PT.getReachableAllocationSites(Store->getValueOperand(), true, Store);
+
+    // llvm::errs() << "At " << llvmIRToString(Store) << ":\n";
+    // llvm::errs() << "> PointerRet:\n";
+    // for (const auto *Ptr : PointerRet) {
+    //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
+    // }
+    // llvm::errs() << "> ValuePTS:\n";
+    // for (const auto *Ptr : *ValuePTS) {
+    //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
+    // }
+
     return lambdaFlow([Store, PointerRet = std::move(PointerRet),
+                       ValuePTS = std::move(ValuePTS),
                        GeneratesFact](d_t Src) -> container_type {
-      if (canKillPointerOp(Store->getPointerOperand(), Src, PointerRet)) {
+      if (Store->getPointerOperand() == Src ||
+          (PointerRet.count(Src) &&
+           canKillPointerOp(Store->getPointerOperand(), Src, PointerRet))) {
+        // llvm::errs() << "Kill pointer op " << llvmIRToShortString(Src) << "
+        // at "
+        //              << llvmIRToString(Store) << '\n';
         return {};
       }
-      container_type Facts;
-      Facts.insert(Src);
-      // y/Y now obtains its new value(s) from x/X
-      // If a value is stored that holds we must generate all potential
-      // memory locations the store might write to.
-      // ... or from zero, if we manually generate a fact here
-      if (Store->getValueOperand() == Src ||
-          Store->getValueOperand()->stripPointerCastsAndAliases() == Src ||
-          (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src))) {
-        auto Facts = PointerRet;
-        Facts.insert(Src);
-        return Facts;
-      }
+      container_type Facts = [&] {
+        // y/Y now obtains its new value(s) from x/X
+        // If a value is stored that holds we must generate all potential
+        // memory locations the store might write to.
+        // ... or from zero, if we manually generate a fact here
+        if (Store->getValueOperand() == Src ||
+            (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src)) ||
+            ValuePTS->count(Src)) {
+          return PointerRet;
+        }
+        return container_type();
+      }();
 
-      return {Src};
+      Facts.insert(Src);
+      return Facts;
     });
   }
 
