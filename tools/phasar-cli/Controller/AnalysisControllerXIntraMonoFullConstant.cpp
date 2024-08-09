@@ -13,8 +13,7 @@
 
 using namespace psr;
 
-void controller::executeIntraMonoFullConstant(
-    AnalysisController::ControllerData &Data) {
+void controller::executeIntraMonoFullConstant(AnalysisController &Data) {
   executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(Data,
                                                              Data.EntryPoints);
 }
