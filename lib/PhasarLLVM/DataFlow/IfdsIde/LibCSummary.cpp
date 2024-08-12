@@ -1411,7 +1411,7 @@ static FunctionDataFlowFacts createLibCSummary() {
 
   // scalbn
   Sum.addElement("scalbn", 0, ReturnValue{});
-  Sum.addElement(scalbn, 1, ReturnValue{});
+  Sum.addElement("scalbn", 1, ReturnValue{});
 
   // scalbnf
   Sum.addElement("scalbnf", 0, ReturnValue{});

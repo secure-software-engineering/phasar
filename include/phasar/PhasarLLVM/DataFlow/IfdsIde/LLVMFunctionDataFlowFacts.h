@@ -47,16 +47,22 @@ public:
     return LLVMFdff.end() != LLVMFdff.find(Fn);
   }
 
+  std::vector<LLVMDataFlowFact> getFacts(const llvm::Function *Fun,
+                                         const llvm::Argument *Arg) {
+    if (contains(Fun)) {
+      return LLVMFdff[Fun][Arg];
+    }
+  }
+
   static LLVMFunctionDataFlowFacts
   readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb) {
     LLVMFunctionDataFlowFacts Llvmfdff;
-    // It to [key-name, value-name]
     for (const auto &It : Fdff) {
       const llvm::Function *Fun = Irdb.getFunction(It.first());
-      // Itt to [key-name, value-name]
-      for (const auto &Itt : It.second) {
-        const llvm::Argument *Arg = Fun->getArg(Itt.first);
-        for (const auto &I : Itt.second) {
+      for (auto [ArgIndex, OutSet] : It.second) {
+        // for (const auto &Itt : It.second) {
+        const llvm::Argument *Arg = Fun->getArg(ArgIndex);
+        for (const auto &I : OutSet) {
           if (std::get_if<ReturnValue>(&I.Fact)) {
             LLVMReturnValue Ret;
             Llvmfdff.addElement(Fun, Arg, Ret);

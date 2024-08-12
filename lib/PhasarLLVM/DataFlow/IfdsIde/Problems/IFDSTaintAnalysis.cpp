@@ -39,6 +39,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <utility>
+#include <variant>
 
 namespace psr {
 using d_t = IFDSTaintAnalysis::d_t;
@@ -409,8 +410,39 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   }
   if (Gen.empty() && Leak.empty() && Kill.empty()) {
     if (Llvmfdff.contains(DestFun)) {
-      return lambdaFlow([this, CallSite](d_t Source) -> container_type {});
+      return lambdaFlow([this, CallSite,
+                         DestFun](d_t Source) -> container_type {
+        std::set<d_t> Facts;
+        // replace with for loop
+        const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+        int Index = 0;
+        for (const auto *Iter = CS->data_operands_begin();
+             Iter != CS->data_operands_end(); ++Iter) {
+          // if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Source)) {
+          if (Source == llvm::dyn_cast<llvm::Value>(Iter)) {
+            auto VecFacts = Llvmfdff.getFacts(DestFun, DestFun->getArg(Index));
+            for (auto &VecFact : VecFacts) {
+              if (const auto *Param =
+                      std::get_if<LLVMParameter>(&VecFact.Fact)) {
+                // Facts.insert(Param->Index);
+                // const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+                Facts.insert(CS->getArgOperand(Param->Index->getArgNo()));
+              }
+
+              else {
+                Facts.insert(CallSite);
+              }
+            }
+            Index++;
+          }
+        }
+        Facts.insert(Source);
+        return Facts;
+      });
     }
+
+    // not found
+    return nullptr;
   }
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
