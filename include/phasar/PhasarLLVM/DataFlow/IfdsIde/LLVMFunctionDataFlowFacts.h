@@ -52,6 +52,8 @@ public:
     if (contains(Fun)) {
       return LLVMFdff[Fun][Arg];
     }
+    std::vector<LLVMDataFlowFact> Empty;
+    return Empty;
   }
 
   static LLVMFunctionDataFlowFacts

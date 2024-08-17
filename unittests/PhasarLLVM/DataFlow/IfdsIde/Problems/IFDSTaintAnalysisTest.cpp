@@ -313,6 +313,15 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
              });
 }
 
+TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[11] = set<string>{"10"};
+  compareResults(GroundTruth);
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
