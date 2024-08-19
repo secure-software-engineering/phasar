@@ -2,15 +2,14 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
 
 #include <cstdint>
 #include <unordered_map>
 #include <variant>
 #include <vector>
-
-#include <llvm-14/llvm/ADT/StringRef.h>
-#include <llvm-14/llvm/IR/Argument.h>
 
 namespace psr {
 
@@ -29,7 +28,7 @@ struct LLVMDataFlowFact {
 
 class LLVMFunctionDataFlowFacts {
 public:
-  LLVMFunctionDataFlowFacts();
+  LLVMFunctionDataFlowFacts() = default;
 
   // insert a set of data flow facts
   void insertSet(const llvm::Function *Fun, const llvm::Argument *Arg,
@@ -61,6 +60,9 @@ public:
     LLVMFunctionDataFlowFacts Llvmfdff;
     for (const auto &It : Fdff) {
       const llvm::Function *Fun = Irdb.getFunction(It.first());
+      if (Fun == nullptr) {
+        continue;
+      }
       for (auto [ArgIndex, OutSet] : It.second) {
         // for (const auto &Itt : It.second) {
         const llvm::Argument *Arg = Fun->getArg(ArgIndex);

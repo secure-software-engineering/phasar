@@ -314,11 +314,11 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
-  initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
+  initialize({PathToLlFiles + "dummy_source_sink/taint_lib_sum_01_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
-  GroundTruth[11] = set<string>{"10"};
+  GroundTruth[20] = {"19"};
   compareResults(GroundTruth);
 }
 
