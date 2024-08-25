@@ -406,7 +406,7 @@ protected:
             PHASAR_LOG_LEVEL(DEBUG,
                              "Compose: " << SumEdgFnE << " * " << f << '\n');
             WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
-                                  f.composeWith(SumEdgFnE));
+                                  IDEProblem.extend(f, SumEdgFnE));
           }
         }
       } else {
@@ -498,15 +498,15 @@ protected:
                                                       << f4);
                   PHASAR_LOG_LEVEL(DEBUG,
                                    "         (return * calleeSummary * call)");
-                  EdgeFunction<l_t> fPrime =
-                      f4.composeWith(fCalleeSummary).composeWith(f5);
+                  EdgeFunction<l_t> fPrime = IDEProblem.extend(
+                      IDEProblem.extend(f4, fCalleeSummary), f5);
                   PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime);
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f);
                   WorkList.emplace_back(
                       PathEdge(d1, RetSiteN, std::move(d5_restoredCtx)),
-                      f.composeWith(fPrime));
+                      IDEProblem.extend(f, fPrime));
                 }
               }
             }
@@ -538,7 +538,7 @@ protected:
               .push_back(EdgeFnE);
         }
         INC_COUNTER("EF Queries", 1, Full);
-        auto fPrime = f.composeWith(EdgeFnE);
+        auto fPrime = IDEProblem.extend(f, EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
         WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
@@ -570,7 +570,7 @@ protected:
         EdgeFunction<l_t> g =
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
         PHASAR_LOG_LEVEL(DEBUG, "Queried Normal Edge Function: " << g);
-        EdgeFunction<l_t> fPrime = f.composeWith(g);
+        EdgeFunction<l_t> fPrime = IDEProblem.extend(f, g);
         if (SolverConfig.emitESG()) {
           IntermediateEdgeFunctions[std::make_tuple(n, d2, nPrime, d3)]
               .push_back(g);
@@ -950,7 +950,8 @@ protected:
             PHASAR_LOG_LEVEL(DEBUG,
                              "Compose: " << f5 << " * " << f << " * " << f4);
             PHASAR_LOG_LEVEL(DEBUG, "         (return * function * call)");
-            EdgeFunction<l_t> fPrime = f4.composeWith(f).composeWith(f5);
+            EdgeFunction<l_t> fPrime =
+                IDEProblem.extend(IDEProblem.extend(f4, f), f5);
             PHASAR_LOG_LEVEL(DEBUG, "       = " << fPrime);
             // for each jump function coming into the call, propagate to
             // return site using the composed function
@@ -965,7 +966,7 @@ protected:
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
                   WorkList.emplace_back(PathEdge(std::move(d3), RetSiteC,
                                                  std::move(d5_restoredCtx)),
-                                        f3.composeWith(fPrime));
+                                        IDEProblem.extend(f3, fPrime));
                 }
               }
             }
@@ -1004,7 +1005,7 @@ protected:
             }
             INC_COUNTER("EF Queries", 1, Full);
             PHASAR_LOG_LEVEL(DEBUG, "Compose: " << f5 << " * " << f);
-            propagteUnbalancedReturnFlow(RetSiteC, d5, f.composeWith(f5),
+            propagteUnbalancedReturnFlow(RetSiteC, d5, IDEProblem.extend(f, f5),
                                          Caller);
             // register for value processing (2nd IDE phase)
             UnbalancedRetSites.insert(RetSiteC);
@@ -1153,7 +1154,7 @@ protected:
       // was found
       return AllTop;
     }();
-    EdgeFunction<l_t> fPrime = JumpFnE.joinWith(f);
+    EdgeFunction<l_t> fPrime = IDEProblem.combine(JumpFnE, f);
     bool NewFunction = fPrime != JumpFnE;
 
     IF_LOG_LEVEL_ENABLED(DEBUG, {

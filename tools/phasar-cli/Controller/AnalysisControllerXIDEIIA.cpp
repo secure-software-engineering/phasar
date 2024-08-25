@@ -17,7 +17,7 @@
 
 using namespace psr;
 
-void controller::executeIDEIIA(AnalysisController::ControllerData &Data) {
+void controller::executeIDEIIA(AnalysisController &Data) {
   // use Phasar's instruction ids as testing labels
   auto Generator =
       [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
