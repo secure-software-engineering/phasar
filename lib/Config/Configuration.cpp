@@ -136,8 +136,14 @@ bool PhasarConfig::loadConfigFileInto(llvm::StringRef FileName,
   llvm::SmallVector<llvm::StringRef, 0> ConfigLines;
   llvm::SplitString(*ConfigFile, ConfigLines, "\n");
 
-  llvm::transform(ConfigLines, std::inserter(Lines, Lines.end()),
-                  [](llvm::StringRef Str) { return Str.trim().str(); });
+  llvm::transform(
+      ConfigLines, std::inserter(Lines, Lines.end()), [](llvm::StringRef Str) {
+        if (auto Comment = Str.find("//"); Comment != llvm::StringRef::npos) {
+          Str = Str.slice(0, Comment);
+        }
+        return Str.trim().str();
+      });
+
   return true;
 }
 
