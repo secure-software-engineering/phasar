@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
+#include "phasar/Utils/DefaultValue.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Argument.h"
@@ -42,45 +43,30 @@ public:
     LLVMFdff[Fun][Arg].emplace_back(Out);
   }
 
-  bool contains(const llvm::Function *Fn) {
-    return LLVMFdff.end() != LLVMFdff.find(Fn);
+  bool contains(const llvm::Function *Fn) { return LLVMFdff.count(Fn); }
+
+  [[nodiscard]] const std::vector<LLVMDataFlowFact> &
+  getFacts(const llvm::Function *Fun, const llvm::Argument *Arg) {
+    auto Iter = LLVMFdff.find(Fun);
+    if (Iter != LLVMFdff.end()) {
+      return Iter->second[Arg];
+    }
+    return getDefaultValue<std::vector<LLVMDataFlowFact>>();
   }
 
-  std::vector<LLVMDataFlowFact> getFacts(const llvm::Function *Fun,
-                                         const llvm::Argument *Arg) {
-    if (contains(Fun)) {
-      return LLVMFdff[Fun][Arg];
+  [[nodiscard]] const std::unordered_map<const llvm::Argument *,
+                                         std::vector<LLVMDataFlowFact>> &
+  getFactsForFunction(const llvm::Function *Fun) {
+    auto Iter = LLVMFdff.find(Fun);
+    if (Iter != LLVMFdff.end()) {
+      return Iter->second;
     }
-    std::vector<LLVMDataFlowFact> Empty;
-    return Empty;
+    return getDefaultValue<std::unordered_map<const llvm::Argument *,
+                                              std::vector<LLVMDataFlowFact>>>();
   }
 
   static LLVMFunctionDataFlowFacts
-  readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb) {
-    LLVMFunctionDataFlowFacts Llvmfdff;
-    for (const auto &It : Fdff) {
-      const llvm::Function *Fun = Irdb.getFunction(It.first());
-      if (Fun == nullptr) {
-        continue;
-      }
-      for (auto [ArgIndex, OutSet] : It.second) {
-        // for (const auto &Itt : It.second) {
-        const llvm::Argument *Arg = Fun->getArg(ArgIndex);
-        for (const auto &I : OutSet) {
-          if (std::get_if<ReturnValue>(&I.Fact)) {
-            LLVMReturnValue Ret;
-            Llvmfdff.addElement(Fun, Arg, Ret);
-          } else if (const auto *Param = std::get_if<Parameter>(&I.Fact)) {
-            if (Param->Index < Fun->arg_size()) {
-              LLVMParameter LLVMParam = {Fun->getArg(Param->Index)};
-              Llvmfdff.addElement(Fun, Arg, LLVMParam);
-            }
-          }
-        }
-      }
-    }
-    return Llvmfdff;
-  }
+  readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb);
 
 private:
   std::unordered_map<

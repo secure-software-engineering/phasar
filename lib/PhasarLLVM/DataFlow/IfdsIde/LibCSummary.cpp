@@ -7,10 +7,6 @@ using namespace psr;
 static FunctionDataFlowFacts createLibCSummary() {
   FunctionDataFlowFacts Sum;
 
-  // TODO: Use public API instead!
-  // Sum.Fdff["localtime_r"][1].emplace_back(ReturnValue{});
-
-  // Sum.fdff["foo"][2].emplace_back(Parameter{1});
   // abs
   Sum.addElement("abs", 0, ReturnValue{});
 
@@ -1989,7 +1985,6 @@ static FunctionDataFlowFacts createLibCSummary() {
   Sum.addElement("ynl", 0, ReturnValue{});
   Sum.addElement("ynl", 1, ReturnValue{});
 
-  // TODO
   return Sum;
 }
 

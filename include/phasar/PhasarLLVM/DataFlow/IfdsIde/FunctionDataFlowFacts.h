@@ -4,10 +4,11 @@
 #include "llvm/ADT/StringRef.h"
 
 #include <cstdint>
-// #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
+
+#include <llvm-14/llvm/Support/raw_ostream.h>
 
 namespace psr {
 
@@ -71,4 +72,9 @@ private:
 
   llvm::StringMap<std::unordered_map<uint32_t, std::vector<DataFlowFact>>> Fdff;
 };
+// TO DO: implement in .cpp file
+void serialize(const FunctionDataFlowFacts &Fdff, llvm::raw_ostream &OS);
+
+// TO DO: implement in .cpp file
+[[nodiscard]] FunctionDataFlowFacts deserialize(llvm::raw_ostream &OS);
 } // namespace psr
