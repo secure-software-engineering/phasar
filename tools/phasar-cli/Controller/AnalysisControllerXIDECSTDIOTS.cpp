@@ -7,13 +7,15 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
 #include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIFDSSolverTest(
-    AnalysisController::ControllerData &Data) {
-  executeIFDSAnalysis<IFDSSolverTest>(Data, Data.EntryPoints);
+void controller::executeIDECSTDIOTS(AnalysisController &Data) {
+  CSTDFILEIOTypeStateDescription TSDesc;
+  executeIDEAnalysis<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>(
+      Data, &TSDesc, Data.EntryPoints);
 }

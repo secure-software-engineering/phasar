@@ -7,13 +7,12 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSSolverTest.h"
 
 #include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIFDSUninitVar(
-    AnalysisController::ControllerData &Data) {
-  executeIFDSAnalysis<IFDSUninitializedVariables>(Data, Data.EntryPoints);
+void controller::executeIFDSSolverTest(AnalysisController &Data) {
+  executeIFDSAnalysis<IFDSSolverTest>(Data, Data.EntryPoints);
 }

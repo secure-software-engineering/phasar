@@ -7,12 +7,14 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/InterMonoTaintAnalysis.h"
 
-#include "AnalysisControllerInternalIDE.h"
+#include "AnalysisControllerInternalMono.h"
 
 using namespace psr;
 
-void controller::executeIFDSType(AnalysisController::ControllerData &Data) {
-  executeIFDSAnalysis<IFDSTypeAnalysis>(Data, Data.EntryPoints);
+void controller::executeInterMonoTaint(AnalysisController &Data) {
+  auto Config = makeTaintConfig(Data);
+  executeInterMonoAnalysis<InterMonoTaintAnalysis>(Data, Config,
+                                                   Data.EntryPoints);
 }

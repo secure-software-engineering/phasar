@@ -7,12 +7,13 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
 #include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIFDSConst(AnalysisController::ControllerData &Data) {
-  executeIFDSAnalysis<IFDSConstAnalysis>(Data, Data.EntryPoints);
+void controller::executeIFDSTaint(AnalysisController &Data) {
+  auto Config = makeTaintConfig(Data);
+  executeIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints);
 }
