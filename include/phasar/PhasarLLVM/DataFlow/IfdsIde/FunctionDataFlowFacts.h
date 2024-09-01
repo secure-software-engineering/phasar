@@ -56,7 +56,7 @@ public:
 
   [[nodiscard]] auto end() const { return Fdff.end(); }
 
-  // prints the data structure of given keys to terminal
+  [[nodiscard]] size_t size() { return Fdff.size(); }
 
 private:
   [[nodiscard]] const auto &
