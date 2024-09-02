@@ -40,7 +40,7 @@ public:
     Fdff[FuncKey][Index].emplace_back(Out);
   }
 
-  // get out set for a function an the parameter index
+  // get outset for a function an the parameter index
   [[nodiscard]] const std::vector<DataFlowFact> &
   getDataFlowFacts(llvm::StringRef FuncKey, uint32_t &Index) const {
     auto It = Fdff.find(FuncKey);
