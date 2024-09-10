@@ -7,6 +7,7 @@ struct Foo {
   int X = 0;
 
   Foo() noexcept = default;
+  // NOLINTNEXTLINE
   Foo(const Foo &Other) noexcept : X(Other.X) {}
 };
 

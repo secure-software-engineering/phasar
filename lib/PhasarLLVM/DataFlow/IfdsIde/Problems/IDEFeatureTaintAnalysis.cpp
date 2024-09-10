@@ -14,6 +14,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -110,11 +111,11 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
 
   auto ValuePTS = PT.getReachableAllocationSites(Value, true, Inst);
 
-  // llvm::errs() << "At " << llvmIRToString(Inst) << ":\n";
-  // llvm::errs() << "> PointerRet:\n";
-  // for (const auto *Ptr : PointerRet) {
-  //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
-  // }
+  llvm::errs() << "At " << llvmIRToString(Inst) << ":\n";
+  llvm::errs() << "> PointerRet:\n";
+  for (const auto *Ptr : PointerRet) {
+    llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
+  }
   // llvm::errs() << "> ValuePTS:\n";
   // for (const auto *Ptr : *ValuePTS) {
   //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
@@ -241,14 +242,14 @@ auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
       });
 
   // Generate the artificially introduced RVO parameters from zero value.
-  const auto *SRetFormal =
-      CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
+  // const auto *SRetFormal =
+  //     CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
 
-  if (SRetFormal && TaintGen.isSource(CallSite)) {
-    return unionFlows(
-        std::move(MapFactsToCalleeFF),
-        generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
-  }
+  // if (SRetFormal && TaintGen.isSource(CallSite)) {
+  //   return unionFlows(
+  //       std::move(MapFactsToCalleeFF),
+  //       generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
+  // }
 
   return MapFactsToCalleeFF;
 }
@@ -285,26 +286,27 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
     n_t CallSite, n_t /* RetSite */, llvm::ArrayRef<f_t> Callees)
     -> FlowFunctionPtrType {
 
-  bool GeneratesFact = false;
+  const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
+
+  // Assume, the sret param is at index 0
+  const llvm::Value *RetVal =
+      !Call->getType()->isVoidTy()
+          ? CallSite
+          : (Call->hasStructRetAttr() ? Call->getArgOperand(0) : nullptr);
+
+  bool GeneratesFact = RetVal && TaintGen.isSource(CallSite);
+
   if (llvm::all_of(Callees, [](f_t Fun) { return Fun->isDeclaration(); })) {
-    GeneratesFact =
-        !CallSite->getType()->isVoidTy() && TaintGen.isSource(CallSite);
     if (GeneratesFact) {
-      return generateFromZero(CallSite);
+      return generateFromZero(RetVal);
     }
     return identityFlow();
   }
 
-  const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
-
-  // Assume, the sret param is at index 0
-  const auto *SRet =
-      Call->hasStructRetAttr() ? Call->getArgOperand(0) : nullptr;
-
   auto Mapper = mapFactsAlongsideCallSite(
       Call,
-      [SRet](d_t Arg) {
-        if (SRet == Arg) {
+      [RetVal](d_t Arg) {
+        if (RetVal == Arg) {
           // perform strong update here
           return false;
         }
@@ -317,7 +319,7 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
 
   if (GeneratesFact) {
     return unionFlows(std::move(Mapper),
-                      generateFlowAndKillAllOthers(CallSite, getZeroValue()));
+                      generateFlowAndKillAllOthers(RetVal, getZeroValue()));
   }
   return Mapper;
 }
