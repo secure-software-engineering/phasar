@@ -80,8 +80,11 @@ public:
 
   bool isZeroValue(d_t FlowFact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, BinaryDomain> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
+
+  [[nodiscard]] bool
+  isInteresting(const llvm::Instruction *Inst) const noexcept;
 
 private:
   const LLVMTaintConfig *Config{};

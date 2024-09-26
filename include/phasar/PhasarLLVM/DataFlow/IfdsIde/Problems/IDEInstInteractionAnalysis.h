@@ -1099,7 +1099,7 @@ public:
     }
   }
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
     OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
           "======================\n";
@@ -1135,7 +1135,7 @@ public:
   /// Computes all variables where a result set has been computed using the
   /// edge functions (and respective value domain).
   inline std::unordered_set<d_t>
-  getAllVariables(const SolverResults<n_t, d_t, l_t> & /* Solution */) const {
+  getAllVariables(GenericSolverResults<n_t, d_t, l_t> /* Solution */) const {
     std::unordered_set<d_t> Variables;
     // collect all variables that are available
     const llvm::Module *M = this->IRDB->getModule();
@@ -1160,7 +1160,7 @@ public:
   /// Computes all variables for which an empty set has been computed using the
   /// edge functions (and respective value domain).
   inline std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
-      const SolverResults<n_t, d_t, l_t> &Solution) const {
+      GenericSolverResults<n_t, d_t, l_t> Solution) const {
     return removeVariablesWithoutEmptySetValue(Solution,
                                                getAllVariables(Solution));
   }
@@ -1178,19 +1178,19 @@ protected:
     } else {
       auto LSet = std::get<BitVectorSet<e_t>>(EdgeFact);
       OS << "(set size: " << LSet.size() << ") values: ";
-      if constexpr (std::is_same_v<e_t, vara::Taint *>) {
-        for (const auto &LElem : LSet) {
-          std::string IRBuffer;
-          llvm::raw_string_ostream RSO(IRBuffer);
-          LElem->print(RSO);
-          RSO.flush();
-          OS << IRBuffer << ", ";
-        }
-      } else {
-        for (const auto &LElem : LSet) {
-          OS << LElem << ", ";
-        }
+      // if constexpr (std::is_same_v<e_t, vara::Taint *>) {
+      //   for (const auto &LElem : LSet) {
+      //     std::string IRBuffer;
+      //     llvm::raw_string_ostream RSO(IRBuffer);
+      //     LElem->print(RSO);
+      //     RSO.flush();
+      //     OS << IRBuffer << ", ";
+      //   }
+      // } else {
+      for (const auto &LElem : LSet) {
+        OS << LElem << ", ";
       }
+      // }
     }
   }
 
@@ -1210,33 +1210,29 @@ private:
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
-      const SolverResults<n_t, d_t, l_t> &Solution,
+      GenericSolverResults<n_t, d_t, l_t> Solution,
       std::unordered_set<d_t> Variables) const {
     // Check the solver results and remove all variables for which a
     // non-empty set has been computed
-    auto Results = Solution.getAllResultEntries();
-    for (const auto &Result : Results) {
+    // auto Results = Solution.getAllResultEntries();
+    Solution.foreachResultEntry([&Variables](const auto &Result) {
       // We do not care for the concrete instruction at which data-flow facts
       // hold, instead we just wish to find out if a variable has been generated
       // at some point. Therefore, we only care for the variables and their
       // associated values and ignore at which point a variable may holds as a
       // data-flow fact.
-      const auto &Variable = Result.getColumnKey();
-      const auto &Value = Result.getValue();
+      const d_t &Variable = std::get<1>(Result);
+      const l_t &Value = std::get<2>(Result);
       // skip result entry if variable is not in the set of all variables
-      if (Variables.find(Variable) == Variables.end()) {
-        continue;
+      if (!Variables.count(Variable)) {
+        return;
       }
-      // skip result entry if the computed value is not of type BitVectorSet
-      if (!std::holds_alternative<BitVectorSet<e_t>>(Value)) {
-        continue;
-      }
-      // remove variable from result set if a non-empty that has been computed
-      auto &Values = std::get<BitVectorSet<e_t>>(Value);
-      if (!Values.empty()) {
+      if (const auto *Values = Value.getValueOrNull();
+          Values && !Values->empty()) {
         Variables.erase(Variable);
       }
-    }
+    });
+
     return Variables;
   }
 
@@ -1254,5 +1250,37 @@ private:
 using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;
 
 } // namespace psr
+
+// Compatibility with llvm::DenseMap/DenseSet:
+namespace llvm {
+template <> struct DenseMapInfo<psr::IDEIIAFlowFact> {
+  static psr::IDEIIAFlowFact getEmptyKey() {
+    return psr::IDEIIAFlowFact(
+        DenseMapInfo<const llvm::Value *>::getEmptyKey());
+  }
+  static psr::IDEIIAFlowFact getTombstoneKey() {
+    return psr::IDEIIAFlowFact(
+        DenseMapInfo<const llvm::Value *>::getTombstoneKey());
+  }
+  static bool isEqual(const psr::IDEIIAFlowFact &L,
+                      const psr::IDEIIAFlowFact &R) {
+    const auto *Empty = DenseMapInfo<const llvm::Value *>::getEmptyKey();
+    const auto *TS = DenseMapInfo<const llvm::Value *>::getTombstoneKey();
+    if (L.getBase() == Empty) {
+      return R.getBase() == Empty;
+    }
+    if (L.getBase() == TS) {
+      return R.getBase() == TS;
+    }
+    if (R.getBase() == Empty || R.getBase() == TS) {
+      return false;
+    }
+    return L == R;
+  }
+  static unsigned getHashValue(const psr::IDEIIAFlowFact &FF) {
+    return std::hash<psr::IDEIIAFlowFact>{}(FF);
+  }
+};
+} // namespace llvm
 
 #endif

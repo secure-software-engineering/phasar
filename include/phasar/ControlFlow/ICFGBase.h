@@ -111,6 +111,10 @@ public:
     return self().getAsJsonImpl();
   }
 
+  [[nodiscard]] size_t getNumCallSites() const noexcept {
+    return self().getNumCallSitesImpl();
+  }
+
 private:
   const Derived &self() const noexcept {
     return static_cast<const Derived &>(*this);

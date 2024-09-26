@@ -586,7 +586,7 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 }
 
 void IDELinearConstantAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
+    GenericSolverResults<n_t, d_t, l_t> SR, llvm::raw_ostream &OS) {
   OS << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
   if (!IRDB->debugInfoAvailable()) {
@@ -639,7 +639,8 @@ void IDELinearConstantAnalysis::stripBottomResults(
 }
 
 IDELinearConstantAnalysis::lca_results_t
-IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
+IDELinearConstantAnalysis::getLCAResults(
+    GenericSolverResults<n_t, d_t, l_t> SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   llvm::outs() << "\n==== Computing LCA Results ====\n";
   for (const auto *F : ICF->getAllFunctions()) {

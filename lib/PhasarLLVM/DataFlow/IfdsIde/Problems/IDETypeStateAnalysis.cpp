@@ -303,7 +303,8 @@ auto IDETypeStateAnalysisBase::getLocalAliasesAndAllocas(
 }
 
 bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Type *Ty) {
-  if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
+  if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty);
+      StructTy && StructTy->hasName()) {
     return isTypeNameOfInterest(StructTy->getName());
   }
   // primitive type

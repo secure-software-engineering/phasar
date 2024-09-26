@@ -18,6 +18,7 @@ namespace llvm {
 class Value;
 class Function;
 class Instruction;
+class AAResults;
 } // namespace llvm
 
 namespace psr {
@@ -38,8 +39,6 @@ public:
   LLVMBasedAliasAnalysis(const LLVMBasedAliasAnalysis &) = delete;
   LLVMBasedAliasAnalysis &operator=(const LLVMBasedAliasAnalysis &) = delete;
   ~LLVMBasedAliasAnalysis();
-
-  void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
   [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
     if (!hasAliasInfo(*F)) {

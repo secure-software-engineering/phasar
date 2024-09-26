@@ -62,7 +62,7 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> Results,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
   [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;

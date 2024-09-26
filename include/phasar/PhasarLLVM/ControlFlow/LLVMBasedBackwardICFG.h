@@ -66,6 +66,7 @@ private:
   void printImpl(llvm::raw_ostream &OS) const;
   [[nodiscard]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
+  [[nodiscard]] size_t getNumCallSitesImpl() const noexcept;
 
   llvm::LLVMContext BackwardRetsCtx;
   llvm::DenseMap<const llvm::Function *, LLVMBackwardRet> BackwardRets;

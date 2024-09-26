@@ -65,6 +65,18 @@ public:
     return self().Results.row(Stmt);
   }
 
+  [[nodiscard]] decltype(auto) rowMapView() const {
+    return self().Results.rowMapView();
+  }
+
+  [[nodiscard]] bool containsNode(ByConstRef<N> Stmt) const {
+    return self().Results.containsRow(Stmt);
+  }
+
+  [[nodiscard]] decltype(auto) row(ByConstRef<N> Stmt) const {
+    return self().Results.row(Stmt);
+  }
+
   // this function only exists for IFDS problems which use BinaryDomain as their
   // value domain L
   template <typename ValueDomain = l_t,
@@ -130,6 +142,8 @@ public:
     return self().Results.cellVec();
   }
 
+  [[nodiscard]] size_t size() const noexcept { return self().Results.size(); }
+
   template <typename ICFGTy>
   void dumpResults(const ICFGTy &ICF,
                    llvm::raw_ostream &OS = llvm::outs()) const {
@@ -178,6 +192,15 @@ public:
     }
     OS << '\n';
     STOP_TIMER("DFA IDE Result Dumping", Full);
+  }
+
+  template <typename HandlerFn>
+  void foreachResultEntry(HandlerFn Handler) const {
+    for (const auto &[Row, RowMap] : rowMapView()) {
+      for (const auto &[Col, Val] : RowMap) {
+        std::invoke(Handler, std::make_tuple(Row, Col, Val));
+      }
+    }
   }
 
 private:

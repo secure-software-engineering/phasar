@@ -165,7 +165,7 @@ IDESecureHeapPropagation::getSummaryEdgeFunction(n_t /*CallSite*/,
 }
 
 void IDESecureHeapPropagation::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &Os) {
+    GenericSolverResults<n_t, d_t, l_t> SR, llvm::raw_ostream &Os) {
   LLVMBasedCFG CFG;
 
   for (const auto *F : IRDB->getAllFunctions()) {

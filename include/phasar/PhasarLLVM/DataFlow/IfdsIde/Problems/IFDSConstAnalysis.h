@@ -144,7 +144,7 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, BinaryDomain> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
   /**

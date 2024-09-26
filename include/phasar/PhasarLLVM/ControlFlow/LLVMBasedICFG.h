@@ -160,6 +160,10 @@ private:
     return CG;
   }
 
+  [[nodiscard]] size_t getNumCallSitesImpl() const noexcept {
+    return CG.getNumVertexCallSites();
+  }
+
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
       llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 

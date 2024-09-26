@@ -73,6 +73,11 @@ auto LLVMBasedBackwardICFG::getCallGraphImpl() const noexcept
   return ForwardICFG->getCallGraph();
 }
 
+[[nodiscard]] size_t
+LLVMBasedBackwardICFG::getNumCallSitesImpl() const noexcept {
+  return ForwardICFG->getNumCallSites();
+}
+
 template class ICFGBase<LLVMBasedBackwardICFG>;
 
 } // namespace psr
