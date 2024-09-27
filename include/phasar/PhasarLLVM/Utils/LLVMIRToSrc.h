@@ -31,9 +31,11 @@ class Value;
 class GlobalVariable;
 class Module;
 class DIFile;
+class DILocation;
 } // namespace llvm
 
 namespace psr {
+[[nodiscard]] llvm::DILocation *getDILocation(const llvm::Value *V);
 
 [[nodiscard]] std::string getVarNameFromIR(const llvm::Value *V);
 

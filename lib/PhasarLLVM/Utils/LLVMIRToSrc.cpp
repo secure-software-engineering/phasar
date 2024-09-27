@@ -87,7 +87,7 @@ static llvm::DISubprogram *getDISubprogram(const llvm::Value *V) {
   return nullptr;
 }
 
-static llvm::DILocation *getDILocation(const llvm::Value *V) {
+llvm::DILocation *psr::getDILocation(const llvm::Value *V) {
   // Arguments and Instruction such as AllocaInst
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *MN = DbgIntr->getMetadata(llvm::LLVMContext::MD_dbg)) {
