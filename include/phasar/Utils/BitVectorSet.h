@@ -366,6 +366,11 @@ public:
   }
 };
 
+// Overloads with the other intersectWith functions from Utilities.h
+template <typename T>
+void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
+  Dest.setIntersectWith(Src);
+}
 } // namespace psr
 
 #endif

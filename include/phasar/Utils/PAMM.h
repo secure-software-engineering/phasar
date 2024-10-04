@@ -17,8 +17,6 @@
 #ifndef PHASAR_UTILS_PAMM_H_
 #define PHASAR_UTILS_PAMM_H_
 
-#include "phasar/Utils/TypeTraits.h"
-
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"

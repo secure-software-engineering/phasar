@@ -10,7 +10,6 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
@@ -21,15 +20,10 @@
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
-#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/SemiRing.h"
 #include "phasar/Utils/Soundness.h"
 
-#include "llvm/ADT/StringRef.h"
-
 #include <cassert>
-#include <functional>
-#include <memory>
 #include <optional>
 #include <set>
 #include <string>

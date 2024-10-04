@@ -11,12 +11,11 @@
 #define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
-#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Macros.h"
 
-#include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 #include <optional>
 #include <tuple>

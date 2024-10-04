@@ -13,7 +13,6 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Domain/AnalysisDomain.h"
-#include "phasar/Domain/BinaryDomain.h"
 
 #include <set>
 #include <string>

@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_TYPETRAITS_H
 #define PHASAR_UTILS_TYPETRAITS_H
 
+#include "phasar/Utils/Macros.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -23,10 +25,8 @@
 namespace psr {
 
 #if __cplusplus < 202002L
-#define PSR_CONCEPT static constexpr bool
 template <typename T> struct type_identity { using type = T; };
 #else
-#define PSR_CONCEPT concept
 template <typename T> using type_identity = std::type_identity<T>;
 #endif
 
