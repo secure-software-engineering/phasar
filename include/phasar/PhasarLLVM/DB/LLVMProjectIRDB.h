@@ -18,7 +18,6 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/iterator_range.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -44,7 +43,8 @@ public:
   /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
-  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
+  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName,
+                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is optionally being preprocessed.
   ///
@@ -58,7 +58,8 @@ public:
   /// Parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
-  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
+                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;

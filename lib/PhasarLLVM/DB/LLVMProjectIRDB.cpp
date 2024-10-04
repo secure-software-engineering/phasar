@@ -61,8 +61,11 @@ LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
   return getParsedIRModuleOrNull(*FileOrErr.get(), Ctx);
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName) {
-
+LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
+                                 bool EnableOpaquePointers) {
+  if (EnableOpaquePointers) {
+    Ctx.enableOpaquePointers();
+  }
   auto M = getParsedIRModuleOrNull(IRFileName, Ctx);
 
   if (!M) {
@@ -155,8 +158,11 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
   }
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf) {
-  llvm::SMDiagnostic Diag;
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
+                                 bool EnableOpaquePointers) {
+  if (EnableOpaquePointers) {
+    Ctx.enableOpaquePointers();
+  }
   auto M = getParsedIRModuleOrNull(Buf, Ctx);
   if (!M) {
     return;
