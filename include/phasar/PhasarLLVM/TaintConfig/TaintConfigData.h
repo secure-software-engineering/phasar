@@ -18,7 +18,9 @@ namespace psr {
 enum class TaintCategory;
 
 struct FunctionData {
+#if __cplusplus < 202002L
   FunctionData() noexcept = default;
+#endif
 
   std::string Name;
   TaintCategory ReturnCat{};
@@ -29,7 +31,9 @@ struct FunctionData {
 };
 
 struct VariableData {
+#if __cplusplus < 202002L
   VariableData() noexcept = default;
+#endif
 
   size_t Line{};
   std::string Name;
