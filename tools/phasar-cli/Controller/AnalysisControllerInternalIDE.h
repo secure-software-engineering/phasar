@@ -24,8 +24,7 @@ static void statsEmitter(llvm::raw_ostream &OS, const IDESolver<T, U> &Solver) {
 }
 
 template <typename SolverTy, typename ProblemTy, typename... ArgTys>
-static void executeIfdsIdeAnalysis(AnalysisController::ControllerData &Data,
-                                   ArgTys &&...Args) {
+static void executeIfdsIdeAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   auto Problem =
       createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
   SolverTy Solver(Problem, &Data.HA->getICFG());
@@ -44,15 +43,13 @@ static void executeIfdsIdeAnalysis(AnalysisController::ControllerData &Data,
 }
 
 template <typename ProblemTy, typename... ArgTys>
-static void executeIFDSAnalysis(AnalysisController::ControllerData &Data,
-                                ArgTys &&...Args) {
+static void executeIFDSAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   executeIfdsIdeAnalysis<IFDSSolver_P<ProblemTy>, ProblemTy>(
       Data, std::forward<ArgTys>(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
-static void executeIDEAnalysis(AnalysisController::ControllerData &Data,
-                               ArgTys &&...Args) {
+static void executeIDEAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   executeIfdsIdeAnalysis<IDESolver_P<ProblemTy>, ProblemTy>(
       Data, std::forward<ArgTys>(Args)...);
 }
