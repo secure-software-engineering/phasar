@@ -125,10 +125,21 @@ function(generate_ll_file)
   endif()
 
   if(GEN_LL_MEM2REG)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      get_filename_component(COMPILER_PATH_STR ${CMAKE_CXX_COMPILER} DIRECTORY)
+      find_program(OPT_TOOL opt HINTS ${COMPILER_PATH_STR})
+    else()
+      find_program(OPT_TOOL opt)
+    endif()
+
+    if(NOT OPT_TOOL)
+      set(OPT_TOOL opt)
+    endif()
+
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${OPT_TOOL} -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
