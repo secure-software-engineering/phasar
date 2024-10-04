@@ -11,11 +11,11 @@
 
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -26,8 +26,6 @@
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -49,7 +47,8 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      std::vector<std::string> EntryPoints,
                                      bool TaintMainArgs)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
-      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs) {
+      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
+      Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
 }
@@ -404,7 +403,37 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
       Kill.insert(SRet);
     }
   }
+  if (Gen.empty() && Leak.empty() && Kill.empty()) {
+    if (Llvmfdff.contains(DestFun)) {
+      // Note: The LLVMfdff is constant during the lifetime of the analysis, so
+      // it is fine to capture a reference here:
+      const auto &DestFunFacts = Llvmfdff.getFactsForFunction(DestFun);
+      return lambdaFlow([CallSite, DestFun,
+                         &DestFunFacts](d_t Source) -> container_type {
+        std::set<d_t> Facts;
+        const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+        for (const auto &[Arg, DestParam] :
+             llvm::zip(CS->args(), DestFun->args())) {
+          if (Source == Arg.get()) {
+            auto VecFacts = DestFunFacts.find(DestParam.getArgNo());
+            for (const auto &VecFact : VecFacts->second) {
+              if (const auto *Param =
+                      std::get_if<library_summary::Parameter>(&VecFact.Fact)) {
+                Facts.insert(CS->getArgOperand(Param->Index));
+              } else {
+                Facts.insert(CallSite);
+              }
+            }
+          }
+        }
+        Facts.insert(Source);
+        return Facts;
+      });
+    }
 
+    // not found
+    return nullptr;
+  }
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
       return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
