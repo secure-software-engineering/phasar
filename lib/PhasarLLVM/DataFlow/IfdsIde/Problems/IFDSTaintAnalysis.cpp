@@ -11,7 +11,6 @@
 
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
@@ -27,8 +26,6 @@
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -39,7 +36,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <utility>
-#include <variant>
 
 namespace psr {
 using d_t = IFDSTaintAnalysis::d_t;
@@ -52,8 +48,7 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      bool TaintMainArgs)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
-      Llvmfdff(
-          LLVMFunctionDataFlowFacts::readFromFDFF(getLibCSummary(), *IRDB)) {
+      Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
 }
@@ -410,22 +405,22 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   }
   if (Gen.empty() && Leak.empty() && Kill.empty()) {
     if (Llvmfdff.contains(DestFun)) {
+      // Note: The LLVMfdff is constant during the lifetime of the analysis, so
+      // it is fine to capture a reference here:
       const auto &DestFunFacts = Llvmfdff.getFactsForFunction(DestFun);
-      return lambdaFlow([this, CallSite, DestFun,
-                         DestFunFacts](d_t Source) -> container_type {
+      return lambdaFlow([CallSite, DestFun,
+                         &DestFunFacts](d_t Source) -> container_type {
         std::set<d_t> Facts;
         const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
         for (const auto &[Arg, DestParam] :
              llvm::zip(CS->args(), DestFun->args())) {
           if (Source == Arg.get()) {
-            auto VecFacts = DestFunFacts.find(&DestParam);
+            auto VecFacts = DestFunFacts.find(DestParam.getArgNo());
             for (const auto &VecFact : VecFacts->second) {
               if (const auto *Param =
-                      std::get_if<LLVMParameter>(&VecFact.Fact)) {
-                Facts.insert(CS->getArgOperand(Param->Index->getArgNo()));
-              }
-
-              else {
+                      std::get_if<library_summary::Parameter>(&VecFact.Fact)) {
+                Facts.insert(CS->getArgOperand(Param->Index));
+              } else {
                 Facts.insert(CallSite);
               }
             }

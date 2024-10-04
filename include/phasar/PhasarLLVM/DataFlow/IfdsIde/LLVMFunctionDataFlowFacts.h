@@ -1,77 +1,74 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/Utils/DefaultValue.h"
 
-#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
 
-#include <cstdint>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
-namespace psr {
+namespace psr::library_summary {
 
-struct LLVMParameter {
-  const llvm::Argument *Index{};
-};
-
-struct LLVMReturnValue {};
-
-struct LLVMDataFlowFact {
-  LLVMDataFlowFact(LLVMParameter Param) noexcept : Fact(Param) {}
-  LLVMDataFlowFact(LLVMReturnValue Ret) noexcept : Fact(Ret) {}
-
-  std::variant<LLVMParameter, LLVMReturnValue> Fact;
-};
+class LLVMFunctionDataFlowFacts;
+[[nodiscard]] LLVMFunctionDataFlowFacts
+readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb);
 
 class LLVMFunctionDataFlowFacts {
 public:
-  LLVMFunctionDataFlowFacts() = default;
+  LLVMFunctionDataFlowFacts() noexcept = default;
+  using ParamaterMappingTy = FunctionDataFlowFacts::ParamaterMappingTy;
 
-  // insert a set of data flow facts
+  /// insert a set of data flow facts
+  void insertSet(const llvm::Function *Fun, uint32_t Index,
+                 std::vector<DataFlowFact> OutSet) {
+
+    LLVMFdff[Fun].try_emplace(Index, std::move(OutSet));
+  }
   void insertSet(const llvm::Function *Fun, const llvm::Argument *Arg,
-                 std::vector<LLVMDataFlowFact> OutSet) {
+                 std::vector<DataFlowFact> OutSet) {
 
-    LLVMFdff[Fun].try_emplace(Arg, std::move(OutSet));
+    insertSet(Fun, Arg->getArgNo(), std::move(OutSet));
   }
 
+  void addElement(const llvm::Function *Fun, uint32_t Index, DataFlowFact Out) {
+    LLVMFdff[Fun][Index].emplace_back(Out);
+  }
   void addElement(const llvm::Function *Fun, const llvm::Argument *Arg,
-                  LLVMDataFlowFact Out) {
-    LLVMFdff[Fun][Arg].emplace_back(Out);
+                  DataFlowFact Out) {
+    addElement(Fun, Arg->getArgNo(), Out);
   }
 
-  bool contains(const llvm::Function *Fn) { return LLVMFdff.count(Fn); }
+  [[nodiscard]] bool contains(const llvm::Function *Fn) {
+    return LLVMFdff.count(Fn);
+  }
 
-  [[nodiscard]] const std::vector<LLVMDataFlowFact> &
-  getFacts(const llvm::Function *Fun, const llvm::Argument *Arg) {
+  [[nodiscard]] const std::vector<DataFlowFact> &
+  getFacts(const llvm::Function *Fun, uint32_t Index) {
     auto Iter = LLVMFdff.find(Fun);
     if (Iter != LLVMFdff.end()) {
-      return Iter->second[Arg];
+      return Iter->second[Index];
     }
-    return getDefaultValue<std::vector<LLVMDataFlowFact>>();
+    return getDefaultValue<std::vector<DataFlowFact>>();
+  }
+  [[nodiscard]] const std::vector<DataFlowFact> &
+  getFacts(const llvm::Function *Fun, const llvm::Argument *Arg) {
+    return getFacts(Fun, Arg->getArgNo());
   }
 
-  [[nodiscard]] const std::unordered_map<const llvm::Argument *,
-                                         std::vector<LLVMDataFlowFact>> &
+  [[nodiscard]] const ParamaterMappingTy &
   getFactsForFunction(const llvm::Function *Fun) {
     auto Iter = LLVMFdff.find(Fun);
     if (Iter != LLVMFdff.end()) {
       return Iter->second;
     }
-    return getDefaultValue<std::unordered_map<const llvm::Argument *,
-                                              std::vector<LLVMDataFlowFact>>>();
+    return getDefaultValue<ParamaterMappingTy>();
   }
 
-  static LLVMFunctionDataFlowFacts
+  friend LLVMFunctionDataFlowFacts
   readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb);
 
 private:
-  std::unordered_map<
-      const llvm::Function *,
-      std::unordered_map<const llvm::Argument *, std::vector<LLVMDataFlowFact>>>
-      LLVMFdff;
+  std::unordered_map<const llvm::Function *, ParamaterMappingTy> LLVMFdff;
 };
-} // namespace psr
+} // namespace psr::library_summary

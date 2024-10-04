@@ -3,8 +3,9 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
 
 using namespace psr;
+using namespace psr::library_summary;
 
-static FunctionDataFlowFacts createLibCSummary() {
+static library_summary::FunctionDataFlowFacts createLibCSummary() {
   FunctionDataFlowFacts Sum;
 
   // abs
@@ -1988,7 +1989,7 @@ static FunctionDataFlowFacts createLibCSummary() {
   return Sum;
 }
 
-const FunctionDataFlowFacts &psr::getLibCSummary() {
+const library_summary::FunctionDataFlowFacts &psr::getLibCSummary() {
   static const auto Sum = createLibCSummary();
   return Sum;
 }

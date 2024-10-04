@@ -1,29 +1,17 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h"
 
-#include <variant>
-
 using namespace psr;
+using namespace psr::library_summary;
 
-static LLVMFunctionDataFlowFacts readFromFDFF(const FunctionDataFlowFacts &Fdff,
-                                              const LLVMProjectIRDB &Irdb) {
+LLVMFunctionDataFlowFacts
+library_summary::readFromFDFF(const FunctionDataFlowFacts &Fdff,
+                              const LLVMProjectIRDB &Irdb) {
   LLVMFunctionDataFlowFacts Llvmfdff;
+  Llvmfdff.LLVMFdff.reserve(Fdff.size());
+
   for (const auto &It : Fdff) {
-    const llvm::Function *Fun = Irdb.getFunction(It.first());
-    if (Fun == nullptr) {
-      continue;
-    }
-    for (const auto [ArgIndex, OutSet] : It.second) {
-      const llvm::Argument *Arg = Fun->getArg(ArgIndex);
-      for (const auto &I : OutSet) {
-        if (std::holds_alternative<ReturnValue>(I.Fact)) {
-          Llvmfdff.addElement(Fun, Arg, LLVMReturnValue{});
-        } else if (const auto *Param = std::get_if<Parameter>(&I.Fact)) {
-          if (Param->Index < Fun->arg_size()) {
-            LLVMParameter LLVMParam = {Fun->getArg(Param->Index)};
-            Llvmfdff.addElement(Fun, Arg, LLVMParam);
-          }
-        }
-      }
+    if (const llvm::Function *Fun = Irdb.getFunction(It.first())) {
+      Llvmfdff.LLVMFdff.try_emplace(Fun, It.second);
     }
   }
   return Llvmfdff;

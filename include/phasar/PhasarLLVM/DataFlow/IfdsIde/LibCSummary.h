@@ -1,7 +1,9 @@
 #pragma once
 
 namespace psr {
+namespace library_summary {
 class FunctionDataFlowFacts;
+} // namespace library_summary
 
-[[nodiscard]] const FunctionDataFlowFacts &getLibCSummary();
+[[nodiscard]] const library_summary::FunctionDataFlowFacts &getLibCSummary();
 } // namespace psr

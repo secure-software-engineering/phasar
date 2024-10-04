@@ -16,7 +16,6 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 
@@ -88,7 +87,7 @@ private:
   const LLVMTaintConfig *Config{};
   LLVMAliasInfoRef PT{};
   bool TaintMainArgs{};
-  LLVMFunctionDataFlowFacts Llvmfdff;
+  library_summary::LLVMFunctionDataFlowFacts Llvmfdff;
 
   bool isSourceCall(const llvm::CallBase *CB,
                     const llvm::Function *Callee) const;

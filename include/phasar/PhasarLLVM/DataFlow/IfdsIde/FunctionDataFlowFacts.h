@@ -8,9 +8,7 @@
 #include <variant>
 #include <vector>
 
-#include <llvm-14/llvm/Support/raw_ostream.h>
-
-namespace psr {
+namespace psr::library_summary {
 
 struct Parameter {
   uint16_t Index{};
@@ -27,7 +25,10 @@ struct DataFlowFact {
 
 class FunctionDataFlowFacts {
 public:
-  FunctionDataFlowFacts();
+  using ParamaterMappingTy =
+      std::unordered_map<uint32_t, std::vector<DataFlowFact>>;
+
+  FunctionDataFlowFacts() noexcept = default;
 
   // insert a set of data flow facts
   void insertSet(llvm::StringRef FuncKey, uint32_t Index,
@@ -42,7 +43,7 @@ public:
 
   // get outset for a function an the parameter index
   [[nodiscard]] const std::vector<DataFlowFact> &
-  getDataFlowFacts(llvm::StringRef FuncKey, uint32_t &Index) const {
+  getDataFlowFacts(llvm::StringRef FuncKey, uint32_t Index) const {
     auto It = Fdff.find(FuncKey);
     if (It != Fdff.end()) {
       auto Itt = It->second.find(Index);
@@ -52,11 +53,11 @@ public:
     return getDefaultValue<std::vector<DataFlowFact>>();
   }
 
-  [[nodiscard]] auto begin() const { return Fdff.begin(); }
+  [[nodiscard]] auto begin() const noexcept { return Fdff.begin(); }
+  [[nodiscard]] auto end() const noexcept { return Fdff.end(); }
 
-  [[nodiscard]] auto end() const { return Fdff.end(); }
-
-  [[nodiscard]] size_t size() { return Fdff.size(); }
+  [[nodiscard]] size_t size() const noexcept { return Fdff.size(); }
+  [[nodiscard]] bool empty() const noexcept { return size() == 0; }
 
 private:
   [[nodiscard]] const auto &
@@ -66,15 +67,10 @@ private:
       return It->second;
     }
 
-    return getDefaultValue<
-        std::unordered_map<uint32_t, std::vector<DataFlowFact>>>();
+    return getDefaultValue<ParamaterMappingTy>();
   }
 
-  llvm::StringMap<std::unordered_map<uint32_t, std::vector<DataFlowFact>>> Fdff;
+  llvm::StringMap<ParamaterMappingTy> Fdff;
 };
-// TO DO: implement in .cpp file
-void serialize(const FunctionDataFlowFacts &Fdff, llvm::raw_ostream &OS);
 
-// TO DO: implement in .cpp file
-[[nodiscard]] FunctionDataFlowFacts deserialize(llvm::raw_ostream &OS);
-} // namespace psr
+} // namespace psr::library_summary
