@@ -33,11 +33,13 @@ class Value;
 class GlobalVariable;
 class Module;
 class DIFile;
+class DIType;
 } // namespace llvm
 
 namespace psr {
 
 [[nodiscard]] std::string getVarNameFromIR(const llvm::Value *V);
+[[nodiscard]] llvm::DIType *getVarTypeFromIR(const llvm::Value *V);
 
 [[nodiscard]] std::string getFunctionNameFromIR(const llvm::Value *V);
 
