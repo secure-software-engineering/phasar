@@ -75,13 +75,13 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
     return nullptr;
   }
 
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Receiver)) {
-    if (const auto *DITy = getDILocalVariable(Load->getPointerOperand())) {
-      if (const auto *DerivedTy =
-              llvm::dyn_cast<llvm::DIDerivedType>(DITy->getType())) {
-        return DerivedTy->getBaseType();
-      }
+  if (const auto *DITy = getVarTypeFromIR(Receiver)) {
+    while (const auto *DerivedTy =
+               llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+      // get rid of the pointer
+      DITy = DerivedTy->getBaseType();
     }
+    return DITy;
   }
 
   return nullptr;
