@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        compiler: [ [clang++-14, clang-14] ]
+        compiler: [ [clang++-15, clang-15] ]
         build: [ Debug, Release, DebugLibdeps ]
         include:
           - build: Debug
@@ -42,18 +42,18 @@ jobs:
       - name: Install Strategy Dependencies
         shell: bash
         run: |
-          sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
-          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main'
-          sudo apt-get update
+          sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key && \
+          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-15 main' && \
+          sudo apt-get update && \
           sudo apt-get -y install --no-install-recommends \
-              ${{ matrix.compiler[1] }} \
-              llvm-14-dev \
-              libllvm14 \
-              libclang-common-14-dev \
-              libclang-14-dev \
-              libclang-cpp14-dev \
-              clang-tidy-14 \
-              libclang-rt-14-dev
+              clang-15 \
+              llvm-15-dev \
+              libllvm15 \
+              libclang-common-15-dev \
+              libclang-15-dev \
+              libclang-cpp15-dev \
+              clang-tidy-15 \
+              libclang-rt-15-dev
 
       - uses: swift-actions/setup-swift@v2
         with:

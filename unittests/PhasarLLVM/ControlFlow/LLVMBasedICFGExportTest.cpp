@@ -4,7 +4,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IO.h"
@@ -43,7 +43,7 @@ protected:
   nlohmann::json exportICFG(const std::string &TestFile,
                             bool AsSrcCode = false) {
     LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
-    LLVMTypeHierarchy TH(IRDB);
+    DIBasedTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH,
                        nullptr, Soundness::Soundy, /*IncludeGlobals*/ false);
 
@@ -183,7 +183,7 @@ protected:
   void verifyExportICFG(const llvm::Twine &TestFile,
                         bool WithDebugOutput = false) {
     LLVMProjectIRDB IRDB(PathToLLFiles + TestFile);
-    LLVMTypeHierarchy TH(IRDB);
+    DIBasedTypeHierarchy TH(IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH,
                        nullptr, Soundness::Soundy, /*IncludeGlobals*/ false);
 
@@ -315,7 +315,7 @@ TEST_F(LLVMBasedICFGExportTest, ExportICFGSource02) {
 TEST_F(LLVMBasedICFGExportTest, ExportICFGSource03) {
   auto Results =
       exportICFG("exceptions/exceptions_01_cpp_dbg.ll", /*asSrcCode*/ true);
-  // llvm::errs() << Results.dump(4) << '\n';
+  llvm::errs() << Results.dump(4) << '\n';
   verifySourceCodeJSON(Results,
                        readJson("exceptions/exceptions_01_cpp_icfg.json"));
 }

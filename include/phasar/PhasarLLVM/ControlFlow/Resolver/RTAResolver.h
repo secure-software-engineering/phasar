@@ -26,13 +26,15 @@ class CallBase;
 class StructType;
 class Function;
 class StructType;
+class DICompositeType;
 } // namespace llvm
 
 namespace psr {
+class DIBasedTypeHierarchy;
 class RTAResolver : public CHAResolver {
 public:
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
   ~RTAResolver() override = default;
 
@@ -43,9 +45,9 @@ public:
   [[nodiscard]] std::string str() const override;
 
 private:
-  void resolveAllocatedStructTypes();
+  void resolveAllocatedCompositeTypes();
 
-  std::vector<const llvm::StructType *> AllocatedStructTypes;
+  std::vector<const llvm::DICompositeType *> AllocatedCompositeTypes;
 };
 } // namespace psr
 

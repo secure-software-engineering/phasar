@@ -33,12 +33,8 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
-#include <memory>
-
 namespace psr {
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMProjectIRDB;
 class Resolver;
 
@@ -82,7 +78,7 @@ public:
   /// IRDB. True by default
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
-                         LLVMTypeHierarchy *TH = nullptr,
+                         DIBasedTypeHierarchy *TH = nullptr,
                          LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
@@ -109,7 +105,7 @@ public:
       : LLVMBasedICFG(static_cast<const LLVMProjectIRDB *>(IRDB),
                       SerializedCG) {}
 
-  // Deleter of LLVMTypeHierarchy may be unknown here...
+  // Deleter of DIBasedTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
 
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;

@@ -143,11 +143,11 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 14);
+  Inst = getNthInstruction(Main, 13);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 17);
+  Inst = getNthInstruction(Main, 16);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -240,6 +240,7 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_02) {
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_01) {
   initializeIR("array_01_cpp.ll");
+
   const auto *Main = IRDB->getFunction("main");
   const auto *Inst = getNthInstruction(Main, 2);
   auto FlowFact = IDEIIAFlowFact::create(Inst);
@@ -247,19 +248,20 @@ TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_01) {
 
   Inst = getNthInstruction(Main, 4);
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 14);
+  Inst = getNthInstruction(Main, 13);
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 14);
+  Inst = getNthInstruction(Main, 13);
+
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 19);
+  Inst = getNthInstruction(Main, 18);
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 17);
+  Inst = getNthInstruction(Main, 16);
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 22);
+  Inst = getNthInstruction(Main, 21);
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 }
@@ -395,8 +397,10 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
   Inst = getNthInstruction(Main, 6);
+  llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   Inst = getNthInstruction(Main, 9);
+  llvm::outs() << "Instruction to create flow fact from 2: " << *Inst << '\n';
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 }
@@ -844,13 +848,13 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "retval", {"3"}));
+          "main", 17, "retval", {"3"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "i", {"6", "7"}));
+          "main", 17, "i", {"5", "6"}));
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "j", {"6", "7", "8", "10", "9"}));
+          "main", 17, "j", {"5", "6", "7", "8", "9"}));
   doAnalysisAndCompareResults("heap_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 

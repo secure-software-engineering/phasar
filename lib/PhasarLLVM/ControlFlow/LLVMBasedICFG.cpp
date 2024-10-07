@@ -17,11 +17,9 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -108,7 +106,7 @@ void LLVMBasedICFG::Builder::initGlobalsAndWorkList(LLVMBasedICFG *ICFG,
                       UserEntryPoints.end());
   }
   // Note: Pre-allocate the call-graph builder *after* adding the
-  // CRuntimeGlobalCtorsDtorsModel
+  // CRuntimeGlobalCtorsDtorsModel.
   CGBuilder.reserve(IRDB->getNumFunctions());
 }
 
@@ -337,7 +335,7 @@ void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
+                             DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);

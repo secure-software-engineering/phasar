@@ -15,7 +15,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -83,7 +83,7 @@ protected:
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_ctor_1_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
@@ -114,7 +114,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
   ASSERT_FALSE(LinkerError);
 
   LLVMProjectIRDB IRDB(std::move(M1), /*DoPreprocessing*/ true);
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
@@ -132,7 +132,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_dtor_1_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
@@ -167,7 +167,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DtorTest1) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_1_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
@@ -203,7 +203,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest1) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_2_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
@@ -244,7 +244,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest2) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_3_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy, /*IncludeGlobals*/ true);
@@ -288,7 +288,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest3) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_4_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(
       &IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::Soundy,
@@ -321,7 +321,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, DISABLED_LCATest4) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_4_1_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(
       &IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT, Soundness::Soundy,
@@ -354,7 +354,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest5) {
 
   LLVMProjectIRDB IRDB(PathToLLFiles + "globals_lca_5_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                      Soundness::Soundy,

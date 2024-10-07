@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 #define PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 #include "nlohmann/json.hpp"
 
 #include <optional>
@@ -41,6 +43,8 @@ struct DebugLocation {
   const llvm::DIFile *File{};
 };
 
+[[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
+
 struct SourceCodeInfo {
   std::string SourceCodeLine;
   std::string SourceCodeFilename;
@@ -64,6 +68,7 @@ struct SourceCodeInfo {
 [[nodiscard]] llvm::DILocation *getDILocation(const llvm::Value *V);
 
 [[nodiscard]] std::string getVarNameFromIR(const llvm::Value *V);
+[[nodiscard]] llvm::DIType *getVarTypeFromIR(const llvm::Value *V);
 
 [[nodiscard]] std::string getFunctionNameFromIR(const llvm::Value *V);
 

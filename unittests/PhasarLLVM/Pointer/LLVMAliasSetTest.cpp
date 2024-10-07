@@ -5,7 +5,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -32,7 +32,7 @@ TEST(LLVMAliasSet, Inter_01) {
   ValueAnnotationPass::resetValueID();
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + "pointers/call_01_cpp.ll");
   LLVMAliasSet PTS(&IRDB, false);
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &BB : *Main) {
@@ -49,7 +49,7 @@ TEST(LLVMAliasSet, Global_01) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "pointers/global_01_cpp.ll");
   LLVMAliasSet PTS(&IRDB, false);
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PTS);
   const auto *Main = IRDB.getFunctionDefinition("main");
   for (const auto &G : Main->getParent()->globals()) {

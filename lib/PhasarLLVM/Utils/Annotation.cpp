@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Analysis/ValueTracking.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -54,41 +55,32 @@ uint64_t VarAnnotation::getLine() const {
 }
 
 llvm::StringRef VarAnnotation::retrieveString(unsigned Idx) const {
-  if (const auto *ConstExpr = llvm::dyn_cast<llvm::ConstantExpr>(
-          AnnotationCall->getArgOperand(Idx))) {
-    if (llvm::isa<llvm::GEPOperator>(ConstExpr)) {
-      if (const auto *GlobalVar =
-              llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
-        if (GlobalVar->hasInitializer()) {
-          const auto *ConstData = GlobalVar->getInitializer();
-          if (const auto *Data =
-                  llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
-            return Data->getAsCString();
-          }
-        }
-      }
-    }
+  assert(Idx < AnnotationCall->arg_size());
+  const auto *StringPointer = llvm::dyn_cast<llvm::GlobalVariable>(
+      llvm::getUnderlyingObject(AnnotationCall->getArgOperand(Idx)));
+  if (!StringPointer || !StringPointer->hasInitializer()) {
+    return "";
   }
+
+  const auto *ConstData = StringPointer->getInitializer();
+  if (const auto *Data = llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
+    return Data->getAsCString();
+  }
+
   return "";
 }
 
 const llvm::Value *VarAnnotation::getOriginalValueOrOriginalArg(
     const llvm::Value *AnnotatedValue) {
 
-  if (const auto *BitCast =
-          llvm::dyn_cast<llvm::BitCastOperator>(AnnotatedValue)) {
-    // this may be already the original value
-    const auto *Value = BitCast->getOperand(0);
-    // check if that values originates from a formal parameter
-    for (const auto &User : Value->users()) {
-      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User);
-          Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
-        return Store->getValueOperand();
-      }
+  // check if that values originates from a formal parameter
+  for (const auto &User : AnnotatedValue->users()) {
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User);
+        Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
+      return Store->getValueOperand();
     }
-    return Value;
   }
-  return nullptr;
+  return AnnotatedValue;
 }
 
 GlobalAnnotation::GlobalAnnotation(
@@ -96,33 +88,25 @@ GlobalAnnotation::GlobalAnnotation(
     : AnnotationStruct(AnnotationStruct) {}
 
 const llvm::Function *GlobalAnnotation::getFunction() const {
-  const auto *FunCastOp = AnnotationStruct->getOperand(0);
-  if (const auto *BitCast = llvm::dyn_cast<llvm::BitCastOperator>(FunCastOp)) {
-    if (const auto *Fun =
-            llvm::dyn_cast<llvm::Function>(BitCast->getOperand(0))) {
-      return Fun;
-    }
-  }
-  return nullptr;
+  const auto *FunCastOp =
+      AnnotationStruct->getOperand(0)->stripPointerCastsAndAliases();
+
+  return llvm::dyn_cast<llvm::Function>(FunCastOp);
 }
 
 llvm::StringRef GlobalAnnotation::retrieveString(unsigned Idx) const {
-  const auto *AnnotationGepOp = AnnotationStruct->getOperand(Idx);
-  if (const auto *ConstExpr =
-          llvm::dyn_cast<llvm::ConstantExpr>(AnnotationGepOp)) {
-    if (llvm::isa<llvm::GEPOperator>(ConstExpr)) {
-      if (const auto *GlobalVar =
-              llvm::dyn_cast<llvm::GlobalVariable>(ConstExpr->getOperand(0))) {
-        if (GlobalVar->hasInitializer()) {
-          const auto *ConstData = GlobalVar->getInitializer();
-          if (const auto *Data =
-                  llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
-            return Data->getAsCString();
-          }
-        }
-      }
-    }
+  assert(Idx < AnnotationStruct->getNumOperands());
+  const auto *StringPointer = llvm::dyn_cast<llvm::GlobalVariable>(
+      llvm::getUnderlyingObject(AnnotationStruct->getOperand(Idx)));
+  if (!StringPointer || !StringPointer->hasInitializer()) {
+    return "";
   }
+
+  const auto *ConstData = StringPointer->getInitializer();
+  if (const auto *Data = llvm::dyn_cast<llvm::ConstantDataArray>(ConstData)) {
+    return Data->getAsCString();
+  }
+
   return "";
 }
 
