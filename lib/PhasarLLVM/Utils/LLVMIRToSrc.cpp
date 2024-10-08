@@ -19,6 +19,8 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -127,7 +129,102 @@ static llvm::DIType *getVarTypeFromIRImpl(const llvm::Value *V) {
   if (auto *GlobVar = getDIGlobalVariable(V)) {
     return GlobVar->getType();
   }
-  // TODO: Calls with known return types
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(V)) {
+    if (const auto *Callee = llvm::dyn_cast<llvm::Function>(
+            Call->getCalledOperand()->stripPointerCastsAndAliases())) {
+      if (auto *DICallee = Callee->getSubprogram()) {
+        auto Types = DICallee->getType()->getTypeArray();
+        if (Types.size()) {
+          return Types[0];
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
+static const llvm::GEPOperator *getStructGep(const llvm::Value *V) {
+  if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
+    if (Gep->getNumIndices() != 2) {
+      return nullptr;
+    }
+    const auto *FirstIdx =
+        llvm::dyn_cast<llvm::ConstantInt>(Gep->indices().begin()->get());
+    if (!FirstIdx || FirstIdx->getZExtValue() != 0) {
+      return nullptr;
+    }
+
+    const auto *SecondIdx = llvm::dyn_cast<llvm::ConstantInt>(
+        std::next(Gep->indices().begin())->get());
+    if (!SecondIdx) {
+      return nullptr;
+    }
+    return Gep;
+  }
+
+  return nullptr;
+}
+
+#define LOG(...)                                                               \
+  if (Log)                                                                     \
+  llvm::errs() << __VA_ARGS__
+
+static std::pair<const llvm::Value *, size_t>
+getOffsetAndBase(const llvm::Value *V, bool Log) {
+  const auto *Base = V->stripPointerCastsAndAliases();
+  uint64_t Offset = 0;
+  if (const auto *Gep = getStructGep(Base)) {
+    // Look for gep ptr, 0, N; where N is a constant
+
+    LOG("> Gep " << *Gep << '\n');
+
+    const auto *SecondIdx =
+        llvm::cast<llvm::ConstantInt>(std::next(Gep->indices().begin())->get());
+
+    Offset = SecondIdx->getZExtValue();
+    Base = Gep->getPointerOperand();
+
+    LOG("> Gep is well-formed; idx: " << Offset << '\n');
+  }
+  return {Base, Offset};
+}
+
+static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset,
+                                          bool Log) {
+  const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(BaseTy);
+  auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
+
+  if (Offset == 0 && DerivedTy) {
+    if (Log) {
+      llvm::errs() << "> Return StructTy ";
+      if (StructTy) {
+        llvm::errs() << *StructTy;
+      }
+
+      llvm::errs() << '\n';
+    }
+    return StructTy;
+  }
+
+  LOG("> Field-access at offset " << Offset << '\n');
+
+  if (const auto *CompositeTy =
+          llvm::dyn_cast<llvm::DICompositeType>(StructTy)) {
+    if (Offset > CompositeTy->getElements().size()) {
+      LOG("> Out-of-bounds (" << Offset << " > "
+                              << CompositeTy->getElements().size() << '\n');
+
+      return nullptr;
+    }
+    auto Elems = CompositeTy->getElements();
+
+    LOG("> Accessing array at [" << Offset << "] for " << *CompositeTy << '\n');
+
+    if (auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elems[Offset])) {
+      LOG("> Return ElemTy\n");
+      return ElemTy;
+    }
+  }
   return nullptr;
 }
 
@@ -136,108 +233,45 @@ static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth,
   static constexpr size_t DepthLimit = 10;
 
   V = V->stripPointerCastsAndAliases();
-  if (Log) {
-    llvm::errs() << "[getVarTypeFromIRRec]: " << llvmIRToString(V) << " // "
-                 << Depth << '\n';
-  }
+
+  LOG("[getVarTypeFromIRRec]: " << llvmIRToString(V) << " // " << Depth
+                                << '\n');
 
   if (auto *VarTy = getVarTypeFromIRImpl(V)) {
-    if (Log) {
-      llvm::errs() << "> Return VarTy " << *VarTy << '\n';
-    }
+    LOG("> Return VarTy " << *VarTy << '\n');
     return VarTy;
   }
 
-  // TODO: More
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    const auto *Base = Load->getPointerOperand()->stripPointerCastsAndAliases();
-    uint64_t Offset = 0;
-    if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Base)) {
-      // Look for gep ptr, 0, N; where N is a constant
-
-      if (Log) {
-        llvm::errs() << "> Gep " << *Gep << '\n';
-      }
-
-      if (Gep->getNumIndices() != 2) {
-        return nullptr;
-      }
-      const auto *FirstIdx =
-          llvm::dyn_cast<llvm::ConstantInt>(Gep->indices().begin()->get());
-      if (!FirstIdx || FirstIdx->getZExtValue() != 0) {
-        return nullptr;
-      }
-
-      const auto *SecondIdx = llvm::dyn_cast<llvm::ConstantInt>(
-          std::next(Gep->indices().begin())->get());
-      if (!SecondIdx) {
-        return nullptr;
-      }
-
-      Offset = SecondIdx->getZExtValue();
-      Base = Gep->getPointerOperand();
-
-      if (Log) {
-        llvm::errs() << "> Gep is well-formed; idx: " << Offset << '\n';
-      }
+  auto InternalGetOffsetAndBase =
+      [Log](const llvm::Value *V) -> std::pair<const llvm::Value *, size_t> {
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+      return getOffsetAndBase(Load->getPointerOperand(), Log);
     }
-
-    // TODO: Get rid of the recursion
-    if (Depth >= DepthLimit) {
-      llvm::errs() << "Reach depth-limit\n";
-      return nullptr;
+    if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
+      return getOffsetAndBase(Gep->getPointerOperand(), Log);
     }
-    auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1, Log);
-    if (!BaseTy) {
-      return nullptr;
-    }
-    const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(BaseTy);
-    auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
+    return {};
+  };
 
-    if (Offset == 0 && DerivedTy) {
-      if (Log) {
-        llvm::errs() << "> Return StructTy ";
-        if (StructTy) {
-          llvm::errs() << *StructTy;
-        }
-
-        llvm::errs() << '\n';
-      }
-      return StructTy;
-    }
-
-    if (Log) {
-      llvm::errs() << "> Field-access at offset " << Offset << '\n';
-    }
-
-    if (const auto *CompositeTy =
-            llvm::dyn_cast<llvm::DICompositeType>(StructTy)) {
-      if (Offset > CompositeTy->getElements().size()) {
-        if (Log) {
-          llvm::errs() << "> Out-of-bounds (" << Offset << " > "
-                       << CompositeTy->getElements().size() << '\n';
-        }
-        return nullptr;
-      }
-      auto Elems = CompositeTy->getElements();
-      if (Log) {
-        llvm::errs() << "> Accessing array at [" << Offset << "] for "
-                     << *CompositeTy << '\n';
-      }
-      if (auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elems[Offset])) {
-        if (Log) {
-          llvm::errs() << "> Return ElemTy\n";
-        }
-        return ElemTy;
-      }
-    }
+  auto [Base, Offset] = InternalGetOffsetAndBase(V);
+  if (!Base) {
+    return nullptr;
   }
 
-  return nullptr;
+  // TODO: Get rid of the recursion
+  if (Depth >= DepthLimit) {
+    llvm::errs() << "Reach depth-limit\n";
+    return nullptr;
+  }
+  auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1, Log);
+  if (!BaseTy) {
+    return nullptr;
+  }
+  return getStructElementType(BaseTy, Offset, Log);
 }
-
+#undef LOG
 llvm::DIType *psr::getVarTypeFromIR(const llvm::Value *V) {
-  return getVarTypeFromIRRec(V, 0, getMetaDataID(V) == "743197");
+  return getVarTypeFromIRRec(V, 0, /*getMetaDataID(V) == "629303"*/ false);
 }
 
 std::string psr::getFunctionNameFromIR(const llvm::Value *V) {
