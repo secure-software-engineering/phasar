@@ -350,6 +350,9 @@ const llvm::DIFile *psr::getDIFileFromIR(const llvm::Value *V) {
     } else if (I->getMetadata(llvm::LLVMContext::MD_dbg)) {
       return I->getDebugLoc()->getFile();
     }
+    if (const auto *DIFun = I->getFunction()->getSubprogram()) {
+      return DIFun->getFile();
+    }
   }
   return nullptr;
 }
@@ -394,6 +397,11 @@ std::pair<unsigned, unsigned> psr::getLineAndColFromIR(const llvm::Value *V) {
   // Argument and Instruction
   if (auto *DILoc = getDILocation(V)) {
     return {DILoc->getLine(), DILoc->getColumn()};
+  }
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (const auto *DIFun = I->getFunction()->getSubprogram()) {
+      return {DIFun->getLine(), 0};
+    }
   }
   if (auto *DISubpr = getDISubprogram(V)) { // Function
     return {DISubpr->getLine(), 0};
@@ -509,6 +517,11 @@ std::optional<DebugLocation> psr::getDebugLocation(const llvm::Value *V) {
   if (auto *DILoc = getDILocation(V)) {
     return DebugLocation{DILoc->getLine(), DILoc->getColumn(),
                          DILoc->getFile()};
+  }
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (const auto *DIFun = I->getFunction()->getSubprogram()) {
+      return DebugLocation{DIFun->getLine(), 0, DIFun->getFile()};
+    }
   }
   if (auto *DISubpr = getDISubprogram(V)) { // Function
     return DebugLocation{DISubpr->getLine(), 0, DISubpr->getFile()};
