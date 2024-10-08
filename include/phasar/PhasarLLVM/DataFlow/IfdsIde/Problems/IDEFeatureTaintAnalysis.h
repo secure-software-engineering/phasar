@@ -69,7 +69,24 @@ struct IDEFeatureTaintEdgeFact {
     Taints.setBitsInMask((const uint32_t *)&Facts, sizeof(Facts));
   }
   void unionWith(const IDEFeatureTaintEdgeFact &Facts) {
+    if (Facts.isTop()) {
+      return;
+    }
     Taints |= Facts.Taints;
+  }
+
+  /// Checks whether this set contains no facts.
+  /// Note: Top also counts as empty
+  [[nodiscard]] inline bool empty() const noexcept {
+    return isTop() || Taints.none();
+  }
+  /// Returns the number of facts in this set.
+  /// Note: Top counts as empty
+  [[nodiscard]] inline size_t size() const noexcept {
+    if (isTop()) {
+      return 0;
+    }
+    return Taints.count();
   }
 
   [[nodiscard]] inline bool isBottom() const noexcept { return Taints.empty(); }
