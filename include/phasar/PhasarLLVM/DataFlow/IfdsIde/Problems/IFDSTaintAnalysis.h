@@ -96,9 +96,9 @@ private:
                        const llvm::Function *Callee) const;
 
   void populateWithMayAliases(container_type &Facts,
-                              const llvm::Instruction *Context) const;
+                              const llvm::Instruction *AliasQueryInst) const;
   void populateWithMustAliases(container_type &Facts,
-                               const llvm::Instruction *Context) const;
+                               const llvm::Instruction *AliasQueryInst) const;
 };
 } // namespace psr
 

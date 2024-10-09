@@ -11,10 +11,9 @@
 #define PHASAR_POINTER_ALIASINFOTRAITS_H
 
 #include "phasar/Utils/BoxedPointer.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/DenseSet.h"
-
-#include <memory>
 
 namespace psr {
 
@@ -31,7 +30,7 @@ template <typename V, typename N> struct DefaultAATraits {
   using v_t = V;
   using AliasSetTy = llvm::DenseSet<v_t>;
   using AliasSetPtrTy = BoxedConstPtr<AliasSetTy>;
-  using AllocationSiteSetPtrTy = std::unique_ptr<AliasSetTy>;
+  using AllocationSiteSetPtrTy = MaybeUniquePtr<const AliasSetTy>;
 };
 } // namespace psr
 
