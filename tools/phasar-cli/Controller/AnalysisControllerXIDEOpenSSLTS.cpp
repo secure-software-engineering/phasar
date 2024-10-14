@@ -7,14 +7,15 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
 #include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIDEXTaint(AnalysisController::ControllerData &Data) {
-  auto Config = makeTaintConfig(Data);
-  executeIDEAnalysis<IDEExtendedTaintAnalysis<>>(Data, Config,
-                                                 Data.EntryPoints);
+void controller::executeIDEOpenSSLTS(AnalysisController &Data) {
+  OpenSSLEVPKDFDescription TSDesc;
+  executeIDEAnalysis<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>(
+      Data, &TSDesc, Data.EntryPoints);
 }

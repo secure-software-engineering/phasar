@@ -7,13 +7,12 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSConstAnalysis.h"
 
-#include "AnalysisControllerInternalMono.h"
+#include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIntraMonoSolverTest(
-    AnalysisController::ControllerData &Data) {
-  executeIntraMonoAnalysis<IntraMonoSolverTest>(Data, Data.EntryPoints);
+void controller::executeIFDSConst(AnalysisController &Data) {
+  executeIFDSAnalysis<IFDSConstAnalysis>(Data, Data.EntryPoints);
 }

@@ -7,13 +7,13 @@
  *     Martin Mory and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDESolverTest.h"
+#include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoFullConstantPropagation.h"
 
-#include "AnalysisControllerInternalIDE.h"
+#include "AnalysisControllerInternalMono.h"
 
 using namespace psr;
 
-void controller::executeIDESolverTest(
-    AnalysisController::ControllerData &Data) {
-  executeIDEAnalysis<IDESolverTest>(Data, Data.EntryPoints);
+void controller::executeIntraMonoFullConstant(AnalysisController &Data) {
+  executeIntraMonoAnalysis<IntraMonoFullConstantPropagation>(Data,
+                                                             Data.EntryPoints);
 }

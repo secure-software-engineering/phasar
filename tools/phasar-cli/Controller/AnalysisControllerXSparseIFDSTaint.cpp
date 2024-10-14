@@ -1,19 +1,19 @@
 /******************************************************************************
- * Copyright (c) 2022 Martin Mory.
+ * Copyright (c) 2024 Fabian Schiebel.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Martin Mory and others
+ *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
 #include "AnalysisControllerInternalIDE.h"
 
 using namespace psr;
 
-void controller::executeIDELinearConst(
-    AnalysisController::ControllerData &Data) {
-  executeIDEAnalysis<IDELinearConstantAnalysis>(Data, Data.EntryPoints);
+void controller::executeSparseIFDSTaint(AnalysisController &Data) {
+  auto Config = makeTaintConfig(Data);
+  executeSparseIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints);
 }
