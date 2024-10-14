@@ -18,6 +18,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionStats.h"
@@ -35,15 +36,19 @@
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/Average.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Macros.h"
+#include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
@@ -81,14 +86,24 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
+  template <typename I>
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-            const i_t *ICF)
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()), ICF(ICF),
+            const I *ICF)
+      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
+        ICF(&static_cast<const i_t &>(*ICF)), SVFG(ICF),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>()),
         Seeds(Problem.initialSeeds()) {
     assert(ICF != nullptr);
+
+    if constexpr (has_getSparseCFG_v<I, d_t>) {
+      NextUserOrNullCB = [](const void *SVFG, ByConstRef<f_t> Fun,
+                            ByConstRef<d_t> d3, ByConstRef<n_t> n) {
+        auto &&SCFG = static_cast<const I *>(SVFG)->getSparseCFG(Fun, d3);
+        return SCFG.nextUserOrNull(n);
+      };
+    }
   }
 
   IDESolver(const IDESolver &) = delete;
@@ -335,6 +350,15 @@ public:
   }
 
 protected:
+  Nullable<n_t> getNextUserOrNull(ByConstRef<f_t> Fun, ByConstRef<d_t> d3,
+                                  ByConstRef<n_t> n) {
+    if (!NextUserOrNullCB || IDEProblem.isZeroValue(d3)) {
+      return {};
+    }
+
+    return NextUserOrNullCB(SVFG, Fun, d3, n);
+  }
+
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
   /// context.
   ///
@@ -378,6 +402,15 @@ protected:
 
     bool HasNoCalleeInformation = true;
 
+    auto &&Fun = ICF->getFunctionOf(n);
+    auto GetNextUse = [this, &Fun, &n](n_t nPrime, ByConstRef<d_t> d3) {
+      if (auto &&NextUser = getNextUserOrNull(Fun, d3, n)) {
+        return psr::unwrapNullable(PSR_FWD(NextUser));
+      }
+
+      return nPrime;
+    };
+
     // for each possible callee
     for (f_t SCalledProcN : Callees) { // still line 14
       // check if a special summary for the called procedure exists
@@ -405,7 +438,9 @@ protected:
                              "Queried Summary Edge Function: " << SumEdgFnE);
             PHASAR_LOG_LEVEL(DEBUG,
                              "Compose: " << SumEdgFnE << " * " << f << '\n');
-            WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
+
+            auto DestN = GetNextUse(ReturnSiteN, d3);
+            WorkList.emplace_back(PathEdge(d1, DestN, std::move(d3)),
                                   IDEProblem.extend(f, SumEdgFnE));
           }
         }
@@ -504,8 +539,10 @@ protected:
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f);
+
+                  auto DestN = GetNextUse(RetSiteN, d5_restoredCtx);
                   WorkList.emplace_back(
-                      PathEdge(d1, RetSiteN, std::move(d5_restoredCtx)),
+                      PathEdge(d1, DestN, std::move(d5_restoredCtx)),
                       IDEProblem.extend(f, fPrime));
                 }
               }
@@ -541,7 +578,8 @@ protected:
         auto fPrime = IDEProblem.extend(f, EdgeFnE);
         PHASAR_LOG_LEVEL(DEBUG, "Compose: " << EdgeFnE << " * " << f << " = "
                                             << fPrime);
-        WorkList.emplace_back(PathEdge(d1, ReturnSiteN, std::move(d3)),
+        auto DestN = GetNextUse(ReturnSiteN, d3);
+        WorkList.emplace_back(PathEdge(d1, DestN, std::move(d3)),
                               std::move(fPrime));
       }
     }
@@ -559,6 +597,8 @@ protected:
     EdgeFunction<l_t> f = jumpFunction(Edge);
     auto [d1, n, d2] = Edge.consume();
 
+    const auto &Fun = ICF->getFunctionOf(n);
+
     for (const auto nPrime : ICF->getSuccsOf(n)) {
       FlowFunctionPtrType FlowFunc =
           CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
@@ -571,14 +611,23 @@ protected:
             CachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, nPrime, d3);
         PHASAR_LOG_LEVEL(DEBUG, "Queried Normal Edge Function: " << g);
         EdgeFunction<l_t> fPrime = IDEProblem.extend(f, g);
+
+        auto DestN = [&, &n = n] {
+          if (auto &&NextUser = getNextUserOrNull(Fun, d3, n)) {
+            return psr::unwrapNullable(PSR_FWD(NextUser));
+          }
+
+          return nPrime;
+        }();
+
         if (SolverConfig.emitESG()) {
-          IntermediateEdgeFunctions[std::make_tuple(n, d2, nPrime, d3)]
+          IntermediateEdgeFunctions[std::make_tuple(n, d2, DestN, d3)]
               .push_back(g);
         }
         PHASAR_LOG_LEVEL(DEBUG,
                          "Compose: " << g << " * " << f << " = " << fPrime);
         INC_COUNTER("EF Queries", 1, Full);
-        WorkList.emplace_back(PathEdge(d1, nPrime, std::move(d3)),
+        WorkList.emplace_back(PathEdge(d1, DestN, std::move(d3)),
                               std::move(fPrime));
       }
     }
@@ -911,6 +960,7 @@ protected:
     for (const auto &Entry : Inc) {
       // line 22
       n_t c = Entry.first;
+      auto &&Fun = ICF->getFunctionOf(c);
       // for each return site
       for (n_t RetSiteC : ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
@@ -964,9 +1014,19 @@ protected:
                   d_t d3 = ValAndFunc.first;
                   d_t d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                   PHASAR_LOG_LEVEL(DEBUG, "Compose: " << fPrime << " * " << f3);
-                  WorkList.emplace_back(PathEdge(std::move(d3), RetSiteC,
-                                                 std::move(d5_restoredCtx)),
-                                        IDEProblem.extend(f3, fPrime));
+
+                  auto DestN = [&] {
+                    if (auto &&NextUser =
+                            getNextUserOrNull(Fun, d5_restoredCtx, c)) {
+                      return psr::unwrapNullable(PSR_FWD(NextUser));
+                    }
+
+                    return RetSiteC;
+                  }();
+
+                  WorkList.emplace_back(
+                      PathEdge(std::move(d3), DestN, std::move(d5_restoredCtx)),
+                      IDEProblem.extend(f3, fPrime));
                 }
               }
             }
@@ -1805,7 +1865,10 @@ private:
   IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
   d_t ZeroValue;
   const i_t *ICF;
+  const void *SVFG;
   IFDSIDESolverConfig &SolverConfig;
+  Nullable<n_t> (*NextUserOrNullCB)(const void *, ByConstRef<f_t>,
+                                    ByConstRef<d_t>, ByConstRef<n_t>) = nullptr;
 
   std::vector<std::pair<PathEdge<n_t, d_t>, EdgeFunction<l_t>>> WorkList;
   std::vector<std::pair<n_t, d_t>> ValuePropWL;

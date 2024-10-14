@@ -12,6 +12,8 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFGView.h"
 
 #include "AnalysisControllerInternal.h"
 
@@ -23,11 +25,13 @@ static void statsEmitter(llvm::raw_ostream &OS, const IDESolver<T, U> &Solver) {
   Solver.printEdgeFunctionStatistics(OS);
 }
 
-template <typename SolverTy, typename ProblemTy, typename... ArgTys>
-static void executeIfdsIdeAnalysis(AnalysisController &Data, ArgTys &&...Args) {
+template <typename SolverTy, typename ProblemTy, typename ICFGTy,
+          typename... ArgTys>
+static void executeIfdsIdeAnalysisImpl(AnalysisController &Data,
+                                       const ICFGTy &ICF, ArgTys &&...Args) {
   auto Problem =
       createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
-  SolverTy Solver(Problem, &Data.HA->getICFG());
+  SolverTy Solver(Problem, &ICF);
   {
     std::optional<Timer> MeasureTime;
     if (Data.EmitterOptions &
@@ -42,6 +46,21 @@ static void executeIfdsIdeAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   emitRequestedDataFlowResults(Data, Solver);
 }
 
+template <typename SolverTy, typename ProblemTy, typename... ArgTys>
+static void executeIfdsIdeAnalysis(AnalysisController &Data, ArgTys &&...Args) {
+  executeIfdsIdeAnalysisImpl<SolverTy, ProblemTy>(
+      Data, Data.HA->getICFG(), std::forward<ArgTys>(Args)...);
+}
+
+template <typename SolverTy, typename ProblemTy, typename... ArgTys>
+static void executeSparseIfdsIdeAnalysis(AnalysisController &Data,
+                                         ArgTys &&...Args) {
+
+  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG());
+  executeIfdsIdeAnalysisImpl<SolverTy, ProblemTy>(
+      Data, SVFG, std::forward<ArgTys>(Args)...);
+}
+
 template <typename ProblemTy, typename... ArgTys>
 static void executeIFDSAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   executeIfdsIdeAnalysis<IFDSSolver_P<ProblemTy>, ProblemTy>(
@@ -49,8 +68,22 @@ static void executeIFDSAnalysis(AnalysisController &Data, ArgTys &&...Args) {
 }
 
 template <typename ProblemTy, typename... ArgTys>
+static void executeSparseIFDSAnalysis(AnalysisController &Data,
+                                      ArgTys &&...Args) {
+  executeSparseIfdsIdeAnalysis<IFDSSolver_P<ProblemTy>, ProblemTy>(
+      Data, std::forward<ArgTys>(Args)...);
+}
+
+template <typename ProblemTy, typename... ArgTys>
 static void executeIDEAnalysis(AnalysisController &Data, ArgTys &&...Args) {
   executeIfdsIdeAnalysis<IDESolver_P<ProblemTy>, ProblemTy>(
+      Data, std::forward<ArgTys>(Args)...);
+}
+
+template <typename ProblemTy, typename... ArgTys>
+static void executeSparseIDEAnalysis(AnalysisController &Data,
+                                     ArgTys &&...Args) {
+  executeSparseIfdsIdeAnalysis<IDESolver_P<ProblemTy>, ProblemTy>(
       Data, std::forward<ArgTys>(Args)...);
 }
 
