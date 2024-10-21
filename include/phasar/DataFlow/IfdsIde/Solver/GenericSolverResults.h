@@ -63,13 +63,6 @@ public:
     new (Buffer.data()) type(SR);
   }
 
-  GenericSolverResults(const GenericSolverResults &) noexcept = default;
-  GenericSolverResults &
-  operator=(const GenericSolverResults &) noexcept = default;
-  GenericSolverResults(GenericSolverResults &&) noexcept = default;
-  GenericSolverResults &operator=(GenericSolverResults &&) noexcept = default;
-  ~GenericSolverResults() = default;
-
   [[nodiscard]] l_t resultAt(ByConstRef<n_t> Stmt, ByConstRef<d_t> Node) const {
     assert(VT != nullptr);
     return VT->ResultAt(Buffer.data(), Stmt, Node);
