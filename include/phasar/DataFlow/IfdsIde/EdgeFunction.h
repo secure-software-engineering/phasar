@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/ErrorFwd.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
@@ -41,28 +42,48 @@ template <typename T, typename = void>
 struct IsEdgeFunction : std::false_type {};
 template <typename T>
 struct IsEdgeFunction<
-    T, std::void_t<
-           typename T::l_t,
-           decltype(std::declval<const T &>().computeTarget(
-               std::declval<typename T::l_t>())),
-           decltype(T::compose(std::declval<EdgeFunctionRef<T>>(),
-                               std::declval<EdgeFunction<typename T::l_t>>())),
-           decltype(T::join(std::declval<EdgeFunctionRef<T>>(),
-                            std::declval<EdgeFunction<typename T::l_t>>()))>>
+    T, std::void_t<typename T::l_t,
+                   decltype(std::declval<const T &>().computeTarget(
+                       std::declval<typename T::l_t>()))>> : std::true_type {};
+
+template <typename T, typename = void> struct HasEFCompose : std::false_type {};
+template <typename T>
+struct HasEFCompose<T, std::void_t<decltype(T::compose(
+                           std::declval<EdgeFunctionRef<T>>(),
+                           std::declval<EdgeFunction<typename T::l_t>>()))>>
     : std::true_type {};
 
+template <typename T, typename = void> struct HasEFJoin : std::false_type {};
+template <typename T>
+struct HasEFJoin<T, std::void_t<decltype(T::join(
+                        std::declval<EdgeFunctionRef<T>>(),
+                        std::declval<EdgeFunction<typename T::l_t>>()))>>
+    : std::true_type {};
 } // namespace detail
 template <typename T>
 static constexpr bool IsEdgeFunction = detail::IsEdgeFunction<T>::value;
+template <typename T>
+static constexpr bool HasEFCompose = detail::HasEFCompose<T>::value;
+template <typename T>
+static constexpr bool HasEFJoin = detail::HasEFJoin<T>::value;
 
 #else
 // clang-format off
 template <typename T>
-concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_t>& TEEF, EdgeFunctionRef<T> CEF, typename T::l_t Src) {
+concept IsEdgeFunction = requires(const T &EF, typename T::l_t Src) {
   typename T::l_t;
   {EF.computeTarget(Src)}   -> std::convertible_to<typename T::l_t>;
-  {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
-  {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
+};
+
+template <typename T>
+concept HasEFCompose = requires(EdgeFunctionRef<T> EFRef,
+                                const EdgeFunction<typename T::l_t> &EF) {
+  { T::compose(EFRef, EF) } -> std::convertible_to<EdgeFunction<T::l_t>>;
+};
+template <typename T>
+concept HasEFJoin = requires(EdgeFunctionRef<T> EFRef,
+                                const EdgeFunction<typename T::l_t> &EF) {
+  { T::join(EFRef, EF) } -> std::convertible_to<EdgeFunction<T::l_t>>;
 };
   // clang-format on
 
@@ -700,17 +721,28 @@ private:
         return getPtr<ConcreteEF>(EF)->computeTarget(Source);
       },
       [](const void *EF, const EdgeFunction &SecondEF,
-         AllocationPolicy Policy) {
-        return ConcreteEF::compose(
-            EdgeFunctionRef<ConcreteEF>(
-                EF, Policy == AllocationPolicy::CustomHeapAllocated),
-            SecondEF);
+         AllocationPolicy Policy) -> EdgeFunction {
+        if constexpr (HasEFCompose<ConcreteEF>) {
+          return ConcreteEF::compose(
+              EdgeFunctionRef<ConcreteEF>(
+                  EF, Policy == AllocationPolicy::CustomHeapAllocated),
+              SecondEF);
+        } else {
+          composeEFPureVirtualError(llvm::getTypeName<ConcreteEF>(),
+                                    llvm::getTypeName<l_t>());
+        }
       },
-      [](const void *EF, const EdgeFunction &OtherEF, AllocationPolicy Policy) {
-        return ConcreteEF::join(
-            EdgeFunctionRef<ConcreteEF>(
-                EF, Policy == AllocationPolicy::CustomHeapAllocated),
-            OtherEF);
+      [](const void *EF, const EdgeFunction &OtherEF,
+         AllocationPolicy Policy) -> EdgeFunction {
+        if constexpr (HasEFJoin<ConcreteEF>) {
+          return ConcreteEF::join(
+              EdgeFunctionRef<ConcreteEF>(
+                  EF, Policy == AllocationPolicy::CustomHeapAllocated),
+              OtherEF);
+        } else {
+          joinEFPureVirtualError(llvm::getTypeName<ConcreteEF>(),
+                                 llvm::getTypeName<l_t>());
+        }
       },
       [](const void *EF1, const void *EF2) noexcept {
         static_assert(IsEqualityComparable<ConcreteEF> ||
