@@ -10,9 +10,6 @@
 #ifndef PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 #define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
-/// XXX: Eventually get rid of this dependency:
-#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
-
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
@@ -21,10 +18,8 @@
 #include <functional>
 #include <initializer_list>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include <set>
-#include <vector>
 
 namespace psr {
 
@@ -177,25 +172,8 @@ private:
   StorageT StoredData{};
 };
 
-namespace detail {
-template <typename T> struct DefaultValueComparer : std::equal_to<T> {};
-template <typename L>
-struct DefaultValueComparer<std::shared_ptr<EdgeFunction<L>>> {
-  bool operator()(const std::shared_ptr<EdgeFunction<L>> &LHS,
-                  const std::shared_ptr<EdgeFunction<L>> &RHS) const {
-    if (LHS == RHS) {
-      return true;
-    }
-    if (LHS == nullptr) {
-      return false;
-    }
-    return LHS->equal_to(RHS);
-  }
-};
-} // namespace detail
-
 template <typename TKey, typename TValue,
-          typename ValueComparator = detail::DefaultValueComparer<TValue>>
+          typename ValueComparator = std::equal_to<TValue>>
 class EquivalenceClassMapNG {
   using SetTy = llvm::SmallDenseSet<TKey, 2>;
 

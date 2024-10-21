@@ -26,12 +26,6 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IterativeIDESolverTest : public ::testing::Test {
 protected:
-  // const std::string PathToLlFiles =
-  //     unittest::PathToLLTestFiles + "control_flow/";
-
-  // void SetUp() override {
-  // boost::log::core::get()->set_logging_enabled(false); }
-
   template <typename SolverConfigTy = IDESolverConfig>
   void doAnalysis(const llvm::Twine &LlvmFilePath, bool PrintDump = false) {
     LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + LlvmFilePath);
@@ -41,11 +35,6 @@ protected:
                        Soundness::Soundy, /*IncludeGlobals*/ true);
 
     IDELinearConstantAnalysis Problem(&IRDB, &ICFG, {"main"});
-    /// Unfortunately, the legacy solver does not compute any SolverResults if
-    /// value computation is turned off
-    // Problem.getIFDSIDESolverConfig().setComputeValues(false);
-    // Problem.getIFDSIDESolverConfig().setAutoAddZero(false);
-
     IterativeIDESolver<IDELinearConstantAnalysis, SolverConfigTy> Solver(
         &Problem, &ICFG);
 
@@ -69,8 +58,6 @@ protected:
       OldSolver.dumpResults();
     }
 
-    // EXPECT_TRUE(
-    //     Solver.getSolverResults().ifdsEqualWith(OldSolver.getSolverResults()));
     checkEquality(OldSolver.getSolverResults(), Solver.getSolverResults(),
                   SolverConfigTy{});
 
@@ -156,7 +143,6 @@ TEST_F(IterativeIDESolverTest, IDESolverTestLoop) {
   doAnalysis("control_flow/loop_cpp.ll");
 }
 TEST_F(IterativeIDESolverTest, IDELinearConstant_Call06) {
-  // Logger::initializeStderrLogger(SeverityLevel::DEBUG, "IterativeIDESolver");
   doAnalysis("linear_constant/call_06_cpp.ll");
 }
 TEST_F(IterativeIDESolverTest, IDELinearConstant_Call07) {

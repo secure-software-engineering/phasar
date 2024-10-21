@@ -21,11 +21,9 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
-#include <new>
 #include <set>
 #include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
 
 namespace psr {
 
@@ -68,6 +66,8 @@ public:
   GenericSolverResults(const GenericSolverResults &) noexcept = default;
   GenericSolverResults &
   operator=(const GenericSolverResults &) noexcept = default;
+  GenericSolverResults(GenericSolverResults &&) noexcept = default;
+  GenericSolverResults &operator=(GenericSolverResults &&) noexcept = default;
   ~GenericSolverResults() = default;
 
   [[nodiscard]] l_t resultAt(ByConstRef<n_t> Stmt, ByConstRef<d_t> Node) const {
