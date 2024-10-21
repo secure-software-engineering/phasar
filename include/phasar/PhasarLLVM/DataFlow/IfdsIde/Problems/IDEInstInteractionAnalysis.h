@@ -29,6 +29,7 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Twine.h"
@@ -1178,19 +1179,9 @@ protected:
     } else {
       auto LSet = std::get<BitVectorSet<e_t>>(EdgeFact);
       OS << "(set size: " << LSet.size() << ") values: ";
-      // if constexpr (std::is_same_v<e_t, vara::Taint *>) {
-      //   for (const auto &LElem : LSet) {
-      //     std::string IRBuffer;
-      //     llvm::raw_string_ostream RSO(IRBuffer);
-      //     LElem->print(RSO);
-      //     RSO.flush();
-      //     OS << IRBuffer << ", ";
-      //   }
-      // } else {
       for (const auto &LElem : LSet) {
-        OS << LElem << ", ";
+        OS << LToString(LElem) << ", ";
       }
-      // }
     }
   }
 
@@ -1217,10 +1208,10 @@ private:
     // auto Results = Solution.getAllResultEntries();
     Solution.foreachResultEntry([&Variables](const auto &Result) {
       // We do not care for the concrete instruction at which data-flow facts
-      // hold, instead we just wish to find out if a variable has been generated
-      // at some point. Therefore, we only care for the variables and their
-      // associated values and ignore at which point a variable may holds as a
-      // data-flow fact.
+      // hold, instead we just wish to find out if a variable has been
+      // generated at some point. Therefore, we only care for the variables
+      // and their associated values and ignore at which point a variable may
+      // holds as a data-flow fact.
       const d_t &Variable = std::get<1>(Result);
       const l_t &Value = std::get<2>(Result);
       // skip result entry if variable is not in the set of all variables
