@@ -38,7 +38,7 @@ public:
   void reserve(size_t NumInsts, size_t NumCalls, size_t NumFuns) {
     this->FlowFunctionCache<ProblemTy, AutoAddZero>::reserve(NumInsts, NumCalls,
                                                              NumFuns);
-    /// TODO: reserve edge functions as well!
+    /// XXX: reserve edge functions as well, once possible!
   }
 
   [[nodiscard]] FlowEdgeFunctionCacheStats getStats() const noexcept {

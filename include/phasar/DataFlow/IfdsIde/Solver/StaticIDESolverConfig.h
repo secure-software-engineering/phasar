@@ -10,8 +10,6 @@
  *     Fabian Schiebel
  *****************************************************************************/
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/WorkListTraits.h"
@@ -101,14 +99,6 @@ using IFDSSolverConfigWithStatsAndGC =
 
 template <typename ProblemTy, typename Enable = void>
 struct DefaultIDESolverConfig : IDESolverConfig {};
-// template <typename ProblemTy>
-// struct DefaultIDESolverConfig<
-//     ProblemTy,
-//     std::enable_if_t<std::is_base_of_v<
-//         IFDSTabulationProblemLight<
-//             typename ProblemTy::ProblemAnalysisDomain::BaseAnalysisDomain,
-//             ProblemTy>,
-//         ProblemTy>>> : IFDSSolverConfig {};
 
 template <typename ProblemTy>
 struct DefaultIDESolverConfig<

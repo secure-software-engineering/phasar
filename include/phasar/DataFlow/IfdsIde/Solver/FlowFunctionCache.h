@@ -299,12 +299,6 @@ public:
     /// XXX: The old FECache doesn't cache summary FFs, so refrain from doing
     /// this here as well. Enable it, once the user-problems reliably return
     /// std::nullptr_t such that caching can be disabled automatically
-
-    // return getFlowFunction<summary_ff_t>(
-    //     SummaryFFCache, CSCalleeId, Problem,
-    //     [CallSite, Callee](ProblemTy &Problem) {
-    //       return Problem.getSummaryFlowFunction(CallSite, Callee);
-    //     });
   }
 
   void clear() noexcept {
