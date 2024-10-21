@@ -27,8 +27,8 @@
 
 namespace psr {
 
-/// XXX: When upgrading to C++20, create a concept checking valid SolverResults
-/// types
+/// XXX (#734): When upgrading to C++20, create a concept checking valid
+/// SolverResults types
 
 /// A type-erased version of the main functionality of SolverResults.
 /// Can be accepted by consumers that don't need deep access to the internals

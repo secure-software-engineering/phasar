@@ -321,7 +321,7 @@ public:
   void dumpStats(llvm::raw_ostream &OS) const { OS << getStats(); }
 
   [[nodiscard]] FlowFunctionCacheStats getStats() const noexcept {
-    /// TODO: With C++20 use designated aggregate initializers here!
+    /// TODO (#734): With C++20 use designated aggregate initializers here!
     return FlowFunctionCacheStats{
         NormalFFCache.size(),    CallFFCache.size(), RetFFCache.size(),
         SimpleRetFFCache.size(), CtrFFCache.size(),  SummaryFFCache.size(),
