@@ -55,8 +55,15 @@ public:
     static_assert(std::is_trivially_copyable_v<type>,
                   "SolverResults should only be a *view* into the results of "
                   "an IFDS/IDE solver.");
-    static_assert(alignof(type) <= alignof(void *));
-    static_assert(sizeof(type) <= sizeof(Buffer));
+
+    /// NOTE: We reinterpret the bytes of the `Buffer` as `type`, so it better
+    /// be properly aligned
+    static_assert(
+        alignof(type) <= alignof(void *),
+        "The solver-results type is improperly aligned for the inline buffer");
+    static_assert(
+        sizeof(type) <= sizeof(Buffer),
+        "The inline buffer is to small to hold this type of solver-result");
 
     static_assert(std::is_trivially_copyable_v<GenericSolverResults>);
 
