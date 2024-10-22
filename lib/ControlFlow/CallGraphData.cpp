@@ -10,6 +10,7 @@
 #include "phasar/ControlFlow/CallGraphData.h"
 
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
 namespace psr {
@@ -20,10 +21,11 @@ static CallGraphData getDataFromJson(const nlohmann::json &Json) {
   for (const auto &[FVal, FunctionVertexTyVals] :
        Json.get<nlohmann::json::object_t>()) {
     auto &FValMappedVector = ToReturn.FToFunctionVertexTy[FVal];
-    FValMappedVector.reserve(FunctionVertexTyVals.size());
-
-    for (const auto &Curr : FunctionVertexTyVals) {
-      FValMappedVector.push_back(Curr.get<int>());
+    if (FunctionVertexTyVals.is_array()) {
+      FValMappedVector = FunctionVertexTyVals.get<std::vector<uint32_t>>();
+    } else if (!FunctionVertexTyVals.is_null()) {
+      PHASAR_LOG_LEVEL(
+          WARNING, "Invalid Function-CS IDs Array: " << FunctionVertexTyVals);
     }
   }
 

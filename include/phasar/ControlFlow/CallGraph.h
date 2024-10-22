@@ -296,7 +296,7 @@ CallGraph<N, F>::deserialize(const CallGraphData &PrecomputedCG,
       const auto &CS = std::invoke(GetInstructionFromId, JId);
       if (!CS) {
         PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
-                             "Invalid CAll-Instruction Id: " << JId);
+                             "Invalid Call-Instruction Id: " << JId);
       }
 
       CGBuilder.addCallEdge(CS, Fun);

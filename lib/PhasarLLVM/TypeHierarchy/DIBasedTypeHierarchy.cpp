@@ -254,9 +254,6 @@ static const llvm::DIType *stringToDIType(const llvm::DebugInfoFinder &DIF,
   llvm::report_fatal_error("DIType doesn't exist " + DITypeName);
 }
 
-// NOLINTNEXTLINE
-static constexpr char NullFunName[] = "__null__";
-
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(
     const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedData)
     : TransitiveDerivedIndex(SerializedData.TransitiveDerivedIndex) {
@@ -287,7 +284,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(
 
     CurrVTable.reserve(Curr.size());
     for (const auto &FuncName : Curr) {
-      if (FuncName == NullFunName) {
+      if (FuncName == LLVMVFTable::NullFunName) {
         CurrVTable.push_back(nullptr);
       }
       CurrVTable.push_back(IRDB->getFunction(FuncName));
@@ -375,7 +372,7 @@ DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
         CurrVTableAsString.push_back(Func->getName().str());
         continue;
       }
-      CurrVTableAsString.emplace_back(NullFunName);
+      CurrVTableAsString.emplace_back(LLVMVFTable::NullFunName);
     }
 
     Data.VTables.push_back(std::move(CurrVTableAsString));

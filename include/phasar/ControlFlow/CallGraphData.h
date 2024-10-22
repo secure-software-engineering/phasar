@@ -19,7 +19,8 @@
 
 namespace psr {
 struct CallGraphData {
-  std::unordered_map<std::string, std::vector<int>> FToFunctionVertexTy{};
+  // Mangled FunName --> [CS-IDs]
+  std::unordered_map<std::string, std::vector<uint32_t>> FToFunctionVertexTy{};
 
   CallGraphData() noexcept = default;
   void printAsJson(llvm::raw_ostream &OS);
