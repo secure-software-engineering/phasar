@@ -144,7 +144,7 @@ public:
     });
 
     for (const auto &[Node, FlowFacts] : Cells) {
-      OS << "Instruction:\n  " << NToString(Node);
+      OS << "Instruction: " << NToString(Node);
       OS << "\nFacts: ";
       if (FlowFacts.empty()) {
         OS << "EMPTY\n";
