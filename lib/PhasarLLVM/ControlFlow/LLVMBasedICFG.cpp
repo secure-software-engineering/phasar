@@ -11,7 +11,7 @@
 
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
@@ -23,13 +23,9 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
-#include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/StringSwitch.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -91,7 +87,7 @@ LLVMBasedICFG::LLVMBasedICFG(CallGraph<n_t, f_t> CG,
     : CG(std::move(CG)), IRDB(IRDB), VTP(*IRDB) {}
 
 LLVMBasedICFG::LLVMBasedICFG(const LLVMProjectIRDB *IRDB,
-                             const nlohmann::json &SerializedCG)
+                             const CallGraphData &SerializedCG)
     : CG(CallGraph<n_t, f_t>::deserialize(
           SerializedCG,
           [IRDB](llvm::StringRef Name) { return IRDB->getFunction(Name); },
@@ -157,7 +153,13 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
       [](n_t CS) { return llvmIRToStableString(CS); });
 }
 
-[[nodiscard]] nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
+void LLVMBasedICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
+  CG.printAsJson(
+      OS, [](f_t F) { return F->getName().str(); },
+      [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
+}
+
+nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
   return CG.getAsJson(
       [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });

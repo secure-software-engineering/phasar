@@ -36,8 +36,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-#include "nlohmann/json_fwd.hpp"
+#include <memory>
 
 namespace psr {
 class LLVMTypeHierarchy;
@@ -92,13 +91,7 @@ public:
   explicit LLVMBasedICFG(CallGraph<n_t, f_t> CG, const LLVMProjectIRDB *IRDB);
 
   explicit LLVMBasedICFG(const LLVMProjectIRDB *IRDB,
-                         const nlohmann::json &SerializedCG);
-  // To avoid ambiguity with the first ctor (json implicitly converts to
-  // CallGraphAnalysisType for whatever reason)
-  explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                         const nlohmann::json &SerializedCG)
-      : LLVMBasedICFG(static_cast<const LLVMProjectIRDB *>(IRDB),
-                      SerializedCG) {}
+                         const CallGraphData &SerializedCG);
 
   // Deleter of LLVMTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
@@ -142,6 +135,8 @@ public:
   using CFGBase::print;
   using ICFGBase::print;
 
+  using ICFGBase::printAsJson;
+
   using CFGBase::getAsJson;
   using ICFGBase::getAsJson;
 
@@ -156,7 +151,8 @@ private:
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard]] nlohmann::json getAsJsonImpl() const;
+  void printAsJsonImpl(llvm::raw_ostream &OS) const;
+  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const LLVMBasedCallGraph &getCallGraphImpl() const noexcept {
     return CG;
   }

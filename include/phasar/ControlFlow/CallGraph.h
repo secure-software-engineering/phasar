@@ -11,18 +11,18 @@
 #define PHASAR_CONTROLFLOW_CALLGRAPH_H
 
 #include "phasar/ControlFlow/CallGraphBase.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/Function.h"
 
 #include "nlohmann/json.hpp"
 
 #include <functional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -58,7 +58,7 @@ public:
   /// Deserializes a previously computed call-graph
   template <typename FunctionGetter, typename InstructionGetter>
   [[nodiscard]] static CallGraph
-  deserialize(const nlohmann::json &PrecomputedCG,
+  deserialize(const CallGraphData &PrecomputedCG,
               FunctionGetter GetFunctionFromName,
               InstructionGetter GetInstructionFromId);
 
@@ -86,12 +86,33 @@ public:
 
   [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
 
+  template <typename FunctionIdGetter, typename InstIdGetter>
+  void printAsJson(llvm::raw_ostream &OS, FunctionIdGetter GetFunctionId,
+                   InstIdGetter GetInstructionId) const {
+    CallGraphData CGData;
+    CGData.FToFunctionVertexTy.reserve(CallersOf.size());
+
+    for (const auto &[Fun, Callers] : CallersOf) {
+      auto &JCallers =
+          CGData.FToFunctionVertexTy[std::invoke(GetFunctionId, Fun)];
+
+      CGData.FToFunctionVertexTy.reserve(Callers->size());
+      for (const auto &CS : *Callers) {
+        JCallers.push_back(std::invoke(GetInstructionId, CS));
+      }
+    }
+
+    CGData.printAsJson(OS);
+  }
+
   /// Creates a JSON representation of this call-graph suitable for presistent
   /// storage.
   /// Use the ctor taking a json object for deserialization
   template <typename FunctionIdGetter, typename InstIdGetter>
-  [[nodiscard]] nlohmann::json getAsJson(FunctionIdGetter GetFunctionId,
-                                         InstIdGetter GetInstructionId) const {
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson(FunctionIdGetter GetFunctionId,
+            InstIdGetter GetInstructionId) const {
     nlohmann::json J;
 
     for (const auto &[Fun, Callers] : CallersOf) {
@@ -254,18 +275,13 @@ private:
 template <typename N, typename F>
 template <typename FunctionGetter, typename InstructionGetter>
 [[nodiscard]] CallGraph<N, F>
-CallGraph<N, F>::deserialize(const nlohmann::json &PrecomputedCG,
+CallGraph<N, F>::deserialize(const CallGraphData &PrecomputedCG,
                              FunctionGetter GetFunctionFromName,
                              InstructionGetter GetInstructionFromId) {
-  if (!PrecomputedCG.is_object()) {
-    PHASAR_LOG_LEVEL_CAT(ERROR, "CallGraph", "Invalid Json. Expected object");
-    return {};
-  }
-
   CallGraphBuilder<N, F> CGBuilder;
-  CGBuilder.reserve(PrecomputedCG.size());
+  CGBuilder.reserve(PrecomputedCG.FToFunctionVertexTy.size());
 
-  for (const auto &[FunName, CallerIDs] : PrecomputedCG.items()) {
+  for (const auto &[FunName, CallerIDs] : PrecomputedCG.FToFunctionVertexTy) {
     const auto &Fun = std::invoke(GetFunctionFromName, FunName);
     if (!Fun) {
       PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
@@ -277,11 +293,10 @@ CallGraph<N, F>::deserialize(const nlohmann::json &PrecomputedCG,
     CEdges->reserve(CallerIDs.size());
 
     for (const auto &JId : CallerIDs) {
-      auto Id = JId.get<size_t>();
-      const auto &CS = std::invoke(GetInstructionFromId, Id);
+      const auto &CS = std::invoke(GetInstructionFromId, JId);
       if (!CS) {
         PHASAR_LOG_LEVEL_CAT(WARNING, "CallGraph",
-                             "Invalid CAll-Instruction Id: " << Id);
+                             "Invalid Call-Instruction Id: " << JId);
       }
 
       CGBuilder.addCallEdge(CS, Fun);
