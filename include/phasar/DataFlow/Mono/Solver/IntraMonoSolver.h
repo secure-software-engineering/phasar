@@ -18,6 +18,7 @@
 #define PHASAR_DATAFLOW_MONO_SOLVER_INTRAMONOSOLVER_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/Utilities.h"
 
