@@ -950,17 +950,6 @@ public:
 
     l_t computeTarget(ByConstRef<l_t> /* Src */) const { return Replacement; }
 
-    static EdgeFunction<l_t>
-    compose(EdgeFunctionRef<IIAAKillOrReplaceEF> /*This*/,
-            const EdgeFunction<l_t> /*SecondFunction*/) {
-      llvm::report_fatal_error("Implemented in 'extend'");
-    }
-
-    static EdgeFunction<l_t> join(EdgeFunctionRef<IIAAKillOrReplaceEF> /*This*/,
-                                  const EdgeFunction<l_t> & /*OtherFunction*/) {
-      llvm::report_fatal_error("Implemented in 'combine'");
-    }
-
     bool operator==(const IIAAKillOrReplaceEF &Other) const noexcept {
       return Replacement == Other.Replacement;
     }
@@ -999,17 +988,6 @@ public:
 
     l_t computeTarget(ByConstRef<l_t> Src) const {
       return IDEInstInteractionAnalysisT::joinImpl(Src, Data);
-    }
-
-    static EdgeFunction<l_t>
-    compose(EdgeFunctionRef<IIAAAddLabelsEF> /*This*/,
-            const EdgeFunction<l_t> & /*SecondFunction*/) {
-      llvm::report_fatal_error("Implemented in 'extend'");
-    }
-
-    static EdgeFunction<l_t> join(EdgeFunctionRef<IIAAAddLabelsEF> /*This*/,
-                                  const EdgeFunction<l_t> & /*OtherFunction*/) {
-      llvm::report_fatal_error("Implemented in 'combine'");
     }
 
     bool operator==(const IIAAAddLabelsEF &Other) const noexcept {
