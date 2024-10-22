@@ -144,14 +144,14 @@ public:
     });
 
     for (const auto &[Node, FlowFacts] : Cells) {
-      OS << "Instruction:\n" << NToString(Node);
-      OS << "\nFacts:\n";
+      OS << "Instruction:\n  " << NToString(Node);
+      OS << "\nFacts: ";
       if (FlowFacts.empty()) {
-        OS << "\tEMPTY\n";
+        OS << "EMPTY\n";
       } else {
         IMProblem.printContainer(OS, FlowFacts);
       }
-      OS << "\n\n";
+      OS << "\n";
     }
   }
 
