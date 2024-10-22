@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchyData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -17,8 +18,10 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -29,6 +32,10 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+#include <cstdint>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace psr {
 using ClassType = DIBasedTypeHierarchy::ClassType;
@@ -103,8 +110,13 @@ buildTypeGraph(llvm::ArrayRef<const llvm::DICompositeType *> VertexTypes,
       if (const auto *Inheritenace = llvm::dyn_cast<llvm::DIDerivedType>(Fld);
           Inheritenace &&
           Inheritenace->getTag() == llvm::dwarf::DW_TAG_inheritance) {
-        auto BaseIdx = TypeToVertex.lookup(Inheritenace->getBaseType());
-        assert(BaseIdx != 0 || VertexTypes[0] == Inheritenace->getBaseType());
+        const auto *Base = Inheritenace->getBaseType();
+        while (Base->getTag() == llvm::dwarf::DW_TAG_typedef) {
+          Base = llvm::cast<llvm::DIDerivedType>(Base)->getBaseType();
+        }
+
+        auto BaseIdx = TypeToVertex.lookup(Base);
+        assert(BaseIdx != 0 || VertexTypes[0] == Base);
 
         TG.DerivedTypesOf[BaseIdx].push_back(DerivedIdx);
         TG.Roots.reset(DerivedIdx);
@@ -153,6 +165,11 @@ static void buildTypeHierarchy(
   }
 }
 
+static llvm::StringRef getCompositeTypeName(const llvm::DICompositeType *Ty) {
+  auto Ident = Ty->getIdentifier();
+  return Ident.empty() ? Ty->getName() : Ident;
+}
+
 DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   // -- Find all types
   {
@@ -167,11 +184,24 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
     // -- Filter all struct- or class types
 
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+    static constexpr llvm::dwarf::Tag DwarfTags[] = {
+        llvm::dwarf::DW_TAG_class_type,
+        llvm::dwarf::DW_TAG_structure_type,
+        llvm::dwarf::DW_TAG_union_type,
+    };
+
     for (const auto *Ty : DIF.types()) {
       if (const auto *Composite = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
-        TypeToVertex.try_emplace(Composite, VertexTypes.size());
-        VertexTypes.push_back(Composite);
-        NameToType.try_emplace(Composite->getName(), Composite);
+        if (!llvm::is_contained(DwarfTags, Composite->getTag())) {
+          continue;
+        }
+        if (TypeToVertex.try_emplace(Composite, VertexTypes.size()).second) {
+          VertexTypes.push_back(Composite);
+          NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
+
+          assert(!getCompositeTypeName(Composite).empty());
+        }
       }
     }
 
@@ -187,6 +217,81 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
 
   // -- Build the transitive closure
   buildTypeHierarchy(TG, VertexTypes, TransitiveDerivedIndex, Hierarchy);
+}
+
+static const llvm::DICompositeType *
+stringToDICompositeType(const llvm::DebugInfoFinder &DIF,
+                        llvm::StringRef DITypeName) {
+  const llvm::DICompositeType *ByName = nullptr;
+  bool HasUniqueByName = false;
+  for (const auto *Type : DIF.types()) {
+    if (const auto *DICT = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+      auto Ident = DICT->getIdentifier();
+      if (Ident == DITypeName) {
+        return DICT;
+      }
+      if (DICT->getName() == DITypeName) {
+        HasUniqueByName = ByName == nullptr;
+        ByName = DICT;
+      }
+    }
+  }
+  if (HasUniqueByName) {
+    return ByName;
+  }
+
+  llvm::report_fatal_error("DIType doesn't exist: " + DITypeName);
+}
+
+static const llvm::DIType *stringToDIType(const llvm::DebugInfoFinder &DIF,
+                                          llvm::StringRef DITypeName) {
+  for (const auto *Type : DIF.types()) {
+    if (Type->getName() == DITypeName) {
+      return Type;
+    }
+  }
+
+  llvm::report_fatal_error("DIType doesn't exist " + DITypeName);
+}
+
+DIBasedTypeHierarchy::DIBasedTypeHierarchy(
+    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchyData &SerializedData)
+    : TransitiveDerivedIndex(SerializedData.TransitiveDerivedIndex) {
+
+  llvm::DebugInfoFinder DIF;
+  const auto *Module = IRDB->getModule();
+  DIF.processModule(*Module);
+
+  VertexTypes.reserve(SerializedData.VertexTypes.size());
+  TypeToVertex.reserve(SerializedData.VertexTypes.size());
+  size_t Idx = 0;
+  for (const auto &Curr : SerializedData.VertexTypes) {
+    const auto *Ty = stringToDICompositeType(DIF, Curr);
+    VertexTypes.push_back(Ty);
+    TypeToVertex.try_emplace(Ty, Idx);
+    NameToType.try_emplace(Curr, Ty);
+
+    ++Idx;
+  }
+
+  Hierarchy.reserve(SerializedData.Hierarchy.size());
+  for (const auto &Curr : SerializedData.Hierarchy) {
+    Hierarchy.push_back(stringToDIType(DIF, Curr));
+  }
+
+  for (const auto &Curr : SerializedData.VTables) {
+    std::vector<const llvm::Function *> CurrVTable;
+
+    CurrVTable.reserve(Curr.size());
+    for (const auto &FuncName : Curr) {
+      if (FuncName == LLVMVFTable::NullFunName) {
+        CurrVTable.push_back(nullptr);
+      }
+      CurrVTable.push_back(IRDB->getFunction(FuncName));
+    }
+
+    VTables.emplace_back(std::move(CurrVTable));
+  }
 }
 
 auto DIBasedTypeHierarchy::subTypesOf(size_t TypeIdx) const noexcept
@@ -236,9 +341,49 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   }
 }
 
-[[nodiscard]] nlohmann::json DIBasedTypeHierarchy::getAsJson() const {
+[[nodiscard]] [[deprecated("Please use printAsJson() instead")]] nlohmann::json
+DIBasedTypeHierarchy::getAsJson() const {
   /// TODO: implement
   llvm::report_fatal_error("Not implemented");
+}
+
+DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
+  DIBasedTypeHierarchyData Data;
+
+  Data.VertexTypes.reserve(VertexTypes.size());
+
+  for (const auto &Curr : VertexTypes) {
+    Data.VertexTypes.push_back(getTypeName(Curr).str());
+  }
+
+  Data.TransitiveDerivedIndex = TransitiveDerivedIndex;
+
+  Data.Hierarchy.reserve(Hierarchy.size());
+  for (const auto &Curr : Hierarchy) {
+    Data.Hierarchy.push_back(Curr->getName().str());
+  }
+
+  for (const auto &Curr : VTables) {
+    std::vector<std::string> CurrVTableAsString;
+    CurrVTableAsString.reserve(Curr.getAllFunctions().size());
+
+    for (const auto &Func : Curr.getAllFunctions()) {
+      if (Func) {
+        CurrVTableAsString.push_back(Func->getName().str());
+        continue;
+      }
+      CurrVTableAsString.emplace_back(LLVMVFTable::NullFunName);
+    }
+
+    Data.VTables.push_back(std::move(CurrVTableAsString));
+  }
+
+  return Data;
+}
+
+void DIBasedTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
+  DIBasedTypeHierarchyData Data = getTypeHierarchyData();
+  Data.printAsJson(OS);
 }
 
 void DIBasedTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {

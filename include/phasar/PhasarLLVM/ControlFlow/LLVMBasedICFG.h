@@ -33,8 +33,6 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <memory>
 
 namespace psr {
@@ -100,7 +98,7 @@ public:
   explicit LLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB);
 
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                         const nlohmann::json &SerializedCG);
+                         const CallGraphData &SerializedCG);
 
   // Deleter of LLVMTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
@@ -141,6 +139,8 @@ public:
   using CFGBase::print;
   using ICFGBase::print;
 
+  using ICFGBase::printAsJson;
+
   using CFGBase::getAsJson;
   using ICFGBase::getAsJson;
 
@@ -155,7 +155,8 @@ private:
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard]] nlohmann::json getAsJsonImpl() const;
+  void printAsJsonImpl(llvm::raw_ostream &OS) const;
+  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept {
     return CG;
   }
