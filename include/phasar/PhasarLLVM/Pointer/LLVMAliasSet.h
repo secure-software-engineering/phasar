@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
@@ -95,7 +96,11 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] nlohmann::json getAsJson() const;
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson() const;
+
+  [[nodiscard]] LLVMAliasSetData getLLVMAliasSetData() const;
 
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 

@@ -26,7 +26,6 @@
 #include <vector>
 
 namespace llvm {
-class Instruction;
 class CallBase;
 class Function;
 class Type;
@@ -38,21 +37,14 @@ namespace psr {
 class LLVMTypeHierarchy;
 
 class OTFResolver : public Resolver {
-protected:
-  LLVMAliasInfoRef PT;
-
 public:
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;
 
-  void preCall(const llvm::Instruction *Inst) override;
-
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
-
-  void postCall(const llvm::Instruction *Inst) override;
 
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
@@ -66,6 +58,14 @@ public:
                               const llvm::Function *CalleeTarget);
 
   [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return true;
+  }
+
+protected:
+  LLVMAliasInfoRef PT;
 };
 } // namespace psr
 

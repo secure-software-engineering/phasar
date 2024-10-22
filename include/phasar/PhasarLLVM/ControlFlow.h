@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_H
 
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
