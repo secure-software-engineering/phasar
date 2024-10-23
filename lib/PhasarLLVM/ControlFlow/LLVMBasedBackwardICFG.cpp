@@ -64,6 +64,10 @@ void LLVMBasedBackwardICFG::printImpl(llvm::raw_ostream &OS) const {
   ForwardICFG->print(OS);
 }
 
+void LLVMBasedBackwardICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
+  ForwardICFG->printAsJson(OS);
+}
+
 nlohmann::json LLVMBasedBackwardICFG::getAsJsonImpl() const {
   return ForwardICFG->getAsJson();
 }

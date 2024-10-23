@@ -13,39 +13,27 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 namespace llvm {
-class Instruction;
 class CallBase;
-class Function;
-class StructType;
 } // namespace llvm
 
 namespace psr {
 
 class NOResolver final : public Resolver {
-protected:
-  const llvm::Function *
-  getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                            const llvm::CallBase *CallSite);
-
 public:
-  NOResolver(const LLVMProjectIRDB *IRDB);
+  NOResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
 
   ~NOResolver() override = default;
-
-  void preCall(const llvm::Instruction *Inst) override;
-
-  void handlePossibleTargets(const llvm::CallBase *CallSite,
-                             FunctionSetTy &PossibleTargets) override;
-
-  void postCall(const llvm::Instruction *Inst) override;
 
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
-  void otherInst(const llvm::Instruction *Inst) override;
-
   [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
 };
 } // namespace psr
 

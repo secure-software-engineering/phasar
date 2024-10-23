@@ -13,6 +13,8 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "nlohmann/json.hpp"
+
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -272,6 +274,12 @@ template <typename T> using type_identity_t = typename type_identity<T>::type;
 
 template <typename Var, typename T>
 static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
+
+template <typename T, typename Enable = nlohmann::json>
+struct has_getAsJson : std::false_type {}; // NOLINT
+template <typename T>
+struct has_getAsJson<T, decltype(std::declval<const T>().getAsJson())>
+    : std::true_type {}; // NOLINT
 
 struct TrueFn {
   template <typename... Args>
