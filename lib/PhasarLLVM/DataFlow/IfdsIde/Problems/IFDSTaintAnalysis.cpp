@@ -416,12 +416,14 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
              llvm::zip(CS->args(), DestFun->args())) {
           if (Source == Arg.get()) {
             auto VecFacts = DestFunFacts.find(DestParam.getArgNo());
-            for (const auto &VecFact : VecFacts->second) {
-              if (const auto *Param =
-                      std::get_if<library_summary::Parameter>(&VecFact.Fact)) {
-                Facts.insert(CS->getArgOperand(Param->Index));
-              } else {
-                Facts.insert(CallSite);
+            if (VecFacts != DestFunFacts.end()) {
+              for (const auto &VecFact : VecFacts->second) {
+                if (const auto *Param = std::get_if<library_summary::Parameter>(
+                        &VecFact.Fact)) {
+                  Facts.insert(CS->getArgOperand(Param->Index));
+                } else {
+                  Facts.insert(CallSite);
+                }
               }
             }
           }
