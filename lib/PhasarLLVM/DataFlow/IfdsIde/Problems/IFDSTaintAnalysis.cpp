@@ -262,9 +262,8 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
       });
 }
 
-auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
-                                              [[maybe_unused]] n_t Succ)
-    -> FlowFunctionPtrType {
+auto IFDSTaintAnalysis::getNormalFlowFunction(
+    n_t Curr, [[maybe_unused]] n_t Succ) -> FlowFunctionPtrType {
   // If a tainted value is stored, the store location must be tainted too
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     container_type Gen;
@@ -329,10 +328,9 @@ auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   return mapFactsToCallee(CS, DestFun);
 }
 
-auto IFDSTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
-                                           n_t ExitStmt,
-                                           [[maybe_unused]] n_t RetSite)
-    -> FlowFunctionPtrType {
+auto IFDSTaintAnalysis::getRetFlowFunction(
+    n_t CallSite, f_t /*CalleeFun*/, n_t ExitStmt,
+    [[maybe_unused]] n_t RetSite) -> FlowFunctionPtrType {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
@@ -349,10 +347,9 @@ auto IFDSTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
   // All other stuff is killed at this point
 }
 
-auto IFDSTaintAnalysis::getCallToRetFlowFunction(n_t CallSite,
-                                                 [[maybe_unused]] n_t RetSite,
-                                                 llvm::ArrayRef<f_t> Callees)
-    -> FlowFunctionPtrType {
+auto IFDSTaintAnalysis::getCallToRetFlowFunction(
+    n_t CallSite, [[maybe_unused]] n_t RetSite,
+    llvm::ArrayRef<f_t> Callees) -> FlowFunctionPtrType {
 
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
@@ -416,12 +413,14 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
              llvm::zip(CS->args(), DestFun->args())) {
           if (Source == Arg.get()) {
             auto VecFacts = DestFunFacts.find(DestParam.getArgNo());
-            for (const auto &VecFact : VecFacts->second) {
-              if (const auto *Param =
-                      std::get_if<library_summary::Parameter>(&VecFact.Fact)) {
-                Facts.insert(CS->getArgOperand(Param->Index));
-              } else {
-                Facts.insert(CallSite);
+            if (VecFacts != DestFunFacts.end()) {
+              for (const auto &VecFact : VecFacts->second) {
+                if (const auto *Param = std::get_if<library_summary::Parameter>(
+                        &VecFact.Fact)) {
+                  Facts.insert(CS->getArgOperand(Param->Index));
+                } else {
+                  Facts.insert(CallSite);
+                }
               }
             }
           }
