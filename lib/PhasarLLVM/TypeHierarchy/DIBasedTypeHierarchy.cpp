@@ -200,6 +200,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
           VertexTypes.push_back(Composite);
           NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
 
+          if (getCompositeTypeName(Composite).empty()) {
+            llvm::errs() << "ERROR: Composite Type is empty: " << *Composite
+                         << '\n';
+            llvm::errs().flush();
+          }
+
           assert(!getCompositeTypeName(Composite).empty());
         }
       }
