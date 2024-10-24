@@ -196,18 +196,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         if (!llvm::is_contained(DwarfTags, Composite->getTag())) {
           continue;
         }
-        if (TypeToVertex.try_emplace(Composite, VertexTypes.size()).second) {
+        auto Name = getCompositeTypeName(Composite);
+        if (!Name.empty() &&
+            TypeToVertex.try_emplace(Composite, VertexTypes.size()).second) {
+
           VertexTypes.push_back(Composite);
-          NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
-
-          if (getCompositeTypeName(Composite).empty()) {
-            llvm::errs() << "ERROR: Composite Type is empty: " << *Composite
-                         << '\n';
-            IRDB.emitPreprocessedIR(llvm::errs());
-            llvm::errs().flush();
-          }
-
-          assert(!getCompositeTypeName(Composite).empty());
+          NameToType.try_emplace(Name, Composite);
         }
       }
     }
