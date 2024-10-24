@@ -10,7 +10,7 @@
 #include "AnalysisController.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "AnalysisControllerInternal.h"

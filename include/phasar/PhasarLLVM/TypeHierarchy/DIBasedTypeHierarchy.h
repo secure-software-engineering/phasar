@@ -33,10 +33,21 @@ public:
   using ClassType = const llvm::DIType *;
   using f_t = const llvm::Function *;
 
+  static inline constexpr llvm::StringLiteral StructPrefix = "struct.";
+  static inline constexpr llvm::StringLiteral ClassPrefix = "class.";
+  static inline constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
+  static inline constexpr llvm::StringLiteral VTablePrefixDemang =
+      "vtable for ";
+  static inline constexpr llvm::StringLiteral PureVirtualCallName =
+      "__cxa_pure_virtual";
+
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB *IRDB,
                                 const DIBasedTypeHierarchyData &SerializedData);
   ~DIBasedTypeHierarchy() override = default;
+
+  static bool isVTable(llvm::StringRef VarName);
+  static std::string removeVTablePrefix(llvm::StringRef VarName);
 
   [[nodiscard]] bool hasType(ClassType Type) const override {
     return TypeToVertex.count(Type);

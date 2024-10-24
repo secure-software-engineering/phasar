@@ -1,5 +1,5 @@
 FROM ubuntu:22.04
-ARG LLVM_INSTALL_DIR="/usr/local/llvm-14"
+ARG LLVM_INSTALL_DIR="/usr/local/llvm-15"
 LABEL Name=phasar Version=2403
 
 RUN apt -y update && apt install bash sudo -y
@@ -24,17 +24,17 @@ RUN apt-get update && \
     apt-get install -y software-properties-common
 
 RUN apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key && \
-           add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main' && \
+           add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-15 main' && \
            apt-get update && \
            apt-get -y install --no-install-recommends \
-              clang-14 \
-              llvm-14-dev \
-              libllvm14 \
-              libclang-common-14-dev \
-              libclang-14-dev \
-              libclang-cpp14-dev \
-              clang-tidy-14 \
-              libclang-rt-14-dev
+              clang-15 \
+              llvm-15-dev \
+              libllvm15 \
+              libclang-common-15-dev \
+              libclang-15-dev \
+              libclang-cpp15-dev \
+              clang-tidy-15 \
+              libclang-rt-15-dev
 
 RUN pip3 install Pygments pyyaml
 
@@ -43,8 +43,8 @@ RUN pip3 install Pygments pyyaml
 # installing wllvm
 RUN pip3 install wllvm
 
-ENV CC=/usr/bin/clang-14
-ENV CXX=/usr/bin/clang++-14
+ENV CC=/usr/bin/clang-15
+ENV CXX=/usr/bin/clang++-15
 
 COPY . /usr/src/phasar
 

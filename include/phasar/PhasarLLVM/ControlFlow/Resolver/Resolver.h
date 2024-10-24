@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/IR/DerivedTypes.h"
 
 #include <memory>
 #include <optional>
@@ -29,19 +30,19 @@ namespace llvm {
 class Instruction;
 class CallBase;
 class Function;
-class StructType;
+class DIType;
 } // namespace llvm
 
 namespace psr {
 class LLVMProjectIRDB;
 class LLVMVFTableProvider;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 enum class CallGraphAnalysisType;
 
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
 
-[[nodiscard]] const llvm::StructType *
+[[nodiscard]] const llvm::DIType *
 getReceiverType(const llvm::CallBase *CallSite);
 
 [[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
@@ -58,7 +59,7 @@ protected:
   const LLVMVFTableProvider *VTP;
 
   const llvm::Function *
-  getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+  getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                             const llvm::CallBase *CallSite);
 
 public:
@@ -95,7 +96,7 @@ public:
   static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,
                                           const LLVMProjectIRDB *IRDB,
                                           const LLVMVFTableProvider *VTP,
-                                          const LLVMTypeHierarchy *TH,
+                                          const DIBasedTypeHierarchy *TH,
                                           LLVMAliasInfoRef PT = nullptr);
 };
 } // namespace psr

@@ -120,7 +120,7 @@ TEST_F(AnalysisPrinterTest, HandleBasicTest_01) {
 TEST_F(AnalysisPrinterTest, XTaint01) {
   llvm::DenseMap<int, std::set<std::string>> GroundTruth;
 
-  GroundTruth[15] = {"8"};
+  GroundTruth[13] = {"7"};
   GroundTruthCollector GroundTruthPrinter = {GroundTruth};
   doAnalysisTest("xtaint01_cpp.ll", GroundTruthPrinter, std::monostate{});
 }

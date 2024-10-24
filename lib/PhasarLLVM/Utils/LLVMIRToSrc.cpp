@@ -12,7 +12,6 @@
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -56,7 +55,7 @@ static llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
   return nullptr;
 }
 
-static llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V) {
+llvm::DILocalVariable *psr::getDILocalVariable(const llvm::Value *V) {
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *DDI = llvm::dyn_cast<llvm::DbgDeclareInst>(DbgIntr)) {
       return DDI->getVariable();

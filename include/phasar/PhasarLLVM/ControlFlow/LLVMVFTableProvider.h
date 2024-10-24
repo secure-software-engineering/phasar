@@ -16,7 +16,7 @@
 
 namespace llvm {
 class Module;
-class StructType;
+class DIType;
 class GlobalVariable;
 } // namespace llvm
 
@@ -28,12 +28,12 @@ public:
   explicit LLVMVFTableProvider(const llvm::Module &Mod);
   explicit LLVMVFTableProvider(const LLVMProjectIRDB &IRDB);
 
-  [[nodiscard]] bool hasVFTable(const llvm::StructType *Type) const;
+  [[nodiscard]] bool hasVFTable(const llvm::DIType *Type) const;
   [[nodiscard]] const LLVMVFTable *
-  getVFTableOrNull(const llvm::StructType *Type) const;
+  getVFTableOrNull(const llvm::DIType *Type) const;
 
 private:
-  std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;
+  std::unordered_map<const llvm::DIType *, LLVMVFTable> TypeVFTMap;
 };
 } // namespace psr
 

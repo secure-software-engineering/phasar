@@ -146,10 +146,12 @@ LLVMTypeHierarchy::removeStructOrClassPrefix(const llvm::StructType &T) {
 std::string
 LLVMTypeHierarchy::removeStructOrClassPrefix(llvm::StringRef TypeName) {
   if (TypeName.startswith(StructPrefix)) {
-    return TypeName.drop_front(StructPrefix.size()).str();
+    TypeName = TypeName.drop_front(StructPrefix.size());
+  } else if (TypeName.startswith(ClassPrefix)) {
+    TypeName = TypeName.drop_front(ClassPrefix.size());
   }
-  if (TypeName.startswith(ClassPrefix)) {
-    return TypeName.drop_front(ClassPrefix.size()).str();
+  if (TypeName.endswith(".base")) {
+    TypeName = TypeName.drop_back(llvm::StringRef(".base").size());
   }
   return TypeName.str();
 }
@@ -231,18 +233,15 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
     if (const auto *I =
             llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
       for (const auto &Op : I->operands()) {
-        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
-          if (auto *BC = llvm::dyn_cast<llvm::BitCastOperator>(CE)) {
-            if (BC->getOperand(0)->hasName()) {
-              auto Name = BC->getOperand(0)->getName();
-              if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
-                auto ClearName =
-                    removeTypeInfoPrefix(llvm::demangle(Name.str()));
-                if (auto TypeIt = ClearNameTypeMap.find(ClearName);
-                    TypeIt != ClearNameTypeMap.end()) {
-                  SubTypes.push_back(TypeIt->second);
-                }
-              }
+        const auto *CE = Op->stripPointerCastsAndAliases();
+
+        if (CE->hasName()) {
+          auto Name = CE->getName();
+          if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
+            auto ClearName = removeTypeInfoPrefix(llvm::demangle(Name.str()));
+            if (auto TyIt = ClearNameTypeMap.find(ClearName);
+                TyIt != ClearNameTypeMap.end()) {
+              SubTypes.push_back(TyIt->second);
             }
           }
         }
@@ -329,14 +328,24 @@ LLVMTypeHierarchy::getSubTypes(const llvm::StructType *Type) const {
   return {};
 }
 
-const llvm::StructType *
-LLVMTypeHierarchy::getType(llvm::StringRef TypeName) const {
+template <typename GraphT>
+static const llvm::StructType *getTypeImpl(const GraphT &TypeGraph,
+                                           llvm::StringRef TypeName) {
   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
     if (TypeGraph[V].Type->getName() == TypeName) {
       return TypeGraph[V].Type;
     }
   }
   return nullptr;
+}
+
+const llvm::StructType *
+LLVMTypeHierarchy::getType(llvm::StringRef TypeName) const {
+  if (const auto *Ty = getTypeImpl(TypeGraph, TypeName)) {
+    return Ty;
+  }
+
+  return getTypeImpl(TypeGraph, (TypeName + ".base").str());
 }
 
 std::vector<const llvm::StructType *> LLVMTypeHierarchy::getAllTypes() const {

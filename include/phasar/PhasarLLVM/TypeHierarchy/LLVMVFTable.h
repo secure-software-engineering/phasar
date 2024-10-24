@@ -23,6 +23,7 @@ class ConstantStruct;
 } // namespace llvm
 
 namespace psr {
+class DIBasedTypeHierarchy;
 
 /**
  * 	@brief Represents a virtual method table.
@@ -31,8 +32,8 @@ namespace psr {
  * 	virtual method table matters.
  */
 class LLVMVFTable : public VFTable<const llvm::Function *> {
+
 private:
-  friend class LLVMTypeHierarchy;
   friend class DIBasedTypeHierarchy;
   std::vector<const llvm::Function *> VFT;
 

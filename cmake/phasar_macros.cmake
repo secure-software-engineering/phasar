@@ -76,13 +76,6 @@ function(generate_ll_file)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-    list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
-  endif()
-  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-    list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
-  endif()
-
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
     list(APPEND GEN_C_FLAGS -Xclang -disable-O0-optnone)
@@ -128,7 +121,7 @@ function(generate_ll_file)
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM

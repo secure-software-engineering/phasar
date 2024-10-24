@@ -32,7 +32,7 @@ class StructType;
 namespace psr {
 
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 
 class InterMonoFullConstantPropagation
     : public IntraMonoFullConstantPropagation,
@@ -48,7 +48,7 @@ public:
   using mono_container_t = IntraMonoFullConstantPropagation::mono_container_t;
 
   InterMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
+                                   const DIBasedTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
                                    LLVMAliasInfoRef PT,
                                    std::vector<std::string> EntryPoints = {});

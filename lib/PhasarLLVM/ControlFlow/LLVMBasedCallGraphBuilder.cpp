@@ -273,9 +273,9 @@ auto psr::buildLLVMBasedCallGraph(
 
 auto psr::buildLLVMBasedCallGraph(
     LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    llvm::ArrayRef<const llvm::Function *> EntryPoints, LLVMTypeHierarchy &TH,
-    LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT, Soundness S)
-    -> LLVMBasedCallGraph {
+    llvm::ArrayRef<const llvm::Function *> EntryPoints,
+    DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
+    Soundness S) -> LLVMBasedCallGraph {
 
   LLVMAliasInfo PTOwn;
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
@@ -290,7 +290,7 @@ auto psr::buildLLVMBasedCallGraph(
 auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB,
                                   CallGraphAnalysisType CGType,
                                   llvm::ArrayRef<std::string> EntryPoints,
-                                  LLVMTypeHierarchy &TH,
+                                  DIBasedTypeHierarchy &TH,
                                   LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
                                   Soundness S) -> LLVMBasedCallGraph {
   auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);

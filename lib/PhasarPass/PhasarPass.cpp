@@ -32,7 +32,7 @@
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarPass/Options.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -62,7 +62,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   }
   // set up the call-graph algorithm to be used
   CallGraphAnalysisType CGTy = toCallGraphAnalysisType(CallGraphAnalysis);
-  LLVMTypeHierarchy H(DB);
+  DIBasedTypeHierarchy H(DB);
   LLVMAliasSet PT(&DB);
   // LLVMBasedCFG CFG;
   LLVMBasedICFG I(&DB, CGTy, EntryPoints, &H, &PT);

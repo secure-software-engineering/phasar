@@ -26,7 +26,7 @@ class Module;
 
 namespace psr {
 class LLVMProjectIRDB;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMBasedCFG;
 class LLVMAliasSet;
@@ -60,14 +60,14 @@ public:
 
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
   [[nodiscard]] LLVMAliasSet &getAliasInfo();
-  [[nodiscard]] LLVMTypeHierarchy &getTypeHierarchy();
+  [[nodiscard]] DIBasedTypeHierarchy &getTypeHierarchy();
   [[nodiscard]] LLVMBasedICFG &getICFG();
   [[nodiscard]] LLVMBasedCFG &getCFG();
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<LLVMAliasSet> PT;
-  std::unique_ptr<LLVMTypeHierarchy> TH;
+  std::unique_ptr<DIBasedTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
   std::unique_ptr<LLVMBasedCFG> CFG;
 
