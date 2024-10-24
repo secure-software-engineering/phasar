@@ -131,7 +131,8 @@ public:
   void print(ByConstRef<f_t> Fun, llvm::raw_ostream &OS) const {
     self().printImpl(Fun, OS);
   }
-  [[nodiscard]] nlohmann::json getAsJson(ByConstRef<f_t> Fun) const {
+  [[nodiscard, deprecated("Please use printAsJson() instead")]] nlohmann::json
+  getAsJson(ByConstRef<f_t> Fun) const {
     return self().getAsJsonImpl(Fun);
   }
 

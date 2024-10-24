@@ -50,12 +50,13 @@ getReceiverType(const llvm::CallBase *CallSite);
 [[nodiscard]] bool isConsistentCall(const llvm::CallBase *CallSite,
                                     const llvm::Function *DestFun);
 
+[[nodiscard]] bool isVirtualCall(const llvm::Instruction *Inst,
+                                 const LLVMVFTableProvider &VTP);
+
 class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;
   const LLVMVFTableProvider *VTP;
-
-  Resolver(const LLVMProjectIRDB *IRDB);
 
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
@@ -75,14 +76,23 @@ public:
 
   virtual void postCall(const llvm::Instruction *Inst);
 
-  virtual FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) = 0;
+  [[nodiscard]] FunctionSetTy
+  resolveIndirectCall(const llvm::CallBase *CallSite);
 
-  virtual FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite);
+  [[nodiscard]] virtual FunctionSetTy
+  resolveVirtualCall(const llvm::CallBase *CallSite) = 0;
+
+  [[nodiscard]] virtual FunctionSetTy
+  resolveFunctionPointer(const llvm::CallBase *CallSite);
 
   virtual void otherInst(const llvm::Instruction *Inst);
 
   [[nodiscard]] virtual std::string str() const = 0;
 
+  [[nodiscard]] virtual bool mutatesHelperAnalysisInformation() const noexcept {
+    // Conservatively returns true. Override if possible
+    return true;
+  }
   static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,
                                           const LLVMProjectIRDB *IRDB,
                                           const LLVMVFTableProvider *VTP,

@@ -23,9 +23,6 @@
 
 namespace llvm {
 class CallBase;
-class StructType;
-class Function;
-class StructType;
 class DICompositeType;
 } // namespace llvm
 
@@ -41,6 +38,11 @@ public:
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
 
 private:
   void resolveAllocatedCompositeTypes();

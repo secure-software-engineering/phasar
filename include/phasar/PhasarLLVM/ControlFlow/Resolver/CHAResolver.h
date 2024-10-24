@@ -22,7 +22,6 @@
 
 namespace llvm {
 class CallBase;
-class Function;
 } // namespace llvm
 
 namespace psr {
@@ -37,6 +36,11 @@ public:
   FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
 
 protected:
   MaybeUniquePtr<const DIBasedTypeHierarchy, true> TH;

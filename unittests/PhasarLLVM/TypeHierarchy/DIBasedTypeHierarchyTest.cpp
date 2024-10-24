@@ -24,9 +24,9 @@ TEST(DBTHTest, BasicTHReconstruction_1) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -44,9 +44,9 @@ TEST(DBTHTest, BasicTHReconstruction_2) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -64,9 +64,9 @@ TEST(DBTHTest, BasicTHReconstruction_3) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -84,9 +84,9 @@ TEST(DBTHTest, BasicTHReconstruction_4) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -104,11 +104,11 @@ TEST(DBTHTest, BasicTHReconstruction_5) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 3U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &OtherBaseType = DBTH.getType("OtherBase");
+  const auto &OtherBaseType = DBTH.getType("_ZTS9OtherBase");
   ASSERT_NE(nullptr, OtherBaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -129,9 +129,9 @@ TEST(DBTHTest, BasicTHReconstruction_6) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -149,19 +149,19 @@ TEST(DBTHTest, BasicTHReconstruction_7) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 7U);
-  const auto &AType = DBTH.getType("A");
+  const auto &AType = DBTH.getType("_ZTS1A");
   ASSERT_NE(nullptr, AType);
-  const auto &BType = DBTH.getType("B");
+  const auto &BType = DBTH.getType("_ZTS1B");
   ASSERT_NE(nullptr, BType);
-  const auto &CType = DBTH.getType("C");
+  const auto &CType = DBTH.getType("_ZTS1C");
   ASSERT_NE(nullptr, CType);
-  const auto &DType = DBTH.getType("D");
+  const auto &DType = DBTH.getType("_ZTS1D");
   ASSERT_NE(nullptr, DType);
-  const auto &XType = DBTH.getType("X");
+  const auto &XType = DBTH.getType("_ZTS1X");
   ASSERT_NE(nullptr, XType);
-  const auto &YType = DBTH.getType("Y");
+  const auto &YType = DBTH.getType("_ZTS1Y");
   ASSERT_NE(nullptr, YType);
-  const auto &ZType = DBTH.getType("Z");
+  const auto &ZType = DBTH.getType("_ZTS1Z");
   ASSERT_NE(nullptr, ZType);
 
   EXPECT_TRUE(DBTH.hasType(AType));
@@ -202,15 +202,15 @@ TEST(DBTHTest, BasicTHReconstruction_7_b) {
   EXPECT_EQ(DBTH.getAllTypes().size(), 6U);
   const auto &AType = DBTH.getType("A");
   ASSERT_NE(nullptr, AType);
-  const auto &CType = DBTH.getType("C");
+  const auto &CType = DBTH.getType("_ZTS1C");
   ASSERT_NE(nullptr, CType);
   const auto &XType = DBTH.getType("X");
   ASSERT_NE(nullptr, XType);
-  const auto &YType = DBTH.getType("Y");
+  const auto &YType = DBTH.getType("_ZTS1Y");
   ASSERT_NE(nullptr, YType);
-  const auto &ZType = DBTH.getType("Z");
+  const auto &ZType = DBTH.getType("_ZTS1Z");
   ASSERT_NE(nullptr, ZType);
-  const auto &OmegaType = DBTH.getType("Omega");
+  const auto &OmegaType = DBTH.getType("_ZTS5Omega");
   ASSERT_NE(nullptr, OmegaType);
 
   EXPECT_TRUE(DBTH.hasType(AType));
@@ -247,13 +247,13 @@ TEST(DBTHTest, BasicTHReconstruction_8) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 4U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &NonvirtualClassType = DBTH.getType("NonvirtualClass");
+  const auto &NonvirtualClassType = DBTH.getType("_ZTS15NonvirtualClass");
   EXPECT_NE(nullptr, NonvirtualClassType);
-  const auto &NonvirtualStructType = DBTH.getType("NonvirtualStruct");
+  const auto &NonvirtualStructType = DBTH.getType("_ZTS16NonvirtualStruct");
   EXPECT_NE(nullptr, NonvirtualStructType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -273,9 +273,9 @@ TEST(DBTHTest, BasicTHReconstruction_9) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -293,9 +293,9 @@ TEST(DBTHTest, BasicTHReconstruction_10) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -313,9 +313,9 @@ TEST(DBTHTest, BasicTHReconstruction_11) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -333,9 +333,9 @@ TEST(DBTHTest, BasicTHReconstruction_12) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -357,7 +357,7 @@ TEST(DBTHTest, BasicTHReconstruction_12_b) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  const auto &ChildsChildType = DBTH.getType("_ZTS11ChildsChild");
   ASSERT_NE(nullptr, ChildsChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -380,7 +380,7 @@ TEST(DBTHTest, BasicTHReconstruction_12_c) {
   EXPECT_EQ(DBTH.getAllTypes().size(), 2U);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  const auto &ChildsChildType = DBTH.getType("_ZTS11ChildsChild");
   ASSERT_NE(nullptr, ChildsChildType);
 
   EXPECT_TRUE(DBTH.hasType(ChildType));
@@ -439,16 +439,16 @@ TEST(DBTHTest, BasicTHReconstruction_16) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
   // Since ChildsChild is never used, it is optimized out
   // const auto &ChildsChildType = DBTH.getType("ChildsChild");
   // ASSERT_EQ(nullptr, ChildsChildType);
-  const auto &BaseTwoType = DBTH.getType("BaseTwo");
+  const auto &BaseTwoType = DBTH.getType("_ZTS7BaseTwo");
   ASSERT_NE(nullptr, BaseTwoType);
-  const auto &ChildTwoType = DBTH.getType("ChildTwo");
+  const auto &ChildTwoType = DBTH.getType("_ZTS8ChildTwo");
   ASSERT_NE(nullptr, ChildTwoType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -475,16 +475,16 @@ TEST(DBTHTest, BasicTHReconstruction_17) {
 
   // check for all types
   // EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
   // const auto &Child2Type = DBTH.getType("Child2");
   // Since Child2Type is never used, it is optimized out
   // ASSERT_EQ(nullptr, Child2Type);
-  const auto &Base2Type = DBTH.getType("Base2");
+  const auto &Base2Type = DBTH.getType("_ZTS5Base2");
   ASSERT_NE(nullptr, Base2Type);
-  const auto &KidType = DBTH.getType("Kid");
+  const auto &KidType = DBTH.getType("_ZTS3Kid");
   ASSERT_NE(nullptr, KidType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -511,14 +511,14 @@ TEST(DBTHTest, BasicTHReconstruction_18) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 4U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
   // const auto &Child_2Type = DBTH.getType("Child_2");
   //  Since Child2Type is never used, it is optimized out
   //  ASSERT_EQ(nullptr, Child2Type);
-  const auto &Child3Type = DBTH.getType("Child_3");
+  const auto &Child3Type = DBTH.getType("_ZTS7Child_3");
   ASSERT_NE(nullptr, Child3Type);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -544,17 +544,17 @@ TEST(DBTHTest, BasicTHReconstruction_19) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 6U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &FooType = DBTH.getType("Foo");
+  const auto &FooType = DBTH.getType("_ZTS3Foo");
   ASSERT_NE(nullptr, FooType);
-  const auto &BarType = DBTH.getType("Bar");
+  const auto &BarType = DBTH.getType("_ZTS3Bar");
   ASSERT_NE(nullptr, BarType);
-  const auto &LoremType = DBTH.getType("Lorem");
+  const auto &LoremType = DBTH.getType("_ZTS5Lorem");
   ASSERT_NE(nullptr, LoremType);
-  const auto &ImpsumType = DBTH.getType("Impsum");
+  const auto &ImpsumType = DBTH.getType("_ZTS6Impsum");
   ASSERT_NE(nullptr, ImpsumType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -580,11 +580,11 @@ TEST(DBTHTest, BasicTHReconstruction_20) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 3U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &Base2Type = DBTH.getType("Base2");
+  const auto &Base2Type = DBTH.getType("_ZTS5Base2");
   ASSERT_NE(nullptr, Base2Type);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -605,15 +605,15 @@ TEST(DBTHTest, BasicTHReconstruction_21) {
 
   // check for all types
   EXPECT_EQ(DBTH.getAllTypes().size(), 5U);
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &Base2Type = DBTH.getType("Base2");
+  const auto &Base2Type = DBTH.getType("_ZTS5Base2");
   ASSERT_NE(nullptr, Base2Type);
-  const auto &Base3Type = DBTH.getType("Base3");
+  const auto &Base3Type = DBTH.getType("_ZTS5Base3");
   ASSERT_NE(nullptr, Base3Type);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child2Type = DBTH.getType("Child2");
+  const auto &Child2Type = DBTH.getType("_ZTS6Child2");
   ASSERT_NE(nullptr, Child2Type);
 
   EXPECT_TRUE(DBTH.hasType(BaseType));
@@ -645,9 +645,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_1) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -667,9 +667,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_2) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -689,9 +689,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_3) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -709,9 +709,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_4) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -731,11 +731,11 @@ TEST(DBTHTest, TransitivelyReachableTypes_5) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &OtherBaseType = DBTH.getType("OtherBase");
+  const auto &OtherBaseType = DBTH.getType("_ZTS9OtherBase");
   ASSERT_NE(nullptr, OtherBaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -760,9 +760,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_6) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -782,19 +782,19 @@ TEST(DBTHTest, TransitivelyReachableTypes_7) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &AType = DBTH.getType("A");
+  const auto &AType = DBTH.getType("_ZTS1A");
   ASSERT_NE(nullptr, AType);
-  const auto &BType = DBTH.getType("B");
+  const auto &BType = DBTH.getType("_ZTS1B");
   ASSERT_NE(nullptr, BType);
-  const auto &CType = DBTH.getType("C");
+  const auto &CType = DBTH.getType("_ZTS1C");
   ASSERT_NE(nullptr, CType);
-  const auto &DType = DBTH.getType("D");
+  const auto &DType = DBTH.getType("_ZTS1D");
   ASSERT_NE(nullptr, DType);
-  const auto &XType = DBTH.getType("X");
+  const auto &XType = DBTH.getType("_ZTS1X");
   ASSERT_NE(nullptr, XType);
-  const auto &YType = DBTH.getType("Y");
+  const auto &YType = DBTH.getType("_ZTS1Y");
   ASSERT_NE(nullptr, YType);
-  const auto &ZType = DBTH.getType("Z");
+  const auto &ZType = DBTH.getType("_ZTS1Z");
   ASSERT_NE(nullptr, ZType);
 
   auto ReachableTypesA = DBTH.getSubTypes(AType);
@@ -878,15 +878,15 @@ TEST(DBTHTest, TransitivelyReachableTypes_7_b) {
   // check for all types
   const auto &AType = DBTH.getType("A");
   ASSERT_NE(nullptr, AType);
-  const auto &CType = DBTH.getType("C");
+  const auto &CType = DBTH.getType("_ZTS1C");
   ASSERT_NE(nullptr, CType);
   const auto &XType = DBTH.getType("X");
   ASSERT_NE(nullptr, XType);
-  const auto &YType = DBTH.getType("Y");
+  const auto &YType = DBTH.getType("_ZTS1Y");
   ASSERT_NE(nullptr, YType);
-  const auto &ZType = DBTH.getType("Z");
+  const auto &ZType = DBTH.getType("_ZTS1Z");
   ASSERT_NE(nullptr, ZType);
-  const auto &OmegaType = DBTH.getType("Omega");
+  const auto &OmegaType = DBTH.getType("_ZTS5Omega");
   ASSERT_NE(nullptr, OmegaType);
 
   auto ReachableTypesA = DBTH.getSubTypes(AType);
@@ -952,13 +952,13 @@ TEST(DBTHTest, TransitivelyReachableTypes_8) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &NonvirtualClassType = DBTH.getType("NonvirtualClass");
+  const auto &NonvirtualClassType = DBTH.getType("_ZTS15NonvirtualClass");
   ASSERT_NE(nullptr, NonvirtualClassType);
-  const auto &NonvirtualStructType = DBTH.getType("NonvirtualStruct");
+  const auto &NonvirtualStructType = DBTH.getType("_ZTS16NonvirtualStruct");
   ASSERT_NE(nullptr, NonvirtualStructType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -998,9 +998,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_9) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1020,9 +1020,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_10) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1042,9 +1042,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_11) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1064,9 +1064,9 @@ TEST(DBTHTest, TransitivelyReachableTypes_12) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1090,7 +1090,7 @@ TEST(DBTHTest, TransitivelyReachableTypes_12_b) {
   ASSERT_NE(nullptr, BaseType);
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  const auto &ChildsChildType = DBTH.getType("_ZTS11ChildsChild");
   ASSERT_NE(nullptr, ChildsChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1119,7 +1119,7 @@ TEST(DBTHTest, TransitivelyReachableTypes_12_c) {
   // check for all types
   const auto &ChildType = DBTH.getType("Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &ChildsChildType = DBTH.getType("ChildsChild");
+  const auto &ChildsChildType = DBTH.getType("_ZTS11ChildsChild");
   ASSERT_NE(nullptr, ChildsChildType);
 
   auto ReachableTypesChild = DBTH.getSubTypes(ChildType);
@@ -1182,16 +1182,16 @@ TEST(DBTHTest, TransitivelyReachableTypes_16) {
                        "type_hierarchies/type_hierarchy_16_cpp_dbg.ll");
   DIBasedTypeHierarchy DBTH(IRDB);
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
   // const auto &ChildsChildType = DBTH.getType("ChildsChild");
   //  Since ChildsChild is never used, it is optimized out
   //  ASSERT_EQ(nullptr, ChildsChildType);
-  const auto &BaseTwoType = DBTH.getType("BaseTwo");
+  const auto &BaseTwoType = DBTH.getType("_ZTS7BaseTwo");
   ASSERT_NE(nullptr, BaseTwoType);
-  const auto &ChildTwoType = DBTH.getType("ChildTwo");
+  const auto &ChildTwoType = DBTH.getType("_ZTS8ChildTwo");
   ASSERT_NE(nullptr, ChildTwoType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1227,16 +1227,16 @@ TEST(DBTHTest, TransitivelyReachableTypes_17) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
   // const auto &Child2Type = DBTH.getType("Child2");
   // Since Child2 is never used, it is optimized out
   // ASSERT_EQ(nullptr, Child2Type);
-  const auto &Base2Type = DBTH.getType("Base2");
+  const auto &Base2Type = DBTH.getType("_ZTS5Base2");
   ASSERT_NE(nullptr, Base2Type);
-  const auto &KidType = DBTH.getType("Kid");
+  const auto &KidType = DBTH.getType("_ZTS3Kid");
   ASSERT_NE(nullptr, KidType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1272,13 +1272,13 @@ TEST(DBTHTest, TransitivelyReachableTypes_18) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child2Type = DBTH.getType("Child_2");
+  const auto &Child2Type = DBTH.getType("_ZTS7Child_2");
   ASSERT_NE(nullptr, Child2Type);
-  const auto &Child3Type = DBTH.getType("Child_3");
+  const auto &Child3Type = DBTH.getType("_ZTS7Child_3");
   ASSERT_NE(nullptr, Child3Type);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1310,17 +1310,17 @@ TEST(DBTHTest, TransitivelyReachableTypes_19) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &FooType = DBTH.getType("Foo");
+  const auto &FooType = DBTH.getType("_ZTS3Foo");
   ASSERT_NE(nullptr, FooType);
-  const auto &BarType = DBTH.getType("Bar");
+  const auto &BarType = DBTH.getType("_ZTS3Bar");
   ASSERT_NE(nullptr, BarType);
-  const auto &LoremType = DBTH.getType("Lorem");
+  const auto &LoremType = DBTH.getType("_ZTS5Lorem");
   ASSERT_NE(nullptr, LoremType);
-  const auto &ImpsumType = DBTH.getType("Impsum");
+  const auto &ImpsumType = DBTH.getType("_ZTS6Impsum");
   ASSERT_NE(nullptr, ImpsumType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1359,11 +1359,11 @@ TEST(DBTHTest, TransitivelyReachableTypes_20) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &Base2Type = DBTH.getType("Base2");
+  const auto &Base2Type = DBTH.getType("_ZTS5Base2");
   ASSERT_NE(nullptr, Base2Type);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);
@@ -1389,15 +1389,15 @@ TEST(DBTHTest, TransitivelyReachableTypes_21) {
   DIBasedTypeHierarchy DBTH(IRDB);
 
   // check for all types
-  const auto &BaseType = DBTH.getType("Base");
+  const auto &BaseType = DBTH.getType("_ZTS4Base");
   ASSERT_NE(nullptr, BaseType);
-  const auto &Base2Type = DBTH.getType("Base2");
+  const auto &Base2Type = DBTH.getType("_ZTS5Base2");
   ASSERT_NE(nullptr, Base2Type);
-  const auto &Base3Type = DBTH.getType("Base3");
+  const auto &Base3Type = DBTH.getType("_ZTS5Base3");
   ASSERT_NE(nullptr, Base3Type);
-  const auto &ChildType = DBTH.getType("Child");
+  const auto &ChildType = DBTH.getType("_ZTS5Child");
   ASSERT_NE(nullptr, ChildType);
-  const auto &Child2Type = DBTH.getType("Child2");
+  const auto &Child2Type = DBTH.getType("_ZTS6Child2");
   ASSERT_NE(nullptr, Child2Type);
 
   auto ReachableTypesBase = DBTH.getSubTypes(BaseType);

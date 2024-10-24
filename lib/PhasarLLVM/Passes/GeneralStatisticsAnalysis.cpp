@@ -23,6 +23,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/Format.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -289,31 +290,55 @@ GeneralStatistics::getRetResInstructions() const {
 }
 
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
-  OS << getAsJson() << '\n';
+  nlohmann::json Json;
+
+  Json["ModuleName"] = ModuleName;
+  Json["Instructions"] = Instructions;
+  Json["Functions"] = Functions;
+  Json["ExternalFunctions"] = ExternalFunctions;
+  Json["FunctionDefinitions"] = FunctionDefinitions;
+  Json["AddressTakenFunctions"] = AddressTakenFunctions;
+  Json["Globals"] = Globals;
+  Json["GlobalConsts"] = GlobalConsts;
+  Json["GlobalVariables"] = Globals - GlobalConsts;
+  Json["ExternalGlobals"] = ExternalGlobals;
+  Json["GlobalsDefinitions"] = GlobalsDefinitions;
+  Json["AllocaInstructions"] = AllocaInstructions.size();
+  Json["CallSites"] = CallSites;
+  Json["IndirectCallSites"] = IndCalls;
+  Json["NumInlineAssembly"] = NumInlineAsm;
+  Json["MemoryIntrinsics"] = MemIntrinsics;
+  Json["DebugIntrinsics"] = DebugIntrinsics;
+  Json["Switches"] = Switches;
+  Json["GetElementPtrs"] = GetElementPtrs;
+  Json["PhiNodes"] = PhiNodes;
+  Json["LandingPads"] = LandingPads;
+  Json["BasicBlocks"] = BasicBlocks;
+  Json["TotalNumPredecessorBBs"] = TotalNumPredecessorBBs;
+  Json["Branches"] = Branches;
+  Json["AvgPredPerBasicBlock"] =
+      double(TotalNumPredecessorBBs) / double(BasicBlocks);
+  Json["MaxPredPerBasicBlock"] = MaxNumPredecessorBBs;
+  Json["AvgSuccPerBasicBlock"] =
+      double(TotalNumSuccessorBBs) / double(BasicBlocks);
+  Json["MaxSuccPerBasicBlock"] = MaxNumSuccessorBBs;
+  Json["AvgOperandsPerInst"] = double(TotalNumOperands) / double(Instructions);
+  Json["MaxNumOperandsPerInst"] = MaxNumOperands;
+  Json["AvgUsesPerInst"] = double(TotalNumUses) / double(Instructions);
+  Json["MaxUsesPerInst"] = MaxNumUses;
+  Json["NumInstWithMultipleUses"] = NumInstWithMultipleUses;
+  Json["NonVoidInsts"] = NonVoidInsts;
+  Json["NumInstsUsedOutsideBB"] = NumInstsUsedOutsideBB;
+
+  OS << Json << '\n';
 }
 
 nlohmann::json GeneralStatistics::getAsJson() const {
-  nlohmann::json J;
-  J["ModuleName"] = ModuleName;
-  J["Instructions"] = Instructions;
-  J["Functions"] = Functions;
-  J["ExternalFunctions"] = ExternalFunctions;
-  J["FunctionDefinitions"] = FunctionDefinitions;
-  J["AddressTakenFunctions"] = AddressTakenFunctions;
-  J["AllocaInstructions"] = AllocaInstructions.size();
-  J["CallSites"] = CallSites;
-  J["IndirectCallSites"] = IndCalls;
-  J["MemoryIntrinsics"] = MemIntrinsics;
-  J["DebugIntrinsics"] = DebugIntrinsics;
-  J["InlineAssembly"] = NumInlineAsm;
-  J["GlobalVariables"] = Globals;
-  J["Branches"] = Branches;
-  J["GetElementPtrs"] = GetElementPtrs;
-  J["BasicBlocks"] = BasicBlocks;
-  J["PhiNodes"] = PhiNodes;
-  J["LandingPads"] = LandingPads;
-  J["GlobalConsts"] = GlobalConsts;
-  return J;
+  std::string GeneralStatisticsAsString;
+  llvm::raw_string_ostream Stream(GeneralStatisticsAsString);
+  printAsJson(Stream);
+
+  return nlohmann::json::parse(GeneralStatisticsAsString);
 }
 
 } // namespace psr
@@ -377,6 +402,7 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
          << AlignNum("Phi Nodes", Statistics.PhiNodes)
          << AlignNum("LandingPads", Statistics.LandingPads)
          << AlignNum("Basic Blocks", Statistics.BasicBlocks)
+         << AlignNum("Branches", Statistics.Branches)
          << AlignNum("Avg #pred per BasicBlock",
                      Statistics.TotalNumPredecessorBBs, Statistics.BasicBlocks)
          << AlignNum("Max #pred per BasicBlock",
