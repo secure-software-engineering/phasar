@@ -303,19 +303,25 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE void assertNotNull(const T & /*Value*/) {}
-
-template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE void
-assertNotNull([[maybe_unused]] const std::optional<T> &Value) {
-  assert(Value.has_value());
+template <typename T> LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
+  return Value;
 }
 
 template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE void
-assertNotNull([[maybe_unused]] const T *Value) {
+LLVM_ATTRIBUTE_ALWAYS_INLINE const T &
+assertNotNull(const std::optional<T> &Value) {
+  assert(Value.has_value());
+  return *Value;
+}
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(std::optional<T> &Value) {
+  assert(Value.has_value());
+  return *Value;
+}
+
+template <typename T> LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T *Value) {
   assert(Value != nullptr);
+  return *Value;
 }
 
 template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {

@@ -43,6 +43,12 @@ public:
                 std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
              const i_t *ICF)
+      : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(&IFDSProblem, ICF) {}
+  template <typename IfdsDomainTy,
+            typename = std::enable_if_t<
+                std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
+  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
+             const i_t *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
 
   ~IFDSSolver() override = default;
@@ -99,6 +105,10 @@ public:
 
 template <typename Problem, typename ICF>
 IFDSSolver(Problem &, ICF *)
+    -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type>;
+template <typename Problem, typename ICF>
+IFDSSolver(Problem *, ICF *)
     -> IFDSSolver<typename Problem::ProblemAnalysisDomain,
                   typename Problem::container_type>;
 

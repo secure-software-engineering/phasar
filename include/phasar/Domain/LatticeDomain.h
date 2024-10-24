@@ -280,4 +280,19 @@ struct NonTopBotValue<
 
 } // namespace psr
 
+namespace std {
+template <typename L> struct hash<psr::LatticeDomain<L>> {
+  size_t operator()(const psr::LatticeDomain<L> &LD) noexcept {
+    if (LD.isBottom()) {
+      return SIZE_MAX;
+    }
+    if (LD.isTop()) {
+      return SIZE_MAX - 1;
+    }
+    assert(LD.getValueOrNull() != nullptr);
+    return std::hash<L>{}(*LD.getValueOrNull());
+  }
+};
+} // namespace std
+
 #endif

@@ -746,7 +746,8 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 // Printing functions:
 
 void IDEExtendedTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
+    GenericSolverResults<n_t, d_t, l_t> SR, llvm::raw_ostream &OS) {
+  OS << "===== IDEExtendedTaintAnalysis-Results =====\n";
 
   if (!PostProcessed) {
     doPostProcessing(SR);
@@ -834,7 +835,7 @@ IDEExtendedTaintAnalysis::getApproxLoadFrom(const llvm::Value *V) const {
 }
 
 void IDEExtendedTaintAnalysis::doPostProcessing(
-    const SolverResults<n_t, d_t, l_t> &SR) {
+    GenericSolverResults<n_t, d_t, l_t> SR) {
   PostProcessed = true;
   llvm::SmallVector<const llvm::Instruction *> RemInst;
   for (auto &[Inst, PotentialLeaks] : Leaks) {
@@ -894,7 +895,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
 }
 
 const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
-    const SolverResults<n_t, d_t, l_t> &SR) & {
+    GenericSolverResults<n_t, d_t, l_t> SR) & {
   if (!PostProcessed) {
     doPostProcessing(SR);
   }
@@ -902,7 +903,7 @@ const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
 }
 
 LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
-    const SolverResults<n_t, d_t, l_t> &SR) && {
+    GenericSolverResults<n_t, d_t, l_t> SR) && {
   if (!PostProcessed) {
     doPostProcessing(SR);
   }

@@ -22,6 +22,7 @@
 
 #include "llvm/Support/raw_ostream.h"
 
+#include <optional>
 #include <set>
 #include <tuple>
 #include <type_traits>
@@ -81,6 +82,24 @@ public:
   [[nodiscard]] bool empty() const noexcept { return Tab.empty(); }
 
   [[nodiscard]] size_t size() const noexcept { return Tab.size(); }
+
+  [[nodiscard]] size_t getApproxSizeInBytes() const noexcept {
+    size_t Sz =
+        Tab.bucket_count() * sizeof(void *) +
+        Tab.size() *
+            sizeof(
+                std::tuple<void *, void *, typename decltype(Tab)::value_type>);
+
+    for (const auto &[RowKey, Row] : Tab) {
+      Sz +=
+          Row.bucket_count() * sizeof(void *) +
+          Row.size() *
+              sizeof(
+                  std::tuple<void *, void *,
+                             typename std::decay_t<decltype(Row)>::value_type>);
+    }
+    return Sz;
+  }
 
   [[nodiscard]] std::set<Cell> cellSet() const {
     // Returns a set of all row key / column key / value triplets.
@@ -162,6 +181,34 @@ public:
     return Tab[std::move(RowKey)][std::move(ColumnKey)];
   }
 
+  [[nodiscard]] V getOrDefault(ByConstRef<R> RowKey,
+                               ByConstRef<C> ColumnKey) const {
+    auto OuterIt = Tab.find(RowKey);
+    if (OuterIt == Tab.end()) {
+      return V();
+    }
+    auto InnerIt = OuterIt->second.find(ColumnKey);
+    if (InnerIt == OuterIt->second.end()) {
+      return V();
+    }
+
+    return InnerIt->second;
+  }
+
+  [[nodiscard]] std::optional<V> tryGet(ByConstRef<R> RowKey,
+                                        ByConstRef<C> ColumnKey) {
+    auto OuterIt = Tab.find(RowKey);
+    if (OuterIt == Tab.end()) {
+      return std::nullopt;
+    }
+    auto InnerIt = OuterIt->second.find(ColumnKey);
+    if (InnerIt == OuterIt->second.end()) {
+      return std::nullopt;
+    }
+
+    return InnerIt->second;
+  }
+
   [[nodiscard]] ByConstRef<V> get(ByConstRef<R> RowKey,
                                   ByConstRef<C> ColumnKey) const noexcept {
     // Returns the value corresponding to the given row and column keys, or V()
@@ -220,11 +267,25 @@ public:
   }
 
   [[nodiscard]] const std::unordered_map<R, std::unordered_map<C, V>> &
-  rowMap() const noexcept {
+  rowMap() const &noexcept {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
     return Tab;
   }
+  [[nodiscard]] std::unordered_map<R, std::unordered_map<C, V>> &&
+  rowMap() &&noexcept {
+    // Returns a view that associates each row key with the corresponding map
+    // from column keys to values.
+    return std::move(Tab);
+  }
+  [[nodiscard]] const std::unordered_map<R, std::unordered_map<C, V>> &
+  rowMapView() const noexcept {
+    // Returns a view that associates each row key with the corresponding map
+    // from column keys to values.
+    return Tab;
+  }
+
+  void reserve(size_t Capacity) { Tab.reserve(Capacity); }
 
   bool operator==(const Table<R, C, V> &Other) noexcept {
     return Tab == Other.Tab;
