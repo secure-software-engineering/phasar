@@ -203,6 +203,7 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
           if (getCompositeTypeName(Composite).empty()) {
             llvm::errs() << "ERROR: Composite Type is empty: " << *Composite
                          << '\n';
+            IRDB.emitPreprocessedIR(llvm::errs());
             llvm::errs().flush();
           }
 
