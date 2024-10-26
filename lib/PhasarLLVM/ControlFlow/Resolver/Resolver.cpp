@@ -77,11 +77,33 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
 
   if (const auto *DITy = getVarTypeFromIR(Receiver)) {
     while (const auto *DerivedTy =
-               llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+#if LLVM_VERSION_MAJOR >= 15
+               llvm::dyn_cast_if_present
+#else
+               llvm::dyn_cast_or_null
+#endif
+           <llvm::DIDerivedType>(DITy)) {
       // get rid of the pointer
       DITy = DerivedTy->getBaseType();
     }
     return DITy;
+  }
+
+  return nullptr;
+}
+
+const llvm::Function *
+psr::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
+                               const llvm::CallBase *CallSite,
+                               const LLVMVFTableProvider &VTP) {
+
+  if (const auto *VT = VTP.getVFTableOrNull(T)) {
+    const auto *Target = VT->getFunction(Idx);
+    if (Target &&
+        Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
+        isConsistentCall(CallSite, Target)) {
+      return Target;
+    }
   }
 
   return nullptr;
@@ -118,25 +140,6 @@ Resolver::Resolver(const LLVMProjectIRDB *IRDB) : IRDB(IRDB), VTP(nullptr) {
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
   assert(IRDB != nullptr);
-}
-
-const llvm::Function *
-Resolver::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                                    const llvm::CallBase *CallSite) {
-  if (!VTP) {
-    return nullptr;
-  }
-
-  if (const auto *VT = VTP->getVFTableOrNull(T)) {
-    const auto *Target = VT->getFunction(Idx);
-    if (Target &&
-        Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
-        isConsistentCall(CallSite, Target)) {
-      return Target;
-    }
-  }
-
-  return nullptr;
 }
 
 void Resolver::preCall(const llvm::Instruction *Inst) {}
