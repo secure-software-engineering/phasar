@@ -38,14 +38,29 @@ class LLVMVFTableProvider;
 class LLVMTypeHierarchy;
 enum class CallGraphAnalysisType;
 
+/// Assuming that `CallSite` is a virtual call through a vtable, retrieves the
+/// index in the vtable of the virtual function called.
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
 
+/// Assuming that `CallSite` is a vall to a non-static member function,
+/// retrieves the type of the receiver. Returns nullptr, if the receiver-type
+/// could not be extracted
 [[nodiscard]] const llvm::StructType *
 getReceiverType(const llvm::CallBase *CallSite);
 
+/// Assuming that `CallSite` is a virtual call, where `Idx` is retrieved through
+/// `getVFTIndex()` and `T` through `getReceiverType()`
+[[nodiscard]] const llvm::Function *
+getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+                          const llvm::CallBase *CallSite,
+                          const psr::LLVMVFTableProvider &VTP);
+
 [[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
 
+/// Checks whether the signature of `DestFun` matches the required withature of
+/// `CallSite`, such that `DestFun` qualifies as callee-candidate, if `CallSite`
+/// is an indirect/virtual call.
 [[nodiscard]] bool isConsistentCall(const llvm::CallBase *CallSite,
                                     const llvm::Function *DestFun);
 
@@ -59,7 +74,12 @@ protected:
 
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                            const llvm::CallBase *CallSite);
+                            const llvm::CallBase *CallSite) {
+    if (!VTP) {
+      return nullptr;
+    }
+    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP);
+  }
 
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
