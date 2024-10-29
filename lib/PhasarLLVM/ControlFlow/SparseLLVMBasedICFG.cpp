@@ -1,5 +1,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFG.h"
 
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+
 #include "SVFGCache.h"
 
 #include <cassert>
@@ -21,19 +23,22 @@ SparseLLVMBasedICFG::SparseLLVMBasedICFG(
     llvm::ArrayRef<std::string> EntryPoints, LLVMTypeHierarchy *TH,
     LLVMAliasInfoRef PT, Soundness S, bool IncludeGlobals)
     : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT, S, IncludeGlobals),
-      SparseCFGCache(new SVFGCache{}) {}
+      SparseCFGCache(new SVFGCache{}), IRDB(IRDB),
+      AliasAnalysis(new LLVMAliasSet(IRDB, false)) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG,
                                          LLVMProjectIRDB *IRDB)
-    : LLVMBasedICFG(std::move(CG), IRDB), SparseCFGCache(new SVFGCache{}) {}
+    : LLVMBasedICFG(std::move(CG), IRDB), SparseCFGCache(new SVFGCache{}),
+      IRDB(IRDB), AliasAnalysis(new LLVMAliasSet(IRDB, false)) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
                                          const nlohmann::json &SerializedCG)
-    : LLVMBasedICFG(IRDB, SerializedCG), SparseCFGCache(new SVFGCache{}) {}
+    : LLVMBasedICFG(IRDB, SerializedCG), SparseCFGCache(new SVFGCache{}),
+      IRDB(IRDB), AliasAnalysis(new LLVMAliasSet(IRDB, false)) {}
 
 const SparseLLVMBasedCFG &
 SparseLLVMBasedICFG::getSparseCFGImpl(const llvm::Function *Fun,
                                       const llvm::Value *Val) const {
   assert(SparseCFGCache != nullptr);
-  return SparseCFGCache->getOrCreate(*this, Fun, Val);
+  return SparseCFGCache->getOrCreate(*this, Fun, Val, AliasAnalysis);
 }

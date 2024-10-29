@@ -2,13 +2,15 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include "SVFGCache.h"
 
 using namespace psr;
 
 SparseLLVMBasedICFGView::SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF)
-    : IRDB(ICF->getIRDB()), ICF(ICF), SparseCFGCache(new SVFGCache{}) {
+    : IRDB(ICF->getIRDB()), ICF(ICF), SparseCFGCache(new SVFGCache{}),
+      AliasAnalysis(new LLVMAliasSet(ICF->getIRDB(), false)) {
   //
 }
 
@@ -63,5 +65,5 @@ const SparseLLVMBasedCFG &
 SparseLLVMBasedICFGView::getSparseCFGImpl(const llvm::Function *Fun,
                                           const llvm::Value *Val) const {
   assert(SparseCFGCache != nullptr);
-  return SparseCFGCache->getOrCreate(*this, Fun, Val);
+  return SparseCFGCache->getOrCreate(*this, Fun, Val, AliasAnalysis);
 }

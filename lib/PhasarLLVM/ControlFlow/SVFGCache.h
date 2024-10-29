@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_SVFGCACHE_H
 
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/Support/Compiler.h"
@@ -32,7 +33,8 @@ struct SVFGCache {
 
   LLVM_LIBRARY_VISIBILITY const SparseLLVMBasedCFG &
   getOrCreate(const LLVMBasedCFG &CFG, const llvm::Function *Fun,
-              const llvm::Value *Val);
+              const llvm::Value *Val,
+              const std::shared_ptr<LLVMAliasSet> &AliasAnalysis);
 };
 
 } // namespace psr
