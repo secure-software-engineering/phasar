@@ -14,7 +14,7 @@
 #include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFGProvider.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 
 #include <memory>
@@ -40,7 +40,8 @@ class SparseLLVMBasedICFGView
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFGView>;
 
 public:
-  explicit SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF);
+  explicit SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF,
+                                   LLVMAliasInfoRef PT);
 
   ~SparseLLVMBasedICFGView();
 
@@ -67,7 +68,7 @@ private:
   const LLVMProjectIRDB *IRDB{};
   const LLVMBasedICFG *ICF{};
   std::unique_ptr<SVFGCache> SparseCFGCache;
-  std::shared_ptr<LLVMAliasSet> AliasAnalysis;
+  LLVMAliasInfoRef AliasAnalysis;
 };
 } // namespace psr
 

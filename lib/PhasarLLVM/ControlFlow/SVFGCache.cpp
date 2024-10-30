@@ -2,6 +2,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 
 #include "llvm/IR/IntrinsicInst.h"
@@ -71,7 +72,7 @@ static bool isNonAddressTakenVariable(const llvm::Value *Val) {
 }
 
 static bool fuzzyMayAlias(const llvm::Value *Ptr1, const llvm::Value *Ptr2,
-                          const std::shared_ptr<LLVMAliasSet> &AliasAnalysis) {
+                          LLVMAliasInfoRef AliasAnalysis) {
   // Pointers to pointers may alias with any pointer, because the analysis may
   // not be field-sensitive.
   // If we don't know the pointee-type (PointeeTyN == nullptr), we cannot assume
@@ -81,7 +82,7 @@ static bool fuzzyMayAlias(const llvm::Value *Ptr1, const llvm::Value *Ptr2,
     return false;
   }
 
-  return AliasAnalysis->alias(Ptr1, Ptr2) == AliasResult::MayAlias;
+  return AliasAnalysis.alias(Ptr1, Ptr2) != AliasResult::NoAlias;
 }
 
 static bool isFirstInBB(const llvm::Instruction *Inst) {
@@ -109,7 +110,7 @@ static bool isLastInBB(const llvm::Instruction *Inst, const llvm::Value *Val) {
 
 static bool shouldKeepInst(const llvm::Instruction *Inst,
                            const llvm::Value *Val,
-                           const std::shared_ptr<LLVMAliasSet> &AliasAnalysis) {
+                           LLVMAliasInfoRef AliasAnalysis) {
   if (Inst == Val || isFirstInBB(Inst) || isLastInBB(Inst, Val)) {
     // First in BB always stays for now
 
@@ -120,7 +121,6 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
 
   const auto *ValTy = Val->getType();
   bool ValPtr = ValTy->isPointerTy();
-  const auto *PointeeTy = ValPtr ? getPointeeTypeOrNull(Val) : nullptr;
 
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
     if (llvm::isa<llvm::GlobalValue>(Val)) {
@@ -163,7 +163,7 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
 static void buildSparseCFG(const LLVMBasedCFG &CFG,
                            SparseLLVMBasedCFG::vgraph_t &SCFG,
                            const llvm::Function *Fun, const llvm::Value *Val,
-                           const std::shared_ptr<LLVMAliasSet> &AliasAnalysis) {
+                           LLVMAliasInfoRef AliasAnalysis) {
 
   // llvm::errs() << "Build SCFG for '" << Fun->getName() << "' and value "
   //              << llvmIRToString(Val) << '\n';
@@ -216,8 +216,7 @@ static void buildSparseCFG(const LLVMBasedCFG &CFG,
 
 const SparseLLVMBasedCFG &
 SVFGCache::getOrCreate(const LLVMBasedCFG &CFG, const llvm::Function *Fun,
-                       const llvm::Value *Val,
-                       const std::shared_ptr<LLVMAliasSet> &AliasAnalysis) {
+                       const llvm::Value *Val, LLVMAliasInfoRef AliasAnalysis) {
   // TODO: Make thread-safe
 
   auto [It, Inserted] = Cache.try_emplace(std::make_pair(Fun, Val));

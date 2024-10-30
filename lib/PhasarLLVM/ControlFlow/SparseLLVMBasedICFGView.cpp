@@ -8,9 +8,10 @@
 
 using namespace psr;
 
-SparseLLVMBasedICFGView::SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF)
+SparseLLVMBasedICFGView::SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF,
+                                                 LLVMAliasInfoRef PT)
     : IRDB(ICF->getIRDB()), ICF(ICF), SparseCFGCache(new SVFGCache{}),
-      AliasAnalysis(new LLVMAliasSet(ICF->getIRDB(), false)) {
+      AliasAnalysis(PT) {
   //
 }
 

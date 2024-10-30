@@ -35,10 +35,12 @@ public:
                                bool IncludeGlobals = true);
 
   /// Creates an ICFG with an already given call-graph
-  explicit SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB);
+  explicit SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG, LLVMProjectIRDB *IRDB,
+                               LLVMAliasInfoRef PT);
 
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                               const nlohmann::json &SerializedCG);
+                               const nlohmann::json &SerializedCG,
+                               LLVMAliasInfoRef PT);
 
   ~SparseLLVMBasedICFG();
 
@@ -48,7 +50,7 @@ private:
 
   std::unique_ptr<SVFGCache> SparseCFGCache;
   LLVMProjectIRDB *IRDB{};
-  std::shared_ptr<LLVMAliasSet> AliasAnalysis;
+  LLVMAliasInfoRef AliasAnalysis;
 };
 } // namespace psr
 
