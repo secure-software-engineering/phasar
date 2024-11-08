@@ -1,20 +1,10 @@
-/******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Fabian Schiebel and others
- *****************************************************************************/
-
-#ifndef PHASAR_UTILS_EMPTYBASEOPTIMIZATIONUTILS_H_
-#define PHASAR_UTILS_EMPTYBASEOPTIMIZATIONUTILS_H_
+#ifndef PHASAR_UTILS_EMPTYBASEOPTIMIZATIONUTILS_H
+#define PHASAR_UTILS_EMPTYBASEOPTIMIZATIONUTILS_H
 
 #include "phasar/Utils/ByRef.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 
-#include <cstdint>
 #include <functional>
 #include <type_traits>
 

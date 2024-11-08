@@ -1,14 +1,5 @@
-/******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Fabian Schiebel and others
- *****************************************************************************/
-
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDBASEDSOLVERRESULTS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDBASEDSOLVERRESULTS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDBASEDSOLVERRESULTS_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDBASEDSOLVERRESULTS_H
 
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverResults.h"
 #include "phasar/Utils/ByRef.h"

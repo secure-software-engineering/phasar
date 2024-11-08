@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_COMPRESSOR_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_COMPRESSOR_H
 
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/Utils/ByRef.h"
@@ -186,3 +187,5 @@ struct ValCompressorTraits<T, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
 };
 
 } // namespace psr
+
+#endif // PHASAR_DATAFLOW_IFDSIDE_SOLVER_COMPRESSOR_H

@@ -1,14 +1,5 @@
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_EDGEFUNCTIONCACHE_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_EDGEFUNCTIONCACHE_H
-
-/******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Fabian Schiebel
- *****************************************************************************/
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_EDGEFUNCTIONCACHE_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_EDGEFUNCTIONCACHE_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCacheStats.h"

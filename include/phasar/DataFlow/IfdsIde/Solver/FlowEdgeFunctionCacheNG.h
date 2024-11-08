@@ -1,13 +1,5 @@
-/******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Philipp Schubert and others
- *****************************************************************************/
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHENG_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHENG_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHENG_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHENG_H
 
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheStats.h"

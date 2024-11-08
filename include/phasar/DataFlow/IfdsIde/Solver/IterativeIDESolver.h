@@ -1,14 +1,5 @@
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
-
-/******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Fabian Schiebel
- *****************************************************************************/
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
@@ -53,6 +44,14 @@
 
 namespace psr {
 
+/// Solves the given IDETabulationProblem as described in the 1996 paper by
+/// Sagiv, Horwitz and Reps. To solve the problem, call solve().
+///
+/// This solver implements the optimizations and the $JF_N$ layout from the
+/// paper "Scaling Interprocedural Static Data-Flow Analysis to Large C/C++
+/// Applications: An Experience Report"
+/// (https://doi.org/10.4230/LIPIcs.ECOOP.2024.36) by Schiebel, Sattler,
+/// Schubert, Apel, and Bodden.
 template <typename ProblemTy,
           typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>>
 class IterativeIDESolver

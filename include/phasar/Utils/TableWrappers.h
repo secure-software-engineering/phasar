@@ -1,14 +1,5 @@
-/******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Fabian Schiebel and others
- *****************************************************************************/
-
-#ifndef PHASAR_UTILS_TABLEWRAPPERS
-#define PHASAR_UTILS_TABLEWRAPPERS
+#ifndef PHASAR_UTILS_TABLEWRAPPERS_H
+#define PHASAR_UTILS_TABLEWRAPPERS_H
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_WORKLISTTRAITS_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_WORKLISTTRAITS_H
 
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
 
@@ -117,3 +118,5 @@ private:
 };
 
 } // namespace psr
+
+#endif // PHASAR_DATAFLOW_IFDSIDE_SOLVER_WORKLISTTRAITS_H

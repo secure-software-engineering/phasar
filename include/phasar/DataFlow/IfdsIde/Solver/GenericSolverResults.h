@@ -1,14 +1,5 @@
-/******************************************************************************
- * Copyright (c) 2022 Fabian Schiebel.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Fabian Schiebel and others
- *****************************************************************************/
-
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"

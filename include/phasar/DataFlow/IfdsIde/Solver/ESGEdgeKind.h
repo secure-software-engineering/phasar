@@ -1,3 +1,6 @@
+#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H
+#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H
+
 /******************************************************************************
  * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
@@ -6,9 +9,6 @@
  * Contributors:
  *     Fabian Schiebel and others
  *****************************************************************************/
-
-#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H
-#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ESGEDGEKIND_H
 
 namespace psr {
 enum class ESGEdgeKind { Normal, Call, CallToRet, SkipUnknownFn, Ret, Summary };
