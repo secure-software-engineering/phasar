@@ -65,7 +65,7 @@ public:
     return self().Results.row(Stmt);
   }
 
-  [[nodiscard]] decltype(auto) rowMapView() const {
+  [[nodiscard]] const auto &rowMapView() const {
     return self().Results.rowMapView();
   }
 
@@ -73,7 +73,7 @@ public:
     return self().Results.containsRow(Stmt);
   }
 
-  [[nodiscard]] decltype(auto) row(ByConstRef<N> Stmt) const {
+  [[nodiscard]] const auto &row(ByConstRef<N> Stmt) const {
     return self().Results.row(Stmt);
   }
 

@@ -31,6 +31,8 @@ namespace psr {
 template <typename KeyT, typename ValueT> struct EquivalenceClassMap {
   template <typename... Ts> using SetType = std::set<Ts...>;
   using EquivalenceClassBucketT = std::pair<SetType<KeyT>, ValueT>;
+  // Use SmallVector here, since it has a smaller struct-size than std::vector;
+  // we may store a lot of them in the FlowEdgeFunctionCache
   using StorageT = llvm::SmallVector<EquivalenceClassBucketT, 0>;
 
 public:
