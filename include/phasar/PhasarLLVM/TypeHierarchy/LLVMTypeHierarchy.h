@@ -17,10 +17,12 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchyData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_traits.hpp"
@@ -134,6 +136,8 @@ public:
    *  @param IRDB ProjectIRCompiledDB object.
    */
   LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB);
+  LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB,
+                    const LLVMTypeHierarchyData &SerializedData);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
@@ -187,7 +191,9 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  [[nodiscard]] nlohmann::json getAsJson() const override;
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson() const override;
 
   // void mergeWith(LLVMTypeHierarchy &Other);
 
@@ -206,7 +212,7 @@ public:
    * @brief Prints the class hierarchy to an ostream in json format.
    * @param an outputstream
    */
-  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   // void printGraphAsDot(llvm::raw_ostream &out);
 

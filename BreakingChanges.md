@@ -2,6 +2,7 @@
 
 ## development HEAD
 
+- Removed the phasar-library `phasar_controller`. It is now part of the tool `phasar-cli`.
 - The API of the `TypeHierarchy` interface (and thus the `LLVMTypeHierarchy` and `DIBasedTypeHierarchy` as well) has changed:
   - No handling of the super-type relation (only sub-types)
   - No VTable handling anymore -- has been out-sourced into `LLVMVFTableProvider`

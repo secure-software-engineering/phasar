@@ -13,7 +13,6 @@
 #include "phasar/AnalysisStrategy.h"
 #include "phasar/Config.h"
 #include "phasar/ControlFlow.h"
-#include "phasar/Controller.h"
 #include "phasar/DB.h"
 #include "phasar/DataFlow.h"
 #include "phasar/Domain.h"

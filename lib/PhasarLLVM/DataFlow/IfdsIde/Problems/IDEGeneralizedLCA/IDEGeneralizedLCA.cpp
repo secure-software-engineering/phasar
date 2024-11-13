@@ -501,8 +501,9 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::allTopFunction() {
 }*/
 
 void IDEGeneralizedLCA::emitTextReport(
-    const SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
-                        IDEGeneralizedLCA::l_t> &SR,
+    GenericSolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
+                         IDEGeneralizedLCA::l_t>
+        SR,
     llvm::raw_ostream &Os) {
 
   Os << "\n====================== IDE-Linear-Constant-Analysis Report "
@@ -557,8 +558,8 @@ void IDEGeneralizedLCA::stripBottomResults(
 }
 
 IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
-    SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
-                  IDEGeneralizedLCA::l_t>
+    GenericSolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
+                         IDEGeneralizedLCA::l_t>
         SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   llvm::outs() << "\n==== Computing LCA Results ====\n";

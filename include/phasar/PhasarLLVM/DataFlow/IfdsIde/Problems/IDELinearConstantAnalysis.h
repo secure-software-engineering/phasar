@@ -119,9 +119,10 @@ public:
 
   // Helper functions
 
-  [[nodiscard]] lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
+  [[nodiscard]] lca_results_t
+  getLCAResults(GenericSolverResults<n_t, d_t, l_t> SR);
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:

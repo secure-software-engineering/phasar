@@ -13,6 +13,8 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "nlohmann/json_fwd.hpp"
+
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -179,6 +181,26 @@ template <typename Container> struct ElementType {
   using type = typename std::iterator_traits<IteratorTy>::value_type;
 };
 
+template <typename ProblemTy, typename = bool>
+struct has_isInteresting : std::false_type {}; // NOLINT
+template <typename ProblemTy>
+struct has_isInteresting<
+    ProblemTy,
+    decltype(std::declval<std::add_const_t<ProblemTy>>().isInteresting(
+        std::declval<typename ProblemTy::ProblemAnalysisDomain::n_t>()))>
+    : std::true_type {};
+
+template <typename T, typename = void>
+struct has_llvm_dense_map_info : std::false_type {};
+template <typename T>
+struct has_llvm_dense_map_info<
+    T, std::void_t<decltype(llvm::DenseMapInfo<T>::getEmptyKey()),
+                   decltype(llvm::DenseMapInfo<T>::getTombstoneKey()),
+                   decltype(llvm::DenseMapInfo<T>::getHashValue(
+                       std::declval<T>())),
+                   decltype(llvm::DenseMapInfo<T>::isEqual(std::declval<T>(),
+                                                           std::declval<T>()))>>
+    : std::true_type {};
 } // namespace detail
 
 template <typename T>
@@ -248,6 +270,13 @@ PSR_CONCEPT IsEqualityComparable = detail::IsEqualityComparable<T>::value;
 template <typename T, typename U>
 PSR_CONCEPT AreEqualityComparable = detail::AreEqualityComparable<T, U>::value;
 
+template <typename ProblemTy>
+PSR_CONCEPT has_isInteresting_v = // NOLINT
+    detail::has_isInteresting<ProblemTy>::value;
+
+template <typename T>
+static constexpr bool has_llvm_dense_map_info =
+    detail::has_llvm_dense_map_info<T>::value;
 template <typename T> using type_identity_t = typename type_identity<T>::type;
 
 template <typename Var, typename T>
@@ -255,6 +284,11 @@ static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 template <typename Container>
 using ElementType = typename detail::ElementType<Container>::type;
+template <typename T, typename Enable = nlohmann::json>
+struct has_getAsJson : std::false_type {}; // NOLINT
+template <typename T>
+struct has_getAsJson<T, decltype(std::declval<const T>().getAsJson())>
+    : std::true_type {}; // NOLINT
 
 struct TrueFn {
   template <typename... Args>
@@ -266,15 +300,6 @@ struct TrueFn {
 struct FalseFn {
   template <typename... Args>
   [[nodiscard]] bool operator()(const Args &.../*unused*/) const noexcept {
-    return false;
-  }
-};
-
-struct EmptyType {
-  friend constexpr bool operator==(EmptyType /*L*/, EmptyType /*R*/) noexcept {
-    return true;
-  }
-  friend constexpr bool operator!=(EmptyType /*L*/, EmptyType /*R*/) noexcept {
     return false;
   }
 };
@@ -303,6 +328,12 @@ template <typename T, typename = std::enable_if_t<has_adl_to_string_v<T>>>
   using std::to_string;
   return to_string(Val);
 }
+
+struct IdentityFn {
+  template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
+    return std::forward<decltype(Val)>(Val);
+  }
+};
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

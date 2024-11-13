@@ -108,10 +108,10 @@ public:
 
   // void printIDEReport(llvm::raw_ostream &OS,
   // SolverResults<n_t, d_t, l_t> &SR) override;
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS) override;
 
-  lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
+  lca_results_t getLCAResults(GenericSolverResults<n_t, d_t, l_t> SR);
 
 private:
   const LLVMBasedICFG *ICF{};

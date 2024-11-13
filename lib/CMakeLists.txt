@@ -4,7 +4,6 @@ add_subdirectory(PhasarPass)
 add_subdirectory(DB)
 add_subdirectory(Config)
 add_subdirectory(Utils)
-add_subdirectory(Controller)
 add_subdirectory(Pointer)
 add_subdirectory(ControlFlow)
 if(BUILD_PHASAR_CLANG)
@@ -36,7 +35,6 @@ set(PHASAR_LINK_LIBS
     phasar_llvm
     phasar_llvm_ifdside
     phasar_analysis_strategy
-    phasar_controller
 )
 if(SQLite3_FOUND)
     list(APPEND PHASAR_LINK_LIBS phasar_db)
