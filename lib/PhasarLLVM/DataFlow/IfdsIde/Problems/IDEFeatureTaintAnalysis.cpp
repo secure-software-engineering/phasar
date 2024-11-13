@@ -687,7 +687,7 @@ bool IDEFeatureTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
 }
 
 void IDEFeatureTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
+    GenericSolverResults<n_t, d_t, l_t> SR, llvm::raw_ostream &OS) {
   OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
         "======================\n";
 

@@ -353,7 +353,7 @@ public:
 
   bool isZeroValue(d_t FlowFact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
   EdgeFunction<l_t> extend(const EdgeFunction<l_t> &FirstEF,
