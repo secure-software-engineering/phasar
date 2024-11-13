@@ -41,7 +41,7 @@ class LLVMProjectIRDB;
 struct IDEFeatureTaintEdgeFact {
   llvm::SmallBitVector Taints;
 
-  static llvm::SmallBitVector fromBits(uintptr_t Bits) {
+  [[nodiscard]] static llvm::SmallBitVector fromBits(uintptr_t Bits) {
 #if __has_builtin(__builtin_constant_p)
     if (__builtin_constant_p(Bits) && Bits == 0) {
       return {};
@@ -94,7 +94,7 @@ struct IDEFeatureTaintEdgeFact {
     return Taints.isInvalid();
   }
 
-  friend llvm::hash_code
+  [[nodiscard]] friend llvm::hash_code
   hash_value(const IDEFeatureTaintEdgeFact &BV) noexcept {
     if (BV.Taints.empty()) {
       return {};
@@ -165,7 +165,7 @@ struct IDEFeatureTaintEdgeFact {
   }
 };
 
-std::string LToString(const IDEFeatureTaintEdgeFact &EdgeFact);
+[[nodiscard]] std::string LToString(const IDEFeatureTaintEdgeFact &EdgeFact);
 
 template <> struct JoinLatticeTraits<IDEFeatureTaintEdgeFact> {
   inline static IDEFeatureTaintEdgeFact top() {
@@ -212,10 +212,7 @@ public:
       BitVectorSet<ElementType<decltype(TaintSet)>, llvm::SmallBitVector> BV(
           llvm::adl_begin(TaintSet), llvm::adl_end(TaintSet));
 
-      auto Ret = IDEFeatureTaintEdgeFact{std::move(BV).getBits()};
-
-      // llvm::errs() << "generateTaints: " << LToString(Ret) << '\n';
-      return Ret;
+      return IDEFeatureTaintEdgeFact{std::move(BV).getBits()};
     };
   }
 
@@ -236,23 +233,22 @@ public:
         GenerateTaints(std::move(GenerateTaints)), Printer(std::move(Printer)) {
   }
 
-  template <typename EdgeFactGenerator,
-            typename = std::enable_if_t<!std::is_same_v<
-                FeatureTaintGenerator, std::decay_t<EdgeFactGenerator>>>>
-  FeatureTaintGenerator(EdgeFactGenerator &&EFGen)
-      : IsFeatureSource([EFGen{EFGen}](InstOrGlobal IG) {
-          return !llvm::empty(std::invoke(EFGen, IG));
-        }),
-        GenerateTaints(
-            createGenerateTaints(std::forward<EdgeFactGenerator>(EFGen))),
-        Printer(createEdgeFactPrinter<EdgeFactGenerator>()) {}
-
   template <typename SourceDetector, typename EdgeFactGenerator>
   FeatureTaintGenerator(SourceDetector &&SrcDetector, EdgeFactGenerator &&EFGen)
       : IsFeatureSource(std::forward<SourceDetector>(SrcDetector)),
         GenerateTaints(
             createGenerateTaints(std::forward<EdgeFactGenerator>(EFGen))),
         Printer(createEdgeFactPrinter<EdgeFactGenerator>()) {}
+
+  template <typename EdgeFactGenerator,
+            typename = std::enable_if_t<!std::is_same_v<
+                FeatureTaintGenerator, std::decay_t<EdgeFactGenerator>>>>
+  FeatureTaintGenerator(EdgeFactGenerator &&EFGen)
+      : FeatureTaintGenerator(
+            [EFGen](InstOrGlobal IG) {
+              return !llvm::empty(std::invoke(EFGen, IG));
+            },
+            std::forward<EdgeFactGenerator>(EFGen)) {}
 
   [[nodiscard]] bool isSource(InstOrGlobal IG) const {
     return IsFeatureSource(IG);

@@ -167,7 +167,7 @@ private:
 
     // T getVal() {return pos_ptr->second;}
 
-    [[nodiscard]] BitVectorTy getBits() const { return Bits; }
+    [[nodiscard]] const BitVectorTy &getBits() const { return Bits; }
 
   private:
     D PosPtr;

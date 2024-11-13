@@ -76,7 +76,7 @@ static bool isMustAlias(const llvm::Value *Val1,
     return true;
   }
 
-  // TODO: handle more cases
+  // XXX: handle more cases
 
   return false;
 }
@@ -111,16 +111,6 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
 
   auto ValuePTS = PT.getReachableAllocationSites(Value, true, Inst);
 
-  llvm::errs() << "At " << llvmIRToString(Inst) << ":\n";
-  llvm::errs() << "> PointerRet:\n";
-  for (const auto *Ptr : PointerRet) {
-    llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
-  }
-  // llvm::errs() << "> ValuePTS:\n";
-  // for (const auto *Ptr : *ValuePTS) {
-  //   llvm::errs() << ">   " << llvmIRToString(Ptr) << '\n';
-  // }
-
   return FlowFunctionTemplates<const llvm::Value *, container_type>::lambdaFlow(
       [Dest, Value, PointerRet = std::move(PointerRet),
        ValuePTS = std::move(ValuePTS),
@@ -137,7 +127,6 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
           if (Value == Src ||
               (GeneratesFact && LLVMZeroValue::isLLVMZeroValue(Src)) ||
               ValuePTS->count(Src)) {
-            // llvm::errs() << "> Store\n";
             return PointerRet;
           }
 
@@ -145,14 +134,6 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
         }();
 
         Facts.insert(Src);
-
-        // llvm::errs() << "Gen { ";
-
-        // llvm::interleaveComma(Facts, llvm::errs(), [](const auto *Ptr) {
-        //   llvm::errs() << llvmIRToShortString(Ptr);
-        // });
-        // llvm::errs() << " } at " << llvmIRToString(Inst) << '\n';
-
         return Facts;
       });
 }
@@ -160,9 +141,6 @@ static auto getStoreFF(bool GeneratesFact, LLVMAliasInfoRef PT,
 auto IDEFeatureTaintAnalysis::getNormalFlowFunction(n_t Curr, n_t /* Succ */)
     -> FlowFunctionPtrType {
   bool GeneratesFact = TaintGen.isSource(Curr);
-
-  // llvm::errs() << "[getNormalFlowFunction]: " << llvmIRToString(Curr) <<
-  // '\n';
 
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (GeneratesFact) {
@@ -241,16 +219,6 @@ auto IDEFeatureTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
         return true;
       });
 
-  // Generate the artificially introduced RVO parameters from zero value.
-  // const auto *SRetFormal =
-  //     CS->hasStructRetAttr() ? DestFun->getArg(0) : nullptr;
-
-  // if (SRetFormal && TaintGen.isSource(CallSite)) {
-  //   return unionFlows(
-  //       std::move(MapFactsToCalleeFF),
-  //       generateFlowAndKillAllOthers(SRetFormal, this->getZeroValue()));
-  // }
-
   return MapFactsToCalleeFF;
 }
 
@@ -312,8 +280,6 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
         }
 
         return true;
-        // return !Arg->getType()->isPointerTy();
-        //  return llvm::isa<llvm::Constant>(Arg);
       },
       /*PropagateGlobals*/ false);
 
@@ -349,13 +315,14 @@ struct IDEFeatureTaintAnalysis::AddFactsEF {
     return Source;
   }
 
-  static EdgeFunction<l_t> compose(EdgeFunctionRef<AddFactsEF> This,
-                                   const EdgeFunction<l_t> &SecondFunction) {
+  static EdgeFunction<l_t>
+  compose(EdgeFunctionRef<AddFactsEF> /*This*/,
+          const EdgeFunction<l_t> & /*SecondFunction*/) {
     llvm::report_fatal_error("Implemented in 'extend'");
   }
 
-  static EdgeFunction<l_t> join(EdgeFunctionRef<AddFactsEF> This,
-                                const EdgeFunction<l_t> &OtherFunction) {
+  static EdgeFunction<l_t> join(EdgeFunctionRef<AddFactsEF> /*This*/,
+                                const EdgeFunction<l_t> & /*OtherFunction*/) {
     llvm::report_fatal_error("Implemented in 'combine'");
   }
 
@@ -363,7 +330,6 @@ struct IDEFeatureTaintAnalysis::AddFactsEF {
     return L.Facts == R.Facts;
   }
 
-  // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
   friend llvm::hash_code hash_value(const AddFactsEF &EF) {
     return hash_value(EF.Facts);
   }
@@ -380,13 +346,14 @@ struct IDEFeatureTaintAnalysis::GenerateEF {
     return Facts;
   }
 
-  static EdgeFunction<l_t> compose(EdgeFunctionRef<GenerateEF> This,
-                                   const EdgeFunction<l_t> &SecondFunction) {
+  static EdgeFunction<l_t>
+  compose(EdgeFunctionRef<GenerateEF> /*This*/,
+          const EdgeFunction<l_t> & /*SecondFunction*/) {
     llvm::report_fatal_error("Implemented in 'extend'");
   }
 
-  static EdgeFunction<l_t> join(EdgeFunctionRef<GenerateEF> This,
-                                const EdgeFunction<l_t> &OtherFunction) {
+  static EdgeFunction<l_t> join(EdgeFunctionRef<GenerateEF> /*This*/,
+                                const EdgeFunction<l_t> & /*OtherFunction*/) {
     llvm::report_fatal_error("Implemented in 'combine'");
   }
 
@@ -394,7 +361,6 @@ struct IDEFeatureTaintAnalysis::GenerateEF {
     return L.Facts == R.Facts;
   }
 
-  // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
   constexpr friend llvm::hash_code hash_value(const GenerateEF &EF) {
     return hash_value(EF.Facts);
   }
@@ -411,21 +377,23 @@ struct AddSmallFactsEF {
     return Source;
   }
 
-  static EdgeFunction<l_t> compose(EdgeFunctionRef<AddSmallFactsEF> This,
-                                   const EdgeFunction<l_t> &SecondFunction) {
+  static EdgeFunction<l_t>
+  compose(EdgeFunctionRef<AddSmallFactsEF> /*This*/,
+          const EdgeFunction<l_t> & /*SecondFunction*/) {
     llvm::report_fatal_error("Implemented in 'extend'");
   }
 
-  static EdgeFunction<l_t> join(EdgeFunctionRef<AddSmallFactsEF> This,
-                                const EdgeFunction<l_t> &OtherFunction) {
+  static EdgeFunction<l_t> join(EdgeFunctionRef<AddSmallFactsEF> /*This*/,
+                                const EdgeFunction<l_t> & /*OtherFunction*/) {
     llvm::report_fatal_error("Implemented in 'combine'");
   }
 
+  // NOLINTNEXTLINE -- unused function -- must satisfy the EF interface
   friend bool operator==(const AddSmallFactsEF &L, const AddSmallFactsEF &R) {
     return L.Facts == R.Facts;
   }
 
-  // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
+  // NOLINTNEXTLINE -- unused function -- must satisfy the EF interface
   friend llvm::hash_code hash_value(const AddSmallFactsEF &EF) {
     return llvm::hash_value(EF.Facts);
   }
@@ -442,178 +410,33 @@ struct GenerateSmallEF {
     return Facts;
   }
 
-  static EdgeFunction<l_t> compose(EdgeFunctionRef<GenerateSmallEF> This,
-                                   const EdgeFunction<l_t> &SecondFunction) {
+  static EdgeFunction<l_t>
+  compose(EdgeFunctionRef<GenerateSmallEF> /*This*/,
+          const EdgeFunction<l_t> & /*SecondFunction*/) {
     llvm::report_fatal_error("Implemented in 'extend'");
   }
 
-  static EdgeFunction<l_t> join(EdgeFunctionRef<GenerateSmallEF> This,
-                                const EdgeFunction<l_t> &OtherFunction) {
+  static EdgeFunction<l_t> join(EdgeFunctionRef<GenerateSmallEF> /*This*/,
+                                const EdgeFunction<l_t> & /*OtherFunction*/) {
     llvm::report_fatal_error("Implemented in 'combine'");
   }
 
-  // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
+  // NOLINTNEXTLINE -- unused function -- must satisfy the EF interface
   friend llvm::hash_code hash_value(const GenerateSmallEF &EF) {
     return llvm::hash_value(EF.Facts);
   }
 
+  // NOLINTNEXTLINE -- unused function -- must satisfy the EF interface
   friend bool operator==(GenerateSmallEF L, GenerateSmallEF R) {
     return L.Facts == R.Facts;
   }
 
+  // NOLINTNEXTLINE -- unused function -- used in EdgeFunction
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        GenerateSmallEF EF) {
     return OS << "GenerateSmallEF" << LToString(EF.computeTarget(0));
   }
 };
-
-// auto GenerateSmallEF::compose(EdgeFunctionRef<GenerateSmallEF> This,
-//                               const EdgeFunction<l_t> &SecondFunction)
-//     -> EdgeFunction<l_t> {
-//   if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
-//     return Default;
-//   }
-
-//   auto Val = SecondFunction.computeTarget(This->computeTarget(0));
-
-//   if (Val.Taints.isSmall()) {
-//     uintptr_t Buf{};
-//     std::ignore = Val.Taints.getData(Buf);
-//     return GenerateSmallEF{Buf};
-//   }
-
-//   // TODO: Caching
-
-//   return GenerateEF{std::move(Val)};
-// }
-
-// auto AddSmallFactsEF::compose(EdgeFunctionRef<AddSmallFactsEF> This,
-//                               const EdgeFunction<l_t> &SecondFunction)
-//     -> EdgeFunction<l_t> {
-//   if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
-//     return Default;
-//   }
-
-//   auto Val = SecondFunction.computeTarget(This->computeTarget(0));
-
-//   if (Val.Taints.isSmall()) {
-//     uintptr_t Buf{};
-//     std::ignore = Val.Taints.getData(Buf);
-//     return AddSmallFactsEF{Buf};
-//   }
-
-//   // TODO: Caching
-
-//   return AddFactsEF{std::move(Val)};
-// }
-
-// auto GenerateEF::compose(EdgeFunctionRef<GenerateEF> This,
-//                          const EdgeFunction<l_t> &SecondFunction)
-//     -> EdgeFunction<l_t> {
-//   if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
-//     return Default;
-//   }
-
-//   auto Val = SecondFunction.computeTarget(This->computeTarget(0));
-
-//   // TODO: Caching
-
-//   return GenerateEF{std::move(Val)};
-// }
-
-// auto AddFactsEF::compose(EdgeFunctionRef<AddFactsEF> This,
-//                          const EdgeFunction<l_t> &SecondFunction)
-//     -> EdgeFunction<l_t> {
-//   if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
-//     return Default;
-//   }
-
-//   auto Val = SecondFunction.computeTarget(This->computeTarget(0));
-
-//   // TODO: Caching
-
-//   return AddFactsEF{std::move(Val)};
-// }
-
-// template <typename GenEFTy>
-// EdgeFunction<l_t> joinWithGen(EdgeFunctionRef<GenEFTy> This,
-//                               const EdgeFunction<l_t> &OtherFunction) {
-//   if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
-//     return Default;
-//   }
-
-//   auto OtherFacts = OtherFunction.computeTarget(0);
-//   OtherFacts.unionWith(This->Facts);
-
-//   if (OtherFacts.Taints.isSmall()) {
-//     uintptr_t Buf{};
-//     std::ignore = OtherFacts.Taints.getData(Buf);
-
-//     if (OtherFunction.isConstant()) {
-//       return GenerateSmallEF{Buf};
-//     }
-
-//     return AddSmallFactsEF{Buf};
-//   }
-
-//   // TODO: Caching
-
-//   if (OtherFunction.isConstant()) {
-//     return GenerateEF{std::move(OtherFacts)};
-//   }
-
-//   return AddFactsEF{std::move(OtherFacts)};
-// }
-
-// template <typename AddEFTy>
-// EdgeFunction<l_t> joinWithAdd(EdgeFunctionRef<AddEFTy> This,
-//                               const EdgeFunction<l_t> &OtherFunction) {
-//   /// XXX: Here, we underapproximate joins with EdgeIdentity
-//   if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
-//     return This;
-//   }
-
-//   if (auto Default = defaultJoinOrNull(This, OtherFunction)) {
-//     return Default;
-//   }
-
-//   auto OtherFacts = OtherFunction.computeTarget(0);
-//   OtherFacts.unionWith(This->Facts);
-
-//   if (OtherFacts.Taints.isSmall()) {
-//     uintptr_t Buf{};
-//     std::ignore = OtherFacts.Taints.getData(Buf);
-
-//     return AddSmallFactsEF{Buf};
-//   }
-
-//   // TODO: Caching
-
-//   return AddFactsEF{std::move(OtherFacts)};
-// }
-
-// auto GenerateSmallEF::join(EdgeFunctionRef<GenerateSmallEF> This,
-//                            const EdgeFunction<l_t> &OtherFunction)
-//     -> EdgeFunction<l_t> {
-//   return joinWithGen(This, OtherFunction);
-// }
-// auto GenerateEF::join(EdgeFunctionRef<GenerateEF> This,
-//                       const EdgeFunction<l_t> &OtherFunction)
-//     -> EdgeFunction<l_t> {
-//   return joinWithGen(This, OtherFunction);
-// }
-
-// auto AddSmallFactsEF::join(EdgeFunctionRef<AddSmallFactsEF> This,
-//                            const EdgeFunction<l_t> &OtherFunction)
-//     -> EdgeFunction<l_t> {
-//   return joinWithAdd(This, OtherFunction);
-// }
-
-// auto AddFactsEF::join(EdgeFunctionRef<AddFactsEF> This,
-//                       const EdgeFunction<l_t> &OtherFunction)
-//     -> EdgeFunction<l_t> {
-//   return joinWithAdd(This, OtherFunction);
-// }
 
 ///
 
@@ -708,59 +531,44 @@ EdgeFunction<l_t> iiaDefaultJoinOrNull(const EdgeFunction<l_t> &This,
 EdgeFunction<l_t>
 IDEFeatureTaintAnalysis::extend(const EdgeFunction<l_t> &FirstEF,
                                 const EdgeFunction<l_t> &SecondEF) {
-  auto Ret = [&] {
-    if (auto Default = defaultComposeOrNull(FirstEF, SecondEF)) {
-      // llvm::errs() << "defaultComposeOrNull>>\n";
-      return Default;
-    }
 
-    auto Val = SecondEF.computeTarget(FirstEF.computeTarget(0));
+  if (auto Default = defaultComposeOrNull(FirstEF, SecondEF)) {
+    return Default;
+  }
 
-    if (FirstEF.isConstant()) {
-      return genEF(std::move(Val), GenEFCache);
-    }
+  auto Val = SecondEF.computeTarget(FirstEF.computeTarget(0));
 
-    return addEF(std::move(Val), AddEFCache);
-  }();
+  if (FirstEF.isConstant()) {
+    return genEF(std::move(Val), GenEFCache);
+  }
 
-  // llvm::errs() << "Extend " << FirstEF << " with " << SecondEF << " --> " <<
-  // Ret
-  //              << '\n';
-
-  return Ret;
+  return addEF(std::move(Val), AddEFCache);
 }
+
 EdgeFunction<l_t>
 IDEFeatureTaintAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
                                  const EdgeFunction<l_t> &OtherEF) {
-  auto Ret = [&] {
-    /// XXX: Here, we underapproximate joins with EdgeIdentity
-    if (llvm::isa<EdgeIdentity<l_t>>(FirstEF)) {
-      return OtherEF;
-    }
-    if (llvm::isa<EdgeIdentity<l_t>>(OtherEF) &&
-        !llvm::isa<AllTop<l_t>>(FirstEF)) {
-      return FirstEF;
-    }
 
-    if (auto Default = iiaDefaultJoinOrNull(FirstEF, OtherEF)) {
-      return Default;
-    }
+  /// XXX: Here, we underapproximate joins with EdgeIdentity
+  if (llvm::isa<EdgeIdentity<l_t>>(FirstEF)) {
+    return OtherEF;
+  }
+  if (llvm::isa<EdgeIdentity<l_t>>(OtherEF) &&
+      !llvm::isa<AllTop<l_t>>(FirstEF)) {
+    return FirstEF;
+  }
 
-    // auto ThisFacts = FirstEF.computeTarget(0);
-    // ThisFacts.unionWith(OtherEF.computeTarget(0));
-    auto ThisFacts = unionTaints<GenerateEF, AddFactsEF>(FirstEF, OtherEF);
+  if (auto Default = iiaDefaultJoinOrNull(FirstEF, OtherEF)) {
+    return Default;
+  }
 
-    if (FirstEF.isConstant() && OtherEF.isConstant()) {
-      return genEF(std::move(ThisFacts), GenEFCache);
-    }
+  auto ThisFacts = unionTaints<GenerateEF, AddFactsEF>(FirstEF, OtherEF);
 
-    return addEF(std::move(ThisFacts), AddEFCache);
-  }();
+  if (FirstEF.isConstant() && OtherEF.isConstant()) {
+    return genEF(std::move(ThisFacts), GenEFCache);
+  }
 
-  // llvm::errs() << "Combine " << FirstEF << " and " << OtherEF << " --> " <<
-  // Ret
-  //              << '\n';
-  return Ret;
+  return addEF(std::move(ThisFacts), AddEFCache);
 }
 
 auto IDEFeatureTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
@@ -770,31 +578,14 @@ auto IDEFeatureTaintAnalysis::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
   if (isZeroValue(SuccNode) || CurrNode == SuccNode) {
     // We don't want to propagate any facts on zero
-
-    // llvm::errs() << "Identity Edge\n";
     return EdgeIdentity<l_t>{};
   }
 
   if (isZeroValue(CurrNode)) {
-    // llvm::errs() << "Generate from Zero\n";
-
     // Generate user edge-facts from zero
     return genEF(TaintGen.getGeneratedTaintsAt(Curr), GenEFCache);
   }
 
-  // Overrides at store instructions
-  // if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-  //   if (CurrNode == Store->getValueOperand()) {
-  //     // Store tainted value
-
-  //     // propagate facts unchanged. User edge-facts are generated from zero.
-
-  //     // llvm::errs() << "Store Identity\n";
-  //     return EdgeIdentity<l_t>{};
-  //   }
-  // }
-
-  // llvm::errs() << "Fallback Identity\n";
   // Otherwise stick to identity.
   return EdgeIdentity<l_t>{};
 }
@@ -812,7 +603,7 @@ auto IDEFeatureTaintAnalysis::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
 }
 
 auto IDEFeatureTaintAnalysis::getReturnEdgeFunction(
-    n_t CallSite, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
+    n_t /*CallSite*/, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
     n_t /*RetSite*/, d_t RetNode) -> EdgeFunction<l_t> {
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
     // Generate user edge-facts from zero
@@ -827,9 +618,6 @@ auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Generate user edge-facts from zero
-
-    // llvm::errs() << "At CTR " << llvmIRToString(CallSite)
-    //              << ": Gen from zero!\n";
     return genEF(TaintGen.getGeneratedTaintsAt(CallSite), GenEFCache);
   }
 
@@ -856,11 +644,10 @@ auto IDEFeatureTaintAnalysis::getCallToRetEdgeFunction(
 }
 
 auto IDEFeatureTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
-                                                     n_t Succ, d_t SuccNode)
+                                                     n_t /*Succ*/, d_t SuccNode)
     -> EdgeFunction<l_t> {
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Generate user edge-facts from zero
-
     return genEF(TaintGen.getGeneratedTaintsAt(Curr), GenEFCache);
   }
 
@@ -881,12 +668,7 @@ auto IDEFeatureTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
     // parameters will otherwise cause trouble by overriding alloca
     // instructions without being valid data-flow facts themselves.
 
-    /// TODO: Do we want that? --NO
-    // for (const auto &Arg : SP->getFunction()->args()) {
-    //   Seeds.addSeed(SP, &Arg, BitVectorSet<e_t>());
-    // }
     // Generate all global variables using generalized initial seeds
-
     for (const auto &G : this->IRDB->getModule()->globals()) {
       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         l_t InitialValues = TaintGen.getGeneratedTaintsAt(GV);
@@ -896,8 +678,6 @@ auto IDEFeatureTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
       }
     }
   });
-
-  // Seeds.dump(llvm::errs());
 
   return Seeds;
 }
@@ -918,7 +698,7 @@ void IDEFeatureTaintAnalysis::emitTextReport(
 
     for (const auto &Inst : llvm::instructions(F)) {
       auto Results = SR.resultsAt(&Inst, true);
-      // stripBottomResults(Results);
+
       if (!Results.empty()) {
         OS << "At IR statement: " << NToString(Inst) << '\n';
         for (const auto &Result : Results) {
