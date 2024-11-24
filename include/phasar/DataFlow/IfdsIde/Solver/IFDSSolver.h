@@ -108,8 +108,7 @@ using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
 
 template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t,
-                    typename AnalysisDomainTy::l_t>
+                    typename AnalysisDomainTy::d_t, BinaryDomain>
 solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
                  const typename AnalysisDomainTy::i_t &ICF) {
   IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
