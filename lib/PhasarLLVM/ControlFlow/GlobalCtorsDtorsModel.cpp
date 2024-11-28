@@ -7,7 +7,9 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
+
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -124,10 +126,10 @@ static llvm::Function *createDtorCallerForModule(
         &RegisteredDtors) {
 
   auto *PhasarDtorCaller = llvm::cast<llvm::Function>(
-      Mod.getOrInsertFunction(
-             LLVMBasedICFG::GlobalCRuntimeDtorsCallerName.str() + '.' +
-                 getReducedModuleName(Mod),
-             llvm::Type::getVoidTy(Mod.getContext()))
+      Mod.getOrInsertFunction((GlobalCtorsDtorsModel::DtorsCallerName +
+                               llvm::Twine('.') + getReducedModuleName(Mod))
+                                  .str(),
+                              llvm::Type::getVoidTy(Mod.getContext()))
           .getCallee());
 
   auto *BB =
@@ -196,7 +198,7 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
 
   auto &CTX = M.getContext();
   auto *Cleanup = llvm::cast<llvm::Function>(
-      M.getOrInsertFunction(LLVMBasedICFG::GlobalCRuntimeDtorModelName,
+      M.getOrInsertFunction(GlobalCtorsDtorsModel::DtorModelName,
                             llvm::Type::getVoidTy(CTX))
           .getCallee());
 
@@ -217,24 +219,25 @@ static std::pair<llvm::Function *, bool> buildCRuntimeGlobalDtorsModel(
   return {Cleanup, true};
 }
 
-llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
-    llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints) {
+llvm::Function *GlobalCtorsDtorsModel::buildModel(
+    LLVMProjectIRDB &IRDB, llvm::ArrayRef<llvm::Function *> UserEntryPoints) {
+  auto &M = *IRDB.getModule();
   auto GlobalCtors = collectGlobalCtors(M);
   auto GlobalDtors = collectGlobalDtors(M);
   auto *RegisteredDtorCaller = collectRegisteredDtors(GlobalDtors, M);
   if (RegisteredDtorCaller) {
-    IRDB->insertFunction(RegisteredDtorCaller);
+    IRDB.insertFunction(RegisteredDtorCaller);
   }
 
   auto [GlobalCleanupFn, Inserted] =
       buildCRuntimeGlobalDtorsModel(M, GlobalDtors);
   if (Inserted) {
-    IRDB->insertFunction(GlobalCleanupFn);
+    IRDB.insertFunction(GlobalCleanupFn);
   }
 
   auto &CTX = M.getContext();
   auto *GlobModel = llvm::cast<llvm::Function>(
-      M.getOrInsertFunction(GlobalCRuntimeModelName,
+      M.getOrInsertFunction(ModelName,
                             /*retTy*/
                             llvm::Type::getVoidTy(CTX),
                             /*argc*/
@@ -301,8 +304,8 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     IRB.CreateRetVoid();
   } else {
 
-    auto UEntrySelectorFn = M.getOrInsertFunction(
-        GlobalCRuntimeUserEntrySelectorName, llvm::Type::getInt32Ty(CTX));
+    auto UEntrySelectorFn = M.getOrInsertFunction(UserEntrySelectorName,
+                                                  llvm::Type::getInt32Ty(CTX));
 
     auto *UEntrySelector = IRB.CreateCall(UEntrySelectorFn);
 
@@ -335,9 +338,30 @@ llvm::Function *LLVMBasedICFG::buildCRuntimeGlobalCtorsDtorsModel(
     IRB.CreateRetVoid();
   }
 
-  IRDB->insertFunction(GlobModel);
+  IRDB.insertFunction(GlobModel);
   ModulesToSlotTracker::updateMSTForModule(&M);
 
   return GlobModel;
 }
+
+llvm::Function *
+GlobalCtorsDtorsModel::buildModel(LLVMProjectIRDB &IRDB,
+                                  llvm::ArrayRef<std::string> UserEntryPoints) {
+  auto UserEntryPointFns = getEntryFunctionsMut(IRDB, UserEntryPoints);
+  return buildModel(IRDB, UserEntryPointFns);
+}
+
+bool GlobalCtorsDtorsModel::isPhasarGenerated(
+    const llvm::Function &F) noexcept {
+  if (F.hasName()) {
+    llvm::StringRef FunctionName = F.getName();
+    return llvm::StringSwitch<bool>(FunctionName)
+        .Cases(ModelName, DtorModelName, DtorsCallerName, UserEntrySelectorName,
+               true)
+        .Default(false);
+  }
+
+  return false;
+}
+
 } // namespace psr

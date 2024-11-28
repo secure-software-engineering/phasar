@@ -2,6 +2,7 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -85,7 +86,7 @@ TEST(LLVMBasedICFGTest, StaticCallSite_2b) {
   const llvm::Function *CTOR =
       IRDB.getFunctionDefinition(LLVMBasedICFG::GlobalCRuntimeModelName);
   const llvm::Function *DTOR =
-      IRDB.getFunctionDefinition(LLVMBasedICFG::GlobalCRuntimeDtorModelName);
+      IRDB.getFunctionDefinition(GlobalCtorsDtorsModel::DtorModelName);
   ASSERT_TRUE(F);
   ASSERT_TRUE(FOO);
   ASSERT_TRUE(BAR);

@@ -24,9 +24,10 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringMap.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
@@ -72,6 +73,63 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 LLVMTypeHierarchy::LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB) {
   PHASAR_LOG_LEVEL(INFO, "Construct type hierarchy");
   buildLLVMTypeHierarchy(*IRDB.getModule());
+}
+
+LLVMTypeHierarchy::LLVMTypeHierarchy(
+    const LLVMProjectIRDB &IRDB, const LLVMTypeHierarchyData &SerializedData) {
+
+  llvm::StringMap<llvm::StructType *> NameToStructType;
+  const auto &IRDBModule = IRDB.getModule();
+
+  VisitedModules.insert(IRDBModule);
+  auto StructTypes = IRDBModule->getIdentifiedStructTypes();
+
+  // find all struct types by name
+  for (const auto &SerElement : SerializedData.TypeGraph) {
+    bool MatchFound = false;
+
+    for (const auto &StructTypeElement : StructTypes) {
+      if (SerElement.getKey() == StructTypeElement->getName()) {
+        NameToStructType.try_emplace(SerElement.getKey(), StructTypeElement);
+        MatchFound = true;
+        break;
+      }
+    }
+
+    if (!MatchFound) {
+      PHASAR_LOG_LEVEL(WARNING,
+                       "No matching StructType found for Type with name: "
+                           << SerElement.getKey());
+    }
+  }
+
+  // add all vertices
+  for (const auto &Curr : NameToStructType) {
+    const auto &StructType = Curr.getValue();
+    auto Vertex = boost::add_vertex(TypeGraph);
+    TypeVertexMap[StructType] = Vertex;
+    TypeGraph[Vertex] = VertexProperties(StructType);
+    TypeVFTMap[StructType] = getVirtualFunctions(*IRDBModule, *StructType);
+  }
+
+  // add all edges
+  for (const auto &SerElement : SerializedData.TypeGraph) {
+    const auto *SrcType = NameToStructType[SerElement.getKey()];
+    if (!SrcType) {
+      continue;
+    }
+    auto Vtx = TypeVertexMap.at(SrcType);
+    for (const auto &CurrEdge : SerElement.getValue()) {
+      const auto *DestType = NameToStructType[CurrEdge];
+      if (!SrcType) {
+        continue;
+      }
+      auto DestVtx = TypeVertexMap.at(DestType);
+
+      TypeGraph[Vtx].ReachableTypes.insert(DestType);
+      boost::add_edge(Vtx, DestVtx, TypeGraph);
+    }
+  }
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
@@ -162,6 +220,7 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
   std::string ClearName = removeStructOrClassPrefix(Type);
+
   if (auto It = ClearNameTIMap.find(ClearName); It != ClearNameTIMap.end()) {
     const auto *TI = It->second;
     if (!TI->hasInitializer()) {
@@ -179,9 +238,9 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName =
                     removeTypeInfoPrefix(llvm::demangle(Name.str()));
-                if (auto TyIt = ClearNameTypeMap.find(ClearName);
-                    TyIt != ClearNameTypeMap.end()) {
-                  SubTypes.push_back(TyIt->second);
+                if (auto TypeIt = ClearNameTypeMap.find(ClearName);
+                    TypeIt != ClearNameTypeMap.end()) {
+                  SubTypes.push_back(TypeIt->second);
                 }
               }
             }
@@ -247,10 +306,12 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
       TypeVFTMap[StructType] = getVirtualFunctions(M, *StructType);
     }
   }
+
   // construct the edges between a type and its subtypes
   for (auto *StructType : StructTypes) {
     // use type information to check if it is really a subtype
     auto SubTypes = getSubTypes(M, *StructType);
+
     for (const auto *SubType : SubTypes) {
       boost::add_edge(TypeVertexMap[SubType], TypeVertexMap[StructType],
                       TypeGraph);
@@ -393,7 +454,20 @@ void LLVMTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
 }
 
 void LLVMTypeHierarchy::printAsJson(llvm::raw_ostream &OS) const {
-  OS << getAsJson();
+  LLVMTypeHierarchyData Data;
+  Data.PhasarConfigJsonTypeHierarchyID =
+      PhasarConfig::JsonTypeHierarchyID().str();
+
+  // iterate all graph vertices
+  for (auto Vtx : boost::make_iterator_range(boost::vertices(TypeGraph))) {
+    //  iterate all out edges of vertex vi_v
+    auto &SerTypes = Data.TypeGraph[TypeGraph[Vtx].getTypeName()];
+    for (const auto &CurrReachable : TypeGraph[Vtx].ReachableTypes) {
+      SerTypes.push_back(CurrReachable->getName().str());
+    }
+  }
+
+  Data.printAsJson(OS);
 }
 
 // void LLVMTypeHierarchy::printGraphAsDot(ostream &out) {

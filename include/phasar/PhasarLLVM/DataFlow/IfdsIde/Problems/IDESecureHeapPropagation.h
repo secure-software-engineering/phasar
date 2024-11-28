@@ -105,7 +105,7 @@ public:
                                            n_t RetSite,
                                            d_t RetSiteNode) override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS) override;
 };
 

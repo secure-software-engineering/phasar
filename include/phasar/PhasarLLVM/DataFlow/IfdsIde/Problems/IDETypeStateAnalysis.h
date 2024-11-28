@@ -517,7 +517,7 @@ public:
     return Name.contains(TSD->getTypeNameOfInterest());
   }
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
     LLVMBasedCFG CFG;
     for (const auto &F : this->IRDB->getAllFunctions()) {
@@ -553,6 +553,19 @@ public:
     }
 
     this->Printer->onFinalize();
+  }
+
+  [[nodiscard]] bool
+  isInteresting(const llvm::Instruction *Inst) const noexcept {
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+    if (!Call) {
+      return false;
+    }
+    if (const auto *StaticCallee = Call->getCalledFunction()) {
+      return TSD->isAPIFunction(StaticCallee->getName().str());
+    }
+
+    return true;
   }
 
 private:

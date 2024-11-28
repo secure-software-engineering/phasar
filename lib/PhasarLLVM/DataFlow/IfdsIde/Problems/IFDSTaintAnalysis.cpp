@@ -262,8 +262,9 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
       });
 }
 
-auto IFDSTaintAnalysis::getNormalFlowFunction(
-    n_t Curr, [[maybe_unused]] n_t Succ) -> FlowFunctionPtrType {
+auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
+                                              [[maybe_unused]] n_t Succ)
+    -> FlowFunctionPtrType {
   // If a tainted value is stored, the store location must be tainted too
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     container_type Gen;
@@ -328,9 +329,10 @@ auto IFDSTaintAnalysis::getCallFlowFunction(n_t CallSite, f_t DestFun)
   return mapFactsToCallee(CS, DestFun);
 }
 
-auto IFDSTaintAnalysis::getRetFlowFunction(
-    n_t CallSite, f_t /*CalleeFun*/, n_t ExitStmt,
-    [[maybe_unused]] n_t RetSite) -> FlowFunctionPtrType {
+auto IFDSTaintAnalysis::getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
+                                           n_t ExitStmt,
+                                           [[maybe_unused]] n_t RetSite)
+    -> FlowFunctionPtrType {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
@@ -347,9 +349,10 @@ auto IFDSTaintAnalysis::getRetFlowFunction(
   // All other stuff is killed at this point
 }
 
-auto IFDSTaintAnalysis::getCallToRetFlowFunction(
-    n_t CallSite, [[maybe_unused]] n_t RetSite,
-    llvm::ArrayRef<f_t> Callees) -> FlowFunctionPtrType {
+auto IFDSTaintAnalysis::getCallToRetFlowFunction(n_t CallSite,
+                                                 [[maybe_unused]] n_t RetSite,
+                                                 llvm::ArrayRef<f_t> Callees)
+    -> FlowFunctionPtrType {
 
   const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
@@ -511,10 +514,21 @@ bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
+    GenericSolverResults<n_t, d_t, BinaryDomain> /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
   Printer->onFinalize();
+}
+
+bool IFDSTaintAnalysis::isInteresting(
+    const llvm::Instruction *Inst) const noexcept {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
+    if (const auto *StaticCallee = Call->getCalledFunction()) {
+      return Config->mayLeakValuesAt(Inst, StaticCallee);
+    }
+    return true;
+  }
+  return Config->mayLeakValuesAt(Inst, nullptr);
 }
 
 } // namespace psr
