@@ -5,6 +5,7 @@
 
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Operator.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -49,25 +50,26 @@ public:
     assert(IRDB != nullptr);
   }
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /*Succ*/) override {
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlowIf(Load, [Load](d_t Source) {
+        return Source == Load->getPointerOperand();
+      });
     }
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
-    }
-    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return strongUpdateStore(Store);
     }
     if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlow(UnaryOp, UnaryOp->getOperand(0));
     }
     if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
+        return Source == BinaryOp->getLeftOp() ||
+               Source == BinaryOp->getRightOp();
+      });
     }
-    if (const auto *GetElementPtr =
-            llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+    if (const auto *GetElementPtr = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
+      return generateFlow(GetElementPtr, GetElementPtr->getPointerOperand());
     }
   }
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,

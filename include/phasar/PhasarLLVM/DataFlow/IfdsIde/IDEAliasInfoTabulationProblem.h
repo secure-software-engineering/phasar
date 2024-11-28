@@ -40,6 +40,8 @@ public:
   using FlowFunctionType = FlowFunction<d_t, Container>;
   using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
 
+  using container_type = typename FlowFunctionType::container_type;
+
   explicit IDEAliasInfoTabulationProblem(
       const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef PT,
       std::vector<std::string> EntryPoints,
@@ -52,26 +54,47 @@ public:
     assert(IRDB != nullptr);
   }
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
-    // TODO: AliasInfo benutzen
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /*Succ*/) override {
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlowIf(Load, [Load](d_t Source) {
+        return Source == Load->getPointerOperand();
+      });
     }
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      container_type Gen;
+      auto AliasSet = PT.getAliasSet(Store->getPointerOperand(), Store);
+      Gen.insert(AliasSet->begin(), AliasSet->end());
+
+      return lambdaFlow(
+          [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+            if (Store->getPointerOperand() == Source) {
+              return {};
+            }
+            if (Store->getValueOperand() == Source) {
+              return Gen;
+            }
+
+            return {Source};
+          });
     }
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      auto *AT = Alloca->getAllocatedType();
+      if (AT->isIntegerTy() || isIntegerLikeType(AT)) {
+        return generateFromZero(Alloca);
+      }
     }
     if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlow(UnaryOp, UnaryOp->getOperand(0));
     }
     if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
+        return Source == BinaryOp->getLeftOp() ||
+               Source == BinaryOp->getRightOp();
+      });
     }
     if (const auto *GetElementPtr =
             llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
-      // TODO: Richtige Flow Functions zurückgeben
+      return generateFlow(GetElementPtr, GetElementPtr->getPointerOperand());
     }
   }
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
