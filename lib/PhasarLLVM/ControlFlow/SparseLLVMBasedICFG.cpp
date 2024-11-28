@@ -23,19 +23,19 @@ SparseLLVMBasedICFG::SparseLLVMBasedICFG(
     llvm::ArrayRef<std::string> EntryPoints, LLVMTypeHierarchy *TH,
     LLVMAliasInfoRef PT, Soundness S, bool IncludeGlobals)
     : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT, S, IncludeGlobals),
-      SparseCFGCache(new SVFGCache{}), IRDB(IRDB), AliasAnalysis(PT) {}
+      SparseCFGCache(new SVFGCache{}), AliasAnalysis(PT) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG,
                                          LLVMProjectIRDB *IRDB,
                                          LLVMAliasInfoRef PT)
     : LLVMBasedICFG(std::move(CG), IRDB), SparseCFGCache(new SVFGCache{}),
-      IRDB(IRDB), AliasAnalysis(PT) {}
+      AliasAnalysis(PT) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
                                          const nlohmann::json &SerializedCG,
                                          LLVMAliasInfoRef PT)
     : LLVMBasedICFG(IRDB, SerializedCG), SparseCFGCache(new SVFGCache{}),
-      IRDB(IRDB), AliasAnalysis(PT) {}
+      AliasAnalysis(PT) {}
 
 const SparseLLVMBasedCFG &
 SparseLLVMBasedICFG::getSparseCFGImpl(const llvm::Function *Fun,

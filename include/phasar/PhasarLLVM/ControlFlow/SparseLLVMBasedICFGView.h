@@ -65,7 +65,6 @@ private:
   [[nodiscard]] const SparseLLVMBasedCFG &
   getSparseCFGImpl(const llvm::Function *Fun, const llvm::Value *Val) const;
 
-  const LLVMProjectIRDB *IRDB{};
   const LLVMBasedICFG *ICF{};
   std::unique_ptr<SVFGCache> SparseCFGCache;
   LLVMAliasInfoRef AliasAnalysis;

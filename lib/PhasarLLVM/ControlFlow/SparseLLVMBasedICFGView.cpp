@@ -1,7 +1,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFGView.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include "SVFGCache.h"
@@ -10,20 +9,17 @@ using namespace psr;
 
 SparseLLVMBasedICFGView::SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF,
                                                  LLVMAliasInfoRef PT)
-    : IRDB(ICF->getIRDB()), ICF(ICF), SparseCFGCache(new SVFGCache{}),
-      AliasAnalysis(PT) {
-  //
-}
+    : ICF(ICF), SparseCFGCache(new SVFGCache{}), AliasAnalysis(PT) {}
 
 SparseLLVMBasedICFGView::~SparseLLVMBasedICFGView() = default;
 
 FunctionRange SparseLLVMBasedICFGView::getAllFunctionsImpl() const {
-  return IRDB->getAllFunctions();
+  return ICF->getAllFunctions();
 }
 
 auto SparseLLVMBasedICFGView::getFunctionImpl(llvm::StringRef Fun) const
     -> f_t {
-  return IRDB->getFunction(Fun);
+  return ICF->getFunction(Fun);
 };
 
 bool SparseLLVMBasedICFGView::isIndirectFunctionCallImpl(n_t Inst) const {

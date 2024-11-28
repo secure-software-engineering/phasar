@@ -49,7 +49,6 @@ private:
   getSparseCFGImpl(const llvm::Function *Fun, const llvm::Value *Val) const;
 
   std::unique_ptr<SVFGCache> SparseCFGCache;
-  LLVMProjectIRDB *IRDB{};
   LLVMAliasInfoRef AliasAnalysis;
 };
 } // namespace psr

@@ -3,36 +3,16 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/Pointer/AliasAnalysisType.h"
 
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 
 using namespace psr;
 
-static const llvm::Type *getPointeeTypeOrNull(const llvm::Value *V) {
-  // TODO
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-    return Alloca->getAllocatedType();
-  }
-  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    if (const auto *ByValTy = Arg->getParamByValType()) {
-      return ByValTy;
-    }
-    if (const auto *ByValTy = Arg->getParamStructRetType()) {
-      return ByValTy;
-    }
-  }
-
-  // TODO: Handle more cases
-
-  return nullptr;
-}
-
 static bool isNonPointerType(const llvm::Type *Ty) {
   if (const auto *Struct = llvm::dyn_cast<llvm::StructType>(Ty)) {
     for (const auto *ElemTy : Struct->elements()) {
-      // TODO: Go into nested structs recursively
+      // XXX: Go into nested structs recursively
       if (!ElemTy->isSingleValueType() || ElemTy->isVectorTy()) {
         return false;
       }
@@ -71,13 +51,8 @@ static bool isNonAddressTakenVariable(const llvm::Value *Val) {
   return true;
 }
 
-static bool fuzzyMayAlias(const llvm::Value *Ptr1, const llvm::Value *Ptr2,
-                          LLVMAliasInfoRef AliasAnalysis) {
-  // Pointers to pointers may alias with any pointer, because the analysis may
-  // not be field-sensitive.
-  // If we don't know the pointee-type (PointeeTyN == nullptr), we cannot assume
-  // anything.
-
+static bool mayAlias(const llvm::Value *Ptr1, const llvm::Value *Ptr2,
+                     LLVMAliasInfoRef AliasAnalysis) {
   if (isNonAddressTakenVariable(Ptr1) || isNonAddressTakenVariable(Ptr2)) {
     return false;
   }
@@ -113,9 +88,6 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
                            LLVMAliasInfoRef AliasAnalysis) {
   if (Inst == Val || isFirstInBB(Inst) || isLastInBB(Inst, Val)) {
     // First in BB always stays for now
-
-    // llvm::errs() << "[shouldKeepInst]: 1: " << llvmIRToString(Inst)
-    //              << " :: " << llvmIRToShortString(Val) << '\n';
     return true;
   }
 
@@ -124,16 +96,12 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
 
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
     if (llvm::isa<llvm::GlobalValue>(Val)) {
-      // llvm::errs() << "[shouldKeepInst]: 2: " << llvmIRToString(Inst)
-      //              << " :: " << llvmIRToShortString(Val) << '\n';
       return true;
     }
   }
 
   for (const auto *Op : Inst->operand_values()) {
     if (Op == Val) {
-      // llvm::errs() << "[shouldKeepInst]: 3.1: " << llvmIRToString(Inst)
-      //              << " :: " << llvmIRToShortString(Val) << '\n';
       return true;
     }
     if (!ValPtr) {
@@ -147,16 +115,11 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
       continue;
     }
 
-    if (fuzzyMayAlias(Val, Op, AliasAnalysis)) {
-      // llvm::errs() << "[shouldKeepInst]: 3: " << llvmIRToString(Inst)
-      //              << " :: " << llvmIRToShortString(Val) << '\n';
+    if (mayAlias(Val, Op, AliasAnalysis)) {
       return true;
     }
   }
 
-  // llvm::errs() << "[shouldKeepInst]: FALSE: " << llvmIRToString(Inst)
-  //              << " :: " << llvmIRToShortString(Val) << '\n';
-  // TODO
   return false;
 }
 
@@ -164,9 +127,6 @@ static void buildSparseCFG(const LLVMBasedCFG &CFG,
                            SparseLLVMBasedCFG::vgraph_t &SCFG,
                            const llvm::Function *Fun, const llvm::Value *Val,
                            LLVMAliasInfoRef AliasAnalysis) {
-
-  // llvm::errs() << "Build SCFG for '" << Fun->getName() << "' and value "
-  //              << llvmIRToString(Val) << '\n';
   llvm::SmallVector<
       std::pair<const llvm::Instruction *, const llvm::Instruction *>>
       WL;
@@ -195,10 +155,6 @@ static void buildSparseCFG(const LLVMBasedCFG &CFG,
       auto [It, Inserted] = SCFG.try_emplace(From, To);
       if (!Inserted) {
         if (It->second != To) {
-          // llvm::errs() << "[buildSparseCFG]: Ambiguity at "
-          //              << llvmIRToString(From) << " ::> "
-          //              << llvmIRToShortString(It->second) << " VS "
-          //              << llvmIRToShortString(To) << '\n';
           It->second = nullptr;
         }
       }
@@ -217,7 +173,7 @@ static void buildSparseCFG(const LLVMBasedCFG &CFG,
 const SparseLLVMBasedCFG &
 SVFGCache::getOrCreate(const LLVMBasedCFG &CFG, const llvm::Function *Fun,
                        const llvm::Value *Val, LLVMAliasInfoRef AliasAnalysis) {
-  // TODO: Make thread-safe
+  // XXX: Make thread-safe
 
   auto [It, Inserted] = Cache.try_emplace(std::make_pair(Fun, Val));
   if (Inserted) {
