@@ -239,8 +239,9 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
 }
 
 void IFDSConstAnalysis::emitTextReport(
-    const SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
-                        BinaryDomain> &SR,
+    GenericSolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
+                         BinaryDomain>
+        SR,
     llvm::raw_ostream &OS) {
 
   LLVMBasedCFG CFG;

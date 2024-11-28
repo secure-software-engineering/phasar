@@ -91,6 +91,10 @@ public:
     assert(ICF != nullptr);
   }
 
+  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
+            const i_t *ICF)
+      : IDESolver(assertNotNull(Problem), ICF) {}
+
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
   IDESolver(IDESolver &&) = delete;
@@ -1857,6 +1861,11 @@ IDESolver(Problem &, ICF *)
     -> IDESolver<typename Problem::ProblemAnalysisDomain,
                  typename Problem::container_type>;
 
+template <typename Problem, typename ICF>
+IDESolver(Problem *, ICF *)
+    -> IDESolver<typename Problem::ProblemAnalysisDomain,
+                 typename Problem::container_type>;
+
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,
                               typename Problem::container_type>;
@@ -1867,7 +1876,7 @@ OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::l_t>
 solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
                 const typename AnalysisDomainTy::i_t &ICF) {
-  IDESolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
+  IDESolver<AnalysisDomainTy, Container> Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();
 }

@@ -30,6 +30,8 @@ namespace llvm {
 class Value;
 class Instruction;
 class GlobalVariable;
+class GlobalObject;
+class DataLayout;
 class Function;
 } // namespace llvm
 

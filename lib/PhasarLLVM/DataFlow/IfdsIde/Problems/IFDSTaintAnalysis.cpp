@@ -416,12 +416,14 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
              llvm::zip(CS->args(), DestFun->args())) {
           if (Source == Arg.get()) {
             auto VecFacts = DestFunFacts.find(DestParam.getArgNo());
-            for (const auto &VecFact : VecFacts->second) {
-              if (const auto *Param =
-                      std::get_if<library_summary::Parameter>(&VecFact.Fact)) {
-                Facts.insert(CS->getArgOperand(Param->Index));
-              } else {
-                Facts.insert(CallSite);
+            if (VecFacts != DestFunFacts.end()) {
+              for (const auto &VecFact : VecFacts->second) {
+                if (const auto *Param = std::get_if<library_summary::Parameter>(
+                        &VecFact.Fact)) {
+                  Facts.insert(CS->getArgOperand(Param->Index));
+                } else {
+                  Facts.insert(CallSite);
+                }
               }
             }
           }
@@ -512,10 +514,21 @@ bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
+    GenericSolverResults<n_t, d_t, BinaryDomain> /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
   Printer->onFinalize();
+}
+
+bool IFDSTaintAnalysis::isInteresting(
+    const llvm::Instruction *Inst) const noexcept {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
+    if (const auto *StaticCallee = Call->getCalledFunction()) {
+      return Config->mayLeakValuesAt(Inst, StaticCallee);
+    }
+    return true;
+  }
+  return Config->mayLeakValuesAt(Inst, nullptr);
 }
 
 } // namespace psr

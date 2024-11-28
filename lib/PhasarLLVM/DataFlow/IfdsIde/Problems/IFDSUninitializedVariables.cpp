@@ -395,9 +395,7 @@ bool IFDSUninitializedVariables::isZeroValue(
 }
 
 void IFDSUninitializedVariables::emitTextReport(
-    const SolverResults<IFDSUninitializedVariables::n_t,
-                        IFDSUninitializedVariables::d_t, l_t> & /*Result*/,
-    llvm::raw_ostream &OS) {
+    GenericSolverResults<n_t, d_t, l_t> /*Result*/, llvm::raw_ostream &OS) {
   OS << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
   if (UndefValueUses.empty()) {
