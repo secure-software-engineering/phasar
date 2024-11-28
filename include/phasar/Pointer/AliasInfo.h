@@ -21,8 +21,6 @@
 #include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <memory>
 #include <type_traits>
 
@@ -140,7 +138,8 @@ public:
     VT->Print(AA, OS);
   }
 
-  [[nodiscard]] nlohmann::json getAsJson() const {
+  [[nodiscard, deprecated("Use printAsJson() instead")]] nlohmann::json
+  getAsJson() const {
     assert(VT != nullptr);
     return VT->GetAsJson(AA);
   }
@@ -240,8 +239,14 @@ private:
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
-      [](const void *AA) {
-        return static_cast<const ConcreteAA *>(AA)->getAsJson();
+      [](const void *AA) noexcept {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
+        if constexpr (has_getAsJson<ConcreteAA>::value) {
+          return static_cast<const ConcreteAA *>(AA)->getAsJson();
+        }
+        return nlohmann::json();
+#pragma GCC diagnostic pop
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);

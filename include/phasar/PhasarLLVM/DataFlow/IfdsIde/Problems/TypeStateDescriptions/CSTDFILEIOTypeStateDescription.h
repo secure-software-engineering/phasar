@@ -13,6 +13,8 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
+#include "llvm/Support/raw_ostream.h"
+
 #include <map>
 #include <set>
 #include <string>
@@ -28,6 +30,12 @@ enum class CSTDFILEIOState {
   BOT = 4
 };
 llvm::StringRef to_string(CSTDFILEIOState State) noexcept;
+
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                     CSTDFILEIOState State) {
+  return OS << to_string(State);
+}
+
 template <> struct JoinLatticeTraits<CSTDFILEIOState> {
   static constexpr CSTDFILEIOState top() noexcept {
     return CSTDFILEIOState::TOP;

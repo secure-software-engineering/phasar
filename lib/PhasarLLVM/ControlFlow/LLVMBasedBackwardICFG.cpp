@@ -64,6 +64,10 @@ void LLVMBasedBackwardICFG::printImpl(llvm::raw_ostream &OS) const {
   ForwardICFG->print(OS);
 }
 
+void LLVMBasedBackwardICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
+  ForwardICFG->printAsJson(OS);
+}
+
 nlohmann::json LLVMBasedBackwardICFG::getAsJsonImpl() const {
   return ForwardICFG->getAsJson();
 }
@@ -71,6 +75,11 @@ nlohmann::json LLVMBasedBackwardICFG::getAsJsonImpl() const {
 auto LLVMBasedBackwardICFG::getCallGraphImpl() const noexcept
     -> const CallGraph<n_t, f_t> & {
   return ForwardICFG->getCallGraph();
+}
+
+[[nodiscard]] size_t
+LLVMBasedBackwardICFG::getNumCallSitesImpl() const noexcept {
+  return ForwardICFG->getNumCallSites();
 }
 
 template class ICFGBase<LLVMBasedBackwardICFG>;

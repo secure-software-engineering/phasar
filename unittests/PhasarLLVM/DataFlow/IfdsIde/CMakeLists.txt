@@ -4,6 +4,7 @@ set(IfdsIdeSources
   EdgeFunctionComposerTest.cpp
   EdgeFunctionSingletonCacheTest.cpp
   InteractiveIDESolverTest.cpp
+  IterativeIDESolverTest.cpp
 )
 
 foreach(TEST_SRC ${IfdsIdeSources})

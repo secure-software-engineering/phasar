@@ -37,6 +37,22 @@ class DTAResolver : public CHAResolver {
 public:
   using TypeGraph_t = CachedTypeGraph;
 
+  DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const LLVMTypeHierarchy *TH);
+
+  ~DTAResolver() override = default;
+
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+
+  void otherInst(const llvm::Instruction *Inst) override;
+
+  [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
+
 protected:
   TypeGraph_t TypeGraph;
 
@@ -53,18 +69,6 @@ protected:
    * of vtable)
    */
   bool heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
-
-public:
-  DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
-
-  ~DTAResolver() override = default;
-
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
-
-  void otherInst(const llvm::Instruction *Inst) override;
-
-  [[nodiscard]] std::string str() const override;
 };
 } // namespace psr
 

@@ -19,8 +19,6 @@
 
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/DenseMap.h"
-
 #include <string>
 #include <vector>
 
@@ -249,7 +247,7 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 
 class ModulesToSlotTracker {
   friend class LLVMProjectIRDB;
-  friend class LLVMBasedICFG;
+  friend class GlobalCtorsDtorsModel;
   friend class LLVMZeroValue;
 
 private:
