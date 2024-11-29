@@ -424,6 +424,20 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
   doAnalysisAndCompareResults("global_04_cpp.ll", {"main", "_Z7doStuffi"},
                               GroundTruth, false);
 }
+TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_05) {
+  std::set<IIACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("main", 1, "GlobalFeature",
+  // std::set<std::string>{"0"}); GroundTruth.emplace("main", 2,
+  // "GlobalFeature", std::set<std::string>{"0"}); GroundTruth.emplace("main",
+  // 17, "GlobalFeature", std::set<std::string>{"0"});
+  // GroundTruth.emplace("_Z7doStuffi", 1, "GlobalFeature",
+  //                     std::set<std::string>{"0"});
+  // GroundTruth.emplace("_Z7doStuffi", 2, "GlobalFeature",
+  //                     std::set<std::string>{"0"});
+  doAnalysisAndCompareResults("global_05_cpp.ll", {"main"}, GroundTruth, true);
+  ASSERT_FALSE(true) << "TODO: Add GroundTruth! An init() soll nichts stehen, "
+                        "außer init() selbst. g soll strongly updated sein";
+}
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
