@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_DIBASEDTYPEHIERARCHY_H
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_DIBASEDTYPEHIERARCHY_H
 
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchyData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
@@ -19,6 +20,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/Support/Casting.h"
 
 #include <deque>
 
@@ -40,6 +42,8 @@ public:
       "__cxa_pure_virtual";
 
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
+  explicit DIBasedTypeHierarchy(const LLVMProjectIRDB *IRDB,
+                                const DIBasedTypeHierarchyData &SerializedData);
   ~DIBasedTypeHierarchy() override = default;
 
   static bool isVTable(llvm::StringRef VarName);
@@ -75,6 +79,10 @@ public:
   [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
   [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+    if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
+      auto Ident = CompTy->getIdentifier();
+      return Ident.empty() ? CompTy->getName() : Ident;
+    }
     return Type->getName();
   }
 
@@ -93,10 +101,18 @@ public:
    */
   void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] nlohmann::json getAsJson() const override;
-  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson() const override;
+
+  /**
+   * @brief Prints the class hierarchy to an ostream in json format.
+   * @param an outputstream
+   */
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
 private:
+  [[nodiscard]] DIBasedTypeHierarchyData getTypeHierarchyData() const;
   [[nodiscard]] llvm::iterator_range<const ClassType *>
   subTypesOf(size_t TypeIdx) const noexcept;
 

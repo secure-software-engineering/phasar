@@ -176,7 +176,9 @@ struct GeneralStatistics {
       "instead")]] const std::set<const llvm::Instruction *> &
   getRetResInstructions() const;
 
-  [[nodiscard]] nlohmann::json getAsJson() const;
+  [[nodiscard]] [[deprecated(
+      "Please use printAsJson() instead")]] nlohmann::json
+  getAsJson() const;
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 };
 

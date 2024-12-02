@@ -131,11 +131,26 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
   return true;
 }
 
-namespace psr {
+bool psr::isVirtualCall(const llvm::Instruction *Inst,
+                        const LLVMVFTableProvider &VTP) {
+  assert(Inst != nullptr);
+  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
+  if (!CallSite) {
+    return false;
+  }
+  // check potential receiver type
+  const auto *RecType = getReceiverType(CallSite);
+  if (!RecType) {
+    return false;
+  }
 
-Resolver::Resolver(const LLVMProjectIRDB *IRDB) : IRDB(IRDB), VTP(nullptr) {
-  assert(IRDB != nullptr);
+  if (!VTP.hasVFTable(RecType)) {
+    return false;
+  }
+  return getVFTIndex(CallSite) >= 0;
 }
+
+namespace psr {
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
@@ -148,6 +163,14 @@ void Resolver::handlePossibleTargets(const llvm::CallBase *CallSite,
                                      FunctionSetTy &PossibleTargets) {}
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
+
+auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
+  if (VTP && isVirtualCall(CallSite, *VTP)) {
+    return resolveVirtualCall(CallSite);
+  }
+  return resolveFunctionPointer(CallSite);
+}
 
 auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
@@ -179,7 +202,7 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
 
   switch (Ty) {
   case CallGraphAnalysisType::NORESOLVE:
-    return std::make_unique<NOResolver>(IRDB);
+    return std::make_unique<NOResolver>(IRDB, VTP);
   case CallGraphAnalysisType::CHA:
     assert(TH != nullptr);
     return std::make_unique<CHAResolver>(IRDB, VTP, TH);

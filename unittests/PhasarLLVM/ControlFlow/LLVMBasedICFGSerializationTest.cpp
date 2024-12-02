@@ -1,8 +1,15 @@
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/IO.h"
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -15,13 +22,19 @@ protected:
     using namespace std::string_literals;
 
     psr::LLVMProjectIRDB IRDB(PathToLLFiles + IRFile);
-
     psr::LLVMBasedICFG ICF(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"s});
-    auto Ser = ICF.getAsJson();
 
-    psr::LLVMBasedICFG Deser(&IRDB, Ser);
+    std::string Ser;
+    // stream ICF data into a json file using the printAsJson() function
+    llvm::raw_string_ostream StringStream(Ser);
 
-    compareResults(ICF, Deser);
+    ICF.printAsJson(StringStream);
+
+    // deserialize data into CallGraphData object
+    psr::LLVMBasedICFG DeserializedICF(&IRDB,
+                                       psr::CallGraphData::loadJsonString(Ser));
+
+    compareResults(ICF, DeserializedICF);
   }
 
   void compareResults(const psr::LLVMBasedICFG &Orig,

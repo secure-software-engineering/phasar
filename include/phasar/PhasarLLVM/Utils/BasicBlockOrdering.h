@@ -21,7 +21,6 @@ namespace llvm {
 class Function;
 class BasicBlock;
 class Instruction;
-class DominatorTree;
 } // namespace llvm
 
 namespace psr {

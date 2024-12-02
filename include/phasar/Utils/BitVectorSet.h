@@ -373,4 +373,12 @@ void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
 }
 } // namespace psr
 
+namespace std {
+template <typename T> struct hash<psr::BitVectorSet<T>> {
+  size_t operator()(const psr::BitVectorSet<T> &BVS) noexcept {
+    return hash_value(BVS);
+  }
+};
+} // namespace std
+
 #endif

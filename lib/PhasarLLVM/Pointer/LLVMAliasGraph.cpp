@@ -135,8 +135,8 @@ std::string LLVMAliasGraph::EdgeProperties::getValueAsString() const {
 // points-to graph stuff
 
 LLVMAliasGraph::LLVMAliasGraph(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
-                               AliasAnalysisType PATy)
-    : PTA(IRDB, UseLazyEvaluation, PATy) {}
+                               AliasAnalysisType /*PATy*/)
+    : PTA(IRDB, UseLazyEvaluation) {}
 
 void LLVMAliasGraph::computeAliasGraph(const llvm::Value *V) {
   // FIXME when fixed in LLVM
@@ -249,7 +249,7 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
 bool LLVMAliasGraph::isInterProcedural() const noexcept { return false; }
 
 AliasAnalysisType LLVMAliasGraph::getAliasAnalysisType() const noexcept {
-  return PTA.getPointerAnalysisType();
+  return AliasAnalysisType::Invalid;
 }
 
 AliasResult LLVMAliasGraph::alias(const llvm::Value *V1, const llvm::Value *V2,
