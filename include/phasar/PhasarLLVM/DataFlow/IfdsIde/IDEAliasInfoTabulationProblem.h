@@ -1,9 +1,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
 
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
@@ -77,12 +80,6 @@ public:
             return {Source};
           });
     }
-    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
-      auto *AT = Alloca->getAllocatedType();
-      if (AT->isIntegerTy() || isIntegerLikeType(AT)) {
-        return generateFromZero(Alloca);
-      }
-    }
     if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
       return generateFlow(UnaryOp, UnaryOp->getOperand(0));
     }
@@ -97,28 +94,170 @@ public:
       return generateFlow(GetElementPtr, GetElementPtr->getPointerOperand());
     }
   }
+
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
                                           f_t CalleeFun) override {
-    // TODO: AliasInfo benutzen
     return mapFactsToCallee(CallInst, CalleeFun, [](d_t Actual, d_t Source) {
       return Actual == Source && Actual->getType()->isPointerTy();
     });
   }
-  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
-                                         n_t ExitInst,
-                                         n_t /*RetSite*/) override {
-    // TODO: AliasInfo benutzen
-    return mapFactsToCaller(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
-                            [](d_t Param, d_t Source) {
-                              return Param == Source &&
-                                     Param->getType()->isPointerTy();
-                            });
+
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                         n_t ExitInst, n_t RetSite) override {
+    container_type Gen;
+    auto AliasSet = PT.getAliasSet(CallSite->getPointerOperand(), CallSite);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+    return lambdaFlow([CallSite, CalleeFun, ExitInst, RetSite,
+                       Gen{std::move(Gen)}](d_t Source) -> container_type {
+      Container Res;
+
+      // TODO: Fabian fragen, ob und wie Glogals propagaten
+      if (ExitInst.getInt() && LLVMZeroValue::isLLVMZeroValue(Source)) {
+        Res.insert(Source);
+      } else if (CallSite.getInt() && llvm::isa<llvm::Constant>(Source)) {
+        // Pass global variables as is, if desired
+        // Globals could also be actual arguments, then the formal
+        // argument needs to be generated below. Need llvm::Constant here
+        // to cover also ConstantExpr and ConstantAggregate
+        Res.insert(Source);
+      }
+
+      const auto *CS = CallSite.getPointer();
+      const auto *DestFun = ExitInst.getPointer()->getFunction();
+      assert(CS->arg_size() >= DestFun->arg_size());
+      assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
+
+      llvm::CallBase::const_op_iterator ArgIt = CS->arg_begin();
+      llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
+      llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
+      llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
+
+      for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
+        if (ArgIt->get()->getType()->isPointerTy()) {
+          // TODO: Fabian fragen, ob das so passt.
+// Either execute code below or do something special here and code below is the
+// else case
+#if false
+          if (std::invoke(PropArg, &*ParamIt, Source)) {
+            Res.insert(std::invoke(FactConstructor, ArgIt->get()));
+          }
+#endif
+        }
+      }
+
+      if (ArgIt != ArgEnd) {
+        // Over-approximate by trying to add the
+        //   alloca [1 x %struct.__va_list_tag], align 16
+        // to the results
+        // find the allocated %struct.__va_list_tag and generate it
+
+        for (const auto &I : llvm::instructions(DestFun)) {
+          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            const auto *AllocTy = Alloc->getAllocatedType();
+            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
+                AllocTy->getArrayElementType()->isStructTy() &&
+                AllocTy->getArrayElementType()->getStructName() ==
+                    "struct.__va_list_tag") {
+              if (std::invoke(PropArg, Alloc, Source)) {
+                std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
+                               FactConstructor);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (const auto *RetInst =
+              llvm::dyn_cast<llvm::ReturnInst>(ExitInst.getPointer());
+          RetInst && RetInst->getReturnValue()) {
+        if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
+          Res.insert(std::invoke(FactConstructor, CS));
+        }
+      }
+
+      std::invoke(PostProcess, Res);
+
+      return Res;
+    }
+
+    );
+    /*
+      TODO: lambda flow mit dem hier:
+      Hier noch die ArgIt aliase betrachten, wenn getType->isPtrType() true ist.
+
+      Container Res;
+      if (ExitInstAndPropZero.getInt() &&
+          LLVMZeroValue::isLLVMZeroValue(Source)) {
+        Res.insert(Source);
+      } else if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
+        // Pass global variables as is, if desired
+        // Globals could also be actual arguments, then the formal argument
+        // needs to be generated below. Need llvm::Constant here to cover also
+        // ConstantExpr and ConstantAggregate
+        Res.insert(Source);
+      }
+
+      const auto *CS = CSAndPropGlob.getPointer();
+      const auto *DestFun = ExitInstAndPropZero.getPointer()->getFunction();
+      assert(CS->arg_size() >= DestFun->arg_size());
+      assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
+
+      llvm::CallBase::const_op_iterator ArgIt = CS->arg_begin();
+      llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
+      llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
+      llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
+
+      for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
+        if (std::invoke(PropArg, &*ParamIt, Source)) {
+          Res.insert(std::invoke(FactConstructor, ArgIt->get()));
+        }
+      }
+
+      if (ArgIt != ArgEnd) {
+        // Over-approximate by trying to add the
+        //   alloca [1 x %struct.__va_list_tag], align 16
+        // to the results
+        // find the allocated %struct.__va_list_tag and generate it
+
+        for (const auto &I : llvm::instructions(DestFun)) {
+          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            const auto *AllocTy = Alloc->getAllocatedType();
+            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
+                AllocTy->getArrayElementType()->isStructTy() &&
+                AllocTy->getArrayElementType()->getStructName() ==
+                    "struct.__va_list_tag") {
+              if (std::invoke(PropArg, Alloc, Source)) {
+                std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
+                               FactConstructor);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (const auto *RetInst = llvm::dyn_cast<llvm::ReturnInst>(
+              ExitInstAndPropZero.getPointer());
+          RetInst && RetInst->getReturnValue()) {
+        if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
+          Res.insert(std::invoke(FactConstructor, CS));
+        }
+      }
+
+      std::invoke(PostProcess, Res);
+
+      return Res;
+    */
   }
   FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t /*CallSite*/, n_t /*RetSite*/,
+  getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
                            llvm::ArrayRef<f_t> /*Callees*/) override {
-    // TODO: AliasInfo benutzen
-    return IDETabulationProblem<AnalysisDomainTy, Container>::identityFlow();
+    // TODO: alle pointer killen und alle globals
+    // Bei declaration only function können wir nicht davon ausgehen, dass der
+    // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
+    //
+    return mapFactsAlongsideCallSite(CallSite);
   }
 
 private:

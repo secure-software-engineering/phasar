@@ -2,6 +2,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDENOALIASINFOTABULATIONPROBLEM_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -88,9 +89,13 @@ public:
                             });
   }
   FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t /*CallSite*/, n_t /*RetSite*/,
+  getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
                            llvm::ArrayRef<f_t> /*Callees*/) override {
-    return IDETabulationProblem<AnalysisDomainTy, Container>::identityFlow();
+    // TODO: alle pointer killen und alle globals
+    // Bei declaration only function können wir nicht davon ausgehen, dass der
+    // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
+    //
+    return mapFactsAlongsideCallSite(CallSite);
   }
 
 private:
