@@ -9,6 +9,7 @@
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -102,19 +103,38 @@ public:
     });
   }
 
-  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitInst, n_t RetSite) override {
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
+                                         n_t ExitInst,
+                                         n_t /*RetSite*/) override {
     container_type Gen;
     auto AliasSet = PT.getAliasSet(CallSite->getPointerOperand(), CallSite);
     Gen.insert(AliasSet->begin(), AliasSet->end());
-    return lambdaFlow([CallSite, CalleeFun, ExitInst, RetSite,
+
+    // TODO: Entweder Lambda Funktionen als variablen speichern und übergeben,
+    // oder die Funktionen sind vllt einfach sowas wie generateFlow?
+    auto PropArg = [](d_t Arg, d_t Source) {
+      return Arg == Source && Arg->getType()->isPointerTy();
+    };
+    auto FactConstructor = [](int a, int b) { return a + b; };
+    auto PropRet = [](d_t RetVal, d_t Source) {
+      return RetVal == Source || (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                                  llvm::isa<llvm::ConstantInt>(RetVal));
+    };
+    auto PostProcess = [this, CallSite](container_type &Res) {
+      // Correctly handling return-POIs
+      populateWithMayAliases(Res, CallSite);
+    };
+
+    return lambdaFlow([CallSite, ExitInst, PropArg, FactConstructor, PropRet,
+                       PostProcess,
                        Gen{std::move(Gen)}](d_t Source) -> container_type {
       Container Res;
 
       // TODO: Fabian fragen, ob und wie Glogals propagaten
-      if (ExitInst.getInt() && LLVMZeroValue::isLLVMZeroValue(Source)) {
+      // TODO: Gen benutzen. Aktuell benutze ich hier keine AliasInfo
+      if (ExitInst->getInt() && LLVMZeroValue::isLLVMZeroValue(Source)) {
         Res.insert(Source);
-      } else if (CallSite.getInt() && llvm::isa<llvm::Constant>(Source)) {
+      } else if (CallSite->getInt() && llvm::isa<llvm::Constant>(Source)) {
         // Pass global variables as is, if desired
         // Globals could also be actual arguments, then the formal
         // argument needs to be generated below. Need llvm::Constant here
@@ -122,8 +142,8 @@ public:
         Res.insert(Source);
       }
 
-      const auto *CS = CallSite.getPointer();
-      const auto *DestFun = ExitInst.getPointer()->getFunction();
+      const auto *CS = CallSite->getPointer();
+      const auto *DestFun = ExitInst->getPointer()->getFunction();
       assert(CS->arg_size() >= DestFun->arg_size());
       assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
 
@@ -134,14 +154,9 @@ public:
 
       for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
         if (ArgIt->get()->getType()->isPointerTy()) {
-          // TODO: Fabian fragen, ob das so passt.
-// Either execute code below or do something special here and code below is the
-// else case
-#if false
           if (std::invoke(PropArg, &*ParamIt, Source)) {
             Res.insert(std::invoke(FactConstructor, ArgIt->get()));
           }
-#endif
         }
       }
 
@@ -169,7 +184,7 @@ public:
       }
 
       if (const auto *RetInst =
-              llvm::dyn_cast<llvm::ReturnInst>(ExitInst.getPointer());
+              llvm::dyn_cast<llvm::ReturnInst>(ExitInst->getPointer());
           RetInst && RetInst->getReturnValue()) {
         if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
           Res.insert(std::invoke(FactConstructor, CS));
@@ -182,73 +197,6 @@ public:
     }
 
     );
-    /*
-      TODO: lambda flow mit dem hier:
-      Hier noch die ArgIt aliase betrachten, wenn getType->isPtrType() true ist.
-
-      Container Res;
-      if (ExitInstAndPropZero.getInt() &&
-          LLVMZeroValue::isLLVMZeroValue(Source)) {
-        Res.insert(Source);
-      } else if (CSAndPropGlob.getInt() && llvm::isa<llvm::Constant>(Source)) {
-        // Pass global variables as is, if desired
-        // Globals could also be actual arguments, then the formal argument
-        // needs to be generated below. Need llvm::Constant here to cover also
-        // ConstantExpr and ConstantAggregate
-        Res.insert(Source);
-      }
-
-      const auto *CS = CSAndPropGlob.getPointer();
-      const auto *DestFun = ExitInstAndPropZero.getPointer()->getFunction();
-      assert(CS->arg_size() >= DestFun->arg_size());
-      assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
-
-      llvm::CallBase::const_op_iterator ArgIt = CS->arg_begin();
-      llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
-      llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
-      llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
-
-      for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
-        if (std::invoke(PropArg, &*ParamIt, Source)) {
-          Res.insert(std::invoke(FactConstructor, ArgIt->get()));
-        }
-      }
-
-      if (ArgIt != ArgEnd) {
-        // Over-approximate by trying to add the
-        //   alloca [1 x %struct.__va_list_tag], align 16
-        // to the results
-        // find the allocated %struct.__va_list_tag and generate it
-
-        for (const auto &I : llvm::instructions(DestFun)) {
-          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            const auto *AllocTy = Alloc->getAllocatedType();
-            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
-                AllocTy->getArrayElementType()->isStructTy() &&
-                AllocTy->getArrayElementType()->getStructName() ==
-                    "struct.__va_list_tag") {
-              if (std::invoke(PropArg, Alloc, Source)) {
-                std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
-                               FactConstructor);
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      if (const auto *RetInst = llvm::dyn_cast<llvm::ReturnInst>(
-              ExitInstAndPropZero.getPointer());
-          RetInst && RetInst->getReturnValue()) {
-        if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
-          Res.insert(std::invoke(FactConstructor, CS));
-        }
-      }
-
-      std::invoke(PostProcess, Res);
-
-      return Res;
-    */
   }
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
@@ -257,6 +205,15 @@ public:
     // Bei declaration only function können wir nicht davon ausgehen, dass der
     // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
     //
+    if (CallSite->getType()->isPointer()) {
+      // kill pointers
+      return {};
+    }
+    if (const auto IsGlobal = llvm::dyn_cast<const llvm::GlobalVariable>(
+            CallSite->getPointer())) {
+      // kill globals
+      return {};
+    }
     return mapFactsAlongsideCallSite(CallSite);
   }
 
