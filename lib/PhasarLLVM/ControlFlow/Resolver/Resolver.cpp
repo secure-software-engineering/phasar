@@ -92,15 +92,15 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   return nullptr;
 }
 
-const llvm::Function *
-psr::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                               const llvm::CallBase *CallSite,
-                               const LLVMVFTableProvider &VTP) {
+const llvm::Function *psr::getNonPureVirtualVFTEntry(
+    const llvm::DIType *T, unsigned Idx, const llvm::CallBase *CallSite,
+    const LLVMVFTableProvider &VTP, const llvm::DIType *ReceiverType) {
 
   if (const auto *VT = VTP.getVFTableOrNull(T)) {
     const auto *Target = VT->getFunction(Idx);
     if (Target &&
         Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
+        Target->getName() == ReceiverType->getName() &&
         isConsistentCall(CallSite, Target)) {
       return Target;
     }

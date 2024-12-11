@@ -71,8 +71,8 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   auto EndIt = ReachableTypes.end();
   for (const auto *PossibleType : AllocatedCompositeTypes) {
     if (ReachableTypes.find(PossibleType) != EndIt) {
-      const auto *Target =
-          getNonPureVirtualVFTEntry(PossibleType, VtableIndex, CallSite);
+      const auto *Target = getNonPureVirtualVFTEntry(PossibleType, VtableIndex,
+                                                     CallSite, ReceiverType);
       if (Target) {
         PossibleCallTargets.insert(Target);
       }

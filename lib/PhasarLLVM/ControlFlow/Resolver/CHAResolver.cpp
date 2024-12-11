@@ -74,8 +74,8 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   FunctionSetTy PossibleCallees;
 
   for (const auto &FallbackTy : FallbackTys) {
-    const auto *Target =
-        getNonPureVirtualVFTEntry(FallbackTy, VtableIndex, CallSite);
+    const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VtableIndex,
+                                                   CallSite, ReceiverTy);
     if (Target) {
       PossibleCallees.insert(Target);
     }
