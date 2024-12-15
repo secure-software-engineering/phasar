@@ -14,13 +14,9 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Soundness.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-
-#include <memory>
-#include <tuple>
 
 using namespace psr;
 namespace {
@@ -67,8 +63,8 @@ TEST_P(LinearConstant, SparseResultsEquivalent) {
         << "At " << llvmIRToString(Cell.getRowKey())
         << " :: " << llvmIRToShortString(Cell.getColumnKey());
   }
-
-  // TODO: Check for existing results
+  // Note: Do not check for equivalence, because SparseIDE is *expected* to
+  // compute less (N, D) results than vanilla IDE.
 }
 
 static LLVMTaintConfig getDoubleFreeConfig() {
