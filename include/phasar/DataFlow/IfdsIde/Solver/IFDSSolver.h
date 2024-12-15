@@ -21,7 +21,6 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/Domain/BinaryDomain.h"
 
-#include <memory>
 #include <set>
 #include <type_traits>
 #include <unordered_map>
@@ -118,8 +117,7 @@ using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
 
 template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t,
-                    typename AnalysisDomainTy::l_t>
+                    typename AnalysisDomainTy::d_t, BinaryDomain>
 solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
                  const typename AnalysisDomainTy::i_t &ICF) {
   IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
