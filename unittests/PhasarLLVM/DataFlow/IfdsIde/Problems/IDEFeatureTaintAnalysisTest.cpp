@@ -104,13 +104,13 @@ protected:
 
     IDESolver IIASolver(IIAProblem, &HA->getICFG());
     IIASolver.solve();
-    if (PrintDump) {
-      // IRDB->emitPreprocessedIR(llvm::outs());
-      IIASolver.dumpResults();
-      llvm::outs()
-          << "\n======================================================\n";
-      printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
-    }
+    // if (PrintDump) {
+    //   // IRDB->emitPreprocessedIR(llvm::outs());
+    //   IIASolver.dumpResults();
+    //   llvm::errs()
+    //       << "\n======================================================\n";
+    //   printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
+    // }
     // do the comparison
     for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
       const auto *Fun = IRDB->getFunctionDefinition(FunName);
@@ -136,6 +136,13 @@ protected:
 
       EXPECT_TRUE(FactFound) << "Variable '" << VarName << "' missing at '"
                              << llvmIRToString(IRLine) << "'.";
+    }
+
+    if (HasFailure()) {
+      IIASolver.dumpResults();
+      llvm::errs()
+          << "\n======================================================\n";
+      printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
     }
   }
 
@@ -189,11 +196,11 @@ protected:
     for (const auto *Inst : IRDB.getAllInstructions()) {
       if (CurrFun != Inst->getFunction()) {
         CurrFun = Inst->getFunction();
-        llvm::outs() << "\n=================== '" << CurrFun->getName()
+        llvm::errs() << "\n=================== '" << CurrFun->getName()
                      << "' ===================\n";
       }
-      llvm::outs() << "  N: " << llvmIRToString(Inst) << '\n';
-      llvm::outs() << "  D: " << printSet(taintsForInst(Inst, SR)) << "\n\n";
+      llvm::errs() << "  N: " << llvmIRToString(Inst) << '\n';
+      llvm::errs() << "  D: " << printSet(taintsForInst(Inst, SR)) << "\n\n";
     }
   }
 
