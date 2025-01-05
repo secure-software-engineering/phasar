@@ -444,10 +444,11 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_05) {
   // NOTE: Facts at init() should be empty, except for its own ID;
   //       g should be strongly updated
 
-  GroundTruth.emplace("main", 1, "g", std::set<std::string>{"0"});
-  GroundTruth.emplace("main", 2, "g", std::set<std::string>{"2"});
-  GroundTruth.emplace("main", 4, "call", std::set<std::string>{"2", "4", "7"});
-  GroundTruth.emplace("main", 4, "g", std::set<std::string>{"2"});
+  GroundTruth.emplace("main", 1, "g", std::set<std::string>{"2"});
+  GroundTruth.emplace("main", 2, "g", std::set<std::string>{"8"});
+  GroundTruth.emplace("main", 4, "call",
+                      std::set<std::string>{"10", "13", "14", "8"});
+  GroundTruth.emplace("main", 4, "g", std::set<std::string>{"8"});
 
   doAnalysisAndCompareResults("global_05_cpp.ll", {"main"}, GroundTruth, true);
 }
