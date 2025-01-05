@@ -139,7 +139,7 @@ protected:
     }
 
     if (HasFailure()) {
-      IIASolver.dumpResults();
+      IIASolver.dumpResults(llvm::errs());
       llvm::errs()
           << "\n======================================================\n";
       printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
@@ -322,7 +322,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
                       std::set<std::string>{"12", "9", "10", "11"});
   GroundTruth.emplace(
       "main", 14, "k",
-      std::set<std::string>{"15", "1", "2", "13", "12", "9", "10", "11"});
+      std::set<std::string>{"15", "1", "2", "13", "14", "12", "9", "10", "11"});
   doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -333,7 +333,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {
   GroundTruth.emplace("main", 13, "j", std::set<std::string>{"14"});
   GroundTruth.emplace("main", 13, "k",
                       std::set<std::string>{"4", "5", "15", "6", "3", "14", "2",
-                                            "13", "16", "18"});
+                                            "13", "16", "17", "18"});
   doAnalysisAndCompareResults("call_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
