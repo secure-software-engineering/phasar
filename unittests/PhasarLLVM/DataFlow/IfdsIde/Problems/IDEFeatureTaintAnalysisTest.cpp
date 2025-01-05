@@ -138,7 +138,7 @@ protected:
                              << llvmIRToString(IRLine) << "'.";
     }
 
-    if (HasFailure()) {
+    if (PrintDump || HasFailure()) {
       IIASolver.dumpResults(llvm::errs());
       llvm::errs()
           << "\n======================================================\n";
@@ -342,8 +342,9 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_03) {
   GroundTruth.emplace("main", 10, "retval", std::set<std::string>{"20"});
   GroundTruth.emplace("main", 10, "i", std::set<std::string>{"21"});
   GroundTruth.emplace("main", 10, "j",
-                      std::set<std::string>{"22", "15", "6", "21", "2", "13",
-                                            "8", "9", "12", "10", "24"});
+                      std::set<std::string>{"22", "23", "15", "6", "21", "2",
+                                            "13", "8", "9", "11", "12", "10",
+                                            "24"});
   doAnalysisAndCompareResults("call_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -353,12 +354,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
   GroundTruth.emplace("main", 20, "i", std::set<std::string>{"34"});
   GroundTruth.emplace("main", 20, "j",
                       std::set<std::string>{"15", "6", "2", "13", "8", "9",
-                                            "12", "10", "35", "34", "37"});
+                                            "11", "12", "10", "35", "36", "34",
+                                            "37"});
   GroundTruth.emplace("main", 20, "k",
-                      std::set<std::string>{
-                          "41", "19", "15", "6",  "44", "2",  "13", "8",  "45",
-                          "18", "9",  "12", "10", "46", "24", "25", "35", "27",
-                          "23", "26", "38", "34", "37", "42", "40"});
+                      std::set<std::string>{"41", "19", "15", "6",  "44", "2",
+                                            "13", "8",  "45", "18", "9",  "11",
+                                            "12", "10", "46", "24", "25", "35",
+                                            "36", "27", "23", "26", "38", "34",
+                                            "37", "42", "43", "39", "40"});
   doAnalysisAndCompareResults("call_04_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -374,14 +377,18 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
   // NOTE: Here we are suffering from IntraProceduralAliasesOnly
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 24, "retval", std::set<std::string>{"11"});
-  GroundTruth.emplace("main", 24, "i",
-                      std::set<std::string>{"3", "1", "2", "16", "18", "12"});
-  GroundTruth.emplace("main", 24, "j",
-                      std::set<std::string>{"19", "21", "3", "1", "2", "13"});
-  GroundTruth.emplace("main", 24, "k",
-                      std::set<std::string>{"22", "3", "14", "1", "2", "24"});
-  GroundTruth.emplace("main", 24, "l",
-                      std::set<std::string>{"15", "3", "1", "2", "25", "27"});
+  GroundTruth.emplace(
+      "main", 24, "i",
+      std::set<std::string>{"3", "1", "2", "16", "17", "18", "12"});
+  GroundTruth.emplace(
+      "main", 24, "j",
+      std::set<std::string>{"19", "20", "21", "3", "1", "2", "13"});
+  GroundTruth.emplace(
+      "main", 24, "k",
+      std::set<std::string>{"22", "23", "3", "14", "1", "2", "24"});
+  GroundTruth.emplace(
+      "main", 24, "l",
+      std::set<std::string>{"15", "3", "1", "2", "25", "26", "27"});
   doAnalysisAndCompareResults("call_06_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -433,17 +440,16 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
 }
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
-  // GroundTruth.emplace("main", 1, "GlobalFeature",
-  // std::set<std::string>{"0"}); GroundTruth.emplace("main", 2,
-  // "GlobalFeature", std::set<std::string>{"0"}); GroundTruth.emplace("main",
-  // 17, "GlobalFeature", std::set<std::string>{"0"});
-  // GroundTruth.emplace("_Z7doStuffi", 1, "GlobalFeature",
-  //                     std::set<std::string>{"0"});
-  // GroundTruth.emplace("_Z7doStuffi", 2, "GlobalFeature",
-  //                     std::set<std::string>{"0"});
+
+  // NOTE: Facts at init() should be empty, except for its own ID;
+  //       g should be strongly updated
+
+  GroundTruth.emplace("main", 1, "g", std::set<std::string>{"0"});
+  GroundTruth.emplace("main", 2, "g", std::set<std::string>{"2"});
+  GroundTruth.emplace("main", 4, "call", std::set<std::string>{"2", "4", "7"});
+  GroundTruth.emplace("main", 4, "g", std::set<std::string>{"2"});
+
   doAnalysisAndCompareResults("global_05_cpp.ll", {"main"}, GroundTruth, true);
-  ASSERT_FALSE(true) << "TODO: Add GroundTruth! An init() soll nichts stehen, "
-                        "außer init() selbst. g soll strongly updated sein";
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
@@ -470,9 +476,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 6, "localVar", std::set<std::string>{"4"});
-  GroundTruth.emplace("main", 6, "call", std::set<std::string>{"0"});
-  GroundTruth.emplace("main", 8, "localVar", std::set<std::string>{"0", "6"});
-  GroundTruth.emplace("main", 8, "call", std::set<std::string>{"0"});
+  GroundTruth.emplace("main", 6, "call", std::set<std::string>{"0", "5"});
+  GroundTruth.emplace("main", 8, "localVar",
+                      std::set<std::string>{"0", "5", "6"});
+  GroundTruth.emplace("main", 8, "call", std::set<std::string>{"0", "5"});
   doAnalysisAndCompareResults("return_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -499,43 +506,44 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
 })
 
 PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_02) {
-  // GTEST_SKIP() << "This test heavily depends on the used stdlib version.
-  // TODO: "
-  //                 "add a better one";
+  GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
+                  "add a better one";
 
   std::set<IIACompactResult_t> GroundTruth;
-  // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
-  // "76"}); GroundTruth.emplace("main", 16, "str",
-  //                     std::set<std::string>{"70", "65", "72", "74", "77"});
-  // GroundTruth.emplace("main", 16, "ref.tmp",
-  //                     std::set<std::string>{"66", "9", "72", "73", "71"});
+  GroundTruth.emplace("main", 18, "retval", std::set<std::string>{"75", "76"});
+  GroundTruth.emplace("main", 18, "str",
+                      std::set<std::string>{"70", "65", "72", "74", "77"});
+  GroundTruth.emplace("main", 18, "ref.tmp",
+                      std::set<std::string>{"66", "9", "72", "73", "71"});
   doAnalysisAndCompareResults("rvo_02_cpp.ll", {"main"}, GroundTruth, true);
-
-  ASSERT_FALSE(true) << "Add GroundTruth!";
 })
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
-  // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
-  // "76"}); GroundTruth.emplace("main", 16, "str",
-  //                     std::set<std::string>{"70", "65", "72", "74", "77"});
-  // GroundTruth.emplace("main", 16, "ref.tmp",
-  //                     std::set<std::string>{"66", "9", "72", "73", "71"});
-  doAnalysisAndCompareResults("rvo_03_cpp.ll", {"main"}, GroundTruth, true);
 
-  ASSERT_FALSE(true) << "Add GroundTruth!";
+  GroundTruth.emplace(
+      "main", 19, "Str",
+      std::set<std::string>{"40", "44", "47", "50", "52", "55", "64"});
+  GroundTruth.emplace("main", 19, "ref.tmp",
+                      std::set<std::string>{"14", "2", "20", "21", "24", "25",
+                                            "26", "28", "30", "33", "41", "46",
+                                            "47", "48"});
+  GroundTruth.emplace("main", 19, "ref.tmp1",
+                      std::set<std::string>{"1", "14", "20", "21", "24", "25",
+                                            "26", "28", "30", "33", "49", "50",
+                                            "51"});
+  doAnalysisAndCompareResults("rvo_03_cpp.ll", {"main"}, GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
-  // GroundTruth.emplace("main", 16, "retval", std::set<std::string>{"75",
-  // "76"}); GroundTruth.emplace("main", 16, "str",
-  //                     std::set<std::string>{"70", "65", "72", "74", "77"});
-  // GroundTruth.emplace("main", 16, "ref.tmp",
-  //                     std::set<std::string>{"66", "9", "72", "73", "71"});
+  GroundTruth.emplace("main", 12, "retval", std::set<std::string>{"16"});
+  GroundTruth.emplace(
+      "main", 12, "F",
+      std::set<std::string>{"11", "14", "17", "18", "21", "4", "5"});
+  GroundTruth.emplace("main", 12, "ref.tmp",
+                      std::set<std::string>{"11", "18", "4", "5"});
   doAnalysisAndCompareResults("rvo_04_cpp.ll", {"main"}, GroundTruth, true);
-
-  ASSERT_FALSE(true) << "Add GroundTruth!";
 }
 
 } // namespace

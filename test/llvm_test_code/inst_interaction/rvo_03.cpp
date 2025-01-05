@@ -7,7 +7,7 @@ class String {
 public:
   String() noexcept = default;
 
-  String(const char *Data) : Length(strlen(Data)) {
+  String(const char *Data) noexcept : Length(strlen(Data)) {
     auto *Dat = new char[Length];
     this->Data = Dat;
     memcpy(Dat, Data, Length);
@@ -43,7 +43,7 @@ private:
 
 int g = 0;
 void functionWithoutInput() { g = 42; }
-String createString() { return "My String"; }
+String createString() noexcept { return "My String"; }
 
 int main() {
   String Str;
