@@ -66,7 +66,8 @@ struct IDEFeatureTaintEdgeFact {
     if (RequiredSize > Taints.size()) {
       Taints.resize(RequiredSize);
     }
-    Taints.setBitsInMask((const uint32_t *)&Facts, sizeof(Facts));
+    Taints.setBitsInMask((const uint32_t *)&Facts,
+                         sizeof(Facts) / sizeof(uint32_t));
   }
   void unionWith(const IDEFeatureTaintEdgeFact &Facts) {
     if (Facts.isTop()) {
