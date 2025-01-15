@@ -6,6 +6,8 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -94,6 +96,8 @@ public:
             llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
       return generateFlow(GetElementPtr, GetElementPtr->getPointerOperand());
     }
+
+    return this->identityFlow();
   }
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
@@ -112,29 +116,26 @@ public:
 
     // TODO: Entweder Lambda Funktionen als variablen speichern und übergeben,
     // oder die Funktionen sind vllt einfach sowas wie generateFlow?
-    auto PropArg = [](d_t Arg, d_t Source) {
-      return Arg == Source && Arg->getType()->isPointerTy();
-    };
-    auto FactConstructor = [](int a, int b) { return a + b; };
-    auto PropRet = [](d_t RetVal, d_t Source) {
-      return RetVal == Source || (LLVMZeroValue::isLLVMZeroValue(Source) &&
-                                  llvm::isa<llvm::ConstantInt>(RetVal));
-    };
-    auto PostProcess = [this, CallSite](container_type &Res) {
-      // Correctly handling return-POIs
-      populateWithMayAliases(Res, CallSite);
-    };
+    // TODO: Tests schreiben für IDEAliasInfoTabulationProblem und
+    // IDENoAliasInfoTabulationProblem default flow functions!
+    // Hierzu vielleicht einfach eine cpp Datei, die Stumpf nur die default flow
+    // functions nimmt und darüber tests schreiben.
 
-    return lambdaFlow([CallSite, ExitInst, PropArg, FactConstructor, PropRet,
-                       PostProcess,
+    return lambdaFlow([CallSite, ExitInst,
                        Gen{std::move(Gen)}](d_t Source) -> container_type {
+      auto PropArg = [](d_t Arg, d_t Source) {
+        return Arg == Source && Arg->getType()->isPointerTy();
+      };
+      auto FactConstructor = [](int a, int b) { return a + b; };
+
       Container Res;
 
-      // TODO: Fabian fragen, ob und wie Glogals propagaten
-      // TODO: Gen benutzen. Aktuell benutze ich hier keine AliasInfo
       if (ExitInst->getInt() && LLVMZeroValue::isLLVMZeroValue(Source)) {
         Res.insert(Source);
-      } else if (CallSite->getInt() && llvm::isa<llvm::Constant>(Source)) {
+        return Res;
+      }
+
+      if (CallSite->getInt() && llvm::isa<llvm::Constant>(Source)) {
         // Pass global variables as is, if desired
         // Globals could also be actual arguments, then the formal
         // argument needs to be generated below. Need llvm::Constant here
@@ -186,12 +187,23 @@ public:
       if (const auto *RetInst =
               llvm::dyn_cast<llvm::ReturnInst>(ExitInst->getPointer());
           RetInst && RetInst->getReturnValue()) {
-        if (std::invoke(PropRet, RetInst->getReturnValue(), Source)) {
+        if (std::invoke(
+                [](d_t RetVal, d_t Source) {
+                  return RetVal == Source ||
+                         (LLVMZeroValue::isLLVMZeroValue(Source) &&
+                          llvm::isa<llvm::ConstantInt>(RetVal));
+                },
+                RetInst->getReturnValue(), Source)) {
           Res.insert(std::invoke(FactConstructor, CS));
         }
       }
 
-      std::invoke(PostProcess, Res);
+      std::invoke(
+          [CallSite](container_type &Res) {
+            // Correctly handling return-POIs
+            populateWithMayAliases(Res, CallSite);
+          },
+          Res);
 
       return Res;
     }
@@ -200,21 +212,23 @@ public:
   }
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
-                           llvm::ArrayRef<f_t> /*Callees*/) override {
+                           llvm::ArrayRef<f_t> Callees) override {
     // TODO: alle pointer killen und alle globals
     // Bei declaration only function können wir nicht davon ausgehen, dass der
     // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
     //
-    if (CallSite->getType()->isPointer()) {
-      // kill pointers
-      return {};
+
+    // If any callee is a declaration, return identity
+    if (llvm::any_of(Callees, llvm::isa<llvm::PointerType>)) {
+      return this->identityFlow();
     }
-    if (const auto IsGlobal = llvm::dyn_cast<const llvm::GlobalVariable>(
-            CallSite->getPointer())) {
-      // kill globals
-      return {};
-    }
-    return mapFactsAlongsideCallSite(CallSite);
+
+    return mapFactsAlongsideCallSite(
+        CallSite,
+        [](d_t Arg, d_t Source) {
+          return Arg == Source && Arg->getType()->isPointerTy();
+        },
+        false);
   }
 
 private:
