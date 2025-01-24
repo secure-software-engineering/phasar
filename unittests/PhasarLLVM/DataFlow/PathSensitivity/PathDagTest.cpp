@@ -101,8 +101,10 @@ protected:
     // Solver.getExplicitESG().printAsDot(ROS);
 
     psr::DefaultPathSensitivityManager<psr::IDEExtendedTaintAnalysisDomain> PSM(
-        &Solver.getExplicitESG(),
-        PathSensitivityConfig().withPreventCycles(false).withMaxPathLength(50));
+        &Solver.getExplicitESG(), PathSensitivityConfig()
+                                      .withPreventCycles(false)
+                                      .withMaxPathLength(50)
+                                      .withMaxUnrollFactor(2));
 
     auto Graph =
         PSM.pathsGraphTo(LastInst, Analysis.getZeroValue(), PSM.getConfig());

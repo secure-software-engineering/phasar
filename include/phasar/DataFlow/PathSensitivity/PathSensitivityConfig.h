@@ -20,6 +20,7 @@ template <typename DerivedConfig> struct PathSensitivityConfigBase {
   size_t DAGDepthThreshold = SIZE_MAX;
   size_t NumPathsThreshold = SIZE_MAX;
   size_t MaxPathLength = SIZE_MAX;
+  size_t MaxUnrollFactor = SIZE_MAX;
   bool PreventCycles = true;
   bool MinimizeDAG = true;
 
@@ -61,6 +62,13 @@ template <typename DerivedConfig> struct PathSensitivityConfigBase {
   withMaxPathLength(size_t MaxPathLength) const noexcept {
     auto Ret = *static_cast<const DerivedConfig *>(this);
     Ret.MaxPathLength = MaxPathLength;
+    return Ret;
+  }
+
+  [[nodiscard]] DerivedConfig
+  withMaxUnrollFactor(size_t MaxUnrollFactor) const noexcept {
+    auto Ret = *static_cast<const DerivedConfig *>(this);
+    Ret.MaxUnrollFactor = MaxUnrollFactor;
     return Ret;
   }
 };

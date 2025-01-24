@@ -3,8 +3,12 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
 #include "PathFilter.h"
+
+#include <cstdint>
 
 namespace psr {
 
@@ -27,6 +31,57 @@ struct PathLengthFilter {
   llvm::SmallVector<size_t> Lengths{};
 };
 
+struct UnrollFilter {
+  using n_t = const llvm::Instruction *;
+
+  struct State {
+    llvm::DenseMap<n_t, size_t> BrCount{};
+    bool Valid = true;
+  };
+
+  void saveState() {
+    if (MaxUnroll == SIZE_MAX) {
+      return;
+    }
+    // Note: Beware the reallocation!
+    auto Init = RestoreStack.back();
+    RestoreStack.push_back(std ::move(Init));
+  }
+
+  void restoreState() {
+    if (MaxUnroll == SIZE_MAX) {
+      return;
+    }
+    RestoreStack.pop_back();
+  }
+
+  void saveEdge(n_t Prev, n_t /*Inst*/) {
+    if (MaxUnroll == SIZE_MAX) {
+      return;
+    }
+
+    if (const auto *Br = llvm::dyn_cast<llvm::BranchInst>(Prev);
+        Br && Br->isUnconditional()) {
+      auto Count = ++RestoreStack.back().BrCount[Br];
+      if (Count > MaxUnroll) {
+        RestoreStack.back().Valid = false;
+      }
+    }
+  }
+
+  [[nodiscard]] bool isValid() const {
+    return MaxUnroll == SIZE_MAX || RestoreStack.back().Valid;
+  }
+
+  bool saveFinalEdge(n_t /*Prev*/, n_t /*FinalInst*/) { return isValid(); }
+
+  size_t MaxUnroll{};
+
+  // TODO: Optimize!!!
+
+  llvm::SmallVector<State> RestoreStack = {State{}};
+};
+
 } // namespace
 
 auto DefaultPathSensitivityManagerBase::filterAndFlattenRevDag(
@@ -45,7 +100,8 @@ auto DefaultPathSensitivityManagerBase::filterAndFlattenRevDag(
   DefaultFlowPathSequence<n_t> Ret;
   size_t CompletedCtr = 0;
   auto Filters = makePathFilterList(PathLengthFilter{Config.MaxPathLength},
-                                    CallStackPathFilter{});
+                                    CallStackPathFilter{},
+                                    UnrollFilter{Config.MaxUnrollFactor});
 
   llvm::SmallVector<n_t, 0> CurrPath;
 
