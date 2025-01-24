@@ -12,6 +12,7 @@ if(NOT PHASAR_USE_Z3)
 
   set(PATHSENSITIVITY_SRC
     PathSensitivityManagerBase.cpp
+    DefaultPathSensitivityManager.cpp
   )
 
   message("Remaining PathSensitivity targets to build: ${PATHSENSITIVITY_SRC}")

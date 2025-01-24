@@ -13,10 +13,11 @@
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/iterator_range.h"
+#include "llvm/Support/Compiler.h"
 
 #include <cstddef>
 #include <iterator>
-#include <optional>
+#include <limits>
 #include <type_traits>
 
 namespace psr {
@@ -33,7 +34,12 @@ public:
   constexpr pointer operator->() const noexcept { return &Elem; }
 
   constexpr IotaIterator &operator++() noexcept {
-    ++Elem;
+    if constexpr (std::is_enum_v<T>) {
+      Elem = T(std::underlying_type_t<T>(Elem) + 1);
+    } else {
+      ++Elem;
+    }
+
     return *this;
   }
   constexpr IotaIterator operator++(int) noexcept {
@@ -59,11 +65,22 @@ private:
 
 template <typename T>
 using IotaRangeType = llvm::iterator_range<IotaIterator<T>>;
+
 template <typename T>
 constexpr auto iota(T From, type_identity_t<T> To) noexcept {
-  static_assert(std::is_integral_v<T>, "Iota only works on integers");
+  static_assert(std::is_integral_v<T> || std::is_enum_v<T>,
+                "Iota only works on integers and enums");
   using iterator_type = IotaIterator<std::decay_t<T>>;
   auto Ret = llvm::make_range(iterator_type(From), iterator_type(To));
+  return Ret;
+}
+
+template <typename T> constexpr auto iota(size_t To) noexcept {
+  static_assert(std::is_integral_v<T> || std::is_enum_v<T>,
+                "Iota only works on integers and enums");
+
+  using iterator_type = IotaIterator<std::decay_t<T>>;
+  auto Ret = llvm::make_range(iterator_type(0), iterator_type(T(To)));
   return Ret;
 }
 

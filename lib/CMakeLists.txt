@@ -34,6 +34,7 @@ set(PHASAR_LINK_LIBS
     phasar_mono
     phasar_llvm
     phasar_llvm_ifdside
+    phasar_llvm_pathsensitivity
     phasar_analysis_strategy
 )
 if(SQLite3_FOUND)

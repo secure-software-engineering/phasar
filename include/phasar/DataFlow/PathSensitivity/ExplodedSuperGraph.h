@@ -12,36 +12,34 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/Utils/ByRef.h"
-#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/Printer.h"
-#include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/Sequence.h"
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/TinyPtrVector.h"
 #include "llvm/ADT/iterator_range.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/Compiler.h"
-#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
-#include <numeric>
 #include <optional>
-#include <set>
-#include <string>
 #include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 
 namespace psr {
+
+namespace detail {
+enum class [[clang::enum_extensibility(open)]] //
+ExplodedSuperGraphNodeId : size_t{
+    NoPredId = SIZE_MAX,
+};
+} // namespace detail
 
 /// An explicit representation of the ExplodedSuperGraph (ESG) of an IFDS/IDE
 /// analysis.
@@ -54,9 +52,7 @@ public:
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
 
-  struct Node {
-    static constexpr size_t NoPredId = ~size_t(0);
-  };
+  using NodeId = detail::ExplodedSuperGraphNodeId;
 
   struct NodeData {
     d_t Value{};
@@ -64,8 +60,8 @@ public:
   };
 
   struct NodeAdj {
-    size_t PredecessorIdx = Node::NoPredId;
-    llvm::SmallVector<size_t, 0> Neighbors{};
+    NodeId PredecessorIdx = NodeId::NoPredId;
+    llvm::SmallVector<NodeId, 0> Neighbors{};
   };
 
   class BuildNodeRef;
@@ -79,48 +75,48 @@ public:
 
     [[nodiscard]] ByConstRef<d_t> value() const noexcept {
       assert(*this);
-      return Owner->NodeDataOwner[NodeId].Value;
+      return Owner->NodeDataOwner[size_t(Id)].Value;
     }
 
     [[nodiscard]] ByConstRef<n_t> source() const noexcept {
       assert(*this);
-      return Owner->NodeDataOwner[NodeId].Source;
+      return Owner->NodeDataOwner[size_t(Id)].Source;
     }
 
     [[nodiscard]] NodeRef predecessor() const noexcept {
       assert(*this);
-      auto PredId = Owner->NodeAdjOwner[NodeId].PredecessorIdx;
-      return PredId == Node::NoPredId ? NodeRef() : NodeRef(PredId, Owner);
+      auto PredId = Owner->NodeAdjOwner[size_t(Id)].PredecessorIdx;
+      return PredId == NodeId::NoPredId ? NodeRef() : NodeRef(PredId, Owner);
     }
 
     [[nodiscard]] bool hasNeighbors() const noexcept {
       assert(*this);
-      return !Owner->NodeAdjOwner[NodeId].Neighbors.empty();
+      return !Owner->NodeAdjOwner[size_t(Id)].Neighbors.empty();
     }
 
     [[nodiscard]] bool getNumNeighbors() const noexcept {
       assert(*this);
-      return Owner->NodeAdjOwner[NodeId].Neighbors.size();
+      return Owner->NodeAdjOwner[size_t(Id)].Neighbors.size();
     }
 
     [[nodiscard]] auto neighbors() const noexcept {
       assert(*this);
 
-      return llvm::map_range(Owner->NodeAdjOwner[NodeId].Neighbors,
-                             [Owner{Owner}](size_t NBIdx) {
-                               assert(NBIdx != Node::NoPredId);
+      return llvm::map_range(Owner->NodeAdjOwner[size_t(Id)].Neighbors,
+                             [Owner{Owner}](NodeId NBIdx) {
+                               assert(NBIdx != NodeId::NoPredId);
                                return NodeRef(NBIdx, Owner);
                              });
     }
 
-    [[nodiscard]] size_t id() const noexcept { return NodeId; }
+    [[nodiscard]] NodeId id() const noexcept { return Id; }
 
     explicit operator bool() const noexcept {
-      return Owner != nullptr && NodeId != Node::NoPredId;
+      return Owner != nullptr && Id != NodeId::NoPredId;
     }
 
     [[nodiscard]] friend bool operator==(NodeRef L, NodeRef R) noexcept {
-      return L.NodeId == R.NodeId && L.Owner == R.Owner;
+      return L.Id == R.Id && L.Owner == R.Owner;
     }
     [[nodiscard]] friend bool operator!=(NodeRef L, NodeRef R) noexcept {
       return !(L == R);
@@ -134,21 +130,21 @@ public:
     }
 
     friend llvm::hash_code hash_value(NodeRef NR) noexcept { // NOLINT
-      return llvm::hash_combine(NR.NodeId, NR.Owner);
+      return llvm::hash_combine(NR.Id, NR.Owner);
     }
 
   private:
-    explicit NodeRef(size_t NodeId, const ExplodedSuperGraph *Owner) noexcept
-        : NodeId(NodeId), Owner(Owner) {}
+    explicit NodeRef(NodeId NodeId, const ExplodedSuperGraph *Owner) noexcept
+        : Id(NodeId), Owner(Owner) {}
 
-    size_t NodeId = Node::NoPredId;
+    NodeId Id = NodeId::NoPredId;
     const ExplodedSuperGraph *Owner{};
   };
 
   class BuildNodeRef {
   public:
-    [[nodiscard]] NodeRef operator()(size_t NodeId) const noexcept {
-      return NodeRef(NodeId, Owner);
+    [[nodiscard]] NodeRef operator()(NodeId Id) const noexcept {
+      return NodeRef(Id, Owner);
     }
 
   private:
@@ -179,11 +175,11 @@ public:
     return nullptr;
   }
 
-  [[nodiscard]] NodeRef fromNodeId(size_t NodeId) const noexcept {
+  [[nodiscard]] NodeRef fromNodeId(NodeId Id) const noexcept {
     assert(NodeDataOwner.size() == NodeAdjOwner.size());
-    assert(NodeId < NodeDataOwner.size());
+    assert(size_t(Id) < NodeDataOwner.size());
 
-    return NodeRef(NodeId, this);
+    return NodeRef(Id, this);
   }
 
   [[nodiscard]] ByConstRef<d_t> getZeroValue() const noexcept {
@@ -206,19 +202,17 @@ public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   [[nodiscard]] auto node_begin() const noexcept {
     assert(NodeAdjOwner.size() == NodeDataOwner.size());
-    return llvm::map_iterator(
-        llvm::seq(size_t(0), NodeDataOwner.size()).begin(), BuildNodeRef(this));
+    return llvm::map_iterator(IotaIterator<NodeId>{}, BuildNodeRef(this));
   }
   // NOLINTNEXTLINE(readability-identifier-naming)
   [[nodiscard]] auto node_end() const noexcept {
     assert(NodeAdjOwner.size() == NodeDataOwner.size());
-    return llvm::map_iterator(llvm::seq(size_t(0), NodeDataOwner.size()).end(),
-                              BuildNodeRef(this));
+    return llvm::map_iterator(
+        IotaIterator<NodeId>{NodeId(NodeDataOwner.size())}, BuildNodeRef(this));
   }
   [[nodiscard]] auto nodes() const noexcept {
     assert(NodeAdjOwner.size() == NodeDataOwner.size());
-    return llvm::map_range(llvm::seq(size_t(0), NodeDataOwner.size()),
-                           BuildNodeRef(this));
+    return llvm::make_range(node_begin(), node_end());
   }
 
   [[nodiscard]] size_t size() const noexcept {
@@ -234,7 +228,7 @@ public:
     psr::scope_exit ClosingBrace = [&OS] { OS << '}'; };
 
     for (size_t I = 0, End = NodeDataOwner.size(); I != End; ++I) {
-      auto Nod = NodeRef(I, this);
+      auto Nod = NodeRef(NodeId(I), this);
       OS << I << "[label=\"";
       OS.write_escaped(DToString(Nod.value())) << "\"];\n";
 
@@ -242,7 +236,7 @@ public:
          << R"([style="bold" label=")";
       OS.write_escaped(NToString(Nod.source())) << "\"];\n";
       for (auto NB : Nod.neighbors()) {
-        OS << I << "->" << NB.id() << "[color=\"red\"];\n";
+        OS << I << "->" << size_t(NB.id()) << "[color=\"red\"];\n";
       }
     }
   }
@@ -273,7 +267,7 @@ private:
     }
   };
 
-  [[nodiscard]] std::optional<size_t> getNodeIdOrNull(n_t Inst,
+  [[nodiscard]] std::optional<NodeId> getNodeIdOrNull(n_t Inst,
                                                       d_t Fact) const {
     auto It = FlowFactVertexMap.find(
         std::make_pair(std::move(Inst), std::move(Fact)));
@@ -283,10 +277,10 @@ private:
     return std::nullopt;
   }
 
-  void saveEdge(std::optional<size_t> PredId, n_t Curr, d_t CurrNode, n_t Succ,
+  void saveEdge(std::optional<NodeId> PredId, n_t Curr, d_t CurrNode, n_t Succ,
                 d_t SuccNode, bool MaySkipEdge) {
     auto [SuccVtxIt, Inserted] = FlowFactVertexMap.try_emplace(
-        std::make_pair(Succ, SuccNode), Node::NoPredId);
+        std::make_pair(Succ, SuccNode), NodeId::NoPredId);
 
     // Save a reference into the FlowFactVertexMap before the SuccVtxIt gets
     // invalidated
@@ -295,7 +289,7 @@ private:
     // NOLINTNEXTLINE(readability-identifier-naming)
     auto makeNode = [this, PredId, Curr, &CurrNode, &SuccNode]() mutable {
       assert(NodeAdjOwner.size() == NodeDataOwner.size());
-      auto Ret = NodeDataOwner.size();
+      auto Ret = NodeId(NodeDataOwner.size());
 
       auto &NodData = NodeDataOwner.emplace_back();
       auto &NodAdj = NodeAdjOwner.emplace_back();
@@ -307,7 +301,7 @@ private:
         FlowFactVertexMap[std::make_pair(Curr, CurrNode)] = Ret;
       }
 
-      NodAdj.PredecessorIdx = PredId.value_or(Node::NoPredId);
+      NodAdj.PredecessorIdx = PredId.value_or(NodeId::NoPredId);
       NodData.Source = Curr;
 
       return Ret;
@@ -319,13 +313,14 @@ private:
       assert(PredId);
       if (Inserted) {
         SuccVtxNode = makeNode();
-        NodeAdjOwner.back().PredecessorIdx = Node::NoPredId;
+        NodeAdjOwner.back().PredecessorIdx = NodeId::NoPredId;
       }
       return;
     }
 
-    if (PredId && NodeDataOwner[*PredId].Value == SuccNode &&
-        NodeDataOwner[*PredId].Source->getParent() == Succ->getParent() &&
+    if (PredId && NodeDataOwner[size_t(*PredId)].Value == SuccNode &&
+        NodeDataOwner[size_t(*PredId)].Source->getParent() ==
+            Succ->getParent() &&
         SuccNode != ZeroValue) {
 
       // Identity edge, we don't need a new node; just assign the Pred here
@@ -349,28 +344,28 @@ private:
     // connecting with the pred. Now, we have a non-skippable edge to connect to
     NodeRef SuccVtx(SuccVtxNode, this);
     if (!SuccVtx.predecessor()) {
-      NodeAdjOwner[SuccVtxNode].PredecessorIdx =
-          PredId.value_or(Node::NoPredId);
-      NodeDataOwner[SuccVtxNode].Source = Curr;
+      NodeAdjOwner[size_t(SuccVtxNode)].PredecessorIdx =
+          PredId.value_or(NodeId::NoPredId);
+      NodeDataOwner[size_t(SuccVtxNode)].Source = Curr;
       return;
     }
 
     // This node has more than one predecessor; add a neighbor then
-    if (SuccVtx.predecessor().id() != PredId.value_or(Node::NoPredId) &&
+    if (SuccVtx.predecessor().id() != PredId.value_or(NodeId::NoPredId) &&
         llvm::none_of(SuccVtx.neighbors(),
-                      [Pred = PredId.value_or(Node::NoPredId)](NodeRef Nd) {
+                      [Pred = PredId.value_or(NodeId::NoPredId)](NodeRef Nd) {
                         return Nd.predecessor().id() == Pred;
                       })) {
 
       auto NewNode = makeNode();
-      NodeAdjOwner[SuccVtxNode].Neighbors.push_back(NewNode);
+      NodeAdjOwner[size_t(SuccVtxNode)].Neighbors.push_back(NewNode);
       return;
     }
   }
 
   std::vector<NodeData> NodeDataOwner;
   std::vector<NodeAdj> NodeAdjOwner;
-  std::unordered_map<std::pair<n_t, d_t>, size_t, PathInfoHash, PathInfoEq>
+  std::unordered_map<std::pair<n_t, d_t>, NodeId, PathInfoHash, PathInfoEq>
       FlowFactVertexMap{};
 
   // ZeroValue
@@ -378,5 +373,18 @@ private:
 };
 
 } // namespace psr
+
+namespace llvm {
+template <> struct DenseMapInfo<psr::detail::ExplodedSuperGraphNodeId> {
+  using NodeId = psr::detail::ExplodedSuperGraphNodeId;
+
+  static NodeId getEmptyKey() noexcept { return NodeId(-16); }
+  static NodeId getTombstoneKey() noexcept { return NodeId(-32); }
+  static auto getHashValue(NodeId Id) noexcept {
+    return llvm::hash_value(std::underlying_type_t<NodeId>(Id));
+  }
+  static bool isEqual(NodeId L, NodeId R) noexcept { return L == R; }
+};
+} // namespace llvm
 
 #endif // PHASAR_DATAFLOW_PATHSENSITIVITY_EXPLODEDSUPERGRAPH_H

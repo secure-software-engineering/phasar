@@ -19,6 +19,8 @@ template <typename DerivedConfig> struct PathSensitivityConfigBase {
   size_t DAGSizeThreshold = SIZE_MAX;
   size_t DAGDepthThreshold = SIZE_MAX;
   size_t NumPathsThreshold = SIZE_MAX;
+  size_t MaxPathLength = SIZE_MAX;
+  bool PreventCycles = true;
   bool MinimizeDAG = true;
 
   [[nodiscard]] DerivedConfig
@@ -45,6 +47,20 @@ template <typename DerivedConfig> struct PathSensitivityConfigBase {
   [[nodiscard]] DerivedConfig withMinimizeDAG(bool DoMinimize) const noexcept {
     auto Ret = *static_cast<const DerivedConfig *>(this);
     Ret.MinimizeDAG = DoMinimize;
+    return Ret;
+  }
+
+  [[nodiscard]] DerivedConfig
+  withPreventCycles(bool DoPreventCycles) const noexcept {
+    auto Ret = *static_cast<const DerivedConfig *>(this);
+    Ret.PreventCycles = DoPreventCycles;
+    return Ret;
+  }
+
+  [[nodiscard]] DerivedConfig
+  withMaxPathLength(size_t MaxPathLength) const noexcept {
+    auto Ret = *static_cast<const DerivedConfig *>(this);
+    Ret.MaxPathLength = MaxPathLength;
     return Ret;
   }
 };
