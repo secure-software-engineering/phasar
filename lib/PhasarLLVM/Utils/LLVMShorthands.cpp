@@ -201,7 +201,9 @@ std::string psr::llvmIRToShortString(const llvm::Value *V) {
       I && !I->getType()->isVoidTy()) {
     V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
   } else if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
-    RSO << F->getName();
+    RSO << "fun @" << F->getName();
+  } else if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    RSO << "glob @" << Glob->getName();
   } else {
     V->print(RSO, getModuleSlotTrackerFor(V));
   }
@@ -231,6 +233,9 @@ void psr::dumpIRValue(const llvm::Value *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
 void psr::dumpIRValue(const llvm::Instruction *V) {
+  llvm::outs() << llvmIRToString(V) << '\n';
+}
+void psr::dumpIRValue(const llvm::Function *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
 
