@@ -162,6 +162,7 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
 option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_USE_CONAN "Using Conan for dependencies instead of submodules." OFF)
 
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
@@ -299,6 +300,13 @@ if(SQLite3_FOUND)
 else()
   set(PHASAR_HAS_SQLITE OFF)
 endif()
+# Print all variables set by LLVM
+get_cmake_property(all_variables VARIABLES)
+foreach(var ${all_variables})
+    if(var MATCHES "^LLVM_")
+        message(STATUS "${var} = ${${var}}")
+    endif()
+endforeach()
 
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
@@ -315,7 +323,7 @@ if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
   # as it lacks some functionality (such as z3::expr::simplify()) that we require
   find_package(Z3 4.7.1 REQUIRED)
 
-  if(NOT TARGET z3)
+  if(NOT TARGET z3 )
     add_library(z3 IMPORTED SHARED)
     set_property(TARGET z3 PROPERTY
              IMPORTED_LOCATION ${Z3_LIBRARIES})

@@ -101,6 +101,18 @@ concept is_reservable_graph_trait_v = is_graph_trait<GraphTrait> &&
   {GraphTrait::reserve(g, size_t(0))};
 };
 
+template <typename GraphTrait>
+concept is_removable_graph_trait_v = is_graph_trait<GraphTrait> &&
+    requires(typename GraphTrait::graph_type &g,
+             typename GraphTrait::vertex_t vtx,
+             typename GraphTrait::edge_iterator edge_it,
+             typename GraphTrait::roots_iterator root_it) {
+  typename GraphTrait::edge_iterator;
+  typename GraphTrait::roots_iterator;
+  {GraphTrait::removeEdge(g, vtx, edge_it)};
+  {GraphTrait::removeRoot(g, root_it)};
+};
+
 #else
 namespace detail {
 template <typename GraphTrait, typename = void>

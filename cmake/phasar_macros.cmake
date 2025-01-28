@@ -26,7 +26,7 @@ function(add_phasar_unittest test_name)
   target_link_libraries(${test}
     PRIVATE
       phasar
-      gtest
+      GTest::gtest
   )
 
   add_test(NAME "${test}"
@@ -37,10 +37,79 @@ function(add_phasar_unittest test_name)
   set(CTEST_OUTPUT_ON_FAILURE ON)
 endfunction()
 
+function(validate_binary_version result item)
+  message(STATUS "  - validate_binary_version of \"${item}\"")
+  execute_process(
+    COMMAND "${item}" --version
+    OUTPUT_VARIABLE output
+    ERROR_VARIABLE error
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  string(REGEX MATCH " version 14\\." match "${output}")
+  if (match)
+    set(${result} TRUE PARENT_SCOPE)
+  else()
+    set(${result} FALSE PARENT_SCOPE)
+  endif()
+endfunction()
+
 function(generate_ll_file)
   set(options MEM2REG DEBUG O1 O2 O3)
   set(testfile FILE)
   cmake_parse_arguments(GEN_LL "${options}" "${testfile}" "" ${ARGN})
+
+  if (NOT clang)
+    # Conan deps are available in in PATH
+    foreach(hint "${LLVM_TOOLS_BINARY_DIR}" "${Clang_INCLUDE_DIR}/../bin" "${LLVM_INCLUDE_DIR}/../bin" "/usr/local/llvm-14/bin")
+      cmake_path(NORMAL_PATH hint OUTPUT_VARIABLE hint)
+      list(APPEND binary_hint_paths "${hint}")
+    endforeach()
+    message(STATUS "HINTS to find clang/clang++/opt: ${binary_hint_paths}")
+
+    if ("${CMAKE_VERSION}" VERSION_LESS "3.25") # VALIDATOR requires it
+      
+      find_program(clang REQUIRED
+        NAMES clang-14 clang
+        HINTS ${binary_hint_paths})
+      find_program(clangcpp REQUIRED
+        NAMES clang++ 
+        HINTS ${binary_hint_paths})
+      find_program(opt REQUIRED
+        NAMES opt
+        HINTS ${binary_hint_paths})
+        
+      set(IS_VALID_VERSION "")
+      validate_binary_version("IS_VALID_VERSION" "${clang}")
+      if (NOT "${IS_VALID_VERSION}")
+        message(FATAL_ERROR "Couldn't find clang in version 14")
+      endif()
+      validate_binary_version("IS_VALID_VERSION" "${clangcpp}")
+      if (NOT "${IS_VALID_VERSION}")
+        message(FATAL_ERROR "Couldn't find clang++ in version 14")
+      endif()
+      validate_binary_version("IS_VALID_VERSION" "${opt}")
+      if (NOT "${IS_VALID_VERSION}")
+        message(FATAL_ERROR "Couldn't find opt in version 14")
+      endif()
+    else()
+      find_program(clang REQUIRED
+        NAMES clang-14 clang
+        HINTS ${binary_hint_paths}
+        VALIDATOR validate_binary_version)
+      message(STATUS "found clang binary in \"${clang}\"")
+      find_program(clangcpp REQUIRED
+        NAMES clang++ 
+        HINTS ${binary_hint_paths} 
+        VALIDATOR validate_binary_version)
+      message(STATUS "found clang binary in \"${clangpp}\"")
+      find_program(opt REQUIRED
+        NAMES opt
+        HINTS ${binary_hint_paths}
+        VALIDATOR validate_binary_version)
+      message(STATUS "found clang binary in \"${opt}\"")
+    endif()
+  endif()
 
   # get file extension
   get_filename_component(test_code_file_ext ${GEN_LL_FILE} EXT)
@@ -76,12 +145,13 @@ function(generate_ll_file)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-    list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
-  endif()
-  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-    list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
-  endif()
+  # uncomment with branch f-TestingAPIChanges
+  # if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+  #   list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
+  # endif()
+  # if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+  #   list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
+  # endif()
 
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
@@ -117,10 +187,10 @@ function(generate_ll_file)
 
   # define .ll file generation command
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
+    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${clangcpp})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
+    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${clang})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
 
@@ -128,7 +198,7 @@ function(generate_ll_file)
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM

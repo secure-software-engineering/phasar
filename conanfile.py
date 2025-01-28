@@ -1,0 +1,297 @@
+from conan import ConanFile
+from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+from conan.tools.build import check_min_cppstd
+from conan.tools.files import (
+    apply_conandata_patches,
+    collect_libs,
+    get,
+    rmdir,
+    load,
+    save,
+    copy,
+    export_conandata_patches,
+    rm,
+    rename,
+    replace_in_file
+)
+from conan.tools.scm import Git
+from os.path import join
+import re
+from pathlib import Path, PurePosixPath
+import textwrap
+import json
+
+def components_from_dotfile(dotfile):
+    def node_labels(dot):
+        label_replacements = {
+            "LibXml2::LibXml2": "libxml2::libxml2",
+            "ZLIB::ZLIB": "zlib::zlib",
+            "zstd::libzstd_static": "zstd::zstdlib",
+            "-lpthread": "pthread",
+            "curl": "libcurl::libcurl",
+        }
+        for row in dot:
+            # e.g. "node0" [ label = "phasar\n(phasar::phasar)", shape = octagon ];
+            match_label = re.match(r'''^\s*"(node[0-9]+)"\s*\[\s*label\s*=\s*"([^\\"]+)''', row)
+            if match_label:
+                node = match_label.group(1)
+                label = match_label.group(2)
+                if label.startswith("LLVM"):
+                    yield node, f"llvm-core::{label}"
+                elif label.endswith("libsqlite3.a"):
+                    yield node, "sqlite3::sqlite3"
+                elif label.endswith("libclang-cpp.so"):
+                    yield node, "clang::clang"
+                else:
+                    yield node, label_replacements.get(label, label)
+
+    def node_dependencies(dot):
+        ignore_deps = [
+            "nlohmann_json_schema_validator"
+        ]
+        labels = {k: v for k, v in node_labels(dot)}
+        # raise Exception(labels)
+        for row in dot:
+            # "node0" -> "node1" [ style = dashed ] // phasar -> LLVMAnalysis
+            match_dep = re.match(r'''^\s*"(node[0-9]+)"\s*->\s*"(node[0-9]+)".*''', row)
+            if match_dep:
+                node_label = labels[match_dep.group(1)]
+                dependency = labels[match_dep.group(2)]
+                if node_label.startswith("phasar") and PurePosixPath(dependency).parts[-1] not in ignore_deps:
+                    yield node_label, labels[match_dep.group(2)]
+        # some components don't have dependencies
+        for label in labels.values():
+            if label.startswith("phasar"):
+                yield label, None
+
+    system_libs = {
+        "ole32",
+        "delayimp",
+        "shell32",
+        "advapi32",
+        "-delayload:shell32.dll",
+        "uuid",
+        "psapi",
+        "-delayload:ole32.dll",
+        "ntdll",
+        "ws2_32",
+        "rt",
+        "m",
+        "dl",
+        "pthread",
+        "stdc++fs"
+    }
+    components = {}
+    dotfile_rows = dotfile.split("\n")
+    for node, dependency in node_dependencies(dotfile_rows):
+        key = "system_libs" if dependency in system_libs else "requires"
+        if node not in components:
+            components[node] = { "system_libs": [], "requires": [] }
+            if dependency is not None:
+                components[node][key] = [dependency]
+        elif dependency is not None:
+            components[node][key].append(dependency)
+
+    return components
+
+class PhasarRecipe(ConanFile):
+    name = "phasar"
+    package_type = "library"
+
+    # Optional metadata
+    license = "MIT license"
+    author = "<Put your name here> <And your email here>"
+    url = "https://github.com/secure-software-engineering/phasar"
+    description = "A LLVM-based static analysis framework. "
+    topics = ("LLVM", "PhASAR", "SAST")
+
+    # Binary configuration
+    settings = "os", "compiler", "build_type", "arch"
+    options = {
+        "with_z3": [True, False], 
+        "shared": [True, False], 
+        "fPIC": [True, False],
+        "tests": [True, False],
+        "run_tests": [True, False],
+        "use_project_cmake_config": [True, False],
+    }
+    default_options = {
+        "with_z3": True, 
+        "shared": False, 
+        "fPIC": True,
+        "tests": False,
+        "run_tests": False,
+        "use_project_cmake_config": False
+    }
+
+    @property
+    def _graphviz_file(self):
+        return PurePosixPath(self.build_folder) / "graph" / "phasar.dot"
+
+    def set_version(self):
+        git = Git(self, self.recipe_folder)
+        # git.coordinates_to_conandata()
+        if self.version is None:
+            self.output.info("No version information set, retrieving from git.")
+            calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
+            short_hash = git.run("show -s --format='%h'")
+            self.version = f"{calver}+{short_hash}"
+
+    def export_sources(self):
+        copy(self, "cmake/*", self.recipe_folder, self.export_sources_folder)
+        copy(self, "phasar/*", self.recipe_folder, self.export_sources_folder)
+        copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
+
+    def layout(self):
+        cmake_layout(self)
+
+    def config_options(self):
+        if self.settings.os == "Windows":
+            self.options.rm_safe("fPIC")
+
+    def requirements(self):
+        self.requires("boost/[>1.72.0 <=1.81.0]")
+        self.requires("sqlite3/[>=3 <4]")
+        self.requires("libcurl/[>=7 <9]")
+        self.requires("clang/14.0.6", transitive_libs=True, transitive_headers=True)
+        self.requires("nlohmann_json/3.11.3", build=True, headers=True, libs=False, transitive_headers=True)
+        self.requires("json-schema-validator/2.3.0", build=True, headers=True, libs=False, transitive_headers=True)
+        
+        llvm_options={
+            "rtti": True,
+        }
+        if self.options.with_z3:
+            self.requires("z3/[>=4.7.1 <5]")
+            llvm_options["with_z3"] = True
+        self.requires("llvm-core/14.0.6", transitive_libs=True, transitive_headers=True, options=llvm_options)
+    
+    def build_requirements(self):
+        self.tool_requires("cmake/[>=3.25.0 <4.0.0]") # find_program validator
+        self.tool_requires("ninja/[>=1.9.0 <2.0.0]")
+        if self.options.tests:
+            self.test_requires("gtest/1.14.0")
+    
+    def configure(self):
+        if self.options.shared:
+            self.options.rm_safe("fPIC")
+
+    def validate(self):
+        check_min_cppstd(self, '17')
+
+    def generate(self):
+        deps = CMakeDeps(self)
+        deps.generate()
+        tc = CMakeToolchain(self, 'Ninja')
+        tc.generate()
+
+    def _cmake_configure(self):
+        cmake = CMake(self)
+        self._handle_graphviz()
+        cmake.configure(
+            variables={
+                'PHASAR_USE_CONAN': True,
+                'BUILD_SHARED_LIBS': self.options.shared,
+                'PHASAR_BUILD_UNITTESTS': self.options.tests,
+                'PHASAR_BUILD_IR': self.options.tests,
+                'PHASAR_BUILD_DOC': False,
+                'PHASAR_USE_Z3': self.options.with_z3,
+                'USE_LLVM_FAT_LIB': False,
+                'BUILD_PHASAR_CLANG': True,
+                # TODO
+                'PHASAR_BUILD_TOOLS': False,
+            },
+            cli_args=[
+                f"--graphviz={self._graphviz_file}"
+            ]
+        )
+        return cmake
+    
+    def _handle_graphviz(self):
+        exclude_patterns = [
+            "LLVMTableGenGlobalISel.*",
+            "CONAN_LIB.*",
+            "LLVMExegesis.*",
+            "LLVMCFIVerify.*"
+        ]
+        graphviz_options = textwrap.dedent(f"""
+            set(GRAPHVIZ_EXECUTABLES OFF)
+            set(GRAPHVIZ_MODULE_LIBS OFF)
+            set(GRAPHVIZ_OBJECT_LIBS OFF)
+            set(GRAPHVIZ_IGNORE_TARGETS "{';'.join(exclude_patterns)}")
+        """)
+        save(self, PurePosixPath(self.build_folder) / "CMakeGraphVizOptions.cmake", graphviz_options)
+
+    def build(self):
+        cmake = self._cmake_configure()
+        cmake.build()
+        if self.options.run_tests:
+            cmake.ctest(cli_args=[
+                "--exclude-regex 'IDEExtendedTaintAnalysisTest.*'", # known flaky test
+                "--no-tests=error",
+                "--output-on-failure",
+                "--test-dir",
+                self.build_folder
+            ])
+
+    @property
+    def _cmake_module_path(self):
+        return PurePosixPath("lib") / "cmake" / "phasar"
+
+    @property
+    def _build_info_file(self):
+        return PurePosixPath(self.package_folder) / self._cmake_module_path / "conan_phasar_build_info.json"
+
+    def _write_build_info(self):
+        # maybe process original config
+        cmake_config = Path(self.package_folder / self._cmake_module_path / "phasarConfig.cmake").read_text("utf-8")
+        components = components_from_dotfile(load(self, self._graphviz_file))
+        
+        build_info = {
+            "components": components,
+        }
+
+        with open(self._build_info_file, "w", encoding="utf-8") as fp:
+            json.dump(build_info, fp, indent=2)
+
+        return build_info
+
+    def _read_build_info(self) -> dict:
+        with open(self._build_info_file, encoding="utf-8") as fp:
+            return json.load(fp)
+
+    def package_id(self):
+        del self.info.options.tests
+        del self.info.options.run_tests
+
+    def package(self):
+        copy(self, "LICENSE.txt", self.source_folder, join(self.package_folder, "licenses"))
+        
+        cmake = self._cmake_configure()
+        cmake.install()
+        if self.options.use_project_cmake_config:
+            rm(self, "phasarConfig*.cmake", join("lib", "cmake", "phasar"))
+            rm(self, "*target*.cmake", join("lib", "cmake", "phasar"))
+
+        self._write_build_info()
+
+    def package_info(self):
+        if self.options.use_project_cmake_config:
+            # disable CMakeDeps and use own CMakefiles:
+            self.cpp_info.set_property("cmake_find_mode", "none")
+            self.cpp_info.builddirs.append(join("lib", "cmake", "phasar"))
+
+        else:
+            self.cpp_info.set_property("cmake_file_name", "phasar")
+
+            build_info = self._read_build_info()
+            components = build_info["components"]
+
+            for component_name, data in components.items():
+                req =  data["requires"]
+                sys = data["system_libs"]
+                self.output.info(f"{component_name}: \nrequires:{req}\nsystem:{sys}")
+                self.cpp_info.components[component_name].set_property("cmake_target_name", component_name)
+                self.cpp_info.components[component_name].libs = [component_name]
+                self.cpp_info.components[component_name].requires = data["requires"]
+                self.cpp_info.components[component_name].system_libs = data["system_libs"]
+    
