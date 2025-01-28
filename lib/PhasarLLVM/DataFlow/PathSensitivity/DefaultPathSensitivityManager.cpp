@@ -4,6 +4,7 @@
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 
 #include "PathFilter.h"
@@ -30,6 +31,20 @@ struct PathLengthFilter {
   size_t CurrLength{};
   llvm::SmallVector<size_t> Lengths{};
 };
+
+static bool isLoopBranch(const llvm::Instruction *Inst) {
+  const auto *Br = llvm::dyn_cast<llvm::BranchInst>(Inst);
+  if (!Br) {
+    return false;
+  }
+
+  // if (Br->hasMetadata("llvm.loop")) {
+  //   return true;
+  // }
+
+  return true;
+  // return false;
+}
 
 struct UnrollFilter {
   using n_t = const llvm::Instruction *;
@@ -60,9 +75,8 @@ struct UnrollFilter {
       return;
     }
 
-    if (const auto *Br = llvm::dyn_cast<llvm::BranchInst>(Prev);
-        Br && Br->isUnconditional()) {
-      auto Count = ++RestoreStack.back().BrCount[Br];
+    if (isLoopBranch(Prev)) {
+      auto Count = ++RestoreStack.back().BrCount[Prev];
       if (Count > MaxUnroll) {
         RestoreStack.back().Valid = false;
       }

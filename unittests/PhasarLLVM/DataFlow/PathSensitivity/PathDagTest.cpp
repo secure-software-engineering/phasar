@@ -103,7 +103,7 @@ protected:
     psr::DefaultPathSensitivityManager<psr::IDEExtendedTaintAnalysisDomain> PSM(
         &Solver.getExplicitESG(), PathSensitivityConfig()
                                       .withPreventCycles(false)
-                                      .withMaxPathLength(50)
+                                      //.withMaxPathLength(50)
                                       .withMaxUnrollFactor(2));
 
     auto Graph =
@@ -178,6 +178,10 @@ TEST_F(PathTracingTest, Handle_Intra_09) {
 
 TEST_F(PathTracingTest, Handle_Intra_10) {
   doLambdaAnalysis("intra_10_cpp.ll", {/*TODO*/});
+}
+
+TEST_F(PathTracingTest, Handle_Intra_11) {
+  doLambdaAnalysis("intra_11_cpp.ll", {/*TODO*/});
 }
 
 } // namespace
