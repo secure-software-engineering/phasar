@@ -2,6 +2,9 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDEAliasInfoTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+
+#include "llvm/IR/Instruction.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -10,15 +13,14 @@ using namespace psr;
 
 namespace {
 
-struct DFFAnalysisDomain : psr::LLVMAnalysisDomainDefault {
+struct DFFAnalysisDomain : public psr::LLVMAnalysisDomainDefault {
   using l_t = BinaryDomain; // required
 };
 
 // TODO: IDEAliasInfoTabProblem implementieren mit default funktionen
-
 class IDEImpl : public IDEAliasInfoTabulationProblem<DFFAnalysisDomain> {
 public:
-  IDEImpl(const ProjectIRDBBase<db_t> *IRDB)
+  IDEImpl(const LLVMProjectIRDB *IRDB)
       : psr::IDEAliasInfoTabulationProblem<DFFAnalysisDomain>(IRDB, {}, {},
                                                               {}){};
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
@@ -49,42 +51,53 @@ public:
                            llvm::ArrayRef<f_t> /*Callees*/) override {
     return {};
   }
-
-private:
 };
 
 // TODO: call flow, ret flow, usw eigene tests
-
 TEST(PureFlow, IntCallNoParamsNormalFlow) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "pure_flow/int_call_no_params_cpp_dbg.ll"});
+                        "pure_flow/int_call_no_params_01_cpp_dbg.ll"});
   IDEImpl IDETP = IDEImpl(&IRDB);
-  IDETP.getNormalFlowFunction();
+
+  int FirstCounter = 0;
+  for (const auto &FirstInst : IRDB.getAllInstructions()) {
+    int SecondCounter = 1;
+    for (const auto &SecondInst : IRDB.getAllInstructions()) {
+      if (FirstCounter > SecondCounter) {
+        continue;
+      }
+      const auto &NormalFlowFunc =
+          IDETP.getNormalFlowFunction(FirstInst, SecondInst);
+      llvm::outs() << "NormalFlowFunc:\n";
+      llvm::outs() << NormalFlowFunc.get();
+      SecondCounter++;
+    }
+    llvm::outs() << FirstInst << "\n";
+    FirstCounter++;
+  }
 }
 
 TEST(PureFlow, IntCallNoParamsCallFlow) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "pure_flow/int_call_no_params_cpp_dbg.ll"});
   IDEImpl IDETP = IDEImpl(&IRDB);
-  IDETP.getCallFlowFunction();
+  // IDETP.getCallFlowFunction();
 }
 
 TEST(PureFlow, IntCallNoParamsRetFlow) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "pure_flow/int_call_no_params_cpp_dbg.ll"});
   IDEImpl IDETP = IDEImpl(&IRDB);
-  IDETP.getRetFlowFunction();
+  // IDETP.getRetFlowFunction();
 }
 
 TEST(PureFlow, IntCallNoParamsCallToRetFlow) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "pure_flow/int_call_no_params_cpp_dbg.ll"});
   IDEImpl IDETP = IDEImpl(&IRDB);
-  IDETP.getCallToRetFlowFunction();
+  // IDETP.getCallToRetFlowFunction();
 }
-
 #if false
-
 TEST(PureFlow, IntCallOneParams) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "pure_flow/int_call_one_param_cpp_dbg.ll"});
@@ -124,7 +137,6 @@ TEST(PureFlow, DeepCallNoParams) {
   IDETP.getRetFlowFunction();
   IDETP.getCallToRetFlowFunction();
 }
-
 #endif
 
 }; // namespace
