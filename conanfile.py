@@ -32,10 +32,15 @@ def components_from_dotfile(dotfile):
                 label = match_label.group(2)
                 if label.startswith("LLVM"):
                     yield node, f"llvm-core::{label}"
+                # XXX find_library adds direct filepath -> imho a flaw in current cmake files
                 elif label.endswith("libsqlite3.a"):
                     yield node, "sqlite3::sqlite3"
                 elif label.endswith("libclang-cpp.so"):
                     yield node, "clang::clang"
+                elif label.endswith("libclangCodeGen.a"):
+                    yield node, "clang::clangCodeGen"
+                elif label.endswith("libclangTooling.a"):
+                    yield node, "clang::clangTooling"
                 else:
                     yield node, label_replacements.get(label, label)
 
