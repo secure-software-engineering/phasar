@@ -431,18 +431,19 @@ if(NOT PHASAR_IN_TREE)
   install(TARGETS phasar_interface
     EXPORT PhasarExports
   )
-
-  # Install the export-set containing all the phasar targets
-  install(EXPORT PhasarExports
-    FILE PhasarExports.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
-  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
-    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
+  if (NOT PHASAR_USE_CONAN)
+    # Install the export-set containing all the phasar targets
+    install(EXPORT PhasarExports
+      FILE PhasarExports.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+    install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+      FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+  endif()
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports

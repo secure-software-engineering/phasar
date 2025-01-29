@@ -2,17 +2,10 @@ from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan.tools.build import check_min_cppstd
 from conan.tools.files import (
-    apply_conandata_patches,
-    collect_libs,
-    get,
-    rmdir,
     load,
     save,
     copy,
-    export_conandata_patches,
     rm,
-    rename,
-    replace_in_file
 )
 from conan.tools.scm import Git
 from os.path import join
@@ -29,6 +22,7 @@ def components_from_dotfile(dotfile):
             "zstd::libzstd_static": "zstd::zstdlib",
             "-lpthread": "pthread",
             "curl": "libcurl::libcurl",
+            "nlohmann_json_schema_validator": "json-schema-validator::json-schema-validator"
         }
         for row in dot:
             # e.g. "node0" [ label = "phasar\n(phasar::phasar)", shape = octagon ];
@@ -47,10 +41,8 @@ def components_from_dotfile(dotfile):
 
     def node_dependencies(dot):
         ignore_deps = [
-            "nlohmann_json_schema_validator"
         ]
         labels = {k: v for k, v in node_labels(dot)}
-        # raise Exception(labels)
         for row in dot:
             # "node0" -> "node1" [ style = dashed ] // phasar -> LLVMAnalysis
             match_dep = re.match(r'''^\s*"(node[0-9]+)"\s*->\s*"(node[0-9]+)".*''', row)
@@ -154,8 +146,8 @@ class PhasarRecipe(ConanFile):
         self.requires("sqlite3/[>=3 <4]")
         self.requires("libcurl/[>=7 <9]")
         self.requires("clang/14.0.6", transitive_libs=True, transitive_headers=True)
-        self.requires("nlohmann_json/3.11.3", build=True, headers=True, libs=False, transitive_headers=True)
-        self.requires("json-schema-validator/2.3.0", build=True, headers=True, libs=False, transitive_headers=True)
+        self.requires("nlohmann_json/3.11.3", transitive_headers=True)
+        self.requires("json-schema-validator/2.3.0", transitive_libs=True, transitive_headers=True)
         
         llvm_options={
             "rtti": True,
@@ -287,9 +279,6 @@ class PhasarRecipe(ConanFile):
             components = build_info["components"]
 
             for component_name, data in components.items():
-                req =  data["requires"]
-                sys = data["system_libs"]
-                self.output.info(f"{component_name}: \nrequires:{req}\nsystem:{sys}")
                 self.cpp_info.components[component_name].set_property("cmake_target_name", component_name)
                 self.cpp_info.components[component_name].libs = [component_name]
                 self.cpp_info.components[component_name].requires = data["requires"]

@@ -10,7 +10,6 @@ class PhasarTestConan(ConanFile):
 
     def requirements(self):
         self.requires(self.tested_reference_str)
-        self.requires("nlohmann_json/3.11.3")
 
     def build(self):
         cmake = CMake(self)
