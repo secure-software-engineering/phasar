@@ -14,6 +14,8 @@ from pathlib import Path, PurePosixPath
 import textwrap
 import json
 
+required_conan_version = ">=2.0"
+
 def components_from_dotfile(dotfile):
     def node_labels(dot):
         label_replacements = {
@@ -147,7 +149,7 @@ class PhasarRecipe(ConanFile):
             self.options.rm_safe("fPIC")
 
     def requirements(self):
-        self.requires("boost/[>1.72.0 <=1.81.0]")
+        self.requires("boost/[>1.72.0 1.86.0<=]")
         self.requires("sqlite3/[>=3 <4]")
         self.requires("libcurl/[>=7 <9]")
         self.requires("clang/14.0.6", transitive_libs=True, transitive_headers=True)

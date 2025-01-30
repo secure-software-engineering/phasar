@@ -22,4 +22,4 @@ class PhasarTestConan(ConanFile):
     def test(self):
         if can_run(self):
             example = os.path.join(os.path.dirname(__file__), 'example.ll')
-            self.run(f"./myphasartool \"{example}\"", cwd=self.cpp.build.bindir, env="conanrun") #env="conanrun" run_environment=True
+            self.run(f"./myphasartool \"{example}\"", cwd=self.cpp.build.bindir, env="conanrun")
