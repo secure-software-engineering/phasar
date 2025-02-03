@@ -209,6 +209,11 @@ To export the recipe and dependencies execute from repo root:
 - View exported`conan list "phasar/*"`
 - [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
 
+If you just want to use phasar-cli:
+- `conan install --tool-requires phasar/... --build=missing -of .`
+- `source conanbuild.sh`
+- `phasar-cli --help`
+
 ## Please help us to improve PhASAR
 
 You are using PhASAR and would like to help us in the future? Then please
