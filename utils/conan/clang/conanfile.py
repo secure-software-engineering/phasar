@@ -7,23 +7,22 @@ from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.env import VirtualBuildEnv
 from conan.tools.files import (
     apply_conandata_patches,
     copy,
     export_conandata_patches,
     get,
     collect_libs,
-    replace_in_file,
     rm,
     rmdir,
     save,
     load,
     rename
 )
-from conan.tools.microsoft import check_min_vs, is_msvc, is_msvc_static_runtime
+from conan.tools.microsoft import is_msvc
 from conan.tools.scm import Version
 from os.path import join
+from conan.tools.scm import Git
 
 
 required_conan_version = ">=2.0"
@@ -61,6 +60,24 @@ class ClangConan(ConanFile):
             "msvc": "191",
             "Visual Studio": "15",
         }
+    
+    _user = None
+    
+    @property
+    def user(self):
+        # user attribute should be owning git "user/org"
+        # e.g. "https://github.com/secure-software-engineering/phasar.git",
+        # "git@github.com:secure-software-engineering/phasar.git"
+        # => secure-software-engineering
+        if self._user is None:
+            git = Git(self, self.recipe_folder)
+            remote_url = git.get_remote_url(remote='origin')
+            match = re.search("[:/]([^/]+)/[^/]+\.git", remote_url)
+            if match:
+                self._user = match.group(1)
+            else:
+                self._user = None
+        return self._user
 
     def export_sources(self):
         export_conandata_patches(self)
@@ -84,7 +101,7 @@ class ClangConan(ConanFile):
             self.test_requires("libxml2/[>=2.5.3 <3]")
 
     def requirements(self):
-        self.requires(f"llvm-core/{self.version}", transitive_headers=True, transitive_libs=True)
+        self.requires(f"llvm-core/{self.version}@secure-software-engineering", transitive_headers=True, transitive_libs=True)
 
     def validate(self):
         if self.settings.compiler.cppstd:

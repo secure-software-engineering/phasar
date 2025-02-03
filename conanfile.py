@@ -8,23 +8,29 @@ from conan.tools.files import (
     rm,
 )
 from conan.tools.scm import Git
-from os.path import join
+from os.path import join, isdir
 import re
 from pathlib import Path, PurePosixPath
 import textwrap
 import json
+import os
+from conan.errors import ConanException
 
 required_conan_version = ">=2.0"
 
 def components_from_dotfile(dotfile):
     def node_labels(dot):
+        # here we are mapping dependencies visible to cmake to component dependencies in conan
         label_replacements = {
             "LibXml2::LibXml2": "libxml2::libxml2",
             "ZLIB::ZLIB": "zlib::zlib",
             "zstd::libzstd_static": "zstd::zstdlib",
             "-lpthread": "pthread",
             "curl": "libcurl::libcurl",
-            "nlohmann_json_schema_validator": "json-schema-validator::json-schema-validator"
+            "nlohmann_json_schema_validator": "json-schema-validator::json-schema-validator",
+            "clangCodeGen": "clang::clangCodeGen",
+            "clangTooling": "clang::clangTooling",
+            "SQLite::SQLite3": "sqlite3::sqlite3",
         }
         for row in dot:
             # e.g. "node0" [ label = "phasar\n(phasar::phasar)", shape = octagon ];
@@ -111,7 +117,6 @@ class PhasarRecipe(ConanFile):
         "shared": [True, False], 
         "fPIC": [True, False],
         "tests": [True, False],
-        "run_tests": [True, False],
         "use_project_cmake_config": [True, False],
     }
     default_options = {
@@ -119,27 +124,88 @@ class PhasarRecipe(ConanFile):
         "shared": False, 
         "fPIC": True,
         "tests": False,
-        "run_tests": False,
         "use_project_cmake_config": False
     }
+
+    exports = [
+        "conanfile.py",
+        "test_package/**",
+        "!test_package/build/**"
+    ]
+
+    def _parse_gitignore(self, folder, additional_exclusions = [], invert=False):
+        exclusions = []
+        inclusions = []
+        if invert:
+            for exc in additional_exclusions:
+                if exc.startswith("!"):
+                    inclusions = exc[1:]
+                else:
+                    inclusions = f"!{exc}"
+        else:
+            exclusions = additional_exclusions
+        
+        with open(f'{folder}/.gitignore', 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line.startswith("#") or not line:
+                    continue
+                if invert:
+                    if line.startswith("!"):
+                        inclusions.append(line[1:])
+                    else:
+                        inclusions.append("!" + line)
+                else:
+                    exclusions.append(line)
+        
+        if invert:
+            return inclusions
+        else:
+            return exclusions
+
+    def export_sources(self):
+        exclusions = self._parse_gitignore(".", [
+            "test_package", 
+            "utils", 
+            "img", 
+            "githooks", 
+            "external"
+        ])
+
+        for tlf in os.listdir("."):
+            if isdir(tlf):
+                copy(self, f"{tlf}/*", src=".", dst=self.export_sources_folder, excludes=exclusions)
+            else:
+                copy(self, tlf, src=".", dst=self.export_sources_folder, excludes=exclusions)
 
     @property
     def _graphviz_file(self):
         return PurePosixPath(self.build_folder) / "graph" / "phasar.dot"
 
+    @property
+    def user(self):
+        # user attribute should be owning git "user/org"
+        # e.g. "https://github.com/secure-software-engineering/phasar.git",
+        # "git@github.com:secure-software-engineering/phasar.git"
+        # => secure-software-engineering
+        git = Git(self, self.recipe_folder)
+        remote_url = git.get_remote_url(remote='origin')
+        match = re.search("[:/]([^/]+)/[^/]+\.git", remote_url)
+        if match:
+            return match.group(1)
+        else:
+            return None
+
     def set_version(self):
         git = Git(self, self.recipe_folder)
-        # git.coordinates_to_conandata()
+        # XXX consider git.coordinates_to_conandata()
         if self.version is None:
+            if git.is_dirty():
+                raise ConanException("Repository is dirty. I can't calculate a correct version and this is a potential leak because all files visible to git will be exported. Please stash or commit.")
             self.output.info("No version information set, retrieving from git.")
             calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
             short_hash = git.run("show -s --format='%h'")
             self.version = f"{calver}+{short_hash}"
-
-    def export_sources(self):
-        copy(self, "cmake/*", self.recipe_folder, self.export_sources_folder)
-        copy(self, "phasar/*", self.recipe_folder, self.export_sources_folder)
-        copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
 
     def layout(self):
         cmake_layout(self)
@@ -149,25 +215,25 @@ class PhasarRecipe(ConanFile):
             self.options.rm_safe("fPIC")
 
     def requirements(self):
-        self.requires("boost/[>1.72.0 1.86.0<=]")
+        self.requires("boost/[>1.72.0 <=1.86.0]")
         self.requires("sqlite3/[>=3 <4]")
-        self.requires("libcurl/[>=7 <9]")
-        self.requires("clang/14.0.6", transitive_libs=True, transitive_headers=True)
+        self.requires("clang/14.0.6@secure-software-engineering", transitive_libs=True, transitive_headers=True)
         self.requires("nlohmann_json/3.11.3", transitive_headers=True)
         self.requires("json-schema-validator/2.3.0", transitive_libs=True, transitive_headers=True)
-        
+
         llvm_options={
             "rtti": True,
         }
         if self.options.with_z3:
             self.requires("z3/[>=4.7.1 <5]")
             llvm_options["with_z3"] = True
-        self.requires("llvm-core/14.0.6", transitive_libs=True, transitive_headers=True, options=llvm_options)
+        self.requires("llvm-core/14.0.6@secure-software-engineering", transitive_libs=True, transitive_headers=True, options=llvm_options)
     
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.25.0 <4.0.0]") # find_program validator
         self.tool_requires("ninja/[>=1.9.0 <2.0.0]")
         if self.options.tests:
+            self.test_requires("openssl/[>2 <4]")
             self.test_requires("gtest/1.14.0")
     
     def configure(self):
@@ -223,7 +289,7 @@ class PhasarRecipe(ConanFile):
     def build(self):
         cmake = self._cmake_configure()
         cmake.build()
-        if self.options.run_tests:
+        if self.options.tests:
             cmake.ctest(cli_args=[
                 "--exclude-regex 'IDEExtendedTaintAnalysisTest.*'", # known flaky test
                 "--no-tests=error",
@@ -260,7 +326,6 @@ class PhasarRecipe(ConanFile):
 
     def package_id(self):
         del self.info.options.tests
-        del self.info.options.run_tests
 
     def package(self):
         copy(self, "LICENSE.txt", self.source_folder, join(self.package_folder, "licenses"))
@@ -282,12 +347,14 @@ class PhasarRecipe(ConanFile):
         else:
             self.cpp_info.set_property("cmake_file_name", "phasar")
 
+            interfaces = ["phasar_interface"]
+
             build_info = self._read_build_info()
             components = build_info["components"]
 
             for component_name, data in components.items():
                 self.cpp_info.components[component_name].set_property("cmake_target_name", component_name)
-                self.cpp_info.components[component_name].libs = [component_name]
+                self.cpp_info.components[component_name].libs = [component_name] if component_name not in interfaces else [] 
                 self.cpp_info.components[component_name].requires = data["requires"]
                 self.cpp_info.components[component_name].system_libs = data["system_libs"]
     
