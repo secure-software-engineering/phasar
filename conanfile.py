@@ -122,14 +122,12 @@ class PhasarRecipe(ConanFile):
         "shared": [True, False], 
         "fPIC": [True, False],
         "tests": [True, False],
-        "use_project_cmake_config": [True, False],
     }
     default_options = {
         "with_z3": True, 
         "shared": False, 
         "fPIC": True,
         "tests": False,
-        "use_project_cmake_config": False
     }
 
     def _parse_gitignore(self, folder, additional_exclusions = [], invert=False):
@@ -354,22 +352,16 @@ class PhasarRecipe(ConanFile):
         self._write_build_info()
 
     def package_info(self):
-        if self.options.use_project_cmake_config:
-            # disable CMakeDeps and use own CMakefiles:
-            self.cpp_info.set_property("cmake_find_mode", "none")
-            self.cpp_info.builddirs.append(join("lib", "cmake", "phasar"))
+        self.cpp_info.set_property("cmake_file_name", "phasar")
 
-        else:
-            self.cpp_info.set_property("cmake_file_name", "phasar")
+        interfaces = ["phasar_interface"]
 
-            interfaces = ["phasar_interface"]
+        build_info = self._read_build_info()
+        components = build_info["components"]
 
-            build_info = self._read_build_info()
-            components = build_info["components"]
-
-            for component_name, data in components.items():
-                self.cpp_info.components[component_name].set_property("cmake_target_name", component_name)
-                self.cpp_info.components[component_name].libs = [component_name] if component_name not in interfaces else [] 
-                self.cpp_info.components[component_name].requires = data["requires"]
-                self.cpp_info.components[component_name].system_libs = data["system_libs"]
+        for component_name, data in components.items():
+            self.cpp_info.components[component_name].set_property("cmake_target_name", component_name)
+            self.cpp_info.components[component_name].libs = [component_name] if component_name not in interfaces else [] 
+            self.cpp_info.components[component_name].requires = data["requires"]
+            self.cpp_info.components[component_name].system_libs = data["system_libs"]
     
