@@ -275,8 +275,7 @@ class PhasarRecipe(ConanFile):
                 'PHASAR_USE_Z3': self.options.with_z3,
                 'USE_LLVM_FAT_LIB': False,
                 'BUILD_PHASAR_CLANG': True,
-                # TODO
-                'PHASAR_BUILD_TOOLS': False,
+                'PHASAR_BUILD_TOOLS': True,
             },
             cli_args=[
                 f"--graphviz={self._graphviz_file}"
@@ -345,9 +344,8 @@ class PhasarRecipe(ConanFile):
         
         cmake = self._cmake_configure()
         cmake.install()
-        if self.options.use_project_cmake_config:
-            rm(self, "phasarConfig*.cmake", join("lib", "cmake", "phasar"))
-            rm(self, "*target*.cmake", join("lib", "cmake", "phasar"))
+        rm(self, "phasarConfig*.cmake", join("lib", "cmake", "phasar"))
+        rm(self, "*target*.cmake", join("lib", "cmake", "phasar"))
 
         self._write_build_info()
 

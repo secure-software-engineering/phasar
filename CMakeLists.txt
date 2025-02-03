@@ -213,7 +213,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-if (NOT PHASAR_IN_TREE)
+if (PHASAR_USE_CONAN)
+elseif (NOT PHASAR_IN_TREE)
   # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
