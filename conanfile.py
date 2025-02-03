@@ -268,6 +268,7 @@ class PhasarRecipe(ConanFile):
         self._handle_graphviz()
         cmake.configure(
             variables={
+                'PHASAR_ENABLE_PIC': self.options.get_safe("fPIC", False),
                 'PHASAR_USE_CONAN': True,
                 'BUILD_SHARED_LIBS': self.options.shared,
                 'PHASAR_BUILD_UNITTESTS': self.options.tests,
