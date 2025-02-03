@@ -131,24 +131,6 @@ class LLVMCoreConan(ConanFile):
             "msvc": "191",
             "Visual Studio": "15",
         }
-
-    _user = None
-    
-    @property
-    def user(self):
-        # user attribute should be owning git "user/org"
-        # e.g. "https://github.com/secure-software-engineering/phasar.git",
-        # "git@github.com:secure-software-engineering/phasar.git"
-        # => secure-software-engineering
-        if self._user is None:
-            git = Git(self, self.recipe_folder)
-            remote_url = git.get_remote_url(remote='origin')
-            match = re.search("[:/]([^/]+)/[^/]+\.git", remote_url)
-            if match:
-                self._user = match.group(1)
-            else:
-                self._user = None
-        return self._user
         
     def export_sources(self):
         export_conandata_patches(self)

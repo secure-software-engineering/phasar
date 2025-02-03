@@ -8,7 +8,7 @@ from conan.tools.files import (
     rm,
 )
 from conan.tools.scm import Git
-from os.path import join, isdir
+from os.path import join, isdir, exists
 import re
 from pathlib import Path, PurePosixPath
 import textwrap
@@ -183,29 +183,44 @@ class PhasarRecipe(ConanFile):
         return PurePosixPath(self.build_folder) / "graph" / "phasar.dot"
 
     @property
-    def user(self):
-        # user attribute should be owning git "user/org"
-        # e.g. "https://github.com/secure-software-engineering/phasar.git",
-        # "git@github.com:secure-software-engineering/phasar.git"
-        # => secure-software-engineering
-        git = Git(self, self.recipe_folder)
-        remote_url = git.get_remote_url(remote='origin')
-        match = re.search("[:/]([^/]+)/[^/]+\.git", remote_url)
-        if match:
-            return match.group(1)
-        else:
+    def _info_file(self):
+        # this is called very early where folders aren't set but this is fine
+        if self.export_folder is None:
             return None
-
+        return PurePosixPath(self.export_folder) / "info.json"
+    
+    def _read_info(self):
+        if self._info_file is not None and exists(self._info_file):
+            with open(self._info_file, encoding="utf-8") as fp:
+                return json.load(fp)
+        else:
+            return {
+                "version": None,
+            }
+        
+    def _write_info(self, info):
+        if self._info_file is not None:
+            with open(self._info_file, "w", encoding="utf-8") as fp:
+                json.dump(info, fp, indent=2)
+    
     def set_version(self):
-        git = Git(self, self.recipe_folder)
-        # XXX consider git.coordinates_to_conandata()
-        if self.version is None:
+        if self.version is not None:
+            return
+        info = self._read_info()
+        version = info["version"]
+        if version is None:
+            git = Git(self, self.recipe_folder)
+            # XXX consider git.coordinates_to_conandata()
             if git.is_dirty():
                 raise ConanException("Repository is dirty. I can't calculate a correct version and this is a potential leak because all files visible to git will be exported. Please stash or commit.")
             self.output.info("No version information set, retrieving from git.")
             calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
             short_hash = git.run("show -s --format='%h'")
-            self.version = f"{calver}+{short_hash}"
+            version = f"{calver}+{short_hash}"
+        if info["version"] != version:
+            info["version"] = version
+            self._write_info(info)
+        self.version = version
 
     def layout(self):
         cmake_layout(self)
