@@ -301,13 +301,6 @@ if(SQLite3_FOUND)
 else()
   set(PHASAR_HAS_SQLITE OFF)
 endif()
-# Print all variables set by LLVM
-get_cmake_property(all_variables VARIABLES)
-foreach(var ${all_variables})
-    if(var MATCHES "^LLVM_")
-        message(STATUS "${var} = ${${var}}")
-    endif()
-endforeach()
 
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
@@ -324,7 +317,7 @@ if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
   # as it lacks some functionality (such as z3::expr::simplify()) that we require
   find_package(Z3 4.7.1 REQUIRED)
 
-  if(NOT TARGET z3 )
+  if(NOT TARGET z3)
     add_library(z3 IMPORTED SHARED)
     set_property(TARGET z3 PROPERTY
              IMPORTED_LOCATION ${Z3_LIBRARIES})
