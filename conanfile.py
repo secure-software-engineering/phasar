@@ -89,9 +89,14 @@ def components_from_dotfile(dotfile):
     components = {}
     dotfile_rows = dotfile.split("\n")
     for node, dependency in node_dependencies(dotfile_rows):
-        key = "system_libs" if dependency in system_libs else "requires"
+        if dependency in system_libs:
+            key = "system_libs"
+        elif dependency is not None and (dependency.startswith("phasar") or "::" in dependency):
+            key = "requires"
+        else:
+            key = "unknown"
         if node not in components:
-            components[node] = { "system_libs": [], "requires": [] }
+            components[node] = { "system_libs": [], "requires": [], "unknown": [] }
             if dependency is not None:
                 components[node][key] = [dependency]
         elif dependency is not None:
@@ -126,12 +131,6 @@ class PhasarRecipe(ConanFile):
         "tests": False,
         "use_project_cmake_config": False
     }
-
-    exports = [
-        "conanfile.py",
-        "test_package/**",
-        "!test_package/build/**"
-    ]
 
     def _parse_gitignore(self, folder, additional_exclusions = [], invert=False):
         exclusions = []
