@@ -5,7 +5,7 @@ set -euo pipefail
 (
     cd "$(dirname "$0")"
     cd ../..
-    conan create . --version dev --build=missing -s build_type=RelWithDebInfo 
+    conan create . --version dev --build=missing -s build_type=RelWithDebInfo
     cd test_package/build/
     mkdir -p Debug/generators
     cd Debug/generators

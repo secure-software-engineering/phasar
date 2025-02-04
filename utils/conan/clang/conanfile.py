@@ -60,7 +60,7 @@ class ClangConan(ConanFile):
             "msvc": "191",
             "Visual Studio": "15",
         }
-    
+
     def export_sources(self):
         export_conandata_patches(self)
 

@@ -68,17 +68,17 @@ function(generate_ll_file)
     message(STATUS "HINTS to find clang/clang++/opt: ${binary_hint_paths}")
 
     if ("${CMAKE_VERSION}" VERSION_LESS "3.25") # VALIDATOR requires it
-      
+
       find_program(clang REQUIRED
         NAMES clang-14 clang
         HINTS ${binary_hint_paths})
       find_program(clangcpp REQUIRED
-        NAMES clang++ 
+        NAMES clang++
         HINTS ${binary_hint_paths})
       find_program(opt REQUIRED
         NAMES opt
         HINTS ${binary_hint_paths})
-        
+
       set(IS_VALID_VERSION "")
       validate_binary_version("IS_VALID_VERSION" "${clang}")
       if (NOT "${IS_VALID_VERSION}")
@@ -99,8 +99,8 @@ function(generate_ll_file)
         VALIDATOR validate_binary_version)
       message(STATUS "found clang binary in \"${clang}\"")
       find_program(clangcpp REQUIRED
-        NAMES clang++ 
-        HINTS ${binary_hint_paths} 
+        NAMES clang++
+        HINTS ${binary_hint_paths}
         VALIDATOR validate_binary_version)
       message(STATUS "found clang binary in \"${clangpp}\"")
       find_program(opt REQUIRED

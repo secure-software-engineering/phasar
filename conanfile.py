@@ -118,14 +118,14 @@ class PhasarRecipe(ConanFile):
     # Binary configuration
     settings = "os", "compiler", "build_type", "arch"
     options = {
-        "with_z3": [True, False], 
-        "shared": [True, False], 
+        "with_z3": [True, False],
+        "shared": [True, False],
         "fPIC": [True, False],
         "tests": [True, False],
     }
     default_options = {
-        "with_z3": True, 
-        "shared": False, 
+        "with_z3": True,
+        "shared": False,
         "fPIC": True,
         "tests": False,
     }
@@ -141,7 +141,7 @@ class PhasarRecipe(ConanFile):
                     inclusions = f"!{exc}"
         else:
             exclusions = additional_exclusions
-        
+
         with open(f'{folder}/.gitignore', 'r') as file:
             for line in file:
                 line = line.strip()
@@ -154,7 +154,7 @@ class PhasarRecipe(ConanFile):
                         inclusions.append("!" + line)
                 else:
                     exclusions.append(line)
-        
+
         if invert:
             return inclusions
         else:
@@ -162,10 +162,10 @@ class PhasarRecipe(ConanFile):
 
     def export_sources(self):
         exclusions = self._parse_gitignore(".", [
-            "test_package", 
-            "utils", 
-            "img", 
-            "githooks", 
+            "test_package",
+            "utils",
+            "img",
+            "githooks",
             "external"
         ])
 
@@ -185,7 +185,7 @@ class PhasarRecipe(ConanFile):
         if self.export_folder is None:
             return None
         return PurePosixPath(self.export_folder) / "info.json"
-    
+
     def _read_info(self):
         if self._info_file is not None and exists(self._info_file):
             with open(self._info_file, encoding="utf-8") as fp:
@@ -194,12 +194,12 @@ class PhasarRecipe(ConanFile):
             return {
                 "version": None,
             }
-        
+
     def _write_info(self, info):
         if self._info_file is not None:
             with open(self._info_file, "w", encoding="utf-8") as fp:
                 json.dump(info, fp, indent=2)
-    
+
     def set_version(self):
         if self.version is not None:
             return
@@ -240,14 +240,14 @@ class PhasarRecipe(ConanFile):
             self.requires("z3/[>=4.7.1 <5]")
             llvm_options["with_z3"] = True
         self.requires("llvm-core/14.0.6@secure-software-engineering", transitive_libs=True, transitive_headers=True, options=llvm_options)
-    
+
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.25.0 <4.0.0]") # find_program validator
         self.tool_requires("ninja/[>=1.9.0 <2.0.0]")
         if self.options.tests:
             self.test_requires("openssl/[>2 <4]")
             self.test_requires("gtest/1.14.0")
-    
+
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")
@@ -282,7 +282,7 @@ class PhasarRecipe(ConanFile):
             ]
         )
         return cmake
-    
+
     def _handle_graphviz(self):
         exclude_patterns = [
             "LLVMTableGenGlobalISel.*",
@@ -322,7 +322,7 @@ class PhasarRecipe(ConanFile):
         # maybe process original config
         cmake_config = Path(self.package_folder / self._cmake_module_path / "phasarConfig.cmake").read_text("utf-8")
         components = components_from_dotfile(load(self, self._graphviz_file))
-        
+
         build_info = {
             "components": components,
         }
@@ -341,7 +341,7 @@ class PhasarRecipe(ConanFile):
 
     def package(self):
         copy(self, "LICENSE.txt", self.source_folder, join(self.package_folder, "licenses"))
-        
+
         cmake = self._cmake_configure()
         cmake.install()
         rm(self, "phasarConfig*.cmake", join("lib", "cmake", "phasar"))
@@ -359,7 +359,6 @@ class PhasarRecipe(ConanFile):
 
         for component_name, data in components.items():
             self.cpp_info.components[component_name].set_property("cmake_target_name", component_name)
-            self.cpp_info.components[component_name].libs = [component_name] if component_name not in interfaces else [] 
+            self.cpp_info.components[component_name].libs = [component_name] if component_name not in interfaces else []
             self.cpp_info.components[component_name].requires = data["requires"]
             self.cpp_info.components[component_name].system_libs = data["system_libs"]
-    

@@ -1,4 +1,5 @@
-// A basic clang libtooling example from https://clang.llvm.org/docs/LibTooling.html
+// A basic clang libtooling example from
+// https://clang.llvm.org/docs/LibTooling.html
 
 // Declares clang::SyntaxOnlyAction.
 #include "clang/Frontend/FrontendActions.h"
@@ -28,7 +29,7 @@ int main(int argc, const char **argv) {
     llvm::errs() << ExpectedParser.takeError();
     return 1;
   }
-  CommonOptionsParser& OptionsParser = ExpectedParser.get();
+  CommonOptionsParser &OptionsParser = ExpectedParser.get();
   ClangTool Tool(OptionsParser.getCompilations(),
                  OptionsParser.getSourcePathList());
   return Tool.run(newFrontendActionFactory<clang::SyntaxOnlyAction>().get());
