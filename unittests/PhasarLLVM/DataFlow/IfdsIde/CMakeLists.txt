@@ -1,7 +1,7 @@
 add_subdirectory(Problems)
 
 set(IfdsIdeSources
-  DefaultFlowFunctionsTest.cpp
+  DefaultFlowFunctionTest.cpp
   EdgeFunctionComposerTest.cpp
   EdgeFunctionSingletonCacheTest.cpp
   InteractiveIDESolverTest.cpp
