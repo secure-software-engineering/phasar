@@ -22,9 +22,12 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
 endif()
 
 if (NOT PHASAR_IN_TREE)
-  project (phasar)
-  set(CMAKE_PROJECT_NAME "phasar")
+  project (phasar
+    LANGUAGES C CXX
+    DESCRIPTION "A LLVM-based static analysis framework."
+  )
 endif ()
+set(PHASAR_VERSION 2403)
 
 # NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -479,7 +482,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake
-  VERSION 2403
+  VERSION ${PHASAR_VERSION}
   COMPATIBILITY SameMajorVersion
 )
 
