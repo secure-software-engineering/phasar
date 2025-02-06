@@ -46,7 +46,7 @@ function(validate_binary_version result item)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-  string(REGEX MATCH " version 14\\." match "${output}")
+  string(REGEX MATCH " version ${PHASAR_LLVM_VERSION}\\." match "${output}")
   if (match)
     set(${result} TRUE PARENT_SCOPE)
   else()
@@ -61,7 +61,7 @@ function(generate_ll_file)
 
   if (NOT clang)
     # Conan deps are available in in PATH
-    foreach(hint "${LLVM_TOOLS_BINARY_DIR}" "${Clang_INCLUDE_DIR}/../bin" "${LLVM_INCLUDE_DIR}/../bin" "/usr/local/llvm-14/bin")
+    foreach(hint "${LLVM_TOOLS_BINARY_DIR}" "${Clang_INCLUDE_DIR}/../bin" "${LLVM_INCLUDE_DIR}/../bin" "/usr/local/llvm-${PHASAR_LLVM_VERSION}/bin")
       if ("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.20")
         cmake_path(NORMAL_PATH hint OUTPUT_VARIABLE hint)
       endif()
@@ -72,54 +72,54 @@ function(generate_ll_file)
     if ("${CMAKE_VERSION}" VERSION_LESS "3.25") # VALIDATOR requires it
       message(WARNING "I would prefer CMake >= 3.25 but I will try my best to resolve deps.")
       find_program(clang REQUIRED
-        NAMES clang-14 clang
+        NAMES clang-${PHASAR_LLVM_VERSION} clang
         HINTS ${binary_hint_paths})
       find_program(clangcpp REQUIRED
-        NAMES clang++-14 clang++
+        NAMES clang++-${PHASAR_LLVM_VERSION} clang++
         HINTS ${binary_hint_paths})
       find_program(opt REQUIRED
-        NAMES opt-14 opt
+        NAMES opt-${PHASAR_LLVM_VERSION}4 opt
         HINTS ${binary_hint_paths})
 
       set(IS_VALID_VERSION "")
-      validate_binary_version("IS_VALID_VERSION" "${clang}")
+      validate_binary_version(IS_VALID_VERSION "${clang}")
       if (NOT "${IS_VALID_VERSION}")
         set(clang "")
       endif()
-      validate_binary_version("IS_VALID_VERSION" "${clangcpp}")
+      validate_binary_version(IS_VALID_VERSION "${clangcpp}")
       if (NOT "${IS_VALID_VERSION}")
         set(clangcpp "")
       endif()
-      validate_binary_version("IS_VALID_VERSION" "${opt}")
+      validate_binary_version(IS_VALID_VERSION "${opt}")
       if (NOT "${IS_VALID_VERSION}")
         set(opt "")
       endif()
     else()
       find_program(clang REQUIRED
-        NAMES clang-14 clang
+        NAMES clang-${PHASAR_LLVM_VERSION} clang
         HINTS ${binary_hint_paths}
         VALIDATOR validate_binary_version)
       find_program(clangcpp REQUIRED
-        NAMES clang++-14 clang++
+        NAMES clang++-${PHASAR_LLVM_VERSION} clang++
         HINTS ${binary_hint_paths}
         VALIDATOR validate_binary_version)
       find_program(opt REQUIRED
-        NAMES opt-14 opt
+        NAMES opt-${PHASAR_LLVM_VERSION} opt
         HINTS ${binary_hint_paths}
         VALIDATOR validate_binary_version)
     endif()
     if ("${clang}" STREQUAL "")
-      message(FATAL_ERROR "Couldn't find clang in version 14")
+      message(FATAL_ERROR "Couldn't find clang in version ${PHASAR_LLVM_VERSION}")
     else()
       message(STATUS "found clang binary in \"${clang}\"")
     endif()
     if ("${clangcpp}" STREQUAL "")
-      message(FATAL_ERROR "Couldn't find clang++ in version 14")
+      message(FATAL_ERROR "Couldn't find clang++ in version ${PHASAR_LLVM_VERSION}")
     else()
       message(STATUS "found clang++ binary in \"${clangcpp}\"")
     endif()
     if ("${opt}" STREQUAL "")
-      message(FATAL_ERROR "Couldn't find opt in version 14")
+      message(FATAL_ERROR "Couldn't find opt in version ${PHASAR_LLVM_VERSION}")
     else()
       message(STATUS "found opt binary in \"${opt}\"")
     endif()
