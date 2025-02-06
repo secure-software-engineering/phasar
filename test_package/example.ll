@@ -1,5 +1,5 @@
-; ModuleID = '/home/lucas/git/itst-develop/02_sa/intellisec-sast/analysis/test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c'
-source_filename = "/home/lucas/git/itst-develop/02_sa/intellisec-sast/analysis/test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c"
+; ModuleID = 'test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c'
+source_filename = "test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
@@ -103,7 +103,7 @@ attributes #4 = { nounwind }
 !llvm.ident = !{!9}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "clang version 12.0.0 (https://github.com/llvm/llvm-project.git d28af7c654d8db0b68c175db5ce212d74fb5e9bc)", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, retainedTypes: !3, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "/home/lucas/git/itst-develop/02_sa/intellisec-sast/analysis/test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c", directory: "/home/lucas/git/itst-develop/02_sa/build/intellisec-sast/analysis/test/resources/llvm_test_code/two_analyses_approach")
+!1 = !DIFile(filename: "test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c", directory: "test/resources/llvm_test_code/two_analyses_approach")
 !2 = !{}
 !3 = !{!4}
 !4 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !5, size: 64)
@@ -113,7 +113,7 @@ attributes #4 = { nounwind }
 !8 = !{i32 1, !"wchar_size", i32 4}
 !9 = !{!"clang version 12.0.0 (https://github.com/llvm/llvm-project.git d28af7c654d8db0b68c175db5ce212d74fb5e9bc)"}
 !10 = distinct !DISubprogram(name: "fun1", scope: !11, file: !11, line: 6, type: !12, scopeLine: 6, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !2)
-!11 = !DIFile(filename: "intellisec-sast/analysis/test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c", directory: "/home/lucas/git/itst-develop/02_sa")
+!11 = !DIFile(filename: "intellisec-sast/analysis/test/resources/llvm_test_code/two_analyses_approach/ta_test_inter_true_positive.c", directory: "/home/user/git/itst/")
 !12 = !DISubroutineType(types: !13)
 !13 = !{null, !4, !5}
 !14 = !DILocalVariable(name: "v", arg: 1, scope: !10, file: !11, line: 6, type: !4)

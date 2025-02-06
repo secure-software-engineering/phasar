@@ -110,7 +110,6 @@ class PhasarRecipe(ConanFile):
 
     # Optional metadata
     license = "MIT license"
-    author = "<Put your name here> <And your email here>"
     url = "https://github.com/secure-software-engineering/phasar"
     description = "A LLVM-based static analysis framework. "
     topics = ("LLVM", "PhASAR", "SAST")
