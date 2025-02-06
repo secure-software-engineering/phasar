@@ -209,7 +209,7 @@ function(generate_ll_file)
   endif()
 
   if(GEN_LL_MEM2REG)
-    add_custom_command(
+      add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
       COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
