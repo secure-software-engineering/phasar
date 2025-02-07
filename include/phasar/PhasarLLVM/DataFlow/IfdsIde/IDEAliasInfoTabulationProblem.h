@@ -7,6 +7,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -14,6 +15,8 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
+
+#include <cassert>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -53,7 +56,7 @@ public:
   using container_type = typename FlowFunctionType::container_type;
 
   explicit IDEAliasInfoTabulationProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef PT,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasSet *PT,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
@@ -71,20 +74,30 @@ public:
     }
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
       container_type Gen;
-      auto AliasSet = PT.getAliasSet(Store->getPointerOperand(), Store);
-      Gen.insert(AliasSet->begin(), AliasSet->end());
 
-      return this->lambdaFlow(
-          [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
-            if (Store->getPointerOperand() == Source) {
-              return {};
-            }
-            if (Store->getValueOperand() == Source) {
-              return Gen;
-            }
+      if (Store) {
+        llvm::outs() << "Store not nullptr. getType(): " << *(Store->getType())
+                     << "\n";
+        if (Store->getPointerOperand()) {
+          llvm::outs() << "Store-> getPointerOperand() not nullptr: "
+                       << *(Store->getPointerOperand()) << "\n";
+          assert(PT);
+          auto AliasSet = PT->getAliasSet(Store->getPointerOperand(), Store);
+          Gen.insert(AliasSet->begin(), AliasSet->end());
 
-            return {Source};
-          });
+          return this->lambdaFlow(
+              [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+                if (Store->getPointerOperand() == Source) {
+                  return {};
+                }
+                if (Store->getValueOperand() == Source) {
+                  return Gen;
+                }
+
+                return {Source};
+              });
+        }
+      }
     }
     if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
       return this->generateFlow(UnaryOp, UnaryOp->getOperand(0));
@@ -148,7 +161,8 @@ public:
                               const llvm::Instruction *Context) const {
     container_type Tmp = Facts;
     for (const auto *Fact : Facts) {
-      auto Aliases = PT.getAliasSet(Fact);
+      assert(PT);
+      auto Aliases = PT->getAliasSet(Fact);
       for (const auto *Alias : *Aliases) {
         if (canSkipAtContext(Alias, Context)) {
           continue;
@@ -176,7 +190,8 @@ public:
                                          n_t ExitInst,
                                          n_t /*RetSite*/) override {
     container_type Gen;
-    auto AliasSet = PT.getAliasSet(CallSite->getOperand(0), CallSite);
+    assert(PT);
+    auto AliasSet = PT->getAliasSet(CallSite->getOperand(0), CallSite);
     Gen.insert(AliasSet->begin(), AliasSet->end());
 
     // TODO: Entweder Lambda Funktionen als variablen speichern und übergeben,
@@ -330,7 +345,11 @@ public:
   }
 
 private:
-  LLVMAliasInfoRef PT;
+  // TODO: Ask Fabian if code below is good, or if commented out code is
+  // correct. If LLVMAliasInfoRef, how to initialize this correctly?
+  // LLVMAliasInfo PT;
+  // LLVMAliasInfoRef PT;
+  LLVMAliasSet *PT;
 };
 
 } // namespace psr
