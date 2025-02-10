@@ -86,6 +86,22 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   return nullptr;
 }
 
+const llvm::Function *
+psr::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+                               const llvm::CallBase *CallSite,
+                               const LLVMVFTableProvider &VTP) {
+
+  if (const auto *VT = VTP.getVFTableOrNull(T)) {
+    const auto *Target = VT->getFunction(Idx);
+    if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
+        isConsistentCall(CallSite, Target)) {
+      return Target;
+    }
+  }
+
+  return nullptr;
+}
+
 std::string psr::getReceiverTypeName(const llvm::CallBase *CallSite) {
   const auto *RT = getReceiverType(CallSite);
   if (RT) {
@@ -132,22 +148,6 @@ namespace psr {
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
   assert(VTP != nullptr);
-}
-
-const llvm::Function *
-Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    const llvm::CallBase *CallSite) {
-  if (!VTP) {
-    return nullptr;
-  }
-  if (const auto *VT = VTP->getVFTableOrNull(T)) {
-    const auto *Target = VT->getFunction(Idx);
-    if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
-        isConsistentCall(CallSite, Target)) {
-      return Target;
-    }
-  }
-  return nullptr;
 }
 
 void Resolver::preCall(const llvm::Instruction *Inst) {}

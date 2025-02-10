@@ -18,7 +18,9 @@
 #define PHASAR_DATAFLOW_MONO_SOLVER_INTRAMONOSOLVER_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
-#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DefaultValue.h"
+#include "phasar/Utils/Utilities.h"
 
 #include <deque>
 #include <unordered_map>
@@ -109,20 +111,47 @@ public:
     }
   }
 
-  mono_container_t getResultsAt(n_t Stmt) { return Analysis[Stmt]; }
+  [[nodiscard]] const mono_container_t &getResultsAt(n_t Stmt) const {
+    auto It = Analysis.find(Stmt);
+    if (It != Analysis.end()) {
+      return It->second;
+    }
+    return getDefaultValue<mono_container_t>();
+  }
 
   virtual void dumpResults(llvm::raw_ostream &OS = llvm::outs()) {
-    OS << "Intra-Monotone solver results:\n"
-          "------------------------------\n";
-    for (auto &[Node, FlowFacts] : this->Analysis) {
-      OS << "Instruction:\n" << NToString(Node);
-      OS << "\nFacts:\n";
+    OS << "\n***************************************************************\n"
+       << "*                 Raw IntraMonoSolver results                 *\n"
+       << "***************************************************************\n";
+
+    if (Analysis.empty()) {
+      OS << "No results computed!" << '\n';
+      return;
+    }
+
+    std::vector<std::pair<n_t, mono_container_t>> Cells;
+    Cells.reserve(Analysis.size());
+    Cells.insert(Cells.end(), Analysis.begin(), Analysis.end());
+
+    std::sort(Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
+      if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
+        return StringIDLess{}(getMetaDataID(Lhs.first),
+                              getMetaDataID(Rhs.first));
+      } else {
+        // If non-LLVM IR is used
+        return Lhs.first < Rhs.first;
+      }
+    });
+
+    for (const auto &[Node, FlowFacts] : Cells) {
+      OS << "Instruction: " << NToString(Node);
+      OS << "\nFacts: ";
       if (FlowFacts.empty()) {
-        OS << "\tEMPTY\n";
+        OS << "EMPTY\n";
       } else {
         IMProblem.printContainer(OS, FlowFacts);
       }
-      OS << "\n\n";
+      OS << "\n";
     }
   }
 
