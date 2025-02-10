@@ -161,10 +161,11 @@ function(generate_ll_file)
 
   string(REGEX MATCH "clang\\+*-?[0-9]*$" compiler "${CMAKE_CXX_COMPILER}")
   if (compiler)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+    if(PHASAR_LLVM_VERSION GREATER_EQUAL 15)
       list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
     endif()
-    if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+
+    if(PHASAR_LLVM_VERSION GREATER_EQUAL 15)
       list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
     endif()
   endif()
