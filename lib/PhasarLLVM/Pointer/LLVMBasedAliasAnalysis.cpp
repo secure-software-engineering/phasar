@@ -7,11 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "LLVMBasedAliasAnalysis.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/AliasResult.h"
 
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallVector.h"
@@ -38,41 +40,34 @@ using namespace psr;
 
 namespace psr {
 
-struct LLVMBasedAliasAnalysis::Impl {
-  llvm::PassBuilder PB{};
-  llvm::FunctionAnalysisManager FAM{};
-  llvm::FunctionPassManager FPM{};
-};
-
 bool LLVMBasedAliasAnalysis::hasAliasInfo(const llvm::Function &Fun) const {
   return AAInfos.find(&Fun) != AAInfos.end();
 }
 
 void LLVMBasedAliasAnalysis::computeAliasInfo(llvm::Function &Fun) {
-  assert(PImpl != nullptr);
-  llvm::PreservedAnalyses PA = PImpl->FPM.run(Fun, PImpl->FAM);
-  llvm::AAResults &AAR = PImpl->FAM.getResult<llvm::AAManager>(Fun);
+  llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
+  llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-void LLVMBasedAliasAnalysis::erase(llvm::Function *F) noexcept {
+void LLVMBasedAliasAnalysis::doErase(llvm::Function *F) noexcept {
   // after we clear all stuff, we need to set it up for the next function-wise
   // analysis
   AAInfos.erase(F);
-  PImpl->FAM.clear(*F, F->getName());
+  FAM.clear(*F, F->getName());
 }
 
-void LLVMBasedAliasAnalysis::clear() noexcept {
+void LLVMBasedAliasAnalysis::doClear() noexcept {
   AAInfos.clear();
-  PImpl->FAM.clear();
+  FAM.clear();
 }
 
 LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
                                                bool UseLazyEvaluation,
                                                AliasAnalysisType PATy)
-    : PImpl(new Impl{}), PATy(PATy) {
+    : AliasAnalysisView(PATy) {
 
-  PImpl->FAM.registerPass([&] {
+  FAM.registerPass([&] {
     llvm::AAManager AA;
     switch (PATy) {
     case AliasAnalysisType::CFLAnders:
@@ -95,7 +90,7 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
     AA.registerFunctionAnalysis<llvm::BasicAA>();
     return AA;
   });
-  PImpl->PB.registerFunctionAnalyses(PImpl->FAM);
+  PB.registerFunctionAnalyses(FAM);
 
   if (!UseLazyEvaluation) {
     for (auto &F : *IRDB.getModule()) {
@@ -107,5 +102,43 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
 }
 
 LLVMBasedAliasAnalysis::~LLVMBasedAliasAnalysis() = default;
+
+static AliasResult translateAAResult(llvm::AliasResult Res) noexcept {
+  switch (Res) {
+  case llvm::AliasResult::NoAlias:
+    return AliasResult::NoAlias;
+  case llvm::AliasResult::MayAlias:
+    return AliasResult::MayAlias;
+  case llvm::AliasResult::PartialAlias:
+    return AliasResult::PartialAlias;
+  case llvm::AliasResult::MustAlias:
+    return AliasResult::MustAlias;
+  }
+}
+
+AliasResult LLVMBasedAliasAnalysis::aliasImpl(void *AACtx, const llvm::Value *V,
+                                              const llvm::Value *Rep,
+                                              const llvm::DataLayout &DL) {
+
+  assert(V->getType()->isPointerTy());
+  assert(Rep->getType()->isPointerTy());
+
+  auto *AA = static_cast<llvm::AAResults *>(AACtx);
+  auto *ElTy = !V->getType()->isOpaquePointerTy()
+                   ? V->getType()->getNonOpaquePointerElementType()
+                   : nullptr;
+  auto *RepElTy = !Rep->getType()->isOpaquePointerTy()
+                      ? Rep->getType()->getNonOpaquePointerElementType()
+                      : nullptr;
+
+  auto VSize = ElTy && ElTy->isSized() ? DL.getTypeStoreSize(ElTy)
+                                       : llvm::MemoryLocation::UnknownSize;
+
+  auto RepSize = RepElTy && RepElTy->isSized()
+                     ? DL.getTypeStoreSize(RepElTy)
+                     : llvm::MemoryLocation::UnknownSize;
+
+  return translateAAResult(AA->alias(V, VSize, Rep, RepSize));
+}
 
 } // namespace psr

@@ -11,8 +11,9 @@
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASGRAPH_H_
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasSetOwner.h"
@@ -23,6 +24,7 @@
 #include "boost/graph/adjacency_list.hpp"
 #include "nlohmann/json.hpp"
 
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -263,7 +265,7 @@ private:
   ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> AnalyzedFunctions;
-  LLVMBasedAliasAnalysis PTA;
+  std::unique_ptr<AliasAnalysisView> PTA;
 
   AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
   AliasSetOwner<AliasSetTy> Owner{&MRes};

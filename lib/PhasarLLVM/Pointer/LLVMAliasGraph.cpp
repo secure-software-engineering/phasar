@@ -10,9 +10,10 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasGraph.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -20,16 +21,15 @@
 
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "LLVMBasedAliasAnalysis.h"
 #include "boost/graph/copy.hpp"
 #include "boost/graph/depth_first_search.hpp"
-#include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 
 using namespace std;
@@ -136,7 +136,8 @@ std::string LLVMAliasGraph::EdgeProperties::getValueAsString() const {
 
 LLVMAliasGraph::LLVMAliasGraph(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
                                AliasAnalysisType /*PATy*/)
-    : PTA(IRDB, UseLazyEvaluation) {}
+    : PTA(AliasAnalysisView::create(IRDB, UseLazyEvaluation,
+                                    AliasAnalysisType::Basic)) {}
 
 void LLVMAliasGraph::computeAliasGraph(const llvm::Value *V) {
   // FIXME when fixed in LLVM
@@ -152,7 +153,7 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
   PAMM_GET_INSTANCE;
   PHASAR_LOG_LEVEL(DEBUG, "Analyzing function: " << F->getName());
   AnalyzedFunctions.insert(F);
-  llvm::AAResults &AA = *PTA.getAAResults(F);
+  auto AA = PTA->getAAResults(F);
   bool EvalAAMD = true;
 
   // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
@@ -214,29 +215,16 @@ void LLVMAliasGraph::computeAliasGraph(llvm::Function *F) {
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
   const auto MapEnd = ValueVertexMap.end();
   for (auto I1 = ValueVertexMap.begin(); I1 != MapEnd; ++I1) {
-    llvm::Type *I1ElTy =
-        !I1->first->getType()->isOpaquePointerTy()
-            ? I1->first->getType()->getNonOpaquePointerElementType()
-            : nullptr;
-    const uint64_t I1Size = I1ElTy && I1ElTy->isSized()
-                                ? DL.getTypeStoreSize(I1ElTy)
-                                : llvm::MemoryLocation::UnknownSize;
     for (auto I2 = std::next(I1); I2 != MapEnd; ++I2) {
-      llvm::Type *I2ElTy =
-          !I2->first->getType()->isOpaquePointerTy()
-              ? I2->first->getType()->getNonOpaquePointerElementType()
-              : nullptr;
-      const uint64_t I2Size = I2ElTy && I2ElTy->isSized()
-                                  ? DL.getTypeStoreSize(I2ElTy)
-                                  : llvm::MemoryLocation::UnknownSize;
-      switch (AA.alias(I1->first, I1Size, I2->first, I2Size)) {
-      case llvm::AliasResult::NoAlias:
+
+      switch (AA.alias(I1->first, I2->first, DL)) {
+      case AliasResult::NoAlias:
         break;
-      case llvm::AliasResult::MayAlias: // no break
+      case AliasResult::MayAlias: // no break
         [[fallthrough]];
-      case llvm::AliasResult::PartialAlias: // no break
+      case AliasResult::PartialAlias: // no break
         [[fallthrough]];
-      case llvm::AliasResult::MustAlias:
+      case AliasResult::MustAlias:
         boost::add_edge(I1->second, I2->second, PAG);
         break;
       default:
