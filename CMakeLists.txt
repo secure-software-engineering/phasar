@@ -166,6 +166,7 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
 option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_USE_CONAN "Using Conan for dependencies instead of submodules." OFF)
 
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
@@ -216,7 +217,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-if (NOT PHASAR_IN_TREE)
+if (PHASAR_USE_CONAN)
+elseif (NOT PHASAR_IN_TREE)
   # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
@@ -430,18 +432,19 @@ if(NOT PHASAR_IN_TREE)
   install(TARGETS phasar_interface
     EXPORT PhasarExports
   )
-
-  # Install the export-set containing all the phasar targets
-  install(EXPORT PhasarExports
-    FILE PhasarExports.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
-  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
-    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
+  if (NOT PHASAR_USE_CONAN)
+    # Install the export-set containing all the phasar targets
+    install(EXPORT PhasarExports
+      FILE PhasarExports.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+    install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+      FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+  endif()
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports
