@@ -71,6 +71,10 @@ public:
   create(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation, AliasAnalysisType PATy);
 
 private:
+  static std::unique_ptr<AliasAnalysisView>
+  createLLVMBasedAnalysis(LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
+                          AliasAnalysisType PATy);
+
   virtual FunctionAliasView doGetAAResults(const llvm::Function *F) = 0;
   virtual void doErase(llvm::Function *F) noexcept = 0;
   virtual void doClear() noexcept = 0;

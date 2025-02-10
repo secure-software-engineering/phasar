@@ -7,6 +7,7 @@
 
 #include "DDA/ContextDDA.h"
 #include "DDA/DDAClient.h"
+#include "InitSVF.h"
 #include "SVF-LLVM/SVFIRBuilder.h"
 #include "SVFIR/SVFIR.h"
 #include "SVFIR/SVFModule.h"
@@ -32,6 +33,7 @@ translateSVFAliasResult(SVF::AliasResult AR) noexcept {
     return AliasResult::PartialAlias;
   }
 }
+
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class SVFAliasAnalysisBase : public AliasAnalysisView {
 public:
@@ -120,6 +122,8 @@ private:
 } // namespace psr
 
 static SVF::SVFModule *initSVFModule(psr::LLVMProjectIRDB &IRDB) {
+  psr::initializeSVF();
+
   auto *Mod = SVF::LLVMModuleSet::buildSVFModule(*IRDB.getModule());
   if (!Mod) {
     throw std::runtime_error(
@@ -131,10 +135,12 @@ static SVF::SVFModule *initSVFModule(psr::LLVMProjectIRDB &IRDB) {
 
 [[nodiscard]] auto psr::createSVFVFSAnalysis(LLVMProjectIRDB &IRDB)
     -> std::unique_ptr<AliasAnalysisView> {
+
   return std::make_unique<SVFVFSAnalysis>(initSVFModule(IRDB));
 }
 
 [[nodiscard]] auto psr::createSVFDDAAnalysis(LLVMProjectIRDB &IRDB)
     -> std::unique_ptr<AliasAnalysisView> {
+
   return std::make_unique<SVFDDAAnalysis>(initSVFModule(IRDB));
 }

@@ -141,4 +141,10 @@ AliasResult LLVMBasedAliasAnalysis::aliasImpl(void *AACtx, const llvm::Value *V,
   return translateAAResult(AA->alias(V, VSize, Rep, RepSize));
 }
 
+std::unique_ptr<AliasAnalysisView> AliasAnalysisView::createLLVMBasedAnalysis(
+    LLVMProjectIRDB &IRDB, bool UseLazyEvaluation, AliasAnalysisType PATy) {
+  return std::make_unique<LLVMBasedAliasAnalysis>(IRDB, UseLazyEvaluation,
+                                                  PATy);
+}
+
 } // namespace psr
