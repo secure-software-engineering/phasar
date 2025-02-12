@@ -10,8 +10,7 @@
 #define PHASAR_PHASARLLVM_POINTER_SVF_SVFPOINTSTOSET_H
 
 #include "phasar/Config/phasar-config.h"
-#include "phasar/Pointer/AliasAnalysisType.h"
-#include "phasar/Pointer/PointsToInfoBase.h"
+#include "phasar/Pointer/PointsToInfo.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/IR/Value.h"
@@ -23,9 +22,9 @@
 
 namespace psr {
 class LLVMProjectIRDB;
-class SVFPointsToSet;
+class SVFPointsToInfo;
 
-template <> struct PointsToTraits<SVFPointsToSet> {
+struct SVFPointsToInfoTraits {
   using v_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
   using o_t = uint32_t;
@@ -38,28 +37,14 @@ template <> struct PointsToTraits<SVFPointsToSet> {
   using PointsToSetPtrTy = PointsToSetTy;
 };
 
-class SVFPointsToSet : public PointsToInfoBase<SVFPointsToSet> {
-  friend PointsToInfoBase<SVFPointsToSet>;
+using SVFBasedPointsToInfo = PointsToInfo<SVFPointsToInfoTraits>;
+using SVFBasedPointsToInfoRef = PointsToInfoRef<SVFPointsToInfoTraits>;
 
-public:
-  explicit SVFPointsToSet(const LLVMProjectIRDB *IRDB,
-                          AliasAnalysisType PAType = AliasAnalysisType::SVFVFS);
+[[nodiscard]] SVFBasedPointsToInfo
+createSVFVFSPointsToInfo(LLVMProjectIRDB &IRDB);
 
-private:
-  [[nodiscard]] o_t
-  asAbstractObjectImpl(ByConstRef<v_t> Pointer) const noexcept;
-
-  [[nodiscard]] std::optional<v_t> asPointerOrNullImpl(o_t Obj) const noexcept;
-
-  bool mayPointsToImpl(o_t Pointer, o_t Obj, n_t AtInstruction) const;
-  bool mayPointsToImpl(v_t Pointer, o_t Obj, n_t AtInstruction) const;
-
-  PointsToSetPtrTy getPointsToSetImpl(o_t Pointer, n_t AtInstruction) const;
-  PointsToSetPtrTy getPointsToSetImpl(v_t Pointer, n_t AtInstruction) const;
-
-  llvm::SmallVector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> AtInstruction) const;
-};
+[[nodiscard]] SVFBasedPointsToInfo
+createSVFDDAPointsToInfo(LLVMProjectIRDB &IRDB);
 
 } // namespace psr
 

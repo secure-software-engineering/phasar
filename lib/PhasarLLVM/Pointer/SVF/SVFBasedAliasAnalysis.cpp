@@ -17,7 +17,6 @@
 
 #include <memory>
 #include <optional>
-#include <stdexcept>
 
 namespace psr {
 static constexpr psr::AliasResult
@@ -59,7 +58,11 @@ protected:
 class SVFVFSAnalysis : public SVFAliasAnalysisBase {
 public:
   SVFVFSAnalysis(SVF::SVFModule *Mod)
-      : SVFAliasAnalysisBase(Mod, AliasAnalysisType::SVFVFS), VFS(PAG) {}
+      : SVFAliasAnalysisBase(Mod, AliasAnalysisType::SVFVFS), VFS(PAG) {
+    VFS.initialize();
+    VFS.analyze();
+    VFS.finalize();
+  }
 
 private:
   static psr::AliasResult aliasImpl(void *AACtx, const llvm::Value *V,
@@ -121,26 +124,14 @@ private:
 
 } // namespace psr
 
-static SVF::SVFModule *initSVFModule(psr::LLVMProjectIRDB &IRDB) {
-  psr::initializeSVF();
-
-  auto *Mod = SVF::LLVMModuleSet::buildSVFModule(*IRDB.getModule());
-  if (!Mod) {
-    throw std::runtime_error(
-        "SVF failed to create an SVFModule from an llvm::Module!");
-  }
-
-  return Mod;
-}
-
 [[nodiscard]] auto psr::createSVFVFSAnalysis(LLVMProjectIRDB &IRDB)
     -> std::unique_ptr<AliasAnalysisView> {
 
-  return std::make_unique<SVFVFSAnalysis>(initSVFModule(IRDB));
+  return std::make_unique<SVFVFSAnalysis>(psr::initSVFModule(IRDB));
 }
 
 [[nodiscard]] auto psr::createSVFDDAAnalysis(LLVMProjectIRDB &IRDB)
     -> std::unique_ptr<AliasAnalysisView> {
 
-  return std::make_unique<SVFDDAAnalysis>(initSVFModule(IRDB));
+  return std::make_unique<SVFDDAAnalysis>(psr::initSVFModule(IRDB));
 }

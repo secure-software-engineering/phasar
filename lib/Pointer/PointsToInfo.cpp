@@ -11,6 +11,7 @@
 
 #include "phasar/Pointer/PointsToInfoBase.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/PointerUtils.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
@@ -154,7 +155,7 @@ class DummyFieldSensitivePointsToAnalysis
       std::in_place_type<DummyFieldSensitivePointsToAnalysis>);
 
   // Make sure, the template gets instantiated:
-  std::ignore = TEPTA1.getInterestingPointersAt(nullptr);
+  std::ignore = TEPTA1.getPointsToSet({}, nullptr);
 }
 
 template class PointsToInfoBase<DummyFieldSensitivePointsToAnalysis>;

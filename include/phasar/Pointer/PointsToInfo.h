@@ -87,7 +87,6 @@ private:
     PointsToSetPtrTy (*GetPointsToSet)(const void *, ByConstRef<o_t>,
                                        ByConstRef<n_t>);
 
-    std::vector<v_t> (*GetInterestingPointersAt)(const void *, ByConstRef<n_t>);
     void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
@@ -119,15 +118,6 @@ private:
            ByConstRef<n_t> AtInstruction) {
           return static_cast<const ConcretePTA *>(PT)->getPointsToSet(
               Pointer, AtInstruction);
-        },
-        [](const void *PT, ByConstRef<n_t> AtInstruction) {
-          std::vector<v_t> Ret;
-          for (ByConstRef<v_t> Ptr :
-               static_cast<const ConcretePTA *>(PT)->getInterestingPointersAt(
-                   AtInstruction)) {
-            Ret.push_back(Ptr);
-          }
-          return Ret;
         },
         [](const void *PT) noexcept {
           delete static_cast<const ConcretePTA *>(PT);
@@ -199,12 +189,6 @@ private:
                      ByConstRef<n_t> AtInstruction) const {
     assert(VT);
     return VT->GetPointsToSetV(PT, Pointer, AtInstruction);
-  }
-
-  std::vector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> AtInstruction) const {
-    assert(VT);
-    return VT->GetInterestingPointersAt(PT, AtInstruction);
   }
 
   // ---
