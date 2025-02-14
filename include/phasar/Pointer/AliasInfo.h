@@ -14,6 +14,7 @@
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"

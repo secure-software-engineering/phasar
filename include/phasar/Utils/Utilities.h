@@ -10,11 +10,8 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
-#include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/TypeTraits.h"
 
-#include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
@@ -151,11 +148,6 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
       It = Dest.erase(It);
     }
   }
-}
-
-template <typename T>
-void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
-  Dest.setIntersectWith(Src);
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,

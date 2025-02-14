@@ -14,8 +14,8 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/IntEqClasses.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace llvm {
