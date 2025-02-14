@@ -10,17 +10,15 @@
 #ifndef PHASAR_UTILS_GRAPHTRAITS_H
 #define PHASAR_UTILS_GRAPHTRAITS_H
 
-#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/None.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/identity.h"
 #include "llvm/Support/raw_ostream.h"
 
+#if __cplusplus >= 202002L
 #include <concepts>
+#endif
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -99,6 +97,18 @@ template <typename GraphTrait>
 concept is_reservable_graph_trait_v = is_graph_trait<GraphTrait> &&
     requires(typename GraphTrait::graph_type &g) {
   {GraphTrait::reserve(g, size_t(0))};
+};
+
+template <typename GraphTrait>
+concept is_removable_graph_trait_v = is_graph_trait<GraphTrait> &&
+    requires(typename GraphTrait::graph_type &g,
+             typename GraphTrait::vertex_t vtx,
+             typename GraphTrait::edge_iterator edge_it,
+             typename GraphTrait::roots_iterator root_it) {
+  typename GraphTrait::edge_iterator;
+  typename GraphTrait::roots_iterator;
+  {GraphTrait::removeEdge(g, vtx, edge_it)};
+  {GraphTrait::removeRoot(g, root_it)};
 };
 
 #else

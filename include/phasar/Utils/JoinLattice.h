@@ -17,7 +17,7 @@
 #ifndef PHASAR_UTILS_JOINLATTICE_H
 #define PHASAR_UTILS_JOINLATTICE_H
 
-#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Macros.h"
 
 #include <type_traits>
 #include <utility>

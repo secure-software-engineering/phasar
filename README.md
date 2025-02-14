@@ -176,7 +176,7 @@ sudo ninja install
 
 ## How to use PhASAR?
 
-We recomment using phasar as a library with `cmake`.
+We recomment using phasar as a library with `cmake` or `conan`.
 
 If you already have installed phasar, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
 
@@ -200,6 +200,19 @@ Depending on your use of PhASAR you also may need to add LLVM to your build.
 
 For more information please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
 
+## How to use with Conan v2 ?
+
+To export the recipe and dependencies execute from repo root:
+- `conan export utils/conan/llvm-core/ --version 14.0.6 --user secure-software-engineering`
+- `conan export utils/conan/clang/ --version 14.0.6 --user secure-software-engineering`
+- `conan export .`
+- View exported `conan list "phasar/*"`
+- [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
+
+If you just want to use phasar-cli:
+- `conan install --tool-requires phasar/... --build=missing -of .`
+- `source conanbuild.sh`
+- `phasar-cli --help`
 
 ## Please help us to improve PhASAR
 

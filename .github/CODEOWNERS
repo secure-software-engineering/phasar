@@ -32,3 +32,6 @@ Dockerfile @janniclas
 /include/phasar/Utils/OnTheFlyAnalysisPrinter.h @sritejakv
 /include/phasar/PhasarLLVM/Utils/SourceMgrPrinter.h @sritejakv
 /lib/PhasarLLVM/Utils/SourceMgrPrinter.cpp @sritejakv
+
+/conanfile.py @jusito
+/utils/conan/ @jusito

@@ -20,6 +20,21 @@
 
 namespace psr {
 
+static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
+#if LLVM_VERSION_MAJOR >= 15 && LLVM_VERSION_MAJOR < 17
+  if (!Enable) {
+    Ctx.setOpaquePointers(false);
+  }
+#elif LLVM_VERSION_MAJOR < 15
+  if (Enable) {
+    Ctx.enableOpaquePointers();
+  }
+#else // LLVM_VERSION_MAJOR >= 17
+#error                                                                         \
+    "Non-opaque pointers are not supported anymore. Refactor PhASAR to remove typed pointer support."
+#endif
+}
+
 std::unique_ptr<llvm::Module>
 LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
                                          llvm::LLVMContext &Ctx) noexcept {
@@ -61,8 +76,9 @@ LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
   return getParsedIRModuleOrNull(*FileOrErr.get(), Ctx);
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName) {
-
+LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
+                                 bool EnableOpaquePointers) {
+  setOpaquePointersForCtx(Ctx, EnableOpaquePointers);
   auto M = getParsedIRModuleOrNull(IRFileName, Ctx);
 
   if (!M) {
@@ -155,8 +171,9 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
   }
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf) {
-  llvm::SMDiagnostic Diag;
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
+                                 bool EnableOpaquePointers) {
+  setOpaquePointersForCtx(Ctx, EnableOpaquePointers);
   auto M = getParsedIRModuleOrNull(Buf, Ctx);
   if (!M) {
     return;
