@@ -40,6 +40,8 @@ CHAResolver::CHAResolver(const LLVMProjectIRDB *IRDB,
   }
 }
 
+CHAResolver::~CHAResolver() = default;
+
 auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
   PHASAR_LOG_LEVEL(DEBUG, "Call virtual function: ");

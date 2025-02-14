@@ -13,7 +13,6 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Constant.h"
@@ -30,7 +29,6 @@
 #include <set>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 namespace psr {
 

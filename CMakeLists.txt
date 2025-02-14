@@ -8,6 +8,10 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 cmake_policy(SET CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
+# Allow overwriting cache variables of external projects from this CMakeLists file
+cmake_policy(SET CMP0126 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
+
 # Allow portable use of CMAKE_VISIBILITY_INLINES_HIDDEN not only for shared libraries
 cmake_policy(SET CMP0063 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
@@ -162,6 +166,7 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
 option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_USE_CONAN "Using Conan for dependencies instead of submodules." OFF)
 
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
@@ -212,7 +217,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-if (NOT PHASAR_IN_TREE)
+if (PHASAR_USE_CONAN)
+elseif (NOT PHASAR_IN_TREE)
   # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
@@ -303,6 +309,9 @@ endif()
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
+if (NOT PHASAR_LLVM_VERSION)
+  set(PHASAR_LLVM_VERSION 14)
+endif()
 include(add_llvm)
 add_llvm()
 
@@ -423,18 +432,19 @@ if(NOT PHASAR_IN_TREE)
   install(TARGETS phasar_interface
     EXPORT PhasarExports
   )
-
-  # Install the export-set containing all the phasar targets
-  install(EXPORT PhasarExports
-    FILE PhasarExports.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
-  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
-    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
+  if (NOT PHASAR_USE_CONAN)
+    # Install the export-set containing all the phasar targets
+    install(EXPORT PhasarExports
+      FILE PhasarExports.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+    install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+      FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+  endif()
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports

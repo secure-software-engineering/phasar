@@ -106,7 +106,8 @@ static bool fillPossibleTargets(
     Resolver::FunctionSetTy &PossibleTargets, Resolver &Res,
     const llvm::CallBase *CS,
     llvm::DenseMap<const llvm::Instruction *, unsigned int> &IndirectCalls) {
-  if (const auto *StaticCallee = CS->getCalledFunction()) {
+  if (const auto *StaticCallee = llvm::dyn_cast<llvm::Function>(
+          CS->getCalledOperand()->stripPointerCastsAndAliases())) {
     PossibleTargets.insert(StaticCallee);
 
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
@@ -115,16 +116,7 @@ static bool fillPossibleTargets(
     return true;
   }
 
-  // still try to resolve the called function statically
-  const llvm::Value *SV = CS->getCalledOperand()->stripPointerCastsAndAliases();
-  if (const auto *ValueFunction = llvm::dyn_cast<llvm::Function>(SV)) {
-    PossibleTargets.insert(ValueFunction);
-    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                         "Found static call-site: " << llvmIRToString(CS));
-    return true;
-  }
-
-  if (llvm::isa<llvm::InlineAsm>(SV)) {
+  if (llvm::isa<llvm::InlineAsm>(CS->getCalledOperand())) {
     return true;
   }
 
