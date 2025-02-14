@@ -29,6 +29,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 
 #include <filesystem>
@@ -96,7 +97,7 @@ static llvm::DISubprogram *getDISubprogram(const llvm::Value *V) {
   return nullptr;
 }
 
-static llvm::DILocation *getDILocation(const llvm::Value *V) {
+llvm::DILocation *psr::getDILocation(const llvm::Value *V) {
   // Arguments and Instruction such as AllocaInst
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *MN = DbgIntr->getMetadata(llvm::LLVMContext::MD_dbg)) {
@@ -380,23 +381,31 @@ std::pair<unsigned, unsigned> psr::getLineAndColFromIR(const llvm::Value *V) {
 }
 
 std::string psr::getSrcCodeFromIR(const llvm::Value *V, bool Trim) {
-  unsigned int LineNr = getLineFromIR(V);
-  if (LineNr > 0) {
-    std::filesystem::path Path(getFilePathFromIR(V));
-    if (std::filesystem::exists(Path) && !std::filesystem::is_directory(Path)) {
-      std::ifstream Ifs(Path.string(), std::ios::binary);
-      if (Ifs.is_open()) {
-        Ifs.seekg(std::ios::beg);
-        std::string SrcLine;
-        for (unsigned int I = 0; I < LineNr - 1; ++I) {
-          Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
-        std::getline(Ifs, SrcLine);
-        return Trim ? llvm::StringRef(SrcLine).trim().str() : SrcLine;
+  if (auto Loc = getDebugLocation(V)) {
+    return getSrcCodeFromIR(*Loc, Trim);
+  }
+  return {};
+}
+
+std::string psr::getSrcCodeFromIR(DebugLocation Loc, bool Trim) {
+  if (Loc.Line == 0) {
+    return {};
+  }
+  auto Path = getFilePathFromIR(Loc.File);
+
+  if (llvm::sys::fs::exists(Path) && !llvm::sys::fs::is_directory(Path)) {
+    std::ifstream Ifs(Path, std::ios::binary);
+    if (Ifs.is_open()) {
+      Ifs.seekg(std::ios::beg);
+      std::string SrcLine;
+      for (unsigned int I = 0; I < Loc.Line - 1; ++I) {
+        Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       }
+      std::getline(Ifs, SrcLine);
+      return Trim ? llvm::StringRef(SrcLine).trim().str() : SrcLine;
     }
   }
-  return "";
+  return {};
 }
 
 std::string psr::getModuleIDFromIR(const llvm::Value *V) {

@@ -36,6 +36,9 @@ set(PHASAR_LINK_LIBS
     phasar_llvm_ifdside
     phasar_analysis_strategy
 )
+if(BUILD_PHASAR_CLANG)
+    list(APPEND PHASAR_LINK_LIBS phasar_clang)
+endif()
 if(SQLite3_FOUND)
     list(APPEND PHASAR_LINK_LIBS phasar_db)
 endif()
