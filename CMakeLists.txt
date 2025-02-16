@@ -293,6 +293,7 @@ if (NOT PHASAR_IN_TREE)
   if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
     include(FetchContent)
 
+    set(INSTALL_GTEST OFF)
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
