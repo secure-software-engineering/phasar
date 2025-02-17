@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ master, development ]
 
+# TODO test in tree build?
+# TODO test conan build
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -47,16 +49,14 @@ jobs:
           CC: ${{ matrix.compiler[1] }}
         shell: bash
         run: |
-          mkdir build
-          cd build
-          cmake .. \
+          cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
-            -DBUILD_PHASAR_CLANG=ON \
+            -DBUILD_PHASAR_CLANG=OFF \
             -DBUILD_SWIFT_TESTS=ON \
             -DPHASAR_USE_Z3=ON \
             ${{ matrix.flags }} \
             -G Ninja
-          cmake --build .
+          ninja -C build
 
       - name: Run Unittests
         shell: bash
