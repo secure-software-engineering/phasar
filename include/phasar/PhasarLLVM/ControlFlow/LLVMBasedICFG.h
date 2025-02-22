@@ -162,7 +162,7 @@ private:
   }
 
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
-      llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
+      LLVMProjectIRDB &IRDB, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
   void initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                   llvm::ArrayRef<std::string> EntryPoints, Soundness S,
