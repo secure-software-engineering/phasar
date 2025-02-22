@@ -6,13 +6,15 @@ on:
   pull_request:
     branches: [ master, development ]
 
+# TODO test in tree build?
+# TODO test conan build
 jobs:
   build:
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
       matrix:
-        compiler: [ [clang++-15, clang-15] ]
+        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
         build: [ Debug, Release, DebugLibdeps ]
         include:
           - build: Debug
@@ -36,24 +38,7 @@ jobs:
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh
-          sudo apt-get -y install --no-install-recommends libboost-graph-dev
-
-      - name: Install Strategy Dependencies
-        shell: bash
-        run: |
-          sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key && \
-          sudo add-apt-repository -y 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-15 main' && \
-          sudo apt-get update && \
-          sudo apt-get -y install --no-install-recommends \
-              clang-15 \
-              llvm-15-dev \
-              libllvm15 \
-              libclang-common-15-dev \
-              libclang-15-dev \
-              libclang-cpp15-dev \
-              clang-tidy-15 \
-              libclang-rt-15-dev
+          ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }}
 
       - uses: swift-actions/setup-swift@v2
         with:
@@ -64,15 +49,14 @@ jobs:
           CC: ${{ matrix.compiler[1] }}
         shell: bash
         run: |
-          mkdir build
-          cd build
-          cmake .. \
+          cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+            -DBUILD_PHASAR_CLANG=OFF \
             -DBUILD_SWIFT_TESTS=ON \
             -DPHASAR_USE_Z3=ON \
             ${{ matrix.flags }} \
             -G Ninja
-          cmake --build .
+          ninja -C build
 
       - name: Run Unittests
         shell: bash
