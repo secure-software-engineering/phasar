@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.16)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
@@ -8,9 +8,11 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 cmake_policy(SET CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-# Allow overwriting cache variables of external projects from this CMakeLists file
-cmake_policy(SET CMP0126 NEW)
-set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
+if ("${CMAKE_VERSION}" GREATER_EQUAL "3.21")
+  # Allow overwriting cache variables of external projects from this CMakeLists file
+  cmake_policy(SET CMP0126 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
+endif()
 
 # Allow portable use of CMAKE_VISIBILITY_INLINES_HIDDEN not only for shared libraries
 cmake_policy(SET CMP0063 NEW)

@@ -61,7 +61,11 @@ function(generate_ll_file)
 
   if (NOT clang)
     # Conan deps are available in in PATH
-    foreach(hint "${LLVM_TOOLS_BINARY_DIR}" "${Clang_INCLUDE_DIR}/../bin" "${LLVM_INCLUDE_DIR}/../bin" "/usr/local/llvm-${PHASAR_LLVM_VERSION}/bin")
+    set(default_llvm "${LLVM_TOOLS_BINARY_DIR}" )
+    set(fallback_llvm "${Clang_INCLUDE_DIR}/../bin" "${LLVM_INCLUDE_DIR}/../bin")
+    set(user_compiled_llvm "/usr/local/llvm-${PHASAR_LLVM_VERSION}/bin")
+    set(package_manager_llvm "/usr/lib/llvm-${PHASAR_LLVM_VERSION}/bin/")
+    foreach(hint ${default_llvm} ${fallback_llvm} ${user_compiled_llvm} ${package_manager_llvm})
       if ("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.20")
         cmake_path(NORMAL_PATH hint OUTPUT_VARIABLE hint)
       endif()
