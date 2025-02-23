@@ -259,24 +259,6 @@ else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
 
-
-# Headers
-
-add_library(phasar_interface INTERFACE)
-file(GLOB_RECURSE PHASAR_PUBLIC_HEADERS include/*.h include/*.def)
-target_sources(phasar_interface INTERFACE
-  FILE_SET HEADERS
-  BASE_DIRS ${PHASAR_SRC_DIR}/include
-  FILES ${PHASAR_PUBLIC_HEADERS}
-)
-
-target_include_directories(phasar_interface
-  INTERFACE
-    # Not mention ${PHASAR_SRC_DIR}/include here as it is already specified in the target_sources above!
-    $<BUILD_INTERFACE:${PHASAR_BINARY_DIR}/include/>  # The location of phasar-config.h
-    $<INSTALL_INTERFACE:include/>                     # The installed include folder
-)
-
 ### Adding external libraries
 
 # Threads
@@ -369,9 +351,6 @@ if(NOT PHASAR_IN_TREE)
   add_definitions(${LLVM_DEFINITIONS_LIST})
 endif()
 
-# Installed config
-configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
-
 # Warnings
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 if (PHASAR_ENABLE_WARNINGS)
@@ -381,6 +360,18 @@ if (PHASAR_ENABLE_WARNINGS)
     string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter")
   endif()
 endif (PHASAR_ENABLE_WARNINGS)
+
+
+# Headers
+add_library(phasar_interface INTERFACE)
+file(GLOB_RECURSE PHASAR_PUBLIC_HEADERS include/*.h include/*.def)
+configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
+
+target_sources(phasar_interface INTERFACE
+  FILE_SET HEADERS
+  BASE_DIRS "${PHASAR_SRC_DIR}/include" "${PHASAR_BINARY_DIR}/include"
+  FILES ${PHASAR_PUBLIC_HEADERS} "${PHASAR_BINARY_DIR}/include/phasar/Config/phasar-config.h"
+)
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
@@ -426,14 +417,6 @@ set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Install dir of lib
 # Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
-# Install the config file
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/phasar/Config/
-  DESTINATION include/phasar/Config
-  FILES_MATCHING
-  PATTERN "*.def"
-  PATTERN "*.h"
-)
-
 if(NOT PHASAR_IN_TREE)
   install(TARGETS phasar_interface
     EXPORT PhasarExports
@@ -448,7 +431,7 @@ if(NOT PHASAR_IN_TREE)
     )
     install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
       FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
-      NAMESPACE phasar::
+      NAMESPACE phasar::deps::
       DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
     )
   endif()
