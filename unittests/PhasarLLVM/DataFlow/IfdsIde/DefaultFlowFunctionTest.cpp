@@ -68,9 +68,10 @@ private:
 // Testdateien geben soll
 class IDENoAliasImpl : public IDEAliasInfoTabulationProblem<DFFAnalysisDomain> {
 public:
-  IDENoAliasImpl(const LLVMProjectIRDB *IRDB)
-      : psr::IDEAliasInfoTabulationProblem<DFFAnalysisDomain>(IRDB, {}, {},
-                                                              {}){};
+  IDENoAliasImpl(LLVMProjectIRDB *IRDB)
+      : psr::IDEAliasInfoTabulationProblem<DFFAnalysisDomain>(IRDB, &PT, {},
+                                                              {}),
+        PT(IRDB){};
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
   };
@@ -99,13 +100,21 @@ public:
                            llvm::ArrayRef<f_t> /*Callees*/) override {
     return {};
   }
+
+private:
+  LLVMAliasSet PT;
 };
 
 void printValueSet(const std::set<const llvm::Value *> &Values) {
   llvm::outs() << "Value Set\n";
   for (const auto *CurrValue : Values) {
-    llvm::outs() << *CurrValue << "\n";
+    if (CurrValue) {
+      llvm::outs() << *CurrValue << "\n";
+    } else {
+      llvm::outs() << "Was null\n";
+    }
   }
+  llvm::outs() << "After Value Set loop\n";
 }
 
 TEST(PureFlow, NormalFlow01) {
