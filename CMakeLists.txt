@@ -157,7 +157,8 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_O
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
-option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)" OFF)
+set(PHASAR_USE_Z3 "OFF" CACHE STRING "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF). Can be set to \"auto\" to use Z3, iff cmake can find it." FORCE)
+set_property(CACHE PHASAR_USE_Z3 PROPERTY STRINGS "OFF" "ON" "auto")
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
@@ -320,18 +321,26 @@ add_llvm()
 # Z3 Solver
 if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
-endif()
-if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
-  # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
-  # as it lacks some functionality (such as z3::expr::simplify()) that we require
-  find_package(Z3 4.7.1 REQUIRED)
+else()
+  set (PHASAR_Z3_REQUIREMENT REQUIRED)
+  string(TOLOWER "${PHASAR_USE_Z3}" PHASAR_USE_Z3_lower)
+  if("${PHASAR_USE_Z3_lower}" STREQUAL "auto")
+    set (PHASAR_Z3_REQUIREMENT QUIET)
+    set (PHASAR_USE_Z3 ON)
+  endif()
 
-  if(NOT TARGET z3)
-    add_library(z3 IMPORTED SHARED)
-    set_property(TARGET z3 PROPERTY
-             IMPORTED_LOCATION ${Z3_LIBRARIES})
-    set_property(TARGET z3 PROPERTY
-             INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+  if(PHASAR_USE_Z3)
+    # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
+    # as it lacks some functionality (such as z3::expr::simplify()) that we require
+    find_package(Z3 4.7.1 ${PHASAR_Z3_REQUIREMENT})
+
+    if(Z3_FOUND AND NOT TARGET z3)
+      add_library(z3 IMPORTED SHARED)
+      set_property(TARGET z3 PROPERTY
+              IMPORTED_LOCATION ${Z3_LIBRARIES})
+      set_property(TARGET z3 PROPERTY
+              INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+    endif()
   endif()
 endif()
 
