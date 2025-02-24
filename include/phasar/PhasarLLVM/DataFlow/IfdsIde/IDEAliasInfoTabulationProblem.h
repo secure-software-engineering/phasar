@@ -306,6 +306,7 @@ public:
 
     );
   }
+
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
                            llvm::ArrayRef<f_t> Callees) override {

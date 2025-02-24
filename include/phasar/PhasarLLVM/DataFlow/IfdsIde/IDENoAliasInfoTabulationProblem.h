@@ -46,47 +46,64 @@ public:
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IDETabulationProblem<AnalysisDomainTy, Container>(
-            IRDB, std::move(EntryPoints), std::move(ZeroValue),
-            NullAnalysisPrinter<AnalysisDomainTy>::getInstance()) {
+            IRDB, std::move(EntryPoints), std::move(ZeroValue)) {
     assert(IRDB != nullptr);
   }
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /*Succ*/) override {
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+// TODO: fix code below
+#if false
       return generateFlowIf(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });
+#endif
     }
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
       return strongUpdateStore(Store);
     }
     if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
+// TODO: fix code below
+#if false
       return generateFlow(UnaryOp, UnaryOp->getOperand(0));
+#endif
     }
     if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
+// TODO: fix code below
+#if false
       return generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
         return Source == BinaryOp->getLeftOp() ||
                Source == BinaryOp->getRightOp();
       });
+#endif
     }
     if (const auto *GetElementPtr = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
+// TODO: fix code below
+#if false
       return generateFlow(GetElementPtr, GetElementPtr->getPointerOperand());
+#endif
     }
   }
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
                                           f_t CalleeFun) override {
+// TODO: fix code below
+#if false
     return mapFactsToCallee(CallInst, CalleeFun, [](d_t Actual, d_t Source) {
       return Actual == Source && Actual->getType()->isPointerTy();
     });
+#endif
   }
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                          n_t ExitInst,
                                          n_t /*RetSite*/) override {
+// TODO: fix code below
+#if false
     return mapFactsToCaller(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
                             [](d_t Param, d_t Source) {
                               return Param == Source &&
                                      Param->getType()->isPointerTy();
                             });
+#endif
   }
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
@@ -95,7 +112,10 @@ public:
     // Bei declaration only function können wir nicht davon ausgehen, dass der
     // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
     //
+    // TODO: fix code below
+#if false
     return mapFactsAlongsideCallSite(CallSite);
+#endif
   }
 
 private:
