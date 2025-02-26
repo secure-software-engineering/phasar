@@ -33,7 +33,7 @@ struct SVFPointsToInfoTraits {
   // require an expensive transformation from SVF::PointsTo
   using PointsToSetTy = llvm::SmallDenseSet<o_t>;
 
-  // Not special pointer type
+  // No special pointer type
   using PointsToSetPtrTy = PointsToSetTy;
 };
 

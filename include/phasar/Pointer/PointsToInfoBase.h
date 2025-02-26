@@ -106,8 +106,6 @@ public:
   }
 
 private:
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsToImpl(ByConstRef<o_t> Pointer,
                                      ByConstRef<o_t> Obj,
                                      ByConstRef<n_t> AtInstruction) const {
@@ -115,6 +113,8 @@ private:
     return getPointerFrom(Pts)->count(Obj);
   }
 
+  template <typename V = v_t,
+            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsToImpl(ByConstRef<v_t> Pointer,
                                      ByConstRef<o_t> Obj,
                                      ByConstRef<n_t> AtInstruction) const {

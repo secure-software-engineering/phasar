@@ -12,6 +12,8 @@
 #include "SVFIR/SVFIR.h"
 #include "SVFIR/SVFModule.h"
 #include "SVFIR/SVFType.h"
+#include "Util/DPItem.h"
+#include "Util/Options.h"
 #include "WPA/Andersen.h"
 #include "WPA/VersionedFlowSensitive.h"
 
@@ -91,6 +93,13 @@ class SVFDDAAnalysis : public SVFAliasAnalysisBase {
 public:
   SVFDDAAnalysis(SVF::SVFModule *Mod)
       : SVFAliasAnalysisBase(Mod, AliasAnalysisType::SVFVFS), Client(Mod) {
+
+    // Initialize these parameters to their default values.
+    // See https://github.com/SVF-tools/SVF/blob/master/svf/lib/DDA/DDAPass.cpp
+    // for reference
+    SVF::ContextCond::setMaxCxtLen(SVF::Options::MaxContextLen());
+    SVF::ContextCond::setMaxPathLen(SVF::Options::MaxPathLen());
+
     Client.initialise(Mod);
     DDA.emplace(PAG, &Client);
     DDA->initialize();

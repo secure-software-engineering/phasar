@@ -14,10 +14,10 @@
 #include "phasar/Utils/ByRef.h"
 
 #include <cassert>
+#include <memory>
 #include <optional>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 namespace psr {
 
@@ -29,7 +29,7 @@ struct PointsToTraits<PointsToInfoRef<PTATraits>> : PTATraits {};
 template <typename PTATraits>
 struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 
-/// A type-erased reference to any object implementing th PointsToInfoBase
+/// A type-erased reference to any object implementing the PointsToInfoBase
 /// interface. Use this, if your analysis is not tied to a specific points-to
 /// info implementation.
 ///
@@ -154,7 +154,7 @@ private:
   }
 
   [[nodiscard]] std::optional<v_t>
-  asPointerOrNull(ByConstRef<o_t> Obj) const noexcept {
+  asPointerOrNullImpl(ByConstRef<o_t> Obj) const noexcept {
     assert(VT);
     return VT->AsPointerOrNull(PT, Obj);
   }
@@ -196,7 +196,7 @@ private:
   const VTable<> *VT{};
 };
 
-/// Similar to PointsToInfoRef, but owns the held reference. Us this, if you
+/// Similar to PointsToInfoRef, but owns the held reference. Use this, if you
 /// need to decide dynamically, which points-to info implementation to use.
 ///
 /// Implicitly convertible to PointsToInfoRef.
@@ -238,6 +238,10 @@ public:
                         ArgTys &&...Args)
       : PointsToInfoRef<PTATraits>(
             new ConcretePTA(std::forward<ArgTys>(Args)...)) {}
+
+  template <typename ConcretePTA>
+  PointsToInfo(std::unique_ptr<ConcretePTA> PTA)
+      : PointsToInfoRef<PTATraits>(PTA.release()) {}
 
   ~PointsToInfo() noexcept {
     if (*this) {

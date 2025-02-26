@@ -127,6 +127,12 @@ struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
 
 struct DDAPointsToSetImpl : SVFPointsToSet<DDAPointsToSetImpl> {
   DDAPointsToSetImpl(SVF::SVFModule *Mod) : SVFPointsToSet(Mod), Client(Mod) {
+    // Initialize these parameters to their default values.
+    // See https://github.com/SVF-tools/SVF/blob/master/svf/lib/DDA/DDAPass.cpp
+    // for reference
+    SVF::ContextCond::setMaxCxtLen(SVF::Options::MaxContextLen());
+    SVF::ContextCond::setMaxPathLen(SVF::Options::MaxPathLen());
+
     Client.initialise(Mod);
     DDA.emplace(PAG, &Client);
     DDA->initialize();
