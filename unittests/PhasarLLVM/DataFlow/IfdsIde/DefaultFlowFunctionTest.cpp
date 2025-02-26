@@ -120,9 +120,9 @@ void printIRWithInstrNumbers(const LLVMProjectIRDB &IRDB) {
   }
 }
 
-std::set<const llvm::Value *> getValueSet(const llvm::Instruction *Instr,
-                                          IDEAliasImpl &AliasImpl,
-                                          const LLVMProjectIRDB &IRDB) {
+std::set<const llvm::Value *>
+getNormalFlowValueSet(const llvm::Instruction *Instr, IDEAliasImpl &AliasImpl,
+                      const LLVMProjectIRDB &IRDB) {
   const auto AliasNormalFlowFunc =
       AliasImpl.getNormalFlowFunction(Instr, nullptr);
   const auto AliasLLVMValueSet = AliasNormalFlowFunc->computeTargets(
@@ -131,9 +131,10 @@ std::set<const llvm::Value *> getValueSet(const llvm::Instruction *Instr,
   return AliasLLVMValueSet;
 }
 
-std::set<const llvm::Value *> getValueSet(const llvm::Instruction *Instr,
-                                          IDENoAliasImpl &NoAliasImpl,
-                                          const LLVMProjectIRDB &IRDB) {
+std::set<const llvm::Value *>
+getNormalFlowValueSet(const llvm::Instruction *Instr,
+                      IDENoAliasImpl &NoAliasImpl,
+                      const LLVMProjectIRDB &IRDB) {
   const auto NoAliasNormalFlowFunc =
       NoAliasImpl.getNormalFlowFunction(Instr, nullptr);
   const auto NoAliasLLVMValueSet = NoAliasNormalFlowFunc->computeTargets(
@@ -141,6 +142,72 @@ std::set<const llvm::Value *> getValueSet(const llvm::Instruction *Instr,
   printValueSet(NoAliasLLVMValueSet);
   return NoAliasLLVMValueSet;
 }
+
+std::set<const llvm::Value *>
+getCallFlowValueSet(const llvm::Instruction *Instr, IDEAliasImpl &AliasImpl,
+                    const LLVMProjectIRDB &IRDB) {
+  const auto AliasCallFlowFunc = AliasImpl.getCallFlowFunction(Instr, nullptr);
+  const auto AliasLLVMValueSet = AliasCallFlowFunc->computeTargets(
+      IRDB.getValueFromId(IRDB.getInstruction(0)->getValueID()));
+  printValueSet(AliasLLVMValueSet);
+  return AliasLLVMValueSet;
+}
+
+std::set<const llvm::Value *>
+getCallFlowValueSet(const llvm::Instruction *Instr, IDENoAliasImpl &NoAliasImpl,
+                    const LLVMProjectIRDB &IRDB) {
+  const auto NoAliasCallFlowFunc =
+      NoAliasImpl.getCallFlowFunction(Instr, nullptr);
+  const auto NoAliasLLVMValueSet = NoAliasCallFlowFunc->computeTargets(
+      IRDB.getValueFromId(IRDB.getInstruction(0)->getValueID()));
+  printValueSet(NoAliasLLVMValueSet);
+  return NoAliasLLVMValueSet;
+}
+
+#if false
+std::set<const llvm::Value *> getRetFlowValueSet(const llvm::Instruction *Instr,
+                                                 IDEAliasImpl &AliasImpl,
+                                                 const LLVMProjectIRDB &IRDB) {
+  const auto AliasRetFlowFunc = AliasImpl.getRetFlowFunction(Instr, nullptr);
+  const auto AliasLLVMValueSet = AliasRetFlowFunc->computeTargets(
+      IRDB.getValueFromId(IRDB.getInstruction(0)->getValueID()));
+  printValueSet(AliasLLVMValueSet);
+  return AliasLLVMValueSet;
+}
+std::set<const llvm::Value *> getRetFlowValueSet(const llvm::Instruction *Instr,
+                                                 IDENoAliasImpl &NoAliasImpl,
+                                                 const LLVMProjectIRDB &IRDB) {
+  const auto NoAliasRetFlowFunc =
+      NoAliasImpl.getRetFlowFunction(Instr, nullptr);
+  const auto NoAliasLLVMValueSet = NoAliasRetFlowFunc->computeTargets(
+      IRDB.getValueFromId(IRDB.getInstruction(0)->getValueID()));
+  printValueSet(NoAliasLLVMValueSet);
+  return NoAliasLLVMValueSet;
+}
+
+std::set<const llvm::Value *>
+getCallToRetFlowValueSet(const llvm::Instruction *Instr,
+                         IDEAliasImpl &AliasImpl, const LLVMProjectIRDB &IRDB) {
+  const auto AliasCallToRetFlowFunc =
+      AliasImpl.getCallToRetFlowFunction(Instr, nullptr);
+  const auto AliasLLVMValueSet = AliasCallToRetFlowFunc->computeTargets(
+      IRDB.getValueFromId(IRDB.getInstruction(0)->getValueID()));
+  printValueSet(AliasLLVMValueSet);
+  return AliasLLVMValueSet;
+}
+
+std::set<const llvm::Value *>
+getCallToRetFlowValueSet(const llvm::Instruction *Instr,
+                         IDENoAliasImpl &NoAliasImpl,
+                         const LLVMProjectIRDB &IRDB) {
+  const auto NoAliasCallToRetFlowFunc =
+      NoAliasImpl.getCallToRetFlowFunction(Instr, nullptr);
+  const auto NoAliasLLVMValueSet = NoAliasCallToRetFlowFunc->computeTargets(
+      IRDB.getValueFromId(IRDB.getInstruction(0)->getValueID()));
+  printValueSet(NoAliasLLVMValueSet);
+  return NoAliasLLVMValueSet;
+}
+#endif
 
 TEST(PureFlow, NormalFlow01) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
@@ -154,70 +221,70 @@ TEST(PureFlow, NormalFlow01) {
   ASSERT_TRUE(Instr7);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr7, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr7, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr7, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr7, NoAliasImpl, IRDB));
 
   // store i32 %0, ptr %.addr, align 4
   const auto *Instr8 = IRDB.getInstruction(8);
   ASSERT_TRUE(Instr8);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr8, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr8, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr8, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr8, NoAliasImpl, IRDB));
 
   // store ptr %1, ptr %.addr1, align 8
   const auto *Instr10 = IRDB.getInstruction(10);
   ASSERT_TRUE(Instr10);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr10, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr10, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr10, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr10, NoAliasImpl, IRDB));
 
   // store i32 1, ptr %One, align 4, !dbg !220
   const auto *Instr13 = IRDB.getInstruction(13);
   ASSERT_TRUE(Instr13);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr13, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr13, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr13, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr13, NoAliasImpl, IRDB));
 
   // store i32 2, ptr %Two, align 4, !dbg !222
   const auto *Instr15 = IRDB.getInstruction(15);
   ASSERT_TRUE(Instr15);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr15, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr15, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr15, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr15, NoAliasImpl, IRDB));
 
   // store ptr %One, ptr %OnePtr, align 8, !dbg !225
   const auto *Instr17 = IRDB.getInstruction(17);
   ASSERT_TRUE(Instr17);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr17, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr17, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr17, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr17, NoAliasImpl, IRDB));
 
   // store ptr %Two, ptr %TwoAddr, align 8, !dbg !228
   const auto *Instr19 = IRDB.getInstruction(19);
   ASSERT_TRUE(Instr19);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr19, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr19, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr19, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr19, NoAliasImpl, IRDB));
 
 #if false
   llvm::outs() << "2\n";
@@ -291,52 +358,52 @@ TEST(PureFlow, NormalFlow02) {
   ASSERT_TRUE(Instr3);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr3, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr3, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr3, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr3, NoAliasImpl, IRDB));
 
   // store ptr %TwoPtrArg, ptr %TwoPtrArg.addr, align 8, !psr.id !223
   const auto *Instr5 = IRDB.getInstruction(5);
   ASSERT_TRUE(Instr5);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr5, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr5, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr5, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr5, NoAliasImpl, IRDB));
 
   // store i32 %add, ptr %Five, align 4, !dbg !228, !psr.id !238
   const auto *Instr12 = IRDB.getInstruction(12);
   ASSERT_TRUE(Instr12);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr12, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr12, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr12, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr12, NoAliasImpl, IRDB));
 
   // store i32 1, ptr %One, align 4, !dbg !233, !psr.id !235
   const auto *Instr28 = IRDB.getInstruction(28);
   ASSERT_TRUE(Instr28);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr28, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr28, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr28, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr28, NoAliasImpl, IRDB));
 
   // store i32 2, ptr %Two, align 4, !dbg !237, !psr.id !239
   const auto *Instr30 = IRDB.getInstruction(30);
   ASSERT_TRUE(Instr30);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr30, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr30, AliasImpl, IRDB));
 // find out why test below crashes
 #if false
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr30, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr30, NoAliasImpl, IRDB));
 #endif
 
   // store ptr %One, ptr %OnePtr, align 8, !dbg !243, !psr.id !245
@@ -344,30 +411,30 @@ TEST(PureFlow, NormalFlow02) {
   ASSERT_TRUE(Instr32);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr32, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr32, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr32, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr32, NoAliasImpl, IRDB));
 
   // store ptr %Two, ptr %TwoAddr, align 8, !dbg !248, !psr.id !250
   const auto *Instr34 = IRDB.getInstruction(34);
   ASSERT_TRUE(Instr34);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr34, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr34, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr34, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr34, NoAliasImpl, IRDB));
 
   // store i32 3, ptr %Three, align 4, !dbg !252, !psr.id !254
   const auto *Instr36 = IRDB.getInstruction(36);
   ASSERT_TRUE(Instr36);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr36, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr36, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr36, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr36, NoAliasImpl, IRDB));
 }
 
 TEST(PureFlow, NormalFlow03) {
@@ -398,130 +465,130 @@ TEST(PureFlow, NormalFlow03) {
   ASSERT_TRUE(Instr2);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr2, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr2, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr2, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr2, NoAliasImpl, IRDB));
 
   // TODO: store ptr %FourPtrArg, ptr %FourPtrArg.addr, align 8, !psr.id !222
   const auto *Instr4 = IRDB.getInstruction(4);
   ASSERT_TRUE(Instr4);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr4, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr4, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr4, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr4, NoAliasImpl, IRDB));
 
   // TODO: store ptr %OnePtrArg, ptr %OnePtrArg.addr, align 8, !psr.id !222
   const auto *Instr17 = IRDB.getInstruction(17);
   ASSERT_TRUE(Instr17);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr17, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr17, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr17, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr17, NoAliasImpl, IRDB));
 
   // TODO: store ptr %TwoPtrArg, ptr %TwoPtrArg.addr, align 8, !psr.id !226
   const auto *Instr19 = IRDB.getInstruction(19);
   ASSERT_TRUE(Instr19);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr19, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr19, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr19, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr19, NoAliasImpl, IRDB));
 
   // TODO: store i32 %ThreeArg, ptr %ThreeArg.addr, align 4, !psr.id !230
   const auto *Instr21 = IRDB.getInstruction(21);
   ASSERT_TRUE(Instr21);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr21, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr21, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr21, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr21, NoAliasImpl, IRDB));
 
   // TODO: store i32 %add, ptr %Four, align 4, !dbg !235, !psr.id !241
   const auto *Instr26 = IRDB.getInstruction(26);
   ASSERT_TRUE(Instr26);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr26, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr26, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr26, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr26, NoAliasImpl, IRDB));
 
   // TODO: store i32 %call, ptr %Five, align 4, !dbg !243, !psr.id !249
   const auto *Instr30 = IRDB.getInstruction(30);
   ASSERT_TRUE(Instr30);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr30, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr30, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr30, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr30, NoAliasImpl, IRDB));
 
   // TODO: store i32 1, ptr %One, align 4, !dbg !234, !psr.id !236
   const auto *Instr47 = IRDB.getInstruction(47);
   ASSERT_TRUE(Instr47);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr47, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr47, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr47, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr47, NoAliasImpl, IRDB));
 
   // TODO: store i32 2, ptr %Two, align 4, !dbg !238, !psr.id !240
   const auto *Instr49 = IRDB.getInstruction(49);
   ASSERT_TRUE(Instr49);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr49, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr49, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr49, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr49, NoAliasImpl, IRDB));
 
   // TODO:  store i32 3, ptr %Three, align 4, !dbg !242, !psr.id !244
   const auto *Instr51 = IRDB.getInstruction(51);
   ASSERT_TRUE(Instr51);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr51, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr51, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr51, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr51, NoAliasImpl, IRDB));
 
   // TODO: store i32 0, ptr %Zero, align 4, !dbg !246, !psr.id !248
   const auto *Instr53 = IRDB.getInstruction(53);
   ASSERT_TRUE(Instr53);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr53, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr53, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr53, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr53, NoAliasImpl, IRDB));
 
   // TODO: store ptr %One, ptr %OnePtr, align 8, !dbg !251, !psr.id !253
   const auto *Instr55 = IRDB.getInstruction(55);
   ASSERT_TRUE(Instr55);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr55, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr55, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr55, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr55, NoAliasImpl, IRDB));
 
   // TODO: store ptr %Two, ptr %TwoAddr, align 8, !dbg !256, !psr.id !258
   const auto *Instr57 = IRDB.getInstruction(57);
   ASSERT_TRUE(Instr57);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr57, AliasImpl, IRDB));
+            getNormalFlowValueSet(Instr57, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr57, NoAliasImpl, IRDB));
+            getNormalFlowValueSet(Instr57, NoAliasImpl, IRDB));
 }
 
 /*
@@ -540,12 +607,12 @@ TEST(PureFlow, CallFlow01) {
   ASSERT_TRUE(Instr16);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr16, AliasImpl, IRDB));
+            getCallFlowValueSet(Instr16, AliasImpl, IRDB));
 // TODO: determine ground truth
 // find out why test below crashes
 #if false
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr16, NoAliasImpl, IRDB));
+            getCallFlowValueSet(Instr16, NoAliasImpl, IRDB));
 #endif
 }
 
@@ -560,12 +627,12 @@ TEST(PureFlow, CallFlow02) {
   ASSERT_TRUE(Instr18);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr18, AliasImpl, IRDB));
+            getCallFlowValueSet(Instr18, AliasImpl, IRDB));
 // TODO: determine ground truth
 // find out why test below crashes
 #if false
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr18, NoAliasImpl, IRDB));
+            getCallFlowValueSet(Instr18, NoAliasImpl, IRDB));
 #endif
 
   // %call2 = call noundef i32 @_Z6getTwoi(i32 noundef %2), !dbg !247
@@ -573,20 +640,20 @@ TEST(PureFlow, CallFlow02) {
   ASSERT_TRUE(Instr21);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr21, AliasImpl, IRDB));
+            getCallFlowValueSet(Instr21, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr21, NoAliasImpl, IRDB));
+            getCallFlowValueSet(Instr21, NoAliasImpl, IRDB));
 
   // %call3 = call noundef i32 @_Z8getThreePKi(ptr noundef %Two), !dbg !251
   const auto *Instr24 = IRDB.getInstruction(24);
   ASSERT_TRUE(Instr24);
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr24, AliasImpl, IRDB));
+            getCallFlowValueSet(Instr24, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getValueSet(Instr24, NoAliasImpl, IRDB));
+            getCallFlowValueSet(Instr24, NoAliasImpl, IRDB));
 }
 
 /*
@@ -599,8 +666,69 @@ TEST(PureFlow, RetFlow01) {
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   printIRWithInstrNumbers(IRDB);
-  // IRDB.getInstruction(8);
   // IRDB.emitPreprocessedIR(llvm::outs());
+  // 0
+  // ret i32 2, !dbg !212, !psr.id !213
+  const auto *Instr0 = IRDB.getInstruction(0);
+  ASSERT_TRUE(Instr0);
+  // TODO: determine ground truth
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getRetFlowValueSet(Instr0, AliasImpl, IRDB));
+  // TODO: determine ground truth
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getRetFlowValueSet(Instr0, NoAliasImpl, IRDB));
+
+  // 14
+  // ret i32 %add, !dbg !237, !psr.id !238
+
+  // 36
+  // ret i32 %4, !dbg !250, !psr.id !251
+}
+
+TEST(PureFlow, RetFlow02) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "pure_flow/ret_flow/ret_flow_02_cpp_dbg.ll"});
+  IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
+  IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
+  printIRWithInstrNumbers(IRDB);
+  // IRDB.emitPreprocessedIR(llvm::outs());
+  // 0
+  // ret i32 2, !dbg !212, !psr.id !213
+
+  // 4
+  // ret i32 3, !dbg !217, !psr.id !218
+
+  // 23
+  // ret i32 %add, !dbg !246, !psr.id !247
+
+  // 45
+  // ret i32 %4, !dbg !250, !psr.id !251
+}
+
+TEST(PureFlow, RetFlow03) {
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "pure_flow/ret_flow/ret_flow_03_cpp_dbg.ll"});
+  IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
+  IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
+  printIRWithInstrNumbers(IRDB);
+  // IRDB.emitPreprocessedIR(llvm::outs());
+  // 0
+  // ret i32 2, !dbg !216, !psr.id !217
+
+  // 9
+  // ret ptr %1, !dbg !234, !psr.id !235
+
+  // 10
+  // ret ptr @GlobalFour, !dbg !219, !psr.id !220
+
+  // 11
+  // ret ptr @GlobalFour, !dbg !219, !psr.id !220
+
+  // 48
+  // ret i32 %add7, !dbg !286, !psr.id !287
+
+  // 70
+  // ret i32 %3, !dbg !254, !psr.id !255
 }
 
 /*
