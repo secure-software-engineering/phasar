@@ -11,6 +11,7 @@
 #define PHASAR_CONTROLFLOW_CFGBASE_H
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "nlohmann/json.hpp"
@@ -24,7 +25,10 @@ template <typename T> struct CFGTraits {
   // using f_t
 };
 
-template <typename Derived> class CFGBase {
+template <typename Derived> class CFGBase : public CRTPBase<Derived> {
+  friend Derived;
+  using CRTPBase<Derived>::self;
+
 public:
   using n_t = typename CFGTraits<Derived>::n_t;
   using f_t = typename CFGTraits<Derived>::f_t;
@@ -134,12 +138,6 @@ public:
   [[nodiscard, deprecated("Please use printAsJson() instead")]] nlohmann::json
   getAsJson(ByConstRef<f_t> Fun) const {
     return self().getAsJsonImpl(Fun);
-  }
-
-private:
-  Derived &self() noexcept { return static_cast<Derived &>(*this); }
-  const Derived &self() const noexcept {
-    return static_cast<const Derived &>(*this);
   }
 };
 

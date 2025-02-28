@@ -216,12 +216,13 @@ public:
 
   PointsToInfo() noexcept = default;
   PointsToInfo(std::nullptr_t) noexcept {};
+
   PointsToInfo(const PointsToInfo &) = delete;
   PointsToInfo &operator=(const PointsToInfo &) = delete;
+
   PointsToInfo(PointsToInfo &&Other) noexcept { swap(Other); }
   PointsToInfo &operator=(PointsToInfo &&Other) noexcept {
-    auto Cpy{std::move(Other)};
-    swap(Cpy);
+    PointsToInfo(std::move(Other)).swap(*this);
     return *this;
   }
 

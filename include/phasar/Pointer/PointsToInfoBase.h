@@ -11,6 +11,7 @@
 #define PHASAR_POINTER_POINTSTOINFOBASE_H
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -53,14 +54,9 @@ PSR_CONCEPT is_equivalent_PointsToTraits_v = // NOLINT
 
 /// Base class of all points-to analysis implementations. Don't use this class
 /// directly. For a type-erased variant, use PointsToInfoRef or PointsToInfo.
-template <typename Derived> class PointsToInfoBase {
+template <typename Derived> class PointsToInfoBase : public CRTPBase<Derived> {
   friend Derived;
-
-  explicit PointsToInfoBase() noexcept {
-    static_assert(std::is_base_of_v<PointsToInfoBase, Derived>,
-                  "Invalid CRTP instantiation: Derived must inherit from "
-                  "PointsToInfoBase<Derived>!");
-  }
+  using CRTPBase<Derived>::self;
 
 public:
   using v_t = typename PointsToTraits<Derived>::v_t;
@@ -128,13 +124,6 @@ private:
   getPointsToSetImpl(ByConstRef<v_t> Pointer,
                      ByConstRef<n_t> AtInstruction) const {
     return self().getPointsToSetImpl(asAbstractObject(Pointer), AtInstruction);
-  }
-
-  [[nodiscard]] Derived &self() noexcept {
-    return static_cast<Derived &>(*this);
-  }
-  [[nodiscard]] const Derived &self() const noexcept {
-    return static_cast<const Derived &>(*this);
   }
 };
 
