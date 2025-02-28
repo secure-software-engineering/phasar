@@ -10,10 +10,11 @@ on:
 # TODO test conan build
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
+        os: [ubuntu-20.04, ubuntu-20.04-arm]
         compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
         build: [ Debug, Release, DebugLibdeps ]
         include:
@@ -26,6 +27,11 @@ jobs:
           - build: DebugLibdeps
             cmake_build_type: Debug
             flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+        exclude:
+          - os: ubuntu-20.04-arm
+            build: Debug
+          - os: ubuntu-20.04-arm
+            build: DebugLibdeps
 
     continue-on-error: false
     steps:
