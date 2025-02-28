@@ -326,20 +326,23 @@ else()
   string(TOLOWER "${PHASAR_USE_Z3}" PHASAR_USE_Z3_lower)
   if("${PHASAR_USE_Z3_lower}" STREQUAL "auto")
     set (PHASAR_Z3_REQUIREMENT QUIET)
-    set (PHASAR_USE_Z3 ON)
   endif()
 
-  if(PHASAR_USE_Z3)
+  if(PHASAR_USE_Z3 OR "${PHASAR_USE_Z3_lower}" STREQUAL "auto")
     # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
     # as it lacks some functionality (such as z3::expr::simplify()) that we require
     find_package(Z3 4.7.1 ${PHASAR_Z3_REQUIREMENT})
 
-    if(Z3_FOUND AND NOT TARGET z3)
-      add_library(z3 IMPORTED SHARED)
-      set_property(TARGET z3 PROPERTY
-              IMPORTED_LOCATION ${Z3_LIBRARIES})
-      set_property(TARGET z3 PROPERTY
-              INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+    if(Z3_FOUND)
+      set (PHASAR_USE_Z3 ON) # If it was "auto" before, we not wet it to "ON" -- we have found it
+
+      if (NOT TARGET z3)
+        add_library(z3 IMPORTED SHARED)
+        set_property(TARGET z3 PROPERTY
+                IMPORTED_LOCATION ${Z3_LIBRARIES})
+        set_property(TARGET z3 PROPERTY
+                INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+      endif()
     endif()
   endif()
 endif()
