@@ -10,7 +10,7 @@
 #ifndef PHASAR_UTILS_BYREF_H
 #define PHASAR_UTILS_BYREF_H
 
-#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Macros.h"
 
 #include <type_traits>
 

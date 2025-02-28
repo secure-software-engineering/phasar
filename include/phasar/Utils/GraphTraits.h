@@ -10,17 +10,15 @@
 #ifndef PHASAR_UTILS_GRAPHTRAITS_H
 #define PHASAR_UTILS_GRAPHTRAITS_H
 
-#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/None.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/identity.h"
 #include "llvm/Support/raw_ostream.h"
 
+#if __cplusplus >= 202002L
 #include <concepts>
+#endif
 #include <functional>
 #include <string>
 #include <type_traits>

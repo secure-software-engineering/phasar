@@ -10,9 +10,7 @@
 #define PHASAR_UTILS_DEBUGOUTPUT_H
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/TypeTraits.h"
 
-#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
