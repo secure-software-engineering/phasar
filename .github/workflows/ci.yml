@@ -65,7 +65,7 @@ jobs:
             ${{ matrix.flags }} \
             -G Ninja
           ninja -C build
-      
+
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         if: matrix.os != 'ubuntu-20.04'
         env:
