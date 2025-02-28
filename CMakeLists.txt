@@ -331,7 +331,12 @@ else()
   if(PHASAR_USE_Z3 OR "${PHASAR_USE_Z3_lower}" STREQUAL "auto")
     # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
     # as it lacks some functionality (such as z3::expr::simplify()) that we require
+
+    # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
+    set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "")
     find_package(Z3 4.7.1 ${PHASAR_Z3_REQUIREMENT})
+    set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
 
     if(Z3_FOUND)
       set (PHASAR_USE_Z3 ON) # If it was "auto" before, we not wet it to "ON" -- we have found it

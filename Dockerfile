@@ -3,7 +3,7 @@ FROM "$baseimage" as build
 
 RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
   set -eux; \
-  ./InstallAptDependencies.sh --noninteractive tzdata clang-19 libclang-rt-19-dev libz3-4 libz3-dev
+  ./InstallAptDependencies.sh --noninteractive tzdata clang-19 libclang-rt-19-dev
 
 ENV CC=/usr/bin/clang-19 \
     CXX=/usr/bin/clang++-19
@@ -18,9 +18,11 @@ RUN --mount=type=bind,source=.,target=/usr/src/phasar,rw \
   cmake -S . -B cmake-build/Release \
     -DCMAKE_BUILD_TYPE=Release \
     -DPHASAR_TARGET_ARCH="" \
+    -DPHASAR_ENABLE_SANITIZERS=ON \
     -DBUILD_PHASAR_CLANG=ON \
-    -DPHASAR_USE_Z3="auto" \
+    -DPHASAR_USE_Z3=ON \
     -DPHASAR_BUILD_UNITTESTS=$RUN_TESTS \
+    -DPHASAR_BUILD_IR=$RUN_TESTS \
     -DPHASAR_BUILD_OPENSSL_TS_UNITTESTS=OFF \
     -G Ninja; \
   ninja -C cmake-build/Release install; \
