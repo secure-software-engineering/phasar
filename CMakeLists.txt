@@ -157,8 +157,7 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is ON)" ${PHASAR_BUILD_O
 
 option(PHASAR_BUILD_OPENSSL_TS_UNITTESTS "Build OPENSSL typestate tests (require OpenSSL, default is OFF)" OFF)
 
-set(PHASAR_USE_Z3 "OFF" CACHE STRING "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF). Can be set to \"auto\" to use Z3, iff cmake can find it." FORCE)
-set_property(CACHE PHASAR_USE_Z3 PROPERTY STRINGS "OFF" "ON" "auto")
+option(PHASAR_USE_Z3 "Build the phasar_llvm_pathsensitivity library with Z3 support for constraint solving (default is OFF)." "OFF" )
 
 option(PHASAR_BUILD_IR "Build IR test code (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 
@@ -322,25 +321,17 @@ add_llvm()
 if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
 else()
-  set (PHASAR_Z3_REQUIREMENT REQUIRED)
-  string(TOLOWER "${PHASAR_USE_Z3}" PHASAR_USE_Z3_lower)
-  if("${PHASAR_USE_Z3_lower}" STREQUAL "auto")
-    set (PHASAR_Z3_REQUIREMENT QUIET)
-  endif()
-
-  if(PHASAR_USE_Z3 OR "${PHASAR_USE_Z3_lower}" STREQUAL "auto")
+  if(PHASAR_USE_Z3)
     # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
     # as it lacks some functionality (such as z3::expr::simplify()) that we require
 
     # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
     set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS "")
-    find_package(Z3 4.7.1 ${PHASAR_Z3_REQUIREMENT})
+    find_package(Z3 4.7.1 REQUIRED)
     set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
 
     if(Z3_FOUND)
-      set (PHASAR_USE_Z3 ON) # If it was "auto" before, we not wet it to "ON" -- we have found it
-
       if (NOT TARGET z3)
         add_library(z3 IMPORTED SHARED)
         set_property(TARGET z3 PROPERTY
