@@ -65,8 +65,6 @@ private:
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
     auto *Nod = ModSet->getSVFValue(Pointer);
 
-    // TODO: Is this the right function to call? Or better
-    // PAG->getObjectNode(Nod)?
     return PAG->getValueNode(Nod);
   }
 
@@ -108,9 +106,6 @@ protected:
   SVF::SVFIR *PAG;
 };
 
-// TODO: Implement abstractions/pimpl for VFS and DDA analyses
-// TODO: implement all the APi functions of SVFPointsToSet
-
 struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
   VFSPointsToSetImpl(SVF::SVFModule *Mod) : SVFPointsToSet(Mod), VFS(PAG) {
     VFS.initialize();
@@ -127,12 +122,6 @@ struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
 
 struct DDAPointsToSetImpl : SVFPointsToSet<DDAPointsToSetImpl> {
   DDAPointsToSetImpl(SVF::SVFModule *Mod) : SVFPointsToSet(Mod), Client(Mod) {
-    // Initialize these parameters to their default values.
-    // See https://github.com/SVF-tools/SVF/blob/master/svf/lib/DDA/DDAPass.cpp
-    // for reference
-    SVF::ContextCond::setMaxCxtLen(SVF::Options::MaxContextLen());
-    SVF::ContextCond::setMaxPathLen(SVF::Options::MaxPathLen());
-
     Client.initialise(Mod);
     DDA.emplace(PAG, &Client);
     DDA->initialize();

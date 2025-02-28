@@ -19,6 +19,9 @@ static psr::EmptyType initializeSVFImpl() {
   };
   OptionBase::parseOptions(std::size(MockArgv), MockArgv, "", "");
 
+  // Initialize these parameters to their default values.
+  // See https://github.com/SVF-tools/SVF/blob/master/svf/lib/DDA/DDAPass.cpp
+  // for reference
   SVF::ContextCond::setMaxCxtLen(SVF::Options::MaxContextLen());
   SVF::ContextCond::setMaxPathLen(SVF::Options::MaxPathLen());
 
