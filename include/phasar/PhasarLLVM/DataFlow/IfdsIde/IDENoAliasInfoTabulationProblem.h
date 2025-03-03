@@ -70,12 +70,11 @@ public:
     }
     if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
       // TODO: fix code below. How do we get the Operands of BinaryOperators?
-#if false
+
       return this->generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
-        return Source == BinaryOp->getLeftOp() ||
-               Source == BinaryOp->getRightOp();
+        return Source == BinaryOp->getOperand(0) ||
+               Source == BinaryOp->getOperand(1);
       });
-#endif
     }
     if (const auto *GetElementPtr = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
       // TODO: fix code below
@@ -87,21 +86,20 @@ public:
   }
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
                                           f_t CalleeFun) override {
-    // TODO: fix code below
-    // #if false
     if (const auto *CallSite =
             llvm::dyn_cast_or_null<llvm::CallBase>(CallInst)) {
-      return mapFactsToCallee(CallSite, CalleeFun, [](d_t Actual, d_t Source) {
-        return Actual == Source && Actual->getType()->isPointerTy();
-      });
-      // #endif
+      return mapFactsToCallee(CallSite, CalleeFun,
+                              [](d_t Actual, d_t Source) {
+                                return Actual == Source &&
+                                       Actual->getType()->isPointerTy();
+                              },
+                              {});
     }
   }
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                          n_t ExitInst,
                                          n_t /*RetSite*/) override {
     // TODO: fix code below
-    // #if false
     if (const auto *ConfirmedCallSite =
             llvm::dyn_cast_or_null<llvm::CallBase>(CallSite)) {
       return mapFactsToCaller(llvm::cast<llvm::CallBase>(ConfirmedCallSite),
@@ -110,7 +108,6 @@ public:
                                        Param->getType()->isPointerTy();
                               });
     }
-    // #endif
   }
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
@@ -119,10 +116,10 @@ public:
     // Bei declaration only function können wir nicht davon ausgehen, dass der
     // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
     //
-    // TODO: fix code below
-#if false
-    return mapFactsAlongsideCallSite(CallSite);
-#endif
+    // TODO: fix code belows
+    // TODO: argument 2: lambda funktion, die bei pointern false zurück gibt
+    // TODO: argmuent 3: false
+    return mapFactsAlongsideCallSite(llvm::cast<llvm::CallBase>(CallSite));
   }
 
 private:

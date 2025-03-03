@@ -1,6 +1,6 @@
 #include <cstdio>
 
-void call(int Zero, int One) {}
+void call(int ArgZero, int ArgOne) {}
 
 int main(int /*argc*/, char * /*argv*/[]) {
   int Zero = 0;

@@ -82,7 +82,7 @@ public:
           llvm::outs() << "Store-> getPointerOperand() not nullptr: "
                        << *(Store->getPointerOperand()) << "\n";
           assert(PT);
-          auto AliasSet = PT->getAliasSet(Store->getPointerOperand(), Store);
+          auto AliasSet = PT.getAliasSet(Store->getPointerOperand(), Store);
           Gen.insert(AliasSet->begin(), AliasSet->end());
 
           return this->lambdaFlow(
@@ -162,7 +162,7 @@ public:
     container_type Tmp = Facts;
     for (const auto *Fact : Facts) {
       assert(PT);
-      auto Aliases = PT->getAliasSet(Fact);
+      auto Aliases = PT.getAliasSet(Fact);
       for (const auto *Alias : *Aliases) {
         if (canSkipAtContext(Alias, Context)) {
           continue;
@@ -191,7 +191,7 @@ public:
                                          n_t /*RetSite*/) override {
     container_type Gen;
     assert(PT);
-    auto AliasSet = PT->getAliasSet(CallSite->getOperand(0), CallSite);
+    auto AliasSet = PT.getAliasSet(CallSite->getOperand(0), CallSite);
     Gen.insert(AliasSet->begin(), AliasSet->end());
 
     // TODO: Entweder Lambda Funktionen als variablen speichern und übergeben,
@@ -314,33 +314,20 @@ public:
     // Bei declaration only function können wir nicht davon ausgehen, dass der
     // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
     //
-    // TODO: fix code below
-#if false
-    for (const auto *Callee : Callees) {
-      if (llvm::isa<llvm::PointerType>(Callee)) {
-        return this->identityFlow();
-      }
-    }
-#endif
-    // TODO: fix code below
-#if false
-    // If any callee is a declaration, return identity
-    if (llvm::any_of(Callees, llvm::isa<llvm::PointerType>)) {
-      return this->identityFlow();
-    }
-#endif
 
     // TODO: fix code below
-#if false
+    // If any callee is a declaration, return identity
+    if (llvm::any_of(Callees, [](const llvm::Function *Callee) {
+          return Callee->isDeclaration();
+        })) {
+      return this->identityFlow();
+    }
+
+    // TODO: fix code below
     if (const auto *CS = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
       return mapFactsAlongsideCallSite(
-          CS,
-          [](d_t Arg, d_t Source) {
-            return Arg == Source && Arg->getType()->isPointerTy();
-          },
-          false);
+          CS, [](d_t Arg) { return !Arg->getType()->isPointerTy(); }, false);
     }
-#endif
 
     return {};
   }
@@ -350,7 +337,7 @@ private:
   // correct. If LLVMAliasInfoRef, how to initialize this correctly?
   // LLVMAliasInfo PT;
   // LLVMAliasInfoRef PT;
-  LLVMAliasSet *PT;
+  LLVMAliasInfoRef PT;
 };
 
 } // namespace psr
