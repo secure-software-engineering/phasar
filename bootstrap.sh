@@ -146,7 +146,7 @@ else
             # install missing packages if necessary
             boostlibnames=("libboost-graph")
             additional_boost_libs=()
-            for boost_lib in ${boostlibnames[@]}; do
+            for boost_lib in "${boostlibnames[@]}"; do
                 dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||
                 dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}.0" >/dev/null 2>&1 ||
                 additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}") ||
@@ -163,7 +163,7 @@ fi
 
 # installing LLVM
 tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
-./utils/install-llvm.sh "${NUM_THREADS}" "${tmp_dir}" ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
+./utils/install-llvm.sh "${NUM_THREADS}" "${tmp_dir}" "${LLVM_INSTALL_DIR}" ${LLVM_RELEASE}
 rm -rf "${tmp_dir}"
 echo "dependencies successfully installed"
 
@@ -193,7 +193,8 @@ if ${DO_UNIT_TEST}; then
    NUM_FAILED_TESTS=0
 
    pushd unittests
-   for x in $(find . -type f -executable -print); do
+   mapfile -t files < <(find . -type f -executable)
+   for x in "${files[@]}"; do
        pushd "${x%/*}" && ./"${x##*/}" || { echo "Test ${x} failed."; NUM_FAILED_TESTS=$((NUM_FAILED_TESTS+1)); };
        popd;
        done
@@ -206,13 +207,13 @@ fi
 
 if ${DO_INSTALL}; then
     echo "install phasar..."
-    sudo cmake -DCMAKE_INSTALL_PREFIX=${PHASAR_INSTALL_DIR} -P cmake_install.cmake
+    sudo cmake -DCMAKE_INSTALL_PREFIX="${PHASAR_INSTALL_DIR}" -P cmake_install.cmake
     sudo ldconfig
     safe_cd ..
     echo "phasar successfully installed to ${PHASAR_INSTALL_DIR}"
 
     echo "Set environment variables"
-    ./utils/setEnvironmentVariables.sh ${LLVM_INSTALL_DIR} ${PHASAR_INSTALL_DIR}
+    ./utils/setEnvironmentVariables.sh "${LLVM_INSTALL_DIR}" "${PHASAR_INSTALL_DIR}"
 fi
 
 echo "done."

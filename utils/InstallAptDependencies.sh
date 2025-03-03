@@ -24,10 +24,10 @@ additional_dependencies=("$@")
     packages=("${additional_dependencies[@]}")
     packages+=(
         git ca-certificates build-essential cmake ninja-build # build
-        binutils # LTO
         "clang-$LLVM_IR_VERSION" # compiler for IR
         "libclang-rt-$LLVM_IR_VERSION-dev" # ASAN
-        libboost-graph-dev libsqlite3-dev libssl-dev zlib1g-dev "libclang-$LLVM_IR_VERSION-dev" "llvm-$LLVM_IR_VERSION-dev" "libclang-common-$LLVM_IR_VERSION-dev" # build deps
+        libsqlite3-dev libz3-dev libssl-dev "libclang-$LLVM_IR_VERSION-dev" "libclang-common-$LLVM_IR_VERSION-dev" # optional build deps
+        libboost-graph-dev zlib1g-dev "llvm-$LLVM_IR_VERSION-dev" # build deps
     )
 
 
@@ -82,4 +82,7 @@ additional_dependencies=("$@")
     "${pkg_mgr[@]}" update
     check_if_llvm_apt_is_required
     "${pkg_mgr[@]}" install --no-install-recommends -y "${packages[@]}"
+    if "$noninteractive"; then
+        "${pkg_mgr[@]}" clean
+    fi
 )
