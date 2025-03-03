@@ -21,8 +21,8 @@ RUN --mount=type=bind,source=.,target=/usr/src/phasar,rw \
     -DPHASAR_ENABLE_SANITIZERS=ON \
     -DBUILD_PHASAR_CLANG=ON \
     -DPHASAR_USE_Z3=ON \
-    -DPHASAR_ALLOW_LTO_IN_RELEASE_BUILD=ON \
     -DPHASAR_BUILD_UNITTESTS=$RUN_TESTS \
+    -DPHASAR_BUILD_IR=$RUN_TESTS \
     -DPHASAR_BUILD_OPENSSL_TS_UNITTESTS=OFF \
     -G Ninja; \
   ninja -C cmake-build/Release install; \
