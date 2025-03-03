@@ -12,7 +12,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   execute_process(COMMAND lsb_release -r
                   OUTPUT_VARIABLE UBUNTU_VERSION
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
-                  message("${UBUNTU_VERSION}")
     string(REGEX REPLACE "^[^0-9]+([0-9]+)\\.([0-9]+).*" "\\1" UBUNTU_MAJOR_VERSION "${UBUNTU_VERSION}")
 
     if ("${UBUNTU_MAJOR_VERSION}" GREATER 22)
