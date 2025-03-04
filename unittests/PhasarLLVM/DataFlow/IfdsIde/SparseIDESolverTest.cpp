@@ -11,6 +11,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Soundness.h"
@@ -34,7 +35,7 @@ TEST_P(LinearConstant, SparseResultsEquivalent) {
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("linear_constant/");
   LLVMProjectIRDB IRDB(PathToLlFiles + GetParam());
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
 
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);
@@ -85,7 +86,7 @@ TEST_P(DoubleFreeTA, SparseLeaksEquivalent) {
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("taint_analysis/");
   LLVMProjectIRDB IRDB(PathToLlFiles + GetParam());
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
 
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT);

@@ -12,12 +12,12 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFGProvider.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include <memory>
 
 namespace psr {
 class SparseLLVMBasedCFG;
+class DIBasedTypeHierarchy;
 struct SVFGCache;
 
 class SparseLLVMBasedICFG
@@ -29,7 +29,7 @@ public:
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
                                CallGraphAnalysisType CGType,
                                llvm::ArrayRef<std::string> EntryPoints = {},
-                               LLVMTypeHierarchy *TH = nullptr,
+                               DIBasedTypeHierarchy *TH = nullptr,
                                LLVMAliasInfoRef PT = nullptr,
                                Soundness S = Soundness::Soundy,
                                bool IncludeGlobals = true);

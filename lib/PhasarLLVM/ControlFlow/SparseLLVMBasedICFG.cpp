@@ -20,7 +20,7 @@ SparseLLVMBasedICFG::~SparseLLVMBasedICFG() = default;
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(
     LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
-    llvm::ArrayRef<std::string> EntryPoints, LLVMTypeHierarchy *TH,
+    llvm::ArrayRef<std::string> EntryPoints, DIBasedTypeHierarchy *TH,
     LLVMAliasInfoRef PT, Soundness S, bool IncludeGlobals)
     : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT, S, IncludeGlobals),
       SparseCFGCache(new SVFGCache{}), AliasAnalysis(PT) {}
