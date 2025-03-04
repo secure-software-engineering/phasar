@@ -1,5 +1,3 @@
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/GenericFlowFunction.h"
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDEAliasInfoTabulationProblem.h"
@@ -14,10 +12,6 @@
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-
-#include <cstddef>
-#include <iterator>
-#include <utility>
 
 using namespace psr;
 
@@ -114,13 +108,6 @@ void printValueSet(const std::set<const llvm::Value *> &Values) {
   llvm::outs() << "\nAfter Value Set loop\n";
 }
 
-void printIRWithInstrNumbers(const LLVMProjectIRDB &IRDB) {
-  int Counter = 0;
-  for (const auto &CurrInstr : IRDB.getAllInstructions()) {
-    llvm::outs() << Counter++ << ": " << *CurrInstr << "\n";
-  }
-}
-
 std::set<const llvm::Value *>
 getNormalFlowValueSet(const llvm::Instruction *Instr, IDEAliasImpl &AliasImpl,
                       const LLVMProjectIRDB &IRDB) {
@@ -149,7 +136,10 @@ getCallFlowValueSet(const llvm::Instruction *Instr, IDEAliasImpl &AliasImpl,
                     const llvm::Value *Arg, const llvm::Function *CalleeFunc) {
   const auto AliasCallFlowFunc =
       AliasImpl.getCallFlowFunction(Instr, CalleeFunc);
-  const auto AliasLLVMValueSet = AliasCallFlowFunc->computeTargets(Arg);
+  std::set<const llvm::Value *> AliasLLVMValueSet{};
+  if (Arg) {
+    AliasLLVMValueSet = AliasCallFlowFunc->computeTargets(Arg);
+  }
   // printValueSet(AliasLLVMValueSet);
   return AliasLLVMValueSet;
 }
@@ -157,11 +147,14 @@ getCallFlowValueSet(const llvm::Instruction *Instr, IDEAliasImpl &AliasImpl,
 std::set<const llvm::Value *>
 getCallFlowValueSet(const llvm::Instruction *Instr, IDENoAliasImpl &NoAliasImpl,
                     const llvm::Value *Arg, const llvm::Function *CalleeFunc) {
-  const auto AliasCallFlowFunc =
+  const auto NoAliasCallFlowFunc =
       NoAliasImpl.getCallFlowFunction(Instr, CalleeFunc);
-  const auto AliasLLVMValueSet = AliasCallFlowFunc->computeTargets(Arg);
+  std::set<const llvm::Value *> NoAliasLLVMValueSet{};
+  if (Arg) {
+    NoAliasLLVMValueSet = NoAliasCallFlowFunc->computeTargets(Arg);
+  }
   // printValueSet(AliasLLVMValueSet);
-  return AliasLLVMValueSet;
+  return NoAliasLLVMValueSet;
 }
 
 std::set<const llvm::Value *>
@@ -215,6 +208,12 @@ getCallToRetFlowValueSet(const llvm::Instruction *Instr,
 }
 #endif
 
+/*
+  TODO: Check if Alias and NoAlias tests need more diverse testing. I.e. does
+  Alias even need a store instr for example or are other instructions not
+  covered by NoAlias viable too?
+*/
+
 TEST(PureFlow, NormalFlow01) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "pure_flow/normal_flow/normal_flow_01_cpp_dbg.ll"});
@@ -226,7 +225,7 @@ TEST(PureFlow, NormalFlow01) {
   const auto *Instr7 = IRDB.getInstruction(7);
   ASSERT_TRUE(Instr7);
   // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
             getNormalFlowValueSet(Instr7, AliasImpl, IRDB));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
@@ -344,7 +343,6 @@ TEST(PureFlow, NormalFlow02) {
                         "pure_flow/normal_flow/normal_flow_02_cpp_dbg.ll"});
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  // printIRWithInstrNumbers(IRDB);
 
   // IRDB.emitPreprocessedIR(llvm::outs());
   //  TODO: double checken
@@ -448,7 +446,6 @@ TEST(PureFlow, NormalFlow03) {
                         "pure_flow/normal_flow/normal_flow_03_cpp_dbg.ll"});
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  // printIRWithInstrNumbers(IRDB);
 
   // IRDB.emitPreprocessedIR(llvm::outs());
   //  TODO: double checken
@@ -608,12 +605,13 @@ TEST(PureFlow, CallFlow01) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // call void @_Z4callii(i32 noundef %2, i32 noundef %3), !dbg !233
+  // call void @_Z4callii(i32 noundef %2, i32 noundef %3), !dbg !256, !psr.id
+  // !257; | ID: 23
   const auto *Instr23 = IRDB.getInstruction(23);
   ASSERT_TRUE(Instr23);
   const auto *FuncForInstr23 = IRDB.getFunction("_Z4callii");
 
-  // TODO: determine ground truth
+  // TODO: go over ground truth with Fabian
   if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Instr23)) {
     EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr23->getArg(0)},
               getCallFlowValueSet(Instr23, AliasImpl,
@@ -637,52 +635,59 @@ TEST(PureFlow, CallFlow02) {
                         "pure_flow/call_flow/call_flow_02_cpp_dbg.ll"});
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  IRDB.emitPreprocessedIR(llvm::outs());
+  // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // %call = call noundef i32 @_Z6getOnev(), !dbg !244
-  const auto *Instr18 = IRDB.getInstruction(18);
-  ASSERT_TRUE(Instr18);
-  // TODO: determine ground truth
-  const auto *FuncForInstr18 = IRDB.getFunction("_Z4callii");
-  // TODO: determine ground truth
-  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Instr18)) {
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr18->getArg(0)},
-              getCallFlowValueSet(Instr18, AliasImpl,
-                                  CallSite->getArgOperand(0), FuncForInstr18));
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr18->getArg(1)},
-              getCallFlowValueSet(Instr18, AliasImpl,
-                                  CallSite->getArgOperand(1), FuncForInstr18));
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr18->getArg(0)},
-              getCallFlowValueSet(Instr18, NoAliasImpl,
-                                  CallSite->getArgOperand(0), FuncForInstr18));
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr18->getArg(1)},
-              getCallFlowValueSet(Instr18, NoAliasImpl,
-                                  CallSite->getArgOperand(1), FuncForInstr18));
+  // %call = call noundef i32 @_Z6getOnev(), !dbg !277, !psr.id !278; | ID: 29
+  const auto *Instr29 = IRDB.getInstruction(29);
+  ASSERT_TRUE(Instr29);
+  const auto *FuncForInstr29 = IRDB.getFunction("_Z6getOnev");
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getCallFlowValueSet(Instr29, AliasImpl, nullptr, FuncForInstr29));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getCallFlowValueSet(Instr29, NoAliasImpl, nullptr, FuncForInstr29));
+
+  // %call2 = call noundef i32 @_Z6getTwoi(i32 noundef %2), !dbg !285, !psr.id
+  // !286; | ID: 33
+  const auto *Instr33 = IRDB.getInstruction(33);
+  ASSERT_TRUE(Instr33);
+  const auto *FuncForInstr33 = IRDB.getFunction("_Z6getTwoi");
+  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Instr33)) {
+    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr33->getArg(0)},
+              getCallFlowValueSet(Instr33, AliasImpl,
+                                  CallSite->getArgOperand(0), FuncForInstr33));
+    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr33->getArg(0)},
+              getCallFlowValueSet(Instr33, NoAliasImpl,
+                                  CallSite->getArgOperand(0), FuncForInstr33));
   } else {
     FAIL();
   }
 
-  // %call2 = call noundef i32 @_Z6getTwoi(i32 noundef %2), !dbg !247
-  const auto *Instr21 = IRDB.getInstruction(21);
-  ASSERT_TRUE(Instr21);
-  // TODO: determine ground truth
-  const auto *FuncForInstr21 = IRDB.getFunction("_Z4callii");
-  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Instr21)) {
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr21->getArg(0)},
-              getCallFlowValueSet(Instr21, AliasImpl,
-                                  CallSite->getArgOperand(0), FuncForInstr21));
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr21->getArg(1)},
-              getCallFlowValueSet(Instr21, AliasImpl,
-                                  CallSite->getArgOperand(1), FuncForInstr21));
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr21->getArg(0)},
-              getCallFlowValueSet(Instr21, NoAliasImpl,
-                                  CallSite->getArgOperand(0), FuncForInstr21));
-    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr21->getArg(1)},
-              getCallFlowValueSet(Instr21, NoAliasImpl,
-                                  CallSite->getArgOperand(1), FuncForInstr21));
+  // %call3 = call noundef i32 @_Z8getThreePKi(ptr noundef %Two), !dbg !291,
+  // !psr.id !292; | ID: 36
+  const auto *Instr36 = IRDB.getInstruction(36);
+  ASSERT_TRUE(Instr36);
+  const auto *FuncForInstr36 = IRDB.getFunction("_Z8getThreePKi");
+  if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Instr36)) {
+    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr36->getArg(0)},
+              getCallFlowValueSet(Instr36, AliasImpl,
+                                  CallSite->getArgOperand(0), FuncForInstr36));
+    EXPECT_EQ(std::set<const llvm::Value *>{FuncForInstr36->getArg(0)},
+              getCallFlowValueSet(Instr36, NoAliasImpl,
+                                  CallSite->getArgOperand(0), FuncForInstr36));
   } else {
     FAIL();
   }
+
+  // %call4 = call noundef ptr @_Z18getPtrToGlobalFourv(), !dbg !297, !psr.id
+  // !298; | ID: 39
+  const auto *Instr39 = IRDB.getInstruction(39);
+  ASSERT_TRUE(Instr39);
+  // TODO: go over ground truth with Fabian!
+  const auto *FuncForInstr39 = IRDB.getFunction("_Z18getPtrToGlobalFourv");
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getCallFlowValueSet(Instr39, AliasImpl, nullptr, FuncForInstr39));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getCallFlowValueSet(Instr39, NoAliasImpl, nullptr, FuncForInstr39));
 }
 
 /*
@@ -694,8 +699,6 @@ TEST(PureFlow, RetFlow01) {
                         "pure_flow/ret_flow/ret_flow_01_cpp_dbg.ll"});
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  // printIRWithInstrNumbers(IRDB);
-  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %call = call noundef i32 @_Z6getTwov(), !dbg !231, !psr.id !232; | ID: 9
   const auto *Instr9 = IRDB.getInstruction(9);
@@ -703,9 +706,7 @@ TEST(PureFlow, RetFlow01) {
   // ret i32 2, !dbg !212, !psr.id !213; | ID: 0
   const auto *Instr0 = IRDB.getInstruction(0);
   ASSERT_TRUE(Instr0);
-  const auto *Func_Z6getTwov = IRDB.getFunction("_Z6getTwov");
 
-  // TODO: determine ground truth
   // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist und
   // die erste Instruction hier die call zu der Funktion ist.
   EXPECT_EQ(std::set<const llvm::Value *>{},
@@ -721,25 +722,21 @@ TEST(PureFlow, RetFlow01) {
   // ret i32 %add, !dbg !240, !psr.id !241; | ID: 14
   const auto *Instr14 = IRDB.getInstruction(14);
   ASSERT_TRUE(Instr14);
-  const auto *Func_Z4callii = IRDB.getFunction("_Z4callii");
+  const auto *FuncZ4callii = IRDB.getFunction("_Z4callii");
 
-  // TODO: determine ground truth
   // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist und
   // die erste Instruction hier die call zu der Funktion ist.
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instr33, AliasImpl, FuncZ4callii->getArg(0), Instr14));
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instr33, AliasImpl, FuncZ4callii->getArg(1), Instr14));
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr33, AliasImpl, Func_Z4callii->getArg(0),
+            getRetFlowValueSet(Instr33, NoAliasImpl, FuncZ4callii->getArg(0),
                                Instr14));
-  // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr33, AliasImpl, Func_Z4callii->getArg(1),
-                               Instr14));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr33, NoAliasImpl, Func_Z4callii->getArg(0),
-                               Instr14));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr33, NoAliasImpl, Func_Z4callii->getArg(1),
+            getRetFlowValueSet(Instr33, NoAliasImpl, FuncZ4callii->getArg(1),
                                Instr14));
 }
 
@@ -749,59 +746,58 @@ TEST(PureFlow, RetFlow02) {
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
 
-  // %call2 = call noundef i32 @_Z6getTwoi(i32 noundef %2), !dbg !247
-  // %add in _Z6getTwoi wird gemappt auf %call2
-
-  // printIRWithInstrNumbers(IRDB);
-  // IRDB.emitPreprocessedIR(llvm::outs());
-
-  // ret i32 2, !dbg !212, !psr.id !213
+  // %call = call noundef i32 @_Z6getTwov(), !dbg !240, !psr.id !241; | ID: 14
+  const auto *Instr14 = IRDB.getInstruction(14);
+  ASSERT_TRUE(Instr14);
+  // ret i32 2, !dbg !212, !psr.id !213; | ID: 0
   const auto *Instr0 = IRDB.getInstruction(0);
   ASSERT_TRUE(Instr0);
-#if false
-// TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr0, AliasImpl, IRDB));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr0, NoAliasImpl, IRDB));
-#endif
 
-  // ret i32 3, !dbg !217, !psr.id !218
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist und
+  // die erste Instruction hier die call zu der Funktion ist.
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getRetFlowValueSet(Instr14, AliasImpl, nullptr, Instr0));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getRetFlowValueSet(Instr14, NoAliasImpl, nullptr, Instr0));
+
+  // %call1 = call noundef i32 @_Z8newThreev(), !dbg !247, !psr.id !248; | ID:
+  // 18
+  const auto *Instr18 = IRDB.getInstruction(18);
+  ASSERT_TRUE(Instr18);
+  // ret i32 3, !dbg !220, !psr.id !221; | ID: 4
   const auto *Instr4 = IRDB.getInstruction(4);
   ASSERT_TRUE(Instr4);
-#if false
-// TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr4, AliasImpl, IRDB));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr4, NoAliasImpl, IRDB));
-#endif
 
-  // ret i32 %add, !dbg !246, !psr.id !247
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist und
+  // die erste Instruction hier die call zu der Funktion ist.
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getRetFlowValueSet(Instr18, AliasImpl, nullptr, Instr4));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getRetFlowValueSet(Instr18, NoAliasImpl, nullptr, Instr4));
+
+  // %call = call noundef i32 @_Z4callii(i32 noundef %2, i32 noundef %3), !dbg
+  //! 293, !psr.id !294; | ID: 42
+  const auto *Instr42 = IRDB.getInstruction(42);
+  ASSERT_TRUE(Instr42);
+  // ret i32 %add, !dbg !257, !psr.id !258; | ID: 23
   const auto *Instr23 = IRDB.getInstruction(23);
   ASSERT_TRUE(Instr23);
-#if false
-// TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr23, AliasImpl, IRDB));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr23, NoAliasImpl, IRDB));
-#endif
+  const auto *FuncZ4callii = IRDB.getFunction("_Z4callii");
 
-  // ret i32 %4, !dbg !250, !psr.id !251
-  const auto *Instr45 = IRDB.getInstruction(45);
-  ASSERT_TRUE(Instr45);
-#if false
-// TODO: determine ground truth
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist und
+  // die erste Instruction hier die call zu der Funktion ist.
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instr42, AliasImpl, FuncZ4callii->getArg(0), Instr23));
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instr42, AliasImpl, FuncZ4callii->getArg(1), Instr23));
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr45, AliasImpl, IRDB));
-  // TODO: determine ground truth
+            getRetFlowValueSet(Instr42, NoAliasImpl, FuncZ4callii->getArg(0),
+                               Instr23));
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr45, NoAliasImpl, IRDB));
-#endif
+            getRetFlowValueSet(Instr42, NoAliasImpl, FuncZ4callii->getArg(1),
+                               Instr23));
 }
 
 TEST(PureFlow, RetFlow03) {
@@ -809,80 +805,96 @@ TEST(PureFlow, RetFlow03) {
                         "pure_flow/ret_flow/ret_flow_03_cpp_dbg.ll"});
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  // printIRWithInstrNumbers(IRDB);
-  // IRDB.emitPreprocessedIR(llvm::outs());
+  IRDB.emitPreprocessedIR(llvm::outs());
 
-  // ret i32 2, !dbg !216, !psr.id !217
-  const auto *Instr0 = IRDB.getInstruction(0);
-  ASSERT_TRUE(Instr0);
-#if false
-// TODO: determine ground truth
+  // ret ptr %1, !dbg !234, !psr.id !235; | ID: 9
+  const auto *Instruction9 = IRDB.getInstruction(9);
+  ASSERT_TRUE(Instruction9);
+  // %call = call noundef ptr @_Z8newThreePKi(ptr noundef %0), !dbg !282,
+  // !psr.id !283; | ID: 30
+  const auto *Instruction30 = IRDB.getInstruction(30);
+  ASSERT_TRUE(Instruction30);
+  const auto *FunctionZ8newThreePKi = IRDB.getFunction("_Z8newThreePKi");
+
+  // TODO: determine ground truth
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist
+  // und die erste Instruction hier die call zu der Funktion ist.
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr0, AliasImpl, IRDB));
+            getRetFlowValueSet(Instruction30, AliasImpl,
+                               FunctionZ8newThreePKi->getArg(0), Instruction9));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr0, NoAliasImpl, IRDB));
-#endif
+            getRetFlowValueSet(Instruction30, NoAliasImpl,
+                               FunctionZ8newThreePKi->getArg(0), Instruction9));
 
-  // ret ptr %1, !dbg !234, !psr.id !235
-  const auto *Instr9 = IRDB.getInstruction(9);
-  ASSERT_TRUE(Instr9);
-#if false
-// TODO: determine ground truth
+  // ret ptr @GlobalFour, !dbg !240, !psr.id !241; | ID: 10
+  const auto *Instruction10 = IRDB.getInstruction(10);
+  ASSERT_TRUE(Instruction10);
+  // %call3 = call noundef ptr @_Z10getFourPtrv(), !dbg !304, !psr.id !305; |
+  // ID: 42
+  const auto *Instruction42 = IRDB.getInstruction(42);
+  ASSERT_TRUE(Instruction42);
+
+  // TODO: determine ground truth
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist
+  // und die erste Instruction hier die call zu der Funktion ist.
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instruction42, AliasImpl, nullptr, Instruction10));
+  // TODO: determine ground truth
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instruction42, NoAliasImpl, nullptr, Instruction10));
+
+  // ret ptr @GlobalFour, !dbg !246, !psr.id !247; | ID: 11
+  const auto *Instruction11 = IRDB.getInstruction(11);
+  ASSERT_TRUE(Instruction11);
+  //  %call5 = call noundef nonnull align 4 dereferenceable(4) ptr
+  //  @_Z11getFourAddrv(), !dbg !310, !psr.id !311; | ID: 45
+  const auto *Instruction45 = IRDB.getInstruction(45);
+  ASSERT_TRUE(Instruction45);
+
+  // TODO: determine ground truth
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist
+  // und die erste Instruction hier die call zu der Funktion ist.
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instruction45, AliasImpl, nullptr, Instruction11));
+  // TODO: determine ground truth
+  EXPECT_EQ(
+      std::set<const llvm::Value *>{},
+      getRetFlowValueSet(Instruction45, NoAliasImpl, nullptr, Instruction11));
+
+  // ret i32 %add6, !dbg !315, !psr.id !316; | ID: 48
+  const auto *Instruction48 = IRDB.getInstruction(48);
+  ASSERT_TRUE(Instruction48);
+  // %call = call noundef i32 @_Z4callRiPKi(ptr noundef nonnull align 4
+  // dereferenceable(4) %Zero, ptr noundef %One), !dbg !347, !psr.id !348; | ID:
+  // 65
+  const auto *Instruction65 = IRDB.getInstruction(65);
+  ASSERT_TRUE(Instruction65);
+  const auto *FuncZ4callRiPKi = IRDB.getFunction("_Z4callRiPKi");
+
+  // TODO: determine ground truth
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist
+  // und die erste Instruction hier die call zu der Funktion ist.
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr9, AliasImpl, IRDB));
+            getRetFlowValueSet(Instruction65, AliasImpl,
+                               FuncZ4callRiPKi->getArg(0), Instruction48));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr9, NoAliasImpl, IRDB));
-#endif
-
-  // ret ptr @GlobalFour, !dbg !219, !psr.id !220
-  const auto *Instr10 = IRDB.getInstruction(10);
-  ASSERT_TRUE(Instr10);
-#if false
-// TODO: determine ground truth
+            getRetFlowValueSet(Instruction65, NoAliasImpl,
+                               FuncZ4callRiPKi->getArg(0), Instruction48));
+  // TODO: determine ground truth
+  // TODO: Fabian fragen, ob die Exit Instruction die ret Instruction ist
+  // und die erste Instruction hier die call zu der Funktion ist.
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr10, AliasImpl, IRDB));
+            getRetFlowValueSet(Instruction65, AliasImpl,
+                               FuncZ4callRiPKi->getArg(1), Instruction48));
   // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr10, NoAliasImpl, IRDB));
-#endif
-
-  // ret ptr @GlobalFour, !dbg !219, !psr.id !220
-  const auto *Instr11 = IRDB.getInstruction(11);
-  ASSERT_TRUE(Instr11);
-#if false
-// TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr11, AliasImpl, IRDB));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr11, NoAliasImpl, IRDB));
-#endif
-
-  // ret i32 %add7, !dbg !286, !psr.id !287
-  const auto *Instr48 = IRDB.getInstruction(48);
-  ASSERT_TRUE(Instr48);
-#if false
-// TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr48, AliasImpl, IRDB));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr48, NoAliasImpl, IRDB));
-#endif
-
-  // ret i32 %3, !dbg !254, !psr.id !255
-  const auto *Instr70 = IRDB.getInstruction(70);
-  ASSERT_TRUE(Instr70);
-#if false
-// TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr70, AliasImpl, IRDB));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instr70, NoAliasImpl, IRDB));
-#endif
+            getRetFlowValueSet(Instruction65, NoAliasImpl,
+                               FuncZ4callRiPKi->getArg(1), Instruction48));
 }
 
 /*
@@ -895,7 +907,6 @@ TEST(PureFlow, CallToRetFlow01) {
        "pure_flow/call_to_ret_flow/call_to_ret_flow_01_cpp_dbg.ll"});
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  // printIRWithInstrNumbers(IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 }
 

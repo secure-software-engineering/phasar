@@ -6,5 +6,5 @@ int main(int /*argc*/, char * /*argv*/[]) {
   int Zero = 0;
   int One = 1;
   call(Zero, One);
-  return Zero;
+  return 0;
 }

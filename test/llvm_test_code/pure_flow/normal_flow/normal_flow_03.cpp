@@ -20,5 +20,5 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   call(OnePtr, TwoAddr, Three);
 
-  return Zero;
+  return 0;
 }
