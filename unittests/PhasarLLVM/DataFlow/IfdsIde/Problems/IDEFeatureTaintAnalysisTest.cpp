@@ -486,10 +486,10 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 19, "retval", std::set<std::string>{"3"});
-  GroundTruth.emplace("main", 19, "i", std::set<std::string>{"6", "7"});
-  GroundTruth.emplace("main", 19, "j",
-                      std::set<std::string>{"6", "7", "8", "10", "9"});
+  GroundTruth.emplace("main", 17, "retval", std::set<std::string>{"3"});
+  GroundTruth.emplace("main", 17, "i", std::set<std::string>{"5", "6"});
+  GroundTruth.emplace("main", 17, "j",
+                      std::set<std::string>{"5", "6", "7", "8", "9"});
   doAnalysisAndCompareResults("heap_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
@@ -524,26 +524,26 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
 
   GroundTruth.emplace(
       "main", 19, "Str",
-      std::set<std::string>{"40", "44", "47", "50", "52", "55", "64"});
+      std::set<std::string>{"39", "43", "46", "49", "51", "54", "63"});
   GroundTruth.emplace("main", 19, "ref.tmp",
-                      std::set<std::string>{"14", "2", "20", "21", "24", "25",
-                                            "26", "28", "30", "33", "41", "46",
-                                            "47", "48"});
+                      std::set<std::string>{"13", "19", "2", "20", "23", "24",
+                                            "25", "27", "29", "32", "40", "45",
+                                            "46", "47"});
   GroundTruth.emplace("main", 19, "ref.tmp1",
-                      std::set<std::string>{"1", "14", "20", "21", "24", "25",
-                                            "26", "28", "30", "33", "49", "50",
-                                            "51"});
+                      std::set<std::string>{"1", "13", "19", "20", "23", "24",
+                                            "25", "27", "29", "32", "48", "49",
+                                            "50"});
   doAnalysisAndCompareResults("rvo_03_cpp.ll", {"main"}, GroundTruth, true);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 12, "retval", std::set<std::string>{"16"});
+  GroundTruth.emplace("main", 10, "retval", std::set<std::string>{"14"});
   GroundTruth.emplace(
-      "main", 12, "F",
-      std::set<std::string>{"11", "14", "17", "18", "21", "4", "5"});
-  GroundTruth.emplace("main", 12, "ref.tmp",
-                      std::set<std::string>{"11", "18", "4", "5"});
+      "main", 10, "F",
+      std::set<std::string>{"12", "15", "16", "17", "2", "3", "9"});
+  GroundTruth.emplace("main", 10, "ref.tmp",
+                      std::set<std::string>{"16", "17", "2", "3", "9"});
   doAnalysisAndCompareResults("rvo_04_cpp.ll", {"main"}, GroundTruth, true);
 }
 
