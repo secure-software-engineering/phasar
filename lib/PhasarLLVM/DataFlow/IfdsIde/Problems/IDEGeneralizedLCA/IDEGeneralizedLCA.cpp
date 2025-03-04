@@ -30,6 +30,7 @@
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -424,21 +425,20 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
     // found correct place and time
     if (CallNode == getZeroValue() && RetSiteNode == CS->getArgOperand(0)) {
       // find string literal that is used to initialize the string
-      if (auto *User = llvm::dyn_cast<llvm::User>(CS->getArgOperand(1))) {
-        if (auto *GV =
-                llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
-          if (!GV->hasInitializer()) {
-            // in this case we don't know the initial value statically
-            // return ALLBOTTOM;
-            return AllBottom<l_t>{};
-          }
-          if (auto *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(
-                  GV->getInitializer())) {
-            if (CDA->isCString()) {
-              // here we statically know the string literal the std::string is
-              // initialized with
-              return GenConstant{l_t({EdgeValue(CDA->getAsCString().str())})};
-            }
+      const auto *Arg1 = CS->getArgOperand(1)->stripPointerCastsAndAliases();
+
+      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Arg1)) {
+        if (!GV->hasInitializer()) {
+          // in this case we don't know the initial value statically
+          // return ALLBOTTOM;
+          return AllBottom<l_t>{};
+        }
+        if (const auto *CDA =
+                llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
+          if (CDA->isCString()) {
+            // here we statically know the string literal the std::string is
+            // initialized with
+            return GenConstant{l_t({EdgeValue(CDA->getAsCString().str())})};
           }
         }
       }

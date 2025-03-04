@@ -9,17 +9,26 @@
 
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/ADT/APInt.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 
@@ -57,7 +66,7 @@ static llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
   return nullptr;
 }
 
-static llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V) {
+llvm::DILocalVariable *psr::getDILocalVariable(const llvm::Value *V) {
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *DDI = llvm::dyn_cast<llvm::DbgDeclareInst>(DbgIntr)) {
       return DDI->getVariable();
@@ -110,6 +119,127 @@ std::string psr::getVarNameFromIR(const llvm::Value *V) {
     return GlobVar->getName().str();
   }
   return "";
+}
+
+static llvm::DIType *getVarTypeFromIRImpl(const llvm::Value *V) {
+  if (auto *LocVar = getDILocalVariable(V)) {
+    return LocVar->getType();
+  }
+  if (auto *GlobVar = getDIGlobalVariable(V)) {
+    return GlobVar->getType();
+  }
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(V)) {
+    if (const auto *Callee = llvm::dyn_cast<llvm::Function>(
+            Call->getCalledOperand()->stripPointerCastsAndAliases())) {
+      if (auto *DICallee = Callee->getSubprogram()) {
+        auto Types = DICallee->getType()->getTypeArray();
+        if (Types.size()) {
+          return Types[0];
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
+static const llvm::GEPOperator *getStructGep(const llvm::Value *V) {
+  if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
+    if (Gep->getNumIndices() != 2) {
+      return nullptr;
+    }
+    const auto *FirstIdx =
+        llvm::dyn_cast<llvm::ConstantInt>(Gep->indices().begin()->get());
+    if (!FirstIdx || FirstIdx->getZExtValue() != 0) {
+      return nullptr;
+    }
+
+    const auto *SecondIdx = llvm::dyn_cast<llvm::ConstantInt>(
+        std::next(Gep->indices().begin())->get());
+    if (!SecondIdx) {
+      return nullptr;
+    }
+    return Gep;
+  }
+
+  return nullptr;
+}
+
+static std::pair<const llvm::Value *, size_t>
+getOffsetAndBase(const llvm::Value *V) {
+  const auto *Base = V->stripPointerCastsAndAliases();
+  uint64_t Offset = 0;
+  if (const auto *Gep = getStructGep(Base)) {
+    // Look for gep ptr, 0, N; where N is a constant
+
+    const auto *SecondIdx =
+        llvm::cast<llvm::ConstantInt>(std::next(Gep->indices().begin())->get());
+
+    Offset = SecondIdx->getZExtValue();
+    Base = Gep->getPointerOperand();
+  }
+  return {Base, Offset};
+}
+
+static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
+  const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(BaseTy);
+  auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
+
+  if (Offset == 0 && DerivedTy) {
+    return StructTy;
+  }
+
+  if (const auto *CompositeTy =
+          llvm::dyn_cast<llvm::DICompositeType>(StructTy)) {
+    if (Offset > CompositeTy->getElements().size()) {
+      return nullptr;
+    }
+    auto Elems = CompositeTy->getElements();
+
+    if (auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elems[Offset])) {
+      return ElemTy;
+    }
+  }
+  return nullptr;
+}
+
+static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth) {
+  static constexpr size_t DepthLimit = 10;
+
+  V = V->stripPointerCastsAndAliases();
+
+  if (auto *VarTy = getVarTypeFromIRImpl(V)) {
+    return VarTy;
+  }
+
+  const auto InternalGetOffsetAndBase =
+      [](const llvm::Value *V) -> std::pair<const llvm::Value *, size_t> {
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+      return getOffsetAndBase(Load->getPointerOperand());
+    }
+    if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
+      return getOffsetAndBase(Gep->getPointerOperand());
+    }
+    return {};
+  };
+
+  auto [Base, Offset] = InternalGetOffsetAndBase(V);
+  if (!Base) {
+    return nullptr;
+  }
+
+  // TODO: Get rid of the recursion
+  if (Depth >= DepthLimit) {
+    return nullptr;
+  }
+  auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1);
+  if (!BaseTy) {
+    return nullptr;
+  }
+  return getStructElementType(BaseTy, Offset);
+}
+
+llvm::DIType *psr::getVarTypeFromIR(const llvm::Value *V) {
+  return getVarTypeFromIRRec(V, 0);
 }
 
 std::string psr::getFunctionNameFromIR(const llvm::Value *V) {

@@ -9,11 +9,9 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -29,7 +27,7 @@ protected:
   template <typename SolverConfigTy = IDESolverConfig>
   void doAnalysis(const llvm::Twine &LlvmFilePath, bool PrintDump = false) {
     LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + LlvmFilePath);
-    LLVMTypeHierarchy TH(IRDB);
+    DIBasedTypeHierarchy TH(IRDB);
     LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
                        Soundness::Soundy, /*IncludeGlobals*/ true);

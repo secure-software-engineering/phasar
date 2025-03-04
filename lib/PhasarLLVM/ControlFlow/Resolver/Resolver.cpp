@@ -24,16 +24,21 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 #include <optional>
@@ -57,7 +62,7 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
+const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   if (CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
     return nullptr;
@@ -70,30 +75,27 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
     return nullptr;
   }
 
-  if (Receiver->getType()->isOpaquePointerTy()) {
-    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
-                    "which are not supported by phasar yet!\n";
-    return nullptr;
-  }
-
-  if (!Receiver->getType()->isOpaquePointerTy()) {
-    if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-            Receiver->getType()->getNonOpaquePointerElementType())) {
-      return ReceiverTy;
+  if (const auto *DITy = getVarTypeFromIR(Receiver)) {
+    while (const auto *DerivedTy =
+               llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+      // get rid of the pointer
+      DITy = DerivedTy->getBaseType();
     }
+    return DITy;
   }
 
   return nullptr;
 }
 
 const llvm::Function *
-psr::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+psr::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                                const llvm::CallBase *CallSite,
                                const LLVMVFTableProvider &VTP) {
 
   if (const auto *VT = VTP.getVFTableOrNull(T)) {
     const auto *Target = VT->getFunction(Idx);
-    if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
+    if (Target &&
+        Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
         isConsistentCall(CallSite, Target)) {
       return Target;
     }
@@ -147,6 +149,7 @@ namespace psr {
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
+  assert(IRDB != nullptr);
   assert(VTP != nullptr);
 }
 
@@ -188,7 +191,7 @@ void Resolver::otherInst(const llvm::Instruction *Inst) {}
 std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
                                            const LLVMProjectIRDB *IRDB,
                                            const LLVMVFTableProvider *VTP,
-                                           const LLVMTypeHierarchy *TH,
+                                           const DIBasedTypeHierarchy *TH,
                                            LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
   assert(VTP != nullptr);
@@ -204,7 +207,10 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
     return std::make_unique<RTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::DTA:
     assert(TH != nullptr);
-    return std::make_unique<DTAResolver>(IRDB, VTP, TH);
+    PHASAR_LOG_LEVEL(ERROR, "Do not use the DTA resolver anymore. It relies on "
+                            "the removed 'typed-pointers' feature of LLVM.");
+    std::exit(1);
+    // return std::make_unique<DTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::VTA:
     llvm::report_fatal_error(
         "The VTA callgraph algorithm is not implemented yet");

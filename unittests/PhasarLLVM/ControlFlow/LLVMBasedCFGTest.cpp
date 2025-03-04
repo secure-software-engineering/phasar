@@ -195,7 +195,7 @@ TEST(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldLoad(Inst));
-  Inst = getNthInstruction(F, 6);
+  Inst = getNthInstruction(F, 5);
   ASSERT_TRUE(Cfg.isFieldLoad(Inst));
 }
 
@@ -205,7 +205,7 @@ TEST(LLVMBasedCFGTest, HandleFieldStoreArray) {
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldStore(Inst));
-  Inst = getNthInstruction(F, 9);
+  Inst = getNthInstruction(F, 8);
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
 }
 
