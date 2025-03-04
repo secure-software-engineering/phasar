@@ -2,7 +2,9 @@ name: Docker Image
 
 on:
   push:
-    branches: [ development ]
+    branches: [ master, development ]
+  pull_request:
+    branches: [ master, development ]
 
 jobs:
   push_to_registries:
@@ -34,6 +36,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: ${{ github.ref == 'refs/heads/development' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
