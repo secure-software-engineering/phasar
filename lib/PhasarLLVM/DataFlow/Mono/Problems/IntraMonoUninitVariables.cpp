@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
 
@@ -29,7 +29,7 @@ using namespace psr;
 namespace psr {
 
 IntraMonoUninitVariables::IntraMonoUninitVariables(
-    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchy *TH,
     const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoUninitVariablesDomain>(IRDB, TH, CF, PT,

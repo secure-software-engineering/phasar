@@ -34,7 +34,7 @@ class Value;
 
 namespace psr {
 
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 
 class OTFResolver : public Resolver {
 public:

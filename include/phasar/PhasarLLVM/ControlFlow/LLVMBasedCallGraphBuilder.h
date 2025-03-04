@@ -17,14 +17,14 @@
 namespace psr {
 class LLVMProjectIRDB;
 enum class CallGraphAnalysisType;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMVFTableProvider;
 class Resolver;
 
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
-                        LLVMTypeHierarchy &TH, LLVMVFTableProvider &VTP,
+                        DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP,
                         LLVMAliasInfoRef PT = nullptr,
                         Soundness S = Soundness::Soundy);
 
@@ -36,7 +36,7 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                         llvm::ArrayRef<std::string> EntryPoints,
-                        LLVMTypeHierarchy &TH, LLVMVFTableProvider &VTP,
+                        DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP,
                         LLVMAliasInfoRef PT = nullptr,
                         Soundness S = Soundness::Soundy);
 
