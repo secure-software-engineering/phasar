@@ -25,11 +25,11 @@ class CallBase;
 } // namespace llvm
 
 namespace psr {
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class CHAResolver : public Resolver {
 public:
   CHAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
   // Deleting an incomplete type (LLVMTypeHierarchy) is UB, so instantiate the
   // dtor in CHAResolver.cpp
@@ -45,7 +45,7 @@ public:
   }
 
 protected:
-  MaybeUniquePtr<const LLVMTypeHierarchy, true> TH;
+  MaybeUniquePtr<const DIBasedTypeHierarchy, true> TH;
 };
 } // namespace psr
 

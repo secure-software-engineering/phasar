@@ -16,6 +16,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -33,10 +34,10 @@ using namespace psr;
 
 CHAResolver::CHAResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP,
-                         const LLVMTypeHierarchy *TH)
+                         const DIBasedTypeHierarchy *TH)
     : Resolver(IRDB, VTP), TH(TH) {
   if (!TH) {
-    this->TH = std::make_unique<LLVMTypeHierarchy>(*IRDB);
+    this->TH = std::make_unique<DIBasedTypeHierarchy>(*IRDB);
   }
 }
 

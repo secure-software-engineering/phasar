@@ -1,6 +1,6 @@
-#include <cstdio>
-
 #include "globals_ctor_2_1.h"
+
+#include <cstdio>
 
 int createBar() { return 234765; }
 

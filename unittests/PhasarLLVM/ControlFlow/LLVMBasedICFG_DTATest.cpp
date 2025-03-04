@@ -3,19 +3,20 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
+  GTEST_SKIP() << "Requires typed pointers!";
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_5_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -41,9 +42,10 @@ TEST(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 }
 
 TEST(LLVMBasedICFG_DTATest, VirtualCallSite_6) {
+  GTEST_SKIP() << "Requires typed pointers!";
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "call_graphs/virtual_call_6_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::DTA, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");

@@ -5,7 +5,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -27,7 +27,7 @@ protected:
   static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("llvmIRtoSrc/");
 
   unique_ptr<LLVMProjectIRDB> IRDB;
-  unique_ptr<LLVMTypeHierarchy> TH;
+  unique_ptr<DIBasedTypeHierarchy> TH;
   unique_ptr<LLVMAliasSet> PT;
   unique_ptr<LLVMBasedICFG> ICFG;
 
@@ -36,7 +36,7 @@ protected:
 
   void initialize(const llvm::Twine &IRFile) {
     IRDB = make_unique<LLVMProjectIRDB>(IRFile);
-    TH = make_unique<LLVMTypeHierarchy>(*IRDB);
+    TH = make_unique<DIBasedTypeHierarchy>(*IRDB);
     PT = make_unique<LLVMAliasSet>(IRDB.get());
     auto EntryPoints = {"main"s};
     ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,

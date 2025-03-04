@@ -42,7 +42,7 @@ namespace psr {
 
 class LLVMBasedCFG;
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class InterMonoFullConstantPropagation;
 
 struct IntraMonoFCAFact {
@@ -81,7 +81,7 @@ private:
 
 public:
   IntraMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
-                                   const LLVMTypeHierarchy *TH,
+                                   const DIBasedTypeHierarchy *TH,
                                    const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
                                    std::vector<std::string> EntryPoints = {});
 
