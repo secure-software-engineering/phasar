@@ -17,6 +17,7 @@ class Value;
 class Instruction;
 class StructType;
 class Function;
+class DIType;
 } // namespace llvm
 
 namespace psr {
@@ -28,7 +29,7 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
   using f_t = const llvm::Function *;
-  using t_t = const llvm::StructType *;
+  using t_t = const llvm::DIType *;
   using v_t = const llvm::Value *;
   using c_t = LLVMBasedCFG;
   using i_t = LLVMBasedICFG;

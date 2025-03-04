@@ -7,7 +7,7 @@ if printf "%s\n" "$@" | grep -Eqe '^--noninteractive|-ni$'; then
 else
     readonly noninteractive="false"
 fi
-readonly LLVM_IR_VERSION=14
+readonly LLVM_IR_VERSION=15
 additional_dependencies=("$@")
 
 (
@@ -27,7 +27,7 @@ additional_dependencies=("$@")
         "clang-$LLVM_IR_VERSION" # compiler for IR
         "libclang-rt-$LLVM_IR_VERSION-dev" # ASAN
         libsqlite3-dev libz3-dev libssl-dev "libclang-$LLVM_IR_VERSION-dev" "libclang-common-$LLVM_IR_VERSION-dev" # optional build deps
-        libboost-graph-dev zlib1g-dev "llvm-$LLVM_IR_VERSION-dev" # build deps
+        libboost-graph-dev zlib1g-dev libzstd-dev "llvm-$LLVM_IR_VERSION-dev" # build deps
     )
 
 

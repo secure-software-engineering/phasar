@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/IR/DerivedTypes.h"
 
 #include <memory>
 #include <optional>
@@ -29,13 +30,13 @@ namespace llvm {
 class Instruction;
 class CallBase;
 class Function;
-class StructType;
+class DIType;
 } // namespace llvm
 
 namespace psr {
 class LLVMProjectIRDB;
 class LLVMVFTableProvider;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 enum class CallGraphAnalysisType;
 
 /// Assuming that `CallSite` is a virtual call through a vtable, retrieves the
@@ -43,16 +44,16 @@ enum class CallGraphAnalysisType;
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
 
-/// Assuming that `CallSite` is a vall to a non-static member function,
+/// Assuming that `CallSite` is a call to a non-static member function,
 /// retrieves the type of the receiver. Returns nullptr, if the receiver-type
 /// could not be extracted
-[[nodiscard]] const llvm::StructType *
+[[nodiscard]] const llvm::DIType *
 getReceiverType(const llvm::CallBase *CallSite);
 
 /// Assuming that `CallSite` is a virtual call, where `Idx` is retrieved through
 /// `getVFTIndex()` and `T` through `getReceiverType()`
 [[nodiscard]] const llvm::Function *
-getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                           const llvm::CallBase *CallSite,
                           const psr::LLVMVFTableProvider &VTP);
 
@@ -73,7 +74,7 @@ protected:
   const LLVMVFTableProvider *VTP;
 
   const llvm::Function *
-  getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+  getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                             const llvm::CallBase *CallSite) {
     if (!VTP) {
       return nullptr;
@@ -115,7 +116,7 @@ public:
   static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,
                                           const LLVMProjectIRDB *IRDB,
                                           const LLVMVFTableProvider *VTP,
-                                          const LLVMTypeHierarchy *TH,
+                                          const DIBasedTypeHierarchy *TH,
                                           LLVMAliasInfoRef PT = nullptr);
 };
 } // namespace psr

@@ -11,7 +11,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -90,7 +90,7 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   for (const auto *P : *PTS) {
     if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
       if (PGV->hasName() &&
-          PGV->getName().startswith(LLVMTypeHierarchy::VTablePrefix) &&
+          PGV->getName().startswith(DIBasedTypeHierarchy::VTablePrefix) &&
           PGV->hasInitializer()) {
         if (const auto *PCS =
                 llvm::dyn_cast<llvm::ConstantStruct>(PGV->getInitializer())) {
@@ -100,7 +100,7 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
           }
           const auto *Callee = VFs[VtableIndex];
           if (Callee == nullptr || !Callee->hasName() ||
-              Callee->getName() == LLVMTypeHierarchy::PureVirtualCallName ||
+              Callee->getName() == DIBasedTypeHierarchy::PureVirtualCallName ||
               !isConsistentCall(CallSite, Callee)) {
             continue;
           }

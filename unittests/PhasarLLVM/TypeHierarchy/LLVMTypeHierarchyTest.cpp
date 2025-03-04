@@ -164,7 +164,7 @@ TEST(LTHTest, BasicTHReconstruction_7) {
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(LTH.getAllTypes().size(), 3U);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
@@ -266,7 +266,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
       TH3.getType("struct.NonvirtualStruct")));
   ASSERT_TRUE(ReachableTypesNonvirtualstruct3.size() == 1U);
 
-  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
   ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Child")));
   ASSERT_TRUE(ReachableTypesBase4.size() == 2U);
   ASSERT_TRUE(ReachableTypesChild4.count(TH4.getType("struct.Child")));

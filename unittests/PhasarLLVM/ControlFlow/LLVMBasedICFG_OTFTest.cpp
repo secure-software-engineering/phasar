@@ -5,6 +5,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -19,8 +20,8 @@ using namespace psr;
 
 TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "call_graphs/virtual_call_7_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+                       "call_graphs/virtual_call_7_cpp_dbg.ll");
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
@@ -32,17 +33,18 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(VFuncA);
   ASSERT_TRUE(VFuncB);
 
-  const auto *CallToAFunc = getNthInstruction(F, 19);
+  const auto *CallToAFunc = getNthInstruction(F, 17);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
   const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
   ASSERT_EQ(AsCallees.size(), 2U);
   ASSERT_TRUE(llvm::is_contained(AsCallees, VFuncA));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), CallToAFunc));
 
-  const auto *CallToBFunc = getNthInstruction(F, 25);
+  const auto *CallToBFunc = getNthInstruction(F, 22);
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
   const auto &BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
   ASSERT_EQ(BsCallees.size(), 2U);
+
   ASSERT_TRUE(llvm::is_contained(BsCallees, VFuncB));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), CallToBFunc));
 }
@@ -50,7 +52,7 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 // TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
 //   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
 //                    IRDBOptions::WPA);
-//   LLVMTypeHierarchy TH(IRDB);
+//   DIBasedTypeHierarchy TH(IRDB);
 //   LLVMAliasInfo PT(IRDB);
 //   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 //   const llvm::Function *F = IRDB.getFunctionDefinition("main");
@@ -70,15 +72,15 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "call_graphs/function_pointer_2_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+                       "call_graphs/function_pointer_2_cpp_dbg.ll");
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Bar = IRDB.getFunctionDefinition("_Z3barv");
 
-  const auto *FPtrCall = getNthInstruction(Main, 7);
+  const auto *FPtrCall = getNthInstruction(Main, 9);
   const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
   auto printCallees // NOLINT
@@ -108,15 +110,16 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
 
 TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "call_graphs/function_pointer_3_cpp.ll");
-  LLVMTypeHierarchy TH(IRDB);
+                       "call_graphs/function_pointer_3_cpp_dbg.ll");
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
   const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("_Z3foov");
 
-  const auto *FPtrCall = getNthInstruction(Main, 8);
+  const auto *FPtrCall = getNthInstruction(Main, 10);
+
   const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
   ASSERT_EQ(Callees.size(), 1U);
