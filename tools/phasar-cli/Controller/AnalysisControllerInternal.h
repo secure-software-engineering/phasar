@@ -47,6 +47,7 @@ LLVM_LIBRARY_VISIBILITY void
 executeIntraMonoFullConstant(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeIntraMonoSolverTest(AnalysisController &Data);
+LLVM_LIBRARY_VISIBILITY void executeSparseIFDSTaint(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeInterMonoSolverTest(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeInterMonoTaint(AnalysisController &Data);

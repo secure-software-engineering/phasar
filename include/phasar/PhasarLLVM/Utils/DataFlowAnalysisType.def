@@ -14,6 +14,7 @@
 DATA_FLOW_ANALYSIS_TYPES(IFDSUninitializedVariables, "ifds-uninit", "Find usages of uninitialized variables.")
 DATA_FLOW_ANALYSIS_TYPES(IFDSConstAnalysis, "ifds-const", "Find variables that are actually mutated through the program")
 DATA_FLOW_ANALYSIS_TYPES(IFDSTaintAnalysis, "ifds-taint", "Simple, alias-aware taint-analysis. Use with --analysis-config")
+DATA_FLOW_ANALYSIS_TYPES(SparseIFDSTaintAnalysis, "sparse-ifds-taint", "Simple, alias-aware taint-analysis utilizing SparseIFDS. Use with --analysis-config")
 DATA_FLOW_ANALYSIS_TYPES(IDEExtendedTaintAnalysis, "ide-xtaint", "More advanced alias-aware taint analysis that provides limited field-sensitivity. Use with --analysis-config")
 DATA_FLOW_ANALYSIS_TYPES(IFDSTypeAnalysis, "ifds-type", "Simple type analysis")
 DATA_FLOW_ANALYSIS_TYPES(IDECSTDIOTypeStateAnalysis, "ide-stdio-ts", "Find invalid usages of the libc file-io")

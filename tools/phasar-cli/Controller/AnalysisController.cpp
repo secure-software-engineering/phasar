@@ -127,6 +127,9 @@ static void executeWholeProgram(AnalysisController &Data) {
     case DataFlowAnalysisType::IFDSTaintAnalysis:
       executeIFDSTaint(Data);
       continue;
+    case DataFlowAnalysisType::SparseIFDSTaintAnalysis:
+      executeSparseIFDSTaint(Data);
+      continue;
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
       executeIDEXTaint(Data);
       continue;
