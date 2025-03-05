@@ -7,15 +7,13 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_MACROS_H
-#define PHASAR_UTILS_MACROS_H
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
-#define PSR_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
+#include "AnalysisControllerInternalIDE.h"
 
-#if __cplusplus < 202002L
-#define PSR_CONCEPT static constexpr bool
-#else
-#define PSR_CONCEPT concept
-#endif
+using namespace psr;
 
-#endif // PHASAR_UTILS_MACROS_H
+void controller::executeSparseIFDSTaint(AnalysisController &Data) {
+  auto Config = makeTaintConfig(Data);
+  executeSparseIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints);
+}
