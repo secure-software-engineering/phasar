@@ -121,12 +121,14 @@ class PhasarRecipe(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "tests": [True, False],
+        "llvm_version": ["ANY"],
     }
     default_options = {
         "with_z3": True,
         "shared": False,
         "fPIC": True,
         "tests": False,
+        "llvm_version": "15.0.7"
     }
 
     def _parse_gitignore(self, folder, additional_exclusions = [], invert=False):
@@ -208,7 +210,7 @@ class PhasarRecipe(ConanFile):
             git = Git(self, self.recipe_folder)
             # XXX consider git.coordinates_to_conandata()
             if git.is_dirty():
-                raise ConanException("Repository is dirty. I can't calculate a correct version and this is a potential leak because all files visible to git will be exported. Please stash or commit.")
+                raise ConanException("Repository is dirty. I can't calculate a correct version and this is a potential leak because all files visible to git will be exported. Please stash or commit, to skip this for local testing use \"--version dev\".")
             self.output.info("No version information set, retrieving from git.")
             calver = git.run("show -s --date=format:'%Y.%m.%d' --format='%cd'")
             short_hash = git.run("show -s --format='%h'")
@@ -228,7 +230,7 @@ class PhasarRecipe(ConanFile):
     def requirements(self):
         self.requires("boost/[>1.72.0 <=1.86.0]")
         self.requires("sqlite3/[>=3 <4]")
-        self.requires("clang/14.0.6@secure-software-engineering", transitive_libs=True, transitive_headers=True)
+        self.requires(f"clang/{self.options.llvm_version}@secure-software-engineering", transitive_libs=True, transitive_headers=True)
         self.requires("nlohmann_json/3.11.3", transitive_headers=True)
         self.requires("json-schema-validator/2.3.0", transitive_libs=True, transitive_headers=True)
 
@@ -238,7 +240,7 @@ class PhasarRecipe(ConanFile):
         if self.options.with_z3:
             self.requires("z3/[>=4.7.1 <5]")
             llvm_options["with_z3"] = True
-        self.requires("llvm-core/14.0.6@secure-software-engineering", transitive_libs=True, transitive_headers=True, options=llvm_options)
+        self.requires(f"llvm-core/{self.options.llvm_version}@secure-software-engineering", transitive_libs=True, transitive_headers=True, options=llvm_options)
 
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.25.0 <4.0.0]") # find_program validator
