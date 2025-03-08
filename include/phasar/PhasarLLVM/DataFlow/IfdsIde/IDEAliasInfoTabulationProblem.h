@@ -76,11 +76,7 @@ public:
       container_type Gen;
 
       if (Store) {
-        llvm::outs() << "Store not nullptr. getType(): " << *(Store->getType())
-                     << "\n";
         if (Store->getPointerOperand()) {
-          llvm::outs() << "Store-> getPointerOperand() not nullptr: "
-                       << *(Store->getPointerOperand()) << "\n";
           assert(PT);
           auto AliasSet = PT.getAliasSet(Store->getPointerOperand(), Store);
           Gen.insert(AliasSet->begin(), AliasSet->end());

@@ -1,24 +1,19 @@
 #include <cstdio>
 
-int callTwo(const int *OnePtrArg, const int *FourPtrArg) {
-  return *OnePtrArg + *FourPtrArg;
-}
+void call() {}
 
-void call(const int *OnePtrArg, const int &TwoPtrArg, int ThreeArg) {
-  int Four = ThreeArg + 1;
-  int Five = callTwo(OnePtrArg, &Four);
-}
+void callTwo() {}
+
+void callThree() {}
 
 int main(int /*argc*/, char * /*argv*/[]) {
-  int One = 1;
-  int Two = 2;
-  int Three = 3;
   int Zero = 0;
-
-  int *OnePtr = &One;
-  int &TwoAddr = Two;
-
-  call(OnePtr, TwoAddr, Three);
+  call();
+  int One = 1;
+  callTwo();
+  int Two = 2;
+  callThree();
+  int Three = 3;
 
   return 0;
 }

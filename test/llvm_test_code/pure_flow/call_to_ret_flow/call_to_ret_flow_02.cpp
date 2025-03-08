@@ -1,16 +1,18 @@
 #include <cstdio>
 
-int call(int Zero, int One) { return Zero + One; }
 void callTwo() {}
-int callThree() { return 0; }
+void callOne() {}
+void call() {
+  callOne();
+  callTwo();
+}
 
 int main(int /*argc*/, char * /*argv*/[]) {
-  int Zero = 0;
   int One = 1;
+  call();
+  int Two = 2;
+  callOne();
+  int Three = 3;
 
-  int CallReturn = call(Zero, One);
-  callTwo();
-  Zero = callThree();
-
-  return Zero;
+  return 0;
 }
