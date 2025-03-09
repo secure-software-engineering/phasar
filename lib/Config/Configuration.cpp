@@ -28,19 +28,23 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 
-#include <algorithm>
 #include <cstdlib>
 #include <iterator>
 #include <system_error>
 
-#define XSTR(S) STR(S)
-#define STR(S) #S
-
 using namespace psr;
 
 namespace psr {
+/// Name of the file storing all glibc function names.
+static constexpr llvm::StringLiteral GLIBCFunctionListFileName =
+    "glibc_function_list_v1-04.05.17.conf";
+
+/// Name of the file storing all LLVM intrinsic function names.
+static constexpr llvm::StringLiteral LLVMIntrinsicFunctionListFileName =
+    "llvm_intrinsics_function_list_v1-04.05.17.conf";
+
 llvm::StringRef PhasarConfig::PhasarVersion() noexcept {
-  return XSTR(PHASAR_VERSION);
+  return PHASAR_VERSION_STRING;
 }
 
 llvm::StringRef PhasarConfig::GlobalConfigurationDirectory() noexcept {
@@ -55,9 +59,51 @@ llvm::StringRef PhasarConfig::DefaultSourceSinkFunctionsPath() noexcept {
   return PHASAR_SRC_DIR "/config/phasar-source-sink-function.json";
 }
 
+static bool loadConfigFileInto(PhasarConfig &PC, llvm::StringRef FileName,
+                               std::set<std::string> &Lines) {
+  auto ConfigFile = PC.readConfigFileAsTextOrErr(FileName);
+  if (!ConfigFile) {
+    if (ConfigFile.getError() != std::errc::no_such_file_or_directory) {
+      PHASAR_LOG_LEVEL(WARNING, "Could not open config file '"
+                                    << FileName << "': "
+                                    << ConfigFile.getError().message());
+    }
+
+    return false;
+  }
+
+  llvm::SmallVector<llvm::StringRef, 0> ConfigLines;
+  llvm::SplitString(*ConfigFile, ConfigLines, "\n");
+
+  llvm::transform(
+      ConfigLines, std::inserter(Lines, Lines.end()), [](llvm::StringRef Str) {
+        if (auto Comment = Str.find("//"); Comment != llvm::StringRef::npos) {
+          Str = Str.slice(0, Comment);
+        }
+        return Str.trim().str();
+      });
+  return true;
+}
+
+static void loadGlibcSpecialFunctionNames(PhasarConfig &PC,
+                                          std::set<std::string> &Into) {
+  if (!loadConfigFileInto(PC, GLIBCFunctionListFileName, Into)) {
+    // Add default glibc function names
+    Into.insert({"_exit"});
+  }
+}
+
+static void loadLLVMSpecialFunctionNames(PhasarConfig &PC,
+                                         std::set<std::string> &Into) {
+  if (!loadConfigFileInto(PC, LLVMIntrinsicFunctionListFileName, Into)) {
+    // Add default LLVM function names
+    Into.insert({"llvm.va_start"});
+  }
+}
+
 PhasarConfig::PhasarConfig() {
-  loadGlibcSpecialFunctionNames();
-  loadLLVMSpecialFunctionNames();
+  loadGlibcSpecialFunctionNames(*this, SpecialFuncNames);
+  loadLLVMSpecialFunctionNames(*this, SpecialFuncNames);
 
   // Insert allocation operators
   SpecialFuncNames.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
@@ -118,47 +164,6 @@ PhasarConfig::readConfigFileAsTextOrNull(const llvm::Twine &FileName) {
     return Buffer->getBuffer().str();
   }
   return std::nullopt;
-}
-
-bool PhasarConfig::loadConfigFileInto(llvm::StringRef FileName,
-                                      std::set<std::string> &Lines) {
-  auto ConfigFile = readConfigFileAsTextOrErr(FileName);
-  if (!ConfigFile) {
-    if (ConfigFile.getError() != std::errc::no_such_file_or_directory) {
-      PHASAR_LOG_LEVEL(WARNING, "Could not open config file '"
-                                    << FileName << "': "
-                                    << ConfigFile.getError().message());
-    }
-
-    return false;
-  }
-
-  llvm::SmallVector<llvm::StringRef, 0> ConfigLines;
-  llvm::SplitString(*ConfigFile, ConfigLines, "\n");
-
-  llvm::transform(
-      ConfigLines, std::inserter(Lines, Lines.end()), [](llvm::StringRef Str) {
-        if (auto Comment = Str.find("//"); Comment != llvm::StringRef::npos) {
-          Str = Str.slice(0, Comment);
-        }
-        return Str.trim().str();
-      });
-  return true;
-}
-
-void PhasarConfig::loadGlibcSpecialFunctionNames() {
-  if (!loadConfigFileInto(GLIBCFunctionListFileName, SpecialFuncNames)) {
-    // Add default glibc function names
-    SpecialFuncNames.insert({"_exit"});
-  }
-}
-
-void PhasarConfig::loadLLVMSpecialFunctionNames() {
-  if (!loadConfigFileInto(LLVMIntrinsicFunctionListFileName,
-                          SpecialFuncNames)) {
-    // Add default LLVM function names
-    SpecialFuncNames.insert({"llvm.va_start"});
-  }
 }
 
 PhasarConfig &PhasarConfig::getPhasarConfig() {

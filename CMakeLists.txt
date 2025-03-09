@@ -24,9 +24,12 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
 endif()
 
 if (NOT PHASAR_IN_TREE)
-  project (phasar)
-  set(CMAKE_PROJECT_NAME "phasar")
+  project (phasar
+    LANGUAGES C CXX
+    DESCRIPTION "A LLVM-based static analysis framework."
+  )
 endif ()
+set(PHASAR_VERSION 2403)
 
 # NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -71,7 +74,7 @@ set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 # https://reviews.llvm.org/D157613
 
 string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
@@ -312,7 +315,7 @@ option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM
 
 # LLVM
 if (NOT PHASAR_LLVM_VERSION)
-  set(PHASAR_LLVM_VERSION 14)
+  set(PHASAR_LLVM_VERSION 15)
 endif()
 include(add_llvm)
 add_llvm()
@@ -332,18 +335,26 @@ endif()
 # Z3 Solver
 if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
-endif()
-if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
-  # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
-  # as it lacks some functionality (such as z3::expr::simplify()) that we require
-  find_package(Z3 4.7.1 REQUIRED)
+else()
+  if(PHASAR_USE_Z3)
+    # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
+    # as it lacks some functionality (such as z3::expr::simplify()) that we require
 
-  if(NOT TARGET z3)
-    add_library(z3 IMPORTED SHARED)
-    set_property(TARGET z3 PROPERTY
-             IMPORTED_LOCATION ${Z3_LIBRARIES})
-    set_property(TARGET z3 PROPERTY
-             INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+    # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
+    set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "")
+    find_package(Z3 4.7.1 REQUIRED)
+    set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
+
+    if(Z3_FOUND)
+      if (NOT TARGET z3)
+        add_library(z3 IMPORTED SHARED)
+        set_property(TARGET z3 PROPERTY
+                IMPORTED_LOCATION ${Z3_LIBRARIES})
+        set_property(TARGET z3 PROPERTY
+                INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+      endif()
+    endif()
   endif()
 endif()
 
@@ -496,7 +507,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake
-  VERSION 2403
+  VERSION ${PHASAR_VERSION}
   COMPATIBILITY SameMajorVersion
 )
 

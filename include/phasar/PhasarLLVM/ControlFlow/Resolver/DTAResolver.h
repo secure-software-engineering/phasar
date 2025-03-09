@@ -19,6 +19,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 // To switch the TypeGraph
 // #include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
 
@@ -33,12 +34,13 @@ class BitCastInst;
 
 namespace psr {
 
-class DTAResolver : public CHAResolver {
+class [[deprecated("Does not work with opaque pointers anymore")]] DTAResolver
+    : public CHAResolver {
 public:
   using TypeGraph_t = CachedTypeGraph;
 
   DTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
   ~DTAResolver() override = default;
 
@@ -48,8 +50,8 @@ public:
 
   [[nodiscard]] std::string str() const override;
 
-  [[nodiscard]] bool
-  mutatesHelperAnalysisInformation() const noexcept override {
+  [[nodiscard]] bool mutatesHelperAnalysisInformation()
+      const noexcept override {
     return false;
   }
 
@@ -60,13 +62,14 @@ protected:
    * An heuristic that return true if the bitcast instruction is interesting to
    * take into the DTA relational graph
    */
-  static bool
-  heuristicAntiConstructorThisType(const llvm::BitCastInst *BitCast);
+  static bool heuristicAntiConstructorThisType(
+      const llvm::BitCastInst *BitCast);
 
   /**
    * Another heuristic that return true if the bitcast instruction is
    * interesting to take into the DTA relational graph (use the presence or not
    * of vtable)
+
    */
   bool heuristicAntiConstructorVtablePos(const llvm::BitCastInst *BitCast);
 };

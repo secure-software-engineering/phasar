@@ -52,7 +52,7 @@ TEST(SlotTrackerTest, HandleTwoReferences) {
 
   ASSERT_NE(F, nullptr);
   const auto *Inst = getNthInstruction(F, 6);
-  llvm::StringRef InstStr = "%0 = load i32, i32* @i, align 4 | ID: 6";
+  llvm::StringRef InstStr = "%0 = load i32, ptr @i, align 4 | ID: 6";
   {
     LLVMProjectIRDB IRDB2(IRDB.getModule());
 

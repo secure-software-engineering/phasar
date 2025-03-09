@@ -95,12 +95,17 @@ class ClangConan(ConanFile):
             )
 
     def source(self):
-        get(self, **self.conan_data["sources"][self.version])
-
-        clang_folder=f"clang-{self.version}.src"
-        rename(self, "cmake/Modules", "cmake/modules")
-        copy(self, pattern="*", src=clang_folder, dst=".")
-        rmdir(self, clang_folder)
+        if Version(self.version) >= 15:
+            sources = self.conan_data["sources"][self.version]
+            get(self, **sources["clang"], destination='clang', strip_root=True)
+            get(self, **sources["cmake"], destination='cmake', strip_root=True)
+        else:
+            get(self, **self.conan_data["sources"][self.version])
+            clang_folder=f"clang-{self.version}.src"
+            if Path("cmake/Modules").exists():
+                rename(self, "cmake/Modules", "cmake/modules")
+            copy(self, pattern="*", src=clang_folder, dst=".")
+            rmdir(self, clang_folder)
 
     @property
     def _get_llvm_path(self):
@@ -123,7 +128,10 @@ class ClangConan(ConanFile):
     def build(self):
         apply_conandata_patches(self)
         cmake = CMake(self)
-        cmake.configure(cli_args=['--graphviz=graph/clang.dot'])
+        if Version(self.version) >= 15:
+            cmake.configure(build_script_folder="clang", cli_args=['--graphviz=graph/clang.dot'])
+        else:
+            cmake.configure(cli_args=['--graphviz=graph/clang.dot'])
         cmake.build()
 
     def _clang_build_info(self):

@@ -17,6 +17,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 #define PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -131,7 +132,7 @@ Container makeContainer(Range &&Rng) {
     Container C;
     reserveIfPossible(C, Rng.size());
     for (auto &&Fact : Rng) {
-      C.insert(std::forward<decltype(Fact)>(Fact));
+      C.insert(PSR_FWD(Fact));
     }
     return C;
   }

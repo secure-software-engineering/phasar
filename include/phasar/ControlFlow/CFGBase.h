@@ -27,6 +27,8 @@ template <typename T> struct CFGTraits {
 
 template <typename Derived> class CFGBase : public CRTPBase<Derived> {
   friend Derived;
+
+protected:
   using CRTPBase<Derived>::self;
 
 public:

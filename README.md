@@ -203,8 +203,8 @@ For more information please consult our [PhASAR wiki pages](https://github.com/s
 ## How to use with Conan v2 ?
 
 To export the recipe and dependencies execute from repo root:
-- `conan export utils/conan/llvm-core/ --version 14.0.6 --user secure-software-engineering`
-- `conan export utils/conan/clang/ --version 14.0.6 --user secure-software-engineering`
+- `conan export utils/conan/llvm-core/ --version 15.0.7 --user secure-software-engineering`
+- `conan export utils/conan/clang/ --version 15.0.7 --user secure-software-engineering`
 - `conan export .`
 - View exported `conan list "phasar/*"`
 - [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)

@@ -57,7 +57,7 @@ protected:
   void doAnalysis(
       const llvm::Twine &IRFile, const map<int, set<string>> &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
-      bool DumpResults = false) {
+      bool DumpResults = true) {
     HelperAnalyses HA(IRFile, EntryPoints);
 
     auto TC =
@@ -140,7 +140,7 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
 TEST_F(IDETaintAnalysisTest, XTaint01) {
   map<int, set<string>> Gt;
 
-  Gt[15] = {"14"};
+  Gt[13] = {"12"};
 
   doAnalysis({PathToLLFiles + "xtaint01_cpp.ll"}, Gt, std::monostate{});
 }
@@ -148,14 +148,14 @@ TEST_F(IDETaintAnalysisTest, XTaint01) {
 TEST_F(IDETaintAnalysisTest, XTaint02) {
   map<int, set<string>> Gt;
 
-  Gt[20] = {"19"};
+  Gt[18] = {"17"};
 
   doAnalysis({PathToLLFiles + "xtaint02_cpp.ll"}, Gt, std::monostate{}, true);
 }
 TEST_F(IDETaintAnalysisTest, XTaint03) {
   map<int, set<string>> Gt;
 
-  Gt[23] = {"22"};
+  Gt[21] = {"20"};
 
   doAnalysis({PathToLLFiles + "xtaint03_cpp.ll"}, Gt, std::monostate{});
 }
@@ -163,7 +163,7 @@ TEST_F(IDETaintAnalysisTest, XTaint03) {
 TEST_F(IDETaintAnalysisTest, XTaint04) {
   map<int, set<string>> Gt;
 
-  Gt[17] = {"16"};
+  Gt[16] = {"15"};
 
   doAnalysis({PathToLLFiles + "xtaint04_cpp.ll"}, Gt, std::monostate{});
 }
@@ -200,7 +200,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
   map<int, set<string>> Gt;
 
-  Gt[27] = {"26"};
+  Gt[25] = {"24"};
 
   doAnalysis({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt, std::monostate{});
 }
@@ -208,7 +208,7 @@ TEST_F(IDETaintAnalysisTest, XTaint09_1) {
 TEST_F(IDETaintAnalysisTest, XTaint09) {
   map<int, set<string>> Gt;
 
-  Gt[34] = {"33"};
+  Gt[33] = {"32"};
 
   doAnalysis({PathToLLFiles + "xtaint09_cpp.ll"}, Gt, std::monostate{});
 }
@@ -241,7 +241,7 @@ TEST_F(IDETaintAnalysisTest, XTaint12) {
 
   // We sanitize an alias - since we don't have must-alias relations, we cannot
   // kill aliases at all
-  Gt[30] = {"29"};
+  Gt[28] = {"27"};
 
   doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, Gt, std::monostate{});
 }
@@ -249,7 +249,7 @@ TEST_F(IDETaintAnalysisTest, XTaint12) {
 TEST_F(IDETaintAnalysisTest, XTaint13) {
   map<int, set<string>> Gt;
 
-  Gt[32] = {"31"};
+  Gt[30] = {"29"};
 
   doAnalysis({PathToLLFiles + "xtaint13_cpp.ll"}, Gt, std::monostate{});
 }
@@ -257,7 +257,7 @@ TEST_F(IDETaintAnalysisTest, XTaint13) {
 TEST_F(IDETaintAnalysisTest, XTaint14) {
   map<int, set<string>> Gt;
 
-  Gt[35] = {"34"};
+  Gt[33] = {"32"};
 
   doAnalysis({PathToLLFiles + "xtaint14_cpp.ll"}, Gt, std::monostate{});
 }
@@ -275,7 +275,7 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint15) {
 TEST_F(IDETaintAnalysisTest, XTaint16) {
   map<int, set<string>> Gt;
 
-  Gt[26] = {"25"};
+  Gt[24] = {"23"};
 
   doAnalysis({PathToLLFiles + "xtaint16_cpp.ll"}, Gt, std::monostate{});
 }
@@ -283,7 +283,7 @@ TEST_F(IDETaintAnalysisTest, XTaint16) {
 TEST_F(IDETaintAnalysisTest, XTaint17) {
   map<int, set<string>> Gt;
 
-  Gt[29] = {"28"};
+  Gt[27] = {"26"};
 
   doAnalysis({PathToLLFiles + "xtaint17_cpp.ll"}, Gt, std::monostate{});
 }
@@ -309,8 +309,8 @@ PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
 TEST_F(IDETaintAnalysisTest, XTaint20) {
   map<int, set<string>> Gt;
 
-  Gt[25] = {"17"};
-  Gt[27] = {"26"};
+  Gt[22] = {"14"};
+  Gt[24] = {"23"};
 
   doAnalysis({PathToLLFiles + "xtaint20_cpp.ll"}, Gt, std::monostate{});
 }

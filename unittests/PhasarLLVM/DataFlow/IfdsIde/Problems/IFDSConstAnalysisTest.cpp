@@ -175,7 +175,7 @@ TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
   initialize({PathToLlFiles + "pointer/pointer_04_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({4}, Llvmconstsolver);
+  compareResults({3}, Llvmconstsolver);
 }
 
 /* ============== GLOBAL TESTS ============== */

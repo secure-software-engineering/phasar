@@ -10,7 +10,7 @@
 #include "AnalysisController.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "AnalysisControllerInternal.h"
@@ -126,6 +126,9 @@ static void executeWholeProgram(AnalysisController &Data) {
       continue;
     case DataFlowAnalysisType::IFDSTaintAnalysis:
       executeIFDSTaint(Data);
+      continue;
+    case DataFlowAnalysisType::SparseIFDSTaintAnalysis:
+      executeSparseIFDSTaint(Data);
       continue;
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
       executeIDEXTaint(Data);
