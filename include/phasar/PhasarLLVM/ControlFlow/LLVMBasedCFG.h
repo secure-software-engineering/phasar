@@ -38,7 +38,6 @@ template <> struct CFGTraits<LLVMBasedBackwardCFG> : CFGTraits<LLVMBasedCFG> {};
 
 namespace detail {
 template <typename Derived> class LLVMBasedCFGImpl : public CFGBase<Derived> {
-  friend CFGBase<Derived>;
   friend class LLVMBasedBackwardCFG;
 
 public:
