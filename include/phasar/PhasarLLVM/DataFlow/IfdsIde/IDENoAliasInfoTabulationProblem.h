@@ -83,6 +83,7 @@ public:
                                 GetElementPtr->getPointerOperand());
       // #endif
     }
+    return {};
   }
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
                                           f_t CalleeFun) override {
@@ -95,6 +96,7 @@ public:
                               },
                               {});
     }
+    return {};
   }
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                          n_t ExitInst,
@@ -108,6 +110,7 @@ public:
                                        Param->getType()->isPointerTy();
                               });
     }
+    return {};
   }
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,

@@ -1,10 +1,8 @@
 #include <cstdio>
 
-void call() {}
+void call() { int Three = 3; }
 
-void callTwo() {}
-
-void callThree() {}
+void callTwo() { int Four = 4; }
 
 int main(int /*argc*/, char * /*argv*/[]) {
   int Zero = 0;
@@ -12,8 +10,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
   int One = 1;
   callTwo();
   int Two = 2;
-  callThree();
-  int Three = 3;
 
   return 0;
 }

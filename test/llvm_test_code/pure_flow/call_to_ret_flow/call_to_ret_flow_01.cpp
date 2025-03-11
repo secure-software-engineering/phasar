@@ -8,5 +8,5 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   int CallReturn = call(Zero, One);
 
-  return Zero;
+  return 0;
 }

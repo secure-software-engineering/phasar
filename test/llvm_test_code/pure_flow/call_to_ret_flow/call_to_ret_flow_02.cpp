@@ -3,7 +3,9 @@
 void callTwo() {}
 void callOne() {}
 void call() {
+  int Three = 3;
   callOne();
+  int Four = 4;
   callTwo();
 }
 
@@ -12,7 +14,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
   call();
   int Two = 2;
   callOne();
-  int Three = 3;
 
   return 0;
 }
