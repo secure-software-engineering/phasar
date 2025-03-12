@@ -33,7 +33,7 @@ static std::string printSet(const std::set<std::string> &EdgeFact) {
 }
 
 /* ============== TEST FIXTURE ============== */
-class IDEInstInteractionAnalysisTest : public ::testing::Test {
+class IDEFeatureTaintAnalysisTest : public ::testing::Test {
 protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("inst_interaction/");
@@ -206,7 +206,7 @@ protected:
 
 }; // Test Fixture
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 9, "i", std::set<std::string>{"4"});
   GroundTruth.emplace("main", 9, "j",
@@ -215,7 +215,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
   doAnalysisAndCompareResults("basic_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 24, "retval", std::set<std::string>{"6"});
   GroundTruth.emplace("main", 24, "argc.addr", std::set<std::string>{"7"});
@@ -228,7 +228,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
   doAnalysisAndCompareResults("basic_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 20, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 20, "i",
@@ -238,7 +238,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
   doAnalysisAndCompareResults("basic_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+PHASAR_SKIP_TEST(TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_04) {
   // If we use libcxx this won't work since internal implementation is different
   LIBCPP_GTEST_SKIP;
 
@@ -255,14 +255,14 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
   doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth, false);
 })
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 11, "i", std::set<std::string>{"5", "7"});
   GroundTruth.emplace("main", 11, "retval", std::set<std::string>{"2"});
   doAnalysisAndCompareResults("basic_05_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_06) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 19, "retval", std::set<std::string>{"5"});
   GroundTruth.emplace("main", 19, "i", std::set<std::string>{"15", "6", "13"});
@@ -273,7 +273,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
   doAnalysisAndCompareResults("basic_06_cpp.ll", {"main"}, GroundTruth, true);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_07) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 15, "retval", std::set<std::string>{"5"});
   GroundTruth.emplace("main", 15, "argc.addr", std::set<std::string>{"6"});
@@ -284,14 +284,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
   doAnalysisAndCompareResults("basic_07_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_08) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_08) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 12, "retval", std::set<std::string>{"2"});
   GroundTruth.emplace("main", 12, "i", std::set<std::string>{"9"});
   doAnalysisAndCompareResults("basic_08_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_09) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_09) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 10, "i", std::set<std::string>{"4"});
   GroundTruth.emplace("main", 10, "j", std::set<std::string>{"4", "6", "7"});
@@ -299,14 +299,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_09) {
   doAnalysisAndCompareResults("basic_09_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_10) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "i", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 6, "retval", std::set<std::string>{"2"});
   doAnalysisAndCompareResults("basic_10_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_11) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 20, "FeatureSelector",
                       std::set<std::string>{"5", "7", "8"});
@@ -314,7 +314,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
   doAnalysisAndCompareResults("basic_11_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 14, "retval", std::set<std::string>{"8"});
   GroundTruth.emplace("main", 14, "i", std::set<std::string>{"9"});
@@ -326,7 +326,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 13, "retval", std::set<std::string>{"12"});
   GroundTruth.emplace("main", 13, "i", std::set<std::string>{"13"});
@@ -337,7 +337,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {
   doAnalysisAndCompareResults("call_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_03) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 10, "retval", std::set<std::string>{"20"});
   GroundTruth.emplace("main", 10, "i", std::set<std::string>{"21"});
@@ -348,7 +348,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_03) {
   doAnalysisAndCompareResults("call_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 20, "retval", std::set<std::string>{"33"});
   GroundTruth.emplace("main", 20, "i", std::set<std::string>{"34"});
@@ -365,7 +365,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
   doAnalysisAndCompareResults("call_04_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 10, "retval", std::set<std::string>{"8"});
   GroundTruth.emplace("main", 10, "i", std::set<std::string>{"3", "11", "9"});
@@ -373,7 +373,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
   doAnalysisAndCompareResults("call_05_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_06) {
   // NOTE: Here we are suffering from IntraProceduralAliasesOnly
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 24, "retval", std::set<std::string>{"11"});
@@ -392,14 +392,14 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
   doAnalysisAndCompareResults("call_06_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_07) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleCallTest_07) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "retval", std::set<std::string>{"7"});
   GroundTruth.emplace("main", 6, "VarIR", std::set<std::string>{"6", "3", "8"});
   doAnalysisAndCompareResults("call_07_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleGlobalTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 9, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 9, "i", std::set<std::string>{"7"});
@@ -407,7 +407,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
   doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleGlobalTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("_Z5initBv", 2, "a", std::set<std::string>{"0"});
   GroundTruth.emplace("_Z5initBv", 2, "b", std::set<std::string>{"2"});
@@ -418,7 +418,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
   doAnalysisAndCompareResults("global_02_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_03) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleGlobalTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 1, "GlobalFeature", std::set<std::string>{"0"});
   GroundTruth.emplace("main", 2, "GlobalFeature", std::set<std::string>{"0"});
@@ -426,7 +426,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_03) {
   doAnalysisAndCompareResults("global_03_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleGlobalTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 1, "GlobalFeature", std::set<std::string>{"0"});
   GroundTruth.emplace("main", 2, "GlobalFeature", std::set<std::string>{"0"});
@@ -438,7 +438,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
   doAnalysisAndCompareResults("global_04_cpp.ll", {"main", "_Z7doStuffi"},
                               GroundTruth, false);
 }
-TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_05) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleGlobalTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
 
   // NOTE: Facts at init() should be empty, except for its own ID;
@@ -453,7 +453,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_05) {
   doAnalysisAndCompareResults("global_05_cpp.ll", {"main"}, GroundTruth, true);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
+TEST_F(IDEFeatureTaintAnalysisTest, KillTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 12, "retval", std::set<std::string>{"4"});
   GroundTruth.emplace("main", 12, "i", std::set<std::string>{"5"});
@@ -463,7 +463,7 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
                               false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, KillTest_02) {
+TEST_F(IDEFeatureTaintAnalysisTest, KillTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 12, "retval", std::set<std::string>{"6"});
   GroundTruth.emplace("main", 12, "A", std::set<std::string>{"0"});
@@ -473,7 +473,7 @@ TEST_F(IDEInstInteractionAnalysisTest, KillTest_02) {
                               false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleReturnTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 6, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 6, "localVar", std::set<std::string>{"4"});
@@ -484,7 +484,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
   doAnalysisAndCompareResults("return_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleHeapTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 17, "retval", std::set<std::string>{"3"});
   GroundTruth.emplace("main", 17, "i", std::set<std::string>{"5", "6"});
@@ -493,7 +493,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   doAnalysisAndCompareResults("heap_01_cpp.ll", {"main"}, GroundTruth, false);
 }
 
-PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
+PHASAR_SKIP_TEST(TEST_F(IDEFeatureTaintAnalysisTest, HandleRVOTest_01) {
   GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
                   "add a better one";
 
@@ -506,7 +506,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
   doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
 })
 
-PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_02) {
+PHASAR_SKIP_TEST(TEST_F(IDEFeatureTaintAnalysisTest, HandleRVOTest_02) {
   GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
                   "add a better one";
 
@@ -519,7 +519,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_02) {
   doAnalysisAndCompareResults("rvo_02_cpp.ll", {"main"}, GroundTruth, true);
 })
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleRVOTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
 
   GroundTruth.emplace(
@@ -536,7 +536,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_03) {
   doAnalysisAndCompareResults("rvo_03_cpp.ll", {"main"}, GroundTruth, true);
 }
 
-TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_04) {
+TEST_F(IDEFeatureTaintAnalysisTest, HandleRVOTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 10, "retval", std::set<std::string>{"14"});
   GroundTruth.emplace(
