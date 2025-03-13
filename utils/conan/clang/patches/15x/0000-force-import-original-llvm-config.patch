@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e3bc4b468fb6..cf7a094ebb6e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -70,6 +70,7 @@ if(CLANG_BUILT_STANDALONE)
+     mark_as_advanced(LLVM_ENABLE_ASSERTIONS)
+   endif()
+ 
++  include(LLVMConfig.original)
+   find_package(LLVM REQUIRED HINTS "${LLVM_CMAKE_DIR}")
+   list(APPEND CMAKE_MODULE_PATH "${LLVM_DIR}")
+ 

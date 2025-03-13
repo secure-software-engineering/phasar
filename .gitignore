@@ -46,7 +46,7 @@ build/*
 .idea/*
 
 # cache
-.cache/*
+.cache/
 
 ##### ignored files
 

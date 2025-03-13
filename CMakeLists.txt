@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.14...3.28)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
@@ -39,6 +39,10 @@ else()
 endif()
 
 option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
+if(PHASAR_EXPERIMENTAL_CXX20)
+  message(DEPRECATION "The option PHASAR_EXPERIMENTAL_CXX20 is deprecated and will be removed in a future version of PhASAR. Use CMAKE_CXX_STANDARD=20 instead.")
+  set(CMAKE_CXX_STANDARD 20)
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -258,24 +262,13 @@ else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
 
-
-# Headers
-
-add_library(phasar_interface INTERFACE)
-target_include_directories(phasar_interface
-  INTERFACE
-    $<BUILD_INTERFACE:${PHASAR_SRC_DIR}/include/>     # The regular include folder
-    $<BUILD_INTERFACE:${PHASAR_BINARY_DIR}/include/>  # The location of phasar-config.h
-    $<INSTALL_INTERFACE:include/>                     # The installed include folder
-)
-
 ### Adding external libraries
 
 # Threads
 find_package(Threads)
 
 # Boost
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
 
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
@@ -291,10 +284,11 @@ if (NOT PHASAR_IN_TREE)
   if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
     include(FetchContent)
 
+    set(INSTALL_GTEST OFF)
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.13.0
+        GIT_TAG v1.16.0
     )
     FetchContent_MakeAvailable(googletest)
   endif()
@@ -368,9 +362,6 @@ if(NOT PHASAR_IN_TREE)
   add_definitions(${LLVM_DEFINITIONS_LIST})
 endif()
 
-# Installed config
-configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
-
 # Warnings
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 if (PHASAR_ENABLE_WARNINGS)
@@ -380,6 +371,18 @@ if (PHASAR_ENABLE_WARNINGS)
     string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter")
   endif()
 endif (PHASAR_ENABLE_WARNINGS)
+
+
+# Headers
+add_library(phasar_interface INTERFACE)
+file(GLOB_RECURSE PHASAR_PUBLIC_HEADERS include/*.h include/*.def)
+configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
+
+target_sources(phasar_interface INTERFACE
+  FILE_SET HEADERS
+  BASE_DIRS "${PHASAR_SRC_DIR}/include" "${PHASAR_BINARY_DIR}/include"
+  FILES ${PHASAR_PUBLIC_HEADERS} "${PHASAR_BINARY_DIR}/include/phasar/Config/phasar-config.h"
+)
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
@@ -425,25 +428,10 @@ set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Install dir of lib
 # Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
-# Install Phasar include directory
-install(DIRECTORY include/
-  DESTINATION include
-  FILES_MATCHING
-  PATTERN "*.def"
-  PATTERN "*.h"
-)
-
-# Install the config file
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/phasar/Config/
-  DESTINATION include/phasar/Config
-  FILES_MATCHING
-  PATTERN "*.def"
-  PATTERN "*.h"
-)
-
 if(NOT PHASAR_IN_TREE)
   install(TARGETS phasar_interface
     EXPORT PhasarExports
+    FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
   if (NOT PHASAR_USE_CONAN)
     # Install the export-set containing all the phasar targets
@@ -454,13 +442,14 @@ if(NOT PHASAR_IN_TREE)
     )
     install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
       FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
-      NAMESPACE phasar::
+      NAMESPACE phasar::deps::
       DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
     )
   endif()
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports
+    FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS phasar_interface)
 endif()
@@ -470,6 +459,7 @@ install(DIRECTORY utils/
   DESTINATION bin
   FILES_MATCHING
   PATTERN "CodeGen" EXCLUDE # CodeGen does not contain files to install
+  PATTERN "conan" EXCLUDE   # Don't install conan utils
   PATTERN "phasar-*"
   PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
               GROUP_EXECUTE GROUP_READ

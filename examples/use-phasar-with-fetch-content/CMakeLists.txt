@@ -12,7 +12,7 @@ include(FetchContent)
 FetchContent_Declare(
   phasar
   GIT_REPOSITORY https://github.com/secure-software-engineering/phasar.git
-  GIT_TAG development
+  GIT_TAG development # At best, use a tagged version, such as v2403
   EXCLUDE_FROM_ALL
   OVERRIDE_FIND_PACKAGE
 )
@@ -20,22 +20,18 @@ FetchContent_Declare(
 find_package(phasar REQUIRED)
 
 # Build a small test tool to show how phasar may be used
-add_executable(myphasartool_fc
+add_executable(myphasartool
   myphasartool.cpp
 )
 
-# Old way using phasar_config:
-#   phasar_config(myphasartool)
-
-# New way using target_link_libraries:
-target_link_libraries(myphasartool_fc phasar::llvm_ifdside)
+target_link_libraries(myphasartool phasar::llvm_ifdside)
 
 # If find_package did not specify components:
 #   target_link_libraries(myphasartool phasar::phasar)
 # alternatively using the default target:
 #   target_link_libraries(myphasartool phasar)
 
-install(TARGETS myphasartool_fc
+install(TARGETS myphasartool
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

@@ -17,7 +17,7 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
-# Old way using phasar_config:
+# Old way using phasar_config (deprecated):
 #   phasar_config(myphasartool)
 
 # New way using target_link_libraries:
