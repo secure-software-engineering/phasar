@@ -12,7 +12,7 @@ include(FetchContent)
 FetchContent_Declare(
   phasar
   GIT_REPOSITORY https://github.com/secure-software-engineering/phasar.git
-  GIT_TAG development # At best, use a tagged version, such as v2403
+  GIT_TAG development # At best, use a tagged version, such as v2503
   EXCLUDE_FROM_ALL
   OVERRIDE_FIND_PACKAGE
 )
