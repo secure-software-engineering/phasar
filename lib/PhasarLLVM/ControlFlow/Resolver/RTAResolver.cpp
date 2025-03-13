@@ -23,11 +23,13 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
 
 using namespace std;
@@ -90,13 +92,7 @@ std::string RTAResolver::str() const { return "RTA"; }
 
 static const llvm::DICompositeType *
 isCompositeStructType(const llvm::DIType *Ty) {
-  if (const auto *CompTy = llvm::
-#if LLVM_VERSION_MAJOR >= 15
-          dyn_cast_if_present
-#else
-          dyn_cast_or_null
-#endif
-      <llvm::DICompositeType>(Ty);
+  if (const auto *CompTy = llvm::dyn_cast_if_present<llvm::DICompositeType>(Ty);
       CompTy && (CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type ||
                  CompTy->getTag() == llvm::dwarf::DW_TAG_class_type)) {
 

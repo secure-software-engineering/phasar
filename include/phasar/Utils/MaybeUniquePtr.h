@@ -59,7 +59,8 @@ protected:
 /// \tparam RequireAlignment If true, the datastructure only works if
 /// alignof(T) > 1 holds. Enables incomplete T types
 template <typename T, bool RequireAlignment = false>
-class MaybeUniquePtr : detail::MaybeUniquePtrBase<T, RequireAlignment> {
+class [[clang::trivial_abi]] MaybeUniquePtr
+    : detail::MaybeUniquePtrBase<T, RequireAlignment> {
   using detail::MaybeUniquePtrBase<T, RequireAlignment>::Data;
 
 public:
@@ -79,8 +80,9 @@ public:
       : MaybeUniquePtr(Owner.release(), true) {}
 
   constexpr MaybeUniquePtr(MaybeUniquePtr &&Other) noexcept
-      : detail::MaybeUniquePtrBase<T, RequireAlignment>(
-            std::exchange(Other.Data, {})) {}
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(std::move(Other)) {
+    Other.Data = {};
+  }
 
   constexpr void swap(MaybeUniquePtr &Other) noexcept {
     std::swap(Data, Other.Data);

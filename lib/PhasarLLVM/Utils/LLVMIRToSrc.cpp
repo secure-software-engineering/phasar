@@ -165,90 +165,60 @@ static const llvm::GEPOperator *getStructGep(const llvm::Value *V) {
   return nullptr;
 }
 
-#define LOG(...)                                                               \
-  if (Log)                                                                     \
-  llvm::errs() << __VA_ARGS__
-
 static std::pair<const llvm::Value *, size_t>
-getOffsetAndBase(const llvm::Value *V, bool Log) {
+getOffsetAndBase(const llvm::Value *V) {
   const auto *Base = V->stripPointerCastsAndAliases();
   uint64_t Offset = 0;
   if (const auto *Gep = getStructGep(Base)) {
     // Look for gep ptr, 0, N; where N is a constant
-
-    LOG("> Gep " << *Gep << '\n');
 
     const auto *SecondIdx =
         llvm::cast<llvm::ConstantInt>(std::next(Gep->indices().begin())->get());
 
     Offset = SecondIdx->getZExtValue();
     Base = Gep->getPointerOperand();
-
-    LOG("> Gep is well-formed; idx: " << Offset << '\n');
   }
   return {Base, Offset};
 }
 
-static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset,
-                                          bool Log) {
+static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
   const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(BaseTy);
   auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
 
   if (Offset == 0 && DerivedTy) {
-    if (Log) {
-      llvm::errs() << "> Return StructTy ";
-      if (StructTy) {
-        llvm::errs() << *StructTy;
-      }
-
-      llvm::errs() << '\n';
-    }
     return StructTy;
   }
-
-  LOG("> Field-access at offset " << Offset << '\n');
 
   if (const auto *CompositeTy =
           llvm::dyn_cast<llvm::DICompositeType>(StructTy)) {
     if (Offset > CompositeTy->getElements().size()) {
-      LOG("> Out-of-bounds (" << Offset << " > "
-                              << CompositeTy->getElements().size() << '\n');
-
       return nullptr;
     }
     auto Elems = CompositeTy->getElements();
 
-    LOG("> Accessing array at [" << Offset << "] for " << *CompositeTy << '\n');
-
     if (auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elems[Offset])) {
-      LOG("> Return ElemTy\n");
       return ElemTy;
     }
   }
   return nullptr;
 }
 
-static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth,
-                                         bool Log) {
+static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth) {
   static constexpr size_t DepthLimit = 10;
 
   V = V->stripPointerCastsAndAliases();
 
-  LOG("[getVarTypeFromIRRec]: " << llvmIRToString(V) << " // " << Depth
-                                << '\n');
-
   if (auto *VarTy = getVarTypeFromIRImpl(V)) {
-    LOG("> Return VarTy " << *VarTy << '\n');
     return VarTy;
   }
 
-  auto InternalGetOffsetAndBase =
-      [Log](const llvm::Value *V) -> std::pair<const llvm::Value *, size_t> {
+  const auto InternalGetOffsetAndBase =
+      [](const llvm::Value *V) -> std::pair<const llvm::Value *, size_t> {
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-      return getOffsetAndBase(Load->getPointerOperand(), Log);
+      return getOffsetAndBase(Load->getPointerOperand());
     }
     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
-      return getOffsetAndBase(Gep->getPointerOperand(), Log);
+      return getOffsetAndBase(Gep->getPointerOperand());
     }
     return {};
   };
@@ -260,18 +230,17 @@ static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth,
 
   // TODO: Get rid of the recursion
   if (Depth >= DepthLimit) {
-    llvm::errs() << "Reach depth-limit\n";
     return nullptr;
   }
-  auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1, Log);
+  auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1);
   if (!BaseTy) {
     return nullptr;
   }
-  return getStructElementType(BaseTy, Offset, Log);
+  return getStructElementType(BaseTy, Offset);
 }
-#undef LOG
+
 llvm::DIType *psr::getVarTypeFromIR(const llvm::Value *V) {
-  return getVarTypeFromIRRec(V, 0, /*getMetaDataID(V) == "629303"*/ false);
+  return getVarTypeFromIRRec(V, 0);
 }
 
 std::string psr::getFunctionNameFromIR(const llvm::Value *V) {

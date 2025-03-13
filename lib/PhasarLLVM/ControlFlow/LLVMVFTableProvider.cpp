@@ -60,7 +60,6 @@ LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
     if (DIBasedTypeHierarchy::isVTable(Glob.getName())) {
       auto Demang = llvm::demangle(Glob.getName().str());
       auto ClearName = DIBasedTypeHierarchy::removeVTablePrefix(Demang);
-      // llvm::errs() << "> ClearName: " << ClearName << '\n';
       ClearNameTVMap.try_emplace(ClearName, &Glob);
     }
   }
