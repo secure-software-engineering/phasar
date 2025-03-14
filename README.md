@@ -11,7 +11,14 @@ Version 2503
 
 PhASAR is primarily developed and maintained by the Secure Software Engineering Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
 
-Lead developers of PhASAR are:  Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>), Martin Mory (@MMory)(<martin.mory@upb.de>), Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>) and others.
+PhASAR was initially developed by Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>).
+
+Currently, PhASAR is maintained by
+- Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>)
+- Sriteja Kummita (@sritejakv)
+- Lucas Briese (@jusito)
+- Martin Mory (@MMory)(<martin.mory@upb.de>)
+- *others*
 
 ## Required Version of the C++ Standard
 
