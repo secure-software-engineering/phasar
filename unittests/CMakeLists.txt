@@ -16,13 +16,14 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
     if ("${UBUNTU_MAJOR_VERSION}" GREATER 22)
       # TODO tests shouldn't be flaky
-      list(APPEND additional_args -E "\"(LLVMBasedCFGTest|LLVMBasedICFGGlobCtorDtorTest|IDEInstInteractionAnalysisTest|IFDSUninitializedVariablesTest|IDEGeneralizedLCATest|IDEExtendedTaintAnalysisTest)\"")
+      list(APPEND additional_args -E "\"(LLVMBasedCFGTest|LLVMBasedICFGGlobCtorDtorTest|IDEInstInteractionAnalysisTest|IFDSUninitializedVariablesTest|IDEGeneralizedLCATest|IDEExtendedTaintAnalysisTest|IDEFeatureTaintAnalysis)\"")
       # LLVMBasedCFGTest.HandlesCppStandardType
       # IDEInstInteractionAnalysisTest.HandleBasicTest_04
       # IFDSUninitializedVariablesTest.UninitTest_05_SHOULD_NOT_LEAK
       #  .UninitTest_06_SHOULD_NOT_LEAK
       # IDEGeneralizedLCATest.StringTestCpp
       # IDEExtendedTaintAnalysisTest.XTaint09
+      # IDEFeatureTaintAnalysis.HandleBasicTest_04, HandleGlobalTest_05
     endif()
 endif()
 

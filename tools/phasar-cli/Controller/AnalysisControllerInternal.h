@@ -42,6 +42,7 @@ LLVM_LIBRARY_VISIBILITY void executeIDECSTDIOTS(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIDELinearConst(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIDESolverTest(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIDEIIA(AnalysisController &Data);
+LLVM_LIBRARY_VISIBILITY void executeIDEFIIA(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void
 executeIntraMonoFullConstant(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void
