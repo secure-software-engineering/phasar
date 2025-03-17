@@ -36,7 +36,7 @@ IDEIIAFlowFact::IDEIIAFlowFact(
 
 IDEIIAFlowFact IDEIIAFlowFact::create(const llvm::Value *BaseVal) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(BaseVal)) {
-    return {BaseVal};
+    return {Alloca};
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(BaseVal)) {
     // Construct field descriptor

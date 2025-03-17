@@ -337,7 +337,10 @@ public:
             Load, [PointerOp = Load->getPointerOperand(),
                    PTS = PT.getReachableAllocationSites(
                        Load->getPointerOperand(), OnlyConsiderLocalAliases)](
-                      d_t Src) { return Src == PointerOp || PTS->count(Src); });
+                      d_t Src) {
+              return Src == PointerOp || isZeroValueImpl(Src) ||
+                     PTS->count(Src);
+            });
       }
 
       // (ii) Handle semantic propagation (pointers) for store instructions.
@@ -529,21 +532,91 @@ public:
     if (CallSite == nullptr) {
       return this->killAllFlows();
     }
-    auto MapFactsToCallerFF =
-        mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
-                              {}, [](const llvm::Value *RetVal, d_t Src) {
-                                if (Src == RetVal) {
-                                  return true;
-                                }
-                                if (isZeroValueImpl(Src)) {
-                                  if (llvm::isa<llvm::ConstantData>(RetVal)) {
-                                    return true;
-                                  }
-                                }
-                                return false;
-                              });
+    // auto MapFactsToCallerFF =
+    //     mapFactsToCaller<d_t>(llvm::cast<llvm::CallBase>(CallSite), ExitInst,
+    //                           [](d_t Param, d_t Src){
+    //                             return Param==Src
+    //                             &&!llvm::isa<llvm::ConstantData>(Src);
+    //                           }, [](const llvm::Value *RetVal, d_t Src) {
+    //                             if (Src == RetVal) {
+    //                               return true;
+    //                             }
+    //                             // if (isZeroValueImpl(Src)) {
+    //                             //   if
+    //                             (llvm::isa<llvm::ConstantData>(RetVal))
+    //                             //   {
+    //                             //     return true;
+    //                             //   }
+    //                             // }
+    //                             return false;
+    //                           });
 
-    return MapFactsToCallerFF;
+    // return MapFactsToCallerFF;
+
+    return this->lambdaFlow([=](d_t Source) {
+      container_type Res;
+      if (LLVMZeroValue::isLLVMZeroValue(Source)) {
+        Res.insert(Source);
+      } else if (llvm::isa<llvm::Constant>(Source)) {
+        // Pass global variables as is, if desired
+        // Globals could also be actual arguments, then the formal argument
+        // needs to be generated below. Need llvm::Constant here to cover also
+        // ConstantExpr and ConstantAggregate
+        Res.insert(Source);
+      }
+
+      const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+      const auto *DestFun = ExitInst->getFunction();
+      assert(CS->arg_size() >= DestFun->arg_size());
+      assert(CS->arg_size() == DestFun->arg_size() || DestFun->isVarArg());
+
+      llvm::CallBase::const_op_iterator ArgIt = CS->arg_begin();
+      llvm::CallBase::const_op_iterator ArgEnd = CS->arg_end();
+      llvm::Function::const_arg_iterator ParamIt = DestFun->arg_begin();
+      llvm::Function::const_arg_iterator ParamEnd = DestFun->arg_end();
+
+      for (; ParamIt != ParamEnd; ++ParamIt, ++ArgIt) {
+        if (&*ParamIt == Source &&
+            !llvm::isa<llvm::ConstantData>(ArgIt->get())) {
+          Res.insert({ArgIt->get()});
+        }
+      }
+
+      if (ArgIt != ArgEnd) {
+        // Over-approximate by trying to add the
+        //   alloca [1 x %struct.__va_list_tag], align 16
+        // to the results
+        // find the allocated %struct.__va_list_tag and generate it
+
+        for (const auto &I : llvm::instructions(DestFun)) {
+          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            const auto *AllocTy = Alloc->getAllocatedType();
+            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
+                AllocTy->getArrayElementType()->isStructTy() &&
+                AllocTy->getArrayElementType()->getStructName() ==
+                    "struct.__va_list_tag") {
+              if (Alloc == Source) {
+                for (; ArgIt != ArgEnd; ++ArgIt) {
+                  if (!llvm::isa<llvm::ConstantData>(ArgIt->get())) {
+                    Res.insert({ArgIt->get()});
+                  }
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (const auto *RetInst = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
+          RetInst && RetInst->getReturnValue()) {
+        if (RetInst->getReturnValue() == Source) {
+          Res.insert({CS});
+        }
+      }
+
+      return Res;
+    });
   }
 
   inline FlowFunctionPtrType
