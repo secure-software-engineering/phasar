@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMSOLVERRESULTS_H
 
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 

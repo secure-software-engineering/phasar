@@ -17,6 +17,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -174,6 +175,12 @@ struct variant_idx<std::variant<Ts...>, T>
           size_t,
           std::variant<type_identity<Ts>...>(type_identity<T>{}).index()> {};
 
+template <typename Container> struct ElementType {
+  using IteratorTy =
+      std::decay_t<decltype(llvm::adl_begin(std::declval<Container>()))>;
+  using type = typename std::iterator_traits<IteratorTy>::value_type;
+};
+
 template <typename ProblemTy, typename = bool>
 struct has_isInteresting : std::false_type {}; // NOLINT
 template <typename ProblemTy>
@@ -275,6 +282,8 @@ template <typename T> using type_identity_t = typename type_identity<T>::type;
 template <typename Var, typename T>
 static constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
+template <typename Container>
+using ElementType = typename detail::ElementType<Container>::type;
 template <typename T, typename Enable = nlohmann::json>
 struct has_getAsJson : std::false_type {}; // NOLINT
 template <typename T>

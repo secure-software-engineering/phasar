@@ -29,7 +29,7 @@ if (NOT PHASAR_IN_TREE)
     DESCRIPTION "A LLVM-based static analysis framework."
   )
 endif ()
-set(PHASAR_VERSION 2403)
+set(PHASAR_VERSION 2503)
 
 # NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)

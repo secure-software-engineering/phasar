@@ -5,24 +5,31 @@
 [![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
-Version 2403
+Version 2503
 
 ## Secure Software Engineering Group
 
 PhASAR is primarily developed and maintained by the Secure Software Engineering Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
 
-Lead developers of PhASAR are:  Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>), Martin Mory (@MMory)(<martin.mory@upb.de>), Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>) and others.
+PhASAR was initially developed by Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>).
+
+Currently, PhASAR is maintained by
+- Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>)
+- Sriteja Kummita (@sritejakv)
+- Lucas Briese (@jusito)
+- Martin Mory (@MMory)(<martin.mory@upb.de>)
+- *others*
 
 ## Required Version of the C++ Standard
 
-PhASAR requires C++-17.
+PhASAR requires at least C++-17.
 
-However, building in C++20 mode is supported as an experimental feature. You may enable this setting the cmake variable `CMAKE_CXX_STANDARD` to `20`.
+However, building in C++20 mode is supported. You may enable this setting the cmake variable `CMAKE_CXX_STANDARD` to `20`.
 Although phasar currently does not make use of C++-20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
 
 ## Currently Supported Version of LLVM
 
-PhASAR is currently set up to support LLVM-14.0.*
+PhASAR is currently set up to support LLVM-15.0.*
 
 ## What is PhASAR?
 
