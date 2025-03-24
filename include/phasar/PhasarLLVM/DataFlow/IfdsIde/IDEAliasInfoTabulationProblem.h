@@ -110,7 +110,7 @@ public:
                                 GetElementPtr->getPointerOperand());
     }
 
-    return this->identityFlow();
+    return this->killAllFlows();
   }
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
@@ -124,7 +124,9 @@ public:
                               },
                               {});
     }
-    return {};
+
+    // TODO: ask Fabian if this is correct. {} caused a seq fault
+    return this->killAllFlows();
   }
 
   static bool canSkipAtContext(const llvm::Value *Val,
@@ -325,7 +327,8 @@ public:
           CS, [](d_t Arg) { return !Arg->getType()->isPointerTy(); }, false);
     }
 
-    return {};
+    // TODO: ask Fabian if this is correct. {} caused a seq fault
+    return this->identityFlow();
   }
 
 private:

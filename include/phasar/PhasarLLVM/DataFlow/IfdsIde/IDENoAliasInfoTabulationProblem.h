@@ -7,6 +7,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Support/Casting.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -52,38 +53,28 @@ public:
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /*Succ*/) override {
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      // TODO: fix code below
-      // #if false
       return this->generateFlowIf(Load, [Load](d_t Source) {
         return Source == Load->getPointerOperand();
       });
-      // #endif
     }
     if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
       return strongUpdateStore(Store);
     }
     if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
-      // TODO: fix code below
-      // #if false
       return this->generateFlow(UnaryOp, UnaryOp->getOperand(0));
-      // #endif
     }
     if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
-      // TODO: fix code below. How do we get the Operands of BinaryOperators?
-
       return this->generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
         return Source == BinaryOp->getOperand(0) ||
                Source == BinaryOp->getOperand(1);
       });
     }
     if (const auto *GetElementPtr = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
-      // TODO: fix code below
-      // #if false
       return this->generateFlow(GetElementPtr,
                                 GetElementPtr->getPointerOperand());
-      // #endif
     }
-    return {};
+    // TODO: ask Fabian if this is correct. {} caused a seq fault
+    return this->killAllFlows();
   }
   FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
                                           f_t CalleeFun) override {
@@ -96,21 +87,30 @@ public:
                               },
                               {});
     }
-    return {};
+    // TODO: ask Fabian if this is correct. {} caused a seq fault
+    return this->killAllFlows();
   }
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
                                          n_t ExitInst,
                                          n_t /*RetSite*/) override {
     // TODO: fix code below
+    // TODO: ask fabian if we can just pass llvm::cast<llvm::CallBase>(CallSite)
+    // to mapFactsToCaller here and skip the if llvm::dyn_cast_or_null
     if (const auto *ConfirmedCallSite =
             llvm::dyn_cast_or_null<llvm::CallBase>(CallSite)) {
-      return mapFactsToCaller(llvm::cast<llvm::CallBase>(ConfirmedCallSite),
-                              ExitInst, [](d_t Param, d_t Source) {
-                                return Param == Source &&
-                                       Param->getType()->isPointerTy();
-                              });
+      return mapFactsToCaller(
+          ConfirmedCallSite, ExitInst, [](d_t Param, d_t Source) {
+            // TODO: Ask Fabian if Param == Source covers const? If not, why do
+            // the tests pass?
+            // The code below would then be the right implementation, right?
+            // Param == Source && (Param->getType()->isPointerTy() ||
+            // llvm::isa<llvm::Constant>(Param))
+            return Param == Source && Param->getType()->isPointerTy();
+          });
     }
-    return {};
+
+    // TODO: ask Fabian if this is correct. {} caused a seq fault
+    return this->killAllFlows();
   }
   FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
@@ -122,10 +122,15 @@ public:
     // TODO: fix code belows
     // TODO: argument 2: lambda funktion, die bei pointern false zurück gibt
     // TODO: argmuent 3: false
-    return mapFactsAlongsideCallSite(llvm::cast<llvm::CallBase>(CallSite));
+    if (const llvm::CallBase *CallBase =
+            llvm::dyn_cast_or_null<llvm::CallBase>(CallSite)) {
+      return mapFactsAlongsideCallSite(
+          CallBase, [](d_t Arg) { return !Arg->getType()->isPointerTy(); },
+          false);
+    }
+    // TODO: ask Fabian if this is correct. {} caused a seq fault
+    return this->identityFlow();
   }
-
-private:
 };
 
 } // namespace psr
