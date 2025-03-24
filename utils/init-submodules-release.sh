@@ -16,4 +16,5 @@ safe_cd json/
 git checkout 2.3.0
 safe_cd -
 
+else git submodule update --init;
 fi
