@@ -73,7 +73,8 @@ struct HSResult {
  *
  * @brief Efficient data structure for holding graphs in databases.
  */
-class Hexastore {
+class [[deprecated("This ancient API is not maintained for long and should not "
+                   "be used anymore!")]] Hexastore {
 private:
   sqlite3 *HSInternalDB{};
   static int callback(void * /*NotUsed*/, int Argc, char **Argv,
