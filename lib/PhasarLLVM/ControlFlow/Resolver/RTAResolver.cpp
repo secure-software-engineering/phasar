@@ -75,7 +75,7 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     if (ReachableTypes.find(PossibleType) != EndIt) {
       const auto *Target =
           getNonPureVirtualVFTEntry(PossibleType, VtableIndex, CallSite);
-      if (Target) {
+      if (Target && psr::isConsistentCall(CallSite, Target)) {
         PossibleCallTargets.insert(Target);
       }
     }
