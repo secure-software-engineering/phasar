@@ -53,7 +53,7 @@ private:
                                const llvm::Value *, const llvm::DataLayout &);
   [[nodiscard]] constexpr FunctionAliasView
   createFAView(llvm::AAResults *AAR) noexcept {
-    return {AAR, &aliasImpl};
+    return PSR_BIND_ALIASVIEW(AAR, aliasImpl);
   }
 
   [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;

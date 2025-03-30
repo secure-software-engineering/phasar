@@ -72,18 +72,17 @@ protected:
 class SVFVFSAnalysis : public SVFAliasAnalysisBase {
 public:
   SVFVFSAnalysis(SVF::SVFModule *Mod)
-      : SVFAliasAnalysisBase(Mod, AliasAnalysisType::SVFVFS), VFS(PAG) {
-    VFS.initialize();
-    VFS.analyze();
-    VFS.finalize();
-  }
+      : SVFAliasAnalysisBase(Mod, AliasAnalysisType::SVFVFS),
+        VFS(SVF::VersionedFlowSensitive::createVFSWPA(PAG)) {}
+
+  ~SVFVFSAnalysis() override { SVF::VersionedFlowSensitive::releaseVFSWPA(); }
 
 private:
   FunctionAliasView doGetAAResults(const llvm::Function * /*F*/) override {
-    return {static_cast<SVF::PointerAnalysis *>(&VFS), &aliasImpl};
+    return PSR_BIND_ALIASVIEW(VFS, aliasImpl);
   }
 
-  SVF::VersionedFlowSensitive VFS;
+  SVF::VersionedFlowSensitive *VFS;
 };
 
 class SVFDDAAnalysis : public SVFAliasAnalysisBase {
@@ -99,7 +98,7 @@ public:
 
 private:
   FunctionAliasView doGetAAResults(const llvm::Function * /*F*/) override {
-    return {static_cast<SVF::PointerAnalysis *>(&*DDA), &aliasImpl};
+    return PSR_BIND_ALIASVIEW(&*DDA, aliasImpl);
   }
 
   SVF::DDAClient Client;

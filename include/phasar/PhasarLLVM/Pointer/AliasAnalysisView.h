@@ -14,6 +14,7 @@
 #include "phasar/Pointer/AliasResult.h"
 
 #include <memory>
+#include <type_traits>
 
 namespace llvm {
 class Value;
@@ -36,16 +37,37 @@ public:
     return Alias(Context, V, Rep, DL);
   }
 
-  template <typename T>
-  constexpr FunctionAliasView(T *Context, AliasCallbackTy<T> Alias) noexcept
-      : Context(Context), Alias(AliasCallbackTy<void>(Alias)) {
-    assert(Alias != nullptr);
-  }
+  template <
+      typename T, typename AliasFn,
+      typename = std::enable_if_t<std::is_empty_v<AliasFn> &&
+                                  std::is_default_constructible_v<AliasFn>>>
+  constexpr FunctionAliasView(T *Context, AliasFn /*Alias*/) noexcept
+      : Context(Context), Alias(&callAlias<T, AliasFn>) {}
 
 private:
+  template <typename T, typename AliasFn>
+  static AliasResult callAlias(void *Context, const llvm::Value *V1,
+                               const llvm::Value *V2,
+                               const llvm::DataLayout &DL) {
+    return AliasFn{}(static_cast<T *>(Context), V1, V2, DL);
+  }
+
   void *Context{};
   AliasCallbackTy<void> Alias{};
 };
+
+#define PSR_BIND_ALIASVIEW(Ctx, ...)                                           \
+  ::psr::FunctionAliasView {                                                   \
+    (Ctx), [] {                                                                \
+      struct DefaultConstructibleCallable {                                    \
+        auto operator()(decltype(Ctx) Context, const llvm::Value *V1,          \
+                        const llvm::Value *V2, const llvm::DataLayout &DL) {   \
+          return __VA_ARGS__(Context, V1, V2, DL);                             \
+        }                                                                      \
+      };                                                                       \
+      return DefaultConstructibleCallable{};                                   \
+    }()                                                                        \
+  }
 
 class AliasAnalysisView {
 public:
