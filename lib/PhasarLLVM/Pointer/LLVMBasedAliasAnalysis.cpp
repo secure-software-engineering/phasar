@@ -116,6 +116,27 @@ static AliasResult translateAAResult(llvm::AliasResult Res) noexcept {
   }
 }
 
+static llvm::Type *getPointeeTypeOrNull(const llvm::Value *Ptr) {
+  assert(Ptr->getType()->isPointerTy());
+
+  if (!Ptr->getType()->isOpaquePointerTy()) {
+    return Ptr->getType()->getNonOpaquePointerElementType();
+  }
+
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Ptr)) {
+    if (auto *Ty = Arg->getParamByValType()) {
+      return Ty;
+    }
+    if (auto *Ty = Arg->getParamStructRetType()) {
+      return Ty;
+    }
+  }
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Ptr)) {
+    return Alloca->getAllocatedType();
+  }
+  return nullptr;
+}
+
 AliasResult LLVMBasedAliasAnalysis::aliasImpl(llvm::AAResults *AA,
                                               const llvm::Value *V,
                                               const llvm::Value *Rep,
@@ -124,19 +145,16 @@ AliasResult LLVMBasedAliasAnalysis::aliasImpl(llvm::AAResults *AA,
   assert(V->getType()->isPointerTy());
   assert(Rep->getType()->isPointerTy());
 
-  auto *ElTy = !V->getType()->isOpaquePointerTy()
-                   ? V->getType()->getNonOpaquePointerElementType()
-                   : nullptr;
-  auto *RepElTy = !Rep->getType()->isOpaquePointerTy()
-                      ? Rep->getType()->getNonOpaquePointerElementType()
-                      : nullptr;
+  auto *ElTy = getPointeeTypeOrNull(V);
+  auto *RepElTy = getPointeeTypeOrNull(Rep);
 
-  auto VSize = ElTy && ElTy->isSized() ? DL.getTypeStoreSize(ElTy)
-                                       : llvm::MemoryLocation::UnknownSize;
+  auto VSize = ElTy && ElTy->isSized()
+                   ? llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy))
+                   : llvm::LocationSize::precise(1);
 
   auto RepSize = RepElTy && RepElTy->isSized()
-                     ? DL.getTypeStoreSize(RepElTy)
-                     : llvm::MemoryLocation::UnknownSize;
+                     ? llvm::LocationSize::precise(DL.getTypeStoreSize(RepElTy))
+                     : llvm::LocationSize::precise(1);
 
   return translateAAResult(AA->alias(V, VSize, Rep, RepSize));
 }
