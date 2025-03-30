@@ -55,11 +55,16 @@ function(add_json_schema_validator)
       INTERFACE_INCLUDE_DIRECTORIES $<INSTALL_INTERFACE:${PHASAR_DEPS_INSTALL_DESTINATION}/include>
     )
 
+    # Silence warning that we do not install the PUBLIC_HEADER target property.
+    # We can't, since it contains a relative path located from deep inside the schema validator tree
+    set_target_properties(nlohmann_json_schema_validator PROPERTIES PUBLIC_HEADER "")
+
     install(TARGETS nlohmann_json_schema_validator
       EXPORT ${PHASAR_DEPS_EXPORT_SET}
       LIBRARY DESTINATION ${PHASAR_DEPS_INSTALL_DESTINATION}/lib
       ARCHIVE DESTINATION ${PHASAR_DEPS_INSTALL_DESTINATION}/lib
       RUNTIME DESTINATION ${PHASAR_DEPS_INSTALL_DESTINATION}/bin
+      # PUBLIC_HEADER DESTINATION ${PHASAR_DEPS_INSTALL_DESTINATION}/include/nlohmann
     )
     install(FILES external/json-schema-validator/src/nlohmann/json-schema.hpp
       DESTINATION ${PHASAR_DEPS_INSTALL_DESTINATION}/include/nlohmann

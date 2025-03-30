@@ -154,6 +154,9 @@ static void executeWholeProgram(AnalysisController &Data) {
     case DataFlowAnalysisType::IDEInstInteractionAnalysis:
       executeIDEIIA(Data);
       continue;
+    case DataFlowAnalysisType::IDEFeatureTaintAnalysis:
+      executeIDEFIIA(Data);
+      continue;
     case DataFlowAnalysisType::IntraMonoFullConstantPropagation:
       executeIntraMonoFullConstant(Data);
       continue;
