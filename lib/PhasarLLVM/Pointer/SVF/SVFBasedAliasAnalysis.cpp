@@ -12,8 +12,6 @@
 #include "SVFIR/SVFIR.h"
 #include "SVFIR/SVFModule.h"
 #include "SVFIR/SVFType.h"
-#include "Util/DPItem.h"
-#include "Util/Options.h"
 #include "WPA/Andersen.h"
 #include "WPA/VersionedFlowSensitive.h"
 
@@ -33,6 +31,20 @@ translateSVFAliasResult(SVF::AliasResult AR) noexcept {
   case SVF::PartialAlias:
     return AliasResult::PartialAlias;
   }
+}
+
+static psr::AliasResult aliasImpl(SVF::PointerAnalysis *AA,
+                                  const llvm::Value *V, const llvm::Value *Rep,
+                                  const llvm::DataLayout & /*DL*/) {
+  auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
+  auto *Nod1 = ModSet->getSVFValue(V);
+  auto *Nod2 = ModSet->getSVFValue(Rep);
+
+  if (!Nod1 || !Nod2) {
+    return AliasResult::MayAlias;
+  }
+
+  return translateSVFAliasResult(AA->alias(Nod1, Nod2));
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
@@ -67,23 +79,8 @@ public:
   }
 
 private:
-  static psr::AliasResult aliasImpl(void *AACtx, const llvm::Value *V,
-                                    const llvm::Value *Rep,
-                                    const llvm::DataLayout & /*DL*/) {
-    auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    auto *Nod1 = ModSet->getSVFValue(V);
-    auto *Nod2 = ModSet->getSVFValue(Rep);
-
-    if (!Nod1 || !Nod2) {
-      return AliasResult::MayAlias;
-    }
-
-    auto *AA = static_cast<SVFVFSAnalysis *>(AACtx);
-    return translateSVFAliasResult(AA->VFS.alias(Nod1, Nod2));
-  }
-
   FunctionAliasView doGetAAResults(const llvm::Function * /*F*/) override {
-    return {this, &aliasImpl};
+    return {static_cast<SVF::PointerAnalysis *>(&VFS), &aliasImpl};
   }
 
   SVF::VersionedFlowSensitive VFS;
@@ -101,23 +98,8 @@ public:
   }
 
 private:
-  static psr::AliasResult aliasImpl(void *AACtx, const llvm::Value *V,
-                                    const llvm::Value *Rep,
-                                    const llvm::DataLayout & /*DL*/) {
-    auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    auto *Nod1 = ModSet->getSVFValue(V);
-    auto *Nod2 = ModSet->getSVFValue(Rep);
-
-    if (!Nod1 || !Nod2) {
-      return AliasResult::MayAlias;
-    }
-
-    auto *AA = static_cast<SVFDDAAnalysis *>(AACtx);
-    return translateSVFAliasResult(AA->DDA->alias(Nod1, Nod2));
-  }
-
   FunctionAliasView doGetAAResults(const llvm::Function * /*F*/) override {
-    return {this, &aliasImpl};
+    return {static_cast<SVF::PointerAnalysis *>(&*DDA), &aliasImpl};
   }
 
   SVF::DDAClient Client;

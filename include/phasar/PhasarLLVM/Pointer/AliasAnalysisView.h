@@ -26,22 +26,25 @@ class LLVMProjectIRDB;
 
 class FunctionAliasView {
 public:
-  using AliasCallbackTy = AliasResult (*)(void *, const llvm::Value *,
+  template <typename T>
+  using AliasCallbackTy = AliasResult (*)(T *, const llvm::Value *,
                                           const llvm::Value *,
                                           const llvm::DataLayout &);
 
-  [[nodiscard]] inline AliasResult alias(const llvm::Value *V,
-                                         const llvm::Value *Rep,
-                                         const llvm::DataLayout &DL) {
+  [[nodiscard]] AliasResult alias(const llvm::Value *V, const llvm::Value *Rep,
+                                  const llvm::DataLayout &DL) {
     return Alias(Context, V, Rep, DL);
   }
 
-  constexpr FunctionAliasView(void *Context, AliasCallbackTy Alias) noexcept
-      : Context(Context), Alias(Alias) {}
+  template <typename T>
+  constexpr FunctionAliasView(T *Context, AliasCallbackTy<T> Alias) noexcept
+      : Context(Context), Alias(AliasCallbackTy<void>(Alias)) {
+    assert(Alias != nullptr);
+  }
 
 private:
   void *Context{};
-  AliasCallbackTy Alias{};
+  AliasCallbackTy<void> Alias{};
 };
 
 class AliasAnalysisView {

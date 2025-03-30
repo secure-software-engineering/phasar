@@ -116,14 +116,14 @@ static AliasResult translateAAResult(llvm::AliasResult Res) noexcept {
   }
 }
 
-AliasResult LLVMBasedAliasAnalysis::aliasImpl(void *AACtx, const llvm::Value *V,
+AliasResult LLVMBasedAliasAnalysis::aliasImpl(llvm::AAResults *AA,
+                                              const llvm::Value *V,
                                               const llvm::Value *Rep,
                                               const llvm::DataLayout &DL) {
 
   assert(V->getType()->isPointerTy());
   assert(Rep->getType()->isPointerTy());
 
-  auto *AA = static_cast<llvm::AAResults *>(AACtx);
   auto *ElTy = !V->getType()->isOpaquePointerTy()
                    ? V->getType()->getNonOpaquePointerElementType()
                    : nullptr;

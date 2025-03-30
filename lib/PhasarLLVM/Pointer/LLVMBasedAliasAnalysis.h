@@ -49,8 +49,8 @@ private:
 
   void doClear() noexcept override;
 
-  static AliasResult aliasImpl(void *, const llvm::Value *, const llvm::Value *,
-                               const llvm::DataLayout &);
+  static AliasResult aliasImpl(llvm::AAResults *, const llvm::Value *,
+                               const llvm::Value *, const llvm::DataLayout &);
   [[nodiscard]] constexpr FunctionAliasView
   createFAView(llvm::AAResults *AAR) noexcept {
     return {AAR, &aliasImpl};
