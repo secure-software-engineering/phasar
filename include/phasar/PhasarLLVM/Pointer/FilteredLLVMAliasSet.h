@@ -66,7 +66,8 @@ public:
             typename = std::enable_if_t<
                 std::is_constructible_v<LLVMAliasSet, ArgsT...>>>
   explicit FilteredLLVMAliasSet(ArgsT &&...Args)
-      : FilteredLLVMAliasSet(std::forward<ArgsT>(Args)...) {}
+      : FilteredLLVMAliasSet(
+            std::make_unique<LLVMAliasSet>(std::forward<ArgsT>(Args)...)) {}
 
   // --- API Functions:
 

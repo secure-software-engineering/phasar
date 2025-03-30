@@ -40,9 +40,13 @@ struct SVFPointsToInfoTraits {
 using SVFBasedPointsToInfo = PointsToInfo<SVFPointsToInfoTraits>;
 using SVFBasedPointsToInfoRef = PointsToInfoRef<SVFPointsToInfoTraits>;
 
+/// Use SVF to perform a VersionedFlowSensitive pointer analysis and return the
+/// results compatible to psr::PointsToInfo and psr::PointsToInfoRef
 [[nodiscard]] SVFBasedPointsToInfo
 createSVFVFSPointsToInfo(LLVMProjectIRDB &IRDB);
 
+/// Use SVF to perform a ContextDDA pointer analysis and return the
+/// results compatible to psr::PointsToInfo and psr::PointsToInfoRef
 [[nodiscard]] SVFBasedPointsToInfo
 createSVFDDAPointsToInfo(LLVMProjectIRDB &IRDB);
 

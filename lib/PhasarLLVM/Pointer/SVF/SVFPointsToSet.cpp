@@ -42,9 +42,6 @@ public:
   using typename base_t::PointsToSetTy;
   using typename base_t::v_t;
 
-  SVFPointsToSet(SVF::SVFModule *Mod)
-      : IRBuilder(Mod), PAG(IRBuilder.build()) {}
-
   ~SVFPointsToSet() {
     SVF::SVFIR::releaseSVFIR();
     SVF::AndersenWaveDiff::releaseAndersenWaveDiff();
@@ -53,6 +50,9 @@ public:
   }
 
 private:
+  SVFPointsToSet(SVF::SVFModule *Mod)
+      : IRBuilder(Mod), PAG(IRBuilder.build()) {}
+
   [[nodiscard]] constexpr Derived &self() noexcept {
     return static_cast<Derived &>(*this);
   }
@@ -104,6 +104,7 @@ private:
 protected:
   SVF::SVFIRBuilder IRBuilder;
   SVF::SVFIR *PAG;
+  friend Derived;
 };
 
 struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
