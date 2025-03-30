@@ -78,6 +78,8 @@ string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
 
+option(PHASAR_BUILD_MODULES "Build C++20 modules for phasar" OFF)
+
 include(CheckCXXCompilerFlag)
 
 # Handle memory issues with linking
