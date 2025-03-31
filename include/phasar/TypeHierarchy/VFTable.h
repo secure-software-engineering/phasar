@@ -46,8 +46,8 @@ public:
 };
 
 template <typename T, typename F>
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const VFTable<F> &Table) {
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                     const VFTable<F> &Table) {
   Table.print(OS);
   return OS;
 }
