@@ -15,6 +15,9 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 namespace psr {
+class LLVMAliasSet;
+class LLVMBasedICFG;
+class LLVMTypeHierarchy;
 
 /// Indicates that an analysis does not need a special configuration (file).
 struct HasNoConfigurationType {};
