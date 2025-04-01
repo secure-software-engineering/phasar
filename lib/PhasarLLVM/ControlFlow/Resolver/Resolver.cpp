@@ -36,6 +36,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -59,6 +60,29 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
     return CI->getZExtValue();
   }
+  return std::nullopt;
+}
+
+std::optional<std::pair<const llvm::Value *, uint64_t>>
+psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
+  // deal with a virtual member function
+  // retrieve the vtable entry that is called
+  const auto *Load =
+      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
+  if (Load == nullptr) {
+    return std::nullopt;
+  }
+
+  const auto *GEP =
+      llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
+  if (GEP == nullptr) {
+    return std::nullopt;
+  }
+
+  if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
+    return {{GEP->getPointerOperand(), CI->getZExtValue()}};
+  }
+
   return std::nullopt;
 }
 
@@ -145,6 +169,60 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   return getVFTIndex(CallSite) >= 0;
 }
 
+// Derived from LLVM's llvm::Function::hasAddressTaken()
+static bool isAddressTakenImpl(const llvm::Value *F) {
+  if (!F) {
+    return false;
+  }
+
+  for (const auto &Use : F->uses()) {
+    const auto *User = Use.getUser();
+
+    if (llvm::isa<llvm::GlobalAlias>(User)) {
+      if (isAddressTakenImpl(User)) {
+        return true;
+      }
+
+      continue;
+    }
+
+    if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(User)) {
+      if (Glob->getName() == "llvm.compiler.used" ||
+          Glob->getName() == "llvm.used") {
+        continue;
+      }
+
+      return true;
+    }
+
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
+    if (!Call) {
+      return true;
+    }
+
+    if (Call->isDebugOrPseudoInst()) {
+      continue;
+    }
+
+    const auto *Intrinsic = llvm::dyn_cast<llvm::IntrinsicInst>(Call);
+    if (Intrinsic && Intrinsic->isAssumeLikeIntrinsic()) {
+      continue;
+    }
+
+    if (Call->isCallee(&Use)) {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+bool psr::isAddressTakenFunction(const llvm::Function *F) {
+  return isAddressTakenImpl(F);
+}
+
 namespace psr {
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
@@ -178,7 +256,7 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
   FunctionSetTy CalleeTargets;
 
   for (const auto *F : IRDB->getAllFunctions()) {
-    if (F->hasAddressTaken() && isConsistentCall(CallSite, F)) {
+    if (isAddressTakenFunction(F) && isConsistentCall(CallSite, F)) {
       CalleeTargets.insert(F);
     }
   }

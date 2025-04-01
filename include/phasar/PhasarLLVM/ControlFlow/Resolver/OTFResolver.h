@@ -50,13 +50,6 @@ public:
 
   FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
-  static std::set<const llvm::Type *>
-  getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
-
-  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-  getActualFormalPointerPairs(const llvm::CallBase *CallSite,
-                              const llvm::Function *CalleeTarget);
-
   [[nodiscard]] std::string str() const override;
 
   [[nodiscard]] bool

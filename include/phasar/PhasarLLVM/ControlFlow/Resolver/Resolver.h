@@ -44,6 +44,10 @@ enum class CallGraphAnalysisType;
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
 
+/// Similar to getVFTIndex(), but also returns a pointer to the vtable
+[[nodiscard]] std::optional<std::pair<const llvm::Value *, uint64_t>>
+getVFTIndexAndVT(const llvm::CallBase *CallSite);
+
 /// Assuming that `CallSite` is a call to a non-static member function,
 /// retrieves the type of the receiver. Returns nullptr, if the receiver-type
 /// could not be extracted
@@ -68,6 +72,11 @@ getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
 [[nodiscard]] bool isVirtualCall(const llvm::Instruction *Inst,
                                  const LLVMVFTableProvider &VTP);
 
+/// A variant of F->hasAddressTaken() that is better suited for our use cases.
+///
+/// Especially, it filteres out global aliases.
+[[nodiscard]] bool isAddressTakenFunction(const llvm::Function *F);
+
 class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;
@@ -89,12 +98,16 @@ public:
 
   virtual ~Resolver() = default;
 
-  virtual void preCall(const llvm::Instruction *Inst);
+  [[deprecated("With the removal of DTAResolver, this is not used "
+               "anymore")]] virtual void
+  preCall(const llvm::Instruction *Inst);
 
   virtual void handlePossibleTargets(const llvm::CallBase *CallSite,
                                      FunctionSetTy &PossibleTargets);
 
-  virtual void postCall(const llvm::Instruction *Inst);
+  [[deprecated("With the removal of DTAResolver, this is not used "
+               "anymore")]] virtual void
+  postCall(const llvm::Instruction *Inst);
 
   [[nodiscard]] FunctionSetTy
   resolveIndirectCall(const llvm::CallBase *CallSite);
@@ -105,7 +118,9 @@ public:
   [[nodiscard]] virtual FunctionSetTy
   resolveFunctionPointer(const llvm::CallBase *CallSite);
 
-  virtual void otherInst(const llvm::Instruction *Inst);
+  [[deprecated("With the removal of DTAResolver, this is not used "
+               "anymore")]] virtual void
+  otherInst(const llvm::Instruction *Inst);
 
   [[nodiscard]] virtual std::string str() const = 0;
 
@@ -113,11 +128,11 @@ public:
     // Conservatively returns true. Override if possible
     return true;
   }
-  static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,
-                                          const LLVMProjectIRDB *IRDB,
-                                          const LLVMVFTableProvider *VTP,
-                                          const DIBasedTypeHierarchy *TH,
-                                          LLVMAliasInfoRef PT = nullptr);
+
+  [[nodiscard]] static std::unique_ptr<Resolver>
+  create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
+         const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
+         LLVMAliasInfoRef PT = nullptr);
 };
 } // namespace psr
 
