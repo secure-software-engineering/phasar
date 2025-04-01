@@ -173,20 +173,6 @@ getCallToRetFlowValueSet(const llvm::Instruction *Instr,
   return NoAliasLLVMValueSet;
 }
 
-/*
-  TODO: go over ground truths with Fabian, to be extra sure. Also, go over all
-  TODOs, if not resolved already.
-*/
-
-/*
-  TODO: ask Fabian how to handle "Illegal Instructions"
-  Console output:
-  Illegal instruction (core dumped)
-  Happens when a "wrong" instruction is passed to a flow function I think.
-  For example, when I get the Instruction with the wrong ID, because I changed
-  the test cpp file.
-*/
-
 TEST(PureFlow, NormalFlow01) {
   LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
                         "pure_flow/normal_flow/normal_flow_01_cpp_dbg.ll"});
@@ -194,88 +180,77 @@ TEST(PureFlow, NormalFlow01) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // store i32 0, ptr %retval, align 4
-  const auto *Instr7 = IRDB.getInstruction(7);
-  ASSERT_TRUE(Instr7);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
-            getNormalFlowValueSet(Instr7, AliasImpl, Instr7));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
-            getNormalFlowValueSet(Instr7, NoAliasImpl, Instr7));
+  const auto *MainFunc = IRDB.getFunction("main");
+  // %0
+  const auto *PercentZero = MainFunc->getArg(0);
+  // %1
+  const auto *PercentOne = MainFunc->getArg(1);
+  // %.addr = alloca i32, align 4, !psr.id !216; | ID: 1
+  const auto *Instr1 = IRDB.getInstruction(1);
+  // %.addr1 = alloca ptr, align 8, !psr.id !217; | ID: 2
+  const auto *Instr2 = IRDB.getInstruction(2);
+  //%One = alloca i32, align 4, !psr.id !218; | ID: 3
+  const auto *Instr3 = IRDB.getInstruction(3);
+  // %Two = alloca i32, align 4, !psr.id !219; | ID: 4
+  const auto *Instr4 = IRDB.getInstruction(4);
+  // %OnePtr = alloca ptr, align 8, !psr.id !220; | ID: 5
+  const auto *Instr5 = IRDB.getInstruction(5);
+  // %TwoAddr = alloca ptr, align 8, !psr.id !221; | ID: 6
+  const auto *Instr6 = IRDB.getInstruction(6);
 
   // store i32 %0, ptr %.addr, align 4
   const auto *Instr8 = IRDB.getInstruction(8);
   ASSERT_TRUE(Instr8);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr8},
-            getNormalFlowValueSet(Instr8, AliasImpl, Instr8));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr8},
-            getNormalFlowValueSet(Instr8, NoAliasImpl, Instr8));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
-            getNormalFlowValueSet(Instr8, AliasImpl, Instr7));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
-            getNormalFlowValueSet(Instr8, NoAliasImpl, Instr7));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr1}),
+            getNormalFlowValueSet(Instr8, AliasImpl, PercentZero));
+  EXPECT_EQ((std::set<const llvm::Value *>{PercentZero, Instr1}),
+            getNormalFlowValueSet(Instr8, NoAliasImpl, PercentZero));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr8, AliasImpl, Instr1));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr8, NoAliasImpl, Instr1));
 
   // store ptr %1, ptr %.addr1, align 8
   const auto *Instr10 = IRDB.getInstruction(10);
   ASSERT_TRUE(Instr10);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr10},
-            getNormalFlowValueSet(Instr10, AliasImpl, Instr10));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr10},
-            getNormalFlowValueSet(Instr10, NoAliasImpl, Instr10));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr8},
-            getNormalFlowValueSet(Instr10, AliasImpl, Instr8));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr8},
-            getNormalFlowValueSet(Instr10, NoAliasImpl, Instr8));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
-            getNormalFlowValueSet(Instr10, AliasImpl, Instr7));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr7},
-            getNormalFlowValueSet(Instr10, NoAliasImpl, Instr7));
-
-  // store i32 1, ptr %One, align 4, !dbg !220
-  const auto *Instr13 = IRDB.getInstruction(13);
-  ASSERT_TRUE(Instr13);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr13, AliasImpl, Instr13));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr13, NoAliasImpl, Instr13));
-
-  // store i32 2, ptr %Two, align 4, !dbg !222
-  const auto *Instr15 = IRDB.getInstruction(15);
-  ASSERT_TRUE(Instr15);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr15, AliasImpl, Instr15));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr15, NoAliasImpl, Instr15));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr15, AliasImpl, Instr13));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr15, NoAliasImpl, Instr13));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr2}),
+            getNormalFlowValueSet(Instr10, AliasImpl, PercentOne));
+  EXPECT_EQ((std::set<const llvm::Value *>{PercentOne, Instr2}),
+            getNormalFlowValueSet(Instr10, NoAliasImpl, PercentOne));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr10, AliasImpl, Instr2));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr10, NoAliasImpl, Instr2));
 
   // store ptr %One, ptr %OnePtr, align 8, !dbg !225
   const auto *Instr17 = IRDB.getInstruction(17);
   ASSERT_TRUE(Instr17);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr17},
-            getNormalFlowValueSet(Instr17, AliasImpl, Instr17));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr17},
-            getNormalFlowValueSet(Instr17, NoAliasImpl, Instr17));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr5}),
+            getNormalFlowValueSet(Instr17, AliasImpl, Instr3));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr5}),
+            getNormalFlowValueSet(Instr17, NoAliasImpl, Instr3));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr17, AliasImpl, Instr5));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr17, NoAliasImpl, Instr5));
 
   // store ptr %Two, ptr %TwoAddr, align 8, !dbg !228
   const auto *Instr19 = IRDB.getInstruction(19);
   ASSERT_TRUE(Instr19);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr6}),
+            getNormalFlowValueSet(Instr19, AliasImpl, Instr4));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr4, Instr6}),
+            getNormalFlowValueSet(Instr19, NoAliasImpl, Instr4));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr19, AliasImpl, Instr6));
+  EXPECT_EQ(std::set<const llvm::Value *>{},
+            getNormalFlowValueSet(Instr19, NoAliasImpl, Instr6));
+
+  // Other arg
   EXPECT_EQ(std::set<const llvm::Value *>{Instr19},
             getNormalFlowValueSet(Instr19, AliasImpl, Instr19));
   EXPECT_EQ(std::set<const llvm::Value *>{Instr19},
             getNormalFlowValueSet(Instr19, NoAliasImpl, Instr19));
-
-  // negative tests
-
-  // ret i32 0, !dbg !230 | ID: 20
-  const auto *Instr20 = IRDB.getInstruction(20);
-  ASSERT_TRUE(Instr20);
-
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr20, AliasImpl, Instr20));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr20, NoAliasImpl, Instr20));
 }
 
 TEST(PureFlow, NormalFlow02) {
@@ -285,58 +260,50 @@ TEST(PureFlow, NormalFlow02) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // store i32 1, ptr %One, align 4, !dbg !236, !psr.id !238; | ID: 13
-  const auto *Instr13 = IRDB.getInstruction(13);
-  ASSERT_TRUE(Instr13);
+  const auto *MainFunc = IRDB.getFunction("main");
+  ASSERT_TRUE(MainFunc);
+  // %0
+  const auto *PercentZero = MainFunc->getArg(0);
+  ASSERT_TRUE(PercentZero);
+  // %1
+  const auto *PercentOne = MainFunc->getArg(1);
+  ASSERT_TRUE(PercentOne);
+  // %.addr = alloca i32, align 4, !psr.id !221; | ID: 2
+  const auto *Instr2 = IRDB.getInstruction(2);
+  ASSERT_TRUE(Instr2);
+  // %.addr1 = alloca ptr, align 8, !psr.id !222; | ID: 3
+  const auto *Instr3 = IRDB.getInstruction(3);
+  ASSERT_TRUE(Instr3);
 
-  // store i32 2, ptr %Two, align 4, !dbg !240, !psr.id !242; | ID: 15
-  const auto *Instr15 = IRDB.getInstruction(15);
-  ASSERT_TRUE(Instr15);
+  // store i32 %0, ptr %.addr, align 4, !psr.id !227; | ID: 8
+  const auto *Instr8 = IRDB.getInstruction(8);
+  ASSERT_TRUE(Instr8);
+  EXPECT_EQ((std::set<const llvm::Value *>{PercentZero}),
+            getNormalFlowValueSet(Instr8, AliasImpl, PercentZero));
+  EXPECT_EQ((std::set<const llvm::Value *>{PercentZero}),
+            getNormalFlowValueSet(Instr8, NoAliasImpl, PercentZero));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr2}),
+            getNormalFlowValueSet(Instr8, AliasImpl, Instr2));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr2}),
+            getNormalFlowValueSet(Instr8, NoAliasImpl, Instr2));
 
-  // store i32 3, ptr %Three, align 4, !dbg !246, !psr.id !248; | ID: 18
-  const auto *Instr18 = IRDB.getInstruction(18);
-  ASSERT_TRUE(Instr18);
+  // store ptr %1, ptr %.addr1, align 8, !psr.id !231; | ID: 10
+  const auto *Instr10 = IRDB.getInstruction(10);
+  ASSERT_TRUE(Instr10);
+  EXPECT_EQ((std::set<const llvm::Value *>{PercentOne}),
+            getNormalFlowValueSet(Instr10, AliasImpl, PercentOne));
+  EXPECT_EQ((std::set<const llvm::Value *>{PercentOne}),
+            getNormalFlowValueSet(Instr10, NoAliasImpl, PercentOne));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3}),
+            getNormalFlowValueSet(Instr10, AliasImpl, Instr3));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3}),
+            getNormalFlowValueSet(Instr10, NoAliasImpl, Instr3));
 
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr13, AliasImpl, Instr13));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr13, NoAliasImpl, Instr13));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr15, AliasImpl, Instr13));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr15, NoAliasImpl, Instr13));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr15, AliasImpl, Instr15));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr15, NoAliasImpl, Instr15));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr18, AliasImpl, Instr13));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr13},
-            getNormalFlowValueSet(Instr18, NoAliasImpl, Instr13));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr18, AliasImpl, Instr15));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr18, NoAliasImpl, Instr15));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr18},
-            getNormalFlowValueSet(Instr18, AliasImpl, Instr18));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr18},
-            getNormalFlowValueSet(Instr18, NoAliasImpl, Instr18));
-
-  // negative tests
-
-  //   ret i32 0, !dbg !230 | ID: 19
-  const auto *Instr19 = IRDB.getInstruction(19);
-  ASSERT_TRUE(Instr19);
-
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr19, AliasImpl, Instr19));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr19, NoAliasImpl, Instr19));
+  // Other arg
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr10},
+            getNormalFlowValueSet(Instr10, AliasImpl, Instr10));
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr10},
+            getNormalFlowValueSet(Instr10, NoAliasImpl, Instr10));
 }
 
 TEST(PureFlow, NormalFlow03) {
@@ -346,81 +313,83 @@ TEST(PureFlow, NormalFlow03) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // store i32 3, ptr %Three, align 4, !dbg !216, !psr.id !218; | ID: 2
-  const auto *Instr2 = IRDB.getInstruction(2);
-  ASSERT_TRUE(Instr2);
+  // %One = alloca i32, align 4, !psr.id !222; | ID: 3
+  const auto *Instr3 = IRDB.getInstruction(3);
+  ASSERT_TRUE(Instr3);
+  //  %ForGEP = alloca %struct.StructOne, align 4, !psr.id !227; | ID: 8
+  const auto *Instr8 = IRDB.getInstruction(8);
+  ASSERT_TRUE(Instr8);
+  // %2 = load i32, ptr %One, align 4, !dbg !245, !psr.id !246; | ID: 18
+  const auto *Instr18 = IRDB.getInstruction(18);
+  ASSERT_TRUE(Instr18);
 
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr2},
-            getNormalFlowValueSet(Instr2, AliasImpl, Instr2));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr2},
-            getNormalFlowValueSet(Instr2, NoAliasImpl, Instr2));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr18}),
+            getNormalFlowValueSet(Instr18, AliasImpl, Instr3));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr18}),
+            getNormalFlowValueSet(Instr18, NoAliasImpl, Instr3));
+  // %3 = load i32, ptr %One, align 4, !dbg !251, !psr.id !252; | ID: 21
+  const auto *Instr21 = IRDB.getInstruction(21);
+  ASSERT_TRUE(Instr21);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr21}),
+            getNormalFlowValueSet(Instr21, AliasImpl, Instr3));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr21}),
+            getNormalFlowValueSet(Instr21, NoAliasImpl, Instr3));
 
-  // store i32 4, ptr %Four, align 4, !dbg !224, !psr.id !226; | ID: 6
-  const auto *Instr6 = IRDB.getInstruction(6);
-  ASSERT_TRUE(Instr6);
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr6},
-            getNormalFlowValueSet(Instr6, AliasImpl, Instr6));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr6},
-            getNormalFlowValueSet(Instr6, NoAliasImpl, Instr6));
-
-  // store i32 0, ptr %Zero, align 4, !dbg !249, !psr.id !251; | ID: 20
-  const auto *Instr20 = IRDB.getInstruction(20);
-  ASSERT_TRUE(Instr20);
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr20},
-            getNormalFlowValueSet(Instr20, AliasImpl, Instr20));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr20},
-            getNormalFlowValueSet(Instr20, NoAliasImpl, Instr20));
-
-  // store i32 1, ptr %One, align 4, !dbg !255, !psr.id !257; | ID: 23
+  // %tobool = icmp ne i32 %3, 0, !dbg !251, !psr.id !253; | ID: 22
+  const auto *Instr22 = IRDB.getInstruction(22);
+  ASSERT_TRUE(Instr22);
+  // %lnot = xor i1 %tobool, true, !dbg !254, !psr.id !255; | ID: 23
   const auto *Instr23 = IRDB.getInstruction(23);
   ASSERT_TRUE(Instr23);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr22, Instr23}),
+            getNormalFlowValueSet(Instr23, AliasImpl, Instr22));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr22, Instr23}),
+            getNormalFlowValueSet(Instr23, NoAliasImpl, Instr22));
 
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr23},
-            getNormalFlowValueSet(Instr23, AliasImpl, Instr23));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr23},
-            getNormalFlowValueSet(Instr23, NoAliasImpl, Instr23));
-
-  // store i32 2, ptr %Two, align 4, !dbg !261, !psr.id !263; | ID: 26
-  const auto *Instr26 = IRDB.getInstruction(26);
-  ASSERT_TRUE(Instr26);
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr2},
-            getNormalFlowValueSet(Instr26, AliasImpl, Instr2));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr2},
-            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr2));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr6},
-            getNormalFlowValueSet(Instr26, AliasImpl, Instr6));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr6},
-            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr6));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr20},
-            getNormalFlowValueSet(Instr26, AliasImpl, Instr20));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr20},
-            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr20));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr23},
-            getNormalFlowValueSet(Instr26, AliasImpl, Instr23));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr23},
-            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr23));
-
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr26},
-            getNormalFlowValueSet(Instr26, AliasImpl, Instr26));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr26},
-            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr26));
-
-  // negative tests
-
-  // ret i32 0, !dbg !237 | ID: 27
+  // %4 = load i32, ptr %One, align 4, !dbg !261, !psr.id !262; | ID: 27
   const auto *Instr27 = IRDB.getInstruction(27);
   ASSERT_TRUE(Instr27);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr27}),
+            getNormalFlowValueSet(Instr27, AliasImpl, Instr3));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr27}),
+            getNormalFlowValueSet(Instr27, NoAliasImpl, Instr3));
 
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr27, AliasImpl, Instr27));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr27, NoAliasImpl, Instr27));
+  // %5 = load i32, ptr %One, align 4, !dbg !263, !psr.id !264; | ID: 28
+  const auto *Instr28 = IRDB.getInstruction(28);
+  ASSERT_TRUE(Instr28);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr28}),
+            getNormalFlowValueSet(Instr28, AliasImpl, Instr3));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr28}),
+            getNormalFlowValueSet(Instr28, NoAliasImpl, Instr3));
+
+  // %add = add nsw i32 %4, %5, !dbg !265, !psr.id !266; | ID: 29
+  const auto *Instr29 = IRDB.getInstruction(29);
+  ASSERT_TRUE(Instr29);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr27, Instr29}),
+            getNormalFlowValueSet(Instr29, AliasImpl, Instr27));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr27, Instr29}),
+            getNormalFlowValueSet(Instr29, NoAliasImpl, Instr27));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr28, Instr29}),
+            getNormalFlowValueSet(Instr29, AliasImpl, Instr28));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr28, Instr29}),
+            getNormalFlowValueSet(Instr29, NoAliasImpl, Instr28));
+
+  // %One2 = getelementptr inbounds %struct.StructOne, ptr %ForGEP, i32 0, i32
+  // 0, !dbg !282, !psr.id !283; | ID: 37
+  const auto *Instr37 = IRDB.getInstruction(37);
+  ASSERT_TRUE(Instr37);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr8, Instr37}),
+            getNormalFlowValueSet(Instr37, AliasImpl, Instr8));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr8, Instr37}),
+            getNormalFlowValueSet(Instr37, NoAliasImpl, Instr8));
+
+  // %6 = load i32, ptr %One2, align 4, !dbg !282, !psr.id !284; | ID: 38
+  const auto *Instr38 = IRDB.getInstruction(38);
+  ASSERT_TRUE(Instr38);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr37, Instr38}),
+            getNormalFlowValueSet(Instr38, AliasImpl, Instr37));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr37, Instr38}),
+            getNormalFlowValueSet(Instr38, NoAliasImpl, Instr37));
 }
 
 TEST(PureFlow, NormalFlow04) {
@@ -430,107 +399,66 @@ TEST(PureFlow, NormalFlow04) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // store i32 1, ptr %One, align 4, !dbg !239, !psr.id !241; | ID: 16
-  const auto *Instr16 = IRDB.getInstruction(16);
-  ASSERT_TRUE(Instr16);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr16},
-            getNormalFlowValueSet(Instr16, AliasImpl, Instr16));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr16},
-            getNormalFlowValueSet(Instr16, NoAliasImpl, Instr16));
-
-  // %2 = load i32, ptr %One, align 4, !dbg !245, !psr.id !246; | ID: 18
-  const auto *Instr18 = IRDB.getInstruction(18);
-  ASSERT_TRUE(Instr18);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr18},
-            getNormalFlowValueSet(Instr18, AliasImpl, Instr18));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr18},
-            getNormalFlowValueSet(Instr18, NoAliasImpl, Instr18));
-
-  // %sub = sub nsw i32 0, %3, !dbg !253, !psr.id !254; | ID: 22
-  const auto *Instr22 = IRDB.getInstruction(22);
-  ASSERT_TRUE(Instr22);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr22},
-            getNormalFlowValueSet(Instr22, AliasImpl, Instr22));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr22},
-            getNormalFlowValueSet(Instr22, NoAliasImpl, Instr22));
-
-  // %4 = load i32, ptr %One, align 4, !dbg !259, !psr.id !260; | ID: 25
+  // %Deref1 = alloca i32, align 4, !psr.id !222; | ID: 7
+  const auto *Instr7 = IRDB.getInstruction(7);
+  ASSERT_TRUE(Instr7);
+  // %Deref2 = alloca i32, align 4, !psr.id !223; | ID: 8
+  const auto *Instr8 = IRDB.getInstruction(8);
+  ASSERT_TRUE(Instr8);
+  // %Deref3 = alloca i32, align 4, !psr.id !224; | ID: 9
+  const auto *Instr9 = IRDB.getInstruction(9);
+  ASSERT_TRUE(Instr9);
+  // %3 = load i32, ptr %2, align 4, !dbg !258, !psr.id !259; | ID: 25
   const auto *Instr25 = IRDB.getInstruction(25);
   ASSERT_TRUE(Instr25);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr25},
-            getNormalFlowValueSet(Instr25, AliasImpl, Instr25));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr25},
-            getNormalFlowValueSet(Instr25, NoAliasImpl, Instr25));
+  // %6 = load i32, ptr %5, align 4, !dbg !268, !psr.id !269; | ID: 30
+  const auto *Instr30 = IRDB.getInstruction(30);
+  ASSERT_TRUE(Instr30);
+  // %10 = load i32, ptr %9, align 4, !dbg !280, !psr.id !281; | ID: 36
+  const auto *Instr36 = IRDB.getInstruction(36);
+  ASSERT_TRUE(Instr36);
+  llvm::outs() << "Instr7: " << Instr7 << "\n";
+  llvm::outs() << "Instr8: " << Instr8 << "\n";
+  llvm::outs() << "Instr9: " << Instr9 << "\n";
+  llvm::outs() << "Instr25: " << Instr25 << "\n";
+  llvm::outs() << "Instr30: " << Instr30 << "\n";
+  llvm::outs() << "Instr36: " << Instr36 << "\n";
 
-  // %add = add nsw i32 %4, %5, !dbg !263, !psr.id !264; | ID: 27
-  const auto *Instr27 = IRDB.getInstruction(27);
-  ASSERT_TRUE(Instr27);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr27},
-            getNormalFlowValueSet(Instr27, AliasImpl, Instr27));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr27},
-            getNormalFlowValueSet(Instr27, NoAliasImpl, Instr27));
+  // store i32 %3, ptr %Deref1, align 4, !dbg !254, !psr.id !260; | ID: 26
+  const auto *Instr26 = IRDB.getInstruction(26);
+  ASSERT_TRUE(Instr26);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr7}),
+            getNormalFlowValueSet(Instr26, AliasImpl, Instr25));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr25, Instr7}),
+            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr25));
+  EXPECT_EQ((std::set<const llvm::Value *>{}),
+            getNormalFlowValueSet(Instr26, AliasImpl, Instr7));
+  EXPECT_EQ((std::set<const llvm::Value *>{}),
+            getNormalFlowValueSet(Instr26, NoAliasImpl, Instr7));
 
-  // %One2 = getelementptr inbounds %struct.StructOne, ptr %ForGEP, i32 0, i32
-  // 0, !dbg !280, !psr.id !281; | ID: 35
-  const auto *Instr35 = IRDB.getInstruction(35);
-  ASSERT_TRUE(Instr35);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr35},
-            getNormalFlowValueSet(Instr35, AliasImpl, Instr35));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr35},
-            getNormalFlowValueSet(Instr35, NoAliasImpl, Instr35));
+  // store i32 %6, ptr %Deref2, align 4, !dbg !262, !psr.id !270; | ID: 31
+  const auto *Instr31 = IRDB.getInstruction(31);
+  ASSERT_TRUE(Instr31);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr8}),
+            getNormalFlowValueSet(Instr31, AliasImpl, Instr30));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr30, Instr8}),
+            getNormalFlowValueSet(Instr31, NoAliasImpl, Instr30));
+  EXPECT_EQ((std::set<const llvm::Value *>{}),
+            getNormalFlowValueSet(Instr31, AliasImpl, Instr8));
+  EXPECT_EQ((std::set<const llvm::Value *>{}),
+            getNormalFlowValueSet(Instr31, NoAliasImpl, Instr8));
 
-  // negative test
-  // call void @llvm.dbg.declare(metadata ptr %OtherOne, metadata !242, metadata
-  // !DIExpression()), !dbg !243, !psr.id !244; | ID: 17
-  const auto *Instr17 = IRDB.getInstruction(17);
-  ASSERT_TRUE(Instr17);
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr17, AliasImpl, Instr17));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getNormalFlowValueSet(Instr17, NoAliasImpl, Instr17));
-}
-
-TEST(PureFlow, NormalFlow05) {
-  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                        "pure_flow/normal_flow/normal_flow_05_cpp_dbg.ll"});
-  IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
-  IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
-  // IRDB.emitPreprocessedIR(llvm::outs());
-
-  // store ptr %One, ptr %PtrToOne, align 8, !dbg !237, !psr.id !239; | ID: 15
-  const auto *Instr15 = IRDB.getInstruction(15);
-  ASSERT_TRUE(Instr15);
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr15, AliasImpl, Instr15));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr15},
-            getNormalFlowValueSet(Instr15, NoAliasImpl, Instr15));
-
-  // store ptr %PtrToOne, ptr %PtrPtrToOne, align 8, !dbg !242, !psr.id !244; |
-  // ID: 17
-  const auto *Instr17 = IRDB.getInstruction(17);
-  ASSERT_TRUE(Instr17);
-
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr15, Instr17}),
-            getNormalFlowValueSet(Instr17, AliasImpl, Instr17));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr17},
-            getNormalFlowValueSet(Instr17, NoAliasImpl, Instr17));
-
-  // store ptr %PtrPtrToOne, ptr %PtrPtrPtrToOne, align 8, !dbg !247, !psr.id
-  // !249; | ID: 19
-  const auto *Instr19 = IRDB.getInstruction(19);
-  ASSERT_TRUE(Instr19);
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr15, Instr17, Instr19}),
-            getNormalFlowValueSet(Instr19, AliasImpl, Instr19));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr19},
-            getNormalFlowValueSet(Instr19, NoAliasImpl, Instr19));
-
-  // ret i32 0, !dbg !250, !psr.id !251; | ID: 20
-  const auto *Instr20 = IRDB.getInstruction(20);
-  ASSERT_TRUE(Instr20);
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr15, Instr17, Instr19, Instr20}),
-            getNormalFlowValueSet(Instr20, AliasImpl, Instr20));
-  EXPECT_EQ(std::set<const llvm::Value *>{Instr20},
-            getNormalFlowValueSet(Instr20, NoAliasImpl, Instr20));
+  // store i32 %10, ptr %Deref3, align 4, !dbg !272, !psr.id !282; | ID: 37
+  const auto *Instr37 = IRDB.getInstruction(37);
+  ASSERT_TRUE(Instr37);
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr9}),
+            getNormalFlowValueSet(Instr37, AliasImpl, Instr36));
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr36, Instr9}),
+            getNormalFlowValueSet(Instr37, NoAliasImpl, Instr36));
+  EXPECT_EQ((std::set<const llvm::Value *>{}),
+            getNormalFlowValueSet(Instr37, AliasImpl, Instr9));
+  EXPECT_EQ((std::set<const llvm::Value *>{}),
+            getNormalFlowValueSet(Instr37, NoAliasImpl, Instr9));
 }
 
 /*
@@ -690,7 +618,6 @@ TEST(PureFlow, RetFlow01) {
 
   EXPECT_EQ(std::set<const llvm::Value *>{},
             getRetFlowValueSet(Instr9, AliasImpl, UnusedValue, Instr0));
-  // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
             getRetFlowValueSet(Instr9, NoAliasImpl, UnusedValue, Instr0));
 
@@ -783,7 +710,6 @@ TEST(PureFlow, RetFlow02) {
                                Instr23));
 
   // negative tests
-  // TODO: ask Fabian if the empty value set is the correct ground truth or not
   EXPECT_EQ(
       std::set<const llvm::Value *>{},
       getRetFlowValueSet(Instr14, AliasImpl, FuncZ4callii->getArg(1), Instr0));
@@ -799,8 +725,26 @@ TEST(PureFlow, RetFlow03) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
 
-  // %Two = alloca i32, align 4, !psr.id !326; | ID: 54
-  const auto *UnusedValue = IRDB.getValueFromId(54);
+  // TODO: do rest of tests, for other calls/returns
+  // TODO: double check ground truth
+
+  // %ThreeInCall = alloca i32, align 4, !psr.id !254; | ID: 15
+  const auto *Instr15 = IRDB.getValueFromId(15);
+  ASSERT_TRUE(Instr15);
+
+  // %ThreePtrInCall = alloca ptr, align 8, !psr.id !255; | ID: 16
+  const auto *Instr16 = IRDB.getValueFromId(16);
+  ASSERT_TRUE(Instr16);
+
+  // %0 = load ptr, ptr %ThreePtrInCall, align 8, !dbg !280, !psr.id !281; | ID:
+  // 29
+  const auto *Instr29 = IRDB.getValueFromId(29);
+  ASSERT_TRUE(Instr29);
+
+  // %call = call noundef ptr @_Z8newThreePKi(ptr noundef %0), !dbg !282,
+  // !psr.id !283; | ID: 30
+  const auto *Instr30 = IRDB.getValueFromId(30);
+  ASSERT_TRUE(Instr30);
 
   // ret ptr %1, !dbg !234, !psr.id !235; | ID: 9
   const auto *Instruction9 = IRDB.getInstruction(9);
@@ -811,12 +755,10 @@ TEST(PureFlow, RetFlow03) {
   ASSERT_TRUE(Instruction30);
   const auto *FunctionZ8newThreePKi = IRDB.getFunction("_Z8newThreePKi");
 
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr15, Instr16, Instr29, Instr30}),
             getRetFlowValueSet(Instruction30, AliasImpl,
                                FunctionZ8newThreePKi->getArg(0), Instruction9));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr29},
             getRetFlowValueSet(Instruction30, NoAliasImpl,
                                FunctionZ8newThreePKi->getArg(0), Instruction9));
 
@@ -828,15 +770,6 @@ TEST(PureFlow, RetFlow03) {
   const auto *Instruction42 = IRDB.getInstruction(42);
   ASSERT_TRUE(Instruction42);
 
-  // TODO: determine ground truth
-  EXPECT_EQ(
-      std::set<const llvm::Value *>{},
-      getRetFlowValueSet(Instruction42, AliasImpl, UnusedValue, Instruction10));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instruction42, NoAliasImpl, UnusedValue,
-                               Instruction10));
-
   // ret ptr @GlobalFour, !dbg !246, !psr.id !247; | ID: 11
   const auto *Instruction11 = IRDB.getInstruction(11);
   ASSERT_TRUE(Instruction11);
@@ -844,15 +777,6 @@ TEST(PureFlow, RetFlow03) {
   //  @_Z11getFourAddrv(), !dbg !310, !psr.id !311; | ID: 45
   const auto *Instruction45 = IRDB.getInstruction(45);
   ASSERT_TRUE(Instruction45);
-
-  // TODO: determine ground truth
-  EXPECT_EQ(
-      std::set<const llvm::Value *>{},
-      getRetFlowValueSet(Instruction45, AliasImpl, UnusedValue, Instruction11));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instruction45, NoAliasImpl, UnusedValue,
-                               Instruction11));
 
   // ret i32 %add6, !dbg !315, !psr.id !316; | ID: 48
   const auto *Instruction48 = IRDB.getInstruction(48);
@@ -863,35 +787,29 @@ TEST(PureFlow, RetFlow03) {
   const auto *Instruction68 = IRDB.getInstruction(68);
   ASSERT_TRUE(Instruction68);
   const auto *FuncZ4callRiPKi = IRDB.getFunction("_Z4callRiPKi");
+  // %Zero = alloca i32, align 4, !psr.id !324; | ID: 52
+  const auto *Instr52 = IRDB.getInstruction(52);
+  ASSERT_TRUE(Instr52);
 
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  // %One = alloca i32, align 4, !psr.id !325; | ID: 53
+  const auto *Instr53 = IRDB.getInstruction(53);
+  ASSERT_TRUE(Instr53);
+
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr52},
             getRetFlowValueSet(Instruction68, AliasImpl,
                                FuncZ4callRiPKi->getArg(0), Instruction48));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr52},
             getRetFlowValueSet(Instruction68, NoAliasImpl,
                                FuncZ4callRiPKi->getArg(0), Instruction48));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr53},
             getRetFlowValueSet(Instruction68, AliasImpl,
                                FuncZ4callRiPKi->getArg(1), Instruction48));
-  // TODO: determine ground truth
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr53},
             getRetFlowValueSet(Instruction68, NoAliasImpl,
                                FuncZ4callRiPKi->getArg(1), Instruction48));
 
   // negative tests
-  // TODO: ask Fabian if the empty value set is the correct ground truth or not
-  const auto *Instr0 = IRDB.getInstruction(0);
-  ASSERT_TRUE(Instr0);
-
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instruction9, AliasImpl,
-                               FuncZ4callRiPKi->getArg(0), Instr0));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
-            getRetFlowValueSet(Instruction9, NoAliasImpl,
-                               FuncZ4callRiPKi->getArg(0), Instr0));
+  // Hier "falschen" Arg übergeben
 }
 
 TEST(PureFlow, RetFlow04) {
@@ -900,6 +818,8 @@ TEST(PureFlow, RetFlow04) {
   IDEAliasImpl AliasImpl = IDEAliasImpl(&IRDB);
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   // IRDB.emitPreprocessedIR(llvm::outs());
+
+  // TODO: are these tests good? All ground truths are empty
 
   // %Two = alloca i32, align 4, !psr.id !251; | ID: 20
   const auto *UnusedValue = IRDB.getValueFromId(20);
@@ -913,7 +833,6 @@ TEST(PureFlow, RetFlow04) {
 
   EXPECT_EQ(std::set<const llvm::Value *>{},
             getRetFlowValueSet(Instr9, AliasImpl, UnusedValue, Instr0));
-  // TODO: determine ground truth
   EXPECT_EQ(std::set<const llvm::Value *>{},
             getRetFlowValueSet(Instr9, NoAliasImpl, UnusedValue, Instr0));
 
@@ -940,7 +859,6 @@ TEST(PureFlow, RetFlow04) {
                                Instr14));
 
   // negative tests
-  // TODO: ask Fabian if the empty value set is the correct ground truth or not
   EXPECT_EQ(
       std::set<const llvm::Value *>{},
       getRetFlowValueSet(Instr9, AliasImpl, FuncZ4callii->getArg(1), Instr0));
@@ -983,10 +901,9 @@ TEST(PureFlow, CallToRetFlow01) {
   EXPECT_EQ(std::set<const llvm::Value *>{Instr24},
             getCallToRetFlowValueSet(Instr30, NoAliasImpl, Instr24));
 
-  // negative tests
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr30},
             getCallToRetFlowValueSet(Instr30, AliasImpl, Instr30));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr30},
             getCallToRetFlowValueSet(Instr30, NoAliasImpl, Instr30));
 }
 
@@ -1042,10 +959,9 @@ TEST(PureFlow, CallToRetFlow02) {
   EXPECT_EQ(std::set<const llvm::Value *>{Instr25},
             getCallToRetFlowValueSet(Instr27, NoAliasImpl, Instr25));
 
-  // negative tests
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr27},
             getCallToRetFlowValueSet(Instr27, AliasImpl, Instr27));
-  EXPECT_EQ(std::set<const llvm::Value *>{},
+  EXPECT_EQ(std::set<const llvm::Value *>{Instr27},
             getCallToRetFlowValueSet(Instr27, NoAliasImpl, Instr27));
 }
 
