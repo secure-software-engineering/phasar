@@ -20,6 +20,9 @@ using namespace psr;
 
 using llvm::demangle;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
+
 namespace psr {
 
 // Check basic type hierarchy construction
@@ -407,6 +410,8 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
 })
 
 } // namespace psr
+
+#pragma GCC diagnostic pop
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

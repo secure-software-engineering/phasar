@@ -46,9 +46,6 @@ class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
 
   using ICFGBase::printAsJson;
 
-  using CFGBase::getAsJson;
-  using ICFGBase::getAsJson;
-
 public:
   LLVMBasedBackwardICFG(LLVMBasedICFG *ForwardICFG);
 
@@ -67,7 +64,6 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   void printAsJsonImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
   [[nodiscard]] size_t getNumCallSitesImpl() const noexcept;
 

@@ -361,12 +361,6 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   }
 }
 
-[[nodiscard]] [[deprecated("Please use printAsJson() instead")]] nlohmann::json
-DIBasedTypeHierarchy::getAsJson() const {
-  /// TODO: implement
-  llvm::report_fatal_error("Not implemented");
-}
-
 DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {
   DIBasedTypeHierarchyData Data;
 

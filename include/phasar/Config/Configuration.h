@@ -68,29 +68,6 @@ public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   [[nodiscard]] static llvm::StringRef PhasarDirectory() noexcept;
 
-  /// Name of the file storing all standard header search paths used for
-  /// compilation.
-  [[nodiscard, deprecated("This ancient API is broken and should not be used "
-                          "anymore")]] static constexpr llvm::StringRef
-  // NOLINTNEXTLINE(readability-identifier-naming)
-  HeaderSearchPathsFileName() noexcept {
-    return "standard_header_paths.conf";
-  }
-
-  /// Name of the compile_commands.json file (in case we wish to rename)
-  [[nodiscard, deprecated("This ancient API is broken and should not be used "
-                          "anymore")]] static constexpr llvm::StringRef
-  // NOLINTNEXTLINE(readability-identifier-naming)
-  CompileCommandsJson() noexcept {
-    return "compile_commands.json";
-  }
-
-  /// Default Source- and Sink-Functions path
-  [[nodiscard, deprecated("This ancient API is broken and should not be used "
-                          "anymore")]] static llvm::StringRef
-  // NOLINTNEXTLINE(readability-identifier-naming)
-  DefaultSourceSinkFunctionsPath() noexcept;
-
   // Variables to be used in JSON export format
   /// Identifier for call graph export
   // NOLINTNEXTLINE(readability-identifier-naming)

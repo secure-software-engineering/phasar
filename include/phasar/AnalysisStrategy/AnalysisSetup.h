@@ -12,7 +12,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 namespace psr {
 
@@ -29,7 +29,7 @@ struct AnalysisSetup {
 struct DefaultAnalysisSetup : AnalysisSetup {
   using PointerAnalysisTy = LLVMAliasSet;
   using CallGraphAnalysisTy = LLVMBasedICFG;
-  using TypeHierarchyTy = LLVMTypeHierarchy;
+  using TypeHierarchyTy = DIBasedTypeHierarchy;
 };
 
 } // namespace psr

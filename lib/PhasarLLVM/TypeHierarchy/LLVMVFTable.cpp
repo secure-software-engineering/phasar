@@ -48,11 +48,6 @@ void LLVMVFTable::print(llvm::raw_ostream &OS) const {
   }
 }
 
-nlohmann::json LLVMVFTable::getAsJson() const {
-  nlohmann::json J = "{}"_json;
-  return J;
-}
-
 [[nodiscard]] LLVMVFTableData LLVMVFTable::getVFTableData() const {
   LLVMVFTableData Data;
 

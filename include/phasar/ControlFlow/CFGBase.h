@@ -14,8 +14,6 @@
 #include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
-#include "nlohmann/json.hpp"
-
 namespace psr {
 
 enum class SpecialMemberFunctionType;
@@ -136,10 +134,6 @@ public:
   }
   void print(ByConstRef<f_t> Fun, llvm::raw_ostream &OS) const {
     self().printImpl(Fun, OS);
-  }
-  [[nodiscard, deprecated("Please use printAsJson() instead")]] nlohmann::json
-  getAsJson(ByConstRef<f_t> Fun) const {
-    return self().getAsJsonImpl(Fun);
   }
 };
 

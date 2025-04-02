@@ -51,7 +51,7 @@ class LLVMProjectIRDB;
  * 	hierarchy graph based on the data from the %ProjectIRCompiledDB
  * 	and reconstructing the virtual method tables.
  */
-class LLVMTypeHierarchy
+class [[deprecated("Use DIBasedTypeHierarchy instead")]] LLVMTypeHierarchy
     : public TypeHierarchy<const llvm::StructType *, const llvm::Function *> {
 public:
   struct VertexProperties {
@@ -110,11 +110,11 @@ private:
   // map from clearname to vtable variable
   std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTVMap;
 
-  std::vector<const llvm::StructType *>
-  getSubTypes(const llvm::Module &M, const llvm::StructType &Type) const;
+  std::vector<const llvm::StructType *> getSubTypes(
+      const llvm::Module &M, const llvm::StructType &Type) const;
 
-  std::vector<const llvm::Function *>
-  getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
+  std::vector<const llvm::Function *> getVirtualFunctions(
+      const llvm::Module &M, const llvm::StructType &Type);
 
 protected:
   void buildLLVMTypeHierarchy(const llvm::Module &M);
@@ -157,29 +157,29 @@ public:
    */
   void constructHierarchy(const llvm::Module &M);
 
-  [[nodiscard]] inline bool
-  hasType(const llvm::StructType *Type) const override {
+  [[nodiscard]] inline bool hasType(const llvm::StructType *Type)
+      const override {
     return TypeVertexMap.count(Type);
   }
 
-  [[nodiscard]] inline bool
-  isSubType(const llvm::StructType *Type,
-            const llvm::StructType *SubType) const override {
+  [[nodiscard]] inline bool isSubType(const llvm::StructType *Type,
+                                      const llvm::StructType *SubType)
+      const override {
     auto ReachableTypes = getSubTypes(Type);
     return ReachableTypes.count(SubType);
   }
 
-  std::set<const llvm::StructType *>
-  getSubTypes(const llvm::StructType *Type) const override;
+  std::set<const llvm::StructType *> getSubTypes(const llvm::StructType *Type)
+      const override;
 
-  [[nodiscard]] const llvm::StructType *
-  getType(llvm::StringRef TypeName) const override;
+  [[nodiscard]] const llvm::StructType *getType(llvm::StringRef TypeName)
+      const override;
 
-  [[nodiscard]] std::vector<const llvm::StructType *>
-  getAllTypes() const override;
+  [[nodiscard]] std::vector<const llvm::StructType *> getAllTypes()
+      const override;
 
-  [[nodiscard]] llvm::StringRef
-  getTypeName(const llvm::StructType *Type) const override;
+  [[nodiscard]] llvm::StringRef getTypeName(const llvm::StructType *Type)
+      const override;
 
   [[nodiscard]] size_t size() const noexcept override {
     return boost::num_vertices(TypeGraph);
@@ -190,10 +190,6 @@ public:
   };
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
-
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const override;
 
   // void mergeWith(LLVMTypeHierarchy &Other);
 
