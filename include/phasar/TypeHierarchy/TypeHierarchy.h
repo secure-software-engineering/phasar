@@ -14,8 +14,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json_fwd.hpp"
-
 #include <set>
 
 namespace psr {
@@ -39,10 +37,6 @@ public:
   [[nodiscard]] virtual bool empty() const noexcept = 0;
 
   virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
-
-  [[nodiscard,
-    deprecated("Please use printAsJson() instead")]] virtual nlohmann::json
-  getAsJson() const = 0;
 
   virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
 };

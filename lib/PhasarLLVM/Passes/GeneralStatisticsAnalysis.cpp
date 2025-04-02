@@ -23,7 +23,6 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Format.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -252,43 +251,6 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   return Stats;
 }
 
-size_t GeneralStatistics::getAllocationsites() const { return AllocationSites; }
-
-size_t GeneralStatistics::getFunctioncalls() const { return CallSites; }
-
-size_t GeneralStatistics::getInstructions() const { return Instructions; }
-
-size_t GeneralStatistics::getGlobalPointers() const { return Globals; }
-
-size_t GeneralStatistics::getBasicBlocks() const { return BasicBlocks; }
-
-size_t GeneralStatistics::getFunctions() const { return Functions; }
-
-size_t GeneralStatistics::getGlobals() const { return Globals; }
-
-size_t GeneralStatistics::getGlobalConsts() const { return GlobalConsts; }
-
-size_t GeneralStatistics::getMemoryIntrinsics() const { return MemIntrinsics; }
-
-size_t GeneralStatistics::getStoreInstructions() const {
-  return StoreInstructions;
-}
-
-const std::set<const llvm::Type *> &
-GeneralStatistics::getAllocatedTypes() const {
-  return AllocatedTypes;
-}
-
-const std::set<const llvm::Instruction *> &
-GeneralStatistics::getAllocaInstructions() const {
-  return AllocaInstructions;
-}
-
-const std::set<const llvm::Instruction *> &
-GeneralStatistics::getRetResInstructions() const {
-  return RetResInstructions;
-}
-
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json Json;
 
@@ -331,14 +293,6 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   Json["NumInstsUsedOutsideBB"] = NumInstsUsedOutsideBB;
 
   OS << Json << '\n';
-}
-
-nlohmann::json GeneralStatistics::getAsJson() const {
-  std::string GeneralStatisticsAsString;
-  llvm::raw_string_ostream Stream(GeneralStatisticsAsString);
-  printAsJson(Stream);
-
-  return nlohmann::json::parse(GeneralStatisticsAsString);
 }
 
 } // namespace psr
