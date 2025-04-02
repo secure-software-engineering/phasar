@@ -1,15 +1,16 @@
 #include <cstdio>
 
-void call() { int Three = 3; }
-
-void callTwo() { int Four = 4; }
+struct StructOne {
+  int One = 1;
+};
 
 int main(int /*argc*/, char * /*argv*/[]) {
-  int Zero = 0;
-  call();
   int One = 1;
-  callTwo();
-  int Two = 2;
-
+  int OtherOne = One;
+  int MinusOne = !One;
+  int Two = One + One;
+  int *PtrToOne = &One;
+  StructOne ForGEP = StructOne();
+  int GEP = ForGEP.One;
   return 0;
 }

@@ -1,16 +1,15 @@
 #include <cstdio>
 
-struct StructOne {
-  int One = 1;
-};
-
 int main(int /*argc*/, char * /*argv*/[]) {
   int One = 1;
-  int OtherOne = One;
-  int MinusOne = -One;
-  int Two = One + One;
+
   int *PtrToOne = &One;
-  StructOne ForGEP = StructOne();
-  int GEP = ForGEP.One;
+  int **PtrPtrToOne = &PtrToOne;
+  int ***PtrPtrPtrToOne = &PtrPtrToOne;
+
+  int Deref1 = *PtrToOne;
+  int Deref2 = **PtrPtrToOne;
+  int Deref3 = ***PtrPtrPtrToOne;
+
   return 0;
 }

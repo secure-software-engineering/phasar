@@ -1,19 +1,23 @@
 #include <cstdio>
 
-int GlobalFour = 4;
-
-int getOne() { return 1; }
-int getTwo(int OneArg) { return OneArg + 1; }
-int getThree(const int *TwoArg) { return *TwoArg + 1; }
-int *getPtrToGlobalFour() { return &GlobalFour; }
+void call(int *One) {}
+void secondCall(int *One, int **Two, int ***Three) {}
 
 int main(int /*argc*/, char * /*argv*/[]) {
 
-  int Zero = 0;
-  int One = getOne();
-  int Two = getTwo(One);
-  int Three = getThree(&Two);
-  int *PtrToGlobalFour = getPtrToGlobalFour();
+  int One = 1;
+  int Two = 2;
+  int Three = 3;
+
+  int *PtrToOne = &One;
+  int *PtrToTwo = &Two;
+  int **PtrPtrToTwo = &PtrToTwo;
+  int *PtrToThree = &Three;
+  int **PtrPtrToThree = &PtrToThree;
+  int ***PtrPtrPtrToThree = &PtrPtrToThree;
+
+  call(PtrToOne);
+  secondCall(PtrToOne, PtrPtrToTwo, PtrPtrPtrToThree);
 
   return 0;
 }
