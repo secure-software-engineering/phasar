@@ -190,7 +190,7 @@ static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
 
   if (const auto *CompositeTy =
           llvm::dyn_cast<llvm::DICompositeType>(StructTy)) {
-    if (Offset > CompositeTy->getElements().size()) {
+    if (Offset >= CompositeTy->getElements().size()) {
       return nullptr;
     }
     auto Elems = CompositeTy->getElements();
