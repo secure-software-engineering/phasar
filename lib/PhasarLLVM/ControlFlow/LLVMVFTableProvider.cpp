@@ -16,6 +16,15 @@
 
 using namespace psr;
 
+static std::string getTypeName(const llvm::DIType *DITy) {
+  if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
+    auto Ident = CompTy->getIdentifier();
+    return Ident.empty() ? llvm::demangle(CompTy->getName().str())
+                         : llvm::demangle(Ident.str());
+  }
+  return llvm::demangle(DITy->getName().str());
+}
+
 static std::vector<const llvm::Function *> getVirtualFunctions(
     const llvm::StringMap<const llvm::GlobalVariable *> &ClearNameTVMap,
     const llvm::DIType *Type) {
