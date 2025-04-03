@@ -3,17 +3,23 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDEAliasInfoTabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDENoAliasInfoTabulationProblem.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
+
+#include <set>
 
 using namespace psr;
 
@@ -59,7 +65,7 @@ public:
   }
 
 private:
-  LLVMAliasSet PT;
+  FilteredLLVMAliasSet PT;
 };
 
 class IDENoAliasImpl
@@ -172,6 +178,20 @@ getCallToRetFlowValueSet(const llvm::Instruction *Instr,
   const auto NoAliasLLVMValueSet =
       NoAliasCallToRetFlowFunc->computeTargets(Arg);
   return NoAliasLLVMValueSet;
+}
+
+std::string stringifyValueSet(const std::set<const llvm::Value *> &Vals) {
+  std::string Ret;
+  llvm::raw_string_ostream ROS(Ret);
+
+  ROS << "{ ";
+
+  llvm::interleaveComma(
+      Vals, ROS, [&ROS](const auto *Val) { ROS << llvmIRToString(Val); });
+
+  ROS << " }";
+
+  return Ret;
 }
 
 TEST(PureFlow, NormalFlow01) {
@@ -467,18 +487,22 @@ TEST(PureFlow, CallFlow01) {
   const auto *Instr26 = IRDB.getInstruction(26);
   ASSERT_TRUE(Instr26);
   const auto *FuncForInstr26 = IRDB.getFunction("_Z4callii");
+  ASSERT_TRUE(FuncForInstr26);
+  ASSERT_EQ(FuncForInstr26->arg_size(), 2);
+  const auto *Param0 = FuncForInstr26->getArg(0);
+  const auto *Param1 = FuncForInstr26->getArg(1);
 
   if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Instr26)) {
-    EXPECT_EQ(std::set<const llvm::Value *>{},
+    EXPECT_EQ(std::set<const llvm::Value *>{Param0},
               getCallFlowValueSet(Instr26, AliasImpl,
                                   CallSite->getArgOperand(0), FuncForInstr26));
-    EXPECT_EQ(std::set<const llvm::Value *>{},
+    EXPECT_EQ(std::set<const llvm::Value *>{Param1},
               getCallFlowValueSet(Instr26, AliasImpl,
                                   CallSite->getArgOperand(1), FuncForInstr26));
-    EXPECT_EQ(std::set<const llvm::Value *>{},
+    EXPECT_EQ(std::set<const llvm::Value *>{Param0},
               getCallFlowValueSet(Instr26, NoAliasImpl,
                                   CallSite->getArgOperand(0), FuncForInstr26));
-    EXPECT_EQ(std::set<const llvm::Value *>{},
+    EXPECT_EQ(std::set<const llvm::Value *>{Param1},
               getCallFlowValueSet(Instr26, NoAliasImpl,
                                   CallSite->getArgOperand(1), FuncForInstr26));
   } else {
@@ -724,9 +748,13 @@ TEST(PureFlow, RetFlow03) {
   ASSERT_TRUE(Instruction30);
   const auto *FunctionZ8newThreePKi = IRDB.getFunction("_Z8newThreePKi");
 
+  const auto &Got = getRetFlowValueSet(
+      Instruction30, AliasImpl, FunctionZ8newThreePKi->getArg(0), Instruction9);
+
   EXPECT_EQ((std::set<const llvm::Value *>{Instr15, Instr16, Instr29, Instr30}),
-            getRetFlowValueSet(Instruction30, AliasImpl,
-                               FunctionZ8newThreePKi->getArg(0), Instruction9));
+            Got)
+      << stringifyValueSet(Got);
+
   EXPECT_EQ(std::set<const llvm::Value *>{Instr29},
             getRetFlowValueSet(Instruction30, NoAliasImpl,
                                FunctionZ8newThreePKi->getArg(0), Instruction9));

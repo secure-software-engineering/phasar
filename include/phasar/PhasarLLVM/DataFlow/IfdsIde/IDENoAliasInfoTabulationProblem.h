@@ -1,31 +1,50 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDENOALIASINFOTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDENOALIASINFOTABULATIONPROBLEM_H
 
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 
-#include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Operator.h"
-#include "llvm/Support/Casting.h"
-
-// Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
+class Value;
 class Instruction;
 class Function;
-class StructType;
-class Value;
 } // namespace llvm
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
+namespace detail {
+class IDENoAliasDefaultFlowFunctionsImpl {
+public:
+  using d_t = const llvm::Value *;
+  using n_t = const llvm::Instruction *;
+  using f_t = const llvm::Function *;
+  using FlowFunctionType = FlowFunction<d_t>;
+  using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
 
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+  virtual ~IDENoAliasDefaultFlowFunctionsImpl() = default;
+
+  /// True, if the analysis knows this function, either because it is analyzed,
+  /// or because we have external information about it.
+  [[nodiscard]] virtual bool isFunctionModeled(f_t Fun) const;
+
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
+                                                              n_t /*Succ*/);
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunctionImpl(n_t CallInst,
+                                                            f_t CalleeFun);
+  [[nodiscard]] FlowFunctionPtrType getRetFlowFunctionImpl(n_t CallSite,
+                                                           f_t /*CalleeFun*/,
+                                                           n_t ExitInst,
+                                                           n_t /*RetSite*/);
+  [[nodiscard]] FlowFunctionPtrType
+  getCallToRetFlowFunctionImpl(n_t CallSite, n_t /*RetSite*/,
+                               llvm::ArrayRef<f_t> /*Callees*/);
+};
+} // namespace detail
+
+template <typename AnalysisDomainTy>
 class IDENoAliasInfoTabulationProblem
-    : public IDETabulationProblem<AnalysisDomainTy, Container> {
+    : public IDETabulationProblem<AnalysisDomainTy>,
+      private detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -39,97 +58,32 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  using FlowFunctionType = FlowFunction<d_t, Container>;
+  using FlowFunctionType = FlowFunction<d_t>;
   using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
 
-  IDENoAliasInfoTabulationProblem(
-      const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
-      std::optional<d_t>
-          ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : IDETabulationProblem<AnalysisDomainTy, Container>(
-            IRDB, std::move(EntryPoints), std::move(ZeroValue)) {
-    assert(IRDB != nullptr);
+  using IDETabulationProblem<AnalysisDomainTy>::IDETabulationProblem;
+
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
+                                                          n_t Succ) override {
+    return getNormalFlowFunctionImpl(Curr, Succ);
   }
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t /*Succ*/) override {
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-      return this->generateFlowIf(Load, [Load](d_t Source) {
-        return Source == Load->getPointerOperand();
-      });
-    }
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-      return strongUpdateStore(Store);
-    }
-    if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
-      return this->generateFlow(UnaryOp, UnaryOp->getOperand(0));
-    }
-    if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
-      return this->generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
-        return Source == BinaryOp->getOperand(0) ||
-               Source == BinaryOp->getOperand(1);
-      });
-    }
-    if (const auto *GetElementPtr = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
-      return this->generateFlow(GetElementPtr,
-                                GetElementPtr->getPointerOperand());
-    }
-    // TODO: ask Fabian if this is correct. {} caused a seq fault
-    return this->killAllFlows();
+  [[nodiscard]] FlowFunctionPtrType
+  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+    return getCallFlowFunctionImpl(CallInst, CalleeFun);
   }
-  FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
-                                          f_t CalleeFun) override {
-    if (const auto *CallSite =
-            llvm::dyn_cast_or_null<llvm::CallBase>(CallInst)) {
-      return mapFactsToCallee(CallSite, CalleeFun,
-                              [](d_t Actual, d_t Source) {
-                                return Actual == Source &&
-                                       Actual->getType()->isPointerTy();
-                              },
-                              {});
-    }
-    // TODO: ask Fabian if this is correct. {} caused a seq fault
-    return this->killAllFlows();
-  }
-  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t /*CalleeFun*/,
-                                         n_t ExitInst,
-                                         n_t /*RetSite*/) override {
-    // TODO: fix code below
-    // TODO: ask fabian if we can just pass llvm::cast<llvm::CallBase>(CallSite)
-    // to mapFactsToCaller here and skip the if llvm::dyn_cast_or_null
-    if (const auto *ConfirmedCallSite =
-            llvm::dyn_cast_or_null<llvm::CallBase>(CallSite)) {
-      return mapFactsToCaller(
-          ConfirmedCallSite, ExitInst, [](d_t Param, d_t Source) {
-            // TODO: Ask Fabian if Param == Source covers const? If not, why do
-            // the tests pass?
-            // The code below would then be the right implementation, right?
-            // Param == Source && (Param->getType()->isPointerTy() ||
-            // llvm::isa<llvm::Constant>(Param))
-            return Param == Source && Param->getType()->isPointerTy();
-          });
-    }
 
-    // TODO: ask Fabian if this is correct. {} caused a seq fault
-    return this->killAllFlows();
+  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
+                                                       f_t CalleeFun,
+                                                       n_t ExitInst,
+                                                       n_t RetSite) override {
+    return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
   }
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t /*RetSite*/,
-                           llvm::ArrayRef<f_t> /*Callees*/) override {
-    // TODO: alle pointer killen und alle globals
-    // Bei declaration only function können wir nicht davon ausgehen, dass der
-    // pointer gekillt wird außer bei Funktionen die der analyse bekannt sind.
-    //
-    // TODO: fix code belows
-    // TODO: argument 2: lambda funktion, die bei pointern false zurück gibt
-    // TODO: argmuent 3: false
-    if (const llvm::CallBase *CallBase =
-            llvm::dyn_cast_or_null<llvm::CallBase>(CallSite)) {
-      return mapFactsAlongsideCallSite(
-          CallBase, [](d_t Arg) { return !Arg->getType()->isPointerTy(); },
-          false);
-    }
-    // TODO: ask Fabian if this is correct. {} caused a seq fault
-    return this->identityFlow();
+
+  [[nodiscard]] FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override {
+    return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
   }
 };
 
