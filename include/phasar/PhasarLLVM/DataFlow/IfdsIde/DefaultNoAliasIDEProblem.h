@@ -3,6 +3,8 @@
 
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 namespace llvm {
 class Value;
@@ -42,7 +44,7 @@ public:
 } // namespace detail
 
 template <typename AnalysisDomainTy>
-class IDENoAliasInfoTabulationProblem
+class DefaultNoAliasIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
       private detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
@@ -62,6 +64,36 @@ public:
   using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
 
   using IDETabulationProblem<AnalysisDomainTy>::IDETabulationProblem;
+
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
+                                                          n_t Succ) override {
+    return getNormalFlowFunctionImpl(Curr, Succ);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType
+  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+    return getCallFlowFunctionImpl(CallInst, CalleeFun);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
+                                                       f_t CalleeFun,
+                                                       n_t ExitInst,
+                                                       n_t RetSite) override {
+    return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override {
+    return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
+  }
+};
+
+class DefaultNoAliasIFDSProblem
+    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
+      private detail::IDENoAliasDefaultFlowFunctionsImpl {
+public:
+  using IFDSTabulationProblem::IFDSTabulationProblem;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {

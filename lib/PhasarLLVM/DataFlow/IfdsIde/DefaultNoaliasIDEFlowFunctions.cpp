@@ -1,5 +1,5 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDENoAliasInfoTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 
 #include "llvm/ADT/STLExtras.h"

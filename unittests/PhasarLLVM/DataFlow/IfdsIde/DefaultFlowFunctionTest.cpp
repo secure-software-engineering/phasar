@@ -1,12 +1,8 @@
-#include "phasar/Domain/BinaryDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDEAliasInfoTabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDENoAliasInfoTabulationProblem.h"
-#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -25,82 +21,27 @@ using namespace psr;
 
 namespace {
 
-struct DFFAnalysisDomain : public psr::LLVMAnalysisDomainDefault {
-  using l_t = BinaryDomain; // required
-};
-
-class IDEAliasImpl : public IDEAliasInfoTabulationProblem<DFFAnalysisDomain> {
+class IDEAliasImpl : public DefaultAliasAwareIFDSProblem {
 public:
   IDEAliasImpl(LLVMProjectIRDB *IRDB)
-      : psr::IDEAliasInfoTabulationProblem<DFFAnalysisDomain>(IRDB, &PT, {},
-                                                              {}),
-        PT(IRDB){};
+      : DefaultAliasAwareIFDSProblem(IRDB, &PT, {}, {}), PT(IRDB){};
+
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
   };
-  EdgeFunction<l_t> getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
-                                          n_t /*Succ*/,
-                                          d_t /*SuccNode*/) override {
-    return {};
-  };
-
-  EdgeFunction<l_t> getCallEdgeFunction(n_t /*CallInst*/, d_t /*SrcNode*/,
-                                        f_t /*CalleeFun*/,
-                                        d_t /*DestNode*/) override {
-    return {};
-  };
-
-  EdgeFunction<l_t> getReturnEdgeFunction(n_t /*CallSite*/, f_t /*CalleeFun*/,
-                                          n_t /*ExitInst*/, d_t /*ExitNode*/,
-                                          n_t /*RetSite*/,
-                                          d_t /*RetNode*/) override {
-    return {};
-  };
-
-  EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
-                           d_t /*RetSiteNode*/,
-                           llvm::ArrayRef<f_t> /*Callees*/) override {
-    return {};
-  }
 
 private:
   FilteredLLVMAliasSet PT;
 };
 
-class IDENoAliasImpl
-    : public IDENoAliasInfoTabulationProblem<DFFAnalysisDomain> {
+class IDENoAliasImpl : public DefaultNoAliasIFDSProblem {
 public:
   IDENoAliasImpl(LLVMProjectIRDB *IRDB)
-      : psr::IDENoAliasInfoTabulationProblem<DFFAnalysisDomain>(IRDB, {}, {}){};
+      : DefaultNoAliasIFDSProblem(IRDB, {}, {}){};
+
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
   };
-  EdgeFunction<l_t> getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
-                                          n_t /*Succ*/,
-                                          d_t /*SuccNode*/) override {
-    return {};
-  };
-
-  EdgeFunction<l_t> getCallEdgeFunction(n_t /*CallInst*/, d_t /*SrcNode*/,
-                                        f_t /*CalleeFun*/,
-                                        d_t /*DestNode*/) override {
-    return {};
-  };
-
-  EdgeFunction<l_t> getReturnEdgeFunction(n_t /*CallSite*/, f_t /*CalleeFun*/,
-                                          n_t /*ExitInst*/, d_t /*ExitNode*/,
-                                          n_t /*RetSite*/,
-                                          d_t /*RetNode*/) override {
-    return {};
-  };
-
-  EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t /*CallSite*/, d_t /*CallNode*/, n_t /*RetSite*/,
-                           d_t /*RetSiteNode*/,
-                           llvm::ArrayRef<f_t> /*Callees*/) override {
-    return {};
-  }
 };
 
 std::set<const llvm::Value *>

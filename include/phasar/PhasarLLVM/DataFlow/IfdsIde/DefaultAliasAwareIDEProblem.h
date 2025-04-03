@@ -1,7 +1,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/IDENoAliasInfoTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <cassert>
@@ -34,7 +34,7 @@ public:
 protected:
   constexpr IDEAliasAwareDefaultFlowFunctionsImpl(LLVMAliasInfoRef AS) noexcept
       : AS(AS) {
-    assert(AS && "You mut provide an alias information handle!");
+    assert(AS && "You must provide an alias information handle!");
   }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
@@ -55,7 +55,7 @@ private:
 } // namespace detail
 
 template <typename AnalysisDomainTy>
-class IDEAliasInfoTabulationProblem
+class DefaultAliasAwareIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
       public detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
@@ -76,13 +76,48 @@ public:
 
   using container_type = typename FlowFunctionType::container_type;
 
-  explicit IDEAliasInfoTabulationProblem(
+  explicit DefaultAliasAwareIDEProblem(
       const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
                                                std::move(ZeroValue)),
+        detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
+
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
+                                                          n_t Succ) override {
+    return getNormalFlowFunctionImpl(Curr, Succ);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType
+  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+    return getCallFlowFunctionImpl(CallInst, CalleeFun);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
+                                                       f_t CalleeFun,
+                                                       n_t ExitInst,
+                                                       n_t RetSite) override {
+    return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override {
+    return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
+  }
+};
+
+class DefaultAliasAwareIFDSProblem
+    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault>,
+      public detail::IDEAliasAwareDefaultFlowFunctionsImpl {
+public:
+  explicit DefaultAliasAwareIFDSProblem(
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      std::vector<std::string> EntryPoints,
+      d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
+      : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
         detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
