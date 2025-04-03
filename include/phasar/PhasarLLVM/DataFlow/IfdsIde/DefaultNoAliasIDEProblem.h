@@ -46,7 +46,7 @@ public:
 template <typename AnalysisDomainTy>
 class DefaultNoAliasIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
-      private detail::IDENoAliasDefaultFlowFunctionsImpl {
+      protected detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -91,7 +91,7 @@ public:
 
 class DefaultNoAliasIFDSProblem
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
-      private detail::IDENoAliasDefaultFlowFunctionsImpl {
+      protected detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
   using IFDSTabulationProblem::IFDSTabulationProblem;
 

@@ -31,7 +31,6 @@ public:
     return AS;
   }
 
-protected:
   constexpr IDEAliasAwareDefaultFlowFunctionsImpl(LLVMAliasInfoRef AS) noexcept
       : AS(AS) {
     assert(AS && "You must provide an alias information handle!");
@@ -57,7 +56,7 @@ private:
 template <typename AnalysisDomainTy>
 class DefaultAliasAwareIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
-      public detail::IDEAliasAwareDefaultFlowFunctionsImpl {
+      protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -76,6 +75,11 @@ public:
 
   using container_type = typename FlowFunctionType::container_type;
 
+  /// Constructs an IDETabulationProblem with the usual arguments + alias
+  /// information.
+  ///
+  /// \note It is useful to use an instance of FilteredAliasSet for the alias
+  /// information to lower suprious aliases
   explicit DefaultAliasAwareIDEProblem(
       const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
       std::vector<std::string> EntryPoints,
@@ -111,8 +115,13 @@ public:
 
 class DefaultAliasAwareIFDSProblem
     : public IFDSTabulationProblem<LLVMAnalysisDomainDefault>,
-      public detail::IDEAliasAwareDefaultFlowFunctionsImpl {
+      protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
+  /// Constructs an IFDSTabulationProblem with the usual arguments + alias
+  /// information.
+  ///
+  /// \note It is useful to use an instance of FilteredAliasSet for the alias
+  /// information to lower suprious aliases
   explicit DefaultAliasAwareIFDSProblem(
       const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
       std::vector<std::string> EntryPoints,
