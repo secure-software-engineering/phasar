@@ -14,21 +14,21 @@
 
 namespace psr {
 
-// AnalysisDomain - This class should be specialized by different static
-// analyses types... which is why the default version declares all analysis
-// domains as aliases of void.
-//
-// Virtually all of PhASAR's internal analyses are implemented in a generic way
-// using interfaces and template parameters. In order to specify concrete types
-// for the template parameters such that an analysis can compute some useful
-// information on some concrete target code, a configuration template parameter
-// of type AnalysisDomain is passed around to make the necessary information
-// available to the required analyses.
-//
-// If a type is not meant to be used by an analysis it should be left as an
-// alias to void. If any analysis detects that a parameter is required to
-// conduct an analysis but not correctly set, it will statically report an error
-// and ask for the missing piece of information.
+/// AnalysisDomain - This class should be specialized by different static
+/// analyses types... which is why the default version declares all analysis
+/// domains as aliases of void.
+///
+/// Virtually all of PhASAR's internal analyses are implemented in a generic way
+/// using interfaces and template parameters. In order to specify concrete types
+/// for the template parameters such that an analysis can compute some useful
+/// information on some concrete target code, a configuration template parameter
+/// of type AnalysisDomain is passed around to make the necessary information
+/// available to the required analyses.
+///
+/// If a type is not meant to be used by an analysis it should be left as an
+/// alias to void. If any analysis detects that a parameter is required to
+/// conduct an analysis but not correctly set, it will statically report an
+/// error and ask for the missing piece of information.
 struct AnalysisDomain {
   // Data-flow fact --- Specifies the type of an individual data-flow fact that
   // is propagated through the program under analysis.
