@@ -1,8 +1,8 @@
-#include "phasar/PhasarLLVM/DB.h"
-#include "phasar/PhasarLLVM/Passes.h"
-#include "phasar/PhasarLLVM/Utils.h"
+#include "phasar/PhasarLLVM/DB.h"     // For LLVMProjectIRDB
+#include "phasar/PhasarLLVM/Passes.h" // For GeneralStatisticsAnalysis
+#include "phasar/PhasarLLVM/Utils.h"  // For llvmIRToString()
 
-#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstIterator.h" // For llvm::instructions()
 
 static void printIRStats(psr::LLVMProjectIRDB &IRDB);
 

@@ -1,7 +1,7 @@
 #include "phasar/PhasarLLVM/DB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy.h"
 
-#include <llvm/Demangle/Demangle.h>
+#include "llvm/Demangle/Demangle.h"
 
 int main(int Argc, char *Argv[]) {
   if (Argc < 2) {
