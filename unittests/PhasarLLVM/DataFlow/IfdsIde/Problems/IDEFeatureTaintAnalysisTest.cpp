@@ -152,8 +152,7 @@ protected:
   [[nodiscard]] inline std::set<std::string>
   taintsForInst(const llvm::Instruction *Inst,
                 SolverResults<const llvm::Instruction *, const llvm::Value *,
-                              IDEFeatureTaintEdgeFact>
-                    SR) {
+                              IDEFeatureTaintEdgeFact> SR) {
 
     if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
       if (Ret->getNumOperands() == 0) {
