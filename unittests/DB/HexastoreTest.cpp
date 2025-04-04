@@ -100,12 +100,12 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   struct Vertex {
     string Name;
     Vertex() = default;
-    Vertex(string Name) : Name(move(Name)) {}
+    Vertex(string Name) : Name(std::move(Name)) {}
   };
   struct Edge {
     string EdgeName;
     Edge() = default;
-    Edge(string Label) : EdgeName(move(Label)) {}
+    Edge(string Label) : EdgeName(std::move(Label)) {}
   };
 
   using graph_t = boost::adjacency_list<boost::setS, boost::vecS,
@@ -181,12 +181,12 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   struct Vertex {
     string Name;
     Vertex() = default;
-    Vertex(string Name) : Name(move(Name)) {}
+    Vertex(string Name) : Name(std::move(Name)) {}
   };
   struct Edge {
     string EdgeName;
     Edge() = default;
-    Edge(string Label) : EdgeName(move(Label)) {}
+    Edge(string Label) : EdgeName(std::move(Label)) {}
   };
 
   using graph_t = boost::adjacency_list<boost::setS, boost::vecS,

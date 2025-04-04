@@ -158,12 +158,6 @@ void LLVMBasedICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
 }
 
-nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
-  return CG.getAsJson(
-      [](f_t F) { return F->getName().str(); },
-      [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
-}
-
 template class ICFGBase<LLVMBasedICFG>;
 
 } // namespace psr

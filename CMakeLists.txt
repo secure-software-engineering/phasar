@@ -38,12 +38,6 @@ else()
   set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT OFF)
 endif()
 
-option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
-if(PHASAR_EXPERIMENTAL_CXX20)
-  message(DEPRECATION "The option PHASAR_EXPERIMENTAL_CXX20 is deprecated and will be removed in a future version of PhASAR. Use CMAKE_CXX_STANDARD=20 instead.")
-  set(CMAKE_CXX_STANDARD 20)
-endif()
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
