@@ -21,6 +21,12 @@ int main(int Argc, char *Argv[]) {
   // The easiest way of getting alias information is using the LLVMAliasSet:
   psr::LLVMAliasSet AS(&IRDB, /*UseLazyEvaluation=*/false);
 
+  // PhASAR APIs usually do not care, which alias-info implementation you use.
+  // They take a type-erased reference to any alias-info object.
+  // You can implicitly convert a pointer to any compatible alias-info object to
+  // an LLVMAliasInfoRef.
+  psr::LLVMAliasInfoRef ASRef = &AS;
+
   // You can print and load alias information from/to JSON:
   AS.printAsJson();
 

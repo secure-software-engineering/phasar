@@ -474,7 +474,7 @@ void LLVMTaintConfig::printImpl(llvm::raw_ostream &OS) const {
   OS << "TaintConfiguration: ";
   if (SourceValues.empty() && SinkValues.empty() && SanitizerValues.empty() &&
       !getRegisteredSourceCallBack() && !getRegisteredSinkCallBack()) {
-    OS << "empty";
+    OS << "empty\n";
     return;
   }
   OS << "\n\tSourceCallBack registered: " << (bool)SourceCallBack << '\n';
