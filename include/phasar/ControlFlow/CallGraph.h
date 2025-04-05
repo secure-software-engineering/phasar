@@ -177,8 +177,7 @@ public:
   [[nodiscard]] FunctionVertexTy *addFunctionVertex(f_t Fun) {
     auto [It, Inserted] = CG.CallersOf.try_emplace(std::move(Fun), nullptr);
     if (Inserted) {
-      auto Cap = CG.FunVertexOwner.capacity();
-      assert(CG.FunVertexOwner.size() < Cap &&
+      assert(CG.FunVertexOwner.size() < CG.FunVertexOwner.capacity() &&
              "Trying to add more than MaxNumFunctions Function Vertices");
       It->second = &CG.FunVertexOwner.emplace_back();
     }
