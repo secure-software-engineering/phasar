@@ -108,17 +108,17 @@ protected:
 };
 
 struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
-  VFSPointsToSetImpl(SVF::SVFModule *Mod) : SVFPointsToSet(Mod), VFS(PAG) {
-    VFS.initialize();
-    VFS.analyze();
-    VFS.finalize();
-  }
+  VFSPointsToSetImpl(SVF::SVFModule *Mod)
+      : SVFPointsToSet(Mod),
+        // Note: We must use the static createVFSWPA() function, otherwise SVF
+        // will leak memory
+        VFS(SVF::VersionedFlowSensitive::createVFSWPA(PAG)) {}
 
-  [[nodiscard]] SVF::PointerAnalysis &getPTA() const noexcept { return VFS; }
+  ~VFSPointsToSetImpl() { SVF::VersionedFlowSensitive::releaseVFSWPA(); }
 
-  // Note: SVF is not thread-safe anyway, so this 'mutable' should not be a
-  // problem
-  mutable SVF::VersionedFlowSensitive VFS;
+  [[nodiscard]] SVF::PointerAnalysis &getPTA() const noexcept { return *VFS; }
+
+  SVF::VersionedFlowSensitive *VFS;
 };
 
 struct DDAPointsToSetImpl : SVFPointsToSet<DDAPointsToSetImpl> {

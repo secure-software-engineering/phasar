@@ -73,6 +73,8 @@ class SVFVFSAnalysis : public SVFAliasAnalysisBase {
 public:
   SVFVFSAnalysis(SVF::SVFModule *Mod)
       : SVFAliasAnalysisBase(Mod, AliasAnalysisType::SVFVFS),
+        // Note: We must use the static createVFSWPA() function, otherwise SVF
+        // will leak memory
         VFS(SVF::VersionedFlowSensitive::createVFSWPA(PAG)) {}
 
   ~SVFVFSAnalysis() override { SVF::VersionedFlowSensitive::releaseVFSWPA(); }
