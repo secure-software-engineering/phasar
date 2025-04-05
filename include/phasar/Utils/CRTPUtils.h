@@ -17,13 +17,13 @@ template <typename Derived> class CRTPBase {
 protected:
   constexpr CRTPBase() noexcept = default;
 
-  [[nodiscard]] constexpr Derived &self() &noexcept {
+  [[nodiscard]] constexpr Derived &self() & noexcept {
     return static_cast<Derived &>(*this);
   }
-  [[nodiscard]] constexpr Derived &&self() &&noexcept {
+  [[nodiscard]] constexpr Derived &&self() && noexcept {
     return static_cast<Derived &&>(*this);
   }
-  [[nodiscard]] constexpr const Derived &self() const &noexcept {
+  [[nodiscard]] constexpr const Derived &self() const & noexcept {
     return static_cast<const Derived &>(*this);
   }
 };
