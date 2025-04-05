@@ -60,6 +60,21 @@ int main(int Argc, char *Argv[]) {
 
   llvm::outs() << "--------------------------\n";
 
+  // You can also go the other way around:
+  for (const auto *Fun : CG.getAllVertexFunctions()) {
+    llvm::outs() << "Found Function: " << llvm::demangle(Fun->getName().str())
+                 << '\n';
+
+    // The probably second-most important function: getCallersOf()
+    for (const auto *CallSite : CG.getCallersOf(Fun)) {
+      llvm::outs() << ">  called from " << psr::llvmIRToString(CallSite)
+                   << '\n';
+    }
+    llvm::outs() << '\n';
+  }
+
+  llvm::outs() << "--------------------------\n";
+
   // You can also export the call-graph as dot, such that you can display it
   // using a graphviz viewer:
   ICFG.print();

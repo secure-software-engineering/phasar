@@ -39,7 +39,8 @@ int main(int Argc, char *Argv[]) {
   llvm::outs() << "--------------- Instructions of 'main' ---------------\n";
 
   for (const auto &Inst : llvm::instructions(F)) {
-    // Phasar annotates all instructions with IRDB-wide unique integer Ids:
+    // Phasar annotates all instructions (and global variables) with IRDB-wide
+    // unique integer Ids:
     auto InstId = IRDB.getInstructionId(&Inst);
 
     llvm::outs() << '#' << InstId << ": " << psr::llvmIRToString(&Inst) << '\n';

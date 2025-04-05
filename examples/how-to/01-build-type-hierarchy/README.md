@@ -16,7 +16,7 @@ $ cmake --build .
 
 ## Test
 
-You can test the example program on the target program from [llvm-hello-world/target](../../llvm-hello-world/target/).
+You can test the example program on the target programs from [llvm-hello-world/target](../../llvm-hello-world/target/).
 
 ```bash
 # Invoked from the 01-build-type-hierarchy/build folder:

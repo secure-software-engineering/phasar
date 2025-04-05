@@ -68,6 +68,21 @@ int main(int Argc, char *Argv[]) {
     llvm::outs() << '\n';
   }
 
+  llvm::outs() << "--------------------------\n";
+
+  // You can also go the other way around:
+  for (const auto *Fun : CG.getAllVertexFunctions()) {
+    llvm::outs() << "Found Function: " << llvm::demangle(Fun->getName().str())
+                 << '\n';
+
+    // The probably second-most important function: getCallersOf()
+    for (const auto *CallSite : CG.getCallersOf(Fun)) {
+      llvm::outs() << ">  called from " << psr::llvmIRToString(CallSite)
+                   << '\n';
+    }
+    llvm::outs() << '\n';
+  }
+
   // You can also create an LLVMBasedICFG from an already existing call-graph:
   psr::LLVMBasedICFG ICFG(std::move(CG), &IRDB);
 
