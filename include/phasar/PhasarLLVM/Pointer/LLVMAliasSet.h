@@ -17,14 +17,9 @@
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Utils/AnalysisProperties.h"
-#include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
-
-#include "nlohmann/json.hpp"
-
-#include <utility>
 
 namespace llvm {
 class Value;
@@ -99,10 +94,6 @@ public:
                       AliasResult Kind = AliasResult::MustAlias);
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
-
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const;
 
   [[nodiscard]] LLVMAliasSetData getLLVMAliasSetData() const;
 

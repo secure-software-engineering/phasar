@@ -34,7 +34,9 @@
 
 namespace psr {
 
-template <typename D, typename V = BinaryDomain> class SpecialSummaries {
+template <typename D, typename V = BinaryDomain>
+class [[deprecated("This ancient API is not maintained and should not be used "
+                   "anymore")]] SpecialSummaries {
   using FlowFunctionType = FlowFunction<D>;
   using FlowFunctionPtrType = std::shared_ptr<FlowFunction<D>>;
 
@@ -50,8 +52,8 @@ private:
     // insert default flow and edge functions
     for (const auto &FunctionName :
          PhasarConfig::getPhasarConfig().specialFunctionNames()) {
-      SpecialFlowFunctions.insert(
-          std::make_pair(FunctionName, Identity<D>::getInstance()));
+      // SpecialFlowFunctions.insert(
+      //     std::make_pair(FunctionName, Identity<D>::getInstance()));
       SpecialEdgeFunctions.insert(
           std::make_pair(FunctionName, EdgeIdentity<V>{}));
     }
@@ -95,8 +97,8 @@ public:
     return SpecialFlowFunctions.count(Name);
   }
 
-  FlowFunctionPtrType
-  getSpecialFlowFunctionSummary(const llvm::Function *Func) {
+  FlowFunctionPtrType getSpecialFlowFunctionSummary(
+      const llvm::Function *Func) {
     return getSpecialFlowFunctionSummary(Func->getName());
   }
 
@@ -104,18 +106,18 @@ public:
     return SpecialFlowFunctions[Name];
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  getSpecialEdgeFunctionSummary(const llvm::Function *Func) {
+  std::shared_ptr<EdgeFunction<V>> getSpecialEdgeFunctionSummary(
+      const llvm::Function *Func) {
     return getSpecialEdgeFunctionSummary(Func->getName());
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  getSpecialEdgeFunctionSummary(const std::string &Name) {
+  std::shared_ptr<EdgeFunction<V>> getSpecialEdgeFunctionSummary(
+      const std::string &Name) {
     return SpecialEdgeFunctions[Name];
   }
 
-  friend llvm::raw_ostream &
-  operator<<(llvm::raw_ostream &OS, const SpecialSummaries<D> &SpecialSumms) {
+  friend llvm::raw_ostream &operator<<(
+      llvm::raw_ostream &OS, const SpecialSummaries<D> &SpecialSumms) {
     OS << "SpecialSummaries:\n";
     for (auto &Entry : SpecialSumms.SpecialFunctionNames) {
       OS << Entry.first << " ";

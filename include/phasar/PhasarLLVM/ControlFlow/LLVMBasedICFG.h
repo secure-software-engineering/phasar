@@ -135,9 +135,6 @@ public:
 
   using ICFGBase::printAsJson;
 
-  using CFGBase::getAsJson;
-  using ICFGBase::getAsJson;
-
 private:
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
@@ -150,7 +147,6 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   void printAsJsonImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const LLVMBasedCallGraph &getCallGraphImpl() const noexcept {
     return CG;
   }
