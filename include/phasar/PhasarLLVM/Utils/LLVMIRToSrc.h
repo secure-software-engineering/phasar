@@ -38,6 +38,7 @@ class DILocation;
 } // namespace llvm
 
 namespace psr {
+
 struct DebugLocation {
   unsigned Line{};
   unsigned Column{};

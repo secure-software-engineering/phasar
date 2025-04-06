@@ -107,14 +107,12 @@ public:
 
   virtual void otherInst(const llvm::Instruction *Inst);
 
+  [[nodiscard]] virtual std::string str() const = 0;
+
   /// Whether the ICFG needs to reconsider all dynamic call-sites once there
   /// have been changes through handlePossibleTargets().
   ///
-  /// Make true for performance (may be less sound then)
-  [[nodiscard]] virtual bool isIndependent() const noexcept { return false; }
-
-  [[nodiscard]] virtual std::string str() const = 0;
-
+  /// Make false for performance (may be less sound then)
   [[nodiscard]] virtual bool mutatesHelperAnalysisInformation() const noexcept {
     // Conservatively returns true. Override if possible
     return true;

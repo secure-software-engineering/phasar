@@ -57,8 +57,6 @@ public:
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                               const llvm::Function *CalleeTarget);
 
-  [[nodiscard]] bool isIndependent() const noexcept override { return false; }
-
   [[nodiscard]] std::string str() const override;
 
   [[nodiscard]] bool
