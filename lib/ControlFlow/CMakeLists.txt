@@ -6,4 +6,5 @@ add_phasar_library(phasar_controlflow
     phasar_utils
   LLVM_LINK_COMPONENTS Support
   LINK_PRIVATE nlohmann_json::nlohmann_json
+  MODULE_FILES control_flow.cppm
 )
