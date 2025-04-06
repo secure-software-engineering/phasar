@@ -152,8 +152,7 @@ protected:
   [[nodiscard]] inline std::set<std::string>
   taintsForInst(const llvm::Instruction *Inst,
                 SolverResults<const llvm::Instruction *, const llvm::Value *,
-                              IDEFeatureTaintEdgeFact>
-                    SR) {
+                              IDEFeatureTaintEdgeFact> SR) {
 
     if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
       if (Ret->getNumOperands() == 0) {
@@ -243,15 +242,15 @@ PHASAR_SKIP_TEST(TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_04) {
   LIBCPP_GTEST_SKIP;
 
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace("main", 23, "retval", std::set<std::string>{"13"});
-  GroundTruth.emplace("main", 23, "argc.addr", std::set<std::string>{"14"});
-  GroundTruth.emplace("main", 23, "argv.addr", std::set<std::string>{"15"});
-  GroundTruth.emplace("main", 23, "i", std::set<std::string>{"16"});
+  GroundTruth.emplace("main", 23, "retval", std::set<std::string>{"7"});
+  GroundTruth.emplace("main", 23, "argc.addr", std::set<std::string>{"8"});
+  GroundTruth.emplace("main", 23, "argv.addr", std::set<std::string>{"9"});
+  GroundTruth.emplace("main", 23, "i", std::set<std::string>{"10"});
   GroundTruth.emplace("main", 23, "j",
-                      std::set<std::string>{"16", "17", "19", "18"});
+                      std::set<std::string>{"10", "11", "12", "13"});
   GroundTruth.emplace(
       "main", 23, "k",
-      std::set<std::string>{"16", "17", "18", "19", "20", "24", "25"});
+      std::set<std::string>{"10", "11", "12", "13", "14", "18", "19"});
   doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth, false);
 })
 
@@ -444,11 +443,11 @@ TEST_F(IDEFeatureTaintAnalysisTest, HandleGlobalTest_05) {
   // NOTE: Facts at init() should be empty, except for its own ID;
   //       g should be strongly updated
 
-  GroundTruth.emplace("main", 1, "g", std::set<std::string>{"2"});
-  GroundTruth.emplace("main", 2, "g", std::set<std::string>{"8"});
+  GroundTruth.emplace("main", 1, "g", std::set<std::string>{"0"});
+  GroundTruth.emplace("main", 2, "g", std::set<std::string>{"2"});
   GroundTruth.emplace("main", 4, "call",
-                      std::set<std::string>{"10", "13", "14", "8"});
-  GroundTruth.emplace("main", 4, "g", std::set<std::string>{"8"});
+                      std::set<std::string>{"2", "4", "7", "8"});
+  GroundTruth.emplace("main", 4, "g", std::set<std::string>{"2"});
 
   doAnalysisAndCompareResults("global_05_cpp.ll", {"main"}, GroundTruth, true);
 }

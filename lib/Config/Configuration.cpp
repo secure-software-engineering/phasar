@@ -55,10 +55,6 @@ llvm::StringRef PhasarConfig::PhasarDirectory() noexcept {
   return PHASAR_SRC_DIR;
 }
 
-llvm::StringRef PhasarConfig::DefaultSourceSinkFunctionsPath() noexcept {
-  return PHASAR_SRC_DIR "/config/phasar-source-sink-function.json";
-}
-
 static bool loadConfigFileInto(PhasarConfig &PC, llvm::StringRef FileName,
                                std::set<std::string> &Lines) {
   auto ConfigFile = PC.readConfigFileAsTextOrErr(FileName);

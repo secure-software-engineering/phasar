@@ -61,23 +61,9 @@ foreach(component ${phasar_FIND_COMPONENTS})
 endforeach()
 
 if (NOT DEFINED phasar_FOUND OR phasar_FOUND EQUAL TRUE)
-  foreach(component ${phasar_FIND_COMPONENTS})
-    # For backwards compatibility -- will be removed with next release
-    add_library(phasar::phasar_${component} ALIAS phasar::${component})
-  endforeach()
-
   if (NOT phasar_FIND_COMPONENTS)
     list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
     # Default target
     add_library(phasar ALIAS phasar::phasar)
   endif()
-
-  function(phasar_config executable)
-    message(DEPRECATION "The function  'phasar_config' is deprecated. Use target_link_libraries(${executable} PUBLIC phasar::phasar) instead!")
-
-    target_link_libraries(${executable}
-      PUBLIC
-        ${PHASAR_NEEDED_LIBS}
-    )
-  endfunction()
 endif()

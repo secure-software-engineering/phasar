@@ -12,8 +12,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <vector>
 
 namespace llvm {
@@ -37,10 +35,6 @@ public:
   [[nodiscard]] virtual size_t size() const = 0;
 
   virtual void print(llvm::raw_ostream &OS) const = 0;
-
-  [[nodiscard,
-    deprecated("Please use printAsJson() instead")]] virtual nlohmann::json
-  getAsJson() const = 0;
 
   virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
 };
