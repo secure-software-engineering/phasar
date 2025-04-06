@@ -285,6 +285,8 @@ function(add_phasar_library name)
       FILES ${PHASAR_LIB_MODULE_FILES}
     )
 
+    target_compile_features(${name} PUBLIC cxx_std_20)
+
     set(install_module FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_LIBDIR})
   endif()
 
