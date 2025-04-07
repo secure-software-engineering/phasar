@@ -18,6 +18,8 @@
 namespace psr {
 template <typename T, typename Enable = void> class Compressor;
 
+/// A data structure capable of compressing and storing data of a given type T.
+/// This implementation can efficiently pass by value.
 template <typename T>
 class Compressor<T, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
 public:
@@ -61,6 +63,8 @@ private:
   llvm::SmallVector<T, 0> FromInt;
 };
 
+/// A data structure capable of compressing and storing data of a given type T.
+/// This implementation cannot efficiently pass by value.
 template <typename T>
 class Compressor<T, std::enable_if_t<!CanEfficientlyPassByValue<T>>> {
 public:
@@ -69,6 +73,9 @@ public:
     ToInt.reserve(Capacity);
   }
 
+  /// Returns the index of the given element in the compressors storage. If the
+  /// element isn't present yet, it will be added first and its index will
+  /// then be returned.
   uint32_t getOrInsert(const T &Elem) {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;
@@ -79,6 +86,9 @@ public:
     return Ret;
   }
 
+  /// Returns the index of the given element in the compressors storage. If the
+  /// element isn't present yet, it will be added first and its index will
+  /// then be returned.
   uint32_t getOrInsert(T &&Elem) {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;
@@ -89,6 +99,8 @@ public:
     return Ret;
   }
 
+  /// Returns the index of the given element in the compressors storage. If the
+  /// element isn't present, std::nullopt will be returned
   std::optional<uint32_t> getOrNull(const T &Elem) const {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;

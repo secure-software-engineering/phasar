@@ -73,6 +73,15 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
+  /// Takes an intermediate representation data base (IRDB) and collects
+  /// information from it to create a tabulation problem. Can be solved using
+  /// the IDESolver for example.
+  /// @param[in] IRDB The project intermediate representation data base, on
+  /// which the tabulation problem will be build up.
+  /// @param[in] EntryPoints All entry points of the project, given as a vector
+  /// of strings, where the strings are the names of the entry functions. An
+  /// example would simply be { "main" }.
+  /// @param[in] ZeroValue An optional argument, to set a custom zero value.
   explicit IDETabulationProblem(
       const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
       std::optional<d_t>

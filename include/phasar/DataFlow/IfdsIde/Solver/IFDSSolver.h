@@ -27,6 +27,9 @@
 
 namespace psr {
 
+/// Solves the given IFDSTabulationProblem as described in the 1996 paper by
+/// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
+/// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IFDSSolver

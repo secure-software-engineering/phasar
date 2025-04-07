@@ -29,6 +29,8 @@
 
 namespace psr {
 
+/// A solver class for intraprocedual monotone problems.
+/// @tparam AnalysisDomainTy type of the analysis domain.
 template <typename AnalysisDomainTy> class IntraMonoSolver {
 public:
   using ProblemTy = IntraMonoProblem<AnalysisDomainTy>;

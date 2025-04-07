@@ -62,6 +62,14 @@ public:
   // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
+  /// An intraprocedural monotone problem generated from an intermediate
+  /// representation, a type hierarchy of said representation, a control flow
+  /// graph, points-to information and optionally a vector of entry points.
+  /// @param IRDB A project intermediate representation data base.
+  /// @param TH A type hierarchy based on the given IRDB.
+  /// @param CF A control flow graph based on the given IRDB.
+  /// @param PT Points-to information based on the given IRDB.
+  /// @param EntryPoints A vector of entry points. Empty by default.
   IntraMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
                    const TypeHierarchy<t_t, f_t> *TH, const CFGBase<c_t> *CF,
                    AliasInfoRef<v_t, n_t> PT,
