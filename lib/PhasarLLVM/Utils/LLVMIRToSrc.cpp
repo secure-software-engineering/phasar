@@ -29,6 +29,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 
@@ -180,8 +181,23 @@ getOffsetAndBase(const llvm::Value *V) {
   return {Base, Offset};
 }
 
+namespace t2 {
+LLVM_DUMP_METHOD extern void dumpDIType(const llvm::DIType *Ty) {
+  if (!Ty) {
+    llvm::errs() << "<null>\n";
+  }
+
+  Ty->print(llvm::errs());
+}
+LLVM_DUMP_METHOD extern void dumpDIType(const llvm::DIDerivedType *Ty) {
+  dumpDIType(static_cast<const llvm::DIType *>(Ty));
+}
+
+} // namespace t2
+
 static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
-  const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(BaseTy);
+  const auto *DerivedTy =
+      llvm::dyn_cast_if_present<llvm::DIDerivedType>(BaseTy);
   auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
 
   if (Offset == 0 && DerivedTy) {
@@ -189,13 +205,13 @@ static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
   }
 
   if (const auto *CompositeTy =
-          llvm::dyn_cast<llvm::DICompositeType>(StructTy)) {
-    if (Offset > CompositeTy->getElements().size()) {
+          llvm::dyn_cast_if_present<llvm::DICompositeType>(StructTy)) {
+    auto Elems = CompositeTy->getElements();
+    if (!Elems || Offset >= Elems.size()) {
       return nullptr;
     }
-    auto Elems = CompositeTy->getElements();
 
-    if (auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elems[Offset])) {
+    if (auto *ElemTy = llvm::dyn_cast_if_present<llvm::DIType>(Elems[Offset])) {
       return ElemTy;
     }
   }
@@ -239,6 +255,10 @@ static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth) {
 }
 
 llvm::DIType *psr::getVarTypeFromIR(const llvm::Value *V) {
+  if (!V) {
+    return nullptr;
+  }
+
   return getVarTypeFromIRRec(V, 0);
 }
 
