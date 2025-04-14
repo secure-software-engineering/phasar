@@ -40,6 +40,8 @@ class SparseLLVMBasedICFGView
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFGView>;
 
 public:
+  /// @param[in] ICF Interprocedural control flow graph.
+  /// @param[in] PT Points-to information that represents aliases.
   explicit SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF,
                                    LLVMAliasInfoRef PT);
 

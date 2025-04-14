@@ -23,6 +23,8 @@ class GlobalVariable;
 namespace psr {
 class LLVMProjectIRDB;
 
+/// A class that creates an unordered map of the virtual functions of an
+/// intermediate representation data bases module.
 class LLVMVFTableProvider {
 public:
   explicit LLVMVFTableProvider(const llvm::Module &Mod);

@@ -20,12 +20,21 @@ class SparseLLVMBasedCFG;
 class DIBasedTypeHierarchy;
 struct SVFGCache;
 
+/// A class that represents a sparse interprocedural control flow graph.
 class SparseLLVMBasedICFG
     : public LLVMBasedICFG,
       public SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG> {
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG>;
 
 public:
+  /// @param[in, out] IRDB Intermediate representation data base.
+  /// @param[in] CGType The type of the call graph analysis.
+  /// @param[in] EntryPoints The entry points of the program the IRDB is based
+  /// on. Often this is just { "main" }.
+  /// @param TH Type Hierarchy of the given IRDB.
+  /// @param PT Points-to information that represents aliases.
+  /// @param S Level of soundness.
+  /// @param IncludeGlobals Flag to determine if globals should be included.
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
                                CallGraphAnalysisType CGType,
                                llvm::ArrayRef<std::string> EntryPoints = {},

@@ -44,6 +44,7 @@ class Resolver;
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
 
+/// A class that implements an interprocedural control flow graph.
 class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
 

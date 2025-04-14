@@ -28,6 +28,8 @@ class DICompositeType;
 
 namespace psr {
 class DIBasedTypeHierarchy;
+
+/// A resolver that performs a rapid type analysis.
 class RTAResolver : public CHAResolver {
 public:
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,

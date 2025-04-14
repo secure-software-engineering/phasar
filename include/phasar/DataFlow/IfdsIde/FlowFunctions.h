@@ -153,13 +153,13 @@ public:
   /// dataflow-facts x, f(x) = {x}.
   ///
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///                   x1  x1  x3 ...
   ///                   |   |   |  ...
   ///  id-instruction   |   |   |  ...
   ///                   v   v   v  ...
   ///                   x1  x2  x3 ...
-  ///
+  /// \endcode
   static auto identityFlow() {
     struct IdFF final : public FlowFunction<d_t, container_type> {
       container_type computeTargets(d_t Source) override {
@@ -178,14 +178,14 @@ public:
   /// dataflow-facts x, f(x) = F(x).
   ///
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///                 x
   ///                 |
   ///  inst           F
   ///           /  /  |  \  \  ...
   ///          v  v   v   v  v
   ///          x1 x2  x  x3 x4
-  ///
+  /// \endcode
   template <typename Fn> static auto lambdaFlow(Fn &&F) {
     struct LambdaFlow final : public FlowFunction<d_t, container_type> {
       LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
@@ -208,17 +208,18 @@ public:
   ///
   /// Given a flow function f = generateFlow(v, w), then for all incoming
   /// dataflow facts x:
+  /// \code
   ///   f(w) = {v, w},
   ///   f(x) = {x}.
-  ///
+  /// \endcode
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///       x  w     u ...
   ///       |  |\    | ...
   ///  inst |  | \   | ...
   ///       v  v  v  v ...
   ///       x  w  v  u
-  ///
+  /// \endcode
   /// \note If the FactToGenerate already holds at the beginning of the
   /// statement, this flow function does not kill it. For IFDS analysis it makes
   /// no difference, but in the case of IDE, the corresponding edge functions
@@ -250,9 +251,10 @@ public:
   ///
   /// So, given a flow function f = generateFlowIf(v, p), for all incoming
   /// dataflow facts x:
+  /// \code
   ///   f(x) = {v, x}   if p(x) == true
   ///   f(x) = {x}      else.
-  ///
+  /// \endcode
   template <typename Fn = psr::TrueFn,
             typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, d_t>>>
   static auto generateFlowIf(d_t FactToGenerate, Fn Predicate) {
@@ -281,17 +283,18 @@ public:
   ///
   /// Given a flow function f = generateManyFlows({v1, v2, ..., vN}, w), for all
   /// incoming dataflow facts x:
+  /// \code
   ///   f(w) = {v1, v2, ..., vN, w}
   ///   f(x) = {x}.
-  ///
+  /// \endcode
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///       x  w                u ...
   ///       |  |\  \ ... \      | ...
   ///  inst |  | \  \ ... \     | ...
   ///       v  v  v  v ... \    v ...
   ///       x  w  v1 v2 ... vN  u
-  ///
+  /// \endcode
   template <typename Range = std::initializer_list<d_t>,
             typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
   static auto generateManyFlows(Range &&FactsToGenerate, d_t From) {
@@ -324,17 +327,18 @@ public:
   /// (FactToKill).
   ///
   /// Given a flow function f = killFlow(v), for all incoming dataflow facts x:
+  /// \code
   ///   f(v) = {}
   ///   f(x) = {x}
-  ///
+  /// \endcode
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///           u  v  w ...
   ///           |  |  |
   ///  inst     |     |
   ///           v     v
   ///           u  v  w ...
-  ///
+  /// \endcode
   static auto killFlow(d_t FactToKill) {
     struct KillFlow final : public FlowFunction<d_t, container_type> {
       KillFlow(d_t KillValue) : KillValue(std::move(KillValue)) {}
@@ -355,9 +359,10 @@ public:
   ///
   /// Given a flow function f = killFlowIf(p), for all incoming dataflow facts
   /// x:
+  /// \code
   ///   f(x) = {}   if p(x) == true
   ///   f(x) = {x}  else.
-  ///
+  /// \endcode
   template <typename Fn = psr::TrueFn,
             typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, d_t>>>
   static auto killFlowIf(Fn Predicate) {
@@ -382,20 +387,21 @@ public:
   ///
   /// Given a flow function f = killManyFlows({v1, v2, ..., vN}), for all
   /// incoming dataflow facts x:
+  /// \code
   ///   f(v1) = {}
   ///   f(v2) = {}
   ///   ...
   ///   f(vN) = {}
   ///   f(x)  = {x}.
-  ///
+  /// \endcode
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///           u  v1  v2 ... vN  w ...
   ///           |  |   |       |  |
   ///  inst     |                 |
   ///           v                 v
   ///           u  v1  v2 ... vN  w ...
-  ///
+  /// \endcode
   template <typename Range = std::initializer_list<d_t>,
             typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
   static auto killManyFlows(Range &&FactsToKill) {
@@ -419,8 +425,9 @@ public:
   /// A flow function that stops propagating *all* incoming dataflow facts.
   ///
   /// Given a flow function f = killAllFlows(), for all incoming dataflow facts
+  /// \code
   /// x, f(x) = {}.
-  ///
+  /// \endcode
   static auto killAllFlows() {
     struct KillAllFF final : public FlowFunction<d_t, container_type> {
       Container computeTargets(d_t /*Source*/) override { return Container(); }
@@ -440,20 +447,21 @@ public:
   ///
   /// Given a flow function f = generateFlowAndKillAllOthers(v, w), for all
   /// incoming dataflow facts x:
+  /// \code
   ///   f(w) = {v, w}
   ///   f(x) = {}.
-  ///
+  /// \endcode
   /// Equivalent to: killFlowIf(λz.z!=w) o generateFlow(v, w) (where o denotes
   /// function composition)
   ///
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///         x  w     u ...
   ///         |  |\    |
   ///  inst      | \     ...
   ///            v  v
   ///         x  w  v  u
-  ///
+  /// \endcode
   static auto generateFlowAndKillAllOthers(d_t FactToGenerate, d_t From) {
     struct GenFlowAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
@@ -481,17 +489,18 @@ public:
   ///
   /// Given a flow function f = generateManyFlowsAndKillAllOthers({v1, v2, ...,
   /// vN}, w), for all incoming dataflow facts x:
+  /// \code
   ///   f(w) = {v1, v2, ..., vN, w}
   ///   f(x) = {}.
-  ///
+  /// \endcode
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///       x  w                u ...
   ///       |  |\  \ ... \      | ...
   ///  inst    | \  \ ... \       ...
   ///          v  v  v ... \      ...
   ///       x  w  v1 v2 ... vN  u
-  ///
+  /// \endcode
   template <typename Range = std::initializer_list<d_t>,
             typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
   static auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate,
@@ -533,19 +542,20 @@ public:
   ///
   /// Given a flow function f = transferFlow(v, w), for all incoming dataflow
   /// facts x:
+  /// \code
   ///   f(v) = {}
   ///   f(w) = {v, w}
   ///   f(x) = {x}.
-  ///
+  /// \endcode
   /// In the exploded supergraph it may look as follows:
-  ///
+  /// \code
   ///       x  w   v  u ...
   ///       |  |\  |  | ...
   ///       |  | \    | ...
   ///  inst |  |  \   | ...
   ///       v  v   v  v ...
   ///       x  w   v  u
-  ///
+  /// \endcode
   static auto transferFlow(d_t FactToGenerate, d_t From) {
     struct TransferFlow final : public FlowFunction<d_t, container_type> {
       TransferFlow(d_t GenValue, d_t FromValue)
@@ -575,8 +585,9 @@ public:
   ///
   /// Given a flow function f = unionFlows(g, h), for all incoming dataflow
   /// facts x:
+  /// \code
   ///   f(x) = g(x) u h(x).     (where u denotes set-union)
-  ///
+  /// \endcode
   template <typename F1, typename F2,
             typename = std::enable_if_t<
                 std::is_same_v<d_t, typename F2::value_type> &&
@@ -657,16 +668,16 @@ public:
   ///
   /// f is applied to each data-flow fact d_i that holds before instruction_1.
   /// We assume that f is implemented to produce the following outputs.
-  ///
+  /// \code
   ///    f(0) -> {0}       // pass the lambda (or zero fact) as identity
   ///    f(o) -> {o, x}    // generate a new fact x from o
   ///    f(.) -> {.}       // pass all other facts that hold before
   ///    instruction_1
   ///                      // as identity
-  ///
+  /// \endcode
   /// The above implementation corresponds to the following edges in the
   /// exploded supergraph.
-  ///
+  /// \code
   ///                         0  o      ...
   ///                         |  |\     ...
   /// x = instruction_1 o p   |  | \    ...
@@ -675,7 +686,7 @@ public:
   ///                         0  o  x   ...
   ///
   /// y = instruction_2 q r
-  ///
+  /// \endcode
   virtual FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) = 0;
 
   ///
@@ -710,16 +721,16 @@ public:
   ///
   /// f is applied to each data-flow fact d_i that holds before CallInst. We
   /// assume that f is implemented to produce the following outputs.
-  ///
+  /// \code
   ///    f(0) -> {0}       // pass as identity into the callee target
   ///    f(o) -> {q}       // map actual o into formal q
   ///    f(p) -> {r}       // map actual p into formal r
   ///    f(.) -> {}        // kill all other facts that are not visible to the
   ///                      // callee target
-  ///
+  /// \endcode
   /// The above implementation corresponds to the following edges in the
   /// exploded supergraph.
-  ///
+  /// \code
   ///                            0  o  p   ...
   ///                             \  \  \  ...
   /// x = CalleeFun(o, p, ...)     \  \  +----------------+
@@ -736,7 +747,7 @@ public:
   ///                                               0  q  r   ...
   ///
   ///                                 start point
-  ///
+  /// \endcode
   virtual FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
                                                   f_t CalleeFun) = 0;
 
@@ -761,16 +772,16 @@ public:
   ///
   /// f is applied to each data-flow fact d_i that holds before ExitInst. We
   /// assume that f is implemented to produce the following outputs.
-  ///
+  /// \code
   ///    f(0) -> {0}       // pass as identity into the callee target
   ///    f(r) -> {x}       // map return value to lhs variable at CallSite
   ///    f(q) -> {o}       // map pointer-typed formal q to actual o
   ///    f(.) -> {}        // kill all other facts that are not visible to the
   ///                      // caller
-  ///
+  /// \endcode
   /// The above implementation corresponds to the following edges in the
   /// exploded supergraph.
-  ///
+  /// \code
   ///                         0  o   ...
   ///
   /// x = CalleeFun(o, ...)
@@ -787,7 +798,7 @@ public:
   ///                                            0  q  r   ...
   ///
   ///                                 return r
-  ///
+  /// \endcode
   virtual FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
                                                  n_t ExitInst, n_t RetSite) = 0;
 
@@ -825,7 +836,7 @@ public:
   ///
   /// f is applied to each data-flow fact d_i that holds before CallSite. We
   /// assume that f is implemented to produce the following outputs.
-  ///
+  /// \code
   ///    f(0) -> {0}       // pass lambda as identity alongsite the CallSite
   ///    f(o) -> {o}       // assuming that o is passed by value, it is passed
   ///                      // alongsite the CallSite
@@ -835,10 +846,10 @@ public:
   ///    f(.) -> {.}       // pass everything that is not involved in the call
   ///    as
   ///                      // identity
-  ///
+  /// \endcode
   /// The above implementation corresponds to the following edges in the
   /// exploded supergraph.
-  ///
+  /// \code
   ///                            0  o   ...
   ///                            |  |
   ///                            |  +-------+
@@ -850,7 +861,7 @@ public:
   ///                            |  +-------+
   ///                            v  v
   ///                            0  o  x   ...
-  ///
+  /// \endcode
   virtual FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) = 0;
@@ -870,6 +881,6 @@ public:
   }
 };
 
-} // namespace  psr
+} // namespace psr
 
 #endif

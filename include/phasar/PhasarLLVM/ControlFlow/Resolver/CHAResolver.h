@@ -26,6 +26,8 @@ class CallBase;
 
 namespace psr {
 class DIBasedTypeHierarchy;
+
+/// A resolver that performs a class hierarchy analysis.
 class CHAResolver : public Resolver {
 public:
   CHAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,

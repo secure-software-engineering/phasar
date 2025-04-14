@@ -68,6 +68,9 @@ getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
 [[nodiscard]] bool isVirtualCall(const llvm::Instruction *Inst,
                                  const LLVMVFTableProvider &VTP);
 
+/// A parent class that serves as the basis for specific resolver analyses.
+/// Create a specific resolver by making a new class, inheriting this resolver
+/// class and implementing the virtual functions as needed.
 class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;

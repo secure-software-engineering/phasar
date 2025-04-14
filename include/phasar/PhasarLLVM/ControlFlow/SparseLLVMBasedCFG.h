@@ -23,6 +23,7 @@ template <> struct CFGTraits<SparseLLVMBasedCFG> : CFGTraits<LLVMBasedCFG> {
   using v_t = const llvm::Value *;
 };
 
+/// A class that represents a sparse control flow graph.
 class SparseLLVMBasedCFG : public LLVMBasedCFG,
                            public SparseCFGBase<SparseLLVMBasedCFG> {
   friend struct SVFGCache;

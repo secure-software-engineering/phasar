@@ -36,6 +36,7 @@ template <> struct CFGTraits<LLVMBasedCFG> {
 
 template <> struct CFGTraits<LLVMBasedBackwardCFG> : CFGTraits<LLVMBasedCFG> {};
 
+/// A class that implements a control flow graph.
 namespace detail {
 template <typename Derived> class LLVMBasedCFGImpl : public CFGBase<Derived> {
   friend CFGBase<Derived>;

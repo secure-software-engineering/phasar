@@ -36,6 +36,8 @@ namespace psr {
 
 class DIBasedTypeHierarchy;
 
+/// A resolver that performs an on-the-fly analysis based on points-to info
+/// (default).
 class OTFResolver : public Resolver {
 public:
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,

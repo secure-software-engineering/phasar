@@ -18,6 +18,7 @@ class CallBase;
 
 namespace psr {
 
+/// A resolver that doesn't resolve indirect- and virtual calls
 class NOResolver final : public Resolver {
 public:
   NOResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
