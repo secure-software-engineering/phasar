@@ -25,6 +25,8 @@ class LLVMProjectIRDB;
 class LLVMBasedICFG;
 class LLVMBasedCFG;
 
+/// A default analysis domain that can be either used outright, or be used as a
+/// reference for custom analysis domains.
 struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;

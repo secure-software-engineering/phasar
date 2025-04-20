@@ -27,11 +27,14 @@ class SparseLLVMBasedICFG
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG>;
 
 public:
-  /// @param[in, out] IRDB Intermediate representation data base.
+  /// @param[in, out] IRDB Intermediate representation data base. The IRDB will
+  /// be changed, only if IncludeGlobals is set to true.
   /// @param[in] CGType The type of the call graph analysis.
   /// @param[in] EntryPoints The entry points of the program the IRDB is based
   /// on. Often this is just { "main" }.
-  /// @param TH Type Hierarchy of the given IRDB.
+  /// @param TH Type Hierarchy of the given IRDB. Type Hierarchy can only be
+  /// null, if the call graph type does not need a type hierarchy. In any other
+  /// case, this must not be null. An example of this is the OTF analysis.
   /// @param PT Points-to information that represents aliases.
   /// @param S Level of soundness.
   /// @param IncludeGlobals Flag to determine if globals should be included.

@@ -223,7 +223,7 @@ public:
   /// \note If the FactToGenerate already holds at the beginning of the
   /// statement, this flow function does not kill it. For IFDS analysis it makes
   /// no difference, but in the case of IDE, the corresponding edge functions
-  /// are being joined together potentially lowing precition. If that is an
+  /// are being joined together potentially lowering precision. If that is an
   /// issue, use transferFlow instead.
   static auto generateFlow(d_t FactToGenerate, d_t From) {
     struct GenFrom final : public FlowFunction<d_t, container_type> {

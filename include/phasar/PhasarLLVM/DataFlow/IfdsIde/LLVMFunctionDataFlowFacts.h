@@ -14,10 +14,12 @@ class LLVMFunctionDataFlowFacts;
 [[nodiscard]] LLVMFunctionDataFlowFacts
 readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb);
 
+/// @brief A class that stores and maps llvm::Function * to Parameter Mappin
+/// Types
 class LLVMFunctionDataFlowFacts {
 public:
   LLVMFunctionDataFlowFacts() noexcept = default;
-  using ParamaterMappingTy = FunctionDataFlowFacts::ParamaterMappingTy;
+  using ParameterMappingTy = FunctionDataFlowFacts::ParameterMappingTy;
 
   /// insert a set of data flow facts
   void insertSet(const llvm::Function *Fun, uint32_t Index,
@@ -56,19 +58,19 @@ public:
     return getFacts(Fun, Arg->getArgNo());
   }
 
-  [[nodiscard]] const ParamaterMappingTy &
+  [[nodiscard]] const ParameterMappingTy &
   getFactsForFunction(const llvm::Function *Fun) {
     auto Iter = LLVMFdff.find(Fun);
     if (Iter != LLVMFdff.end()) {
       return Iter->second;
     }
-    return getDefaultValue<ParamaterMappingTy>();
+    return getDefaultValue<ParameterMappingTy>();
   }
 
   friend LLVMFunctionDataFlowFacts
   readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb);
 
 private:
-  std::unordered_map<const llvm::Function *, ParamaterMappingTy> LLVMFdff;
+  std::unordered_map<const llvm::Function *, ParameterMappingTy> LLVMFdff;
 };
 } // namespace psr::library_summary

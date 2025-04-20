@@ -20,6 +20,8 @@ class raw_ostream;
 
 namespace psr {
 
+/// @brief A class to store the data of a virtual function data from an
+/// intermediate representation data base.
 template <typename F> class VFTable {
 public:
   virtual ~VFTable() = default;

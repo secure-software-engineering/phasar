@@ -32,6 +32,12 @@ class DIBasedTypeHierarchy;
 /// A resolver that performs a rapid type analysis.
 class RTAResolver : public CHAResolver {
 public:
+  /// @brief Class that implements a Resolver's virtual functions to be able to
+  /// perform a rapid type analysis.
+  /// @param[in] IRDB The project intermediate representation data base, on
+  /// which the tabulation problem will be build up.
+  /// @param[in] VTP Virtual Function Table Provider.
+  /// @param[in] TH A type hierarchy based on the given IRDB.
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               const DIBasedTypeHierarchy *TH);
 

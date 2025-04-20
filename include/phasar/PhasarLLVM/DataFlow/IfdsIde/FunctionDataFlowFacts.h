@@ -25,7 +25,7 @@ struct DataFlowFact {
 
 class FunctionDataFlowFacts {
 public:
-  using ParamaterMappingTy =
+  using ParameterMappingTy =
       std::unordered_map<uint32_t, std::vector<DataFlowFact>>;
 
   FunctionDataFlowFacts() noexcept = default;
@@ -67,10 +67,10 @@ private:
       return It->second;
     }
 
-    return getDefaultValue<ParamaterMappingTy>();
+    return getDefaultValue<ParameterMappingTy>();
   }
 
-  llvm::StringMap<ParamaterMappingTy> Fdff;
+  llvm::StringMap<ParameterMappingTy> Fdff;
 };
 
 } // namespace psr::library_summary

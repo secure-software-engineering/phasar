@@ -25,7 +25,7 @@ Currently, PhASAR is maintained by
 PhASAR requires at least C++-17.
 
 However, building in C++20 mode is supported. You may enable this setting the cmake variable `CMAKE_CXX_STANDARD` to `20`.
-Although phasar currently does not make use of C++-20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 ealier.
+Although phasar currently does not make use of C++-20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 earlier.
 
 ## Currently Supported Version of LLVM
 

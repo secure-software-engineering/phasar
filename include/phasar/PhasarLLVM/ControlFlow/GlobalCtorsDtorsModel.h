@@ -30,9 +30,8 @@ public:
   static constexpr llvm::StringLiteral UserEntrySelectorName =
       "__psrCRuntimeUserEntrySelector";
 
-  /// @brief
-  /// Function that creates a new global model and inserts it into the IRDB. The
-  /// returned function is the global model that was inserted.
+  /// @brief Function that creates a new global model and inserts it into the
+  /// IRDB. The returned function is the global model that was inserted.
   /// @param[in, out] IRDB Intermediate representation data base that will have
   /// the global model inserted.
   /// @param[in] UserEntryPoints Entry points for the program given as
@@ -40,9 +39,8 @@ public:
   static llvm::Function *
   buildModel(LLVMProjectIRDB &IRDB,
              llvm::ArrayRef<llvm::Function *> UserEntryPoints);
-  /// @brief
-  /// Function that creates a new global model and inserts it into the IRDB. The
-  /// returned function is the global model that was inserted.
+  /// @brief Function that creates a new global model and inserts it into the
+  /// IRDB. The returned function is the global model that was inserted.
   /// @param[in, out] IRDB Intermediate representation data base that will have
   /// the global model inserted.
   /// @param[in] UserEntryPoints Entry points for the program given as

@@ -41,7 +41,7 @@ struct AliasInfoTraits<AliasInfoRef<V, N>> : DefaultAATraits<V, N> {};
 template <typename V, typename N>
 struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 
-/// A type-erased reference to any object implementing the IsAliasInfo
+/// \brief A type-erased reference to any object implementing the IsAliasInfo
 /// interface. Use this, if your analysis is not tied to a specific alias info
 /// implementation.
 ///
@@ -260,8 +260,9 @@ private:
   const VTable *VT{};
 };
 
-/// Similar to AliasInfoRef, but exclusively owns the held reference. Use this,
-/// if you need to decide dynamically, which alias info implementation to use.
+/// \brief Similar to AliasInfoRef, but exclusively owns the held reference. Use
+/// this, if you need to decide dynamically, which alias info implementation to
+/// use.
 ///
 /// Implicitly convertible to AliasInfoRef.
 ///

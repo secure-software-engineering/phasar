@@ -28,6 +28,13 @@ class LLVMProjectIRDB;
 class LLVMBasedAliasAnalysis {
 
 public:
+  /// @brief A class that can perform an analysis, which generates alias
+  /// informatioan from a given intermediate representation data base.
+  /// @param IRDB The project intermediate representation data base, which the
+  /// analysis will generate the alias information from.
+  /// @param UseLazyEvaluation Set to true to use a faster but less precise
+  /// algorithm.
+  /// @param PATy Boolean to determine the needed analysis type.
   explicit LLVMBasedAliasAnalysis(
       LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
       AliasAnalysisType PATy = AliasAnalysisType::Basic);

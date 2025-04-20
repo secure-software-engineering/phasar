@@ -55,12 +55,14 @@ public:
 
   /**
    * Creates points-to set(s) for all functions in the IRDB. If
-   * UseLazyEvaluation is true, computes points-to-sets for functions that do
+   * UseLazyEvaluation is true, computes points-to set(s) for functions that do
    * not use global variables on the fly
    */
   explicit LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation = true,
                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
-
+  /**
+   * Loads points-to set(s) from json file
+   */
   explicit LLVMAliasSet(LLVMProjectIRDB *IRDB,
                         const nlohmann::json &SerializedPTS);
 
@@ -107,8 +109,8 @@ public:
    * Shows a parts of an alias set. Good for debugging when one wants to peak
    * into a points to set.
    *
-   * @param ValueSetPair a pair on an Value* and the corresponding points to set
-   * @param Peak the amount of instrutions shown from the points to set
+   * @param ValueSetPair a pair on a Value* and the corresponding points-to set
+   * @param Peak the amount of instructions shown from the points-to set
    */
   static void peakIntoAliasSet(const AliasSetMap::value_type &ValueSetPair,
                                int Peak);
@@ -116,8 +118,8 @@ public:
   /**
    * Prints out the size distribution for all points to sets.
    *
-   * @param Peak the amount of instrutions shown from one of the biggest points
-   * to sets, use 0 show nothing.
+   * @param Peak the amount of instructions shown from one of the biggest
+   * points-to sets, use 0 to show nothing.
    */
   void drawAliasSetsDistribution(int Peak = 10) const;
 

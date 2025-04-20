@@ -19,6 +19,8 @@ class AnalysisUsage;
 
 namespace psr {
 
+/// @brief A pass that can be used to print information while a PhASAR analysis
+/// is running. Example usage would be for debugging.
 class PhasarPrinterPass : public llvm::ModulePass {
 public:
   static inline char ID = 12; // NOLINT FIXME: make const when LLVM supports it
