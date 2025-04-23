@@ -17,6 +17,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 #define PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -131,7 +132,7 @@ Container makeContainer(Range &&Rng) {
     Container C;
     reserveIfPossible(C, Rng.size());
     for (auto &&Fact : Rng) {
-      C.insert(std::forward<decltype(Fact)>(Fact));
+      C.insert(PSR_FWD(Fact));
     }
     return C;
   }
@@ -499,13 +500,13 @@ public:
     struct GenManyAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
       GenManyAndKillAllOthers(Container &&GenValues, d_t FromValue)
-          : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
+          : GenValues(std::move(GenValues)), FromValue(FromValue) {
+        this->GenValues.insert(std::move(FromValue));
+      }
 
       container_type computeTargets(d_t Source) override {
         if (Source == FromValue) {
-          auto Ret = GenValues;
-          Ret.insert(std::move(Source));
-          return Ret;
+          return GenValues;
         }
         return {};
       }

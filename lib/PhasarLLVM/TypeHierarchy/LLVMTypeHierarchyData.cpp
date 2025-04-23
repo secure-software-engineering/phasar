@@ -20,8 +20,7 @@ static LLVMTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
       Json["PhasarConfigJsonTypeHierarchyID"];
 
   for (const auto &[Key, ValueArray] :
-       Json[Data.PhasarConfigJsonTypeHierarchyID]
-           .get<nlohmann::json::object_t>()) {
+       Json[Data.PhasarConfigJsonTypeHierarchyID].items()) {
     Data.TypeGraph.try_emplace(Key, std::vector<std::string>{});
 
     for (const auto &CurrInnerType : ValueArray) {
@@ -38,10 +37,10 @@ void LLVMTypeHierarchyData::printAsJson(llvm::raw_ostream &OS) {
   nlohmann::json Json;
 
   Json["PhasarConfigJsonTypeHierarchyID"] = PhasarConfigJsonTypeHierarchyID;
+  auto &JTH = Json[PhasarConfigJsonTypeHierarchyID];
 
   for (const auto &Curr : TypeGraph) {
-    auto &DataPos =
-        Json[PhasarConfigJsonTypeHierarchyID][Curr.getKey()].emplace_back();
+    auto &DataPos = JTH[Curr.getKey()].emplace_back();
 
     for (const auto &CurrTypeName : Curr.getValue()) {
       DataPos.push_back(CurrTypeName);

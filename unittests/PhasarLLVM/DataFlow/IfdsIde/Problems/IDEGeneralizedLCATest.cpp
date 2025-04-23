@@ -129,10 +129,10 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   std::vector<groundTruth_t> GroundTruth;
   const auto *LastMainInstruction =
       getLastInstructionOf(HA->getProjectIRDB().getFunction("main"));
-  GroundTruth.push_back(
-      {{EdgeValue("Hello, World")},
-       3,
-       (unsigned int)std::stoi(getMetaDataID(LastMainInstruction))});
+  GroundTruth.push_back({{EdgeValue("Hello, World")},
+                         3,
+                         static_cast<unsigned int>(
+                             std::stoi(getMetaDataID(LastMainInstruction)))});
   compareResults(GroundTruth);
 }
 

@@ -44,7 +44,7 @@ enum class CallGraphAnalysisType;
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
 
-/// Assuming that `CallSite` is a vall to a non-static member function,
+/// Assuming that `CallSite` is a call to a non-static member function,
 /// retrieves the type of the receiver. Returns nullptr, if the receiver-type
 /// could not be extracted
 [[nodiscard]] const llvm::DIType *

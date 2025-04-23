@@ -90,13 +90,7 @@ std::string RTAResolver::str() const { return "RTA"; }
 
 static const llvm::DICompositeType *
 isCompositeStructType(const llvm::DIType *Ty) {
-  if (const auto *CompTy = llvm::
-#if LLVM_VERSION_MAJOR >= 15
-          dyn_cast_if_present
-#else
-          dyn_cast_or_null
-#endif
-      <llvm::DICompositeType>(Ty);
+  if (const auto *CompTy = llvm::dyn_cast_if_present<llvm::DICompositeType>(Ty);
       CompTy && (CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type ||
                  CompTy->getTag() == llvm::dwarf::DW_TAG_class_type)) {
 
@@ -123,13 +117,8 @@ void RTAResolver::resolveAllocatedCompositeTypes() {
               Call->getCalledOperand()->stripPointerCastsAndAliases())) {
         if (psr::isHeapAllocatingFunction(Callee)) {
           const auto *MDNode = Call->getMetadata("heapallocsite");
-          if (const auto *CompTy = llvm::
-#if LLVM_VERSION_MAJOR >= 15
-                  dyn_cast_if_present
-#else
-                  dyn_cast_or_null
-#endif
-              <llvm::DICompositeType>(MDNode);
+          if (const auto *CompTy =
+                  llvm::dyn_cast_if_present<llvm::DICompositeType>(MDNode);
               isCompositeStructType(CompTy)) {
 
             AllocatedTypes.insert(CompTy);

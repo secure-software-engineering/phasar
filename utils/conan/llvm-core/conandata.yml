@@ -1,0 +1,52 @@
+sources:
+  "15.0.7":
+    "llvm":
+      url: https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/llvm-15.0.7.src.tar.xz
+      sha256: 4ad8b2cc8003c86d0078d15d987d84e3a739f24aae9033865c027abae93ee7a4
+    "cmake":
+      url: https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/cmake-15.0.7.src.tar.xz
+      sha256: 8986f29b634fdaa9862eedda78513969fe9788301c9f2d938f4c10a3e7a3e7ea
+
+  "14.0.6":
+    url: https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.6/llvm-14.0.6.src.tar.xz
+    sha256: 050922ecaaca5781fdf6631ea92bc715183f202f9d2f15147226f023414f619a
+
+patches:
+  "15.0.7":
+    - patch_file: patches/15x/0000-cmake-dependencies.patch
+      patch_description: fix references to third party libs to match conan variables and targets
+      patch_type: conan
+      base_path: llvm-main
+    - patch_file: patches/15x/0001-calculate-job-pools.patch
+      patch_description: calculate resource limits for compiling LLVM
+      patch_type: portability
+      patch_source: https://github.com/llvm/llvm-project/pull/65274
+      base_path: llvm-main
+    - patch_file: patches/15x/0003-no-build-with-install-rpath.patch
+      patch_description: do not build shared libs with install rpath
+      patch_type: conan
+      base_path: llvm-main
+    - patch_file: patches/15x/0004-remove-lto-exports.patch
+      patch_description: remove LTO exports causing link error with lld
+      patch_source: https://github.com/llvm/llvm-project-release-prs/pull/279
+      patch_type: portability
+      base_path: llvm-main
+  "14.0.6":
+    - patch_file: patches/14x/0000-cmake-dependencies.patch
+      patch_description: fix references to third party libs to match conan variables and targets
+      patch_type: conan
+    - patch_file: patches/14x/0001-calculate-job-pools.patch
+      patch_description: calculate resource limits for compiling LLVM
+      patch_type: portability
+      patch_source: https://github.com/llvm/llvm-project/pull/65274
+    - patch_file: patches/14x/0002-missing-includes.patch
+      patch_description: fix missing header files
+      patch_type: portability
+      patch_source: https://github.com/llvm/llvm-project-release-prs/pull/3
+    - patch_file: patches/14x/0003-no-build-with-install-rpath.patch
+      patch_description: do not build shared libs with install rpath
+      patch_type: conan
+    - patch_file: patches/14x/0004-remove-lto-exports.patch
+      patch_description: remove LTO exports causing link error with lld
+      patch_source: https://github.com/llvm/llvm-project-release-prs/pull/279
+      patch_type: portability

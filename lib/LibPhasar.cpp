@@ -8,3 +8,6 @@
  *****************************************************************************/
 
 #include "phasar.h"
+
+/// PhASAR's main namespace. All phasar-APIs are found here
+namespace psr {}

@@ -127,6 +127,9 @@ static void executeWholeProgram(AnalysisController &Data) {
     case DataFlowAnalysisType::IFDSTaintAnalysis:
       executeIFDSTaint(Data);
       continue;
+    case DataFlowAnalysisType::SparseIFDSTaintAnalysis:
+      executeSparseIFDSTaint(Data);
+      continue;
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
       executeIDEXTaint(Data);
       continue;
@@ -150,6 +153,9 @@ static void executeWholeProgram(AnalysisController &Data) {
       continue;
     case DataFlowAnalysisType::IDEInstInteractionAnalysis:
       executeIDEIIA(Data);
+      continue;
+    case DataFlowAnalysisType::IDEFeatureTaintAnalysis:
+      executeIDEFIIA(Data);
       continue;
     case DataFlowAnalysisType::IntraMonoFullConstantPropagation:
       executeIntraMonoFullConstant(Data);

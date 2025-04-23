@@ -17,13 +17,10 @@
 #ifndef PHASAR_CONFIG_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONFIGURATION_H_
 
-#include "phasar/Config/Version.h"
-
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/Support/MemoryBuffer.h"
 
-#include <filesystem>
 #include <optional>
 #include <set>
 #include <string>
@@ -32,7 +29,8 @@ namespace psr {
 
 class PhasarConfig {
 public:
-  /// Current Phasar version
+  /// Current Phasar version. Same as the preprocessor-symbol
+  /// PHASAR_VERSION_STRING
   // NOLINTNEXTLINE(readability-identifier-naming)
   [[nodiscard]] static llvm::StringRef PhasarVersion() noexcept;
 
@@ -66,27 +64,30 @@ public:
   [[nodiscard]] std::optional<std::string>
   readConfigFileAsTextOrNull(const llvm::Twine &FileName);
 
-  /// Specifies the directory in which Phasar is located.
+  /// Specifies the directory in which Phasar's sources are located.
   // NOLINTNEXTLINE(readability-identifier-naming)
   [[nodiscard]] static llvm::StringRef PhasarDirectory() noexcept;
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
-  [[nodiscard]] static constexpr llvm::StringRef
+  [[nodiscard, deprecated("This ancient API is broken and should not be used "
+                          "anymore")]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
   HeaderSearchPathsFileName() noexcept {
     return "standard_header_paths.conf";
   }
 
   /// Name of the compile_commands.json file (in case we wish to rename)
-  [[nodiscard]] static constexpr llvm::StringRef
+  [[nodiscard, deprecated("This ancient API is broken and should not be used "
+                          "anymore")]] static constexpr llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
   CompileCommandsJson() noexcept {
     return "compile_commands.json";
   }
 
   /// Default Source- and Sink-Functions path
-  [[nodiscard]] static llvm::StringRef
+  [[nodiscard, deprecated("This ancient API is broken and should not be used "
+                          "anymore")]] static llvm::StringRef
   // NOLINTNEXTLINE(readability-identifier-naming)
   DefaultSourceSinkFunctionsPath() noexcept;
 
@@ -142,24 +143,7 @@ public:
 private:
   PhasarConfig();
 
-  bool loadConfigFileInto(llvm::StringRef FileName,
-                          std::set<std::string> &Lines);
-
-  void loadGlibcSpecialFunctionNames();
-  void loadLLVMSpecialFunctionNames();
-
   std::set<std::string> SpecialFuncNames;
-
-  /// Name of the file storing all glibc function names.
-  static constexpr llvm::StringLiteral GLIBCFunctionListFileName =
-      "glibc_function_list_v1-04.05.17.conf";
-
-  /// Name of the file storing all LLVM intrinsic function names.
-  static constexpr llvm::StringLiteral LLVMIntrinsicFunctionListFileName =
-      "llvm_intrinsics_function_list_v1-04.05.17.conf";
-
-  /// Log file directory
-  static constexpr llvm::StringLiteral LogFileDirectory = "log/";
 };
 
 } // namespace psr

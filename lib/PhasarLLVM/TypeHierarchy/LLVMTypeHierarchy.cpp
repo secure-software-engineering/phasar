@@ -230,9 +230,9 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module & /*M*/,
           auto Name = CE->getName();
           if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
             auto ClearName = removeTypeInfoPrefix(llvm::demangle(Name.str()));
-            if (auto TyIt = ClearNameTypeMap.find(ClearName);
-                TyIt != ClearNameTypeMap.end()) {
-              SubTypes.push_back(TyIt->second);
+            if (auto TypeIt = ClearNameTypeMap.find(ClearName);
+                TypeIt != ClearNameTypeMap.end()) {
+              SubTypes.push_back(TypeIt->second);
             }
           }
         }
@@ -336,6 +336,7 @@ LLVMTypeHierarchy::getType(llvm::StringRef TypeName) const {
     return Ty;
   }
 
+  // Sometimes, clang adds a .base suffix
   return getTypeImpl(TypeGraph, (TypeName + ".base").str());
 }
 
