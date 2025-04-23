@@ -17,8 +17,6 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <type_traits>
 
 namespace psr {
@@ -110,13 +108,6 @@ public:
   /// Prints the underlying call-graph as Json to the given output-stream
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const {
     self().printAsJsonImpl(OS);
-  }
-
-  /// Returns the underlying call-graph as JSON
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const {
-    return self().getAsJsonImpl();
   }
 
   [[nodiscard]] size_t getNumCallSites() const noexcept {

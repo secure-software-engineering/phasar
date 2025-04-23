@@ -14,11 +14,9 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
-#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/Casting.h"
 
@@ -100,10 +98,6 @@ public:
    * 	@param OS outputstream
    */
   void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
-
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const override;
 
   /**
    * @brief Prints the class hierarchy to an ostream in json format.

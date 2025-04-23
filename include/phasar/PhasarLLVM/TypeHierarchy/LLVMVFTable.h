@@ -13,8 +13,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTableData.h"
 #include "phasar/TypeHierarchy/VFTable.h"
 
-#include "nlohmann/json.hpp"
-
 #include <vector>
 
 namespace llvm {
@@ -70,10 +68,6 @@ public:
   [[nodiscard]] size_t size() const override { return VFT.size(); };
 
   void print(llvm::raw_ostream &OS) const override;
-
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const override;
 
   [[nodiscard]] LLVMVFTableData getVFTableData() const;
 

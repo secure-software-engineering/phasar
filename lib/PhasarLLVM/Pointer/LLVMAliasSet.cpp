@@ -716,33 +716,6 @@ void LLVMAliasSet::introduceAlias(const llvm::Value *V1, const llvm::Value *V2,
   mergeAliasSets(V1, V2);
 }
 
-nlohmann::json LLVMAliasSet::getAsJson() const {
-  nlohmann::json J;
-
-  /// Serialize the AliasSets
-  auto &Sets = J["AliasSets"];
-
-  for (const AliasSetTy *PTS : Owner.getAllAliasSets()) {
-    auto PtsJson = nlohmann::json::array();
-    for (const auto *Alias : *PTS) {
-      auto Id = getMetaDataID(Alias);
-      if (Id != "-1") {
-        PtsJson.push_back(std::move(Id));
-      }
-    }
-    if (!PtsJson.empty()) {
-      Sets.push_back(std::move(PtsJson));
-    }
-  }
-
-  /// Serialize the AnalyzedFunctions
-  auto &Fns = J["AnalyzedFunctions"];
-  for (const auto *F : AnalyzedFunctions) {
-    Fns.push_back(F->getName());
-  }
-  return J;
-}
-
 LLVMAliasSetData LLVMAliasSet::getLLVMAliasSetData() const {
   LLVMAliasSetData Data;
 

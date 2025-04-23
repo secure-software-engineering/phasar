@@ -17,10 +17,7 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
-# Old way using phasar_config (deprecated):
-#   phasar_config(myphasartool)
-
-# New way using target_link_libraries:
+# Link your tool against phasar:
 target_link_libraries(myphasartool phasar::llvm_ifdside)
 
 # If find_package did not specify components:
