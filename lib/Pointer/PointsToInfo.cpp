@@ -61,11 +61,6 @@ class DummyFieldInsensitivePointsToAnalysis
     static PointsToSetTy Empty{};
     return &Empty;
   }
-
-  [[nodiscard]] std::vector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> /*AtInstruction*/) const {
-    return {};
-  }
 };
 
 template class PointsToInfoBase<DummyFieldInsensitivePointsToAnalysis>;
@@ -129,11 +124,6 @@ class DummyFieldSensitivePointsToAnalysis
                      ByConstRef<n_t> /*AtInstruction*/) const {
     static PointsToSetTy Empty{};
     return &Empty;
-  }
-
-  [[nodiscard]] std::vector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> /*AtInstruction*/) const {
-    return {};
   }
 };
 

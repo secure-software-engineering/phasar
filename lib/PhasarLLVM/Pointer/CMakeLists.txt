@@ -1,4 +1,4 @@
-file(GLOB POINTER_SRC *.cpp TypeGraphs/*.cpp)
+file(GLOB POINTER_SRC *.cpp)
 
 add_phasar_library(phasar_llvm_pointer
   ${POINTER_SRC}
