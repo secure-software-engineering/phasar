@@ -67,7 +67,7 @@ int main(int Argc, char *Argv[]) {
     llvm::outs() << "\nSolving finished\n";
   }
 
-  // We could here now loop over TaintProblem.Leaks. Instead, we will now use
+  // Here, we could loop over TaintProblem.Leaks. Instead, we will now use
   // the Solver to dump the whole raw IFDS results:
   Solver.dumpResults();
 }

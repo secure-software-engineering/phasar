@@ -27,7 +27,10 @@ int main(int Argc, char *Argv[]) {
   TC.print();
   llvm::outs() << "------------------------\n";
 
-  // Create the taint analysis problem
+  // Create the taint analysis problem:
+  // The utility function createAnalysisProblem() simplifies creating an
+  // analysis problem with a HelperAnalyses object. It automatically passes the
+  // right arguments
   auto TaintProblem = psr::createAnalysisProblem<psr::IFDSTaintAnalysis>(
       HA, &TC, EntryPoints, /*TaintMainArgs=*/false);
 

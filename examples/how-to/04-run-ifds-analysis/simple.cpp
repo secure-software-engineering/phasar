@@ -35,7 +35,7 @@ int main(int Argc, char *Argv[]) {
 
   // Here, we instantiate the taint analysis problem.
   // We need to pass all information that the taint analysis requires: The IRDB,
-  // alias info, taint config and the functions, where the analysis should
+  // alias info, taint config, and the functions where the analysis should
   // start. The IFDS solver will walk the inter-procedural control-flow graph
   // (ICFG) to analyze all statements and functions that are reachable from the
   // entrypoints.
@@ -48,8 +48,7 @@ int main(int Argc, char *Argv[]) {
   // for indirect call resolution.
   //
   // Since we already have computed alias information, it would be wasteful to
-  // let the LLVMBasedICFG compute another alias information, so we pass the AS
-  // here.
+  // let the LLVMBasedICFG compute the alias info again, so we pass the AS here.
   // The OTF analysis does not require a type-hierarchy.
   psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                           nullptr, &AS);

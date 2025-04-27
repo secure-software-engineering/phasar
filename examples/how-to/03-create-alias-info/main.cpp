@@ -25,6 +25,9 @@ int main(int Argc, char *Argv[]) {
   // They take a type-erased reference to any alias-info object.
   // You can implicitly convert a pointer to any compatible alias-info object to
   // an LLVMAliasInfoRef.
+  // Since the LLVMAliasInfoRef is a non-owning reference, you must make sure
+  // that the actual LLVMAliasSet object outlives any use of the references to
+  // it.
   psr::LLVMAliasInfoRef ASRef = &AS;
 
   // You can print and load alias information from/to JSON:
@@ -35,6 +38,8 @@ int main(int Argc, char *Argv[]) {
     llvm::errs() << "Required function 'main' not found\n";
     return 1;
   }
+
+  // Manually printing the alias sets:
 
   for (const auto &Inst : llvm::instructions(MainF)) {
     if (!Inst.getType()->isPointerTy()) {
@@ -59,7 +64,7 @@ int main(int Argc, char *Argv[]) {
     // Retrieve a filtered alias set only containing allocation-sites for the
     // aliases of the result of the instruction Inst (first parameter), further
     // filtered to not contain allocation-sites from other functions (second
-    // parameter), at the program location determined by Inst (second
+    // parameter), at the program location determined by Inst (third
     // parameter).
     //
     // Implementations may ignore the second parameter.
