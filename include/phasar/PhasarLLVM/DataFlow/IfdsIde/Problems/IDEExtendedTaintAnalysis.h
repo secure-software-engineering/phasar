@@ -51,6 +51,8 @@ struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
 };
 namespace XTaint {
 
+/// An extended taint analysis is a field sensitive taint analysis, that uses K
+/// limit field access path.
 class IDEExtendedTaintAnalysis
     : public IDETabulationProblem<IDEExtendedTaintAnalysisDomain>,
       public AnalysisBase {

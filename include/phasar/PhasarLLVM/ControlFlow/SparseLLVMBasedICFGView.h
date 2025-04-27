@@ -31,7 +31,10 @@ struct CFGTraits<SparseLLVMBasedICFGView> : CFGTraits<LLVMBasedCFG> {};
 
 /// Similar to SparseLLVMBasedICFG; the only difference is that this one *is* no
 /// LLVMBasedICFG -- it contains a pointer to an already existing one.
-/// It still owns the sparse value-flow graphs
+/// It still owns the sparse value-flow graphs.
+/// It also uses the SparseLLVMBasedICFGView class itself as a template argument
+/// for the SparseLLVMBasedCFGProvider template argument. This is called a
+/// curiously recurring template pattern.
 class SparseLLVMBasedICFGView
     : public LLVMBasedCFG,
       public ICFGBase<SparseLLVMBasedICFGView>,

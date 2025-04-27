@@ -39,6 +39,10 @@ class DILocation;
 
 namespace psr {
 
+/// \file This file contains useful structs and functions to get and store
+/// information about the source code or the intermediate representation of a
+/// project.
+
 struct DebugLocation {
   unsigned Line{};
   unsigned Column{};
@@ -47,6 +51,9 @@ struct DebugLocation {
 
 [[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
 
+/// A struct that contains information about a source code line, what the
+/// corresponding function name of that line is and what the file name is that
+/// the line is in.
 struct SourceCodeInfo {
   std::string SourceCodeLine;
   std::string SourceCodeFilename;

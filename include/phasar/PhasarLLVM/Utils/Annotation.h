@@ -10,8 +10,9 @@
 
 namespace psr {
 
-/// @brief Helper classes that allow for an easier retrieval of annotation
+/// \file Helper classes that allow for an easier retrieval of annotation
 /// information.
+
 class VarAnnotation {
 public:
   VarAnnotation(const llvm::CallBase *AnnotationCall) noexcept;

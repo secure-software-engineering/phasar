@@ -53,11 +53,17 @@ bool isIntegerLikeType(const llvm::Type *T) noexcept;
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 
-// TODO add description
+/// Returns true if the provided function and the function type are both not
+/// null and have the same number of parameters and the same return type. If the
+/// argument ExactMatch is set to true, which it is by default, the two provided
+/// arguments must also have the same type for each argument, for the function
+/// to return true.
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
                       bool ExactMatch = true);
 
-// TODO add description
+// Returns true iff the provided functions are both not null and have the same
+// number of paramters, the same return type and each parameter of both
+// functions has the same type aswell.
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 

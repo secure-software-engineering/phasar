@@ -30,8 +30,8 @@ namespace psr {
 /// conduct an analysis but not correctly set, it will statically report an
 /// error and ask for the missing piece of information.
 struct AnalysisDomain {
-  // Data-flow fact --- Specifies the type of an individual data-flow fact that
-  // is propagated through the program under analysis.
+  /// Data-flow fact --- Specifies the type of an individual data-flow fact that
+  /// is propagated through the program under analysis.
   using d_t = void;
   // (Control-flow) Node --- Specifies the type of a node in the
   // (inter-procedural) control-flow graph and can be though of as an individual

@@ -28,6 +28,9 @@
 
 namespace psr {
 
+/// The PathSensitivityManager class is an implementation of the
+/// PathSensitivityManagerBase class and the PathSensitivityManagerMixin class.
+/// It holds an exploded super graph.
 template <typename AnalysisDomainTy>
 class PathSensitivityManager
     : public PathSensitivityManagerBase<typename AnalysisDomainTy::n_t>,

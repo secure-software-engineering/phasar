@@ -16,7 +16,7 @@ Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
 - others
 
 \b License \n
-	See LICENSE.txt
+	See <a href="https://github.com/secure-software-engineering/phasar/blob/development/LICENSE.txt">LICENSE.txt</a>
 
 @subsubsection RVOTCPPS Required Version of the C++ Standard
 

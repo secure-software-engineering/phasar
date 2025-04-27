@@ -13,6 +13,8 @@
 #include <cassert>
 namespace psr {
 
+/// This class implements an AnalysisPrinterBase, which opens a file stream on
+/// the fly to print analysis data.
 template <typename AnalysisDomainTy>
 class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using n_t = typename AnalysisDomainTy::n_t;

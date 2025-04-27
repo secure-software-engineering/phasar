@@ -30,6 +30,7 @@ template <typename AnalysisDomainTy> struct Warning {
         LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
 };
 
+/// A default implementation of the AnalysisPrinterBase class.
 template <typename AnalysisDomainTy>
 class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using n_t = typename AnalysisDomainTy::n_t;

@@ -45,9 +45,9 @@ private:
   std::map<std::string, EdgeFunction<V>> SpecialEdgeFunctions;
   std::vector<std::string> SpecialFunctionNames;
 
-  // Constructs the SpecialSummaryMap such that it contains all glibc,
-  // llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
-  // flow functions.
+  /// Constructs the SpecialSummaryMap such that it contains all glibc,
+  /// llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
+  /// flow functions.
   SpecialSummaries() {
     // insert default flow and edge functions
     for (const auto &FunctionName :
@@ -71,7 +71,7 @@ public:
     return Instance;
   }
 
-  // Returns true, when an existing function is overwritten, false otherwise.
+  /// Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &Name,
                              FlowFunctionPtrType FlowFunc) {
     bool Override = containsSpecialSummary(Name);
@@ -79,7 +79,7 @@ public:
     return Override;
   }
 
-  // Returns true, when an existing function is overwritten, false otherwise.
+  /// Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &Name,
                              FlowFunctionPtrType FlowFunc,
                              std::shared_ptr<EdgeFunction<V>> EdgeFunc) {

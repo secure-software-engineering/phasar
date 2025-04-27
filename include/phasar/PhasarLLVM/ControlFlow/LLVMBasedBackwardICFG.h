@@ -25,7 +25,10 @@ template <typename N, typename F> class CallGraph;
 template <>
 struct CFGTraits<LLVMBasedBackwardICFG> : CFGTraits<LLVMBasedBackwardCFG> {};
 
-/// A class that represents a backwards interprocedural control flow graph.
+/// A class that represents a backwards interprocedural control flow graph. It
+/// uses the LLVMBasedBackwardICFG class itself as a template argument for
+/// the ICFGBase template argument. This is called a curiously recurring
+/// template pattern.
 class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
                               public ICFGBase<LLVMBasedBackwardICFG> {
   friend ICFGBase;

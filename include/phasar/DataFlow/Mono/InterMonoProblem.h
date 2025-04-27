@@ -47,6 +47,14 @@ protected:
   const i_t *ICF;
 
 public:
+  /// An interprocedural monotone problem generated from an intermediate
+  /// representation, a type hierarchy of said representation, a control flow
+  /// graph, points-to information and optionally a vector of entry points.
+  /// @param[in] IRDB A project intermediate representation data base.
+  /// @param[in] TH A type hierarchy based on the given IRDB.
+  /// @param[in] CF A control flow graph based on the given IRDB.
+  /// @param[in] PT Points-to information based on the given IRDB.
+  /// @param[in] EntryPoints A vector of entry points. Empty by default.
   InterMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
                    const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
                    AliasInfoRef<v_t, n_t> PT,

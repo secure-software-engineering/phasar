@@ -20,7 +20,10 @@ class SparseLLVMBasedCFG;
 class DIBasedTypeHierarchy;
 struct SVFGCache;
 
-/// A class that represents a sparse interprocedural control flow graph.
+/// A class that represents a sparse interprocedural control flow graph. It uses
+/// the SparseLLVMBasedICFG class itself as a template argument for the
+/// SparseLLVMBasedCFGProvider template argument. This is called a curiously
+/// recurring template pattern.
 class SparseLLVMBasedICFG
     : public LLVMBasedICFG,
       public SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG> {

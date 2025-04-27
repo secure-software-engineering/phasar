@@ -40,6 +40,8 @@ class Instruction;
 namespace psr {
 class LLVMPathConstraints;
 
+/// A base class that can be used to implement a path solver based on the Z3 SMT
+/// Solver.
 class Z3BasedPathSensitivityManagerBase
     : public PathSensitivityManagerBase<const llvm::Instruction *> {
 public:
