@@ -11,3 +11,13 @@ target_link_libraries(build-llvm-based-icfg PRIVATE phasar::phasar)
 
 add_executable(build-llvm-based-call-graph build_llvm_based_call_graph.cpp)
 target_link_libraries(build-llvm-based-call-graph PRIVATE phasar::phasar)
+
+if (TARGET run_sample_programs)
+  add_custom_target(run_build_call_graph
+    DEPENDS build-llvm-based-icfg build-llvm-based-call-graph
+    COMMAND $<TARGET_FILE:build-llvm-based-icfg> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/class_hierarchy.ll"
+    COMMAND $<TARGET_FILE:build-llvm-based-call-graph> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/class_hierarchy.ll"
+  )
+
+  add_dependencies(run_sample_programs run_build_call_graph)
+endif()
