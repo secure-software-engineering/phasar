@@ -28,9 +28,8 @@
 
 namespace psr {
 
-/// The PathSensitivityManager class is an implementation of the
-/// PathSensitivityManagerBase class and the PathSensitivityManagerMixin class.
-/// It holds an exploded super graph.
+/// \brief A utility class that allows path-reconstruction for IFDS/IDE solver
+/// results.
 template <typename AnalysisDomainTy>
 class PathSensitivityManager
     : public PathSensitivityManagerBase<typename AnalysisDomainTy::n_t>,

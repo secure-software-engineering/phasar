@@ -43,6 +43,7 @@ namespace psr {
 /// information about the source code or the intermediate representation of a
 /// project.
 
+/// \brief Minimal source-code information, based on LLVM debug information
 struct DebugLocation {
   unsigned Line{};
   unsigned Column{};
@@ -51,7 +52,7 @@ struct DebugLocation {
 
 [[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
 
-/// A struct that contains information about a source code line, what the
+/// \brief A struct that contains information about a source code line, what the
 /// corresponding function name of that line is and what the file name is that
 /// the line is in.
 struct SourceCodeInfo {

@@ -25,8 +25,8 @@ class LLVMProjectIRDB;
 class LLVMBasedICFG;
 class LLVMBasedCFG;
 
-/// A default analysis domain that can be either used outright, or be used as a
-/// reference for custom analysis domains.
+/// \brief An AnalysisDomain that specializes sensible defaults for LLVM-based
+/// analysis
 struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
@@ -38,6 +38,8 @@ struct LLVMAnalysisDomainDefault : public AnalysisDomain {
   using db_t = LLVMProjectIRDB;
 };
 
+/// \brief An AnalysisDomain that specializes sensible defaults for LLVM-based
+/// IFDS analysis
 using LLVMIFDSAnalysisDomainDefault =
     WithBinaryValueDomain<LLVMAnalysisDomainDefault>;
 

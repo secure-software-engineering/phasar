@@ -18,8 +18,10 @@
 namespace psr {
 template <typename T, typename Enable = void> class Compressor;
 
-/// A data structure capable of compressing and storing data of a given type T.
-/// This implementation can efficiently pass by value.
+/// \brief A utility class that assigns a sequential Id to every inserted
+/// object.
+///
+/// This specialization handles types that can be efficiently passed by value
 template <typename T>
 class Compressor<T, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
 public:
@@ -63,8 +65,10 @@ private:
   llvm::SmallVector<T, 0> FromInt;
 };
 
-/// A data structure capable of compressing and storing data of a given type T.
-/// This implementation cannot efficiently pass by value.
+/// \brief A utility class that assigns a sequential Id to every inserted
+/// object.
+///
+/// This specialization handles types that cannot be efficiently passed by value
 template <typename T>
 class Compressor<T, std::enable_if_t<!CanEfficientlyPassByValue<T>>> {
 public:

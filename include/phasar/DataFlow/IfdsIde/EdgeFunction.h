@@ -118,8 +118,8 @@ protected:
                                  : AllocationPolicy::CustomHeapAllocated;
 };
 
-/// Non-null reference to an edge function that is guarenteed to be managed by
-/// an EdgeFunction object.
+/// \brief Non-null reference to an edge function that is guarenteed to be
+/// managed by an EdgeFunction object.
 template <typename EF>
 class [[clang::trivial_abi]] EdgeFunctionRef final : EdgeFunctionBase {
   template <typename L> friend class EdgeFunction;
@@ -164,8 +164,8 @@ private:
       IsCached{};
 };
 
-/// Ref-counted and type-erased edge function with small-object optimization.
-/// Supports caching.
+/// \brief Ref-counted and type-erased edge function with small-object
+/// optimization. Supports caching.
 template <typename L>
 // -- combined copy and move assignment
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)

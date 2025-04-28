@@ -672,8 +672,7 @@ public:
   ///    f(0) -> {0}       // pass the lambda (or zero fact) as identity
   ///    f(o) -> {o, x}    // generate a new fact x from o
   ///    f(.) -> {.}       // pass all other facts that hold before
-  ///    instruction_1
-  ///                      // as identity
+  ///                      // instruction_1 as identity
   /// \endcode
   /// The above implementation corresponds to the following edges in the
   /// exploded supergraph.
@@ -844,8 +843,7 @@ public:
   ///                      // to kill p, as it will be handled by the call- and
   ///                      // return-flow functions
   ///    f(.) -> {.}       // pass everything that is not involved in the call
-  ///    as
-  ///                      // identity
+  ///                      // as identity
   /// \endcode
   /// The above implementation corresponds to the following edges in the
   /// exploded supergraph.

@@ -13,8 +13,10 @@
 #include <cassert>
 namespace psr {
 
-/// This class implements an AnalysisPrinterBase, which opens a file stream on
-/// the fly to print analysis data.
+/// This class implements the AnalysisPrinterBase that printf the analysis
+/// results *while* the analysis is still running.
+///
+/// Override doOnResult() to customize, how the results are printed.
 template <typename AnalysisDomainTy>
 class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using n_t = typename AnalysisDomainTy::n_t;

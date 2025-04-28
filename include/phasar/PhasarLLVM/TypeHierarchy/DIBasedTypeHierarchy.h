@@ -25,10 +25,10 @@
 namespace psr {
 class LLVMProjectIRDB;
 
-/// @brief A class that represents the type hierarchy of an intermediate
-/// representation data base (IRDB) of a project. The algorithm uses Debug
-/// Information (DI) to create the type hierarchy, therefore the given IRDB must
-/// contain debug information for the hierarchy to be created.
+/// \brief Represents the type hierarchy of a tha target program.
+///
+/// \note This class only works, if the target program's IR was generated with
+/// debug information. Pass `-g` to the compiler to achieve this.
 class DIBasedTypeHierarchy
     : public TypeHierarchy<const llvm::DIType *, const llvm::Function *> {
 public:
@@ -43,16 +43,15 @@ public:
   static inline constexpr llvm::StringLiteral PureVirtualCallName =
       "__cxa_pure_virtual";
 
-  /// @brief Creates a type hierarchy based on an intermediate representation
+  /// \brief Creates a type hierarchy based on an intermediate representation
   /// data base.
-  /// @param[in] IRDB The intermediate representation data base of which the
-  /// type hierarchy will be based upon. This MUST contain debug information for
-  /// the algorithm to work!
+  /// \param[in] IRDB The IR data base of which the type hierarchy will be based
+  /// upon. This MUST contain debug information for the algorithm to work!
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
-  /// @brief Loads an already computed type hierarchy.
-  /// @param[in] IRDB The intermediate representation data base of the type
-  /// hierarchy.
-  /// @param[in] SerializedData The already existing type hierarchy, given by
+
+  /// \brief Loads an already computed type hierarchy.
+  /// \param[in] IRDB The IR data base of the type hierarchy.
+  /// \param[in] SerializedData The already existing type hierarchy, given by
   /// the appropiate class DIBasedTypeHierarchyData, which contains all
   /// neccesary information.
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB *IRDB,
@@ -108,16 +107,12 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  /**
-   * 	@brief Prints the class hierarchy to an ostream in dot format.
-   * 	@param OS outputstream
-   */
+  /// \brief Prints the class hierarchy to an ostream in dot format.
+  /// \param OS outputstream
   void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  /**
-   * @brief Prints the class hierarchy to an ostream in json format.
-   * @param an outputstream
-   */
+  /// \brief Prints the class hierarchy to an ostream in JSON format.
+  /// \param OS outputstream
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
 private:

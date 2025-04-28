@@ -20,7 +20,7 @@
 namespace psr {
 
 /// A data structure used for storing, serializing and deserializing call-graph
-/// data.
+/// information.
 struct CallGraphData {
 
   /// Mangled FunName --> [CS-IDs]

@@ -13,10 +13,9 @@
 
 namespace psr {
 
-/// Stores a call string context that can be used as an index for data
-/// structures like std::unordered_map. The size_t operator is overloaded to
-/// return a hash function.
-/// @tparam N Type of the call string elements.
+/// Stores a call-string context that can be used in interprocedural monotone
+/// analysis to achieve (limited) context sensitivity.
+/// @tparam N Type of the call-string elements.
 /// @tparam K Maximal length the call string can have.
 template <typename N, unsigned K> class CallStringCTX {
 protected:

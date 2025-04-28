@@ -29,15 +29,10 @@ class DICompositeType;
 namespace psr {
 class DIBasedTypeHierarchy;
 
-/// A resolver that performs a rapid type analysis.
+/// \brief A resolver that performs Rapid Type Analysis to resolve calls
+/// to C++ virtual functions. Requires debug information.
 class RTAResolver : public CHAResolver {
 public:
-  /// @brief Class that implements a Resolver's virtual functions to be able to
-  /// perform a rapid type analysis.
-  /// @param[in] IRDB The project intermediate representation data base, on
-  /// which the tabulation problem will be build up.
-  /// @param[in] VTP Virtual Function Table Provider.
-  /// @param[in] TH A type hierarchy based on the given IRDB.
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               const DIBasedTypeHierarchy *TH);
 

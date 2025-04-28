@@ -40,8 +40,6 @@ class Instruction;
 namespace psr {
 class LLVMPathConstraints;
 
-/// A base class that can be used to implement a path solver based on the Z3 SMT
-/// Solver.
 class Z3BasedPathSensitivityManagerBase
     : public PathSensitivityManagerBase<const llvm::Instruction *> {
 public:
@@ -63,6 +61,12 @@ protected:
   static void deduplicatePaths(FlowPathSequence<n_t> &Paths);
 };
 
+/// \brief An extension of the path-reconstruction mechanism of the
+/// PathSensitivityManager that provides means to extract concrete combined
+/// control- and data-flow paths.
+///
+/// Filters out paths that are considered infeasible by the Z3
+/// constraint solver.
 template <typename AnalysisDomainTy,
           typename = std::enable_if_t<std::is_same_v<
               typename AnalysisDomainTy::n_t, const llvm::Instruction *>>>
@@ -91,6 +95,14 @@ public:
     }
   }
 
+  /// Reconstruct the feasible combined control- and data-flow paths the lead to
+  /// the given data-flow fact Fact holding right after Inst.
+  ///
+  /// The result is given as list of paths, where cycles are unrolled once in an
+  /// implementation-defined way.
+  /// It is strongly recommended to Use the Z3BasedPathSensitivityConfig in the
+  /// Z3BasedPathSensitivityManager's ctor to limit the returned paths;
+  /// otherwise this function quickly becomes a performance bottleneck.
   FlowPathSequence<n_t> pathsTo(n_t Inst, d_t Fact) const {
     if (Config.DAGSizeThreshold != SIZE_MAX) {
       PHASAR_LOG_LEVEL(

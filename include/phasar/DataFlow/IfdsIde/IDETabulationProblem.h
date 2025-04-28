@@ -53,6 +53,12 @@ public:
   }
 };
 
+/// \brief The analysis problem interface for IDE problems (solvable by the
+/// IDESolver). Subclass this and override all pure-virtual functions to create
+/// your own IDE analysis.
+///
+/// For more information on how to write an IDE analysis, see [Writing an IDE
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IDE-analysis)
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
@@ -73,15 +79,16 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  /// Takes an intermediate representation data base (IRDB) and collects
-  /// information from it to create a tabulation problem. Can be solved using
-  /// the IDESolver for example.
-  /// @param[in] IRDB The project intermediate representation data base, on
-  /// which the tabulation problem will be build up.
-  /// @param[in] EntryPoints All entry points of the project, given as a vector
-  /// of strings, where the strings are the names of the entry functions. An
-  /// example would simply be { "main" }.
-  /// @param[in] ZeroValue An optional argument, to set a custom zero value.
+  /// Takes an IR data base (IRDB) and collects information from it to create a
+  /// tabulation problem.
+  /// @param[in] IRDB The project IR data base, that holds the code under
+  /// analysis
+  /// @param[in] EntryPoints The (mangled) names of all entry functions of the
+  /// project, given as a vector of strings. An example would simply be
+  /// `{"main"}`. To set every function as entry point, pass `"__ALL__"`
+  /// @param[in] ZeroValue Provides the special tautological zero value (aka.
+  /// Λ). If not provided here, you must set it via \link initializeZeroValue()
+  /// \endlink.
   explicit IDETabulationProblem(
       const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
       std::optional<d_t>

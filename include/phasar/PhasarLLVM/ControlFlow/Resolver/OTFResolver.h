@@ -36,16 +36,10 @@ namespace psr {
 
 class DIBasedTypeHierarchy;
 
-/// A resolver that performs an on-the-fly analysis based on points-to
-/// information (default).
+/// \brief A resolver that uses alias information to resolve indirect and
+/// virtual calls
 class OTFResolver : public Resolver {
 public:
-  /// @brief Class that implements a Resolver's virtual functions to be able to
-  /// perform an on-the-fly analysis based on points-to information.
-  /// @param[in] IRDB The project intermediate representation data base, on
-  /// which the tabulation problem will be build up.
-  /// @param[in] VTP Virtual Function Table Provider.
-  /// @param[in] PT Points-to information.
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               LLVMAliasInfoRef PT);
 

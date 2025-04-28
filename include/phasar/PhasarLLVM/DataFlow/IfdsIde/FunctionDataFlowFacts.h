@@ -23,6 +23,7 @@ struct DataFlowFact {
   std::variant<Parameter, ReturnValue> Fact;
 };
 
+/// \brief Simple representation of a serializable data-flow summary
 class FunctionDataFlowFacts {
 public:
   using ParameterMappingTy =

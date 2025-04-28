@@ -35,9 +35,10 @@ struct AnalysisDomain {
   using d_t = void;
   // (Control-flow) Node --- Specifies the type of a node in the
   // (inter-procedural) control-flow graph and can be though of as an individual
-  // statement or instruction of the program.
+  // statement or instruction of the target program.
   using n_t = void;
-  // Function --- Specifies the type of functions.
+  // Function --- Specifies the type of functions/procedures in the target
+  // program.
   using f_t = void;
   // (User-defined) type --- Specifies the type of a user-defined (i.e. struct
   // or class) data type.

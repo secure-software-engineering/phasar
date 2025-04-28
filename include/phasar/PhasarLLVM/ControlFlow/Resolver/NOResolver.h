@@ -18,14 +18,9 @@ class CallBase;
 
 namespace psr {
 
-/// A resolver that doesn't resolve indirect- and virtual calls
+/// \brief A resolver that doesn't resolve indirect- and virtual calls
 class NOResolver final : public Resolver {
 public:
-  /// @brief Class that implements a Resolver's virtual functions to be able to
-  /// perform an analysis that does not resolve indirect- and virtual calls.
-  /// @param[in] IRDB The project intermediate representation data base, on
-  /// which the tabulation problem will be build up.
-  /// @param[in] VTP Virtual Function Table Provider.
   NOResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
 
   ~NOResolver() override = default;

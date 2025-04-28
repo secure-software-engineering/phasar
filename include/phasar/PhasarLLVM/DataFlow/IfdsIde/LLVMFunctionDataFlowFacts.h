@@ -14,8 +14,7 @@ class LLVMFunctionDataFlowFacts;
 [[nodiscard]] LLVMFunctionDataFlowFacts
 readFromFDFF(const FunctionDataFlowFacts &Fdff, const LLVMProjectIRDB &Irdb);
 
-/// @brief A class that stores and maps llvm::Function * to Parameter Mappin
-/// Types
+/// @brief A LLVM-specific mapping of FunctionDataFlowFacts
 class LLVMFunctionDataFlowFacts {
 public:
   LLVMFunctionDataFlowFacts() noexcept = default;

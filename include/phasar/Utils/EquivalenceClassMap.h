@@ -23,11 +23,12 @@
 
 namespace psr {
 
-/// EquivalenceClassMap is a special map type that splits the keys into
-/// equivalence classes regarding their mapped values. Meaning, that all keys
-/// that are equivalent are mapped to the same value. Two keys are treated as
-/// equivalent and merged into a equivalence class when they refer to Values
-/// that compare equal.
+/// \brief EquivalenceClassMap is a special map type that splits the keys into
+/// equivalence classes regarding their mapped values.
+///
+/// Meaning, that all keys that are equivalent are mapped to the same value. Two
+/// keys are treated as equivalent and merged into a equivalence class when they
+/// refer to Values that compare equal.
 template <typename KeyT, typename ValueT> struct EquivalenceClassMap {
   template <typename... Ts> using SetType = std::set<Ts...>;
   using EquivalenceClassBucketT = std::pair<SetType<KeyT>, ValueT>;

@@ -27,15 +27,10 @@ class CallBase;
 namespace psr {
 class DIBasedTypeHierarchy;
 
-/// A resolver that performs a class hierarchy analysis.
+/// \brief A resolver that performs Class Hierarchy Analysis to resolve calls
+/// to C++ virtual functions. Requires debug information.
 class CHAResolver : public Resolver {
 public:
-  /// @brief Class that implements a Resolver's virtual functions to be able to
-  /// perform a class hierarchy analysis.
-  /// @param[in] IRDB The project intermediate representation data base, on
-  /// which the tabulation problem will be build up.
-  /// @param[in] VTP Virtual Function Table Provider.
-  /// @param[in] TH A type hierarchy based on the given IRDB.
   CHAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               const DIBasedTypeHierarchy *TH);
 
