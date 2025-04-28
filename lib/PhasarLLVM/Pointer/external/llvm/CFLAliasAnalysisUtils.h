@@ -4,8 +4,12 @@
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-/// \file These are the utilities/helpers used by the CFL Alias Analyses
-/// available in tree, i.e. Steensgaard's and Andersens'.
+//===----------------------------------------------------------------------===//
+// \file
+// These are the utilities/helpers used by the CFL Alias Analyses available in
+// tree, i.e. Steensgaard's and Andersens'.
+//
+//===----------------------------------------------------------------------===//
 
 #ifndef LLVM_ANALYSIS_CFLALIASANALYSISUTILS_H
 #define LLVM_ANALYSIS_CFLALIASANALYSISUTILS_H
