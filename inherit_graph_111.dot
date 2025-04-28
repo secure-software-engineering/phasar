@@ -1,0 +1,9 @@
+digraph "Graphical Class Hierarchy"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node0 [id="Node000000",label="psr::Compressor\< T,\l std::enable_if_t\< CanEfficiently\lPassByValue\< T \> \> \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classpsr_1_1Compressor_3_01T_00_01std_1_1enable__if__t_3_01CanEfficientlyPassByValue_3_01T_01_4_01_4_01_4.html",tooltip="A utility class that assigns a sequential Id to every inserted object."];
+}

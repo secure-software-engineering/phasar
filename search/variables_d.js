@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['name_0',['name',['../structpsr_1_1VariableData.html#a460459d1a7df356afc66931005d74c19',1,'psr::VariableData::Name'],['../structpsr_1_1FunctionData.html#a6e8b9251d648930f46e35f896a014c14',1,'psr::FunctionData::Name']]],
+  ['nextwithsamesourcefactandcallee_1',['NextWithSameSourceFactAndCallee',['../structpsr_1_1IterativeIDESolverBase_1_1InterPropagationJob.html#aeed3ee36a32f73839fd862fa8724064f',1,'psr::IterativeIDESolverBase::InterPropagationJob']]],
+  ['nextwithsamesourcefactandcs_2',['NextWithSameSourceFactAndCS',['../structpsr_1_1IterativeIDESolverBase_1_1InterPropagationJob.html#a5bfeccb3685093cc4e91485f7f77539a',1,'psr::IterativeIDESolverBase::InterPropagationJob']]],
+  ['nodes_3',['nodes',['../structpsr_1_1AdjacencyList.html#a1d13ca58d8585ba245111d1d682fd5ab',1,'psr::AdjacencyList::Nodes'],['../structpsr_1_1DOTFactSubGraph.html#ab347e9997efdebc9c1f9fe268aabd30d',1,'psr::DOTFactSubGraph::Nodes']]],
+  ['nonemptyforwardlookup_4',['NonEmptyForwardLookup',['../classpsr_1_1JumpFunctions.html#a3c85955ebd5ee57253b758198b7c6432',1,'psr::JumpFunctions']]],
+  ['nonemptylookupbytargetnode_5',['NonEmptyLookupByTargetNode',['../classpsr_1_1JumpFunctions.html#a02c89bd38f2a7122adc72c8c35160880',1,'psr::JumpFunctions']]],
+  ['nonemptyreverselookup_6',['NonEmptyReverseLookup',['../classpsr_1_1JumpFunctions.html#a5d26f9315ee4e1d79aaff8379b5762c6',1,'psr::JumpFunctions']]],
+  ['nonvoidinsts_7',['NonVoidInsts',['../structpsr_1_1GeneralStatistics.html#a4a5124ec4b197953738d35d148d4da8e',1,'psr::GeneralStatistics']]],
+  ['normalandctrefcachecumulsize_8',['NormalAndCtrEFCacheCumulSize',['../structpsr_1_1EdgeFunctionCacheStats.html#ad3927d3006546a93612f0014f1df4948',1,'psr::EdgeFunctionCacheStats']]],
+  ['normalandctrefcachecumulsizereduced_9',['NormalAndCtrEFCacheCumulSizeReduced',['../structpsr_1_1EdgeFunctionCacheStats.html#a32ead8e2ca114ad2fd5aea61bb225a14',1,'psr::EdgeFunctionCacheStats']]],
+  ['normalffcachesize_10',['NormalFFCacheSize',['../structpsr_1_1FlowFunctionCacheStats.html#a5a18dde36ff6aa844e899de10f71abca',1,'psr::FlowFunctionCacheStats']]],
+  ['nullfunname_11',['NullFunName',['../classpsr_1_1LLVMVFTable.html#a2f14bf4884a6891504526795c9f6d6a3',1,'psr::LLVMVFTable']]],
+  ['numallinterpropagations_12',['NumAllInterPropagations',['../structpsr_1_1IterativeIDESolverStats.html#a8f8d8548bed37be8043638c53ecb5f75',1,'psr::IterativeIDESolverStats']]],
+  ['numendsummaries_13',['NumEndSummaries',['../structpsr_1_1IterativeIDESolverStats.html#a669f7adaa612bdca9e5c97a05fc4896c',1,'psr::IterativeIDESolverStats']]],
+  ['numflowfacts_14',['NumFlowFacts',['../structpsr_1_1IterativeIDESolverStats.html#a69c1f5b2c4395828c1aa6883e8422a1e',1,'psr::IterativeIDESolverStats']]],
+  ['numinlineasm_15',['NumInlineAsm',['../structpsr_1_1GeneralStatistics.html#a98e741abc9339b67efb008771922e77d',1,'psr::GeneralStatistics']]],
+  ['numinstsusedoutsidebb_16',['NumInstsUsedOutsideBB',['../structpsr_1_1GeneralStatistics.html#ae9f7d8e469e6bbb62cd6e773dda6c62a',1,'psr::GeneralStatistics']]],
+  ['numinstwithmultipleuses_17',['NumInstWithMultipleUses',['../structpsr_1_1GeneralStatistics.html#a69eeeed54edb540040ae2880edb295d0',1,'psr::GeneralStatistics']]],
+  ['numpathedges_18',['NumPathEdges',['../structpsr_1_1IterativeIDESolverStats.html#ac159251e2742ede66aa24ea4cdb5a9e2',1,'psr::IterativeIDESolverStats']]],
+  ['numpathedgeshighwatermark_19',['NumPathEdgesHighWatermark',['../structpsr_1_1IterativeIDESolverStats.html#af50a30ee1bf6f87904ab0f77786d2987',1,'psr::IterativeIDESolverStats']]],
+  ['numpathsthreshold_20',['NumPathsThreshold',['../structpsr_1_1PathSensitivityConfigBase.html#af8173f46e9315b2f390d11f188a07f7e',1,'psr::PathSensitivityConfigBase']]]
+];

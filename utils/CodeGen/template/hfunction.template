@@ -1,2 +1,0 @@
-	{ftmpl}
-	{pref}{rettype} {fname}({param}){post};

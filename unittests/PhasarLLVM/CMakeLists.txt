@@ -1,7 +1,0 @@
-add_subdirectory(ControlFlow)
-add_subdirectory(DataFlow)
-add_subdirectory(Utils)
-# add_subdirectory(Passes)
-add_subdirectory(Pointer)
-add_subdirectory(TaintConfig)
-add_subdirectory(TypeHierarchy)

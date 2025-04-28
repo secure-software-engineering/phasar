@@ -1,0 +1,15 @@
+digraph "Graphical Class Hierarchy"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node0 [id="Node000000",label="psr::IterativeIDESolverBase\l\< StaticSolverConfigTy,\l EdgeFunPtrTy \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classpsr_1_1IterativeIDESolverBase.html",tooltip=" "];
+  Node0 -> Node1 [id="edge263_Node000000_Node000001",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node1 [id="Node000001",label="psr::IterativeIDESolver\l\< ProblemTy, StaticSolverConfigTy \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classpsr_1_1IterativeIDESolver.html",tooltip=" "];
+  Node2 [id="Node000002",label="psr::detail::IterativeIDESolver\lResults\< ProblemTy::ProblemAnalysis\lDomain::n_t, ProblemTy::ProblemAnalysisDomain\l::d_t, std::conditional_t\< StaticSolverConfigTy\l::ComputeValues, ProblemTy::ProblemAnalysisDomain\l::l_t, BinaryDomain \> \>",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node2 -> Node1 [id="edge264_Node000002_Node000001",dir="back",color="firebrick4",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="psr::SolverStatsSelector\l\< StaticSolverConfigTy,\l typename \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1SolverStatsSelector.html",tooltip=" "];
+  Node3 -> Node1 [id="edge265_Node000003_Node000001",dir="back",color="firebrick4",style="solid",tooltip=" "];
+}

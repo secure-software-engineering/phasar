@@ -1,5 +1,0 @@
-{ftmpl}
-{pref}{rettype} {classname}::{fname}({param}){post}
-{{
-
-}}

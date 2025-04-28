@@ -1,0 +1,12 @@
+digraph "psr::DefaultIDESolverConfig&lt; ProblemTy, std::enable_if_t&lt; std::is_base_of_v&lt; IFDSTabulationProblem&lt; typename ProblemTy::ProblemAnalysisDomain &gt;, ProblemTy &gt; &gt; &gt;"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  Node1 [id="Node000001",label="psr::DefaultIDESolverConfig\l\< ProblemTy, std::enable\l_if_t\< std::is_base_of_v\l\< IFDSTabulationProblem\< typename\l ProblemTy::ProblemAnalysisDomain\l \>, ProblemTy \> \> \>",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node2 -> Node1 [id="edge1_Node000001_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="IFDSSolverConfig",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structpsr_1_1WithComputeValues.html",tooltip=" "];
+  Node3 -> Node2 [id="edge2_Node000002_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="Base",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$classBase.html",tooltip=" "];
+}

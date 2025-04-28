@@ -1,0 +1,10 @@
+digraph "psr::is_PointsToTraits&lt; T, std::void_t&lt; typename T::v_t, typename T::n_t, typename T::o_t, typename T::PointsToSetTy, typename T::PointsToSetPtrTy &gt; &gt;"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  Node1 [id="Node000001",label="psr::is_PointsToTraits\l\< T, std::void_t\< typename\l T::v_t, typename T::n_t,\l typename T::o_t, typename\l T::PointsToSetTy, typename\l T::PointsToSetPtrTy \> \>",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node2 -> Node1 [id="edge1_Node000001_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="std::true_type",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",tooltip=" "];
+}

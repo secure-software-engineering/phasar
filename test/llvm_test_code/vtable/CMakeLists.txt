@@ -1,3 +1,0 @@
-add_subdirectory(one_file)
-add_subdirectory(scattered_vfunc_impl)
-add_subdirectory(simple)

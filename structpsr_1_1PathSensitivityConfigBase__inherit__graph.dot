@@ -1,0 +1,17 @@
+digraph "psr::PathSensitivityConfigBase&lt; DerivedConfig &gt;"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node1 [id="Node000001",label="psr::PathSensitivityConfig\lBase\< DerivedConfig \>",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node1 -> Node2 [id="edge1_Node000001_Node000002",dir="back",color="orange",style="dashed",tooltip=" ",label=" \< PathSensitivityConfig \>",fontcolor="grey" ];
+  Node2 [id="Node000002",label="psr::PathSensitivityConfig\lBase\< PathSensitivityConfig \>",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structpsr_1_1PathSensitivityConfigBase.html",tooltip=" "];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="psr::PathSensitivityConfig",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structpsr_1_1PathSensitivityConfig.html",tooltip=" "];
+  Node1 -> Node4 [id="edge3_Node000001_Node000004",dir="back",color="orange",style="dashed",tooltip=" ",label=" \< Z3BasedPathSensitivity\lConfig \>",fontcolor="grey" ];
+  Node4 [id="Node000004",label="psr::PathSensitivityConfig\lBase\< Z3BasedPathSensitivityConfig \>",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structpsr_1_1PathSensitivityConfigBase.html",tooltip=" "];
+  Node4 -> Node5 [id="edge4_Node000004_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="psr::Z3BasedPathSensitivity\lConfig",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structpsr_1_1Z3BasedPathSensitivityConfig.html",tooltip=" "];
+}

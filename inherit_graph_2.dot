@@ -1,0 +1,23 @@
+digraph "Graphical Class Hierarchy"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node0 [id="Node000000",label="Base",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classBase.html",tooltip=" "];
+  Node0 -> Node1 [id="edge1_Node000000_Node000001",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node1 [id="Node000001",label="psr::WithComputeValues\l\< Base, ComputeValuesVal \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1WithComputeValues.html",tooltip=" "];
+  Node1 -> Node2 [id="edge2_Node000001_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="psr::DefaultIDESolverConfig\l\< ProblemTy, Enable \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1DefaultIDESolverConfig.html",tooltip=" "];
+  Node1 -> Node3 [id="edge3_Node000001_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="psr::DefaultIDESolverConfig\l\< ProblemTy, std::enable\l_if_t\< std::is_base_of_v\l\< IFDSTabulationProblem\< typename\l ProblemTy::ProblemAnalysisDomain\l \>, ProblemTy \> \> \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_00_01std_1_1enable__if__t_3_01std_1_1is__base_adc4e44d50d6a7f0c5ce731aba6dd5ad.html",tooltip=" "];
+  Node0 -> Node4 [id="edge4_Node000000_Node000004",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="psr::WithEndSummaryTab\l\< Base, UseEST \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1WithEndSummaryTab.html",tooltip=" "];
+  Node0 -> Node5 [id="edge5_Node000000_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="psr::WithGCMode\< Base,\l GCMode \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1WithGCMode.html",tooltip=" "];
+  Node0 -> Node6 [id="edge6_Node000000_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="psr::WithStats\< Base,\l EnableStats \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1WithStats.html",tooltip=" "];
+  Node0 -> Node7 [id="edge7_Node000000_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node7 [id="Node000007",label="psr::WithWorkList\<\l Base, WorkList \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$structpsr_1_1WithWorkList.html",tooltip=" "];
+}

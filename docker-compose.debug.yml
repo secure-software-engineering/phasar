@@ -1,8 +1,0 @@
-version: '2.1'
-
-services:
-  phasar:
-    image: phasar
-    build:
-      context: .
-      dockerfile: Dockerfile
