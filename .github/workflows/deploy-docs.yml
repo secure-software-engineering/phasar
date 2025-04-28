@@ -1,4 +1,4 @@
-name: Build and Deploy Doxagen Docs
+name: Build and Deploy Doxygen Docs
 on:
   push:
     branches: [ development ]
