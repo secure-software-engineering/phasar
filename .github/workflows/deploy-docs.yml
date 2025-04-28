@@ -1,0 +1,37 @@
+name: Build and Deploy Doxagen Docs
+on:
+  push:
+    branches: [ development ]
+  pull_request: # For testing only. TODO: Remove before merge!
+    branches: [ development ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+    continue-on-error: false
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Phasar Dependencies
+        shell: bash
+        run: |
+          ./utils/InstallAptDependencies.sh --noninteractive tzdata clang-19
+
+      - name: Build Doxygen Docs
+        shell: bash
+        run: |
+           cmake -S . -B build -DPHASAR_BUILD_DOC=ON
+           cmake --build ./build --target doc_doxygen
+
+      - name: Deploy Doxygen Docs on GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build/docs/html
