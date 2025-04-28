@@ -19,6 +19,12 @@
 
 namespace psr {
 
+/// \brief The analysis problem interface for IFDS problems (solvable by the
+/// IFDSSolver). Subclass this and override all pure-virtual functions to create
+/// your own IFDS analysis.
+///
+/// For more information on how to write an IFDS analysis, see [Writing an IFDS
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IFDS-analysis)
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IFDSTabulationProblem
@@ -38,6 +44,16 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
+  /// Takes an IR data base (IRDB) and collects information from it to create a
+  /// tabulation problem.
+  /// @param[in] IRDB The project IR data base, that holds the code under
+  /// analysis
+  /// @param[in] EntryPoints The (mangled) names of all entry functions of the
+  /// project, given as a vector of strings. An example would simply be
+  /// `{"main"}`. To set every function as entry point, pass `"__ALL__"`
+  /// @param[in] ZeroValue Provides the special tautological zero value (aka.
+  /// Λ).
+  /// \endlink.
   explicit IFDSTabulationProblem(const ProjectIRDBBase<db_t> *IRDB,
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
