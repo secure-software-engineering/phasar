@@ -23,7 +23,7 @@ jobs:
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --noninteractive tzdata
+          ./utils/InstallAptDependencies.sh --noninteractive tzdata doxygen
 
       - name: Build Doxygen Docs
         shell: bash
