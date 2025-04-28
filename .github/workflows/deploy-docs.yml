@@ -4,15 +4,15 @@ on:
     branches: [ development ]
   pull_request: # For testing only. TODO: Remove before merge!
     branches: [ development ]
-
+permissions:
+  contents: write
 jobs:
   build-and-deploy:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: true
     continue-on-error: false
-    permissions:
-      contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
