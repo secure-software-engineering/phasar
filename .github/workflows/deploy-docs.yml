@@ -38,3 +38,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: build/docs/html
+          token: ${{ secrets.GITHUB_TOKEN }}
