@@ -315,13 +315,13 @@ public:
     }
   }
 
-  [[nodiscard]] base_t asRef() &noexcept { return *this; }
-  [[nodiscard]] AliasInfoRef<V, N> asRef() const &noexcept { return *this; }
+  [[nodiscard]] base_t asRef() & noexcept { return *this; }
+  [[nodiscard]] AliasInfoRef<V, N> asRef() const & noexcept { return *this; }
   [[nodiscard]] AliasInfoRef<V, N> asRef() && = delete;
 
   /// For better interoperability with unique_ptr
-  [[nodiscard]] base_t get() &noexcept { return asRef(); }
-  [[nodiscard]] AliasInfoRef<V, N> get() const &noexcept { return asRef(); }
+  [[nodiscard]] base_t get() & noexcept { return asRef(); }
+  [[nodiscard]] AliasInfoRef<V, N> get() const & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
 };
 

@@ -37,7 +37,7 @@ class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
 
   public:
     LLVMBackwardRet(llvm::LLVMContext &Ctx)
-        : Instance(llvm::ReturnInst::Create(Ctx)){};
+        : Instance(llvm::ReturnInst::Create(Ctx)) {};
     [[nodiscard]] const llvm::ReturnInst *getInstance() const noexcept {
       return Instance;
     }

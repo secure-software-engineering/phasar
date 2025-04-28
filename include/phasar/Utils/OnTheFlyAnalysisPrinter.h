@@ -25,10 +25,11 @@ class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 
 public:
   explicit OnTheFlyAnalysisPrinter(llvm::raw_ostream &OS)
-      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(&OS){};
+      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(&OS) {};
 
   explicit OnTheFlyAnalysisPrinter(const llvm::Twine &Filename)
-      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(openFileStream(Filename)){};
+      : AnalysisPrinterBase<AnalysisDomainTy>(),
+        OS(openFileStream(Filename)) {};
 
   OnTheFlyAnalysisPrinter() = default;
   ~OnTheFlyAnalysisPrinter() = default;

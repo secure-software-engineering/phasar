@@ -43,7 +43,8 @@ public:
       : OS(&OS) {}
 
   explicit DefaultAnalysisPrinter(const llvm::Twine &Filename)
-      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(openFileStream(Filename)){};
+      : AnalysisPrinterBase<AnalysisDomainTy>(),
+        OS(openFileStream(Filename)) {};
 
   ~DefaultAnalysisPrinter() override = default;
 

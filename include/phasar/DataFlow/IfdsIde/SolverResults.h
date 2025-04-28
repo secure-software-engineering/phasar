@@ -265,12 +265,12 @@ public:
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
       : Results(std::move(ResTab)), ZV(std::move(ZV)) {}
 
-  [[nodiscard]] SolverResults<N, D, L> get() const &noexcept {
+  [[nodiscard]] SolverResults<N, D, L> get() const & noexcept {
     return {Results, ZV};
   }
   SolverResults<N, D, L> get() && = delete;
 
-  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
+  [[nodiscard]] operator SolverResults<N, D, L>() const & noexcept {
     return get();
   }
 
