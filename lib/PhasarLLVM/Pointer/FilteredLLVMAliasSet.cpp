@@ -145,9 +145,8 @@ AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
   return alias(V1, V2, I->getFunction());
 }
 
-auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
-                                       const llvm::Function *Fun)
-    -> AliasSetPtrTy {
+auto FilteredLLVMAliasSet::getAliasSet(
+    const llvm::Value *V, const llvm::Function *Fun) -> AliasSetPtrTy {
   if (!isInterestingPointer(V)) {
     return AS->getEmptyAliasSet();
   }
@@ -162,23 +161,22 @@ auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
   return Entry;
 }
 
-auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
-                                       const llvm::Instruction *I)
-    -> AliasSetPtrTy {
+auto FilteredLLVMAliasSet::getAliasSet(
+    const llvm::Value *V, const llvm::Instruction *I) -> AliasSetPtrTy {
   const auto *Fun = I ? I->getFunction() : nullptr;
   return getAliasSet(V, Fun);
 }
 
 auto FilteredLLVMAliasSet::getReachableAllocationSites(
-    const llvm::Value *V, bool IntraProcOnly, const llvm::Instruction *I)
-    -> AllocationSiteSetPtrTy {
+    const llvm::Value *V, bool IntraProcOnly,
+    const llvm::Instruction *I) -> AllocationSiteSetPtrTy {
 
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
     return &getDefaultValue<AliasSetTy>();
   }
 
-  const auto *Fun = I->getFunction();
+  const auto *Fun = I ? I->getFunction() : nullptr;
   auto &AllocSites = ReachableAllocationSitesMap[ReachableAllocationSitesKey{
       {Fun, IntraProcOnly}, V}];
   if (AllocSites) {
@@ -220,6 +218,11 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
 bool FilteredLLVMAliasSet::isInReachableAllocationSites(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
     const llvm::Instruction *I) {
+
+  if (I == V) {
+    return true;
+  }
+
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
     return false;
