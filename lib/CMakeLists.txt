@@ -6,6 +6,8 @@ add_subdirectory(Config)
 add_subdirectory(Utils)
 add_subdirectory(Pointer)
 add_subdirectory(ControlFlow)
+add_subdirectory(DataFlow)
+
 if(BUILD_PHASAR_CLANG)
     if(PHASAR_IN_TREE)
         add_dependencies(phasar_interface intrinsics_gen)
@@ -23,6 +25,8 @@ set(PHASAR_LINK_LIBS
     phasar_config
     phasar_pointer
     phasar_controlflow
+
+    phasar_dataflow_ifdside_solver
 
     phasar_llvm_utils
     phasar_llvm_db
