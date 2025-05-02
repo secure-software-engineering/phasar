@@ -5,6 +5,9 @@
 #include <vector>
 
 import phasar.db;
+import phasar.phasar_llvm;
+import phasar.dataflow_ifdside_solver;
+// import phasar.dataflow;
 // TODO: more phasar imports here
 // TODO: The whole content of myphasartool should work with modules!
 
@@ -23,36 +26,35 @@ int main(int Argc, const char **Argv) {
 
   std::vector EntryPoints = {"main"s};
 
-  // HelperAnalyses HA(Argv[1], EntryPoints);
-  // if (!HA.getProjectIRDB().isValid()) {
-  //   return 1;
-  // }
+  HelperAnalyses HA(Argv[1], EntryPoints);
+  if (!HA.getProjectIRDB().isValid()) {
+    return 1;
+  }
 
-  // if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
-  //   // print type hierarchy
-  //   HA.getTypeHierarchy().print();
-  //   // print points-to information
-  //   HA.getAliasInfo().print();
-  //   // print inter-procedural control-flow graph
-  //   HA.getICFG().print();
+  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
+    // print type hierarchy
+    HA.getTypeHierarchy().print();
+    // print points-to information
+    HA.getAliasInfo().print();
+    // print inter-procedural control-flow graph
+    HA.getICFG().print();
 
-  //   // IFDS template parametrization test
-  //   llvm::outs() << "Testing IFDS:\n";
-  //   auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
-  //   IFDSSolver S(L, &HA.getICFG());
-  //   auto IFDSResults = S.solve();
-  //   IFDSResults.dumpResults(HA.getICFG());
+    // IFDS template parametrization test
+    llvm::outs() << "Testing IFDS:\n";
+    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
+    IFDSSolver S(L, &HA.getICFG());
+    auto IFDSResults = S.solve();
+    IFDSResults.dumpResults(HA.getICFG());
 
-  //   // IDE template parametrization test
-  //   llvm::outs() << "Testing IDE:\n";
-  //   auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA,
-  //   EntryPoints);
-  //   // Alternative way of solving an IFDS/IDEProblem:
-  //   auto IDEResults = solveIDEProblem(M, HA.getICFG());
-  //   IDEResults.dumpResults(HA.getICFG());
+    // IDE template parametrization test
+    llvm::outs() << "Testing IDE:\n";
+    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+    // Alternative way of solving an IFDS/IDEProblem:
+    auto IDEResults = solveIDEProblem(M, HA.getICFG());
+    IDEResults.dumpResults(HA.getICFG());
 
-  // } else {
-  //   llvm::errs() << "error: file does not contain a 'main' function!\n";
-  // }
+  } else {
+    llvm::errs() << "error: file does not contain a 'main' function!\n";
+  }
   return 0;
 }

@@ -6,6 +6,8 @@ if(SQLite3_FOUND)
     LINKS phasar_passes phasar_utils
     LLVM_LINK_COMPONENTS Support
     LINK_PRIVATE SQLite::SQLite3
-    MODULE_FILES db.cppm
+
+    MODULE_FILES
+      db.cppm
   )
 endif()

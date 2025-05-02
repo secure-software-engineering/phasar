@@ -4,6 +4,9 @@ file(GLOB_RECURSE TYPEHIERARCHY_SRC *.h *.cpp)
 add_phasar_library(phasar_llvm_typehierarchy
   ${TYPEHIERARCHY_SRC}
 
+  MODULE_FILES
+    phasar_llvm_typehierarchy.cppm
+
   LINKS
     phasar_utils
     phasar_llvm_db
