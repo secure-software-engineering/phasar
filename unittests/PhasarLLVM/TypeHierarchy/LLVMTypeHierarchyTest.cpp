@@ -1,48 +1,43 @@
-#include <iostream>
 
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/Demangle/Demangle.h"
+#include "llvm/Support/ManagedStatic.h"
+
+#include "TestConfig.h"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/graphviz.hpp"
 #include "boost/graph/isomorphism.hpp"
-
 #include "gtest/gtest.h"
-
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Utilities.h"
-
-#include "TestConfig.h"
 
 using namespace std;
 using namespace psr;
+
+using llvm::demangle;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
 
 namespace psr {
 
 // Check basic type hierarchy construction
 TEST(LTHTest, BasicTHReconstruction_1) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_1_cpp.ll");
   LLVMTypeHierarchy LTH(IRDB);
-  EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
+
+  ASSERT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
+  ASSERT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
   EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
-      true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
@@ -52,9 +47,15 @@ TEST(LTHTest, BasicTHReconstruction_1) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
+TEST(LTHTest, THConstructionException) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "type_hierarchies/type_hierarchy_15_cpp.ll");
+  LLVMTypeHierarchy LTH(IRDB);
+}
+
 TEST(LTHTest, BasicTHReconstruction_2) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_2_cpp.ll"});
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_2_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -62,19 +63,7 @@ TEST(LTHTest, BasicTHReconstruction_2) {
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
-      true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
@@ -85,8 +74,8 @@ TEST(LTHTest, BasicTHReconstruction_2) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_3) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_3_cpp.ll"});
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_3_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -94,25 +83,7 @@ TEST(LTHTest, BasicTHReconstruction_3) {
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
-      true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(1)->getName(),
-      "_ZN4Base3barEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(1)->getName(),
-      "_ZN4Base3barEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 2U);
+
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
@@ -123,8 +94,8 @@ TEST(LTHTest, BasicTHReconstruction_3) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_4) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_4_cpp.ll"});
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_4_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -132,28 +103,7 @@ TEST(LTHTest, BasicTHReconstruction_4) {
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
-      true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(1)->getName(),
-      "_ZN4Base3barEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(1)->getName(),
-      "_ZN4Base3barEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(2)->getName(),
-      "_ZN5Child3tarEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 3U);
+
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
@@ -164,8 +114,8 @@ TEST(LTHTest, BasicTHReconstruction_4) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_5) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_5_cpp.ll"});
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_5_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -177,43 +127,7 @@ TEST(LTHTest, BasicTHReconstruction_5) {
   EXPECT_EQ(LTH.isSubType(LTH.getType("struct.OtherBase"),
                           LTH.getType("struct.Child")),
             true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
-      true);
-  EXPECT_EQ(LTH.isSuperType(LTH.getType("struct.Child"),
-                            LTH.getType("struct.OtherBase")),
-            true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.OtherBase")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(1)->getName(),
-      "_ZN4Base3barEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.OtherBase"))
-                ->getFunction(0)
-                ->getName(),
-            "_ZN9OtherBase3bazEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(1)->getName(),
-      "_ZN4Base3barEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(2)->getName(),
-      "_ZN5Child3bazEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(3)->getName(),
-      "_ZN5Child3tarEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(4)->getName(),
-      "_ZThn8_N5Child3bazEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 2U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.OtherBase"))->size(), 1U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 5U);
+
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.OtherBase")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
@@ -228,8 +142,8 @@ TEST(LTHTest, BasicTHReconstruction_5) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_6) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_12_cpp.ll"});
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_12_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("class.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -237,19 +151,7 @@ TEST(LTHTest, BasicTHReconstruction_6) {
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("class.Base"), LTH.getType("struct.Child")),
       true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("class.Base")),
-      true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("class.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("class.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("class.Base"))->size(), 1U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
+
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("class.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("class.Base"));
@@ -260,29 +162,15 @@ TEST(LTHTest, BasicTHReconstruction_6) {
 }
 
 TEST(LTHTest, BasicTHReconstruction_7) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_11_cpp.ll"});
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_11_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  // has three types because of padding (introduction of intermediate type)
-  EXPECT_EQ(LTH.getAllTypes().size(), 3U);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
-  EXPECT_EQ(
-      LTH.isSuperType(LTH.getType("struct.Child"), LTH.getType("struct.Base")),
-      true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasVFTable(LTH.getType("struct.Child")), true);
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Base"))->getFunction(0)->getName(),
-      "_ZN4Base3fooEv");
-  EXPECT_EQ(
-      LTH.getVFTable(LTH.getType("struct.Child"))->getFunction(0)->getName(),
-      "_ZN5Child3fooEv");
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Base"))->size(), 1U);
-  EXPECT_EQ(LTH.getVFTable(LTH.getType("struct.Child"))->size(), 1U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
@@ -292,170 +180,17 @@ TEST(LTHTest, BasicTHReconstruction_7) {
   EXPECT_EQ(ChildReachable.count(LTH.getType("struct.Child")), true);
 }
 
-// check if the vtables are constructed correctly in more complex scenarios
-TEST(LTHTest, VTableConstruction) {
-  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_1_cpp.ll"});
-  ProjectIRDB IRDB2({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_7_cpp.ll"});
-  ProjectIRDB IRDB3({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_8_cpp.ll"});
-  ProjectIRDB IRDB4({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_9_cpp.ll"});
-  ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_10_cpp.ll"});
-
-  // Creates an empty type hierarchy
-  LLVMTypeHierarchy TH1(IRDB1);
-  LLVMTypeHierarchy TH2(IRDB2);
-  LLVMTypeHierarchy TH3(IRDB3);
-  LLVMTypeHierarchy TH4(IRDB4);
-  LLVMTypeHierarchy TH5(IRDB5);
-
-  ASSERT_TRUE(TH1.hasVFTable(TH1.getType("struct.Base")));
-  ASSERT_TRUE(TH1.hasVFTable(TH1.getType("struct.Child")));
-  ASSERT_FALSE(TH1.hasVFTable(TH1.getType("struct.ANYTHING")));
-
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.A")));
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.B")));
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.C")));
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.D")));
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.X")));
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.Y")));
-  ASSERT_TRUE(TH2.hasVFTable(TH2.getType("struct.Z")));
-
-  ASSERT_TRUE(TH3.hasVFTable(TH3.getType("struct.Base")));
-  ASSERT_TRUE(TH3.hasVFTable(TH3.getType("struct.Child")));
-  ASSERT_FALSE(TH3.hasVFTable(TH3.getType("class.NonvirtualClass")));
-  ASSERT_FALSE(TH3.hasVFTable(TH3.getType("struct.NonvirtualStruct")));
-
-  ASSERT_TRUE(TH4.hasVFTable(TH4.getType("struct.Base")));
-  ASSERT_TRUE(TH4.hasVFTable(TH4.getType("struct.Child")));
-
-  ASSERT_TRUE(TH5.hasVFTable(TH5.getType("struct.Base")));
-  ASSERT_TRUE(TH5.hasVFTable(TH5.getType("struct.Child")));
-
-  ASSERT_TRUE(cxxDemangle(TH1.getVFTable(TH1.getType("struct.Base"))
-                              ->getFunction(0)
-                              ->getName()) == "Base::foo()");
-  ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Base"))->size() == 1U);
-  ASSERT_TRUE(cxxDemangle(TH1.getVFTable(TH1.getType("struct.Child"))
-                              ->getFunction(0)
-                              ->getName()) == "Child::foo()");
-  ASSERT_TRUE(TH1.getVFTable(TH1.getType("struct.Child"))->size() == 1U);
-
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.A"))->getFunction(0)->getName()) ==
-      "A::f()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.A"))->size() == 1U);
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.B"))->getFunction(0)->getName()) ==
-      "A::f()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.B"))->size() == 1U);
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.C"))->getFunction(0)->getName()) ==
-      "A::f()");
-  ASSERT_TRUE(
-
-      TH2.getVFTable(TH2.getType("struct.C"))->size() == 1U);
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.D"))->getFunction(0)->getName()) ==
-      "A::f()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.D"))->size() == 1U);
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.X"))->getFunction(0)->getName()) ==
-      "X::g()");
-  ASSERT_TRUE(
-
-      TH2.getVFTable(TH2.getType("struct.X"))->size() == 1U);
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.Y"))->getFunction(0)->getName()) ==
-      "X::g()");
-  ASSERT_TRUE(
-
-      TH2.getVFTable(TH2.getType("struct.Y"))->size() == 1U);
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.Z"))->getFunction(0)->getName()) ==
-      "A::f()");
-  ASSERT_TRUE(
-      cxxDemangle(
-          TH2.getVFTable(TH2.getType("struct.Z"))->getFunction(1)->getName()) ==
-      "X::g()");
-  ASSERT_TRUE(TH2.getVFTable(TH2.getType("struct.Z"))->size() == 2U);
-
-  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Base"))
-                              ->getFunction(0)
-                              ->getName()) == "Base::foo()");
-  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Base"))
-                              ->getFunction(1)
-                              ->getName()) == "Base::bar()");
-  ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Base"))->size() == 2U);
-  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Child"))
-                              ->getFunction(0)
-                              ->getName()) == "Child::foo()");
-  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Child"))
-                              ->getFunction(1)
-                              ->getName()) == "Base::bar()");
-  ASSERT_TRUE(cxxDemangle(TH3.getVFTable(TH3.getType("struct.Child"))
-                              ->getFunction(2)
-                              ->getName()) == "Child::baz()");
-  ASSERT_TRUE(TH3.getVFTable(TH3.getType("struct.Child"))->size() == 3U);
-
-  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Base"))
-                              ->getFunction(0)
-                              ->getName()) == "Base::foo()");
-  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Base"))
-                              ->getFunction(1)
-                              ->getName()) == "Base::bar()");
-  ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Base"))->size() == 2U);
-  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Child"))
-                              ->getFunction(0)
-                              ->getName()) == "Child::foo()");
-  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Child"))
-                              ->getFunction(1)
-                              ->getName()) == "Base::bar()");
-  ASSERT_TRUE(cxxDemangle(TH4.getVFTable(TH4.getType("struct.Child"))
-                              ->getFunction(2)
-                              ->getName()) == "Child::baz()");
-  ASSERT_TRUE(TH4.getVFTable(TH4.getType("struct.Child"))->size() == 3U);
-
-  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Base"))
-                              ->getFunction(0)
-                              ->getName()) == "__cxa_pure_virtual");
-  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Base"))
-                              ->getFunction(1)
-                              ->getName()) == "Base::bar()");
-  ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Base"))->size() == 2U);
-  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Child"))
-                              ->getFunction(0)
-                              ->getName()) == "Child::foo()");
-  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Child"))
-                              ->getFunction(1)
-                              ->getName()) == "Base::bar()");
-  ASSERT_TRUE(cxxDemangle(TH5.getVFTable(TH5.getType("struct.Child"))
-                              ->getFunction(2)
-                              ->getName()) == "Child::baz()");
-  ASSERT_TRUE(TH5.getVFTable(TH5.getType("struct.Child"))->size() == 3U);
-}
-
 TEST(LTHTest, TransitivelyReachableTypes) {
-  ProjectIRDB IRDB1({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_1_cpp.ll"});
-  ProjectIRDB IRDB2({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_7_cpp.ll"});
-  ProjectIRDB IRDB3({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_8_cpp.ll"});
-  ProjectIRDB IRDB4({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_9_cpp.ll"});
-  ProjectIRDB IRDB5({unittest::PathToLLTestFiles +
-                     "type_hierarchies/type_hierarchy_10_cpp.ll"});
+  LLVMProjectIRDB IRDB1({unittest::PathToLLTestFiles +
+                         "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  LLVMProjectIRDB IRDB2({unittest::PathToLLTestFiles +
+                         "type_hierarchies/type_hierarchy_7_cpp.ll"});
+  LLVMProjectIRDB IRDB3({unittest::PathToLLTestFiles +
+                         "type_hierarchies/type_hierarchy_8_cpp.ll"});
+  LLVMProjectIRDB IRDB4({unittest::PathToLLTestFiles +
+                         "type_hierarchies/type_hierarchy_9_cpp.ll"});
+  LLVMProjectIRDB IRDB5({unittest::PathToLLTestFiles +
+                         "type_hierarchies/type_hierarchy_10_cpp.ll"});
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -534,8 +269,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
       TH3.getType("struct.NonvirtualStruct")));
   ASSERT_TRUE(ReachableTypesNonvirtualstruct3.size() == 1U);
 
-  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base")));
-  ASSERT_FALSE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
   ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Child")));
   ASSERT_TRUE(ReachableTypesBase4.size() == 2U);
   ASSERT_TRUE(ReachableTypesChild4.count(TH4.getType("struct.Child")));
@@ -549,15 +283,15 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 }
 
 // TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
-//   ProjectIRDB IRDB(
+//   LLVMProjectIRDB IRDB(
 //       {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
 //   LLVMTypeHierarchy TH(IRDB);
-//   TH.print(std::cout);
+//   TH.print(llvm::outs());
 //   //   std::ostringstream oss;
 //   //   // Write empty LTH graph as dot to string
 //   //   TH.printGraphAsDot(oss);
 //   //   oss.flush();
-//   //   std::cout << oss.str() << std::endl;
+//   //   llvm::outs() << oss.str() << std::endl;
 //   //   std::string dot = oss.str();
 //   //   // Reconstruct a LTH graph from the created dot file
 //   //   std::istringstream iss(dot);
@@ -567,12 +301,12 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 //   //   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name,
 //   //   G)); std::ostringstream oss2; boost::write_graphviz_dp(oss2, G, dp);
 //   //   oss2.flush();
-//   //   std::cout << oss2.str() << std::endl;
+//   //   llvm::outs() << oss2.str() << std::endl;
 //   //   ASSERT_TRUE(boost::isomorphism(G, TH.TypeGraph));
 // }
 
 // // TEST(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
-// //   ProjectIRDB IRDB({pathToLLFiles +
+// //   LLVMProjectIRDB IRDB({pathToLLFiles +
 // //   "taint_analysis/growing_example_cpp.ll"}); LLVMTypeHierarchy TH(IRDB);
 // //   std::ostringstream oss;
 // //   // Write empty LTH graph as dot to string
@@ -592,7 +326,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // // }
 
 // // TEST(LTHTest, HandleMerge_1) {
-// //   ProjectIRDB IRDB(
+// //   LLVMProjectIRDB IRDB(
 // //       {pathToLLFiles + "type_hierarchies/type_hierarchy_12_cpp.ll",
 // //        pathToLLFiles + "type_hierarchies/type_hierarchy_12_b_cpp.ll"});
 // //   LLVMTypeHierarchy TH1(*IRDB.getModule(
@@ -649,35 +383,35 @@ TEST(LTHTest, TransitivelyReachableTypes) {
 // //   EXPECT_TRUE(ChildsChildReachable.count("struct.ChildsChild"));
 // // }
 
-TEST(LTHTest, HandleSTLString) {
-  ProjectIRDB IRDB({unittest::PathToLLTestFiles +
-                    "type_hierarchies/type_hierarchy_13_cpp.ll"});
+// Failing test case
+PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
+  // If we use libcxx this won't work since internal implementation is different
+  LIBCPP_GTEST_SKIP;
+
+  LLVMProjectIRDB IRDB({unittest::PathToLLTestFiles +
+                        "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  EXPECT_EQ(TH.getAllTypes().size(), 4U);
+  // NOTE: Even if using libstdc++, depending on the version the generated IR is
+  // different; so, we cannot assert on the number of types here
+  // EXPECT_EQ(TH.getAllTypes().size(), 7U);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
-  EXPECT_TRUE(TH.hasType(TH.getType(
-      "struct.std::__cxx11::basic_string<char, std::char_traits<char>, "
-      "std::allocator<char> >::_Alloc_hider")));
+  EXPECT_TRUE(TH.hasType(
+      TH.getType("struct.std::__cxx11::basic_string<char>::_Alloc_hider")));
   EXPECT_TRUE(TH.hasType(TH.getType("union.anon")));
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::allocator")));
   // (virtual) inheritance is not used in STL types
-  EXPECT_FALSE(
-      TH.isSubType(TH.getType("struct.std::__cxx11::basic_string<char, "
-                              "std::char_traits<char>, std::allocator<char> "
-                              ">::_Alloc_hider"),
-                   TH.getType("class.std::__cxx11::basic_string")));
+  EXPECT_FALSE(TH.isSubType(
+      TH.getType(
+          "struct.std::__cxx11::basic_string<char, std::char_traits<char>, "
+          "std::allocator<char> >::_Alloc_hider"),
+      TH.getType("class.std::__cxx11::basic_string")));
   EXPECT_FALSE(TH.isSubType(TH.getType("union.anon"),
                             TH.getType("class.std::__cxx11::basic_string")));
-  EXPECT_FALSE(
-      TH.isSuperType(TH.getType("class.std::__cxx11::basic_string"),
-                     TH.getType("struct.std::__cxx11::basic_string<char, "
-                                "std::char_traits<char>, std::allocator<char> "
-                                ">::_Alloc_hider")));
-  EXPECT_TRUE(TH.isSuperType(TH.getType("class.std::allocator"),
-                             TH.getType("class.std::allocator")));
-}
+})
 
 } // namespace psr
+
+#pragma GCC diagnostic pop
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

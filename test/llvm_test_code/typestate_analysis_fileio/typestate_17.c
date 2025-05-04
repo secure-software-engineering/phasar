@@ -11,7 +11,8 @@ int main() {
 
   foo(f);
 
-  while ((i = fgetc(f)) != EOF) {}
+  while ((i = fgetc(f)) != EOF) {
+  }
 
   return 0;
 }

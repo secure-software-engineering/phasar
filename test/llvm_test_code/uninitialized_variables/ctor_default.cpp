@@ -1,10 +1,9 @@
 struct MyType {
-	int i;
-	MyType() {}
+  int i;
+  MyType() {}
 };
 
-int main()
-{
-	MyType t;
-	return 0;
+int main() {
+  MyType t;
+  return 0;
 }

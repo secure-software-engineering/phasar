@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 FILE *bar() {
-	FILE *fp;
-	return fp;
+  FILE *fp;
+  return fp;
 }
 
 FILE *foo() {

@@ -1,1 +1,8 @@
-This is a demo tool that uses PhASAR as a library. Currently this is only supported in the f-CMakePackage feature branch of PhASAR. The number of phasar libraries explicitly stated in CMakeLists.txt can be further reduced by stating the non-transitive dependencies of phasar libraries. This is pending work on the PhASAR side.
+# Use PhASAR as a Library
+
+This small example shows how you can setup a CMake project that uses PhASAR as a library.
+This guide assumes that you have installed PhASAR such that the `find_package` cmake command can find it.
+
+You can choose the PhASAR components that you need in the `find_package` command.
+
+To use phasar from a custom install location, you may specify the `phasar_ROOT` CMake variable to point to phasar's install directory.

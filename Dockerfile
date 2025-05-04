@@ -1,43 +1,32 @@
-FROM ubuntu:latest
-ARG LLVM_INSTALL_DIR="/usr/local/llvm-10"
-LABEL Name=phasar Version=1.0.0
+ARG baseimage="ubuntu:24.04"
+FROM "$baseimage" as build
 
-RUN apt -y update && apt install bash sudo -y
+RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
+  set -eux; \
+  ./InstallAptDependencies.sh --noninteractive tzdata clang-19 libclang-rt-19-dev
 
-WORKDIR /usr/src/phasar
-RUN mkdir -p /usr/src/phasar/utils
+ENV CC=/usr/bin/clang-19 \
+    CXX=/usr/bin/clang++-19
 
-COPY ./utils/InitializeEnvironment.sh /usr/src/phasar/utils/
-RUN ./utils/InitializeEnvironment.sh
+FROM build
 
-COPY ./utils/InstallAptDependencies.sh /usr/src/phasar/utils/
-RUN ./utils/InstallAptDependencies.sh
+ARG RUN_TESTS=OFF
+RUN --mount=type=bind,source=.,target=/usr/src/phasar,rw \
+  set -eux; \
+  cd /usr/src/phasar; \
+  git submodule update --init; \
+  cmake -S . -B cmake-build/Release \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DPHASAR_TARGET_ARCH="" \
+    -DPHASAR_ENABLE_SANITIZERS=ON \
+    -DBUILD_PHASAR_CLANG=ON \
+    -DPHASAR_USE_Z3=ON \
+    -DPHASAR_BUILD_UNITTESTS=$RUN_TESTS \
+    -DPHASAR_BUILD_IR=$RUN_TESTS \
+    -DPHASAR_BUILD_OPENSSL_TS_UNITTESTS=OFF \
+    -G Ninja; \
+  ninja -C cmake-build/Release install; \
+  [ "${RUN_TESTS}" = "ON" ] && ctest --test-dir cmake-build/Release --output-on-failure || true; \
+  phasar-cli --version
 
-RUN pip3 install Pygments pyyaml
-
-# installing boost
-RUN apt install libboost-all-dev -y
-
-# installing LLVM
-COPY utils/install-llvm.sh /usr/src/phasar/utils/install-llvm.sh
-RUN ./utils/install-llvm.sh $(nproc) ${LLVM_INSTALL_DIR} "llvmorg-10.0.0"
-
-# installing wllvm
-RUN pip3 install wllvm
-
-ENV CC=${LLVM_INSTALL_DIR}/bin/clang
-ENV CXX=${LLVM_INSTALL_DIR}/bin/clang++
-ENV LD_LIBRARY_PATH=${LLVM_INSTALL_DIR}/lib:$LD_LIBRARY_PATH
-
-COPY . /usr/src/phasar
-
-RUN git submodule init
-RUN git submodule update
-RUN mkdir -p build &&                       \
-    cd build &&                             \
-    cmake -DCMAKE_BUILD_TYPE=Release .. &&  \
-    make -j $(nproc) &&                     \
-    make install &&                         \
-    ldconfig
-
-ENTRYPOINT [ "./build/tools/phasar-llvm/phasar-llvm" ]
+ENTRYPOINT [ "phasar-cli" ]

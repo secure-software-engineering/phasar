@@ -1,16 +1,14 @@
 struct A {
-	virtual int f();
+  virtual int f();
 };
 struct C : A {};
 struct X {
-	virtual int g();
+  virtual int g();
 };
 struct Y : X {};
 struct Z : C, Y {};
 class Omega : Z {
-	int f() override { return -1000; }
+  int f() override { return -1000; }
 };
 
-void user() {
-	Omega o;
-}
+void user() { Omega o; }

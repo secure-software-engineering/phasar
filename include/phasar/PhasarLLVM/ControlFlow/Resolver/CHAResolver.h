@@ -17,24 +17,35 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_CHARESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_CHARESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 
 namespace llvm {
-class ImmutableCallSite;
-class Function;
+class CallBase;
 } // namespace llvm
 
 namespace psr {
+class DIBasedTypeHierarchy;
 class CHAResolver : public Resolver {
 public:
-  CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  CHAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const DIBasedTypeHierarchy *TH);
 
-  ~CHAResolver() override = default;
+  // Deleting an incomplete type (LLVMTypeHierarchy) is UB, so instantiate the
+  // dtor in CHAResolver.cpp
+  ~CHAResolver() override;
 
-  std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+
+  [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
+
+protected:
+  MaybeUniquePtr<const DIBasedTypeHierarchy, true> TH;
 };
 } // namespace psr
 

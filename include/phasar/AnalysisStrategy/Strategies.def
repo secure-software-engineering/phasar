@@ -1,0 +1,20 @@
+/******************************************************************************
+ * Copyright (c) 2019 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#ifndef ANALYSIS_STRATEGY_TYPES
+#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, DESC)
+#endif
+
+ANALYSIS_STRATEGY_TYPES(WholeProgram, "WPA", "Whole-program analysis (default)")
+ANALYSIS_STRATEGY_TYPES(DemandDriven, "DD", "Demand-driven analysis")
+ANALYSIS_STRATEGY_TYPES(Incremental, "INC", "Incremental-update analysis")
+ANALYSIS_STRATEGY_TYPES(ModuleWise, "MWA", "Module-wise analysis")
+ANALYSIS_STRATEGY_TYPES(Variational, "VAR", "Variational analysis")
+
+#undef ANALYSIS_STRATEGY_TYPES

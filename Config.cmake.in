@@ -1,26 +1,69 @@
-set(PHASAR_VERSION 1.0.0)
+set(PHASAR_VERSION @PHASAR_VERSION@)
 
 @PACKAGE_INIT@
 set_and_check(PHASAR_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check(PHASAR_LIBRARY_DIR "@PACKAGE_LIBRARY_INSTALL_DIR@")
+
+include (CMakeFindDependencyMacro)
+
+set(PHASAR_LLVM_VERSION @PHASAR_LLVM_VERSION@)
+
+include("${CMAKE_CURRENT_LIST_DIR}/PhasarDepsExports.cmake")
+find_dependency(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
+find_dependency(LLVM ${PHASAR_LLVM_VERSION} REQUIRED CONFIG)
+
+set(PHASAR_USE_LLVM_FAT_LIB @USE_LLVM_FAT_LIB@)
+set(PHASAR_BUILD_DYNLIB @PHASAR_BUILD_DYNLIB@)
+set(PHASAR_USE_Z3 @PHASAR_USE_Z3@)
+set(PHASAR_HAS_SQLITE @PHASAR_HAS_SQLITE@)
+
+if (PHASAR_USE_Z3)
+  find_dependency(Z3 REQUIRED)
+endif()
+if(PHASAR_HAS_SQLITE)
+  find_dependency(SQLite3 REQUIRED)
+endif()
+
+set(PHASAR_COMPONENTS
+  utils
+  passes
+  config
+  db
+  pointer
+  controlflow
+
+  llvm_utils
+  llvm_db
+  llvm_pointer
+  llvm_typehierarchy
+  llvm_controlflow
+
+  taintconfig
+  mono
+  llvm
+  llvm_ifdside
+  analysis_strategy
+)
+
+list(REMOVE_DUPLICATES phasar_FIND_COMPONENTS)
+
+set(PHASAR_NEEDED_LIBS)
+
+include("${CMAKE_CURRENT_LIST_DIR}/PhasarExports.cmake")
 
 foreach(component ${phasar_FIND_COMPONENTS})
-  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-config.cmake")
-  include("${CMAKE_CURRENT_LIST_DIR}/phasar_${component}-targets.cmake")
+  if(NOT ${component} IN_LIST PHASAR_COMPONENTS)
+    set(phasar_FOUND false)
+    set(phasar_NOT_FOUND_MESSAGE "Unsupported component: ${component}. Valid components are: ${PHASAR_COMPONENTS}")
+  endif()
+
+  list(APPEND PHASAR_NEEDED_LIBS phasar::${component})
 endforeach()
 
-function(phasar_config executable)
-  find_package(LLVM 10 REQUIRED CONFIG)
-  include_directories(${LLVM_INCLUDE_DIRS})
-  link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
-  find_library(LLVM_LIBRARY NAMES LLVM REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
-  if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
-    llvm_config(${executable} USE_SHARED ${PHASAR_LLVM_DEPS})
-  else()
-    llvm_config(${executable} ${PHASAR_LLVM_DEPS})
+if (NOT DEFINED phasar_FOUND OR phasar_FOUND EQUAL TRUE)
+  if (NOT phasar_FIND_COMPONENTS)
+    list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
+    # Default target
+    add_library(phasar ALIAS phasar::phasar)
   endif()
-  list(REMOVE_DUPLICATES PHASAR_NEEDED_LIBS)
-  target_link_libraries(${executable}
-    PUBLIC
-    ${PHASAR_NEEDED_LIBS}
-    )
-endfunction()
+endif()

@@ -28,7 +28,7 @@ A reviewer may request changes or ask questions during the review. If you are un
 Please remember that you are asking for valuable time from other professional developers.
 
 ## Please Help Us to Improve Phasar
-If you are using PhASAR without the wish or expertise to contribute to its code base, you can still help us by providing valuable feedback using this [web from](https://docs.google.com/forms/d/e/1FAIpQLScUXZcdXZe1rY8VxUKjXhTtrsNX5TysNUO4yD8-gaIHiqqWTQ/viewform). Please also refer to [Contributing to PhASAR](https://github.com/secure-software-engineering/phasar/wiki/Contributing-to-PhASAR). 
+If you are using PhASAR without the wish or expertise to contribute to its code base, you can still help us by providing valuable feedback using this [web from](https://docs.google.com/forms/d/e/1FAIpQLScUXZcdXZe1rY8VxUKjXhTtrsNX5TysNUO4yD8-gaIHiqqWTQ/viewform). Please also refer to [Contributing to PhASAR](https://github.com/secure-software-engineering/phasar/wiki/Contributing-to-PhASAR).
 
 Thanks for contributing to the PhASAR project.
 

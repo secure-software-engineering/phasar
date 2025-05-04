@@ -1,5 +1,3 @@
 #include "src2.h"
 
-int B::foo(int &i) {
-	return i+30;
-}
+int B::foo(int &i) { return i + 30; }

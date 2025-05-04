@@ -28,16 +28,5 @@ ide-ts                - a simple type analysis                            - IDE
 intra-mono-fca        - full constant propagation analysis                - MONO
 inter-mono-taint      - taint analysis                                    - MONO
 
-=== The analysis plugin mechanism ===
--D Plugin --analysis-plugin <?>
-
-Currently the following analysis plugins are available:
-	
-	* IFDSTabulationProblemPlugin
-	* IDETabulationProblemPlugin
-	* IntraMonoProblemPlugin
-	* InterMonoProblemPlugin
-	* ICFGPlugin
-
 Of course the user can choose more than one analysis to be run on the code.
 )"

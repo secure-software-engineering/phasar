@@ -27,4 +27,3 @@ else
 fi
 mv ${CompilerInfoFile} ${ConfigDir}
 mv ${StdHeaderPathFile} ${ConfigDir}
-

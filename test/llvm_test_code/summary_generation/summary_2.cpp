@@ -1,4 +1,4 @@
 int function(int i, int j) {
-	int k = i + j;
-	return k;
+  int k = i + j;
+  return k;
 }

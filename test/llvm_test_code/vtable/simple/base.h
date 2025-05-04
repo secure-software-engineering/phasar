@@ -2,7 +2,7 @@
 #define BASE_H_
 
 struct base {
-	virtual int foo();
+  virtual int foo();
 };
 
 #endif

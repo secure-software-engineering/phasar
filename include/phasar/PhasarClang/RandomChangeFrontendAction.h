@@ -17,13 +17,12 @@
 #ifndef PHASAR_PHASARCLANG_RANDOMCHANGEFRONTENDACTION_H_
 #define PHASAR_PHASARCLANG_RANDOMCHANGEFRONTENDACTION_H_
 
-#include <memory>
-
-#include "llvm/ADT/StringRef.h"
-
 #include "clang/Frontend/ASTConsumers.h"
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Rewrite/Core/Rewriter.h"
+#include "llvm/ADT/StringRef.h"
+
+#include <memory>
 
 namespace clang {
 class CompilerInstance;
@@ -41,7 +40,7 @@ public:
   void EndSourceFileAction() override;
 
   std::unique_ptr<clang::ASTConsumer>
-  CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef file) override;
+  CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef File) override;
 };
 
 } // namespace psr

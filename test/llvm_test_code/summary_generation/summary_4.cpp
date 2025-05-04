@@ -1,3 +1,1 @@
-int bar(int i, int j) {
-	return j;
-}
+int bar(int i, int j) { return j; }

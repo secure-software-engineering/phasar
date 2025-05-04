@@ -17,71 +17,88 @@
 #ifndef PHASAR_CONFIG_CONFIGURATION_H_
 #define PHASAR_CONFIG_CONFIGURATION_H_
 
-#include <string>
-
-#include "boost/filesystem.hpp"
-#include "boost/program_options.hpp"
-
+#include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator_range.h"
-#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/MemoryBuffer.h"
 
-#include "phasar/Config/Version.h"
-
-#define XSTR(S) STR(S)
-#define STR(S) #S
+#include <optional>
+#include <set>
+#include <string>
 
 namespace psr {
 
 class PhasarConfig {
 public:
-  /// Current Phasar version
-  static const std::string PhasarVersion() { return XSTR(PHASAR_VERSION); }
+  /// Current Phasar version. Same as the preprocessor-symbol
+  /// PHASAR_VERSION_STRING
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  [[nodiscard]] static llvm::StringRef PhasarVersion() noexcept;
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
-  static const std::string MetaDataKind() { return "psr.id"; }
-
-  static const std::string ConfigurationDirectory() {
-    return configuration_directory;
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  [[nodiscard]] static constexpr llvm::StringRef MetaDataKind() noexcept {
+    return "psr.id";
   }
 
-  /// Specifies the directory in which Phasar is located.
-  static const std::string PhasarDirectory() { return PhasarDir; }
+  /// Specifies the directory in which important configuration files are
+  /// located.
+  [[nodiscard]] static llvm::StringRef
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  GlobalConfigurationDirectory() noexcept;
 
-  /// Name of the file storing all standard header search paths used for
-  /// compilation.
-  static const std::string HeaderSearchPathsFileName() {
-    return "standard_header_paths.conf";
-  }
+  [[nodiscard]] static std::optional<llvm::StringRef>
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  LocalConfigurationDirectory() noexcept;
 
-  /// Name of the compile_commands.json file (in case we wish to rename)
-  static const std::string CompileCommandsJson() {
-    return "compile_commands.json";
-  }
+  [[nodiscard]] std::unique_ptr<llvm::MemoryBuffer>
+  readConfigFile(const llvm::Twine &FileName);
+  [[nodiscard]] std::string readConfigFileAsText(const llvm::Twine &FileName);
 
-  /// Default Source- and Sink-Functions path
-  static const std::string DefaultSourceSinkFunctionsPath() {
-    return std::string(PhasarDirectory() +
-                       "config/phasar-source-sink-function.json");
-  }
+  [[nodiscard]] llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
+  readConfigFileOrErr(const llvm::Twine &FileName);
+  [[nodiscard]] llvm::ErrorOr<std::string>
+  readConfigFileAsTextOrErr(const llvm::Twine &FileName);
+
+  [[nodiscard]] std::unique_ptr<llvm::MemoryBuffer>
+  readConfigFileOrNull(const llvm::Twine &FileName);
+  [[nodiscard]] std::optional<std::string>
+  readConfigFileAsTextOrNull(const llvm::Twine &FileName);
+
+  /// Specifies the directory in which Phasar's sources are located.
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  [[nodiscard]] static llvm::StringRef PhasarDirectory() noexcept;
 
   // Variables to be used in JSON export format
   /// Identifier for call graph export
-  static const std::string JsonCallGraphID() { return "CallGraph"; }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  [[nodiscard]] static constexpr llvm::StringRef JsonCallGraphID() noexcept {
+    return "psr.cg";
+  }
 
   /// Identifier for type hierarchy graph export
-  static const std::string JsonTypeHierarchyID() { return "TypeHierarchy"; }
+  [[nodiscard]] static constexpr llvm::StringRef
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  JsonTypeHierarchyID() noexcept {
+    return "psr.th";
+  }
 
   /// Identifier for points-to graph export
-  static const std::string JsonPointsToGraphID() { return "PointsToGraph"; }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  [[nodiscard]] static constexpr llvm::StringRef JsonAliasGraphID() noexcept {
+    return "psr.pt";
+  }
 
   /// Identifier for data-flow results export
-  static const std::string JsonDataFlowID() { return "DataFlowInformation"; }
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  [[nodiscard]] static constexpr llvm::StringRef JsonDataFlowID() noexcept {
+    return "psr.df";
+  }
 
-  static PhasarConfig &getPhasarConfig();
+  [[nodiscard]] static PhasarConfig &getPhasarConfig();
 
-  llvm::iterator_range<std::set<std::string>::iterator> specialFunctionNames() {
-    return llvm::make_range(special_function_names.begin(),
-                            special_function_names.end());
+  [[nodiscard]] llvm::iterator_range<std::set<std::string>::iterator>
+  specialFunctionNames() const {
+    return llvm::make_range(SpecialFuncNames.begin(), SpecialFuncNames.end());
   }
 
   /// Add a function name to the special functions list.
@@ -91,56 +108,19 @@ public:
   /// Remark: Manually added special functions need to be added before creating
   /// the analysis.
   void addSpecialFunctionName(std::string SFName) {
-    special_function_names.insert(std::move(SFName));
-  }
-
-  /// Variables map of the parsed command-line parameters
-  static boost::program_options::variables_map &VariablesMap() {
-    static boost::program_options::variables_map variables_map;
-    return variables_map;
+    SpecialFuncNames.insert(std::move(SFName));
   }
 
   ~PhasarConfig() = default;
   PhasarConfig(const PhasarConfig &) = delete;
+  PhasarConfig operator=(const PhasarConfig &) = delete;
   PhasarConfig(PhasarConfig &&) = delete;
+  PhasarConfig operator=(PhasarConfig &&) = delete;
 
 private:
   PhasarConfig();
 
-  static std::string readConfigFile(const std::string &path);
-  void loadGlibcSpecialFunctionNames();
-  void loadLLVMSpecialFunctionNames();
-
-  std::set<std::string> special_function_names;
-
-  /// Specifies the directory in which important configuration files are
-  /// located.
-  inline static const std::string configuration_directory = []() {
-    char *env_home = std::getenv("HOME");
-    std::string config_folder = "config/";
-    if (env_home) { // Check if HOME was defined in the environment
-      std::string phasar_config = std::string(env_home) + "/.config/phasar/";
-      if (boost::filesystem::exists(phasar_config) &&
-          boost::filesystem::is_directory(phasar_config)) {
-        config_folder = phasar_config;
-      }
-    }
-    return config_folder;
-  }();
-
-  /// Specifies the directory in which Phasar is located.
-  static const std::string PhasarDir;
-
-  /// Name of the file storing all glibc function names.
-  const std::string GLIBCFunctionListFileName =
-      "glibc_function_list_v1-04.05.17.conf";
-
-  /// Name of the file storing all LLVM intrinsic function names.
-  const std::string LLVMIntrinsicFunctionListFileName =
-      "llvm_intrinsics_function_list_v1-04.05.17.conf";
-
-  /// Log file directory
-  const std::string LogFileDirectory = "log/";
+  std::set<std::string> SpecialFuncNames;
 };
 
 } // namespace psr

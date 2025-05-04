@@ -1,19 +1,18 @@
 struct Base {
-	int i;
-	double d;
+  int i;
+  double d;
 };
 
 struct Stuff {
-	char c;
-	float f;
+  char c;
+  float f;
 };
 
 struct Child : Base {
-	Stuff s;
+  Stuff s;
 };
 
-int main()
-{
-	Child c;
-	return 0;
+int main() {
+  Child c;
+  return 0;
 }

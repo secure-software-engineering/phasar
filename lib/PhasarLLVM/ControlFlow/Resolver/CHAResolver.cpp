@@ -14,55 +14,73 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/CallSite.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <memory>
 
 using namespace std;
 using namespace psr;
 
-CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
-    : Resolver(IRDB, TH) {}
+CHAResolver::CHAResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP,
+                         const DIBasedTypeHierarchy *TH)
+    : Resolver(IRDB, VTP), TH(TH) {
+  if (!TH) {
+    this->TH = std::make_unique<DIBasedTypeHierarchy>(*IRDB);
+  }
+}
 
-set<const llvm::Function *>
-CHAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: "
-                << llvmIRToString(CS.getInstruction()));
+CHAResolver::~CHAResolver() = default;
 
-  auto VFTIdx = getVFTIndex(CS);
-  if (VFTIdx < 0) {
+auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
+  PHASAR_LOG_LEVEL(DEBUG, "Call virtual function: ");
+  // Leading to SEGFAULT in Unittests. Error only when run in Debug mode
+  // << llvmIRToString(CallSite));
+
+  auto RetrievedVtableIndex = getVFTIndex(CallSite);
+  if (!RetrievedVtableIndex.has_value()) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Error with resolveVirtualCall : impossible to retrieve "
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CS.getInstruction()) << "\n");
+                         // Leading to SEGFAULT in Unittests. Error only when
+                         // run in Debug mode
+                         // << llvmIRToString(CallSite)
+                         << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Virtual function table entry is: " << VFTIdx);
+  auto VtableIndex = RetrievedVtableIndex.value();
 
-  const auto *ReceiverTy = getReceiverType(CS);
+  PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
+
+  const auto *ReceiverTy = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
-  auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
+  auto FallbackTys = TH->getSubTypes(ReceiverTy);
 
-  set<const llvm::Function *> PossibleCallees;
+  FunctionSetTy PossibleCallees;
 
   for (const auto &FallbackTy : FallbackTys) {
-    const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VFTIdx, CS);
+    const auto *Target =
+        getNonPureVirtualVFTEntry(FallbackTy, VtableIndex, CallSite);
     if (Target) {
       PossibleCallees.insert(Target);
     }
   }
   return PossibleCallees;
 }
+
+std::string CHAResolver::str() const { return "CHA"; }

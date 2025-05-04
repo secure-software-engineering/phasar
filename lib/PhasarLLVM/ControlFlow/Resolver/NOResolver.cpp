@@ -14,36 +14,28 @@
  *      Author: nicolas bellec
  */
 
-#include <set>
-
-#include "llvm/IR/CallSite.h"
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
+
+#include <set>
 
 using namespace psr;
 
 namespace psr {
 
-NOResolver::NOResolver(ProjectIRDB &IRDB) : Resolver(IRDB) {}
+NOResolver::NOResolver(const LLVMProjectIRDB *IRDB,
+                       const LLVMVFTableProvider *VTP)
+    : Resolver(IRDB, VTP) {}
 
-void NOResolver::preCall(const llvm::Instruction *Inst) {}
-
-void NOResolver::handlePossibleTargets(
-    llvm::ImmutableCallSite CS,
-    std::set<const llvm::Function *> &PossibleTargets) {}
-
-void NOResolver::postCall(const llvm::Instruction *Inst) {}
-
-std::set<const llvm::Function *>
-NOResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
+auto NOResolver::resolveVirtualCall(const llvm::CallBase * /*CallSite*/)
+    -> FunctionSetTy {
   return {};
 }
 
-std::set<const llvm::Function *>
-NOResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+auto NOResolver::resolveFunctionPointer(const llvm::CallBase * /*CallSite*/)
+    -> FunctionSetTy {
   return {};
 }
 
-void NOResolver::otherInst(const llvm::Instruction *Inst) {}
+std::string NOResolver::str() const { return "NOResolver"; }
 
 } // namespace psr

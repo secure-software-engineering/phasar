@@ -4,6 +4,4 @@ class Child {
 
 struct ChildsChild : public Child {};
 
-void user() {
-	ChildsChild c;
-}
+void user() { ChildsChild c; }

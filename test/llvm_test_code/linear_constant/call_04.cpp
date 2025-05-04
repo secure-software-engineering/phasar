@@ -1,6 +1,6 @@
-int foo() {
-  return 42;
-}
+int foo() { // clang-format off
+   return 42;
+} // clang-format on
 
 int main() {
   int i = 10;

@@ -14,21 +14,21 @@
  *      Author: pdschbrt
  */
 
-#include <iostream>
-#include <string>
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
-#include "llvm/PassSupport.h"
+#include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_os_ostream.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/Utils/Logger.h"
+#include <string>
 
 using namespace std;
 using namespace psr;
@@ -42,9 +42,9 @@ size_t ValueAnnotationPass::UniqueValueId = 0;
 ValueAnnotationPass::ValueAnnotationPass() = default;
 
 llvm::PreservedAnalyses
-ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                << "Running ValueAnnotationPass");
+ValueAnnotationPass::run(llvm::Module &M,
+                         llvm::ModuleAnalysisManager & /*AM*/) {
+  PHASAR_LOG_LEVEL(INFO, "Running ValueAnnotationPass");
   auto &Context = M.getContext();
   for (auto &Global : M.globals()) {
     llvm::MDNode *Node = llvm::MDNode::get(
@@ -73,7 +73,7 @@ ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
 }
 
 void ValueAnnotationPass::resetValueID() {
-  cout << "Reset ID" << endl;
+  llvm::outs() << "Reset ID" << '\n';
   UniqueValueId = 0;
 }
 

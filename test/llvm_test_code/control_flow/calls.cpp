@@ -1,28 +1,20 @@
 void var() {}
 void tar() {}
 void foo() {}
-void bar()
-{
-	var();
+void bar() { var(); }
+void other() {
+  foo();
+  bar();
+  tar();
 }
-void other()
-{
-	foo();
-	bar();
-	tar();
-}
-void yetanother()
-{
-	other();
-	tar();
+void yetanother() {
+  other();
+  tar();
 }
 
-
-
-int main()
-{
-	var();
-	other();
-	yetanother();
-	return 0;
+int main() {
+  var();
+  other();
+  yetanother();
+  return 0;
 }

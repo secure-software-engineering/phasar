@@ -1,57 +1,51 @@
-#include <iostream>
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 
-#include "gtest/gtest.h"
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include "TestConfig.h"
+#include "gtest/gtest.h"
 
+#include <memory>
+
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 
 class LLVMIRToSrcTest : public ::testing::Test {
 protected:
-  const std::string PathToLlFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/llvmIRtoSrc/";
+  static constexpr auto PathToLlFiles = PHASAR_BUILD_SUBFOLDER("llvmIRtoSrc/");
 
-  ProjectIRDB *IRDB{};
-  LLVMTypeHierarchy *TH{};
-  LLVMPointsToSet *PT{};
-  LLVMBasedICFG *ICFG{};
+  unique_ptr<LLVMProjectIRDB> IRDB;
+  unique_ptr<DIBasedTypeHierarchy> TH;
+  unique_ptr<LLVMAliasSet> PT;
+  unique_ptr<LLVMBasedICFG> ICFG;
 
   LLVMIRToSrcTest() = default;
   ~LLVMIRToSrcTest() override = default;
 
-  void initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
-    TH = new LLVMTypeHierarchy(*IRDB);
-    PT = new LLVMPointsToSet(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, TH, PT);
+  void initialize(const llvm::Twine &IRFile) {
+    IRDB = make_unique<LLVMProjectIRDB>(IRFile);
+    TH = make_unique<DIBasedTypeHierarchy>(*IRDB);
+    PT = make_unique<LLVMAliasSet>(IRDB.get());
+    auto EntryPoints = {"main"s};
+    ICFG = make_unique<LLVMBasedICFG>(IRDB.get(), CallGraphAnalysisType::OTF,
+                                      EntryPoints, TH.get(), PT.get());
   }
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-    ValueAnnotationPass::resetValueID();
-  }
+  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
-  void TearDown() override {
-    delete IRDB;
-    delete TH;
-    delete PT;
-    delete ICFG;
-  }
+  void TearDown() override {}
 }; // Test Fixture
 
 // TEST_F(LLVMIRToSrcTest, HandleInstructions) {
@@ -64,7 +58,7 @@ protected:
 //            !llvm::isa<llvm::DbgValueInst>(&I) &&
 //            !llvm::isa<llvm::DbgDeclareInst>(&I)) ||
 //           llvm::isa<llvm::LoadInst>(&I)) {
-//         std::cout << '\n'
+//         llvm::outs() << '\n'
 //                   << llvmIRToString(&I) << "\n  --> "
 //                   << llvmInstructionToSrc(&I) << std::endl;
 //       }
@@ -77,7 +71,7 @@ protected:
 //   for (auto F : IRDB->getAllFunctions()) {
 //     // F->print(llvm::outs());
 //     // llvm::outs() << '\n';
-//     std::cout << '\n' << llvmFunctionToSrc(F) << std::endl;
+//     llvm::outs() << '\n' << llvmFunctionToSrc(F) << std::endl;
 //   }
 // }
 
@@ -85,14 +79,14 @@ protected:
 //   Initialize({pathToLLFiles + "global_01_cpp_dbg.ll"});
 //   for (auto &GV :
 //        IRDB->getModule(pathToLLFiles + "global_01_cpp_dbg.ll")->globals()) {
-//     std::cout << '\n' << llvmGlobalValueToSrc(&GV) << std::endl;
+//     llvm::outs() << '\n' << llvmGlobalValueToSrc(&GV) << std::endl;
 //   }
 // }
 
 // TEST_F(LLVMIRToSrcTest, HandleAlloca) {
 //   Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
 //   for (auto A : IRDB->getAllocaInstructions()) {
-//     std::cout << '\n'
+//     llvm::outs() << '\n'
 //               << llvmIRToString(A) << "\n  --> " << llvmValueToSrc(A)
 //               << std::endl;
 //   }

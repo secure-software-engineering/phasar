@@ -1,10 +1,14 @@
+#include "phasar/Utils/BitVectorSet.h"
+
+#include "phasar/Utils/DebugOutput.h"
+
+#include "llvm/ADT/BitVector.h"
+
 #include "gtest/gtest.h"
 
-#include <iostream>
 #include <set>
+#include <unordered_set>
 #include <utility>
-
-#include "phasar/Utils/BitVectorSet.h"
 
 using namespace psr;
 using namespace std;
@@ -174,7 +178,7 @@ TEST(BitVectorSet, equality) {
   A.insert(1);
   A.insert(2);
   A.insert(3);
-  EXPECT_EQ((A == E), 1);
+  EXPECT_EQ((A == E), true);
 }
 
 TEST(BitVectorSet, size) {
@@ -383,6 +387,118 @@ TEST(BitVectorSet, rangeFor) {
     DS.insert(I);
   }
   EXPECT_EQ(DS, DSGT);
+}
+
+TEST(BitVectorSet, lessThan) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({1, 2, 3, 4, 5});
+
+  EXPECT_TRUE(B < A);
+  EXPECT_FALSE(A < B);
+  EXPECT_FALSE(A < A);
+}
+
+TEST(BitVectorSet, hash) {
+  struct Hasher {
+    size_t operator()(const BitVectorSet<int> &BV) const {
+      return hash_value(BV);
+    }
+  };
+
+  std::unordered_set<BitVectorSet<int>, Hasher> Set;
+  Set.insert(BitVectorSet<int>());
+  Set.insert({1, 3});
+  Set.insert({1, 3});
+  Set.insert({1, 3, 5});
+
+  EXPECT_EQ(3, Set.size());
+  EXPECT_TRUE(Set.count({})) << "Empty set not there in " << PrettyPrinter{Set};
+  EXPECT_TRUE(Set.count({1, 3}))
+      << "{1, 3} not there in " << PrettyPrinter{Set};
+  EXPECT_TRUE(Set.count({1, 3, 5}))
+      << "{1, 3, 5} not there in " << PrettyPrinter{Set};
+}
+
+//===----------------------------------------------------------------------===//
+// llvm::BitVector
+
+TEST(BitVector, emptyVectorsShouldNotBeLess) {
+  llvm::BitVector A(5);
+  llvm::BitVector B(5);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, emptyVectorsWithDifferentSizeShouldNotBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(5);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, equalVectorsShouldNotBeLess) {
+  llvm::BitVector A(10);
+  llvm::BitVector B(10);
+
+  A.set(3);
+  B.set(3);
+  A.set(5);
+  B.set(5);
+  A.set(8);
+  B.set(8);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, equalSizedVectorsWithBitDifference) {
+  llvm::BitVector A(10);
+  llvm::BitVector B(10);
+
+  A.set(3);
+  B.set(3);
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+  A.set(8);
+  B.set(8);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+
+  // Switching the bits shoud invert the lesser relationship
+  A.set(4);
+  A.reset(5);
+  B.set(5);
+  B.reset(4);
+
+  EXPECT_TRUE(internal::isLess(A, B));
+  EXPECT_FALSE(internal::isLess(B, A));
+}
+
+TEST(BitVector, biggerVecWithoutUpperBitsSetShouldNotBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(10);
+
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
+}
+
+TEST(BitVector, biggerVecWithUpperBitsSetShouldBeLess) {
+  llvm::BitVector A(42);
+  llvm::BitVector B(10);
+
+  A.set(5);
+  B.set(4); // B has a lower bit set than A
+
+  A.set(40);
+
+  EXPECT_FALSE(internal::isLess(A, B));
+  EXPECT_TRUE(internal::isLess(B, A));
 }
 
 int main(int Argc, char **Argv) {

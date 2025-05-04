@@ -2,22 +2,36 @@ This file is a partial list of people who have contributed to Phasar
 
 The fields are: name (N), email (E), web-address (W), description (D)
 
+
+Active Contributors:
+
 N: Philipp Schubert
 E: philipp.schubert@upb.de
 W: http://it-schubert.com
-D: Initial implementation and chief developer new features
+D: Initial implementation, high-level architecture, IDESolver, InstInteractionAnalysis
 
 N: Martin Mory
 E: martin.mory@upb.de
-D: CMake
+D: CMake, Logger, Organization
+
+N: Fabian Schiebel
+E: fabian.schiebel@iem.fraunhofer.de, fabianbs@mail.upb.de
+D: ExtendedTaintAnalysis, general development, Organization
+
+N: Jan-Niclas Strüwer
+E: struewer@mail.upb.de
+D: ESG visualization adaptor, Docker, Mac Support
+
+N: Florian Sattler
+E: sattlerf@fim.uni-passau.de
+D: CMake and CMake build as llvm drop-in, CI/CD Pipeline, Performance, InstInteractionAnalysis
+
+
+Former Contributors:
 
 N: Nicolas Bellec
 E: nicolas.bellec@ens-rennes.fr
 D: Call-graph algorithms
-
-N: Florian Sattler
-E: sattlerf@fim.uni-passau.de
-D: CMake and CMake build as llvm drop-in
 
 N: Christian Stritzke
 E: christian.stritzke@iem.fraunhofer.de
@@ -26,7 +40,3 @@ D: HexaStore implementation
 N: Richard Leer
 E: rleer@mail.upb.de
 D: Serialization, various fixes and data-flow analyses
-
-N: Jan-Niclas Strüwer
-E: struewer@mail.upb.de
-D: ESG visualization adaptor

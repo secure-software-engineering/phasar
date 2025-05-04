@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <sstream>
-#include <string>
+#include "phasar/PhasarClang/RandomChangeVisitor.h"
 
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTConsumer.h"
@@ -23,11 +22,11 @@
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
-
 #include "llvm/IR/Module.h"
 #include "llvm/Support/CommandLine.h"
 
-#include "phasar/PhasarClang/RandomChangeVisitor.h"
+#include <sstream>
+#include <string>
 
 using namespace std;
 using namespace psr;

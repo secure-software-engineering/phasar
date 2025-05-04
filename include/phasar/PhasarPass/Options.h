@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARPASS_OPTIONS_H_
 #define PHASAR_PHASARPASS_OPTIONS_H_
 
+#include "llvm/Support/CommandLine.h"
+
 #include <string>
 #include <vector>
-
-#include "llvm/Support/CommandLine.h"
 
 extern llvm::cl::OptionCategory PhASARCategory;
 

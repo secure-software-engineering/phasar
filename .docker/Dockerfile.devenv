@@ -1,0 +1,20 @@
+FROM ubuntu:22.04
+
+RUN apt -y update && apt -y upgrade && apt install bash  -y
+RUN DEBIAN_FRONTEND=noninteractive apt -y install wget gpg software-properties-common lsb-release git make python3 python3-pip vim -y
+RUN apt -y update && apt -y install cmake clang-14 ninja-build sudo
+
+RUN pip install pre-commit
+
+RUN set -exu; \
+    useradd -p test -s /bin/bash -m vscode; \
+    groupadd docker; \
+    usermod -aG docker vscode; \
+    usermod -aG sudo vscode;
+
+USER vscode
+
+ENV CC "/usr/bin/clang-14"
+ENV CXX "/usr/bin/clang++-14"
+ENV PATH "/usr/local/llvm-14/bin:/home/vscode/.local/bin:$PATH"
+ENV CMAKE_GENERATOR "Ninja"

@@ -14,88 +14,95 @@
  *      Author: nicolas bellec
  */
 
-#include "llvm/IR/CallSite.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Module.h"
-
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
+
+#include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/Casting.h"
 
 using namespace std;
 using namespace psr;
 
-RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
-    : CHAResolver(IRDB, TH) {}
+RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP,
+                         const DIBasedTypeHierarchy *TH)
+    : CHAResolver(IRDB, VTP, TH) {
+  resolveAllocatedCompositeTypes();
+}
 
-// void RTAResolver::firstFunction(const llvm::Function *F) {
-//   auto func_type = F->getFunctionType();
+auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
+    -> FunctionSetTy {
 
-//   for (auto param : func_type->params()) {
-//     if (llvm::isa<llvm::PointerType>(param)) {
-//       if (auto struct_ty =
-//               llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-//         unsound_types.insert(struct_ty);
-//       }
-//     }
-//   }
-// }
+  FunctionSetTy PossibleCallTargets;
 
-set<const llvm::Function *>
-RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
-  // throw runtime_error("RTA is currently unabled to deal with already built "
-  //                     "library, it has been disable until this is fixed");
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "Call virtual function: " << llvmIRToString(CallSite));
 
-  set<const llvm::Function *> PossibleCallTargets;
-
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Call virtual function: "
-                << llvmIRToString(CS.getInstruction()));
-
-  auto VtableIndex = getVFTIndex(CS);
-  if (VtableIndex < 0) {
+  auto RetrievedVtableIndex = getVFTIndex(CallSite);
+  if (!RetrievedVtableIndex.has_value()) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "Error with resolveVirtualCall : impossible to retrieve "
+    PHASAR_LOG_LEVEL(DEBUG,
+                     "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
-                  << llvmIRToString(CS.getInstruction()) << "\n");
+                         << llvmIRToString(CallSite) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                << "Virtual function table entry is: " << VtableIndex);
+  auto VtableIndex = RetrievedVtableIndex.value();
 
-  const auto *ReceiverType = getReceiverType(CS);
+  PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  // also insert all possible subtypes vtable entries
-  auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
+  const auto *ReceiverType = getReceiverType(CallSite);
 
   // also insert all possible subtypes vtable entries
-  auto PossibleTypes = IRDB.getAllocatedStructTypes();
+  auto ReachableTypes = TH->getSubTypes(ReceiverType);
 
+  // also insert all possible subtypes vtable entries
   auto EndIt = ReachableTypes.end();
-  for (const auto *PossibleType : PossibleTypes) {
-    if (const auto *PossibleTypeStruct =
-            llvm::dyn_cast<llvm::StructType>(PossibleType)) {
-      if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
-        const auto *Target =
-            getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
-        if (Target) {
-          PossibleCallTargets.insert(Target);
-        }
+  for (const auto *PossibleType : AllocatedCompositeTypes) {
+    if (ReachableTypes.find(PossibleType) != EndIt) {
+      const auto *Target =
+          getNonPureVirtualVFTEntry(PossibleType, VtableIndex, CallSite);
+      if (Target) {
+        PossibleCallTargets.insert(Target);
       }
     }
   }
 
   if (PossibleCallTargets.empty()) {
-    return CHAResolver::resolveVirtualCall(CS);
+    return CHAResolver::resolveVirtualCall(CallSite);
   }
 
   return PossibleCallTargets;
+}
+
+std::string RTAResolver::str() const { return "RTA"; }
+
+/// More or less copied from GeneralStatisticsAnalysis
+void RTAResolver::resolveAllocatedCompositeTypes() {
+  if (!AllocatedCompositeTypes.empty()) {
+    return;
+  }
+
+  llvm::DebugInfoFinder DIF;
+  DIF.processModule(*IRDB->getModule());
+
+  for (const auto *Ty : DIF.types()) {
+    if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
+      AllocatedCompositeTypes.push_back(CompTy);
+    }
+  }
 }

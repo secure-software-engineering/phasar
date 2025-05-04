@@ -3,6 +3,6 @@
 
 #include "base.h"
 
-void callFunction(base& b);
+void callFunction(base &b);
 
 #endif

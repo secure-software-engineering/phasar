@@ -1,80 +1,81 @@
-#include <iostream>
-#include <set>
-#include <vector>
-
-#include "boost/filesystem.hpp"
-#include "boost/filesystem/path.hpp"
-
-#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/AnalysisStrategy/AnalysisSetup.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPCIPHERCTXDescription.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarStaticRenaming.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPCIPHERCTXDescription.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/VarAlyzerExperiments/VarAlyzerUtils.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/VarAlyzerExperiments/VarAlyzerUtils.h"
+
+#include "llvm/Support/CommandLine.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 using namespace psr;
 
+namespace cl = llvm::cl;
+
+static cl::OptionCategory TSACat("Typestate Analysis");
+static cl::opt<std::string> IRPath(cl::Positional, cl::Required,
+                                   cl::cat(TSACat),
+                                   cl::desc("The LLVM IR file to analyze"));
+static cl::opt<bool> EnableLogging("log", cl::cat(TSACat),
+                                   cl::desc("Whether to enable logging"));
+static cl::alias EnableLoggingShort("L", cl::aliasopt(EnableLogging));
+
+enum class TypeStateAnalysisKind {
+  MessageDigest,
+  Cipher,
+  MAC,
+};
+
+static cl::opt<TypeStateAnalysisKind>
+    AnalysisKind("analysis", cl::cat(TSACat), cl::Required,
+                 cl::desc("The typestate analysis to run"),
+                 cl::ValuesClass{
+                     clEnumValN(TypeStateAnalysisKind::Cipher, "cipher",
+                                "Tracking usage of OpenSSL's EVP_CIPHER_CTX"),
+                     clEnumValN(TypeStateAnalysisKind::MessageDigest, "md",
+                                "Tracking usage of OpenSSL's EVP_MD_CTX"),
+                     clEnumValN(TypeStateAnalysisKind::MessageDigest, "mac",
+                                "Currently the same as 'md'"),
+                 });
+
 int main(int argc, char **argv) {
-  if (argc < 4) {
-    std::cerr << "Usage:\n"
-                 "\t<typestate>\n"
-                 "\t<enable logging: l, L>\n"
-                 "\t<analysis: \"CIPHER\", \"MAC\", \"MD\">\n"
-                 "\t<LLVM IR file>\n";
-    return 1;
+  cl::HideUnrelatedOptions(TSACat);
+  cl::ParseCommandLineOptions(argc, argv);
+
+  if (EnableLogging) {
+    Logger::initializeStderrLogger();
   }
-  // handle command-line arguments
-  std::cout << "Hello, Typestate!\n";
-  std::string Log = argv[1];
-  std::string AnalysisTypeStr = argv[2];
-  boost::filesystem::path DesugeredSPLIRFile = argv[3];
-  // have some rudimentary checks
-  if (!(Log == "l" || Log == "L")) {
-    std::cerr << "error: logging must be one of {l, L}\n";
-    return 1;
-  }
-  if (!(AnalysisTypeStr == "MD" || AnalysisTypeStr == "CIPHER" ||
-        AnalysisTypeStr == "MAC")) {
-    std::cerr << "error: analysis type must be one of {MD, CIPHER, MAC}\n";
-    return 1;
-  }
-  if (!isValidLLVMIRFile(DesugeredSPLIRFile)) {
-    std::cerr << "error: '" << DesugeredSPLIRFile.string()
-              << "' is not a valid LLVM IR file\n";
-    return 1;
-  }
-  initializeLogger(Log == "L");
-  // constant data
-  const OpenSSLEVPAnalysisType AnalysisType =
-      to_OpenSSLEVPAnalysisType(AnalysisTypeStr);
+
   // compute helper analyses for the desugared IR file
-  ProjectIRDB IR({DesugeredSPLIRFile.string()}, IRDBOptions::WPA);
+  LLVMProjectIRDB IR(IRPath);
+  if (!IR) {
+    return 1;
+  }
   auto [ForwardRenaming, BackwardRenaming] = extractBiDiStaticRenaming(&IR);
-  LLVMTypeHierarchy TH(IR);
-  LLVMPointsToSet PT(IR);
+  DIBasedTypeHierarchy TH(IR);
+  LLVMAliasSet PT(&IR);
 
   // by using an empty list of entry points, all functions are considered as
   // entry points
-  LLVMBasedICFG ICF(IR, CallGraphAnalysisType::OTF, {}, &TH, &PT);
-  if (AnalysisType == OpenSSLEVPAnalysisType::CIPHER) {
+  LLVMBasedICFG ICF(&IR, CallGraphAnalysisType::OTF, {}, &TH, &PT);
+  if (AnalysisKind == TypeStateAnalysisKind::Cipher) {
     auto typeNameOfInterest =
         ForwardRenaming.empty() ? "evp_cipher_ctx_st"
                                 : extractDesugaredTypeNameOfInterestOrFail(
                                       "EVP_CIPHER_CTX", IR, ForwardRenaming,
                                       "error: could not retrieve desugared "
                                       "typenameOfInterest for EVP_CIPHER_CTX");
-    if (typeNameOfInterest == "") {
-      return 0;
-    }
+    // if (typeNameOfInterest == "") {
+    //   return 0;
+    // }
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(
         ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
         typeNameOfInterest);
@@ -82,27 +83,27 @@ int main(int argc, char **argv) {
         "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typeNameOfInterest);
 
     if (AnalysisEntryPoints.empty()) {
-      // std::cerr << "warning: could not retrieve analysis' entry points because "
-                  //  "the module does not use the EVP library\n";
+      // std::cerr << "warning: could not retrieve analysis' entry points
+      // because "
+      //  "the module does not use the EVP library\n";
       return 0;
     }
-    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, CipherCTXDesc,
-                                 AnalysisEntryPoints);
-    IDESolver Solver(Problem);
+    IDETypeStateAnalysis Problem(&IR, &PT, &CipherCTXDesc, AnalysisEntryPoints);
+    IDESolver Solver(Problem, &ICF);
     Solver.solve();
     Solver.dumpResults();
   }
-  if (AnalysisType == OpenSSLEVPAnalysisType::MD ||
-      AnalysisType == OpenSSLEVPAnalysisType::MAC) {
+  if (AnalysisKind == TypeStateAnalysisKind::MessageDigest ||
+      AnalysisKind == TypeStateAnalysisKind::MAC) {
     auto typeNameOfInterest = ForwardRenaming.empty()
                                   ? "evp_md_ctx_st"
                                   : extractDesugaredTypeNameOfInterestOrFail(
                                         "EVP_MD_CTX", IR, ForwardRenaming,
                                         "error: could not retrieve desugared "
                                         "typenameOfInterest for EVP_MD_CTX");
-    if (typeNameOfInterest == "") {
-      return 0;
-    }
+    // if (typeNameOfInterest.empty()) {
+    //   return 0;
+    // }
     OpenSSLEVPMDCTXDescription MdCTXDesc(
         ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
         typeNameOfInterest);
@@ -111,13 +112,13 @@ int main(int argc, char **argv) {
         MdCTXDesc.getTypeNameOfInterest());
 
     if (AnalysisEntryPoints.empty()) {
-      // std::cerr << "warning: could not retrieve analysis' entry points because "
-                  //  "the module does not use the EVP library\n";
+      // std::cerr << "warning: could not retrieve analysis' entry points
+      // because "
+      //  "the module does not use the EVP library\n";
       return 0;
     }
-    IDETypeStateAnalysis Problem(&IR, &TH, &ICF, &PT, MdCTXDesc,
-                                 AnalysisEntryPoints);
-    IDESolver Solver(Problem);
+    IDETypeStateAnalysis Problem(&IR, &PT, &MdCTXDesc, AnalysisEntryPoints);
+    IDESolver Solver(Problem, &ICF);
     Solver.solve();
     Solver.dumpResults();
   }

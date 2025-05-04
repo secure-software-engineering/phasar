@@ -1,42 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Martin Mory, Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * Logger.h
- *
- *  Created on: 27.07.2017
- *      Author: philipp
- */
+#ifndef PHASAR_UTILS_LOGGER_H
+#define PHASAR_UTILS_LOGGER_H
 
-#ifndef PHASAR_UTILS_LOGGER_H_
-#define PHASAR_UTILS_LOGGER_H_
+#include "phasar/Config/phasar-config.h"
 
-#include <iosfwd>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
+#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include <optional>
 #include <string>
-#include <type_traits>
-
-#include "boost/log/sinks.hpp"
-#include "boost/log/sources/global_logger_storage.hpp"
-#include "boost/log/sources/severity_logger.hpp"
-#include "boost/log/support/date_time.hpp"
-// Not useful here but enable all logging macros in files that include Logger.h
-#include "boost/log/sources/record_ostream.hpp"
-#include <llvm/Support/Compiler.h> // LLVM_UNLIKELY
-
-#include "llvm/Support/ErrorHandling.h"
-#include <llvm/Support/raw_os_ostream.h>
 
 namespace psr {
-
-// Additionally consult:
-//  - https://theboostcpplibraries.com/boost.log
-//  - http://www.boost.org/doc/libs/1_64_0/libs/log/doc/html/log/tutorial.html
 
 enum SeverityLevel {
 #define SEVERITY_LEVEL(NAME, TYPE) TYPE,
@@ -44,91 +28,133 @@ enum SeverityLevel {
   INVALID
 };
 
-std::string toString(const SeverityLevel &Level);
+[[nodiscard]] SeverityLevel parseSeverityLevel(llvm::StringRef Str) noexcept;
+[[nodiscard]] llvm::StringRef to_string(SeverityLevel Level) noexcept;
 
-SeverityLevel toSeverityLevel(const std::string &S);
+class Logger final {
+public:
+  /**
+   * Set the filter level.
+   */
+  static void setLoggerFilterLevel(SeverityLevel Level) noexcept;
 
-std::ostream &operator<<(std::ostream &os, const SeverityLevel &Level);
+  static SeverityLevel getLoggerFilterLevel() noexcept {
+    return LogFilterLevel;
+  }
 
-extern SeverityLevel LogFilterLevel;
+  static bool isLoggingEnabled() noexcept { return LoggingEnabled; }
+
+  static void enable() noexcept { LoggingEnabled = true; };
+  static void disable() noexcept { LoggingEnabled = false; };
+
+  static llvm::raw_ostream &
+  getLogStream(std::optional<SeverityLevel> Level,
+               const std::optional<llvm::StringRef> &Category);
+
+  static llvm::raw_ostream &
+  getLogStreamWithLinePrefix(std::optional<SeverityLevel> Level,
+                             const std::optional<llvm::StringRef> &Category);
+
+  [[nodiscard]] static bool
+  logCategory(llvm::StringRef Category,
+              std::optional<SeverityLevel> Level) noexcept;
+
+  static void addLinePrefix(llvm::raw_ostream &,
+                            std::optional<SeverityLevel> Level,
+                            const std::optional<llvm::StringRef> &Category);
+
+  static void initializeStdoutLogger(
+      std::optional<SeverityLevel> Level = std::nullopt,
+      const std::optional<std::string> &Category = std::nullopt);
+
+  static void initializeStderrLogger(
+      std::optional<SeverityLevel> Level = std::nullopt,
+      const std::optional<std::string> &Category = std::nullopt);
+
+  [[nodiscard]] static bool initializeFileLogger(
+      llvm::StringRef Filename,
+      std::optional<SeverityLevel> Level = std::nullopt,
+      const std::optional<std::string> &Category = std::nullopt,
+      bool Append = false);
+
+private:
+  static inline bool LoggingEnabled = false;
+  static inline SeverityLevel LogFilterLevel = CRITICAL;
+};
 
 #ifdef DYNAMIC_LOG
-BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
-    lg, boost::log::sources::severity_logger<SeverityLevel>)
-// For performance reason, we want to disable any formatting computation
-// that would go straight into logs if logs are deactivated
-// This macro does just that
-#define LOG_IF_ENABLE_BOOL(condition, computation)                             \
+
+// For performance reason, we want to disable any
+// formatting computation that would go straight into
+// logs if logs are deactivated. This macro does just
+// that
+#define IF_LOG_ENABLED_BOOL(condition, computation)                            \
   if (LLVM_UNLIKELY(condition)) {                                              \
     computation;                                                               \
   }
 
-#define LOG_IF_ENABLE(computation)                                             \
-  LOG_IF_ENABLE_BOOL(boost::log::core::get()->get_logging_enabled(),           \
-                     computation)
+#define IS_LOG_ENABLED ::psr::Logger::isLoggingEnabled()
+#define IF_LOG_ENABLED(computation)                                            \
+  IF_LOG_ENABLED_BOOL(::psr::Logger::isLoggingEnabled(), computation)
 
-// Register the logger and use it a singleton then, get the logger with:
-// boost::log::sources::severity_logger<SeverityLevel>& lg = lg::get();
+#define IS_LOG_LEVEL_ENABLED(level)                                            \
+  (::psr::Logger::isLoggingEnabled() &&                                        \
+   (::psr::SeverityLevel::level) >= ::psr::Logger::getLoggerFilterLevel())
+#define IF_LOG_LEVEL_ENABLED(level, computation)                               \
+  IF_LOG_ENABLED_BOOL(IS_LOG_LEVEL_ENABLED(level), computation)
 
-// The logger can also be used as a global variable, which is not recommended.
-// In such a case a global variable would be created like in the following
-// boost::log::sources::severity_logger<int> lg;
+#define PHASAR_LOG_LEVEL(level, message)                                       \
+  do {                                                                         \
+    IF_LOG_ENABLED_BOOL(IS_LOG_LEVEL_ENABLED(level), {                         \
+      auto &Stream = ::psr::Logger::getLogStreamWithLinePrefix(                \
+          ::psr::SeverityLevel::level, std::nullopt);                          \
+      /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                         \
+      Stream << message << '\n';                                               \
+    })                                                                         \
+  } while (false)
 
-// A few attributes that we want to use in our logger
-BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", SeverityLevel)
-BOOST_LOG_ATTRIBUTE_KEYWORD(counter, "LineCounter", int)
-BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
+#define PHASAR_LOG(message) PHASAR_LOG_LEVEL(DEBUG, message)
+
+#define PHASAR_LOG_LEVEL_CAT(level, cat, message)                              \
+  do {                                                                         \
+    IF_LOG_ENABLED_BOOL(                                                       \
+        IS_LOG_LEVEL_ENABLED(level) &&                                         \
+            ::psr::Logger::logCategory(cat, ::psr::SeverityLevel::level),      \
+        {                                                                      \
+          auto &Stream = ::psr::Logger::getLogStreamWithLinePrefix(            \
+              ::psr::SeverityLevel::level, cat);                               \
+          /* NOLINTNEXTLINE(bugprone-macro-parentheses) */                     \
+          Stream << message << '\n';                                           \
+        })                                                                     \
+  } while (false)
+
+#define PHASAR_LOG_CAT(cat, message)                                           \
+  do {                                                                         \
+    IF_LOG_ENABLED_BOOL(::psr::Logger::isLoggingEnabled() &&                   \
+                            ::psr::Logger::logCategory(cat, std::nullopt),     \
+                        {                                                      \
+                          auto &Stream =                                       \
+                              ::psr::Logger::getLogStreamWithLinePrefix(       \
+                                  std::nullopt, cat);                          \
+                          /* NOLINTNEXTLINE(bugprone-macro-parentheses) */     \
+                          Stream << message << '\n';                           \
+                        })                                                     \
+  } while (false)
 
 #else
-#define LOG_IF_ENABLE_BOOL(condition, computation) ((void)0)
-#define LOG_IF_ENABLE(computation) ((void)0)
-// Have a mechanism to prevent logger usage if the code is not compiled using
-// the DYNAMIC_LOG option:
-template <typename T> struct __lg__ {
-  // Make the static assert dependent on a template-parameter to prevent the
-  // compiler raising an error on declaration rather than on
-  // template-instantiation.
-  static_assert(!std::is_same_v<void, T>,
-                "The dynamic log is disabled. Please move this call "
-                "to lg::get() into LOG_IF_ENABLE, or use the "
-                "cmake option '-DPHASAR_ENABLE_DYNAMIC_LOG=ON'.");
-  static inline boost::log::sources::severity_logger<SeverityLevel> &get() {
-    llvm::report_fatal_error(
-        "The dynamic log is disabled. Please move this call "
-        "to lg::get() into LOG_IF_ENABLE, or use the "
-        "cmake option '-DPHASAR_ENABLE_DYNAMIC_LOG=ON'.");
-  }
-};
-using lg = __lg__<void>;
+#define IS_LOG_ENABLED false
+#define IF_LOG_ENABLED_BOOL(condition, computation)                            \
+  {}
+#define IF_LOG_ENABLED(computation)                                            \
+  {}
+#define IS_LOG_LEVEL_ENABLED(level) false
+#define IF_LOG_LEVEL_ENABLED(level, computation)                               \
+  {}
+#define PHASAR_LOG(computation) (void)0
+#define PHASAR_LOG_CAT(cat, message) (void)0
+#define PHASAR_LOG_LEVEL_CAT(level, cat, message) (void)0
+#define PHASAR_LOG_LEVEL(level, message) (void)0
 #endif
-
-/**
- * A filter function.
- */
-bool logFilter(const boost::log::attribute_value_set &AVSet);
-
-/**
- * Set the filter level.
- */
-void setLoggerFilterLevel(SeverityLevel Level);
-
-/**
- * A formatter function.
- */
-void logFormatter(const boost::log::record_view &View,
-                  boost::log::formatting_ostream &OS);
-
-/**
- * An exception handler for the logger.
- */
-struct LoggerExceptionHandler {
-  void operator()(const std::exception &Ex) const;
-};
-
-/**
- * Initializes the logger.
- */
-void initializeLogger(bool UseLogger, const std::string &LogFile = "");
 
 /// Dummy for printing iterator ranges
 template <typename Iter, typename EndIter> class SequencePrinter {
@@ -141,8 +167,10 @@ public:
       : begIt(std::forward<It>(it)), endIt(std::forward<EndIt>(end)) {}
   Iter begin() const { return begIt; }
   EndIter end() const { return endIt; }
-  friend std::ostream &operator<<(std::ostream &OS, const SequencePrinter &SP) {
-    llvm::raw_os_ostream ROS(OS);
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &ROS,
+                                       const SequencePrinter &SP) {
+
     ROS << "[";
     auto it = SP.begIt;
     const auto end = SP.endIt;
@@ -152,6 +180,12 @@ public:
         ROS << ", " << *it;
     }
     ROS << "]";
+    return ROS;
+  }
+
+  friend std::ostream &operator<<(std::ostream &OS, const SequencePrinter &SP) {
+    llvm::raw_os_ostream ROS(OS);
+    ROS << SP;
     return OS;
   }
 };

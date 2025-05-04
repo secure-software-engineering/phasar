@@ -10,43 +10,51 @@
 #ifndef PHASAR_DB_HEXASTORE_H_
 #define PHASAR_DB_HEXASTORE_H_
 
+#include "phasar/Config/phasar-config.h"
+#ifndef PHASAR_HAS_SQLITE
+#error                                                                         \
+    "Hexastore requires SQLite3. Please install libsqlite3-dev and reconfigure PhASAR."
+#endif
+
+#include "llvm/Support/raw_ostream.h"
+
 #include <array>
-#include <iosfwd>
 #include <string>
 #include <vector>
 
-#include "boost/format.hpp"
-
-#include "sqlite3.h"
-
-#include "phasar/DB/Queries.h"
+struct sqlite3;
 
 namespace psr {
 /**
  * @brief Holds the results of a query to the Hexastore.
  */
-struct hs_result {
+struct HSResult {
   /// Used for the source node.
-  std::string subject;
+  std::string Subject;
   /// Used for the edge.
-  std::string predicate;
+  std::string Predicate;
   /// Used for the destination node.
-  std::string object;
-  hs_result() = default;
-  hs_result(std::string s, std::string p, std::string o)
-      : subject(s), predicate(p), object(o) {}
+  std::string Object;
+  HSResult() = default;
+  HSResult(const std::string Subject, // NOLINT
+           std::string Predicate,     // NOLINT
+           std::string Object)        // NOLINT
+      : Subject(Subject), Predicate(std::move(Predicate)),
+        Object(std::move(Object)) {}
   /// Prints an entry of the results to the command-line
-  friend std::ostream &operator<<(std::ostream &os, const hs_result &hsr) {
-    return os << "[ subject: " << hsr.subject
-              << " | predicate: " << hsr.predicate
-              << " | object: " << hsr.object << " ]";
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const HSResult &Result) {
+    return OS << "[ subject: " << Result.Subject
+              << " | predicate: " << Result.Predicate
+              << " | object: " << Result.Object << " ]";
   }
 
-  friend bool operator==(const hs_result LHS, const hs_result RHS) {
-    return LHS.subject == RHS.subject && LHS.predicate == RHS.predicate &&
-           LHS.object == RHS.object;
+  friend bool operator==(const HSResult &LHS, const HSResult &RHS) {
+    return LHS.Subject == RHS.Subject && LHS.Predicate == RHS.Predicate &&
+           LHS.Object == RHS.Object;
   }
 };
+
 /**
  * A Hexastore is an efficient approach to store large graphs.
  * This approach is based on the paper "Database-Backed Program Analysis
@@ -65,11 +73,13 @@ struct hs_result {
  *
  * @brief Efficient data structure for holding graphs in databases.
  */
-class Hexastore {
+class [[deprecated("This ancient API is not maintained for long and should not "
+                   "be used anymore!")]] Hexastore {
 private:
-  sqlite3 *hs_internal_db{};
-  static int callback(void *NotUsed, int argc, char **argv, char **azColName);
-  void doPut(const std::string &query, std::array<std::string, 3> edge);
+  sqlite3 *HSInternalDB{};
+  static int callback(void * /*NotUsed*/, int Argc, char **Argv,
+                      char **AzColName);
+  void doPut(const std::string &Query, std::array<std::string, 3> Edge);
 
 public:
   /**
@@ -80,7 +90,9 @@ public:
    * @brief Constructs a Hexastore under the given filename.
    * @param filename Filename of the Hexastore.
    */
-  Hexastore(const std::string &filename);
+  Hexastore(const std::string &FileName);
+  Hexastore(const Hexastore &) = delete;
+  Hexastore &operator=(const Hexastore &) = delete;
 
   /**
    * Destructor.
@@ -98,7 +110,7 @@ public:
    *        hexastore.put({{"subject", "predicate", "object"}});
    * @param edge New entry in the form of a 3-tuple.
    */
-  void put(const std::array<std::string, 3> &edge);
+  void put(const std::array<std::string, 3> &Edge);
 
   /**
    * A query is always in the form of a 3-tuple (source, edge, destination)
@@ -115,8 +127,8 @@ public:
    * @param result_size_hint Used for possible optimization.
    * @return An object of hs_result, holding the queried information.
    */
-  std::vector<hs_result> get(std::array<std::string, 3> EdgeQuery,
-                             size_t ResultSizeHint = 0);
+  std::vector<HSResult> get(std::array<std::string, 3> EdgeQuery,
+                            size_t ResultSizeHint = 0);
 };
 
 } // namespace psr

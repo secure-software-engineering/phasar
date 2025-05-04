@@ -1,12 +1,8 @@
 /// trick the compiler
-static void escape(void *p) {
-  asm volatile("" : : "g"(p) : "memory");
-}
+static void escape(void *p) { asm volatile("" : : "g"(p) : "memory"); }
 
 /// trick the compiler
-static void clobber() {
-  asm volatile("" : : : "memory");
-}
+static void clobber() { asm volatile("" : : : "memory"); }
 
 int main() {
   // i is constant

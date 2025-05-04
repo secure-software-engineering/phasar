@@ -1,5 +1,5 @@
 
 int main() {
-	int i = 9001;
-    return i;
+  int i = 9001;
+  return i;
 }

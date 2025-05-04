@@ -1,14 +1,15 @@
-#include "gtest/gtest.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 
-#include "phasar/Config/Configuration.h"
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Utilities.h"
-
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
 #include "TestConfig.h"
 
@@ -16,8 +17,8 @@ using namespace std;
 using namespace psr;
 
 TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/global_stmt_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "control_flow/global_stmt_cpp.ll");
   const auto *F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   const auto *I = getNthInstruction(F, 4);
@@ -30,8 +31,8 @@ TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
 }
 
 TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
-  ProjectIRDB IRDB(
-      {unittest::PathToLLTestFiles + "control_flow/if_else_cpp.ll"});
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "control_flow/if_else_cpp.ll");
   const auto *F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   const auto *I = getNthInstruction(F, 14);
@@ -43,6 +44,24 @@ TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
   I = getNthInstruction(F, 27);
   ASSERT_EQ(getNthTermInstruction(F, 4), I);
   ASSERT_EQ(getNthTermInstruction(F, 5), nullptr);
+}
+
+TEST(SlotTrackerTest, HandleTwoReferences) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "control_flow/global_stmt_cpp.ll");
+
+  const auto *F = IRDB.getFunctionDefinition("main");
+
+  ASSERT_NE(F, nullptr);
+  const auto *Inst = getNthInstruction(F, 6);
+  llvm::StringRef InstStr = "%0 = load i32, ptr @i, align 4 | ID: 6";
+  {
+    LLVMProjectIRDB IRDB2(IRDB.getModule());
+
+    EXPECT_EQ(llvmIRToStableString(Inst), InstStr);
+  }
+
+  EXPECT_EQ(llvmIRToStableString(Inst), InstStr);
 }
 
 int main(int Argc, char **Argv) {

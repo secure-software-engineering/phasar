@@ -4,8 +4,11 @@
 bin/*
 
 # build directories for cmake
-build/
-build_*/
+build*/
+cmake-build*/
+cmake-install*/
+CMakeUserPresets.json
+venv/
 
 # LLVM project
 llvm-project/*
@@ -25,6 +28,7 @@ doc/*
 
 # log/ directory
 log/*
+**/*/logs/
 
 # CMake build dir
 build/*
@@ -41,15 +45,16 @@ build/*
 # CLion
 .idea/*
 
-.cache/*
+# cache
+.cache/
 
 ##### ignored files
 
-# dot files
-*.dot
-
 # ignore all auto-generated LLVM IR code
 *.ll
+!utils/conan/llvm-core/all/test_package/test_function.ll
+!test_package/example.ll
+!test_package_cmake/example.ll
 
 # auto generated test files
 *.test
@@ -68,9 +73,6 @@ find_all_symbols_db.yaml
 *.sqlite
 *.sqlite3
 
-# dot files
-*.dot
-
 # temporary files
 *.*~
 *.dwo
@@ -84,7 +86,6 @@ find_all_symbols_db.yaml
 *.o
 *.obj
 *.ko
-*.obj
 *.elf
 
 # Precompiled Headers
@@ -95,7 +96,6 @@ find_all_symbols_db.yaml
 *.lib
 *.a
 *.la
-*.lo
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -129,6 +129,7 @@ standard_header_paths.conf
 CMakeFiles
 CMakeCache.txt
 !cmake/*.cmake
+cmake-build-debug/*
 *.pc
 Makefile
 !test/*/Makefile

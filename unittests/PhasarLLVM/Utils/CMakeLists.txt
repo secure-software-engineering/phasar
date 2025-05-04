@@ -1,5 +1,5 @@
 set(UtilsSources
-	TaintConfigurationTest.cpp
+  LatticeDomainTest.cpp
 )
 
 test_require_config_file("phasar-source-sink-function.json")

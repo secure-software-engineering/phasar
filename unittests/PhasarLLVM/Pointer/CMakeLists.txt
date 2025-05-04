@@ -1,5 +1,7 @@
 set(ControlFlowSources
-	LLVMPointsToSetTest.cpp
+	LLVMAliasSetTest.cpp
+	LLVMAliasSetSerializationTest.cpp
+	FilteredLLVMAliasSetTest.cpp
 )
 
 foreach(TEST_SRC ${ControlFlowSources})

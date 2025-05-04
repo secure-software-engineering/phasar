@@ -1,6 +1,6 @@
 int main() {
   int i = 42;
-  while(i > 0) {
+  while (i > 0) {
     int a = 0;
     i = i + 2;
   }

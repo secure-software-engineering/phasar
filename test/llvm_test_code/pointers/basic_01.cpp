@@ -1,6 +1,6 @@
 
 int main() {
-	int i;
-	int *p = &i;
-	*p = 13;
+  int i;
+  int *p = &i;
+  *p = 13;
 }

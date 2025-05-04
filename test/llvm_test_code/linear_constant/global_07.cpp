@@ -11,9 +11,9 @@ int bar(int b) {
 }
 
 int main() {
-	g += 1;
+  g += 1;
   int i = 0;
   i = foo(10);
   i = bar(3);
-	return 0;
+  return 0;
 }

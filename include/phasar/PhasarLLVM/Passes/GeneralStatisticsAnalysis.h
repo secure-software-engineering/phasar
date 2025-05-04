@@ -17,9 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 #define PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 
-#include <set>
-
 #include "llvm/IR/PassManager.h"
+
+#include <set>
 
 namespace llvm {
 class Type;
@@ -31,89 +31,52 @@ class Module;
 
 namespace psr {
 
-class GeneralStatistics {
-private:
-  friend class GeneralStatisticsAnalysis;
-  size_t functions = 0;
-  size_t globals = 0;
-  size_t basicblocks = 0;
-  size_t allocationsites = 0;
-  size_t callsites = 0;
-  size_t instructions = 0;
-  size_t storeInstructions = 0;
-  size_t loadInstructions = 0;
-  size_t memIntrinsic = 0;
-  size_t globalPointers = 0;
-  std::set<const llvm::Type *> allocatedTypes;
-  std::set<const llvm::Instruction *> allocaInstructions;
-  std::set<const llvm::Instruction *> retResInstructions;
+struct GeneralStatistics {
 
-public:
-  /**
-   * @brief Returns the number of Allocation sites.
-   */
-  size_t getAllocationsites() const;
+  size_t Functions = 0;
+  size_t ExternalFunctions = 0;
+  size_t FunctionDefinitions = 0;
+  size_t AddressTakenFunctions = 0;
+  size_t Globals = 0;
+  size_t GlobalConsts = 0;
+  size_t ExternalGlobals = 0;
+  size_t GlobalsDefinitions = 0;
+  size_t BasicBlocks = 0;
+  size_t AllocationSites = 0;
+  size_t CallSites = 0;
+  size_t DebugIntrinsics = 0;
+  size_t Instructions = 0;
+  size_t StoreInstructions = 0;
+  size_t LoadInstructions = 0;
+  size_t MemIntrinsics = 0;
+  size_t Branches = 0;
+  size_t Switches = 0;
+  size_t GetElementPtrs = 0;
+  size_t LandingPads = 0;
+  size_t PhiNodes = 0;
+  size_t NumInlineAsm = 0;
+  size_t IndCalls = 0;
+  size_t TotalNumOperands = 0;
+  size_t TotalNumUses = 0;
+  size_t TotalNumPredecessorBBs = 0;
+  size_t TotalNumSuccessorBBs = 0;
+  size_t MaxNumOperands = 0;
+  size_t MaxNumUses = 0;
+  size_t MaxNumPredecessorBBs = 0;
+  size_t MaxNumSuccessorBBs = 0;
+  size_t NumInstWithMultipleUses = 0;
+  size_t NumInstsUsedOutsideBB = 0;
+  size_t NonVoidInsts = 0;
+  std::set<const llvm::Type *> AllocatedTypes;
+  std::set<const llvm::Instruction *> AllocaInstructions;
+  std::set<const llvm::Instruction *> RetResInstructions;
+  std::string ModuleName{};
 
-  /**
-   * @brief Returns the number of Function calls.
-   */
-  size_t getFunctioncalls() const;
-
-  /**
-   * @brief Returns the number of Instructions.
-   */
-  size_t getInstructions() const;
-
-  /**
-   * @brief Returns the number of global pointers.
-   */
-  size_t getGlobalPointers() const;
-
-  /**
-   * @brief Returns the number of basic blocks.
-   */
-  size_t getBasicBlocks() const;
-
-  /**
-   * @brief Returns the number of functions.
-   */
-  size_t getFunctions() const;
-
-  /**
-   * @brief Returns the number of globals.
-   */
-  size_t getGlobals() const;
-
-  /**
-   * @brief Returns the number of memory intrinsics.
-   */
-  size_t getMemoryIntrinsics() const;
-
-  /**
-   * @brief Returns the number of store instructions.
-   */
-  size_t getStoreInstructions() const;
-
-  /**
-   * @brief Returns the number of load instructions.
-   */
-  size_t getLoadInstructions();
-
-  /**
-   * @brief Returns all possible Types.
-   */
-  std::set<const llvm::Type *> getAllocatedTypes() const;
-
-  /**
-   * @brief Returns all stack and heap allocating instructions.
-   */
-  std::set<const llvm::Instruction *> getAllocaInstructions() const;
-
-  /**
-   * @brief Returns all Return and Resume Instructions.
-   */
-  std::set<const llvm::Instruction *> getRetResInstructions() const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
 };
+
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                              const GeneralStatistics &Statistics);
 
 /**
  * This class uses the Module Pass Mechanism of LLVM to compute
@@ -143,9 +106,14 @@ public:
   /// The pass itself stores the results.
   using Result = GeneralStatistics;
 
-  explicit GeneralStatisticsAnalysis();
+  explicit GeneralStatisticsAnalysis() = default;
 
-  GeneralStatistics run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
+  GeneralStatistics runOnModule(llvm::Module &M);
+
+  inline GeneralStatistics run(llvm::Module &M,
+                               llvm::ModuleAnalysisManager & /*AM*/) {
+    return runOnModule(M);
+  }
 };
 
 } // namespace psr

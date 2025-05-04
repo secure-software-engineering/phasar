@@ -1,1 +1,13 @@
 BasedOnStyle: LLVM
+SortIncludes: true
+IncludeBlocks: Regroup
+BreakStringLiterals: true
+IncludeCategories:
+  - Regex:           '^"phasar/'
+    Priority:        1
+  - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
+    Priority:        2
+  - Regex:           '".*"'
+    Priority:        3
+  - Regex:           '<[[:alnum:]_]+>'
+    Priority:        4

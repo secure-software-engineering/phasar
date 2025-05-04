@@ -7,17 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Module.h"
-#include "llvm/PassAnalysisSupport.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "phasar/PhasarPass/PhasarPass.h"
 #include "phasar/PhasarPass/PhasarPrinterPass.h"
 
-namespace psr {
+#include "phasar/PhasarPass/PhasarPass.h"
 
-char PhasarPrinterPass::ID = 12;
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/raw_ostream.h"
+
+namespace psr {
 
 PhasarPrinterPass::PhasarPrinterPass() : llvm::ModulePass(ID) {}
 
@@ -32,12 +31,12 @@ bool PhasarPrinterPass::runOnModule(llvm::Module &M) {
   return false;
 }
 
-bool PhasarPrinterPass::doInitialization(llvm::Module &M) {
+bool PhasarPrinterPass::doInitialization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPrinterPass::doInitialization()\n";
   return false;
 }
 
-bool PhasarPrinterPass::doFinalization(llvm::Module &M) {
+bool PhasarPrinterPass::doFinalization(llvm::Module & /*M*/) {
   llvm::outs() << "PhasarPrinterPass::doFinalization()\n";
   return false;
 }

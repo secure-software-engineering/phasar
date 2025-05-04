@@ -1,8 +1,8 @@
 void bar(int b) {}
 
-void foo(int a) {
+void foo(int a) { // clang-format off
   bar(a);
-}
+} // clang-format on
 
 int main() {
   int i;

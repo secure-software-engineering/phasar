@@ -7,17 +7,20 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
+// #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
 
-using namespace psr;
+// #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+// #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
-namespace psr {
+// using namespace psr;
 
-LLVMBasedVarICFG::LLVMBasedVarICFG(
-    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
-    LLVMPointsToInfo *PT, const stringstringmap_t *StaticBackwardRenaming)
-    : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT),
-      LLVMBasedVarCFG(IRDB, StaticBackwardRenaming) {}
+// namespace psr {
 
-} // namespace psr
+// LLVMBasedVarICFG::LLVMBasedVarICFG(
+//     LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
+//     llvm::ArrayRef<std::string> EntryPoints, DIBasedTypeHierarchy *TH,
+//     LLVMAliasInfoRef PT, const stringstringmap_t *StaticBackwardRenaming)
+//     : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT),
+//       LLVMBasedVarCFGImpl(IRDB, StaticBackwardRenaming) {}
+
+// } // namespace psr

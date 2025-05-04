@@ -15,11 +15,11 @@ private:func:vector<int>:[]:[const]:[override]
 
 -b [--baseclass] {input} list of baseclassfiles seperated by ,
 !!!there is no recursive baseclass search: can
-be dealt with defining multiple inheritance 
-and deleting the reference afterwards in the 
+be dealt with defining multiple inheritance
+and deleting the reference afterwards in the
 header file!!!
 
--i [--include] {input} list of include files for the header file, seperated by comma; "" and <> will be decided automatically 
+-i [--include] {input} list of include files for the header file, seperated by comma; "" and <> will be decided automatically
 -k [--config] {input} input file for easier use of long baseclass,attribute and function lists. Example file: example.cfg
 
 Example call:
@@ -27,4 +27,4 @@ python3 codegen.py -n test -b abc.h -d -t A,B,C -a public:a:int,private:b:string
 
 ./codegen.py -n test -b  ../../include/phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h -d -t A,B,C -a public:a:int,private:b:string,protected:c:char,public:w:*int -f public:func1:void:[a=0:int]:[static,const]:[override,static]:[A,B,C],protected:func2:int -o None
 
-python3 codegen.py -n MyIFDSAnalysis -a public:a:std::pair, public:d:LLVMBasedICFG& 
+python3 codegen.py -n MyIFDSAnalysis -a public:a:std::pair, public:d:LLVMBasedICFG&

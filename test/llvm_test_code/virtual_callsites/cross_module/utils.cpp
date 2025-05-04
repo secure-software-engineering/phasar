@@ -1,6 +1,3 @@
 #include "utils.h"
 
-void callFunction(base& b)
-{
-	int i = b.bar();
-}
+void callFunction(base &b) { int i = b.bar(); }

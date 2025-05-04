@@ -17,25 +17,37 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RTARESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RTARESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
+#include <vector>
+
 namespace llvm {
-class ImmutableCallSite;
-class StructType;
-class Function;
+class CallBase;
+class DICompositeType;
 } // namespace llvm
 
 namespace psr {
+class DIBasedTypeHierarchy;
 class RTAResolver : public CHAResolver {
 public:
-  RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+  RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+              const DIBasedTypeHierarchy *TH);
 
   ~RTAResolver() override = default;
 
-  virtual std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+
+  [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
+
+private:
+  void resolveAllocatedCompositeTypes();
+
+  std::vector<const llvm::DICompositeType *> AllocatedCompositeTypes;
 };
 } // namespace psr
 

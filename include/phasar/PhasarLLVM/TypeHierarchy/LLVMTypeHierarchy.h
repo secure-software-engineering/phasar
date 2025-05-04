@@ -17,25 +17,22 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
-#include <iostream>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchyData.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/TypeHierarchy/TypeHierarchy.h"
+
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
+
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/graph_traits.hpp"
+
 #include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include "boost/graph/adjacency_list.hpp"
-#include "boost/graph/graph_traits.hpp"
-
-#include "llvm/ADT/StringRef.h"
-
-#include "gtest/gtest_prod.h"
-
-#include "nlohmann/json.hpp"
-
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
 
 namespace llvm {
 class Module;
@@ -46,7 +43,7 @@ class GlobalVariable;
 
 namespace psr {
 
-class ProjectIRDB;
+class LLVMProjectIRDB;
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
  *
@@ -54,7 +51,7 @@ class ProjectIRDB;
  * 	hierarchy graph based on the data from the %ProjectIRCompiledDB
  * 	and reconstructing the virtual method tables.
  */
-class LLVMTypeHierarchy
+class [[deprecated("Use DIBasedTypeHierarchy instead")]] LLVMTypeHierarchy
     : public TypeHierarchy<const llvm::StructType *, const llvm::Function *> {
 public:
   struct VertexProperties {
@@ -88,6 +85,17 @@ public:
   using out_edge_iterator = boost::graph_traits<bidigraph_t>::out_edge_iterator;
   using in_edge_iterator = boost::graph_traits<bidigraph_t>::in_edge_iterator;
 
+  static inline constexpr llvm::StringLiteral StructPrefix = "struct.";
+  static inline constexpr llvm::StringLiteral ClassPrefix = "class.";
+  static inline constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
+  static inline constexpr llvm::StringLiteral VTablePrefixDemang =
+      "vtable for ";
+  static inline constexpr llvm::StringLiteral TypeInfoPrefix = "_ZTI";
+  static inline constexpr llvm::StringLiteral TypeInfoPrefixDemang =
+      "typeinfo for ";
+  static inline constexpr llvm::StringLiteral PureVirtualCallName =
+      "__cxa_pure_virtual";
+
 private:
   bidigraph_t TypeGraph;
   std::unordered_map<const llvm::StructType *, vertex_t> TypeVertexMap;
@@ -102,54 +110,34 @@ private:
   // map from clearname to vtable variable
   std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTVMap;
 
-  static const std::string StructPrefix;
+  std::vector<const llvm::StructType *> getSubTypes(
+      const llvm::Module &M, const llvm::StructType &Type) const;
 
-  static const std::string ClassPrefix;
-
-  static const std::string VTablePrefix;
-
-  static const std::string VTablePrefixDemang;
-
-  static const std::string TypeInfoPrefix;
-
-  static const std::string TypeInfoPrefixDemang;
-
-  static std::string removeStructOrClassPrefix(const llvm::StructType &T);
-
-  static std::string removeStructOrClassPrefix(const std::string &TypeName);
-
-  static std::string removeTypeInfoPrefix(std::string VarName);
-
-  static std::string removeVTablePrefix(std::string VarName);
-
-  static bool isTypeInfo(const std::string &VarName);
-
-  static bool isVTable(const std::string &VarName);
-
-  static bool isStruct(const llvm::StructType &T);
-
-  static bool isStruct(llvm::StringRef TypeName);
-
-  std::vector<const llvm::StructType *>
-  getSubTypes(const llvm::Module &M, const llvm::StructType &Type);
-
-  std::vector<const llvm::Function *>
-  getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
-
-  // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
-  FRIEND_TEST(LTHTest, GraphConstruction);
-  FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
+  std::vector<const llvm::Function *> getVirtualFunctions(
+      const llvm::Module &M, const llvm::StructType &Type);
 
 protected:
   void buildLLVMTypeHierarchy(const llvm::Module &M);
 
 public:
+  static bool isTypeInfo(llvm::StringRef VarName);
+  static bool isVTable(llvm::StringRef VarName);
+  static bool isStruct(const llvm::StructType &T);
+  static bool isStruct(llvm::StringRef TypeName);
+
+  static std::string removeStructOrClassPrefix(const llvm::StructType &T);
+  static std::string removeStructOrClassPrefix(llvm::StringRef TypeName);
+  static std::string removeTypeInfoPrefix(llvm::StringRef VarName);
+  static std::string removeVTablePrefix(llvm::StringRef VarName);
+
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
    *         given ProjectIRCompiledDB.
    *  @param IRDB ProjectIRCompiledDB object.
    */
-  LLVMTypeHierarchy(ProjectIRDB &IRDB);
+  LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB);
+  LLVMTypeHierarchy(const LLVMProjectIRDB &IRDB,
+                    const LLVMTypeHierarchyData &SerializedData);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
@@ -158,7 +146,7 @@ public:
    */
   LLVMTypeHierarchy(const llvm::Module &M);
 
-  ~LLVMTypeHierarchy() = default;
+  ~LLVMTypeHierarchy() override = default;
 
   /**
    * @brief Constructs the actual class hierarchy graph.
@@ -169,92 +157,60 @@ public:
    */
   void constructHierarchy(const llvm::Module &M);
 
-  [[nodiscard]] inline bool
-  hasType(const llvm::StructType *Type) const override {
+  [[nodiscard]] inline bool hasType(const llvm::StructType *Type)
+      const override {
     return TypeVertexMap.count(Type);
   }
 
-  [[nodiscard]] inline bool
-  isSubType(const llvm::StructType *Type,
-            const llvm::StructType *SubType) override {
+  [[nodiscard]] inline bool isSubType(const llvm::StructType *Type,
+                                      const llvm::StructType *SubType)
+      const override {
     auto ReachableTypes = getSubTypes(Type);
     return ReachableTypes.count(SubType);
   }
 
-  std::set<const llvm::StructType *>
-  getSubTypes(const llvm::StructType *Type) override;
+  std::set<const llvm::StructType *> getSubTypes(const llvm::StructType *Type)
+      const override;
 
-  [[nodiscard]] inline bool
-  isSuperType(const llvm::StructType *Type,
-              const llvm::StructType *SuperType) override {
-    return isSubType(SuperType, Type);
-  }
+  [[nodiscard]] const llvm::StructType *getType(llvm::StringRef TypeName)
+      const override;
 
-  std::set<const llvm::StructType *>
-  getSuperTypes(const llvm::StructType *Type) override;
+  [[nodiscard]] std::vector<const llvm::StructType *> getAllTypes()
+      const override;
 
-  [[nodiscard]] const llvm::StructType *
-  getType(std::string TypeName) const override;
+  [[nodiscard]] llvm::StringRef getTypeName(const llvm::StructType *Type)
+      const override;
 
-  [[nodiscard]] std::set<const llvm::StructType *> getAllTypes() const override;
-
-  [[nodiscard]] std::string
-  getTypeName(const llvm::StructType *Type) const override;
-
-  [[nodiscard]] bool hasVFTable(const llvm::StructType *Type) const override;
-
-  [[nodiscard]] const LLVMVFTable *
-  getVFTable(const llvm::StructType *Type) const override;
-
-  [[nodiscard]] inline size_t size() const override {
+  [[nodiscard]] size_t size() const noexcept override {
     return boost::num_vertices(TypeGraph);
   };
 
-  [[nodiscard]] inline bool empty() const override { return size() == 0; };
+  [[nodiscard]] bool empty() const noexcept override {
+    return boost::num_vertices(TypeGraph) == 0;
+  };
 
-  void print(std::ostream &OS = std::cout) const override;
-
-  [[nodiscard]] nlohmann::json getAsJson() const override;
+  void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
   // void mergeWith(LLVMTypeHierarchy &Other);
 
   /**
    * 	@brief Prints the transitive closure of the class hierarchy graph.
    */
-  void printTransitiveClosure(std::ostream &OS = std::cout) const;
-
-  // provide a VertexPropertyWrite to tell boost how to write a vertex
-  class TypeHierarchyVertexWriter {
-  public:
-    TypeHierarchyVertexWriter(const bidigraph_t &TyGraph) : TyGraph(TyGraph) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << TyGraph[v].getTypeName() << "\"]";
-    }
-
-  private:
-    const bidigraph_t &TyGraph;
-  };
-
-  // a function to conveniently create this writer
-  [[nodiscard]] TypeHierarchyVertexWriter
-  makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const {
-    return TypeHierarchyVertexWriter(TyGraph);
-  }
+  void printTransitiveClosure(llvm::raw_ostream &OS = llvm::outs()) const;
 
   /**
    * 	@brief Prints the class hierarchy to an ostream in dot format.
    * 	@param an outputstream
    */
-  void printAsDot(std::ostream &OS = std::cout) const;
+  void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
   /**
    * @brief Prints the class hierarchy to an ostream in json format.
    * @param an outputstream
    */
-  void printAsJson(std::ostream &OS = std::cout) const;
+  void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  // void printGraphAsDot(std::ostream &out);
+  // void printGraphAsDot(llvm::raw_ostream &out);
 
   // static bidigraph_t loadGraphFormDot(std::istream &in);
 };

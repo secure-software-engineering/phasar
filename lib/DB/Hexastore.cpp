@@ -7,37 +7,37 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
-
 #include "phasar/DB/Hexastore.h"
 
-using namespace psr;
-using namespace std;
-using namespace boost;
+#include "phasar/DB/Queries.h"
+
+#include "boost/format.hpp"
+#include "sqlite3.h"
 
 namespace psr {
 
-Hexastore::Hexastore(const string &Filename) {
-  sqlite3_open(Filename.c_str(), &hs_internal_db);
-  const string Query = INIT;
+Hexastore::Hexastore(const std::string &Filename) {
+  sqlite3_open(Filename.c_str(), &HSInternalDB);
+  const std::string &Query = INIT;
   char *Err;
-  sqlite3_exec(hs_internal_db, Query.c_str(), callback, nullptr, &Err);
+  sqlite3_exec(HSInternalDB, Query.c_str(), callback, nullptr, &Err);
   if (Err != nullptr) {
-    cout << Err << "\n\n";
+    llvm::outs() << Err << "\n\n";
   }
 }
 
-Hexastore::~Hexastore() { sqlite3_close(hs_internal_db); }
+Hexastore::~Hexastore() { sqlite3_close(HSInternalDB); }
 
-int Hexastore::callback(void *NotUsed, int Argc, char **Argv,
+int Hexastore::callback(void * /*NotUsed*/, int Argc, char **Argv,
                         char **AzColName) {
   for (int Idx = 0; Idx < Argc; ++Idx) {
-    cout << AzColName[Idx] << " " << (Argv[Idx] ? Argv[Idx] : "NULL") << endl;
+    llvm::outs() << AzColName[Idx] << " " << (Argv[Idx] ? Argv[Idx] : "NULL")
+                 << '\n';
   }
   return 0;
 }
 
-void Hexastore::put(const array<string, 3> &Edge) {
+void Hexastore::put(const std::array<std::string, 3> &Edge) {
   doPut(SPOInsert, Edge);
   doPut(SOPInsert, Edge);
   doPut(PSOInsert, Edge);
@@ -46,20 +46,22 @@ void Hexastore::put(const array<string, 3> &Edge) {
   doPut(OPSInsert, Edge);
 }
 
-void Hexastore::doPut(const string &Query, array<string, 3> Edge) {
-  string CompiledQuery = str(format(Query) % Edge[0] % Edge[1] % Edge[2]);
+void Hexastore::doPut(const std::string &Query,
+                      std::array<std::string, 3> Edge) {
+  std::string CompiledQuery =
+      str(boost::format(Query) % Edge[0] % Edge[1] % Edge[2]);
   char *Err;
-  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), callback, nullptr, &Err);
+  sqlite3_exec(HSInternalDB, CompiledQuery.c_str(), callback, nullptr, &Err);
   if (Err != nullptr) {
-    cout << Err;
+    llvm::outs() << Err;
   }
 }
 
-vector<hs_result> Hexastore::get(array<string, 3> EdgeQuery,
-                                 size_t ResultSizeHint) {
-  vector<hs_result> Result;
+std::vector<HSResult> Hexastore::get(std::array<std::string, 3> EdgeQuery,
+                                     size_t ResultSizeHint) {
+  std::vector<HSResult> Result;
   Result.reserve(ResultSizeHint);
-  string QueryString;
+  std::string QueryString;
   if (EdgeQuery[0] == "?") {
     if (EdgeQuery[1] == "?") {
       if (EdgeQuery[2] == "?") {
@@ -89,21 +91,21 @@ vector<hs_result> Hexastore::get(array<string, 3> EdgeQuery,
       }
     }
   }
-  string CompiledQuery =
-      str(format(QueryString) % EdgeQuery[0] % EdgeQuery[1] % EdgeQuery[2]);
+  std::string CompiledQuery = str(boost::format(QueryString) % EdgeQuery[0] %
+                                  EdgeQuery[1] % EdgeQuery[2]);
   // this lambda will collect all of our results, since it is called on every
   // row of the result set
-  auto SqliteCBResultCollector = [](void *CB, int Argc, char **Argv,
-                                    char **AzColName) {
-    auto *Res = static_cast<vector<hs_result> *>(CB);
+  auto SqliteCBResultCollector = [](void *CB, int /*Argc*/, char **Argv,
+                                    char ** /*AzColName*/) {
+    auto *Res = static_cast<std::vector<HSResult> *>(CB);
     Res->emplace_back(Argv[0], Argv[1], Argv[2]);
     return 0;
   };
   char *Err;
-  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), SqliteCBResultCollector,
+  sqlite3_exec(HSInternalDB, CompiledQuery.c_str(), SqliteCBResultCollector,
                &Result, &Err);
   if (Err != nullptr) {
-    cout << Err;
+    llvm::outs() << Err;
   }
   return Result;
 }

@@ -1,0 +1,77 @@
+R"(
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Taint Configuration",
+    "description": "A Taint Configuration",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Name of this taint configuration"
+        },
+        "version": {
+            "type": "number",
+            "description": "Version of this taint configuration"
+        },
+        "functions": {
+            "description": "Array of functions you want to include in your analysis",
+            "type": "array",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the function in the llvm IR, look for possible mangling"
+                },
+                "ret": {
+                    "enum": ["source", "sink", "sanitizer"],
+                    "description": "Tags the returned value as source sink or sanitizer"
+                },
+                "params": {
+                    "description": "Tags function parameters as source, sink or sanitizer",
+                    "properties": {
+                        "source": {
+                            "description": "Zero based indices of source tags",
+                            "type": "array",
+                            "properties": {
+                                "type": ["number", "string"]
+                            }
+                        },
+                        "sink": {
+                            "description": "Zero based indices of sink tags. A Leak is detected if the function gets called with source taged value in this indices.",
+                            "type": "array",
+                            "properties": {
+                                "type": ["number", "string"]
+                            }
+                        },
+                        "sanitizer": {
+                            "description": "Zero based indices of sanitizer tags",
+                            "type": "array",
+                            "properties": {
+                                "type": ["number", "string"]
+                            }
+                        }
+                    }
+                }
+            },
+            "required": ["name", "params"]
+        },
+        "variables": {
+            "type": "array",
+            "properties": {
+                "scope": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "number"
+                },
+                "cat": {
+                    "enum": ["source", "sink", "sanitizer"]
+                }
+            },
+            "required": ["scope", "name", "cat"]
+        }
+    }
+}
+)"_json

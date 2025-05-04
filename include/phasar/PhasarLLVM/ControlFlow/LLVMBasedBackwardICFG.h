@@ -1,101 +1,81 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2022 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 
-#include <iosfwd>
-#include <map>
-#include <set>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/Utils/SoundnessFlag.h"
+#include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 
-namespace llvm {
-class Instruction;
-class Function;
-class Module;
-class Instruction;
-class BitCastInst;
-} // namespace llvm
+#include "llvm/IR/LLVMContext.h"
 
 namespace psr {
 
-class Resolver;
-class ProjectIRDB;
-class LLVMTypeHierarchy;
-class LLVMPointsToGraph;
+class LLVMBasedICFG;
+class LLVMBasedBackwardICFG;
+template <typename N, typename F> class CallGraph;
 
-class LLVMBasedBackwardsICFG
-    : public ICFG<const llvm::Instruction *, const llvm::Function *>,
-      public virtual LLVMBasedBackwardCFG {
-private:
-  LLVMBasedICFG ForwardICFG;
+template <>
+struct CFGTraits<LLVMBasedBackwardICFG> : CFGTraits<LLVMBasedBackwardCFG> {};
+
+class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
+                              public ICFGBase<LLVMBasedBackwardICFG> {
+  friend ICFGBase;
+
+  class LLVMBackwardRet {
+  private:
+    const llvm::ReturnInst *Instance = nullptr;
+
+  public:
+    LLVMBackwardRet(llvm::LLVMContext &Ctx)
+        : Instance(llvm::ReturnInst::Create(Ctx)){};
+    [[nodiscard]] const llvm::ReturnInst *getInstance() const noexcept {
+      return Instance;
+    }
+  };
+
+  using CFGBase::print;
+  using ICFGBase::print;
+
+  using ICFGBase::printAsJson;
 
 public:
-  LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
+  LLVMBasedBackwardICFG(LLVMBasedICFG *ForwardICFG);
 
-  LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {},
-                         LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr,
-                         SoundnessFlag SF = SoundnessFlag::SOUNDY);
+private:
+  [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
+  [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
 
-  ~LLVMBasedBackwardsICFG() override = default;
+  [[nodiscard]] bool isIndirectFunctionCallImpl(n_t Inst) const;
+  [[nodiscard]] bool isVirtualFunctionCallImpl(n_t Inst) const;
+  [[nodiscard]] std::vector<n_t> allNonCallStartNodesImpl() const;
+  [[nodiscard]] llvm::ArrayRef<f_t>
+  getCalleesOfCallAtImpl(n_t Inst) const noexcept;
+  [[nodiscard]] llvm::ArrayRef<n_t> getCallersOfImpl(f_t Fun) const noexcept;
+  [[nodiscard]] llvm::SmallVector<n_t> getCallsFromWithinImpl(f_t Fun) const;
+  [[nodiscard]] llvm::SmallVector<n_t, 2>
+  getReturnSitesOfCallAtImpl(n_t Inst) const;
+  void printImpl(llvm::raw_ostream &OS) const;
+  void printAsJsonImpl(llvm::raw_ostream &OS) const;
+  [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
+  [[nodiscard]] size_t getNumCallSitesImpl() const noexcept;
 
-  std::set<const llvm::Function *> getAllFunctions() const override;
+  llvm::LLVMContext BackwardRetsCtx;
+  llvm::DenseMap<const llvm::Function *, LLVMBackwardRet> BackwardRets;
+  llvm::DenseMap<const llvm::Instruction *, const llvm::Function *>
+      BackwardRetToFunction;
 
-  bool isIndirectFunctionCall(const llvm::Instruction *Stmt) const override;
-
-  bool isVirtualFunctionCall(const llvm::Instruction *Stmt) const override;
-
-  const llvm::Function *getFunction(const std::string &Fun) const override;
-
-  std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *N) const override;
-
-  std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *M) const override;
-
-  std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *M) const override;
-
-  std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
-
-  std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
-
-  void mergeWith(const LLVMBasedBackwardsICFG &other);
-
-  using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
-                                     // prints
-  void print(std::ostream &OS) const override;
-
-  void printAsDot(std::ostream &OS) const;
-
-  using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
-                                         // both prints
-  nlohmann::json getAsJson() const override;
-
-  unsigned getNumOfVertices();
-
-  unsigned getNumOfEdges();
-
-  std::vector<const llvm::Function *> getDependencyOrderedFunctions();
+  LLVMBasedICFG *ForwardICFG{};
 };
 
+extern template class ICFGBase<LLVMBasedBackwardICFG>;
 } // namespace psr
 
 #endif

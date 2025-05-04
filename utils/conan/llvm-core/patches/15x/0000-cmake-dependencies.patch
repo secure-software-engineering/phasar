@@ -1,0 +1,70 @@
+diff --git a/cmake/config-ix.cmake b/cmake/config-ix.cmake
+index 7e657fd1532d..29f524927b30 100644
+--- a/cmake/config-ix.cmake
++++ b/cmake/config-ix.cmake
+@@ -126,7 +126,7 @@ if(LLVM_ENABLE_ZLIB)
+     # library on a 64-bit system which would result in a link-time failure.
+     cmake_push_check_state()
+     list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
+-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY})
++    list(APPEND CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARIES})
+     check_symbol_exists(compress2 zlib.h HAVE_ZLIB)
+     cmake_pop_check_state()
+     if(LLVM_ENABLE_ZLIB STREQUAL FORCE_ON AND NOT HAVE_ZLIB)
+@@ -203,7 +203,7 @@ if(LLVM_ENABLE_HTTPLIB)
+     # Check if the "httplib" we found is usable; for example there may be another
+     # library with the same name.
+     cmake_push_check_state()
+-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${HTTPLIB_LIBRARY})
++    list(APPEND CMAKE_REQUIRED_LIBRARIES ${HTTPLIB_LIBRARIES})
+     check_cxx_symbol_exists(CPPHTTPLIB_HTTPLIB_H ${HTTPLIB_HEADER_PATH} HAVE_HTTPLIB)
+     cmake_pop_check_state()
+     if(LLVM_ENABLE_HTTPLIB STREQUAL FORCE_ON AND NOT HAVE_HTTPLIB)
+@@ -220,7 +220,7 @@ if(NOT LLVM_USE_SANITIZER MATCHES "Memory.*")
+   if (NOT PURE_WINDOWS)
+     # Skip libedit if using ASan as it contains memory leaks.
+     if (LLVM_ENABLE_LIBEDIT AND NOT LLVM_USE_SANITIZER MATCHES ".*Address.*")
+-      find_package(LibEdit)
++      find_package(LibEdit REQUIRED)
+       set(HAVE_LIBEDIT ${LibEdit_FOUND})
+     else()
+       set(HAVE_LIBEDIT 0)
+diff --git a/lib/Support/CMakeLists.txt b/lib/Support/CMakeLists.txt
+index ff23ec74df96..213605ebdea6 100644
+--- a/lib/Support/CMakeLists.txt
++++ b/lib/Support/CMakeLists.txt
+@@ -293,7 +293,7 @@ if(LLVM_ENABLE_ZLIB)
+   # CMAKE_BUILD_TYPE is only meaningful to single-configuration generators.
+   if(CMAKE_BUILD_TYPE)
+     string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
+-    get_property(zlib_library TARGET ZLIB::ZLIB PROPERTY LOCATION_${build_type})
++    set(zlib_library ${ZLIB_LIBRARIES})
+   endif()
+   if(NOT zlib_library)
+     get_property(zlib_library TARGET ZLIB::ZLIB PROPERTY LOCATION)
+@@ -306,7 +306,7 @@ if(LLVM_ENABLE_ZSTD)
+   # CMAKE_BUILD_TYPE is only meaningful to single-configuration generators.
+   if(CMAKE_BUILD_TYPE)
+     string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
+-    get_property(zstd_library TARGET ${zstd_target} PROPERTY LOCATION_${build_type})
++    set(zstd_library ${zstd_LIBRARIES})
+   endif()
+   if(NOT zstd_library)
+     get_property(zstd_library TARGET ${zstd_target} PROPERTY LOCATION)
+diff --git a/lib/WindowsManifest/CMakeLists.txt b/lib/WindowsManifest/CMakeLists.txt
+index 910132a4c7de..266d3b7faaa9 100644
+--- a/lib/WindowsManifest/CMakeLists.txt
++++ b/lib/WindowsManifest/CMakeLists.txt
+@@ -21,10 +21,11 @@ add_llvm_component_library(LLVMWindowsManifest
+ # This block is only needed for llvm-config. When we deprecate llvm-config and
+ # move to using CMake export, this block can be removed.
+ if(LLVM_ENABLE_LIBXML2)
++  find_package(libxml2 REQUIRED CONFIG)
+   # CMAKE_BUILD_TYPE is only meaningful to single-configuration generators.
+   if(CMAKE_BUILD_TYPE)
+     string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
+-    get_property(libxml2_library TARGET LibXml2::LibXml2 PROPERTY LOCATION_${build_type})
++    set(libxml2_library ${libxml2_LIBRARIES})
+   endif()
+   if(NOT libxml2_library)
+     get_property(libxml2_library TARGET LibXml2::LibXml2 PROPERTY LOCATION)

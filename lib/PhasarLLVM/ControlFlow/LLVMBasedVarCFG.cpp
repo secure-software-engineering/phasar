@@ -7,10 +7,16 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarCFG.h"
 
-#include <z3++.h>
+#include "phasar/ControlFlow/VarCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
@@ -18,10 +24,9 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarCFG.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
+#include <iostream>
+
+#include <z3++.h>
 
 using namespace psr;
 
@@ -254,11 +259,12 @@ z3::expr LLVMBasedVarCFG::inferCondition(const llvm::CmpInst *cmp) const {
 }
 #endif
 
-LLVMBasedVarCFG::LLVMBasedVarCFG(
-    const ProjectIRDB &IRDB, const stringstringmap_t *StaticBackwardRenaming)
-    : staticBackwardRenaming(StaticBackwardRenaming) {
+VarCFGImpl<LLVMBasedCFG, z3::expr>::VarCFGImpl(
+    const LLVMBasedICFG &CFG, const stringstringmap_t *StaticBackwardRenaming)
+    : CFG(static_cast<const LLVMBasedCFG &>(CFG)),
+      staticBackwardRenaming(StaticBackwardRenaming) {
   const auto *StaticRenamingFun =
-      IRDB.getFunction("__static_condition_renaming");
+      CFG.getFunction("__static_condition_renaming");
   // We need to check if StaticRenamingFun is null. In case no static
   // preprocessor conditionals are beeing used, this function does not exist and
   // thus the ProjectIRDB returns a nullptr.
@@ -275,8 +281,8 @@ LLVMBasedVarCFG::LLVMBasedVarCFG(
         Solver.from_string(SMT2LibSolverStrRep.value().data());
         auto CombinedAssertions = [&] {
           auto Assertions = Solver.assertions();
-          assert(Assertions.size() && "Must have at least one assertion for "
-                                      "any preprocessor conditional!");
+          assert(!Assertions.empty() && "Must have at least one assertion for "
+                                        "any preprocessor conditional!");
           auto It = Assertions.begin();
           const auto EndIt = Assertions.end();
           auto Combined = *It;
@@ -288,18 +294,17 @@ LLVMBasedVarCFG::LLVMBasedVarCFG(
         AvailablePPConditions.insert({GlobName.value(), CombinedAssertions});
       }
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                  << "AvailablePPConditions"
-                  << printAll(AvailablePPConditions.keys()));
+    PHASAR_LOG_LEVEL(DEBUG, "AvailablePPConditions"
+                                << printAll(AvailablePPConditions.keys()));
   }
 }
 
-std::optional<z3::expr> LLVMBasedVarCFG::getConditionIfIsPPVariable(
+std::optional<z3::expr>
+VarCFGImpl<LLVMBasedCFG, z3::expr>::getConditionIfIsPPVariable(
     const llvm::GlobalVariable *G) const {
   auto name = G->getName();
-  constexpr char STATIC_RENAMING[] = "__static_condition_";
-  if (name.size() <= sizeof(STATIC_RENAMING) ||
-      !name.startswith(STATIC_RENAMING)) {
+  constexpr llvm::StringLiteral STATIC_RENAMING = "__static_condition_";
+  if (!name.startswith(STATIC_RENAMING)) {
     return std::nullopt;
   }
 
@@ -312,7 +317,8 @@ std::optional<z3::expr> LLVMBasedVarCFG::getConditionIfIsPPVariable(
   return std::nullopt;
 }
 
-bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br) const {
+bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchNode(
+    const llvm::BranchInst *br) const {
   if (!br->isConditional()) {
     return false;
   }
@@ -341,10 +347,10 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br) const {
   return false;
 }
 
-bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
-                                     z3::expr &cond) const {
+bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchNode(
+    const llvm::BranchInst *br, z3::expr &cond) const {
   if (!br->isConditional()) {
-    cond = getTrueConstraint();
+    cond = getTrueConstraintImpl();
     return false;
   }
   // cond will most likely be an 'icmp ne i32 ..., 0'
@@ -387,27 +393,27 @@ bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
   } else
     std::cerr << "No user" << std::endl;
 
-  cond = getTrueConstraint();
+  cond = getTrueConstraintImpl();
   return false;
 }
 
-std::vector<std::pair<const llvm::Instruction *, z3::expr>>
-LLVMBasedVarCFG::getSuccsOfWithPPConstraints(
-    const llvm::Instruction *Stmt) const {
-  std::vector<std::pair<const llvm::Instruction *, z3::expr>> Successors;
-  for (auto Succ : llvm::successors(Stmt)) {
-    Successors.emplace_back(&Succ->front(),
-                            getPPConstraintOrTrue(Stmt, &Succ->front()));
-  }
-  return Successors;
-}
+// std::vector<std::pair<const llvm::Instruction *, z3::expr>>
+// LLVMBasedVarCFG::getSuccsOfWithPPConstraints(
+//     const llvm::Instruction *Stmt) const {
+//   std::vector<std::pair<const llvm::Instruction *, z3::expr>> Successors;
+//   for (auto Succ : llvm::successors(Stmt)) {
+//     Successors.emplace_back(&Succ->front(),
+//                             getPPConstraintOrTrue(Stmt, &Succ->front()));
+//   }
+//   return Successors;
+// }
 
-z3::expr LLVMBasedVarCFG::getTrueConstraint() const {
+z3::expr VarCFGImpl<LLVMBasedCFG, z3::expr>::getTrueConstraintImpl() const {
   return CTX.bool_val(true);
 }
 
-bool LLVMBasedVarCFG::isPPBranchTarget(const llvm::Instruction *Stmt,
-                                       const llvm::Instruction *Succ) const {
+bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchTargetImpl(
+    const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
   if (auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
     if (!isPPBranchNode(T)) {
       return false;
@@ -421,10 +427,9 @@ bool LLVMBasedVarCFG::isPPBranchTarget(const llvm::Instruction *Stmt,
   return false;
 }
 
-z3::expr
-LLVMBasedVarCFG::getPPConstraintOrTrue(const llvm::Instruction *Stmt,
-                                       const llvm::Instruction *Succ) const {
-  z3::expr Constraint = getTrueConstraint();
+z3::expr VarCFGImpl<LLVMBasedCFG, z3::expr>::getPPConstraintOrTrueImpl(
+    const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
+  z3::expr Constraint = getTrueConstraintImpl();
   if (auto B = llvm::dyn_cast<llvm::BranchInst>(Stmt);
       B && B->isConditional()) {
     if (isPPBranchNode(B, Constraint)) {
@@ -439,19 +444,19 @@ LLVMBasedVarCFG::getPPConstraintOrTrue(const llvm::Instruction *Stmt,
   return Constraint;
 }
 
-z3::context &LLVMBasedVarCFG::getContext() const { return CTX; }
+// z3::context &LLVMBasedVarCFG::getContext() const { return CTX; }
 
-std::string
-LLVMBasedVarCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
-  auto fnName = this->LLVMBasedCFG::getDemangledFunctionName(Fun);
-  if (!staticBackwardRenaming)
-    return fnName;
+// std::string
+// LLVMBasedVarCFG::getDemangledFunctionName(const llvm::Function *Fun) const {
+//   auto fnName = this->LLVMBasedCFG::getDemangledFunctionName(Fun);
+//   if (!staticBackwardRenaming)
+//     return fnName;
 
-  if (auto it = staticBackwardRenaming->find(fnName);
-      it != staticBackwardRenaming->end())
-    return it->getValue();
+//   if (auto it = staticBackwardRenaming->find(fnName);
+//       it != staticBackwardRenaming->end())
+//     return it->getValue();
 
-  return fnName;
-}
+//   return fnName;
+// }
 
 } // namespace psr

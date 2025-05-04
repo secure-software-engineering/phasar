@@ -33,6 +33,8 @@ set(NoMem2regSources
   struct_member.cpp
   dynamic_memory.cpp
   dynamic_memory_simple.cpp
+  double_free_01.c
+  double_free_02.c
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

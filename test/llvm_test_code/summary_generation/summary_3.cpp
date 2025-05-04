@@ -1,3 +1,1 @@
-void foo(int& i) {
-	i = 42;
-}
+void foo(int &i) { i = 42; }

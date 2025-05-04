@@ -1,20 +1,28 @@
 {
-	"Source Functions": {
-		"source()": {
-			"Args": [],
-			"Return": true
-		},
-		"read": {
-			"Args": [0, 1, 3],
-			"Return": false
-		}
-	},
-	"Sink Functions": {
-		"sink(int)": {
-			"Args": [0]
-		},
-		"write": {
-			"Args": [1]
-		}
-	}
+  "Source Functions": {
+    "source()": {
+      "Args": [],
+      "Return": true
+    },
+    "read": {
+      "Args": [
+        0,
+        1,
+        3
+      ],
+      "Return": false
+    }
+  },
+  "Sink Functions": {
+    "sink(int)": {
+      "Args": [
+        0
+      ]
+    },
+    "write": {
+      "Args": [
+        1
+      ]
+    }
+  }
 }

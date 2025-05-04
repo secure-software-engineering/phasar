@@ -7,61 +7,55 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <fstream>
-#include <iostream>
+#include "phasar.h"
 
-#include "boost/filesystem/operations.hpp"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/Logger.h"
-
-namespace llvm {
-class Value;
-} // namespace llvm
+#include <filesystem>
+#include <string>
 
 using namespace psr;
 
 int main(int Argc, const char **Argv) {
-  initializeLogger(false);
-  if (Argc < 2 || !boost::filesystem::exists(Argv[1]) ||
-      boost::filesystem::is_directory(Argv[1])) {
-    std::cerr << "myphasartool\n"
-                 "A small PhASAR-based example program\n\n"
-                 "Usage: myphasartool <LLVM IR file>\n";
+  using namespace std::string_literals;
+
+  if (Argc < 2 || !std::filesystem::exists(Argv[1]) ||
+      std::filesystem::is_directory(Argv[1])) {
+    llvm::errs() << "myphasartool\n"
+                    "A small PhASAR-based example program\n\n"
+                    "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  ProjectIRDB DB({Argv[1]});
-  if (const auto *F = DB.getFunctionDefinition("main")) {
-    LLVMTypeHierarchy H(DB);
+
+  std::vector EntryPoints = {"main"s};
+
+  HelperAnalyses HA(Argv[1], EntryPoints);
+  if (!HA.getProjectIRDB().isValid()) {
+    return 1;
+  }
+
+  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
-    H.print();
-    LLVMPointsToSet P(DB);
+    HA.getTypeHierarchy().print();
     // print points-to information
-    P.print();
-    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
+    HA.getAliasInfo().print();
     // print inter-procedural control-flow graph
-    I.print();
+    HA.getICFG().print();
+
     // IFDS template parametrization test
-    std::cout << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver S(L);
-    S.solve();
-    S.dumpResults();
+    llvm::outs() << "Testing IFDS:\n";
+    auto L = createAnalysisProblem<IFDSSolverTest>(HA, EntryPoints);
+    IFDSSolver S(L, &HA.getICFG());
+    auto IFDSResults = S.solve();
+    IFDSResults.dumpResults(HA.getICFG());
+
     // IDE template parametrization test
-    std::cout << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver T(M);
-    T.solve();
-    T.dumpResults();
+    llvm::outs() << "Testing IDE:\n";
+    auto M = createAnalysisProblem<IDELinearConstantAnalysis>(HA, EntryPoints);
+    // Alternative way of solving an IFDS/IDEProblem:
+    auto IDEResults = solveIDEProblem(M, HA.getICFG());
+    IDEResults.dumpResults(HA.getICFG());
+
   } else {
-    std::cerr << "error: file does not contain a 'main' function!\n";
+    llvm::errs() << "error: file does not contain a 'main' function!\n";
   }
   return 0;
 }

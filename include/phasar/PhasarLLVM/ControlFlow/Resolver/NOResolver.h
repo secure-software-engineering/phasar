@@ -10,45 +10,30 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_NORESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_NORESOLVER_H_
 
-#include <set>
-
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 namespace llvm {
-class Instruction;
-class ImmutableCallSite;
-class Function;
-class StructType;
+class CallBase;
 } // namespace llvm
 
 namespace psr {
 
 class NOResolver final : public Resolver {
-protected:
-  const llvm::Function *getNonPureVirtualVFTEntry(const llvm::StructType *T,
-                                                  unsigned Idx,
-                                                  llvm::ImmutableCallSite CS);
-
 public:
-  NOResolver(ProjectIRDB &IRDB);
+  NOResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP);
 
   ~NOResolver() override = default;
 
-  void preCall(const llvm::Instruction *Inst) override;
+  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
 
-  void handlePossibleTargets(
-      llvm::ImmutableCallSite CS,
-      std::set<const llvm::Function *> &PossibleTargets) override;
+  FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
 
-  void postCall(const llvm::Instruction *Inst) override;
+  [[nodiscard]] std::string str() const override;
 
-  std::set<const llvm::Function *>
-  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
-
-  std::set<const llvm::Function *>
-  resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
-
-  void otherInst(const llvm::Instruction *Inst) override;
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
 };
 } // namespace psr
 

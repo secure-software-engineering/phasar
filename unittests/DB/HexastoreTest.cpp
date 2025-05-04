@@ -1,27 +1,25 @@
-#include <algorithm>
-#include <iostream>
+#include "phasar/DB/Hexastore.h"
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/graph_utility.hpp"
 #include "boost/graph/isomorphism.hpp"
-
 #include "gtest/gtest.h"
 
-#include "phasar/DB/Hexastore.h"
+#include <algorithm>
 
 using namespace psr;
 using namespace std;
 
 TEST(HexastoreTest, QueryBlankFieldEntries) {
-  Hexastore H("QueryBlankFieldEntries.sqlite");
+  Hexastore H("");
   H.put({{"one", "", ""}});
   H.put({{"two", "", ""}});
   H.put({{"", "three", ""}});
   H.put({{"one", "", "four"}});
 
   // query results
-  hs_result FirstRes("one", "", "");
-  hs_result SecondRes("one", "", "four");
+  HSResult FirstRes("one", "", "");
+  HSResult SecondRes("one", "", "four");
 
   auto Result = H.get({{"one", "", ""}});
   ASSERT_EQ(Result.size(), 1U);
@@ -34,7 +32,7 @@ TEST(HexastoreTest, QueryBlankFieldEntries) {
 }
 
 TEST(HexastoreTest, AllQueryTypes) {
-  Hexastore H("AllQueryTypes.sqlite");
+  Hexastore H("");
   H.put({{"mary", "likes", "hexastores"}});
   H.put({{"mary", "likes", "apples"}});
   H.put({{"mary", "hates", "oranges"}});
@@ -42,13 +40,13 @@ TEST(HexastoreTest, AllQueryTypes) {
   H.put({{"peter", "hates", "hexastores"}});
   H.put({{"frank", "admires", "bananas"}});
 
-  std::vector<hs_result> GroundTruth;
-  GroundTruth.emplace_back(hs_result("mary", "likes", "hexastores"));
-  GroundTruth.emplace_back(hs_result("mary", "likes", "apples"));
-  GroundTruth.emplace_back(hs_result("mary", "hates", "oranges"));
-  GroundTruth.emplace_back(hs_result("peter", "likes", "apples"));
-  GroundTruth.emplace_back(hs_result("peter", "hates", "hexastores"));
-  GroundTruth.emplace_back(hs_result("frank", "admires", "bananas"));
+  std::vector<HSResult> GroundTruth;
+  GroundTruth.emplace_back(HSResult("mary", "likes", "hexastores"));
+  GroundTruth.emplace_back(HSResult("mary", "likes", "apples"));
+  GroundTruth.emplace_back(HSResult("mary", "hates", "oranges"));
+  GroundTruth.emplace_back(HSResult("peter", "likes", "apples"));
+  GroundTruth.emplace_back(HSResult("peter", "hates", "hexastores"));
+  GroundTruth.emplace_back(HSResult("frank", "admires", "bananas"));
 
   // Does peter hate hexastores? (SPO query in 'spo' tables)
   auto Result = H.get({{"peter", "hates", "hexastores"}});
@@ -102,12 +100,12 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   struct Vertex {
     string Name;
     Vertex() = default;
-    Vertex(string Name) : Name(move(Name)) {}
+    Vertex(string Name) : Name(std::move(Name)) {}
   };
   struct Edge {
     string EdgeName;
     Edge() = default;
-    Edge(string Label) : EdgeName(move(Label)) {}
+    Edge(string Label) : EdgeName(std::move(Label)) {}
   };
 
   using graph_t = boost::adjacency_list<boost::setS, boost::vecS,
@@ -142,10 +140,10 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   boost::add_edge(V6, V5, G);
   boost::add_edge(V4, V2, G);
 
-  // std::cout << "Graph G:" << std::endl;
+  // llvm::outs() << "Graph G:" << std::endl;
   // boost::print_graph(G, boost::get(&Vertex::name, G));
 
-  Hexastore HS("StoreGraphNoEdgeLabels.sqlite");
+  Hexastore HS("");
 
   // serialize graph G
   for (tie(EiStart, EEnd) = boost::edges(G); EiStart != EEnd; ++EiStart) {
@@ -159,20 +157,20 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   set<string> Recognized;
   map<string, vertex_t> Vertices;
 
-  vector<hs_result> ResultSet = HS.get({{"?", "no label", "?"}}, 20);
+  vector<HSResult> ResultSet = HS.get({{"?", "no label", "?"}}, 20);
 
   for (const auto &Entry : ResultSet) {
-    if (Recognized.find(Entry.subject) == Recognized.end()) {
-      Vertices[Entry.subject] = boost::add_vertex(H);
-      H[Vertices[Entry.subject]].Name = Entry.subject;
+    if (Recognized.find(Entry.Subject) == Recognized.end()) {
+      Vertices[Entry.Subject] = boost::add_vertex(H);
+      H[Vertices[Entry.Subject]].Name = Entry.Subject;
     }
-    if (Recognized.find(Entry.object) == Recognized.end()) {
-      Vertices[Entry.object] = boost::add_vertex(H);
-      H[Vertices[Entry.object]].Name = Entry.object;
+    if (Recognized.find(Entry.Object) == Recognized.end()) {
+      Vertices[Entry.Object] = boost::add_vertex(H);
+      H[Vertices[Entry.Object]].Name = Entry.Object;
     }
-    boost::add_edge(Vertices[Entry.subject], Vertices[Entry.object], H);
-    Recognized.insert(Entry.subject);
-    Recognized.insert(Entry.object);
+    boost::add_edge(Vertices[Entry.Subject], Vertices[Entry.Object], H);
+    Recognized.insert(Entry.Subject);
+    Recognized.insert(Entry.Object);
   }
 
   // boost::print_graph(H, boost::get(&Vertex::name, H));
@@ -183,12 +181,12 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   struct Vertex {
     string Name;
     Vertex() = default;
-    Vertex(string Name) : Name(move(Name)) {}
+    Vertex(string Name) : Name(std::move(Name)) {}
   };
   struct Edge {
     string EdgeName;
     Edge() = default;
-    Edge(string Label) : EdgeName(move(Label)) {}
+    Edge(string Label) : EdgeName(std::move(Label)) {}
   };
 
   using graph_t = boost::adjacency_list<boost::setS, boost::vecS,
@@ -223,7 +221,7 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   boost::add_edge(W6, W5, Edge("five"), I);
   boost::add_edge(W4, W2, Edge("six"), I);
 
-  // std::cout << "Graph I:" << std::endl;
+  // llvm::outs() << "Graph I:" << std::endl;
   // boost::print_graph(I, boost::get(&Vertex::name, I));
   // for (tie(ei_start, e_end) = boost::edges(I); ei_start != e_end; ++ei_start)
   // {
@@ -232,7 +230,7 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   //   cout << boost::get(&Edge::edge_name, I, *ei_start) << endl;
   // }
 
-  Hexastore HS("StoreGraphWithEdgeLabels.sqlite");
+  Hexastore HS("");
 
   // serialize graph I
   for (tie(EiStart, EEnd) = boost::edges(I); EiStart != EEnd; ++EiStart) {
@@ -246,20 +244,20 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   graph_t J;
   set<string> RecognizedVertices;
   map<string, vertex_t> Vertices;
-  vector<hs_result> HsiRes = HS.get({{"?", "?", "?"}}, 10);
+  vector<HSResult> HsiRes = HS.get({{"?", "?", "?"}}, 10);
   for (const auto &Entry : HsiRes) {
-    if (RecognizedVertices.find(Entry.subject) == RecognizedVertices.end()) {
-      Vertices[Entry.subject] = boost::add_vertex(J);
-      J[Vertices[Entry.subject]].Name = Entry.subject;
+    if (RecognizedVertices.find(Entry.Subject) == RecognizedVertices.end()) {
+      Vertices[Entry.Subject] = boost::add_vertex(J);
+      J[Vertices[Entry.Subject]].Name = Entry.Subject;
     }
-    if (RecognizedVertices.find(Entry.object) == RecognizedVertices.end()) {
-      Vertices[Entry.object] = boost::add_vertex(J);
-      J[Vertices[Entry.object]].Name = Entry.object;
+    if (RecognizedVertices.find(Entry.Object) == RecognizedVertices.end()) {
+      Vertices[Entry.Object] = boost::add_vertex(J);
+      J[Vertices[Entry.Object]].Name = Entry.Object;
     }
-    RecognizedVertices.insert(Entry.subject);
-    RecognizedVertices.insert(Entry.object);
-    boost::add_edge(Vertices[Entry.subject], Vertices[Entry.object],
-                    Edge(Entry.predicate), J);
+    RecognizedVertices.insert(Entry.Subject);
+    RecognizedVertices.insert(Entry.Object);
+    boost::add_edge(Vertices[Entry.Subject], Vertices[Entry.Object],
+                    Edge(Entry.Predicate), J);
   }
 
   // boost::print_graph(J, boost::get(&Vertex::name, J));

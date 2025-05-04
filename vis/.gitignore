@@ -1,6 +1,0 @@
-node_modules/
-dist/
-.DS_Store
-database/
-server/data/uploads/*.json
-server/data/uploads/*.ll

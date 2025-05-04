@@ -1,14 +1,20 @@
 #!/bin/bash
 
+source ./safeCommandsSet.sh
+
 if git submodule status 2>&1 | grep -iq "fatal: Not a git repository (or any of the parent directories): .git"; then
-cd $(dirname $0)/../external/
-git clone git@github.com:google/googletest.git
-cd googletest/
-git checkout release-1.8.0
-cd -
-git clone git@github.com:nlohmann/json.git
-cd json/
-git checkout v3.4.0
-cd -
-git clone https://github.com/pdschubert/WALi-OpenNWA.git
+
+safe_cd "$(dirname "$0")"/../external/
+
+git clone --no-checkout https://github.com/nlohmann/json.git
+safe_cd json/
+git checkout v3.11.3
+safe_cd -
+
+git clone --no-checkout https://github.com/pboettch/json-schema-validator.git
+safe_cd json/
+git checkout 2.3.0
+safe_cd -
+
+else git submodule update --init;
 fi

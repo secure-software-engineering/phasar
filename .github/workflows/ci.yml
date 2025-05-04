@@ -1,0 +1,67 @@
+name: Phasar CI
+
+on:
+  push:
+    branches: [ master, development ]
+  pull_request:
+    branches: [ master, development ]
+
+# TODO test in tree build?
+# TODO test conan build
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
+        build: [ Debug, Release, DebugLibdeps ]
+        include:
+          - build: Debug
+            cmake_build_type: Debug
+            flags: -DPHASAR_ENABLE_SANITIZERS=ON
+          - build: Release
+            cmake_build_type: Release
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+          - build: DebugLibdeps
+            cmake_build_type: Debug
+            flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+        exclude:
+          - os: ubuntu-24.04-arm
+            build: Debug
+          - os: ubuntu-24.04-arm
+            build: DebugLibdeps
+
+    continue-on-error: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Phasar Dependencies
+        shell: bash
+        run: |
+          ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }}
+
+      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
+        env:
+          CXX: ${{ matrix.compiler[0] }}
+          CC: ${{ matrix.compiler[1] }}
+        shell: bash
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+            -DBUILD_PHASAR_CLANG=OFF \
+            -DPHASAR_USE_Z3=ON \
+            ${{ matrix.flags }} \
+            -G Ninja
+          ninja -C build
+
+      - name: Run Unittests
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --target check-phasar-unittests
