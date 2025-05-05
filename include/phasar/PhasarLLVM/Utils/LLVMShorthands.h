@@ -181,10 +181,11 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
 llvm::SmallVector<const llvm::Instruction *, 2>
-getAllExitPoints(const llvm::Function *F);
+getAllExitPoints(const llvm::Function *F, bool IncludeResume = true);
 void appendAllExitPoints(
     const llvm::Function *F,
-    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints);
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints,
+    bool IncludeResume = true);
 
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.

@@ -317,15 +317,16 @@ const llvm::Instruction *psr::getNthInstruction(const llvm::Function *F,
 }
 
 llvm::SmallVector<const llvm::Instruction *, 2>
-psr::getAllExitPoints(const llvm::Function *F) {
+psr::getAllExitPoints(const llvm::Function *F, bool IncludeResume) {
   llvm::SmallVector<const llvm::Instruction *, 2> Ret;
-  appendAllExitPoints(F, Ret);
+  appendAllExitPoints(F, Ret, IncludeResume);
   return Ret;
 }
 
 void psr::appendAllExitPoints(
     const llvm::Function *F,
-    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints) {
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints,
+    bool IncludeResume) {
   if (!F) {
     return;
   }
@@ -335,7 +336,7 @@ void psr::appendAllExitPoints(
     assert(Term && "Invalid IR: Each BasicBlock must have a terminator "
                    "instruction at the end");
     if (llvm::isa<llvm::ReturnInst>(Term) ||
-        llvm::isa<llvm::ResumeInst>(Term)) {
+        (IncludeResume && llvm::isa<llvm::ResumeInst>(Term))) {
       ExitPoints.push_back(Term);
     }
   }
