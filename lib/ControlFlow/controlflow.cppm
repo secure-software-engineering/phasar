@@ -4,7 +4,7 @@ module;
 #include "phasar/ControlFlow/SparseCFGBase.h"
 #include "phasar/ControlFlow/SparseCFGProvider.h"
 
-export module phasar.control_flow;
+export module phasar.controlflow;
 
 export namespace psr {
 using psr::CallGraph;

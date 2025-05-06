@@ -20,4 +20,7 @@ add_phasar_library(phasar_llvm_ifdside
 
   LINK_PRIVATE
     ${Boost_LIBRARIES}
+
+  MODULE_FILES
+    PhasarLLVMDataFlowIfdsIde.cppm
 )

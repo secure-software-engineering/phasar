@@ -1,5 +1,6 @@
 add_subdirectory(example-tool)
 add_subdirectory(phasar-cli)
+add_subdirectory(full-phasar-modules)
 if (PHASAR_BUILD_MODULES)
   add_subdirectory(hello-modules-tool)
 endif()

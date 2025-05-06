@@ -13,4 +13,7 @@ add_phasar_library(phasar_mono
   LLVM_LINK_COMPONENTS
     Core
     Support
+
+  MODULE_FILES
+    PhasarLLVMDataFlowMono.cppm
 )

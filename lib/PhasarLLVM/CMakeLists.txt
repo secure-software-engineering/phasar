@@ -12,9 +12,6 @@ file(GLOB PHASAR_LLVM_SRC *.h *.cpp)
 add_phasar_library(phasar_llvm
   ${PHASAR_LLVM_SRC}
 
-  MODULE_FILES
-    phasar_llvm.cppm
-
   LINKS
     phasar_utils
     phasar_dataflow_ifdside_solver
@@ -26,4 +23,7 @@ add_phasar_library(phasar_llvm
   LLVM_LINK_COMPONENTS
     Core
     Support
+
+  MODULE_FILES
+    phasar_llvm.cppm
 )
