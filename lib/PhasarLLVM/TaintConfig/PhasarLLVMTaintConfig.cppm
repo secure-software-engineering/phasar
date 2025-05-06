@@ -2,7 +2,7 @@ module;
 
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
-export module phasar.phasar_llvm_typehierarchy;
+export module phasar.llvm_taintconfig;
 
 export namespace psr {
 using psr::DIBasedTypeHierarchy;

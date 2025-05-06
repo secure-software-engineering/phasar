@@ -9,4 +9,7 @@ add_phasar_library(phasar_pointer
 
   LLVM_LINK_COMPONENTS
     Support
+
+  MODULE_FILES
+    PhasarPointer.cppm
 )

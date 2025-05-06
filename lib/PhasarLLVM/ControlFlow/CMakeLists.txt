@@ -1,10 +1,9 @@
+add_subdirectory(Resolver)
+
 file(GLOB_RECURSE CONTROLFLOW_SRC *.h *.cpp)
 
 add_phasar_library(phasar_llvm_controlflow
   ${CONTROLFLOW_SRC}
-
-  MODULE_FILES
-    phasar_llvm_controlflow.cppm
 
   LINKS
     phasar_llvm_pointer
@@ -16,4 +15,7 @@ add_phasar_library(phasar_llvm_controlflow
     Core
     Support
     Demangle
+
+  MODULE_FILES
+    PhasarLLVMControlFlow.cppm
 )

@@ -20,19 +20,20 @@ if(PHASAR_BUILD_DYNLIB)
 endif()
 
 set(PHASAR_LINK_LIBS
-    phasar_utils
-    phasar_passes
     phasar_config
-    phasar_pointer
     phasar_controlflow
+    phasar_passes
+    phasar_pointer
+    phasar_utils
 
-    phasar_dataflow_ifdside_solver
-
-    phasar_llvm_utils
+    phasar_llvm_controlflow
+    phasar_llvm_dataflow_ifdside_solver
+    phasar_llvm_dataflow_ifdside_mono
+    phasar_llvm_dataflow_ifdside_pathsensitivity
     phasar_llvm_db
     phasar_llvm_pointer
     phasar_llvm_typehierarchy
-    phasar_llvm_controlflow
+    phasar_llvm_utils
 
     phasar_taintconfig
     phasar_mono

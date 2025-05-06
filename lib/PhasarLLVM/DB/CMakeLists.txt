@@ -3,9 +3,6 @@ file(GLOB_RECURSE PSR_LLVM_DB_SRC *.h *.cpp)
 add_phasar_library(phasar_llvm_db
   ${PSR_LLVM_DB_SRC}
 
-  MODULE_FILES
-    phasar_llvm_db.cppm
-
   LINKS
     phasar_utils
     phasar_llvm_utils
@@ -14,4 +11,7 @@ add_phasar_library(phasar_llvm_db
     Core
     Support
     IRReader
+
+  MODULE_FILES
+    PhasarLLVMDB.cppm
 )

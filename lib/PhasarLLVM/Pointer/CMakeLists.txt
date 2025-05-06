@@ -3,9 +3,6 @@ file(GLOB POINTER_SRC *.cpp)
 add_phasar_library(phasar_llvm_pointer
   ${POINTER_SRC}
 
-  MODULE_FILES
-    phasar_llvm_pointer.cppm
-
   LINKS
     phasar_utils
     phasar_pointer
@@ -21,6 +18,9 @@ add_phasar_library(phasar_llvm_pointer
 
   LINK_PRIVATE
     ${Boost_LIBRARIES}
+
+  MODULE_FILES
+    PhasarLLVMPointer.cppm
 )
 
 add_subdirectory(external)

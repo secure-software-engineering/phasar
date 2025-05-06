@@ -4,9 +4,29 @@
 #include <string>
 #include <vector>
 
+import phasar.analysis.strategy;
+import phasar.config;
+import phasar.controlflow;
+import phasar.dataflow.ifdside_solver;
 import phasar.db;
 import phasar.llvm;
-import phasar.dataflow_ifdside_solver;
+import phasar.llvm_controlflow;
+// import phasar.llvm.controlflow.resolver;
+// import phasar.llvm.dataflow.ifdside;
+// import phasar.llvm.dataflow.ifdside_problems;
+import phasar.llvm_dataflow_ifdside_solver;
+// import phasar.llvm.dataflow.mono;
+// import phasar.llvm.dataflow.pathsensitivity;
+// import phasar.llvm.db;
+// import phasar.llvm.passes;
+// import phasar.llvm.pointer;
+// import phasar.llvm.taintconfig;
+// import phasar.llvm.typehierarchy;
+// import phasar.llvm.utils;
+// import phasar.phasarpass;
+// import phasar.pointer;
+// import phasar.utils;
+
 // import phasar.dataflow;
 // TODO: more phasar imports here
 // TODO: The whole content of myphasartool should work with modules!
