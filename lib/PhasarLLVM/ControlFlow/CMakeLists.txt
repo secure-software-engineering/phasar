@@ -1,5 +1,3 @@
-add_subdirectory(Resolver)
-
 file(GLOB_RECURSE CONTROLFLOW_SRC *.h *.cpp)
 
 add_phasar_library(phasar_llvm_controlflow

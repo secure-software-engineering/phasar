@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-import phasar.analysis.strategy;
+import phasar.analysis_strategy;
 import phasar.config;
 import phasar.controlflow;
 import phasar.dataflow.ifdside_solver;

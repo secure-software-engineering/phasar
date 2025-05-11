@@ -7,5 +7,5 @@ add_phasar_library(phasar_dataflow_ifdside_solver
     nlohmann_json::nlohmann_json
 
   MODULE_FILES
-    dataflow_ifdside_solver.cppm
+    Solver.cppm
 )

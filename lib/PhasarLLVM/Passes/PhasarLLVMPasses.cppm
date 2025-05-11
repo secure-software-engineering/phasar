@@ -1,9 +1,15 @@
 module;
 
-#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Passes/ExampleModulePass.h"
+#include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 
-export module phasar.llvm_passes;
+export module phasar.llvm.passes;
 
 export namespace psr {
-using psr::DIBasedTypeHierarchy;
+using psr::ExampleModulePass;
+using psr::GeneralStatistics;
+using psr::GeneralStatisticsAnalysis;
+using psr::ValueAnnotationPass;
+using psr::operator<<;
 } // namespace psr

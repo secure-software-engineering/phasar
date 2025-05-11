@@ -1,9 +1,42 @@
 module;
 
-#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/AliasInfo.h"
+#include "phasar/Pointer/AliasInfoBase.h"
+#include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Pointer/AliasResult.h"
+#include "phasar/Pointer/AliasSetOwner.h"
+#include "phasar/Pointer/PointsToInfo.h"
 
 export module phasar.pointer;
 
 export namespace psr {
-// using psr::DIBasedTypeHierarchy;
+using psr::AliasAnalysisType;
+using psr::toAliasAnalysisType;
+using psr::toString;
+using psr::operator<<;
+using detail::testAliasInfo;
+using psr::AliasAnalysisType;
+using psr::AliasInfo;
+using psr::AliasInfoBaseUtils;
+using psr::AliasInfoRef;
+using psr::AliasInfoTraits;
+using psr::AliasResult;
+using psr::AnalysisProperties;
+using psr::IsAliasInfo;
+// using detail::IsAliasInfo;
+using psr::AliasInfoTraits;
+using psr::AliasResult;
+using psr::DefaultAATraits;
+using psr::toAliasResult;
+using psr::toString;
+using psr::operator<<;
+using psr::AliasSetOwner;
+using psr::is_equivalent_PointsToTraits_v;
+using psr::is_PointsToTraits;
+using psr::is_PointsToTraits_v;
+using psr::PointsToInfo;
+using psr::PointsToInfoBase;
+using psr::PointsToInfoRef;
+using psr::PointsToTraits;
 } // namespace psr

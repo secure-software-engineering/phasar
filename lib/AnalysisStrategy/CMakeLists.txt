@@ -7,5 +7,5 @@ add_phasar_library(phasar_analysis_strategy
     Support
 
   MODULE_FILES
-    analysis_strategy.cppm
+    Strategies.cppm
 )

@@ -25,5 +25,5 @@ add_phasar_library(phasar_llvm
     Support
 
   MODULE_FILES
-    phasar_llvm.cppm
+    PhasarLLVM.cppm
 )
