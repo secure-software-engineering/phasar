@@ -12,6 +12,6 @@ add_phasar_library(phasar_controlflow
   LINK_PRIVATE
     nlohmann_json::nlohmann_json
 
-    MODULE_FILES
-    controlflow.cppm
+  MODULE_FILES
+    ControlFlow.cppm
 )

@@ -14,6 +14,6 @@ if(SQLite3_FOUND)
       SQLite::SQLite3
 
     MODULE_FILES
-      db.cppm
+      DB.cppm
   )
 endif()

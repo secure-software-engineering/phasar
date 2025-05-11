@@ -13,5 +13,5 @@ add_phasar_library(phasar_config
     Support
 
   MODULE_FILES
-    config.cppm
+    Config.cppm
 )
