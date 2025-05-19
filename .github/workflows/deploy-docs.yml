@@ -2,8 +2,8 @@ name: Build and Deploy Doxygen Docs
 on:
   push:
     branches: [ development ]
-  # pull_request: # For testing only.  Remove before merge!
-  #   branches: [ development ]
+  pull_request: # For testing only.  Remove before merge!
+    branches: [ development ]
 permissions:
   contents: write
 jobs:
