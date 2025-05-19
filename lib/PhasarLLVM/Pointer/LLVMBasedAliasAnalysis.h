@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
+#include "phasar/Utils/Fn.h"
 
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Passes/PassBuilder.h"
@@ -53,7 +54,7 @@ private:
                                const llvm::Value *, const llvm::DataLayout &);
   [[nodiscard]] constexpr FunctionAliasView
   createFAView(llvm::AAResults *AAR) noexcept {
-    return PSR_BIND_ALIASVIEW(AAR, aliasImpl);
+    return {AAR, fn<aliasImpl>};
   }
 
   [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
