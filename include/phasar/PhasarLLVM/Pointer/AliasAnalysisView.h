@@ -56,19 +56,6 @@ private:
   AliasCallbackTy<void> Alias{};
 };
 
-#define PSR_BIND_ALIASVIEW(Ctx, ...)                                           \
-  ::psr::FunctionAliasView {                                                   \
-    (Ctx), [] {                                                                \
-      struct DefaultConstructibleCallable {                                    \
-        auto operator()(decltype(Ctx) Context, const llvm::Value *V1,          \
-                        const llvm::Value *V2, const llvm::DataLayout &DL) {   \
-          return __VA_ARGS__(Context, V1, V2, DL);                             \
-        }                                                                      \
-      };                                                                       \
-      return DefaultConstructibleCallable{};                                   \
-    }()                                                                        \
-  }
-
 class AliasAnalysisView {
 public:
   constexpr AliasAnalysisView(AliasAnalysisType PATy) noexcept : PATy(PATy) {}

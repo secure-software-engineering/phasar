@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
+#include "phasar/Utils/Fn.h"
 
 #include "DDA/ContextDDA.h"
 #include "DDA/DDAClient.h"
@@ -81,7 +82,7 @@ public:
 
 private:
   FunctionAliasView doGetAAResults(const llvm::Function * /*F*/) override {
-    return PSR_BIND_ALIASVIEW(VFS, aliasImpl);
+    return {VFS, fn<aliasImpl>};
   }
 
   SVF::VersionedFlowSensitive *VFS;
@@ -100,7 +101,7 @@ public:
 
 private:
   FunctionAliasView doGetAAResults(const llvm::Function * /*F*/) override {
-    return PSR_BIND_ALIASVIEW(&*DDA, aliasImpl);
+    return {&*DDA, fn<aliasImpl>};
   }
 
   SVF::DDAClient Client;
