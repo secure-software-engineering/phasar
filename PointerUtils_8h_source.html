@@ -96,42 +96,79 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;llvm/ADT/IntrusiveRefCntPtr.h&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment"></span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">/// A simple helper function to get a raw pointer from an arbitrary pointer type</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="comment">/// in generic code. This overload set is extendable.</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="comment"></span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">   13</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; T *<a class="code hl_function" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">getPointerFrom</a>(T *<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>; }</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment"></span> </div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="comment">/// A simple helper function to get a raw pointer from an arbitrary pointer type</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="comment">/// in generic code. This overload set is extendable.</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="comment"></span> </div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="namespacepsr.html#a6f7d46283562195cd5bfad195eedc338">   15</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">getPointerFrom</a>(<span class="keyword">const</span> std::unique_ptr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>}</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">constexpr</span> std::enable_if_t&lt;!std::is_pointer_v&lt;T&gt;, T *&gt;</div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">   16</a></span><a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keywordflow">return</span> std::addressof(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>}</div>
 </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespacepsr.html#a96c5404a0f6427a576eb64bdc5fc1e70">   19</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">getPointerFrom</a>(<span class="keyword">const</span> std::shared_ptr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keyword">constexpr</span> std::enable_if_t&lt;!std::is_pointer_v&lt;T&gt;, <span class="keyword">const</span> T *&gt;</div>
+<div class="foldopen" id="foldopen00021" data-start="{" data-end="}">
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="namespacepsr.html#a470aa35f0101a3b0e5a7d0b89747d0b7">   21</a></span><a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(<span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordflow">return</span> std::addressof(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>);</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>}</div>
 </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="namespacepsr.html#a228c0b044a0e6342459a3b4768d34ddd">   23</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">getPointerFrom</a>(<span class="keyword">const</span> llvm::IntrusiveRefCntPtr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">constexpr</span> std::enable_if_t&lt;!std::is_pointer_v&lt;T&gt;, T *&gt;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespacepsr.html#acf85d184fbe61ee697f399d1cbb1b1c3">   26</a></span><a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(T &amp;&amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">noexcept</span> = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">   28</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(T *<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>; }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="}">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="namespacepsr.html#a6f7d46283562195cd5bfad195eedc338">   30</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(<span class="keyword">const</span> std::unique_ptr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>}</div>
 </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_UTILS_POINTERUTILS_H</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00034" data-start="{" data-end="}">
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="namespacepsr.html#af474f17d19c1eec1b789825dc565ace7">   34</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(std::unique_ptr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}</div>
+</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="}">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="namespacepsr.html#a96c5404a0f6427a576eb64bdc5fc1e70">   38</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(<span class="keyword">const</span> std::shared_ptr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>}</div>
+</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="namespacepsr.html#adc6d9e6bbfe83c1f4c810ffdc77e1358">   42</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(std::shared_ptr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>}</div>
+</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00046" data-start="{" data-end="}">
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="namespacepsr.html#a228c0b044a0e6342459a3b4768d34ddd">   46</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(<span class="keyword">const</span> llvm::IntrusiveRefCntPtr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
+</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00050" data-start="{" data-end="}">
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="namespacepsr.html#ab31fc24a30d0210342e1d053f2ed5224">   50</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">getPointerFrom</a>(llvm::IntrusiveRefCntPtr&lt;T&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>.get();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}</div>
+</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_UTILS_POINTERUTILS_H</span></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00017">AnalysisSetup.h:17</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a66176a2ddd7ed9c42e94305f6237860e"><div class="ttname"><a href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">psr::getPointerFrom</a></div><div class="ttdeci">T * getPointerFrom(T *Ptr) noexcept</div><div class="ttdef"><b>Definition</b> <a href="PointerUtils_8h_source.html#l00013">PointerUtils.h:13</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a3eaf54b10b5228e8ddaf487e7b46233f"><div class="ttname"><a href="namespacepsr.html#a3eaf54b10b5228e8ddaf487e7b46233f">psr::getPointerFrom</a></div><div class="ttdeci">constexpr std::enable_if_t&lt;!std::is_pointer_v&lt; T &gt;, T * &gt; getPointerFrom(T &amp;Ref) noexcept</div><div class="ttdef"><b>Definition</b> <a href="PointerUtils_8h_source.html#l00016">PointerUtils.h:16</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 28 2025 16:47:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon May 19 2025 16:55:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

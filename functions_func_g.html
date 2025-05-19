@@ -95,7 +95,7 @@ $(function() {
 <li>GenericSolverResults()&#160;:&#160;<a class="el" href="classpsr_1_1GenericSolverResults.html#ae078b4f9824984afe02be72613bd854d">psr::GenericSolverResults&lt; N, D, L &gt;</a></li>
 <li>get()&#160;:&#160;<a class="el" href="classpsr_1_1AliasInfo.html#a1eae21ae26986fbd0e28ae43451c9bc7">psr::AliasInfo&lt; V, N &gt;</a>, <a class="el" href="classpsr_1_1BoxedConstPtr.html#a8c6289093448f67044b7510e43c05a04">psr::BoxedConstPtr&lt; T &gt;</a>, <a class="el" href="classpsr_1_1BoxedPtr.html#a6e00c98a6ed4975ac62ad521233d5442">psr::BoxedPtr&lt; T &gt;</a>, <a class="el" href="classpsr_1_1EdgeFunctionRef.html#ac80b050ed2ddad6e8e31a19a87491a51">psr::EdgeFunctionRef&lt; EF &gt;</a>, <a class="el" href="classpsr_1_1Hexastore.html#abf9b001bfb4d458bd4c85a984c1af47f">psr::Hexastore</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html#a3c6da076e6b53088a6b319e4ecfcfddd">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;</a>, <a class="el" href="classpsr_1_1OwningSolverResults.html#a398ad5dfced1a8e398f0d2562cd8d1b1">psr::OwningSolverResults&lt; N, D, L &gt;</a>, <a class="el" href="classpsr_1_1PathEdge.html#a1af64d498923b151b5e2de867f918639">psr::PathEdge&lt; N, D &gt;</a>, <a class="el" href="classpsr_1_1Table.html#a708e0260fb6c8eec28915473c1984b28">psr::Table&lt; R, C, V &gt;</a></li>
 <li>get_allocator()&#160;:&#160;<a class="el" href="classpsr_1_1StableVector.html#aa77b8ab2a3b0dd8a8cffdd3ecc444948">psr::StableVector&lt; T, Allocator &gt;</a></li>
-<li>getAAResults()&#160;:&#160;<a class="el" href="classpsr_1_1LLVMBasedAliasAnalysis.html#adceaf925e4225717b2d999a76b24e246">psr::LLVMBasedAliasAnalysis</a></li>
+<li>getAAResults()&#160;:&#160;<a class="el" href="classpsr_1_1AliasAnalysisView.html#acbd8035a895b082d0b6d9e3a52b9d022">psr::AliasAnalysisView</a></li>
 <li>getActualFormalPointerPairs()&#160;:&#160;<a class="el" href="classpsr_1_1OTFResolver.html#aad2cbbe76e04915739e9a1de79cd1235">psr::OTFResolver</a></li>
 <li>getAliasAnalysisType()&#160;:&#160;<a class="el" href="classpsr_1_1AliasInfoRef.html#af8ffbfff27d65fe70f6fa0b2367b709f">psr::AliasInfoRef&lt; V, N &gt;</a>, <a class="el" href="classpsr_1_1FilteredLLVMAliasSet.html#a254de202db373bae413db4a84b892292">psr::FilteredLLVMAliasSet</a>, <a class="el" href="classpsr_1_1LLVMAliasSet.html#a00fcde78cc1d25e37086c5dfe4a0ccee">psr::LLVMAliasSet</a></li>
 <li>getAliasInfo()&#160;:&#160;<a class="el" href="classpsr_1_1HelperAnalyses.html#aaef9ae49c1e87020fbd1c75470e6b9af">psr::HelperAnalyses</a></li>
@@ -177,7 +177,6 @@ $(function() {
 <li>getInstruction()&#160;:&#160;<a class="el" href="classpsr_1_1ProjectIRDBBase.html#abed4788d17e5f987bc27b127497b95a4">psr::ProjectIRDBBase&lt; Derived &gt;</a></li>
 <li>getInstructionId()&#160;:&#160;<a class="el" href="classpsr_1_1ProjectIRDBBase.html#aa0cf5f5156d044a826dfce26c6d2649f">psr::ProjectIRDBBase&lt; Derived &gt;</a></li>
 <li>getInstVertexOrNull()&#160;:&#160;<a class="el" href="classpsr_1_1CallGraphBuilder.html#ac939a9073f333bc9f188cd0bdabb3eb3">psr::CallGraphBuilder&lt; N, F &gt;</a></li>
-<li>getInterestingPointersAt()&#160;:&#160;<a class="el" href="classpsr_1_1PointsToInfoBase.html#a8ebca210ff37d6f7eb3907a1055c4f93">psr::PointsToInfoBase&lt; Derived &gt;</a></li>
 <li>getIRDB()&#160;:&#160;<a class="el" href="classpsr_1_1LLVMBasedICFG.html#ad4064d85f769bef13991d7b23f3350ac">psr::LLVMBasedICFG</a></li>
 <li>getKind()&#160;:&#160;<a class="el" href="classpsr_1_1glca_1_1EdgeValue.html#adaa91730adaab65559c4fb1e9853b8b9">psr::glca::EdgeValue</a>, <a class="el" href="classpsr_1_1XTaint_1_1EdgeDomain.html#a452d3fd8f4946f3b96c3dd048c63dff8">psr::XTaint::EdgeDomain</a></li>
 <li>getKLimit()&#160;:&#160;<a class="el" href="classpsr_1_1IDEIIAFlowFact.html#a57c9e887705e4c2e3e493ebffd8a0481">psr::IDEIIAFlowFact</a></li>
@@ -219,7 +218,7 @@ $(function() {
 <li>getParsedIRModuleOrNull()&#160;:&#160;<a class="el" href="classpsr_1_1LLVMProjectIRDB.html#ab6427ed14ec3d26a63679252fc31d50f">psr::LLVMProjectIRDB</a></li>
 <li>getPassName()&#160;:&#160;<a class="el" href="classpsr_1_1PhasarPass.html#a728c97b535a9bd38809e334c0c90ade0">psr::PhasarPass</a>, <a class="el" href="classpsr_1_1PhasarPrinterPass.html#a57e8739a13d92ae96aa90d7374cfc52e">psr::PhasarPrinterPass</a></li>
 <li>getPhasarConfig()&#160;:&#160;<a class="el" href="classpsr_1_1PhasarConfig.html#a573c194e5e555491cfa79bf56c9d5f70">psr::PhasarConfig</a></li>
-<li>getPointerAnalysisType()&#160;:&#160;<a class="el" href="classpsr_1_1LLVMBasedAliasAnalysis.html#a507bf76a1d74a97a11bcc22b43832473">psr::LLVMBasedAliasAnalysis</a></li>
+<li>getPointerAnalysisType()&#160;:&#160;<a class="el" href="classpsr_1_1AliasAnalysisView.html#ad9f800864ae728cb0addfd95b43b1701">psr::AliasAnalysisView</a></li>
 <li>getPointstoInfo()&#160;:&#160;<a class="el" href="classpsr_1_1IntraMonoProblem.html#ac467984ac6d049bb319dfc6b10f63151">psr::IntraMonoProblem&lt; AnalysisDomainTy &gt;</a></li>
 <li>getPointsToSet()&#160;:&#160;<a class="el" href="classpsr_1_1PointsToInfoBase.html#ae778f522ff52121f9bfd72eab7772c1b">psr::PointsToInfoBase&lt; Derived &gt;</a></li>
 <li>getPredsOf()&#160;:&#160;<a class="el" href="classpsr_1_1CFGBase.html#ae47d0f814a5ef654191a4a3fb5acec09">psr::CFGBase&lt; Derived &gt;</a></li>
@@ -276,7 +275,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 28 2025 16:47:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon May 19 2025 16:55:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

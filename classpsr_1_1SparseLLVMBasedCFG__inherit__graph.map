@@ -1,0 +1,24 @@
+<map id="psr::SparseLLVMBasedCFG" name="psr::SparseLLVMBasedCFG">
+<area shape="rect" id="Node000001" title="A class that implements a sparse control flow graph. Conforms to the CFGBase CRTP interface." alt="" coords="1608,80,1803,105"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1LLVMBasedCFG.html" title=" " alt="" coords="1408,43,1559,68"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1573,68,1630,77,1629,83,1572,73"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="1133,31,1359,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1372,51,1408,51,1408,57,1372,56"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="465,5,656,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="670,13,874,14,992,19,1110,29,1134,31,1133,37,1109,34,992,25,874,20,670,18"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="5,68,201,93"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="187,63,250,53,465,25,466,31,251,58,187,68"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="251,68,441,93"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="215,78,250,78,250,83,215,83"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="465,149,656,175"/>
+<area shape="poly" id="edge10_Node000009_Node000005" title=" " alt="" coords="190,93,489,147,488,152,189,98"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="680,31,905,71"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="919,49,1133,49,1133,54,919,54"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="455,71,679,56,680,61,455,76"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1SparseCFGBase.html" title=" " alt="" coords="716,95,869,135"/>
+<area shape="poly" id="edge12_Node000010_Node000007" title=" " alt="" coords="455,86,716,107,716,112,455,92"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1SparseCFGBase.html" title=" " alt="" coords="1147,95,1345,135"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="1358,107,1608,95,1608,100,1358,112"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="670,156,905,145,1147,123,1147,129,906,150,670,161"/>
+<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="883,113,1147,113,1147,118,883,118"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="psr::ProjectIRDBBase&lt; Derived &gt;" name="psr::ProjectIRDBBase&lt; Derived &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="52,5,211,45"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1ProjectIRDBBase.html" title=" " alt="" coords="5,108,164,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,59,96,109,91,107,114,57"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1ProjectIRDBBase.html" title=" " alt="" coords="189,108,351,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,51,246,106,242,110,167,56"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1LLVMProjectIRDB.html" title="Project IR Database that manages a LLVM IR module." alt="" coords="189,197,351,223"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,162,273,197,267,197,267,162"/>
+</map>

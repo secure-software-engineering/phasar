@@ -1,0 +1,7 @@
+<map id="psr::SolverStatsSelector&lt; StaticSolverConfigTy, typename &gt;" name="psr::SolverStatsSelector&lt; StaticSolverConfigTy, typename &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,34,183,89"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="403,5,664,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,50,402,33,403,39,197,56"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="439,70,628,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,81,207,83,327,93,438,96,438,101,327,98,206,88,196,87"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="psr::DefaultAnalysisPrinter&lt; AnalysisDomainTy &gt;" name="psr::DefaultAnalysisPrinter&lt; AnalysisDomainTy &gt;">
+<area shape="rect" id="Node000001" title="A default implementation of the AnalysisPrinterBase. Aggregates all analysis results in a vector and ..." alt="" coords="5,93,201,133"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1AnalysisPrinterBase.html" title="A generic class that serves as the basis for a custom analysis printer implementation." alt="" coords="13,5,193,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,59,106,93,101,93,101,59"/>
+</map>

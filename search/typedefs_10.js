@@ -12,5 +12,7 @@ var searchData=
   ['storaget_9',['StorageT',['../structpsr_1_1EquivalenceClassMap.html#abead70bb51409150f366f2b1711a0af1',1,'psr::EquivalenceClassMap']]],
   ['summaries_5ft_10',['summaries_t',['../classpsr_1_1IterativeIDESolverBase.html#ab0c769f22e0892b76d059551668d55aa',1,'psr::IterativeIDESolverBase']]],
   ['summaryedges_11',['SummaryEdges',['../classpsr_1_1IterativeIDESolverBase.html#a567ebd2b4aeb2efc8cfc90f9a870dcdc',1,'psr::IterativeIDESolverBase']]],
-  ['summaryedges_5fjf1_12',['SummaryEdges_JF1',['../classpsr_1_1IterativeIDESolverBase.html#a0300d1d09eb6b0acaeb560246da6a5f6',1,'psr::IterativeIDESolverBase']]]
+  ['summaryedges_5fjf1_12',['SummaryEdges_JF1',['../classpsr_1_1IterativeIDESolverBase.html#a0300d1d09eb6b0acaeb560246da6a5f6',1,'psr::IterativeIDESolverBase']]],
+  ['svfbasedpointstoinfo_13',['SVFBasedPointsToInfo',['../namespacepsr.html#a3984ab6ef97f14adbd41a728202ea430',1,'psr']]],
+  ['svfbasedpointstoinforef_14',['SVFBasedPointsToInfoRef',['../namespacepsr.html#a0635128f9f8dddd238e27749c907ab55',1,'psr']]]
 ];

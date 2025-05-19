@@ -1,0 +1,13 @@
+<map id="psr::StableVector&lt; T, Allocator &gt;" name="psr::StableVector&lt; T, Allocator &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,148,148,188"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1StableVector.html" title=" " alt="" coords="424,5,567,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,135,129,99,149,82,171,68,234,43,302,29,367,22,423,20,424,25,367,27,302,34,236,49,173,73,152,86,133,103,101,139"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1StableVector.html" title=" " alt="" coords="412,69,579,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="120,139,171,116,233,102,297,92,412,85,412,91,297,98,234,107,173,121,122,143"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1StableVector.html" title=" " alt="" coords="387,133,603,203"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="162,165,387,165,387,171,162,171"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1StableVector.html" title=" " alt="" coords="385,227,605,296"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="112,194,141,214,173,230,226,245,281,255,385,262,385,268,280,260,224,250,171,234,138,219,109,199"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1StableVector.html" title=" " alt="" coords="411,320,580,360"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="97,199,129,244,149,265,173,283,231,309,293,326,355,335,411,339,410,344,354,341,292,331,229,314,171,288,146,269,124,247,93,202"/>
+</map>

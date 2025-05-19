@@ -34,6 +34,7 @@ var searchData=
   ['frommetadataid_31',['fromMetaDataId',['../namespacepsr.html#a3a97bb4ce2e818b9d68bbc2b9793dc13',1,'psr']]],
   ['front_32',['front',['../classpsr_1_1StableVector.html#a143f30ec962f712554b27cf98ea0d453',1,'psr::StableVector::front() const noexcept'],['../classpsr_1_1StableVector.html#abfa888e8fb2d1f4e4637bb4b311202f6',1,'psr::StableVector::front() noexcept']]],
   ['ftostring_33',['ftostring',['../namespacepsr.html#a3f0b8ac0481b2e6b9292821230c37a5b',1,'psr::FToString(const F &amp;Fun)'],['../namespacepsr.html#ae969edb13f0a7afebb054220350082b3',1,'psr::FToString(const llvm::Function *V)']]],
-  ['functiondata_34',['FunctionData',['../structpsr_1_1FunctionData.html#af443d37d1f648bd2ad3d71568b41049d',1,'psr::FunctionData']]],
-  ['functiondataflowfacts_35',['FunctionDataFlowFacts',['../classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html#a4b725beffea2d4fb73c273b7d4bd3684',1,'psr::library_summary::FunctionDataFlowFacts']]]
+  ['functionaliasview_34',['FunctionAliasView',['../classpsr_1_1FunctionAliasView.html#aa8d50269d3e69b4b01de403f67110956',1,'psr::FunctionAliasView']]],
+  ['functiondata_35',['FunctionData',['../structpsr_1_1FunctionData.html#af443d37d1f648bd2ad3d71568b41049d',1,'psr::FunctionData']]],
+  ['functiondataflowfacts_36',['FunctionDataFlowFacts',['../classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html#a4b725beffea2d4fb73c273b7d4bd3684',1,'psr::library_summary::FunctionDataFlowFacts']]]
 ];

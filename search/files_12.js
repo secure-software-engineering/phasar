@@ -15,5 +15,6 @@ var searchData=
   ['specialsummaries_2eh_12',['SpecialSummaries.h',['../SpecialSummaries_8h.html',1,'']]],
   ['stablevector_2eh_13',['StableVector.h',['../StableVector_8h.html',1,'']]],
   ['staticidesolverconfig_2eh_14',['StaticIDESolverConfig.h',['../StaticIDESolverConfig_8h.html',1,'']]],
-  ['strategies_2eh_15',['Strategies.h',['../Strategies_8h.html',1,'']]]
+  ['strategies_2eh_15',['Strategies.h',['../Strategies_8h.html',1,'']]],
+  ['svfpointstoset_2eh_16',['SVFPointsToSet.h',['../SVFPointsToSet_8h.html',1,'']]]
 ];

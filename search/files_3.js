@@ -2,7 +2,7 @@ var searchData=
 [
   ['dataflow_2eh_0',['dataflow.h',['../DataFlow_8h.html',1,'(Global Namespace)'],['../PhasarLLVM_2DataFlow_8h.html',1,'(Global Namespace)']]],
   ['dataflowanalysistype_2eh_1',['DataFlowAnalysisType.h',['../DataFlowAnalysisType_8h.html',1,'']]],
-  ['db_2eh_2',['db.h',['../PhasarLLVM_2DB_8h.html',1,'(Global Namespace)'],['../DB_8h.html',1,'(Global Namespace)']]],
+  ['db_2eh_2',['db.h',['../DB_8h.html',1,'(Global Namespace)'],['../PhasarLLVM_2DB_8h.html',1,'(Global Namespace)']]],
   ['debugoutput_2eh_3',['DebugOutput.h',['../DebugOutput_8h.html',1,'']]],
   ['defaultaliasawareideproblem_2eh_4',['DefaultAliasAwareIDEProblem.h',['../DefaultAliasAwareIDEProblem_8h.html',1,'']]],
   ['defaultanalysisprinter_2eh_5',['DefaultAnalysisPrinter.h',['../DefaultAnalysisPrinter_8h.html',1,'']]],

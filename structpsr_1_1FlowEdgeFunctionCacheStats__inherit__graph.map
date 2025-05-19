@@ -1,0 +1,7 @@
+<map id="psr::FlowEdgeFunctionCacheStats" name="psr::FlowEdgeFunctionCacheStats">
+<area shape="rect" id="Node000001" title=" " alt="" coords="123,79,331,119"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1FlowFunctionCacheStats.html" title=" " alt="" coords="5,5,215,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,36,200,76,198,81,137,40"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1EdgeFunctionCacheStats.html" title=" " alt="" coords="239,5,450,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="318,40,257,81,254,76,315,36"/>
+</map>

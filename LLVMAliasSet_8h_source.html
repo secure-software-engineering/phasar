@@ -102,8 +102,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAliasSetData_8h.html">phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedAliasAnalysis_8h.html">phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h</a>&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="AliasAnalysisView_8h.html">phasar/PhasarLLVM/Pointer/AliasAnalysisView.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAliasSetData_8h.html">phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h</a>&quot;</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="AliasInfoBase_8h.html">phasar/Pointer/AliasInfoBase.h</a>&quot;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="AliasInfoTraits_8h.html">phasar/Pointer/AliasInfoTraits.h</a>&quot;</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="AliasResult_8h.html">phasar/Pointer/AliasResult.h</a>&quot;</span></div>
@@ -168,7 +168,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
 <div class="foldopen" id="foldopen00072" data-start="{" data-end="}">
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classpsr_1_1LLVMAliasSet.html#a00fcde78cc1d25e37086c5dfe4a0ccee">   72</a></span>  [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">inline</span> <a class="code hl_enumeration" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> <a class="code hl_function" href="classpsr_1_1LLVMAliasSet.html#a00fcde78cc1d25e37086c5dfe4a0ccee">getAliasAnalysisType</a>() <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a> {</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="keywordflow">return</span> PTA.<a class="code hl_function" href="classpsr_1_1LLVMBasedAliasAnalysis.html#a507bf76a1d74a97a11bcc22b43832473">getPointerAnalysisType</a>();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="keywordflow">return</span> PTA-&gt;getPointerAnalysisType();</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  };</div>
 </div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
@@ -241,12 +241,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>                                        <span class="keyword">const</span> llvm::GlobalObject *<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VG</a>) <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span><span class="comment"></span> </div>
 <div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span><span class="comment">  /// Utility function used by computeFunctionsAliasSet(...)</span></div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><span class="comment"></span>  <span class="keywordtype">void</span> addPointer(llvm::AAResults &amp;AA, <span class="keyword">const</span> llvm::DataLayout &amp;DL,</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><span class="comment"></span>  <span class="keywordtype">void</span> addPointer(<a class="code hl_class" href="classpsr_1_1FunctionAliasView.html">FunctionAliasView</a> AA, <span class="keyword">const</span> llvm::DataLayout &amp;DL,</div>
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>                  <span class="keyword">const</span> llvm::Value *V, std::vector&lt;const llvm::Value *&gt; &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Reps</a>);</div>
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">static</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BoxedPtr&lt;AliasSetTy&gt;</a> getEmptyAliasSet();</div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <a class="code hl_class" href="classpsr_1_1LLVMBasedAliasAnalysis.html">LLVMBasedAliasAnalysis</a> PTA;</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  std::unique_ptr&lt;AliasAnalysisView&gt; PTA;</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  llvm::DenseSet&lt;const llvm::Function *&gt; AnalyzedFunctions;</div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span> </div>
 <div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <a class="code hl_typedef" href="classpsr_1_1AliasSetOwner.html#af2acb5dffaf3f9197638e85fb0a89326">AliasSetOwner&lt;AliasSetTy&gt;::memory_resource_type</a> MRes;</div>
@@ -261,18 +261,19 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
 <div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aAliasAnalysisView_8h_html"><div class="ttname"><a href="AliasAnalysisView_8h.html">AliasAnalysisView.h</a></div></div>
 <div class="ttc" id="aAliasInfoBase_8h_html"><div class="ttname"><a href="AliasInfoBase_8h.html">AliasInfoBase.h</a></div></div>
 <div class="ttc" id="aAliasInfoTraits_8h_html"><div class="ttname"><a href="AliasInfoTraits_8h.html">AliasInfoTraits.h</a></div></div>
 <div class="ttc" id="aAliasResult_8h_html"><div class="ttname"><a href="AliasResult_8h.html">AliasResult.h</a></div></div>
 <div class="ttc" id="aAliasSetOwner_8h_html"><div class="ttname"><a href="AliasSetOwner_8h.html">AliasSetOwner.h</a></div></div>
 <div class="ttc" id="aAnalysisProperties_8h_html"><div class="ttname"><a href="AnalysisProperties_8h.html">AnalysisProperties.h</a></div></div>
 <div class="ttc" id="aLLVMAliasSetData_8h_html"><div class="ttname"><a href="LLVMAliasSetData_8h.html">LLVMAliasSetData.h</a></div></div>
-<div class="ttc" id="aLLVMBasedAliasAnalysis_8h_html"><div class="ttname"><a href="LLVMBasedAliasAnalysis_8h.html">LLVMBasedAliasAnalysis.h</a></div></div>
 <div class="ttc" id="aclasspsr_1_1AliasInfoBaseUtils_html"><div class="ttname"><a href="classpsr_1_1AliasInfoBaseUtils.html">psr::AliasInfoBaseUtils</a></div><div class="ttdef"><b>Definition</b> <a href="AliasInfoBase_8h_source.html#l00035">AliasInfoBase.h:35</a></div></div>
 <div class="ttc" id="aclasspsr_1_1AliasSetOwner_html_af2acb5dffaf3f9197638e85fb0a89326"><div class="ttname"><a href="classpsr_1_1AliasSetOwner.html#af2acb5dffaf3f9197638e85fb0a89326">psr::AliasSetOwner::memory_resource_type</a></div><div class="ttdeci">llvm::RecyclingAllocator&lt; llvm::BumpPtrAllocator, AliasSetTy &gt; memory_resource_type</div><div class="ttdef"><b>Definition</b> <a href="AliasSetOwner_8h_source.html#l00049">AliasSetOwner.h:55</a></div></div>
 <div class="ttc" id="aclasspsr_1_1AnalysisPropertiesMixin_html"><div class="ttname"><a href="classpsr_1_1AnalysisPropertiesMixin.html">psr::AnalysisPropertiesMixin</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisProperties_8h_source.html#l00033">AnalysisProperties.h:33</a></div></div>
 <div class="ttc" id="aclasspsr_1_1BoxedConstPtr_html"><div class="ttname"><a href="classpsr_1_1BoxedConstPtr.html">psr::BoxedConstPtr</a></div><div class="ttdef"><b>Definition</b> <a href="BoxedPointer_8h_source.html#l00102">BoxedPointer.h:102</a></div></div>
 <div class="ttc" id="aclasspsr_1_1FilteredLLVMAliasSet_html"><div class="ttname"><a href="classpsr_1_1FilteredLLVMAliasSet.html">psr::FilteredLLVMAliasSet</a></div><div class="ttdef"><b>Definition</b> <a href="FilteredLLVMAliasSet_8h_source.html#l00046">FilteredLLVMAliasSet.h:46</a></div></div>
+<div class="ttc" id="aclasspsr_1_1FunctionAliasView_html"><div class="ttname"><a href="classpsr_1_1FunctionAliasView.html">psr::FunctionAliasView</a></div><div class="ttdef"><b>Definition</b> <a href="AliasAnalysisView_8h_source.html#l00028">AliasAnalysisView.h:28</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html">psr::LLVMAliasSet</a></div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasSet_8h_source.html#l00042">LLVMAliasSet.h:43</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html_a00fcde78cc1d25e37086c5dfe4a0ccee"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html#a00fcde78cc1d25e37086c5dfe4a0ccee">psr::LLVMAliasSet::getAliasAnalysisType</a></div><div class="ttdeci">AliasAnalysisType getAliasAnalysisType() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasSet_8h_source.html#l00072">LLVMAliasSet.h:72</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html_a1b5bb253f8ad041c0fba412c7b8eb0f8"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html#a1b5bb253f8ad041c0fba412c7b8eb0f8">psr::LLVMAliasSet::mergeWith</a></div><div class="ttdeci">void mergeWith(const LLVMAliasSet &amp;OtherPTI)</div></div>
@@ -295,8 +296,6 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html_af0611e66b468c197d7209faba1ea0632"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html#af0611e66b468c197d7209faba1ea0632">psr::LLVMAliasSet::AliasSetMap</a></div><div class="ttdeci">llvm::DenseMap&lt; const llvm::Value *, BoxedPtr&lt; AliasSetTy &gt; &gt; AliasSetMap</div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasSet_8h_source.html#l00054">LLVMAliasSet.h:54</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html_af705abcd9c88f5e5a39ca5469d9bd57e"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html#af705abcd9c88f5e5a39ca5469d9bd57e">psr::LLVMAliasSet::n_t</a></div><div class="ttdeci">traits_t::n_t n_t</div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasSet_8h_source.html#l00049">LLVMAliasSet.h:49</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html_af7f1d683c7d6eb542f9090ee678f9868"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html#af7f1d683c7d6eb542f9090ee678f9868">psr::LLVMAliasSet::alias</a></div><div class="ttdeci">AliasResult alias(const llvm::Value *V1, const llvm::Value *V2, const llvm::Instruction *I=nullptr)</div></div>
-<div class="ttc" id="aclasspsr_1_1LLVMBasedAliasAnalysis_html"><div class="ttname"><a href="classpsr_1_1LLVMBasedAliasAnalysis.html">psr::LLVMBasedAliasAnalysis</a></div><div class="ttdoc">Wrapper over alias analyses that provide point-wise alias information.</div><div class="ttdef"><b>Definition</b> <a href="LLVMBasedAliasAnalysis_8h_source.html#l00032">LLVMBasedAliasAnalysis.h:32</a></div></div>
-<div class="ttc" id="aclasspsr_1_1LLVMBasedAliasAnalysis_html_a507bf76a1d74a97a11bcc22b43832473"><div class="ttname"><a href="classpsr_1_1LLVMBasedAliasAnalysis.html#a507bf76a1d74a97a11bcc22b43832473">psr::LLVMBasedAliasAnalysis::getPointerAnalysisType</a></div><div class="ttdeci">AliasAnalysisType getPointerAnalysisType() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="LLVMBasedAliasAnalysis_8h_source.html#l00059">LLVMBasedAliasAnalysis.h:59</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMProjectIRDB_html"><div class="ttname"><a href="classpsr_1_1LLVMProjectIRDB.html">psr::LLVMProjectIRDB</a></div><div class="ttdoc">Project IR Database that manages a LLVM IR module.</div><div class="ttdef"><b>Definition</b> <a href="LLVMProjectIRDB_8h_source.html#l00040">LLVMProjectIRDB.h:40</a></div></div>
 <div class="ttc" id="aclasspsr_1_1MaybeUniquePtr_html"><div class="ttname"><a href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a></div><div class="ttdef"><b>Definition</b> <a href="MaybeUniquePtr_8h_source.html#l00062">MaybeUniquePtr.h:63</a></div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
@@ -318,7 +317,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 28 2025 16:47:02 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon May 19 2025 16:55:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

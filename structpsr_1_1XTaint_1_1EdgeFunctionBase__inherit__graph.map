@@ -1,0 +1,11 @@
+<map id="psr::XTaint::EdgeFunctionBase&lt; Derived &gt;" name="psr::XTaint::EdgeFunctionBase&lt; Derived &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,191,77"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1XTaint_1_1EdgeFunctionBase.html" title=" " alt="" coords="451,5,712,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,48,450,31,450,37,205,53"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1XTaint_1_1EdgeFunctionBase.html" title=" " alt="" coords="470,69,693,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,67,215,68,470,83,470,88,214,73,204,72"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1XTaint_1_1KillIfSanitizedEdgeFunction.html" title=" " alt="" coords="761,5,949,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="726,23,761,23,761,28,726,28"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1XTaint_1_1TransferEdgeFunction.html" title=" " alt="" coords="764,69,947,109"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="707,87,764,87,764,92,707,92"/>
+</map>

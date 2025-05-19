@@ -1,0 +1,7 @@
+<map id="psr::IDETypeStateAnalysisDomain&lt; TypeStateDescriptionTy &gt;" name="psr::IDETypeStateAnalysisDomain&lt; TypeStateDescriptionTy &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,260,192"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1LLVMAnalysisDomainDefault.html" title="An AnalysisDomain that specializes sensible defaults for LLVM&#45;based analysis." alt="" coords="13,79,252,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,118,135,152,130,152,130,118"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1AnalysisDomain.html" title=" " alt="" coords="55,5,211,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="135,44,135,79,130,79,130,44"/>
+</map>

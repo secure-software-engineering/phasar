@@ -94,7 +94,7 @@ $(function() {
 <div class="dynheader">
 Inheritance diagram for psr::PointsToInfo&lt; PTATraits, std::enable_if_t&lt; is_PointsToTraits_v&lt; PTATraits &gt; &gt; &gt;:</div>
 <div class="dyncontent">
-<div class="center"><!-- SVG 0 --></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classpsr_1_1PointsToInfo_3_01PTATraits_00_01std_1_1enable__if__t_3_01is__PointsToTraits__v_3_01P46597fd1c74c4984b6d8b81c0c8e6b20.svg" width="195" height="168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -116,6 +116,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9bad021ab93d859ecffd8d791baab950" id="r_a9bad021ab93d859ecffd8d791baab950"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcretePTA</a> , typename... ArgTys&gt; </td></tr>
 <tr class="memitem:a9bad021ab93d859ecffd8d791baab950"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1PointsToInfo_3_01PTATraits_00_01std_1_1enable__if__t_3_01is__PointsToTraits__v_3_01PTATraits_01_4_01_4_01_4.html#a9bad021ab93d859ecffd8d791baab950">PointsToInfo</a> (std::in_place_type_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcretePTA</a> &gt;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgTys</a> &amp;&amp;...<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>)</td></tr>
 <tr class="separator:a9bad021ab93d859ecffd8d791baab950"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a522158c75030602abb09f311e58dee8d" id="r_a522158c75030602abb09f311e58dee8d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcretePTA</a> &gt; </td></tr>
+<tr class="memitem:a522158c75030602abb09f311e58dee8d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1PointsToInfo_3_01PTATraits_00_01std_1_1enable__if__t_3_01is__PointsToTraits__v_3_01PTATraits_01_4_01_4_01_4.html#a522158c75030602abb09f311e58dee8d">PointsToInfo</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcretePTA</a> &gt; PTA)</td></tr>
+<tr class="separator:a522158c75030602abb09f311e58dee8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a724f5278776355d4c73aa5dbbb7149d9" id="r_a724f5278776355d4c73aa5dbbb7149d9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PointsToInfo_3_01PTATraits_00_01std_1_1enable__if__t_3_01is__PointsToTraits__v_3_01PTATraits_01_4_01_4_01_4.html#a724f5278776355d4c73aa5dbbb7149d9">~PointsToInfo</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a724f5278776355d4c73aa5dbbb7149d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -126,13 +129,13 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classPTATraits.html">PTATraits</a>&gt;<br />
-class psr::PointsToInfo&lt; PTATraits, std::enable_if_t&lt; is_PointsToTraits_v&lt; PTATraits &gt; &gt; &gt;</div><p>Similar to <a class="el" href="classpsr_1_1PointsToInfoRef.html">PointsToInfoRef</a>, but owns the held reference. Us this, if you need to decide dynamically, which points-to info implementation to use.</p>
+class psr::PointsToInfo&lt; PTATraits, std::enable_if_t&lt; is_PointsToTraits_v&lt; PTATraits &gt; &gt; &gt;</div><p>Similar to <a class="el" href="classpsr_1_1PointsToInfoRef.html">PointsToInfoRef</a>, but owns the held reference. Use this, if you need to decide dynamically, which points-to info implementation to use.</p>
 <p>Implicitly convertible to <a class="el" href="classpsr_1_1PointsToInfoRef.html">PointsToInfoRef</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00221">221</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00205">205</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a51bd5405ee4775d42348550468f776f6" name="a51bd5405ee4775d42348550468f776f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a51bd5405ee4775d42348550468f776f6">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[1/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a51bd5405ee4775d42348550468f776f6">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -159,7 +162,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div>
 </div>
 <a id="a800b518cac5362523e2ade5ba61db552" name="a800b518cac5362523e2ade5ba61db552"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a800b518cac5362523e2ade5ba61db552">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[2/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a800b518cac5362523e2ade5ba61db552">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -184,12 +187,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00234">234</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00218">218</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
 <a id="affd5fb8f2e2771bbeb95e35dac10b4b5" name="affd5fb8f2e2771bbeb95e35dac10b4b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#affd5fb8f2e2771bbeb95e35dac10b4b5">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[3/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#affd5fb8f2e2771bbeb95e35dac10b4b5">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[3/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -217,7 +220,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div>
 </div>
 <a id="a3642fb4f75e872d16165664bcb94b151" name="a3642fb4f75e872d16165664bcb94b151"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3642fb4f75e872d16165664bcb94b151">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[4/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3642fb4f75e872d16165664bcb94b151">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[4/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -242,12 +245,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00237">237</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00223">223</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
 <a id="a9bad021ab93d859ecffd8d791baab950" name="a9bad021ab93d859ecffd8d791baab950"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9bad021ab93d859ecffd8d791baab950">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[5/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9bad021ab93d859ecffd8d791baab950">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[5/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -284,7 +287,39 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00253">253</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00238">238</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+
+</div>
+</div>
+<a id="a522158c75030602abb09f311e58dee8d" name="a522158c75030602abb09f311e58dee8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a522158c75030602abb09f311e58dee8d">&#9670;&#160;</a></span>PointsToInfo() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classPTATraits.html">PTATraits</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcretePTA</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1PointsToInfo.html">psr::PointsToInfo</a>&lt; <a class="el" href="classPTATraits.html">PTATraits</a>, std::enable_if_t&lt; <a class="el" href="namespacepsr.html#a3a521fc3481b86a91fa1a0456b7e2afa">is_PointsToTraits_v</a>&lt; <a class="el" href="classPTATraits.html">PTATraits</a> &gt; &gt; &gt;::PointsToInfo </td>
+          <td>(</td>
+          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcretePTA</a> &gt;&#160;</td>
+          <td class="paramname"><em>PTA</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00244">244</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
@@ -313,7 +348,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00258">258</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00247">247</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
@@ -372,7 +407,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00238">238</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00224">224</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
@@ -402,7 +437,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00244">244</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00229">229</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
@@ -443,7 +478,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00248">248</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="PointsToInfo_8h_source.html#l00233">233</a> of file <a class="el" href="PointsToInfo_8h_source.html">PointsToInfo.h</a>.</p>
 
 </div>
 </div>
@@ -453,7 +488,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 28 2025 16:47:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon May 19 2025 16:55:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

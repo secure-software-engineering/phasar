@@ -1,0 +1,10 @@
+<map id="psr::OpenSSLSecureMemoryDescription" name="psr::OpenSSLSecureMemoryDescription">
+<area shape="rect" id="Node000001" title=" " alt="" coords="23,272,229,312"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="5,183,247,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,237,129,272,123,272,123,237"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1TypeStateDescriptionBase.html" title=" " alt="" coords="11,5,231,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,44,128,183,123,183,119,45"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="143,80,331,120"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="150,36,211,78,208,82,147,41"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="208,131,149,185,145,181,204,127"/>
+</map>

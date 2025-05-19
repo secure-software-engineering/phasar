@@ -1,0 +1,13 @@
+<map id="psr::EdgeFunctionComposer&lt; L &gt;" name="psr::EdgeFunctionComposer&lt; L &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,245,102"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1EdgeFunctionComposer.html" title=" " alt="" coords="514,5,717,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,72,269,67,513,35,514,40,270,72,230,77"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1EdgeFunctionComposer.html" title=" " alt="" coords="514,69,717,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,87,514,87,514,92,260,92"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1EdgeFunctionComposer.html" title=" " alt="" coords="489,133,741,173"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="185,103,270,121,382,136,489,145,489,150,381,141,269,127,184,108"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1XTaint_1_1ComposeEdgeFunction.html" title=" " alt="" coords="794,69,985,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="731,87,794,87,794,92,731,92"/>
+<area shape="rect" id="Node000006" href="$structpsr_1_1glca_1_1LCAEdgeFunctionComposer.html" title=" " alt="" coords="791,133,988,173"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="755,151,791,151,791,156,755,156"/>
+</map>

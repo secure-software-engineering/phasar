@@ -1,0 +1,7 @@
+<map id="psr::XTaint::KillIfSanitizedEdgeFunction" name="psr::XTaint::KillIfSanitizedEdgeFunction">
+<area shape="rect" id="Node000001" title=" " alt="" coords="42,197,230,237"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1XTaint_1_1EdgeFunctionBase.html" title=" " alt="" coords="5,108,267,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,162,139,197,133,197,133,162"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1XTaint_1_1EdgeFunctionBase.html" title=" " alt="" coords="43,5,229,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="139,59,139,108,133,108,133,59"/>
+</map>

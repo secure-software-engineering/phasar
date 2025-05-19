@@ -1,0 +1,11 @@
+<map id="psr::PathSensitivityManager&lt; AnalysisDomainTy &gt;" name="psr::PathSensitivityManager&lt; AnalysisDomainTy &gt;">
+<area shape="rect" id="Node000001" title="A utility class that allows path&#45;reconstruction for IFDS/IDE solver results." alt="" coords="983,59,1187,99"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1PathSensitivityManagerBase.html" title=" " alt="" coords="643,15,873,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="887,49,983,62,982,68,887,55"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1PathSensitivityManagerBase.html" title=" " alt="" coords="31,13,235,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="249,31,643,32,643,37,249,36"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1PathSensitivityManagerMixin.html" title=" " alt="" coords="583,79,933,163"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="947,94,982,89,983,95,948,99"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1PathSensitivityManagerMixin.html" title=" " alt="" coords="5,95,261,150"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="275,120,582,119,582,124,275,125"/>
+</map>

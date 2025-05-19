@@ -1,0 +1,9 @@
+<map id="psr::AliasInfo&lt; V, N &gt;" name="psr::AliasInfo&lt; V, N &gt;">
+<area shape="rect" id="Node000001" title="Similar to AliasInfoRef, but exclusively owns the held reference. Use this, if you need to decide dyn..." alt="" coords="27,301,191,327"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1AliasInfoRef.html" title="A type&#45;erased reference to any object implementing the IsAliasInfo interface. Use this,..." alt="" coords="39,212,179,252"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,266,111,301,106,301,106,266"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,123,212,163"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,177,111,212,106,212,106,177"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,5,212,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="111,59,111,122,106,122,106,59"/>
+</map>
