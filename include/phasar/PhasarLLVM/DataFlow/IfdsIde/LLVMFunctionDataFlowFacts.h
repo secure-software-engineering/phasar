@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2025 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, bulletSpace and others
+ *****************************************************************************/
+
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
 #include "phasar/Utils/DefaultValue.h"

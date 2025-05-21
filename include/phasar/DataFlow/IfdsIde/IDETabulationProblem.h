@@ -146,7 +146,12 @@ public:
   /// the level of soundness is ignored. Otherwise, true.
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
-  const ProjectIRDBBase<db_t> *getProjectIRDB() const noexcept { return IRDB; }
+  [[nodiscard]] const ProjectIRDBBase<db_t> *getProjectIRDB() const noexcept {
+    return IRDB;
+  }
+  [[nodiscard]] llvm::ArrayRef<std::string> getEntryPoints() const noexcept {
+    return EntryPoints;
+  }
 
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
