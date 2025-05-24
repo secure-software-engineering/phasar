@@ -66,15 +66,6 @@ public:
 
   using EdgeFunctionPtrType = EdgeFunction<l_t>;
 
-private:
-  IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
-  VarCFG<i_t, z3::expr> VarICF;
-
-  const z3::expr TRUE_CONSTRAINT = VarICF.getTrueConstraint();
-  const l_t BOTTOM = {{TRUE_CONSTRAINT, IDEProblem.bottomElement()}};
-  const l_t TOP = {{TRUE_CONSTRAINT, IDEProblem.topElement()}};
-
-public:
   IDEVarTabulationProblem(
       IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem,
       const i_t &ICF, const stringstringmap_t *StaticBackwardRenaming = nullptr)
@@ -89,59 +80,38 @@ public:
   ~IDEVarTabulationProblem() override = default;
 
   // Flow functions
-  FlowFunctionPtrType getNormalFlowFunction(n_t curr, n_t succ) override {
-    // std::cout << "IDEVarTabulationProblem::getNormalFlowFunction applied to:
-    // "
-    //           << IDEProblem.NtoString(curr) << '\n';
-    // // TODO
-    // // we need some kind of bool isPPrelatedInstruction(n_t stmt); that
-    // triggers
-    // // for all preprocessor related instructions
-    // // user problem needs to ignore all preprocessor related instructions
-    // // e.g. the following instructions must be ignored:
-    // //  - %0 = load i32, i32* @_Djkifd_CONFIG_A_defined, align 4
-    // //  - %tobool = icmp ne i32 %0, 0
-    // //  - br i1 %tobool, label %if.then, label %if.else
-    if (VarICF.isPPBranchTarget(curr, succ)) {
-      // std::cout << "Found PP branch: " << llvmIRToString(curr) << '\n';
-      //   //   return Identity<d_t>::getInstance();
-    }
-    // otherwise just apply the user edge functions
-    return IDEProblem.getNormalFlowFunction(curr, succ);
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
+    return IDEProblem.getNormalFlowFunction(Curr, Succ);
   }
 
-  FlowFunctionPtrType getCallFlowFunction(n_t callStmt, f_t destMthd) override {
-    // std::cout << "IDEVarTabulationProblem::getCallFlowFunction\n";
-    return IDEProblem.getCallFlowFunction(callStmt, destMthd);
+  FlowFunctionPtrType getCallFlowFunction(n_t CallStmt, f_t DestMthd) override {
+    return IDEProblem.getCallFlowFunction(CallStmt, DestMthd);
   }
 
-  FlowFunctionPtrType getRetFlowFunction(n_t callSite, f_t calleeMthd,
-                                         n_t exitStmt, n_t retSite) override {
-    // std::cout << "IDEVarTabulationProblem::getRetFlowFunction\n";
-    return IDEProblem.getRetFlowFunction(callSite, calleeMthd, exitStmt,
-                                         retSite);
+  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeMthd,
+                                         n_t ExitStmt, n_t RetSite) override {
+    return IDEProblem.getRetFlowFunction(CallSite, CalleeMthd, ExitStmt,
+                                         RetSite);
   }
 
   FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           llvm::ArrayRef<f_t> callees) override {
-    // std::cout <<
-    // "IDEVarTabulationProblem::getCallToRetFlowFunction\n";
-    return IDEProblem.getCallToRetFlowFunction(callSite, retSite, callees);
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) override {
+    return IDEProblem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
   }
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t curr, f_t destMthd) override {
-    return nullptr;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t Curr, f_t DestMthd) override {
+    return IDEProblem.getSummaryFlowFunction(Curr, DestMthd);
   }
 
   // Edge functions
-  EdgeFunctionPtrType getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                                            d_t succNode) override {
+  EdgeFunctionPtrType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                            d_t SuccNode) override {
     auto UserEF =
-        IDEProblem.getNormalEdgeFunction(curr, currNode, succ, succNode);
+        IDEProblem.getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
     // if curr is a special preprocessor #ifdef instruction, we need to add a
     // preprocessor constraint
-    if (VarICF.isPPBranchTarget(curr, succ)) {
+    if (VarICF.isPPBranchTarget(Curr, Succ)) {
       // std::cout << "PP-Edge constaint: "
       // << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
       // std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
@@ -150,52 +120,57 @@ public:
       // std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
       // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(),
       return VarEdgeFunction<user_l_t>(
-          std::move(UserEF), VarICF.getPPConstraintOrTrue(curr, succ));
+          std::move(UserEF), VarICF.getPPConstraintOrTrue(Curr, Succ));
     }
     // ordinary instruction, no preprocessor constraints
     // std::cout << "Edge Function: " << *UserEF << '\n';
-    return VarEdgeFunction<user_l_t>(std::move(UserEF), TRUE_CONSTRAINT);
+    return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
-  EdgeFunctionPtrType getCallEdgeFunction(n_t callStmt, d_t srcNode,
-                                          f_t destinationMethod,
-                                          d_t destNode) override {
-    auto UserEF = IDEProblem.getCallEdgeFunction(callStmt, srcNode,
-                                                 destinationMethod, destNode);
-    return VarEdgeFunction<user_l_t>(std::move(UserEF), TRUE_CONSTRAINT);
+  EdgeFunctionPtrType getCallEdgeFunction(n_t CallStmt, d_t SrcNode,
+                                          f_t DestinationMethod,
+                                          d_t DestNode) override {
+    auto UserEF = IDEProblem.getCallEdgeFunction(CallStmt, SrcNode,
+                                                 DestinationMethod, DestNode);
+    return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
-  EdgeFunctionPtrType getReturnEdgeFunction(n_t callSite, f_t calleeMethod,
-                                            n_t exitStmt, d_t exitNode,
-                                            n_t reSite, d_t retNode) override {
+  EdgeFunctionPtrType getReturnEdgeFunction(n_t CallSite, f_t CalleeMethod,
+                                            n_t ExitStmt, d_t ExitNode,
+                                            n_t ReSite, d_t RetNode) override {
     auto UserEF = IDEProblem.getReturnEdgeFunction(
-        callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
-    return VarEdgeFunction<user_l_t>(std::move(UserEF), TRUE_CONSTRAINT);
+        CallSite, CalleeMethod, ExitStmt, ExitNode, ReSite, RetNode);
+    return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
   EdgeFunctionPtrType
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode,
-                           llvm::ArrayRef<f_t> callees) override {
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode,
+                           llvm::ArrayRef<f_t> Callees) override {
     auto UserEF = IDEProblem.getCallToRetEdgeFunction(
-        callSite, callNode, retSite, retSiteNode, callees);
+        CallSite, CallNode, RetSite, RetSiteNode, Callees);
     PHASAR_LOG_LEVEL(DEBUG,
                      "Get User CTR EF: " << UserEF << " AT "
-                                         << llvmIRToShortString(callSite));
-    return VarEdgeFunction<user_l_t>(std::move(UserEF), TRUE_CONSTRAINT);
+                                         << llvmIRToShortString(CallSite));
+    return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
-  EdgeFunctionPtrType getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                                             d_t succNode) override {
-    // TODO(sbf)
-    return nullptr;
+  EdgeFunctionPtrType getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
+                                             d_t SuccNode) override {
+    auto UserEF =
+        IDEProblem.getSummaryEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+    if (!UserEF) {
+      return nullptr;
+    }
+
+    return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
-  EdgeFunctionPtrType allTopFunction() override { return AllTop<l_t>(TOP); }
+  EdgeFunctionPtrType allTopFunction() override { return AllTop<l_t>(Top); }
 
-  l_t topElement() override { return TOP; }
+  l_t topElement() override { return Top; }
 
-  l_t bottomElement() override { return BOTTOM; }
+  l_t bottomElement() override { return Bottom; }
 
   l_t join(l_t Lhs, l_t Rhs) override {
     // std::cout << "IDEVarTabulationProblem::join\n";
@@ -205,12 +180,9 @@ public:
     // printEdgeFact(std::cout, Rhs);
     // std::cout << " --> ";
     for (auto &[LConstraint, LValue] : Lhs) {
-      // case Rhs already contains the constraint
-      if (Rhs.count(LConstraint)) {
-        Rhs[LConstraint] = IDEProblem.join(LValue, Rhs[LConstraint]);
-      } else {
-        // otherwise add the new <constraint, value> pair to Rhs
-        Rhs[LConstraint] = LValue;
+      auto [It, Inserted] = Rhs.try_emplace(LConstraint, std::move(LValue));
+      if (!Inserted) {
+        It->second = IDEProblem.join(std::move(It->second), std::move(LValue));
       }
     }
     // printEdgeFact(std::cout, Rhs);
@@ -252,6 +224,14 @@ public:
   //     os << "> ; ";
   //   }
   // }
+
+private:
+  IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
+  VarCFG<i_t, z3::expr> VarICF;
+
+  z3::expr TrueConstraint = VarICF.getTrueConstraint();
+  l_t Bottom = {{TrueConstraint, IDEProblem.bottomElement()}};
+  l_t Top = {{TrueConstraint, IDEProblem.topElement()}};
 };
 
 template <typename UserL>

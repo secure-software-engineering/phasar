@@ -11,7 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSVARTABULATIONPROBLEM_H_
 
 #include "phasar/DataFlow/IfdsIde/IDEVarTabulationProblem.h"
-#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Domain/BinaryDomain.h"
 
 namespace psr {
 

@@ -1,5 +1,6 @@
 #include "phasar/PhasarLLVM/VarStaticRenaming.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -8,32 +9,34 @@
 #include <type_traits>
 
 namespace psr {
+static llvm::StringRef extractStringFromLLVMValue(const llvm::Value *Op) {
+  const auto *GV =
+      llvm::cast<llvm::GlobalVariable>(Op->stripPointerCastsAndAliases());
+  const auto *Init = llvm::cast<llvm::ConstantDataArray>(GV->getInitializer());
+  return Init->getAsCString();
+}
+
 stringstringmap_t extractStaticRenaming(const LLVMProjectIRDB *IRDB) {
   assert(IRDB);
   // in function static_initializer:
   // calls to __static_renaming(new, old)
-  stringstringmap_t ret;
+  stringstringmap_t Ret;
 
-  const llvm::Function *renamingFn = IRDB->getFunction("__static_renaming");
-  if (!renamingFn)
-    return ret;
+  const llvm::Function *RenamingFn = IRDB->getFunction("__static_renaming");
+  if (!RenamingFn) {
+    return Ret;
+  }
 
-  for (auto user : renamingFn->users()) {
-    if (auto call = llvm::dyn_cast<llvm::CallBase>(user)) {
-      constexpr auto conv = [](llvm::Value *op) {
-        auto gep = llvm::cast<llvm::ConstantExpr>(op);
-        auto gv = llvm::cast<llvm::GlobalVariable>(gep->getOperand(0));
-        auto init = llvm::cast<llvm::ConstantDataArray>(gv->getInitializer());
-        return init->getAsCString();
-      };
-      auto newOp = conv(call->getArgOperand(0));
-      auto oldOp = conv(call->getArgOperand(1));
+  for (const auto *User : RenamingFn->users()) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(User)) {
+      auto NewOp = extractStringFromLLVMValue(Call->getArgOperand(0));
+      auto OldOp = extractStringFromLLVMValue(Call->getArgOperand(1));
 
-      ret[oldOp] = newOp;
+      Ret[OldOp] = NewOp;
     }
   }
 
-  return ret;
+  return Ret;
 }
 
 std::pair<stringstringmap_t, stringstringmap_t>
@@ -41,29 +44,25 @@ extractBiDiStaticRenaming(const LLVMProjectIRDB *IRDB) {
   assert(IRDB);
 
   // Allocate the maps as pair to guarantee the use of RVO
-  std::pair<stringstringmap_t, stringstringmap_t> ret;
+  std::pair<stringstringmap_t, stringstringmap_t> Ret;
 
-  const llvm::Function *renamingFn = IRDB->getFunction("__static_renaming");
-  if (!renamingFn)
-    return ret;
+  const llvm::Function *RenamingFn = IRDB->getFunction("__static_renaming");
+  if (!RenamingFn) {
+    return Ret;
+  }
 
-  for (auto user : renamingFn->users()) {
-    if (auto call = llvm::dyn_cast<llvm::CallBase>(user)) {
-      constexpr auto conv = [](llvm::Value *op) {
-        auto gep = llvm::cast<llvm::ConstantExpr>(op);
-        auto gv = llvm::cast<llvm::GlobalVariable>(gep->getOperand(0));
-        auto init = llvm::cast<llvm::ConstantDataArray>(gv->getInitializer());
-        return init->getAsCString();
-      };
-      auto newOp = conv(call->getArgOperand(0));
-      auto oldOp = conv(call->getArgOperand(1));
+  for (const auto *User : RenamingFn->users()) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(User)) {
 
-      ret.first[oldOp] = newOp;
-      ret.second[newOp] = oldOp;
+      auto NewOp = extractStringFromLLVMValue(Call->getArgOperand(0));
+      auto OldOp = extractStringFromLLVMValue(Call->getArgOperand(1));
+
+      Ret.first[OldOp] = NewOp;
+      Ret.second[NewOp] = OldOp;
     }
   }
 
-  return ret;
+  return Ret;
 }
 
 std::string

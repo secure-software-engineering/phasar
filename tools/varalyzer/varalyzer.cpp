@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
   // entry points
   LLVMBasedICFG ICF(&IR, CallGraphAnalysisType::OTF, {}, &TH, &PT);
   if (AnalysisKind == TypeStateAnalysisKind::Cipher) {
-    auto typeNameOfInterest =
+    auto TypeNameOfInterest =
         ForwardRenaming.empty() ? "evp_cipher_ctx_st"
                                 : extractDesugaredTypeNameOfInterestOrFail(
                                       "EVP_CIPHER_CTX", IR, ForwardRenaming,
@@ -79,9 +79,9 @@ int main(int argc, char **argv) {
     // }
     OpenSSLEVPCIPHERCTXDescription CipherCTXDesc(
         ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
-        typeNameOfInterest);
+        TypeNameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-        "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, typeNameOfInterest);
+        "EVP_CIPHER_CTX_new", IR, ICF, ForwardRenaming, TypeNameOfInterest);
 
     if (AnalysisEntryPoints.empty()) {
       // std::cerr << "warning: could not retrieve analysis' entry points
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
   }
   if (AnalysisKind == TypeStateAnalysisKind::MessageDigest ||
       AnalysisKind == TypeStateAnalysisKind::MAC) {
-    auto typeNameOfInterest = ForwardRenaming.empty()
+    auto TypeNameOfInterest = ForwardRenaming.empty()
                                   ? "evp_md_ctx_st"
                                   : extractDesugaredTypeNameOfInterestOrFail(
                                         "EVP_MD_CTX", IR, ForwardRenaming,
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     // }
     OpenSSLEVPMDCTXDescription MdCTXDesc(
         ForwardRenaming.empty() ? nullptr : &ForwardRenaming,
-        typeNameOfInterest);
+        TypeNameOfInterest);
     auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
         "EVP_MD_CTX_new", IR, ICF, ForwardRenaming,
         MdCTXDesc.getTypeNameOfInterest());
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
     }
     IDETypeStateAnalysis Problem(&IR, &PT, &MdCTXDesc, AnalysisEntryPoints);
     IDEVarTabulationProblem VarProblem(Problem, ICF, &BackwardRenaming);
-    IDESolver Solver(VarProblem, &ICF);
+    IDESolver Solver(&VarProblem, &ICF);
     Solver.solve();
     Solver.dumpResults();
   }
