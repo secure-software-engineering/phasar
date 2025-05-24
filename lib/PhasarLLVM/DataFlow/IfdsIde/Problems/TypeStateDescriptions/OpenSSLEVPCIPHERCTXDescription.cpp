@@ -1,4 +1,5 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPCIPHERCTXDescription.h"
+
 #include "phasar/Utils/EnumFlags.h"
 
 #include "llvm/ADT/StringSwitch.h"
@@ -105,8 +106,7 @@ auto OpenSSLEVPCIPHERCTXDescription::funcNameToToken(llvm::StringRef F) const
 
 OpenSSLEVPCIPHERCTXDescription::OpenSSLEVPCIPHERCTXDescription(
     const stringstringmap_t *staticRenaming, llvm::StringRef typeNameOfInterest)
-    : TypeStateDescription(), staticRenaming(staticRenaming),
-      typeNameOfInterest(typeNameOfInterest.str()),
+    : TypeStateDescription(),
       name2tok(
           {{"EVP_CIPHER_CTX_new", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_NEW},
            {"EVP_CipherInit_ex", OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_INIT},
@@ -125,7 +125,8 @@ OpenSSLEVPCIPHERCTXDescription::OpenSSLEVPCIPHERCTXDescription(
            {"EVP_DecryptFinal", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_FINAL},
            {"EVP_DecryptFinal_ex", OpenSSLEVPCIPHERCTXToken::EVP_DECRYPT_FINAL},
            {"EVP_CIPHER_CTX_FREE",
-            OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_FREE}}) {
+            OpenSSLEVPCIPHERCTXToken::EVP_CIPHER_CTX_FREE}}),
+      typeNameOfInterest(typeNameOfInterest.str()) {
   if (staticRenaming) {
     llvm::SmallVector<std::pair<llvm::StringRef, OpenSSLEVPCIPHERCTXToken>, 12>
         toinsert;

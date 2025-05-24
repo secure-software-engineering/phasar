@@ -34,7 +34,7 @@ template <typename T> decltype(auto) printSomehow(const T &Val) {
   if constexpr (has_str_v<T>) {
     return Val.str();
   } else if constexpr (has_adl_to_string_v<T>) {
-    return adl_to_string(Val);
+    return psr::adl_to_string(Val);
   } else if constexpr (is_llvm_printable_v<T>) {
     std::string Str;
     llvm::raw_string_ostream ROS(Str);

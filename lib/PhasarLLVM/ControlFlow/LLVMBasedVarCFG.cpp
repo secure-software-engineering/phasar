@@ -259,7 +259,7 @@ z3::expr LLVMBasedVarCFG::inferCondition(const llvm::CmpInst *cmp) const {
 }
 #endif
 
-VarCFGImpl<LLVMBasedCFG, z3::expr>::VarCFGImpl(
+VarCFGImpl<LLVMBasedICFG, z3::expr>::VarCFGImpl(
     const LLVMBasedICFG &CFG, const stringstringmap_t *StaticBackwardRenaming)
     : CFG(static_cast<const LLVMBasedCFG &>(CFG)),
       staticBackwardRenaming(StaticBackwardRenaming) {
@@ -300,7 +300,7 @@ VarCFGImpl<LLVMBasedCFG, z3::expr>::VarCFGImpl(
 }
 
 std::optional<z3::expr>
-VarCFGImpl<LLVMBasedCFG, z3::expr>::getConditionIfIsPPVariable(
+VarCFGImpl<LLVMBasedICFG, z3::expr>::getConditionIfIsPPVariable(
     const llvm::GlobalVariable *G) const {
   auto name = G->getName();
   constexpr llvm::StringLiteral STATIC_RENAMING = "__static_condition_";
@@ -317,7 +317,7 @@ VarCFGImpl<LLVMBasedCFG, z3::expr>::getConditionIfIsPPVariable(
   return std::nullopt;
 }
 
-bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchNode(
+bool VarCFGImpl<LLVMBasedICFG, z3::expr>::isPPBranchNode(
     const llvm::BranchInst *br) const {
   if (!br->isConditional()) {
     return false;
@@ -347,7 +347,7 @@ bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchNode(
   return false;
 }
 
-bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchNode(
+bool VarCFGImpl<LLVMBasedICFG, z3::expr>::isPPBranchNode(
     const llvm::BranchInst *br, z3::expr &cond) const {
   if (!br->isConditional()) {
     cond = getTrueConstraintImpl();
@@ -408,11 +408,11 @@ bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchNode(
 //   return Successors;
 // }
 
-z3::expr VarCFGImpl<LLVMBasedCFG, z3::expr>::getTrueConstraintImpl() const {
+z3::expr VarCFGImpl<LLVMBasedICFG, z3::expr>::getTrueConstraintImpl() const {
   return CTX.bool_val(true);
 }
 
-bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchTargetImpl(
+bool VarCFGImpl<LLVMBasedICFG, z3::expr>::isPPBranchTargetImpl(
     const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
   if (auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
     if (!isPPBranchNode(T)) {
@@ -427,7 +427,7 @@ bool VarCFGImpl<LLVMBasedCFG, z3::expr>::isPPBranchTargetImpl(
   return false;
 }
 
-z3::expr VarCFGImpl<LLVMBasedCFG, z3::expr>::getPPConstraintOrTrueImpl(
+z3::expr VarCFGImpl<LLVMBasedICFG, z3::expr>::getPPConstraintOrTrueImpl(
     const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
   z3::expr Constraint = getTrueConstraintImpl();
   if (auto B = llvm::dyn_cast<llvm::BranchInst>(Stmt);

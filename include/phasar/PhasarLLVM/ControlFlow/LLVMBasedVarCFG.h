@@ -40,12 +40,14 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMBasedICFG;
 
-template <> class VarCFGImpl<LLVMBasedCFG, z3::expr> {
-  friend VarCFG<LLVMBasedCFG, z3::expr>;
+template <> class VarCFGImpl<LLVMBasedICFG, z3::expr> {
+  friend VarCFG<LLVMBasedICFG, z3::expr>;
 
+public:
   VarCFGImpl(const LLVMBasedICFG &CFG,
              const stringstringmap_t *StaticBackwardRenaming = nullptr);
 
+private:
   [[nodiscard]] std::vector<std::pair<const llvm::Instruction *, z3::expr>>
   getSuccsOfWithPPConstraintsImpl(const llvm::Instruction *Stmt) const;
 

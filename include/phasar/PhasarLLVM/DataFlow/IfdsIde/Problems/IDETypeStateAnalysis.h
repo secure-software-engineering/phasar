@@ -276,7 +276,7 @@ private:
         return Default;
       }
 
-      return TSEdgeFunctionComposer{This, SecondFunction, This->TSD};
+      return TSEdgeFunctionComposer{This, SecondFunction, This->TSA->TSD};
     }
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunction> This,
@@ -285,7 +285,7 @@ private:
         return Default;
       }
 
-      return makeAllBottom(This->TSD);
+      return makeAllBottom(This->TSA->TSD);
     }
 
     bool operator==(const TSEdgeFunction &Other) const {
@@ -487,7 +487,7 @@ public:
               getWMAliasesAndAllocas(CS->getArgOperand(Idx));
 
           if (CallNode == RetSiteNode && AliasAndAllocas.count(CallNode)) {
-            return TSEdgeFunction{TSD, DemangledFname, CS};
+            return TSEdgeFunction{this, DemangledFname, CS};
           }
         }
       }

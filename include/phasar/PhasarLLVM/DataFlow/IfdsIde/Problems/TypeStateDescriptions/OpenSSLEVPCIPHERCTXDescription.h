@@ -33,6 +33,31 @@ enum class OpenSSLEVPCIPHERCTXState {
   UNINIT
 };
 
+[[nodiscard]] constexpr llvm::StringRef to_string(OpenSSLEVPCIPHERCTXState S) {
+  switch (S) {
+  case OpenSSLEVPCIPHERCTXState::TOP:
+    return "Top";
+  case OpenSSLEVPCIPHERCTXState::BOT:
+    return "Bot";
+  case OpenSSLEVPCIPHERCTXState::ALLOCATED:
+    return "Allocated";
+  case OpenSSLEVPCIPHERCTXState::INITIALIZED_CIPHER:
+    return "Cipher";
+  case OpenSSLEVPCIPHERCTXState::INITIALIZED_ENCRYPT:
+    return "Encrypt";
+  case OpenSSLEVPCIPHERCTXState::INITIALIZED_DECRYPT:
+    return "Decrypt";
+  case OpenSSLEVPCIPHERCTXState::FINALIZED:
+    return "Finalized";
+  case OpenSSLEVPCIPHERCTXState::FREED:
+    return "Freed";
+  case OpenSSLEVPCIPHERCTXState::ERROR:
+    return "Error";
+  case OpenSSLEVPCIPHERCTXState::UNINIT:
+    return "Uninit";
+  }
+}
+
 class OpenSSLEVPCIPHERCTXDescription
     : public TypeStateDescription<OpenSSLEVPCIPHERCTXState> {
 
@@ -62,8 +87,6 @@ class OpenSSLEVPCIPHERCTXDescription
   [[nodiscard]] OpenSSLEVPCIPHERCTXToken
   funcNameToToken(llvm::StringRef F) const;
 
-  const stringstringmap_t *staticRenaming = nullptr;
-
   llvm::StringMap<OpenSSLEVPCIPHERCTXToken> name2tok;
   const std::string typeNameOfInterest;
 
@@ -80,6 +103,7 @@ public:
   [[nodiscard]] TypeStateDescription::State
   getNextState(llvm::StringRef Tok,
                TypeStateDescription::State S) const override;
+  using TypeStateDescription::getNextState;
 
   [[nodiscard]] std::string getTypeNameOfInterest() const override;
 

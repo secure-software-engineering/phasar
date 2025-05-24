@@ -100,7 +100,7 @@ public:
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
     //              << "construct VAREdgeFunction with '"
     //              << Constraint.to_string() << "'");
-    PHASAR_LOG_LEVEL(DEBUG, "construct VAREdgeFunction: " << this->str());
+    PHASAR_LOG_LEVEL(DEBUG, "construct VAREdgeFunction: " << *this);
   }
 
   [[nodiscard]] static EdgeFunction<l_t> from(EdgeFunction<user_l_t> UserEdgeFn,
@@ -130,17 +130,17 @@ public:
     for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
       PHASAR_LOG_LEVEL(DEBUG, "contains z3 expression '"
                                   << Constraint.to_string() << "' --> "
-                                  << ContainsZ3Expr(Source, Constraint));
+                                  << containsZ3Expr(Source, Constraint));
       if (auto It = Source.find(Constraint); It != Source.end()) {
-        ResSource[Constraint] = UserEdgeFn->computeTarget(It->second);
+        ResSource[Constraint] = UserEdgeFn.computeTarget(It->second);
       } else {
         if constexpr (HasJoinLatticeTraits<user_l_t>) {
           ResSource[Constraint] =
-              UserEdgeFn->computeTarget(JoinLatticeTraits<user_l_t>::bottom());
+              UserEdgeFn.computeTarget(JoinLatticeTraits<user_l_t>::bottom());
         } else {
           // Use the default-constructed value as fallback; we probably may want
           // to use a different fallback value here eventually...
-          ResSource[Constraint] = UserEdgeFn->computeTarget(user_l_t{});
+          ResSource[Constraint] = UserEdgeFn.computeTarget(user_l_t{});
         }
       }
     }
@@ -155,7 +155,8 @@ public:
     }
 
     PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::composeWith");
-    VarEdgeFunction *VEF = llvm::dyn_cast<VarEdgeFunction>(SecondFunction);
+    const VarEdgeFunction *VEF =
+        llvm::dyn_cast<VarEdgeFunction>(SecondFunction);
     if (!VEF) {
       llvm::report_fatal_error("found unexpected edge function");
     }
@@ -213,7 +214,8 @@ public:
   static EdgeFunction<l_t> join(EdgeFunctionRef<VarEdgeFunction> This,
                                 const EdgeFunction<l_t> OtherFunction) {
     PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::joinWith");
-    auto *VEF = OtherFunction.template dyn_cast<VarEdgeFunction<user_l_t>>();
+    const auto *VEF =
+        OtherFunction.template dyn_cast<VarEdgeFunction<user_l_t>>();
     if (!VEF) {
       llvm::report_fatal_error("found unexpected edge function");
     }
@@ -230,14 +232,15 @@ public:
       auto [It, Inserted] =
           ResultUserEdgeFns.try_emplace(Constraint, UserEdgeFn);
 
-      Changed |= Inserted || [&] {
+      if (Inserted) {
+        Changed = true;
+      } else {
         auto NewEF = It->second.joinWith(UserEdgeFn);
         if (NewEF != It->second) {
           It->second = std::move(NewEF);
-          return true; // Modified entry
+          Changed = true; // Modified entry
         }
-        return false;
-      }();
+      }
 
       // bool FoundConstraint = false;
       // for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
@@ -305,7 +308,7 @@ public:
     for (auto &[Constraint, UserEdgeFn] : EF.UserEdgeFns) {
       OS << "<" << Constraint.to_string() << ", " << UserEdgeFn << ">";
     }
-    OS << ")";
+    return OS << ")";
   }
 
 private:

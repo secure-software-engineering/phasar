@@ -36,6 +36,29 @@ enum class OpenSSLEVPMDCTXState {
   UNINIT,
 };
 
+[[nodiscard]] constexpr llvm::StringRef to_string(OpenSSLEVPMDCTXState S) {
+  switch (S) {
+  case OpenSSLEVPMDCTXState::TOP:
+    return "Top";
+  case OpenSSLEVPMDCTXState::BOT:
+    return "Bot";
+  case OpenSSLEVPMDCTXState::ALLOCATED:
+    return "Allocated";
+  case OpenSSLEVPMDCTXState::INITIALIZED:
+    return "Initialized";
+  case OpenSSLEVPMDCTXState::SIGN_INITIALIZED:
+    return "SignInitialized";
+  case OpenSSLEVPMDCTXState::FINALIZED:
+    return "Finalized";
+  case OpenSSLEVPMDCTXState::FREED:
+    return "Freed";
+  case OpenSSLEVPMDCTXState::ERROR:
+    return "Error";
+  case OpenSSLEVPMDCTXState::UNINIT:
+    return "Uninit";
+  }
+}
+
 class OpenSSLEVPMDCTXDescription
     : public TypeStateDescription<OpenSSLEVPMDCTXState> {
   // TODO: We don't check whether the EVP_MD object is properly instantiated
@@ -63,7 +86,6 @@ class OpenSSLEVPMDCTXDescription
            [enum2int(OpenSSLEVPMDCTXState::UNINIT) + 1];
 
   OpenSSLEVPMDCTXToken funcNameToToken(llvm::StringRef F) const;
-  const stringstringmap_t *staticRenaming = nullptr;
 
   llvm::StringMap<OpenSSLEVPMDCTXToken> name2tok;
   const std::string typeNameOfInterest;
@@ -81,6 +103,7 @@ public:
   [[nodiscard]] TypeStateDescription::State
   getNextState(llvm::StringRef Tok,
                TypeStateDescription::State S) const override;
+  using TypeStateDescription::getNextState;
 
   [[nodiscard]] std::string getTypeNameOfInterest() const override;
 

@@ -6,8 +6,6 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <iostream>
-
 using namespace std;
 
 namespace psr {
@@ -89,8 +87,7 @@ OpenSSLEVPMDCTXDescription::funcNameToToken(llvm::StringRef F) const {
 
 OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXDescription(
     const stringstringmap_t *staticRenaming, llvm::StringRef typeNameOfInterest)
-    : TypeStateDescription(), staticRenaming(staticRenaming),
-      typeNameOfInterest(typeNameOfInterest.str()),
+    : TypeStateDescription(),
       name2tok(
           {{"EVP_MD_CTX_new", OpenSSLEVPMDCTXToken::EVP_MD_CTX_NEW},
            {"EVP_DigestInit", OpenSSLEVPMDCTXToken::EVP_DIGEST_INIT},
@@ -106,7 +103,8 @@ OpenSSLEVPMDCTXDescription::OpenSSLEVPMDCTXDescription(
            {"EVP_DigestSignFinal", OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL},
            {"EVP_DigestSignFinal_ex",
             OpenSSLEVPMDCTXToken::EVP_DIGEST_SIGN_FINAL},
-           {"EVP_MD_CTX_free", OpenSSLEVPMDCTXToken::EVP_MD_CTX_FREE}}) {
+           {"EVP_MD_CTX_free", OpenSSLEVPMDCTXToken::EVP_MD_CTX_FREE}}),
+      typeNameOfInterest(typeNameOfInterest.str()) {
   if (staticRenaming) {
     llvm::SmallVector<std::pair<llvm::StringRef, OpenSSLEVPMDCTXToken>, 12>
         toinsert;

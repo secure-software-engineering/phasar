@@ -17,6 +17,7 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/VarEdgeFunctions.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/VarStaticRenaming.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
@@ -166,7 +167,7 @@ public:
     return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
-  EdgeFunctionPtrType allTopFunction() override { return AllTop<l_t>(Top); }
+  EdgeFunctionPtrType allTopFunction() override { return AllTop<l_t>{Top}; }
 
   l_t topElement() override { return Top; }
 
@@ -201,8 +202,17 @@ public:
   }
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    // TODO(sbf): map L
-    return IDEProblem.initialSeeds();
+    typename InitialSeeds<n_t, d_t, l_t>::GeneralizedSeeds Ret;
+
+    auto UserSeeds = IDEProblem.initialSeeds();
+    for (auto &[Inst, Facts] : UserSeeds.getSeeds()) {
+      auto &AtInst = Ret[Inst];
+      for (auto &[Fact, Val] : Facts) {
+        AtInst[Fact] = {{TrueConstraint, std::move(Val)}};
+      }
+    }
+
+    return std::move(Ret);
   }
 
   // void printNode(std::ostream &os, n_t n) const override {
