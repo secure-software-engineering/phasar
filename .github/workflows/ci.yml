@@ -68,7 +68,7 @@ jobs:
       - name: Install PhASAR and Build Examples
         shell: bash
         run: |
-          cmake -P ./build/cmake_install.cmake
+          cmake -DCMAKE_INSTALL_PREFIX=./INSTALL -P ./build/cmake_install.cmake
           cd ./examples/how-to
-          cmake -S . -B build
+          cmake -S . -B build -Dphasar_ROOT=../../INSTALL
           cmake --build ./build --target run_sample_programs
