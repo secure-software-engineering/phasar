@@ -90,6 +90,6 @@ jobs:
         shell: bash
         run: |
           cmake -P ./build/cmake_install.cmake
-          cd ./examples/how-tos
+          cd ./examples/how-to
           cmake -S . -B build
           cmake --build ./build --target run_sample_programs
