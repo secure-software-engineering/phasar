@@ -25,11 +25,11 @@ int main(int Argc, char *Argv[]) {
   // reachable from the entrypoints.
   psr::IDELinearConstantAnalysis LCAProblem(&IRDB, &ICFG, {"main"});
 
-  // Solving the TaintProblem. This may take some time, depending on the size of
+  // Solving the LCAProblem. This may take some time, depending on the size of
   // the ICFG
   auto Results = psr::solveIDEProblem(LCAProblem, ICFG);
 
-  // After we have solved the TaintProblem, we can now inspect the detected
+  // After we have solved the LCAProblem, we can now inspect the detected
   // constants:
 
   const auto *MainF = IRDB.getFunctionDefinition("main");

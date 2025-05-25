@@ -38,18 +38,11 @@ int main(int Argc, char *Argv[]) {
   // You can also write your own resolver by creating a class that inherits from
   // the psr::Resolver interface.
   psr::RTAResolver Resolver(&IRDB, &VTP, &TH);
-  auto CG = psr::buildLLVMBasedCallGraph(IRDB, Resolver, {"main"});
 
-  // The easiest way of getting a call graph is by construcing an
-  // inter-procedural control-flow graph (ICFG):
-  //
-  // You can select the call-graph resolver algorithm using the
-  // CallGraphAnalysisType enum. The LLVMBasedICFG will create required
-  // data-structures that you don't explicitly pass in, on demand.
-  //
   // You must specify at least one function as entry-point. The
   // LLVMBasedICFG will only consider those functions for the call-graph
   // that are reachable from at least on eof the entry-points.
+  auto CG = psr::buildLLVMBasedCallGraph(IRDB, Resolver, {"main"});
 
   // Iterate over all call-sites:
   for (const auto *Call : CG.getAllVertexCallSites()) {
@@ -83,7 +76,7 @@ int main(int Argc, char *Argv[]) {
     llvm::outs() << '\n';
   }
 
-  // You can also create an LLVMBasedICFG from an already existing call-graph:
+  // You can create an LLVMBasedICFG from an already existing call-graph:
   psr::LLVMBasedICFG ICFG(std::move(CG), &IRDB);
 
   llvm::outs() << "--------------------------\n";

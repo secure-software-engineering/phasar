@@ -27,3 +27,12 @@ You can test the example program on the target programs from [llvm-hello-world/t
 
 ./build-llvm-based-call-graph ../../../llvm-hello-world/target/class_hierarchy.ll
 ```
+
+### Visualizing the CallGraph
+
+The test programs show, how you can export a call-graph to a dot-graph.
+You can use the `dot` command-line tool (get this by, e.g., invoking `apt install graphviz` or similar).
+
+The call-graph obtained from the example program on the sample `class_hierarchy.ll` should look similar to this:
+
+![Sample Call-Graph](./img/cg.svg)

@@ -35,8 +35,8 @@ int main(int Argc, char *Argv[]) {
   // input.
   //
   // You must specify at least one function as entry-point. The LLVMBasedICFG
-  // will only consider those functions for the call-graph that are reachable
-  // from at least on eof the entry-points.
+  // will only consider those functions for the call-graph that are
+  // (transitively) reachable from at least on of the entry-points.
   psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::RTA, {"main"},
                           &TH);
   const auto &CG = ICFG.getCallGraph();
@@ -44,7 +44,7 @@ int main(int Argc, char *Argv[]) {
   // Iterate over all call-sites:
   for (const auto *Call : CG.getAllVertexCallSites()) {
     if (Call->isDebugOrPseudoInst()) {
-      // We may with to skip the auto-generated debug-intrinsics
+      // We may wish to skip the auto-generated debug-intrinsics
       continue;
     }
 

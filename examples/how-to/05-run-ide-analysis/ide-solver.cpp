@@ -66,7 +66,7 @@ int main(int Argc, char *Argv[]) {
   // Accessing the results:
   auto Results = Solver.getSolverResults();
 
-  // After we have solved the TaintProblem, we can now inspect the detected
+  // After we have solved the LCAProblem, we can now inspect the detected
   // constants. Instead of manually looping, will now use
   // the Solver to dump the whole raw IDE results:
   Solver.dumpResults();

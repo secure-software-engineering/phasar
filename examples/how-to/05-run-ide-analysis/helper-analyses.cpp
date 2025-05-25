@@ -31,11 +31,11 @@ int main(int Argc, char *Argv[]) {
   auto LCAProblem = psr::createAnalysisProblem<psr::IDELinearConstantAnalysis>(
       HA, EntryPoints);
 
-  // Solving the TaintProblem. This may take some time, depending on the size of
+  // Solving the LCAProblem. This may take some time, depending on the size of
   // the ICFG
   auto Results = psr::solveIDEProblem(LCAProblem, HA.getICFG());
 
-  // After we have solved the TaintProblem, we can now inspect the detected
+  // After we have solved the LCAProblem, we can now inspect the detected
   // constants:
 
   const auto *MainF = HA.getProjectIRDB().getFunctionDefinition("main");

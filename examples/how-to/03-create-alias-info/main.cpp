@@ -67,7 +67,7 @@ int main(int Argc, char *Argv[]) {
     // parameter), at the program location determined by Inst (third
     // parameter).
     //
-    // Implementations may ignore the second parameter.
+    // Implementations may ignore the third parameter.
     auto ReachableAllocSites =
         AS.getReachableAllocationSites(&Inst, /*IntraProcOnly=*/true, &Inst);
     for (const auto *AllocSite : *ReachableAllocSites) {
