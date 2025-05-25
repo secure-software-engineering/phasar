@@ -66,6 +66,7 @@ jobs:
           cmake --build ./build --target check-phasar-unittests
 
       - name: Install PhASAR and Build Examples
+        if: matrix.build == 'DebugLibdeps' # Circumvent conflicting ASAn flags
         env:
           CXX: ${{ matrix.compiler[0] }}
           CC: ${{ matrix.compiler[1] }}
