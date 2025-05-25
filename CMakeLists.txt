@@ -308,6 +308,18 @@ endif()
 include(add_llvm)
 add_llvm()
 
+# SVF
+option(PHASAR_USE_SVF "Use SVF for more options in alias analysis (default is OFF)" OFF)
+if(PHASAR_USE_SVF)
+  find_package(SVF REQUIRED CONFIG)
+  message(STATUS "Found SVF ${SVF_VERSION}")
+
+  if (NOT PHASAR_USE_Z3)
+    message(WARNING "SVF requires Z3. Set PHASAR_USE_Z3=ON")
+    set(PHASAR_USE_Z3 ON)
+  endif()
+endif()
+
 # Z3 Solver
 if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)

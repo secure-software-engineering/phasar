@@ -12,6 +12,7 @@
 
 #include "phasar/ControlFlow/CFGBase.h"
 #include "phasar/ControlFlow/CallGraphBase.h"
+#include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -20,15 +21,13 @@
 #include <type_traits>
 
 namespace psr {
-template <typename Derived> class ICFGBase {
+template <typename Derived> class ICFGBase : public CRTPBase<Derived> {
+  friend Derived;
+  using CRTPBase<Derived>::self;
+
 public:
   using n_t = typename CFGTraits<Derived>::n_t;
   using f_t = typename CFGTraits<Derived>::f_t;
-
-  ICFGBase() noexcept {
-    static_assert(is_crtp_base_of_v<CFGBase, Derived>,
-                  "An ICFG must also be a CFG");
-  }
 
   /// Returns an iterable range of all function definitions or declarations in
   /// the ICFG
@@ -113,20 +112,16 @@ public:
   [[nodiscard]] size_t getNumCallSites() const noexcept {
     return self().getNumCallSitesImpl();
   }
-
-private:
-  const Derived &self() const noexcept {
-    return static_cast<const Derived &>(*this);
-  }
 };
 
 /// True, iff ICF is a proper instantiation of ICFGBase with n_t and f_t taken
 /// from the given analysis-Domain
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-PSR_CONCEPT is_icfg_v = is_crtp_base_of_v<ICFGBase, ICF>
-    &&std::is_same_v<typename ICF::n_t, typename Domain::n_t>
-        &&std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
+PSR_CONCEPT is_icfg_v =
+    is_crtp_base_of_v<ICFGBase, ICF> &&
+    std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
+    std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
 
 } // namespace psr
 

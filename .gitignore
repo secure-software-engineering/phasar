@@ -30,11 +30,8 @@ doc/*
 log/*
 **/*/logs/
 
-# CMake build dir
-build/*
-
 # MS VS Code
-.vscode/*
+.vscode/
 
 # Eclipse
 .cproject
