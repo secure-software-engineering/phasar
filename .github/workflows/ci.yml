@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-20.04, ubuntu-24.04-arm]
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
         compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
         build: [ Debug, Release, DebugLibdeps ]
         include:
@@ -46,28 +46,7 @@ jobs:
         run: |
           ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }}
 
-      - uses: swift-actions/setup-swift@v2
-        if: matrix.os == 'ubuntu-20.04'
-        with:
-          swift-version: "5.8.1"
-      - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }} including swift
-        if: matrix.os == 'ubuntu-20.04'
-        env:
-          CXX: ${{ matrix.compiler[0] }}
-          CC: ${{ matrix.compiler[1] }}
-        shell: bash
-        run: |
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
-            -DBUILD_PHASAR_CLANG=OFF \
-            -DBUILD_SWIFT_TESTS=ON \
-            -DPHASAR_USE_Z3=ON \
-            ${{ matrix.flags }} \
-            -G Ninja
-          ninja -C build
-
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
-        if: matrix.os != 'ubuntu-20.04'
         env:
           CXX: ${{ matrix.compiler[0] }}
           CC: ${{ matrix.compiler[1] }}

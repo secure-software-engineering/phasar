@@ -13,4 +13,6 @@
 
 #cmakedefine PHASAR_HAS_SQLITE
 
+#cmakedefine PHASAR_USE_SVF
+
 #endif /* PHASAR_CONFIG_CONFIG_H  */
