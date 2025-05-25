@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasResult.h"
@@ -69,7 +69,7 @@ public:
   };
 
   [[nodiscard]] inline AliasAnalysisType getAliasAnalysisType() const noexcept {
-    return PTA.getPointerAnalysisType();
+    return PTA->getPointerAnalysisType();
   };
 
   [[nodiscard]] AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
@@ -143,12 +143,12 @@ private:
                                         const llvm::GlobalObject *VG) const;
 
   /// Utility function used by computeFunctionsAliasSet(...)
-  void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
+  void addPointer(FunctionAliasView AA, const llvm::DataLayout &DL,
                   const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
 
   [[nodiscard]] static BoxedPtr<AliasSetTy> getEmptyAliasSet();
 
-  LLVMBasedAliasAnalysis PTA;
+  std::unique_ptr<AliasAnalysisView> PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
   AliasSetOwner<AliasSetTy>::memory_resource_type MRes;

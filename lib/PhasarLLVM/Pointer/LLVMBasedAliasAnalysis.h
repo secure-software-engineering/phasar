@@ -10,9 +10,13 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMBASEDALIASANALYSIS_H_
 
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/AliasResult.h"
+#include "phasar/Utils/Fn.h"
 
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Passes/PassBuilder.h"
 
 namespace llvm {
 class Value;
@@ -25,47 +29,42 @@ namespace psr {
 
 class LLVMProjectIRDB;
 
-class LLVMBasedAliasAnalysis {
-
+class LLVMBasedAliasAnalysis : public AliasAnalysisView {
 public:
   explicit LLVMBasedAliasAnalysis(
       LLVMProjectIRDB &IRDB, bool UseLazyEvaluation,
       AliasAnalysisType PATy = AliasAnalysisType::Basic);
 
-  LLVMBasedAliasAnalysis(LLVMBasedAliasAnalysis &&) noexcept = default;
-  LLVMBasedAliasAnalysis &
-  operator=(LLVMBasedAliasAnalysis &&) noexcept = default;
-
-  LLVMBasedAliasAnalysis(const LLVMBasedAliasAnalysis &) = delete;
-  LLVMBasedAliasAnalysis &operator=(const LLVMBasedAliasAnalysis &) = delete;
-  ~LLVMBasedAliasAnalysis();
-
-  [[nodiscard]] inline llvm::AAResults *getAAResults(llvm::Function *F) {
-    if (!hasAliasInfo(*F)) {
-      computeAliasInfo(*F);
-    }
-    return AAInfos.lookup(F);
-  };
-
-  void erase(llvm::Function *F) noexcept;
-
-  void clear() noexcept;
-
-  [[nodiscard]] inline AliasAnalysisType
-  getPointerAnalysisType() const noexcept {
-    return PATy;
-  };
+  ~LLVMBasedAliasAnalysis() override;
 
 private:
+  FunctionAliasView doGetAAResults(const llvm::Function *F) override {
+    if (!hasAliasInfo(*F)) {
+      // NOLINTNEXTLINE - FIXME when it is fixed in LLVM
+      computeAliasInfo(const_cast<llvm::Function &>(*F));
+    }
+    return createFAView(AAInfos.lookup(F));
+  };
+
+  void doErase(llvm::Function *F) noexcept override;
+
+  void doClear() noexcept override;
+
+  static AliasResult aliasImpl(llvm::AAResults *, const llvm::Value *,
+                               const llvm::Value *, const llvm::DataLayout &);
+  [[nodiscard]] constexpr FunctionAliasView
+  createFAView(llvm::AAResults *AAR) noexcept {
+    return {AAR, fn<aliasImpl>};
+  }
+
   [[nodiscard]] bool hasAliasInfo(const llvm::Function &Fun) const;
 
   void computeAliasInfo(llvm::Function &Fun);
 
   // -- data members
-
-  struct Impl;
-  std::unique_ptr<Impl> PImpl;
-  AliasAnalysisType PATy;
+  llvm::PassBuilder PB;
+  llvm::FunctionAnalysisManager FAM;
+  llvm::FunctionPassManager FPM;
   llvm::DenseMap<const llvm::Function *, llvm::AAResults *> AAInfos;
 };
 

@@ -11,6 +11,7 @@
 #define PHASAR_CONTROLFLOW_CALLGRAPHBASE_H
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
 namespace psr {
@@ -22,7 +23,10 @@ template <typename T> struct CGTraits {
 /// Base class of all CallGraph implementations within phasar (currently only
 /// CallGraph<N, F>).
 /// Only represents the data, not how to create it.
-template <typename Derived> class CallGraphBase {
+template <typename Derived> class CallGraphBase : public CRTPBase<Derived> {
+  friend Derived;
+  using CRTPBase<Derived>::self;
+
 public:
   using n_t = typename CGTraits<Derived>::n_t;
   using f_t = typename CGTraits<Derived>::f_t;
@@ -45,11 +49,6 @@ public:
     static_assert(
         is_iterable_over_v<decltype(self().getCallersOfImpl(Fun)), n_t>);
     return self().getCallersOfImpl(Fun);
-  }
-
-private:
-  const Derived &self() const noexcept {
-    return static_cast<const Derived &>(*this);
   }
 };
 } // namespace psr

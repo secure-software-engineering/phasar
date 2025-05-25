@@ -14,10 +14,10 @@
 #include "phasar/Utils/ByRef.h"
 
 #include <cassert>
+#include <memory>
 #include <optional>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 namespace psr {
 
@@ -29,7 +29,7 @@ struct PointsToTraits<PointsToInfoRef<PTATraits>> : PTATraits {};
 template <typename PTATraits>
 struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 
-/// A type-erased reference to any object implementing th PointsToInfoBase
+/// A type-erased reference to any object implementing the PointsToInfoBase
 /// interface. Use this, if your analysis is not tied to a specific points-to
 /// info implementation.
 ///
@@ -87,7 +87,6 @@ private:
     PointsToSetPtrTy (*GetPointsToSet)(const void *, ByConstRef<o_t>,
                                        ByConstRef<n_t>);
 
-    std::vector<v_t> (*GetInterestingPointersAt)(const void *, ByConstRef<n_t>);
     void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
@@ -119,15 +118,6 @@ private:
            ByConstRef<n_t> AtInstruction) {
           return static_cast<const ConcretePTA *>(PT)->getPointsToSet(
               Pointer, AtInstruction);
-        },
-        [](const void *PT, ByConstRef<n_t> AtInstruction) {
-          std::vector<v_t> Ret;
-          for (ByConstRef<v_t> Ptr :
-               static_cast<const ConcretePTA *>(PT)->getInterestingPointersAt(
-                   AtInstruction)) {
-            Ret.push_back(Ptr);
-          }
-          return Ret;
         },
         [](const void *PT) noexcept {
           delete static_cast<const ConcretePTA *>(PT);
@@ -164,7 +154,7 @@ private:
   }
 
   [[nodiscard]] std::optional<v_t>
-  asPointerOrNull(ByConstRef<o_t> Obj) const noexcept {
+  asPointerOrNullImpl(ByConstRef<o_t> Obj) const noexcept {
     assert(VT);
     return VT->AsPointerOrNull(PT, Obj);
   }
@@ -201,18 +191,12 @@ private:
     return VT->GetPointsToSetV(PT, Pointer, AtInstruction);
   }
 
-  std::vector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> AtInstruction) const {
-    assert(VT);
-    return VT->GetInterestingPointersAt(PT, AtInstruction);
-  }
-
   // ---
   const void *PT{};
   const VTable<> *VT{};
 };
 
-/// Similar to PointsToInfoRef, but owns the held reference. Us this, if you
+/// Similar to PointsToInfoRef, but owns the held reference. Use this, if you
 /// need to decide dynamically, which points-to info implementation to use.
 ///
 /// Implicitly convertible to PointsToInfoRef.
@@ -232,12 +216,13 @@ public:
 
   PointsToInfo() noexcept = default;
   PointsToInfo(std::nullptr_t) noexcept {};
+
   PointsToInfo(const PointsToInfo &) = delete;
   PointsToInfo &operator=(const PointsToInfo &) = delete;
+
   PointsToInfo(PointsToInfo &&Other) noexcept { swap(Other); }
   PointsToInfo &operator=(PointsToInfo &&Other) noexcept {
-    auto Cpy{std::move(Other)};
-    swap(Cpy);
+    PointsToInfo(std::move(Other)).swap(*this);
     return *this;
   }
 
@@ -254,6 +239,10 @@ public:
                         ArgTys &&...Args)
       : PointsToInfoRef<PTATraits>(
             new ConcretePTA(std::forward<ArgTys>(Args)...)) {}
+
+  template <typename ConcretePTA>
+  PointsToInfo(std::unique_ptr<ConcretePTA> PTA)
+      : PointsToInfoRef<PTATraits>(PTA.release()) {}
 
   ~PointsToInfo() noexcept {
     if (*this) {
