@@ -31,7 +31,7 @@ template <typename AnalysisDomainTy> struct Warning {
 };
 
 /// \brief A default implementation of the AnalysisPrinterBase. Aggregates all
-/// analysis results in a vector and prints them when the analysis has finished.
+/// analysis results in a vector and prints them when the analysis is finished.
 template <typename AnalysisDomainTy>
 class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using n_t = typename AnalysisDomainTy::n_t;

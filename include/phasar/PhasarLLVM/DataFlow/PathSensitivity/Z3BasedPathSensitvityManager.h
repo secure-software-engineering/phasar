@@ -95,7 +95,7 @@ public:
     }
   }
 
-  /// Reconstruct the feasible combined control- and data-flow paths the lead to
+  /// Reconstruct the feasible control- and data-flow paths the lead to
   /// the given data-flow fact Fact holding right after Inst.
   ///
   /// The result is given as list of paths, where cycles are unrolled once in an

@@ -13,7 +13,7 @@
 #include <cassert>
 namespace psr {
 
-/// This class implements the AnalysisPrinterBase that printf the analysis
+/// This class implements the AnalysisPrinterBase that prints the analysis
 /// results *while* the analysis is still running.
 ///
 /// Override doOnResult() to customize, how the results are printed.

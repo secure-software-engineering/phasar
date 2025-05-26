@@ -20,8 +20,11 @@ class raw_ostream;
 
 namespace psr {
 
-/// @brief PhasarPass is an implementation of llvm passes for the PhASAR
+/// \brief PhasarPass is an implementation of llvm passes for the PhASAR
 /// framework.
+///
+/// Allows to run phasar-based analyses with LLVM's pass manager for easy
+/// integration into opt/clang.
 ///
 /// What is a pass?
 /// "The LLVM pass framework is an important part of the LLVM system,

@@ -36,8 +36,8 @@ template <typename T, typename F> class TypeHierarchy;
 template <typename N, typename F> class CFG;
 
 /// \brief The analysis problem interface for intraprocedural monotone problems
-/// (solvable by the IntraMonoSolver). Subclass this and override all
-/// pure-virtual functions to create your own mono analysis.
+/// (solvable by the IntraMonoSolver). Create a subclass from this and override
+/// all pure-virtual functions to create your own mono analysis.
 template <typename AnalysisDomainTy> class IntraMonoProblem {
 public:
   using n_t = typename AnalysisDomainTy::n_t;
@@ -66,7 +66,7 @@ public:
   /// An intraprocedural monotone problem generated from an intermediate
   /// representation, a type hierarchy of said representation, a control flow
   /// graph, points-to information and optionally a vector of entry points.
-  /// @param[in] IRDB A project IR data base.
+  /// @param[in] IRDB A project IR database.
   /// @param[in] TH A type hierarchy based on the given IRDB.
   /// @param[in] CF A control flow graph based on the given IRDB.
   /// @param[in] PT Points-to information based on the given IRDB.

@@ -27,8 +27,8 @@ namespace psr {
 /// equivalence classes regarding their mapped values.
 ///
 /// Meaning, that all keys that are equivalent are mapped to the same value. Two
-/// keys are treated as equivalent and merged into a equivalence class when they
-/// refer to Values that compare equal.
+/// keys are treated as equivalent and merged into an equivalence class when
+/// they refer to Values that are considered equal according to operator==.
 template <typename KeyT, typename ValueT> struct EquivalenceClassMap {
   template <typename... Ts> using SetType = std::set<Ts...>;
   using EquivalenceClassBucketT = std::pair<SetType<KeyT>, ValueT>;

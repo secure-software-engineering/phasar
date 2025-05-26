@@ -54,8 +54,8 @@ public:
 };
 
 /// \brief The analysis problem interface for IDE problems (solvable by the
-/// IDESolver). Subclass this and override all pure-virtual functions to create
-/// your own IDE analysis.
+/// IDESolver). Create a subclass from this and override all pure-virtual
+/// functions to create your own IDE analysis.
 ///
 /// For more information on how to write an IDE analysis, see [Writing an IDE
 /// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IDE-analysis)
@@ -79,13 +79,14 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
-  /// Takes an IR data base (IRDB) and collects information from it to create a
+  /// Takes an IR database (IRDB) and collects information from it to create a
   /// tabulation problem.
-  /// @param[in] IRDB The project IR data base, that holds the code under
+  /// @param[in] IRDB The project IR database, that holds the code under
   /// analysis
   /// @param[in] EntryPoints The (mangled) names of all entry functions of the
-  /// project, given as a vector of strings. An example would simply be
-  /// `{"main"}`. To set every function as entry point, pass `"__ALL__"`
+  /// target being analyzed, given as a vector of strings. An example would
+  /// simply be `{"main"}`. To set every function as entry point, pass
+  /// `"__ALL__"`
   /// @param[in] ZeroValue Provides the special tautological zero value (aka.
   /// Λ). If not provided here, you must set it via \link initializeZeroValue()
   /// \endlink.

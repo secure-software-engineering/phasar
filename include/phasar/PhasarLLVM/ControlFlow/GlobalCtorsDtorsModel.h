@@ -38,7 +38,7 @@ public:
 
   /// @brief Function that creates a new global model and inserts it into the
   /// IRDB. The returned function is the global model that was inserted.
-  /// @param[in, out] IRDB IR data base that will have the global model
+  /// @param[in, out] IRDB IR database that will have the global model
   /// inserted.
   /// @param[in] UserEntryPoints Entry points for the program given as
   /// llvm::Function pointers. You usually want to pass here the main function
@@ -48,7 +48,7 @@ public:
 
   /// @brief Function that creates a new global model and inserts it into the
   /// IRDB. The returned function is the global model that was inserted.
-  /// @param[in, out] IRDB IR data base that will have the global model
+  /// @param[in, out] IRDB IR database that will have the global model
   /// inserted.
   /// @param[in] UserEntryPoints Entry points for the program given as
   /// std::strings. You usually want to pass here the main function

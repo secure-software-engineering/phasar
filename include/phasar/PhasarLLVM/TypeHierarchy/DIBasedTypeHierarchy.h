@@ -25,7 +25,7 @@
 namespace psr {
 class LLVMProjectIRDB;
 
-/// \brief Represents the type hierarchy of a tha target program.
+/// \brief Represents the type hierarchy of the target program.
 ///
 /// \note This class only works, if the target program's IR was generated with
 /// debug information. Pass `-g` to the compiler to achieve this.
@@ -44,13 +44,13 @@ public:
       "__cxa_pure_virtual";
 
   /// \brief Creates a type hierarchy based on an intermediate representation
-  /// data base.
-  /// \param[in] IRDB The IR data base of which the type hierarchy will be based
+  /// database.
+  /// \param[in] IRDB The IR database of which the type hierarchy will be based
   /// upon. This MUST contain debug information for the algorithm to work!
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
 
   /// \brief Loads an already computed type hierarchy.
-  /// \param[in] IRDB The IR data base of the type hierarchy.
+  /// \param[in] IRDB The IR database of the type hierarchy.
   /// \param[in] SerializedData The already existing type hierarchy, given by
   /// the appropiate class DIBasedTypeHierarchyData, which contains all
   /// neccesary information.
