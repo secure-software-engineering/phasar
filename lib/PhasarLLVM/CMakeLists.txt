@@ -14,11 +14,14 @@ add_phasar_library(phasar_llvm
 
   LINKS
     phasar_utils
-    phasar_dataflow_ifdside_solver
+    phasar_llvm_utils
+    phasar_llvm_ifdside
     phasar_llvm_pointer
     phasar_llvm_db
     phasar_llvm_controlflow
     phasar_llvm_typehierarchy
+    phasar_taintconfig
+    phasar_passes
 
   LLVM_LINK_COMPONENTS
     Core

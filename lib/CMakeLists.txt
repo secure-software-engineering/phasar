@@ -1,12 +1,14 @@
 add_subdirectory(AnalysisStrategy)
-add_subdirectory(PhasarLLVM)
-add_subdirectory(PhasarPass)
-add_subdirectory(DB)
 add_subdirectory(Config)
-add_subdirectory(Utils)
-add_subdirectory(Pointer)
 add_subdirectory(ControlFlow)
 add_subdirectory(DataFlow)
+add_subdirectory(DB)
+add_subdirectory(Domain)
+add_subdirectory(PhasarLLVM)
+add_subdirectory(PhasarPass)
+add_subdirectory(Pointer)
+add_subdirectory(TypeHierarchy)
+add_subdirectory(Utils)
 
 if(BUILD_PHASAR_CLANG)
     if(PHASAR_IN_TREE)
@@ -20,26 +22,31 @@ if(PHASAR_BUILD_DYNLIB)
 endif()
 
 set(PHASAR_LINK_LIBS
+    phasar_analysis_strategy
     phasar_config
     phasar_controlflow
-    phasar_passes
-    phasar_pointer
-    phasar_utils
+    phasar_dataflow
+    phasar_dataflow_ifdside
+    phasar_dataflow_mono
+    phasar_dataflow_pathsensitivity
+    phasar_db
+    phasar_domain
 
+    phasar_llvm
     phasar_llvm_controlflow
-    phasar_llvm_dataflow_ifdside_solver
-    phasar_llvm_dataflow_ifdside_mono
-    phasar_llvm_dataflow_ifdside_pathsensitivity
+    phasar_llvm_ifdside
     phasar_llvm_db
     phasar_llvm_pointer
     phasar_llvm_typehierarchy
     phasar_llvm_utils
 
-    phasar_taintconfig
     phasar_mono
-    phasar_llvm
-    phasar_llvm_ifdside
-    phasar_analysis_strategy
+    phasar_pass
+    phasar_passes
+    phasar_pointer
+    phasar_taintconfig
+    phasar_typehierarchy
+    phasar_utils
 )
 if(BUILD_PHASAR_CLANG)
     list(APPEND PHASAR_LINK_LIBS phasar_clang)

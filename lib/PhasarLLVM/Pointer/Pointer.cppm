@@ -18,4 +18,7 @@ using psr::LLVMAliasInfoRef;
 using psr::LLVMAliasSet;
 using psr::LLVMAliasSetData;
 using psr::LLVMBasedAliasAnalysis;
+using LLVMAliasInfoRef =
+    AliasInfoRef<const llvm::Value *, const llvm::Instruction *>;
+using LLVMAliasInfo = AliasInfo<const llvm::Value *, const llvm::Instruction *>;
 } // namespace psr

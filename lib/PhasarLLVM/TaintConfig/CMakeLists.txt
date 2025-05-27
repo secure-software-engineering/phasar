@@ -17,5 +17,5 @@ add_phasar_library(phasar_taintconfig
     Support
 
   MODULE_FILES
-    PhasarLLVMTaintConfig.cppm
+    TaintConfig.cppm
 )

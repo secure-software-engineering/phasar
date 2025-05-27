@@ -13,5 +13,5 @@ add_phasar_library(phasar_llvm_db
     IRReader
 
   MODULE_FILES
-    PhasarLLVMDB.cppm
+    DB.cppm
 )

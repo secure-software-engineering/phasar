@@ -6,7 +6,7 @@ add_phasar_library(phasar_controlflow
   LINKS
     phasar_utils
 
-    LLVM_LINK_COMPONENTS
+  LLVM_LINK_COMPONENTS
     Support
 
   LINK_PRIVATE

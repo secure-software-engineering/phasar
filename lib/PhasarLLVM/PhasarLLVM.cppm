@@ -4,10 +4,13 @@ module;
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 
 export module phasar.llvm;
-import phasar.llvm.db;
-import phasar.llvm.typehierarchy;
-import phasar.llvm.controlflow;
-import phasar.llvm.pointer;
+
+export import phasar.llvm.controlflow;
+export import phasar.llvm.dataflow.ifdside;
+export import phasar.llvm.db;
+export import phasar.llvm.pointer;
+export import phasar.llvm.typehierarchy;
+export import phasar.llvm.utils;
 
 export namespace psr {
 using psr::createAnalysisProblem;
