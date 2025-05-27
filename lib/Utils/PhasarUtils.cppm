@@ -50,33 +50,19 @@ using psr::AnalysisProperties;
 using psr::GraphTraits;
 using psr::to_string;
 using psr::operator<<;
+using detail::printHelper;
+using detail::printTuple;
 using internal::getWords;
 using internal::isLess;
 using psr::AnalysisPropertiesMixin;
 using psr::BitVectorSet;
-using psr::intersectWith;
-using psr::Sampler;
-/* From BitVectorSet
-namespace std {
-template <typename T> struct hash<psr::BitVectorSet<T>> {
-  size_t operator()(const psr::BitVectorSet<T> &BVS) noexcept {
-    return hash_value(BVS);
-  }
-};
-*/
-// using std::hash;
 using psr::BoxedConstPtr;
 using psr::BoxedPtr;
-/* From BoxedPointer.h
-namespace llvm {
-template <typename C> struct DenseMapInfo<psr::BoxedPtr<C>> {
-*/
-// using llvm::DenseMapInfo;
-using detail::printHelper;
-using detail::printTuple;
 using psr::CanEfficientlyPassByValue;
 using psr::hms;
+using psr::intersectWith;
 using psr::PrettyPrinter;
+using psr::Sampler;
 using psr::operator<<;
 using psr::createEquivalentGraphFrom;
 using psr::DefaultAnalysisPrinter;
@@ -100,6 +86,8 @@ using psr::operator|=;
 using psr::operator^;
 using psr::operator^=;
 using psr::operator~;
+using detail::HasJoinLatticeTraitsHelper;
+using detail::MaybeUniquePtrBase;
 using psr::DefaultNodeTransform;
 using psr::EquivalenceClassMap;
 using psr::EquivalenceClassMapNG;
@@ -108,14 +96,12 @@ using psr::getOrNull;
 using psr::getOrThrow;
 using psr::GraphTraits;
 using psr::hasFlag;
-// using psr::is_graph;
-// using psr::is_graph_edge;
-// using psr::is_graph_trait;
-using detail::HasJoinLatticeTraitsHelper;
-using detail::MaybeUniquePtrBase;
 using psr::InitPhasar;
 using psr::iota;
 using psr::IotaIterator;
+using psr::is_graph;
+using psr::is_graph_edge;
+using psr::is_graph_trait;
 using psr::is_removable_graph_trait_v;
 using psr::is_reservable_graph_trait_v;
 using psr::JoinLattice;
@@ -195,7 +181,7 @@ using psr::has_getAsJson;
 using psr::has_getHashCode;
 using psr::has_isInteresting;
 using psr::has_isInteresting_v;
-using psr::has_llvm_dense_map_info;
+// using psr::has_llvm_dense_map_info;
 using psr::has_std_hash;
 using psr::has_str_v;
 using psr::HasDepth;
@@ -232,5 +218,5 @@ using psr::Timer;
 using psr::TrueFn;
 using psr::UnorderedSet;
 using psr::UnorderedTable1d;
-using psr::variant_idx;
+// using psr::variant_idx;
 } // namespace psr

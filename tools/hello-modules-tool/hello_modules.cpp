@@ -4,12 +4,17 @@
 #include <string>
 #include <vector>
 
+import phasar.analysisstrategy;
+import phasar.config;
+import phasar.controlflow;
+import phasar.dataflow;
 import phasar.db;
+import phasar.domain;
 import phasar.llvm;
-import phasar.dataflow_ifdside_solver;
-// import phasar.dataflow;
-// TODO: more phasar imports here
-// TODO: The whole content of myphasartool should work with modules!
+import phasar.phasarpass;
+import phasar.pointer;
+import phasar.typehierarchy;
+import phasar.utils;
 
 using namespace psr;
 

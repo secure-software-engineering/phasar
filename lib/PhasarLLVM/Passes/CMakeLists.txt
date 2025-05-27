@@ -13,5 +13,5 @@ add_phasar_library(phasar_passes
     Demangle
 
   MODULE_FILES
-    PhasarLLVMPasses.cppm
+    Passes.cppm
 )

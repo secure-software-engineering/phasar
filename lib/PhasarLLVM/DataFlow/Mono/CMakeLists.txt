@@ -15,5 +15,5 @@ add_phasar_library(phasar_mono
     Support
 
   MODULE_FILES
-    PhasarLLVMDataFlowMono.cppm
+    Mono.cppm
 )

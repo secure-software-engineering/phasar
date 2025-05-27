@@ -18,5 +18,5 @@ add_phasar_library(phasar_llvm_typehierarchy
     ${Boost_LIBRARIES}
 
   MODULE_FILES
-    PhasarLLVMTypeHierarchy.cppm
+    TypeHierarchy.cppm
 )

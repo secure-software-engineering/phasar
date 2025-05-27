@@ -15,5 +15,5 @@ add_phasar_library(phasar_llvm_controlflow
     Demangle
 
   MODULE_FILES
-    PhasarLLVMControlFlow.cppm
+    ControlFlow.cppm
 )

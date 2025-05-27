@@ -43,5 +43,5 @@ add_phasar_library(phasar_llvm_pathsensitivity
     ${ADDITIONAL_LINK_LIBS}
 
   MODULE_FILES
-    PhasarLLVMDataFlowPathSensitivity.cppm
+    PathSensitivity.cppm
 )
