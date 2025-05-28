@@ -8,7 +8,6 @@ module;
 export module phasar.dataflow.pathsensitivity;
 
 export namespace psr {
-using detail::False2;
 using psr::ExplodedSuperGraph;
 using psr::FlowPath;
 using psr::is_pathtracingfilter_for;

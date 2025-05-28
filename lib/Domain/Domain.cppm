@@ -7,8 +7,6 @@ module;
 export module phasar.domain;
 
 export namespace psr {
-using detail::HasBinaryValueDomain;
-using detail::WithBinaryValueDomainExtender;
 using psr::AnalysisDomain;
 using psr::BinaryDomain;
 using psr::to_string;
@@ -23,5 +21,8 @@ using psr::JoinLatticeTraits;
 using psr::LatticeDomain;
 using psr::NonTopBotValue;
 using psr::Top;
-using std::hash;
 } // namespace psr
+
+export namespace std {
+using std::hash;
+} // namespace std

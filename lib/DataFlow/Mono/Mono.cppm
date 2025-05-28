@@ -13,5 +13,8 @@ using psr::InterMonoProblem;
 using psr::InterMonoSolver;
 using psr::IntraMonoProblem;
 using psr::IntraMonoSolver;
-using std::hash;
 } // namespace psr
+
+export namespace std {
+using std::hash;
+} // namespace std
