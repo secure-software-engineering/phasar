@@ -128,8 +128,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="classpsr_1_1CFG.html">   36</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> N, <span class="keyword">typename</span> F&gt; <span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1CFG.html">CFG</a>;</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="comment"></span> </div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">/// \brief The analysis problem interface for intraprocedural monotone problems</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">/// (solvable by the IntraMonoSolver). Subclass this and override all</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">/// pure-virtual functions to create your own mono analysis.</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">/// (solvable by the IntraMonoSolver). Create a subclass from this and override</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">/// all pure-virtual functions to create your own mono analysis.</span></div>
 <div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="classpsr_1_1IntraMonoProblem.html">   41</a></span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> AnalysisDomainTy&gt; <span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1IntraMonoProblem.html">IntraMonoProblem</a> {</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="keyword">public</span>:</div>
@@ -159,7 +159,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="comment">  /// An intraprocedural monotone problem generated from an intermediate</span></div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="comment">  /// representation, a type hierarchy of said representation, a control flow</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="comment">  /// graph, points-to information and optionally a vector of entry points.</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="comment">  /// @param[in] IRDB A project IR data base.</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="comment">  /// @param[in] IRDB A project IR database.</span></div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="comment">  /// @param[in] TH A type hierarchy based on the given IRDB.</span></div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="comment">  /// @param[in] CF A control flow graph based on the given IRDB.</span></div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="comment">  /// @param[in] PT Points-to information based on the given IRDB.</span></div>
@@ -266,7 +266,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 19 2025 16:55:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Wed May 28 2025 15:51:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

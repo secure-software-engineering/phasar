@@ -922,7 +922,7 @@
 <!-- Node44 -->
 <g id="Node000044" class="node">
 <title>Node44</title>
-<g id="a_Node000044"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri...">
+<g id="a_Node000044"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">
 <polygon fill="#fff0f0" stroke="red" points="1252,-1128.38 1070,-1128.38 1070,-1098.38 1252,-1098.38 1252,-1128.38"/>
 <text text-anchor="start" x="1078" y="-1116.38" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IDETabulationProblem</text>
 <text text-anchor="middle" x="1161" y="-1105.38" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>

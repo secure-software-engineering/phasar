@@ -20,7 +20,7 @@
 <area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="1808,556,1925,532,1986,514,2044,491,2102,457,2151,420,2154,424,2105,461,2046,496,1988,519,1927,537,1809,561"/>
 <area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="1555,317,1801,357"/>
 <area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1815,348,2046,373,2069,376,2069,382,2045,379,1815,353"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri..." alt="" coords="1557,253,1799,293"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="1557,253,1799,293"/>
 <area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="1813,293,1927,315,2046,344,2111,365,2109,370,2045,349,1926,321,1812,298"/>
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1301,158,1523,220,1619,251,1617,256,1522,225,1299,164"/>
 <area shape="rect" id="Node000012" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="1120,189,1292,229"/>

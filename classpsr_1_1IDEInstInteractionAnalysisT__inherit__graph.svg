@@ -22,7 +22,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri...">
+<g id="a_Node000002"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">
 <polygon fill="white" stroke="#666666" points="898,-116 716,-116 716,-86 898,-86 898,-116"/>
 <text text-anchor="start" x="724" y="-104" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IDETabulationProblem</text>
 <text text-anchor="middle" x="807" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>

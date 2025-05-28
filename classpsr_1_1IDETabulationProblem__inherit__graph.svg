@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri...">
+<g id="a_Node000001"><a xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">
 <polygon fill="#999999" stroke="#666666" points="898,-660.55 716,-660.55 716,-630.55 898,-630.55 898,-660.55"/>
 <text text-anchor="start" x="724" y="-648.55" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IDETabulationProblem</text>
 <text text-anchor="middle" x="807" y="-637.55" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>
@@ -117,7 +117,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="classpsr_1_1IFDSTabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Subclass this and over...">
+<g id="a_Node000023"><a xlink:href="classpsr_1_1IFDSTabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from...">
 <polygon fill="white" stroke="#666666" points="1408,-1156.55 1226,-1156.55 1226,-1126.55 1408,-1126.55 1408,-1156.55"/>
 <text text-anchor="start" x="1234" y="-1144.55" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IFDSTabulationProblem</text>
 <text text-anchor="middle" x="1317" y="-1133.55" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>

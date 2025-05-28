@@ -1,6 +1,6 @@
 <map id="psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;" name="psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1252,143,1508,198"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri..." alt="" coords="960,151,1203,191"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="960,151,1203,191"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1217,168,1252,168,1252,173,1217,173"/>
 <area shape="rect" id="Node000003" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="699,7,860,62"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="874,58,912,72,988,111,1051,148,1048,153,985,115,910,77,872,63"/>

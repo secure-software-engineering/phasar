@@ -91,7 +91,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>The analysis problem interface for intraprocedural monotone problems (solvable by the <a class="el" href="classpsr_1_1IntraMonoSolver.html" title="A solver class for intraprocedual monotone problems. To solve the problem, call solve().">IntraMonoSolver</a>). Subclass this and override all pure-virtual functions to create your own mono analysis.  
+<p>The analysis problem interface for intraprocedural monotone problems (solvable by the <a class="el" href="classpsr_1_1IntraMonoSolver.html" title="A solver class for intraprocedual monotone problems. To solve the problem, call solve().">IntraMonoSolver</a>). Create a subclass from this and override all pure-virtual functions to create your own mono analysis.  
  <a href="classpsr_1_1IntraMonoProblem.html#details">More...</a></p>
 
 <p><code>#include &quot;<a class="el" href="IntraMonoProblem_8h_source.html">phasar/DataFlow/Mono/IntraMonoProblem.h</a>&quot;</code></p>
@@ -174,7 +174,7 @@ Protected Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>&gt;<br />
-class psr::IntraMonoProblem&lt; AnalysisDomainTy &gt;</div><p>The analysis problem interface for intraprocedural monotone problems (solvable by the <a class="el" href="classpsr_1_1IntraMonoSolver.html" title="A solver class for intraprocedual monotone problems. To solve the problem, call solve().">IntraMonoSolver</a>). Subclass this and override all pure-virtual functions to create your own mono analysis. </p>
+class psr::IntraMonoProblem&lt; AnalysisDomainTy &gt;</div><p>The analysis problem interface for intraprocedural monotone problems (solvable by the <a class="el" href="classpsr_1_1IntraMonoSolver.html" title="A solver class for intraprocedual monotone problems. To solve the problem, call solve().">IntraMonoSolver</a>). Create a subclass from this and override all pure-virtual functions to create your own mono analysis. </p>
 
 <p class="definition">Definition at line <a class="el" href="IntraMonoProblem_8h_source.html#l00041">41</a> of file <a class="el" href="IntraMonoProblem_8h_source.html">IntraMonoProblem.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
@@ -432,7 +432,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>An intraprocedural monotone problem generated from an intermediate representation, a type hierarchy of said representation, a control flow graph, points-to information and optionally a vector of entry points. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">IRDB</td><td>A project IR data base. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">IRDB</td><td>A project IR database. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">TH</td><td>A type hierarchy based on the given IRDB. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">CF</td><td>A control flow graph based on the given IRDB. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">PT</td><td>Points-to information based on the given IRDB. </td></tr>
@@ -1045,7 +1045,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 19 2025 16:55:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Wed May 28 2025 15:51:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

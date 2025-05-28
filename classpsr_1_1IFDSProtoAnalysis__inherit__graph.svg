@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri...">
+<g id="a_Node000003"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">
 <polygon fill="white" stroke="#666666" points="898,-148.5 716,-148.5 716,-118.5 898,-118.5 898,-148.5"/>
 <text text-anchor="start" x="724" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IDETabulationProblem</text>
 <text text-anchor="middle" x="807" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>
@@ -78,7 +78,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri...">
+<g id="a_Node000012"><a xlink:href="classpsr_1_1IDETabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">
 <polygon fill="white" stroke="#666666" points="898,-74.5 716,-74.5 716,-44.5 898,-44.5 898,-74.5"/>
 <text text-anchor="start" x="724" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IDETabulationProblem</text>
 <text text-anchor="middle" x="807" y="-51.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>
@@ -249,7 +249,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="classpsr_1_1IFDSTabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Subclass this and over...">
+<g id="a_Node000011"><a xlink:href="classpsr_1_1IFDSTabulationProblem.html" target="_top" xlink:title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from...">
 <polygon fill="white" stroke="#666666" points="1117,-79.5 935,-79.5 935,-49.5 1117,-49.5 1117,-79.5"/>
 <text text-anchor="start" x="943" y="-67.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IFDSTabulationProblem</text>
 <text text-anchor="middle" x="1026" y="-56.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, Container &gt;</text>

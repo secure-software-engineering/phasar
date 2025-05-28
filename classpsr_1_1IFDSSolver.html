@@ -90,7 +90,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Solves the given <a class="el" href="classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Subclass this and over...">IFDSTabulationProblem</a> as described in the 1995 paper by Reps, Horwitz and Sagiv. To solve the problem, call <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a34f290e6789277fdb3529708fd953599">solve()</a>. Results can then be queried by using <a class="el" href="classpsr_1_1IDESolver.html#a9ec5e5680de8686a5a7a1746a4266815" title="Returns the L-type result for the given value at the given statement.">resultAt()</a> and <a class="el" href="classpsr_1_1IDESolver.html#ad80d6ac028c9a72c2f524b85ddd7bda5">resultsAt()</a>.  
+<p>Solves the given <a class="el" href="classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from...">IFDSTabulationProblem</a> as described in the 1995 paper by Reps, Horwitz and Sagiv. To solve the problem, call <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a34f290e6789277fdb3529708fd953599">solve()</a>. Results can then be queried by using <a class="el" href="classpsr_1_1IDESolver.html#a9ec5e5680de8686a5a7a1746a4266815" title="Returns the L-type result for the given value at the given statement.">resultAt()</a> and <a class="el" href="classpsr_1_1IDESolver.html#ad80d6ac028c9a72c2f524b85ddd7bda5">resultsAt()</a>.  
  <a href="classpsr_1_1IFDSSolver.html#details">More...</a></p>
 
 <p><code>#include &quot;<a class="el" href="IFDSSolver_8h_source.html">phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h</a>&quot;</code></p>
@@ -323,7 +323,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> = std::set&lt;typename AnalysisDomainTy::d_t&gt;&gt;<br />
-class psr::IFDSSolver&lt; AnalysisDomainTy, Container &gt;</div><p>Solves the given <a class="el" href="classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Subclass this and over...">IFDSTabulationProblem</a> as described in the 1995 paper by Reps, Horwitz and Sagiv. To solve the problem, call <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a34f290e6789277fdb3529708fd953599">solve()</a>. Results can then be queried by using <a class="el" href="classpsr_1_1IDESolver.html#a9ec5e5680de8686a5a7a1746a4266815" title="Returns the L-type result for the given value at the given statement.">resultAt()</a> and <a class="el" href="classpsr_1_1IDESolver.html#ad80d6ac028c9a72c2f524b85ddd7bda5">resultsAt()</a>. </p>
+class psr::IFDSSolver&lt; AnalysisDomainTy, Container &gt;</div><p>Solves the given <a class="el" href="classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from...">IFDSTabulationProblem</a> as described in the 1995 paper by Reps, Horwitz and Sagiv. To solve the problem, call <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a34f290e6789277fdb3529708fd953599">solve()</a>. Results can then be queried by using <a class="el" href="classpsr_1_1IDESolver.html#a9ec5e5680de8686a5a7a1746a4266815" title="Returns the L-type result for the given value at the given statement.">resultAt()</a> and <a class="el" href="classpsr_1_1IDESolver.html#ad80d6ac028c9a72c2f524b85ddd7bda5">resultsAt()</a>. </p>
 <dl class="section note"><dt>Note</dt><dd>PhASAR implements IFDS in terms of IDE, so in case you do not need the raw <a class="el" href="classpsr_1_1SolverResults.html">SolverResults</a>, for maximum performance you should use <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a3b43adbb547d0b56541bc06cab67017f">IFDSIDESolverConfig::setComputeValues(bool)</a> to disable IDE's phase 2. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00040">40</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
@@ -591,7 +591,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 19 2025 16:55:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Wed May 28 2025 15:51:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

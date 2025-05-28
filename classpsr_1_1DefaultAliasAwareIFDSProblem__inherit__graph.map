@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="2055,247,2309,273"/>
 <area shape="rect" id="Node000002" href="$classpsr_1_1IFDSTabulationProblem.html" title=" " alt="" coords="1765,207,2005,247"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2019,239,2069,245,2068,250,2018,244"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri..." alt="" coords="960,213,1203,253"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="960,213,1203,253"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1217,230,1765,225,1765,230,1217,235"/>
 <area shape="rect" id="Node000004" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="699,7,860,62"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="874,52,912,74,931,97,939,119,946,142,962,165,995,191,1031,211,1028,216,992,195,958,168,941,144,934,121,926,99,909,78,871,56"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Subclass this and overri..." alt="" coords="960,115,1203,155"/>
+<area shape="rect" id="Node000012" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="960,115,1203,155"/>
 <area shape="poly" id="edge12_Node000012_Node000004" title=" " alt="" coords="874,24,906,27,937,33,974,49,1008,70,1061,112,1058,116,1005,74,971,54,935,39,905,32,874,29"/>
 <area shape="rect" id="Node000005" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="396,7,599,62"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="612,32,698,32,698,37,612,37"/>
@@ -24,7 +24,7 @@
 <area shape="rect" id="Node000010" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="656,280,903,320"/>
 <area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="904,275,935,268,1006,251,1007,256,937,273,905,280"/>
 <area shape="poly" id="edge16_Node000012_Node000010" title=" " alt="" coords="881,273,909,258,925,244,934,230,943,215,958,199,996,173,1034,153,1036,157,998,178,962,203,947,219,938,233,929,248,912,262,884,277"/>
-<area shape="rect" id="Node000011" href="$classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Subclass this and over..." alt="" coords="1252,149,1495,189"/>
+<area shape="rect" id="Node000011" href="$classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from..." alt="" coords="1252,149,1495,189"/>
 <area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="1509,182,1765,211,1765,216,1508,187"/>
 <area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1216,148,1252,152,1251,158,1216,153"/>
 <area shape="rect" id="Node000013" title=" " alt="" coords="1789,271,1981,311"/>

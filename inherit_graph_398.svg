@@ -22,7 +22,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:href="classpsr_1_1DIBasedTypeHierarchy.html" target="_top" xlink:title="Represents the type hierarchy of a tha target program.">
+<g id="a_Node000001"><a xlink:href="classpsr_1_1DIBasedTypeHierarchy.html" target="_top" xlink:title="Represents the type hierarchy of the target program.">
 <polygon fill="white" stroke="#666666" points="333,-30 185,-30 185,-11 333,-11 333,-30"/>
 <text text-anchor="middle" x="259" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">psr::DIBasedTypeHierarchy</text>
 </a>
