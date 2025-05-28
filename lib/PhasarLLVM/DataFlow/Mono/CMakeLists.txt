@@ -1,6 +1,6 @@
 file(GLOB_RECURSE MONO_SRC *.h *.cpp)
 
-add_phasar_library(phasar_mono
+add_phasar_library(phasar_llvm_mono
   ${MONO_SRC}
 
   LINKS

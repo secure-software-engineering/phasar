@@ -20,7 +20,6 @@ using psr::toDataFlowAnalysisType;
 using psr::toString;
 using psr::VarAnnotation;
 using psr::operator<<;
-using detail::SourceMgrPrinterBase;
 using psr::appendAllExitPoints;
 using psr::computeModuleHash;
 using psr::DebugLocation;
