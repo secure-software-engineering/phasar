@@ -7,8 +7,12 @@ module;
 export module phasar.db;
 
 export namespace psr {
+#ifndef PHASAR_HAS_SQLITE
+#error                                                                         \
+    "Hexastore requires SQLite3. Please install libsqlite3-dev and reconfigure PhASAR."
 using psr::Hexastore;
 using psr::HSResult;
+#endif
 using psr::INIT;
 using psr::IRDBGetFunctionDef;
 using psr::OPSInsert;

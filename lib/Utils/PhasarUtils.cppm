@@ -93,9 +93,11 @@ using psr::hasFlag;
 using psr::InitPhasar;
 using psr::iota;
 using psr::IotaIterator;
+#if __cplusplus >= 202002L
 using psr::is_graph;
 using psr::is_graph_edge;
 using psr::is_graph_trait;
+#endif
 using psr::is_removable_graph_trait_v;
 using psr::is_reservable_graph_trait_v;
 using psr::JoinLattice;
@@ -196,8 +198,3 @@ using psr::UnorderedSet;
 using psr::UnorderedTable1d;
 // using psr::variant_idx;
 } // namespace psr
-
-export namespace psr::internal {
-using psr::internal::getWords;
-using psr::internal::isLess;
-} // namespace psr::internal
