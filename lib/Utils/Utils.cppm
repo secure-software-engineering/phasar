@@ -93,11 +93,9 @@ using psr::hasFlag;
 using psr::InitPhasar;
 using psr::iota;
 using psr::IotaIterator;
-#if __cplusplus >= 202002L
 using psr::is_graph;
 using psr::is_graph_edge;
 using psr::is_graph_trait;
-#endif
 using psr::is_removable_graph_trait_v;
 using psr::is_reservable_graph_trait_v;
 using psr::JoinLattice;
@@ -159,7 +157,7 @@ using psr::has_erase_iterator_v;
 using psr::has_getAsJson;
 using psr::has_getHashCode;
 using psr::has_isInteresting_v;
-// using psr::has_llvm_dense_map_info;
+using psr::has_llvm_dense_map_info;
 using psr::has_std_hash;
 using psr::has_str_v;
 using psr::HasDepth;
@@ -196,5 +194,6 @@ using psr::Timer;
 using psr::TrueFn;
 using psr::UnorderedSet;
 using psr::UnorderedTable1d;
+using psr::variant_idx;
 // using psr::variant_idx;
 } // namespace psr

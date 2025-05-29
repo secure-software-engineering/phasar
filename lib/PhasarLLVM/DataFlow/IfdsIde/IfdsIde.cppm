@@ -1,6 +1,7 @@
 module;
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AllSanitized.h"
@@ -42,9 +43,6 @@ module;
 export module phasar.llvm.dataflow.ifdside;
 
 export namespace psr {
-using GenEdgeFunction = ConstantEdgeFunction<XTaint::EdgeDomain>;
-using LeakMap_t = std::unordered_map<const llvm::Instruction *,
-                                     llvm::SmallSet<const llvm::Value *, 1>>;
 using psr::AbstractMemoryLocation;
 using psr::AbstractMemoryLocationFactory;
 using psr::BasicBlockOrdering;
@@ -108,6 +106,7 @@ using psr::JoinLatticeTraits;
 using psr::to_string;
 using psr::operator<<;
 using psr::CSTDFILEIOTypeStateDescription;
+using psr::getLibCSummary;
 using psr::IDETypeStateAnalysis;
 using psr::OpenSSLEVPKDFCTXDescription;
 using psr::OpenSSLEVPKDFCTXState;
@@ -124,13 +123,11 @@ using psr::TypeStateDescriptionBase;
 
 export namespace std {
 using std::hash;
-using std::invoke_result_t;
 } // namespace std
 
 export namespace psr::library_summary {
 using psr::library_summary::DataFlowFact;
 using psr::library_summary::FunctionDataFlowFacts;
-// using psr::library_summary::getLibCSummary;
 using psr::library_summary::LLVMFunctionDataFlowFacts;
 using psr::library_summary::Parameter;
 using psr::library_summary::readFromFDFF;
@@ -138,12 +135,7 @@ using psr::library_summary::ReturnValue;
 } // namespace psr::library_summary
 
 export namespace llvm {
-using llvm::CallBase;
 using llvm::DenseMapInfo;
-using llvm::Function;
-using llvm::Instruction;
-using llvm::ReturnInst;
-using llvm::Value;
 } // namespace llvm
 
 export namespace psr::XTaint {
@@ -159,20 +151,18 @@ using psr::XTaint::TransferEdgeFunction;
 
 namespace psr::glca {
 using psr::glca::BinaryEdgeFunction;
+using psr::glca::compare;
 using psr::glca::EdgeValue;
 using psr::glca::EdgeValueSet;
 using psr::glca::isConstant;
-using psr::glca::Ordering;
-using ev_t = EdgeValueSet;
-using psr::glca::compare;
 using psr::glca::join;
+using psr::glca::Ordering;
 using psr::glca::performBinOp;
 using psr::glca::performTypecast;
 using psr::glca::operator<;
 using psr::glca::isTopValue;
 using psr::glca::operator<<;
 using psr::glca::EdgeValueSet;
-using GenConstant = ConstantEdgeFunction<EdgeValueSet>;
 using psr::glca::LCAEdgeFunctionComposer;
 using psr::glca::MapFactsToCalleeFlowFunction;
 using psr::glca::MapFactsToCallerFlowFunction;

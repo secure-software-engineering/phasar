@@ -12,9 +12,6 @@ using psr::BinaryDomain;
 using psr::to_string;
 using psr::operator<<;
 using psr::operator==;
-#if __cplusplus < 202002L
-using psr::operator!=;
-#endif
 using psr::operator<;
 using psr::Bottom;
 using psr::JoinLatticeTraits;

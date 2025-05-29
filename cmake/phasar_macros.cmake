@@ -278,16 +278,25 @@ function(add_phasar_library name)
   target_compile_features(${name} PUBLIC cxx_std_17)
 
   set(install_module)
-  if(PHASAR_BUILD_MODULES AND PHASAR_LIB_MODULE_FILES)
-    target_sources(${name} PUBLIC
-      FILE_SET cxx_modules
-      TYPE CXX_MODULES
-      FILES ${PHASAR_LIB_MODULE_FILES}
-    )
+  if(PHASAR_LIB_MODULE_FILES)
+    if(PHASAR_BUILD_MODULES)
+      target_sources(${name} PUBLIC
+        FILE_SET cxx_modules
+        TYPE CXX_MODULES
+        FILES ${PHASAR_LIB_MODULE_FILES}
+      )
 
-    target_compile_features(${name} PUBLIC cxx_std_20)
+      target_compile_features(${name} PUBLIC cxx_std_20)
 
-    set(install_module FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      set(install_module FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    elseif(NOT srcs)
+      # Add dummy src to prevent cmake error
+      set(dummy_src "${CMAKE_CURRENT_BINARY_DIR}/${name}_dummysrc.cpp")
+      if(NOT EXISTS "${dummy_src}")
+        file(WRITE "${dummy_src}" "")
+      endif()
+      target_sources(${name} PRIVATE "${dummy_src}")
+    endif()
   endif()
 
   if(LLVM_COMMON_DEPENDS)

@@ -21,7 +21,7 @@ add_phasar_library(phasar_utils
     nlohmann_json::nlohmann_json
 
   MODULE_FILES
-    PhasarUtils.cppm
+    Utils.cppm
 )
 
 set_target_properties(phasar_utils

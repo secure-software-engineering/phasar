@@ -27,13 +27,6 @@ using psr::LLVMBasedCFG;
 using psr::LLVMBasedICFG;
 } // namespace psr
 
-namespace llvm {
-using llvm::Function;
-using llvm::Instruction;
-using llvm::StructType;
-using llvm::Value;
-} // namespace llvm
-
 namespace std {
 using std::hash;
 } // namespace std
