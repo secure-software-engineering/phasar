@@ -18,6 +18,10 @@
 namespace psr {
 template <typename T, typename Enable = void> class Compressor;
 
+/// \brief A utility class that assigns a sequential Id to every inserted
+/// object.
+///
+/// This specialization handles types that can be efficiently passed by value
 template <typename T>
 class Compressor<T, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
 public:
@@ -61,6 +65,10 @@ private:
   llvm::SmallVector<T, 0> FromInt;
 };
 
+/// \brief A utility class that assigns a sequential Id to every inserted
+/// object.
+///
+/// This specialization handles types that cannot be efficiently passed by value
 template <typename T>
 class Compressor<T, std::enable_if_t<!CanEfficientlyPassByValue<T>>> {
 public:
@@ -69,6 +77,9 @@ public:
     ToInt.reserve(Capacity);
   }
 
+  /// Returns the index of the given element in the compressors storage. If the
+  /// element isn't present yet, it will be added first and its index will
+  /// then be returned.
   uint32_t getOrInsert(const T &Elem) {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;
@@ -79,6 +90,9 @@ public:
     return Ret;
   }
 
+  /// Returns the index of the given element in the compressors storage. If the
+  /// element isn't present yet, it will be added first and its index will
+  /// then be returned.
   uint32_t getOrInsert(T &&Elem) {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;
@@ -89,6 +103,8 @@ public:
     return Ret;
   }
 
+  /// Returns the index of the given element in the compressors storage. If the
+  /// element isn't present, std::nullopt will be returned
   std::optional<uint32_t> getOrNull(const T &Elem) const {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;

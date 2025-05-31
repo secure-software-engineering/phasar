@@ -29,6 +29,10 @@ namespace psr {
 
 class LLVMProjectIRDB;
 
+/// \brief Wrapper over alias analyses that provide point-wise alias
+/// information.
+///
+/// Used to construct an LLVMAliasSet.
 class LLVMBasedAliasAnalysis : public AliasAnalysisView {
 public:
   explicit LLVMBasedAliasAnalysis(

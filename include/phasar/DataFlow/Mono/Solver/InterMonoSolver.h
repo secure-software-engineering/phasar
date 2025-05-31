@@ -27,6 +27,12 @@
 
 namespace psr {
 
+/// \brief A solver class for interprocedual monotone problems (derived from
+/// InterMonoProblem). To solve the problem, call solve().
+///
+/// \tparam AnalysisDomainTy type of the analysis domain.
+/// \tparam K An unsigned integer used as the maximum length for call-string
+/// contexts.
 template <typename AnalysisDomainTy, unsigned K> class InterMonoSolver {
 public:
   using ProblemTy = InterMonoProblem<AnalysisDomainTy>;

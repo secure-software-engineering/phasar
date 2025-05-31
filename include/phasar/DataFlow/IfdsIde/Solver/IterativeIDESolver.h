@@ -50,7 +50,7 @@ namespace psr {
 /// This solver implements the optimizations and the $JF_N$ layout from the
 /// paper "Scaling Interprocedural Static Data-Flow Analysis to Large C/C++
 /// Applications: An Experience Report"
-/// (https://doi.org/10.4230/LIPIcs.ECOOP.2024.36) by Schiebel, Sattler,
+/// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
 template <typename ProblemTy,
           typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>>

@@ -2,14 +2,27 @@
 
 @mainpage PhASAR: A LLVM-based Static Analysis Framework
 
-@author Philipp Schubert (E-Mail: philipp.schubert@upb.de) and others
+PhASAR is a LLVM-based static analysis framework written in C++. It allows users to specify arbitrary data-flow problems which are then solved in a fully-automated manner on the specified LLVM IR target code. Computing points-to information, call-graph(s), etc. is done by the framework, thus you can focus on what matters.
 
-\b Copyright \n
-	Copyright 2017 Philipp Schubert. All rights reserved.
+This page contains the generated code documentation of PhASAR.
+You can find the original source on GitHub: <https://github.com/secure-software-engineering/phasar>. The README should already give you a good first overview.
+
+For further information, please checkout PhASAR's [Wiki](https://github.com/secure-software-engineering/phasar/wiki).
+
+@subsubsection SSEG Secure Software Engineering Group
+
+PhASAR is primarily developed and maintained by the [Secure Software Engineering Group](https://www.hni.uni-paderborn.de/sse) at Heinz Nixdorf Institute (University of Paderborn) and [Fraunhofer IEM](https://www.iem.fraunhofer.de/).
+
+PhASAR was initially developed by Philipp Dominik Schubert (<a href="https://github.com/pdschubert">@pdschubert</a>)(<philipp.schubert@upb.de>).
+
+\b Currently, PhASAR is maintained by
+- Fabian Schiebel (<a href="https://github.com/fabianbs96">@fabianbs96</a>)(fabian.schiebel@iem.fraunhofer.de)
+- Sriteja Kummita (<a href="https://github.com/sritejakv">@sritejakv</a>)
+- Lucas Briese (<a href="https://github.com/jusito">@jusito</a>)
+- Martin Mory (<a href="https://github.com/MMory">@MMory</a>)(martin.mory@upb.de)
+- *others*
 
 \b License \n
-	See LICENSE.txt
-
-TODO: add detailed description.
+	PhASAR is made available under the permissive MIT License. See <a href="https://github.com/secure-software-engineering/phasar/blob/development/LICENSE.txt">LICENSE.txt</a>
 
 */

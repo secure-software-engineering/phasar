@@ -20,6 +20,7 @@ class raw_ostream;
 
 namespace psr {
 
+/// \brief A generic class to represent a virtual function table
 template <typename F> class VFTable {
 public:
   virtual ~VFTable() = default;

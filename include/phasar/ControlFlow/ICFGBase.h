@@ -36,7 +36,7 @@ public:
   }
 
   /// returns the function definition or declaration with the given name. If
-  /// ther eis no such function, returns a default constructed f_t (nullptr for
+  /// there is no such function, returns a default constructed f_t (nullptr for
   /// pointers).
   [[nodiscard]] f_t getFunction(llvm::StringRef Fun) const {
     return self().getFunctionImpl(Fun);

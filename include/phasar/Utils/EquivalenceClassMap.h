@@ -23,11 +23,12 @@
 
 namespace psr {
 
-// EquivalenceClassMap is a special map type that splits the keys into
-// equivalence classes regarding their mapped values. Meaning, that all keys
-// that are equivalent are mapped to the same value. Two keys are treated as
-// equivalent and merged into a equivalence class when they refer to Values
-// that compare equal.
+/// \brief EquivalenceClassMap is a special map type that splits the keys into
+/// equivalence classes regarding their mapped values.
+///
+/// Meaning, that all keys that are equivalent are mapped to the same value. Two
+/// keys are treated as equivalent and merged into an equivalence class when
+/// they refer to Values that are considered equal according to operator==.
 template <typename KeyT, typename ValueT> struct EquivalenceClassMap {
   template <typename... Ts> using SetType = std::set<Ts...>;
   using EquivalenceClassBucketT = std::pair<SetType<KeyT>, ValueT>;
@@ -69,41 +70,41 @@ public:
     return llvm::make_range(begin(), end());
   }
 
-  // Inserts Key into the corresponding equivalence class for Value. If Value
-  // is not already in the map a new equivalence class is created.
+  /// Inserts Key into the corresponding equivalence class for Value. If Value
+  /// is not already in the map a new equivalence class is created.
   template <typename ValueType = ValueT>
   insert_return_type insert(const KeyT &Key, ValueType &&Value) {
     return try_emplace(Key, std::forward<ValueType>(Value));
   }
 
-  // Inserts Key into the corresponding equivalence class for Value. If Value
-  // is not already in the map a new equivalence class is created.
+  /// Inserts Key into the corresponding equivalence class for Value. If Value
+  /// is not already in the map a new equivalence class is created.
   template <typename ValueType = ValueT>
   insert_return_type insert(KeyT &&Key, ValueType &&Value) {
     return try_emplace(std::move(Key), std::forward<ValueType>(Value));
   }
 
-  // Inserts Key into the corresponding equivalence class for Value. If Value
-  // is not already in the map a new equivalence class is created.
+  /// Inserts Key into the corresponding equivalence class for Value. If Value
+  /// is not already in the map a new equivalence class is created.
   insert_return_type insert(const std::pair<KeyT, ValueT> &KVPair) {
     return try_emplace(KVPair.first, KVPair.second);
   }
 
-  // Inserts Key into the corresponding equivalence class for Value. If Value
-  // is not already in the map a new equivalence class is created.
+  /// Inserts Key into the corresponding equivalence class for Value. If Value
+  /// is not already in the map a new equivalence class is created.
   insert_return_type insert(std::pair<KeyT, ValueT> &&KVPair) {
     return try_emplace(std::move(KVPair.first), std::move(KVPair.second));
   }
 
-  // Insert a range of Key Values pairs into the map.
+  /// Insert a range of Key Values pairs into the map.
   template <typename InputIt> void insert(InputIt I, InputIt End) {
     for (; I != End; ++I) {
       try_emplace(I->first, I->second);
     }
   }
 
-  // Inserts Key into the corresponding equivalence class for Value. If Value
-  // is not already in the map a new equivalence class is created.
+  /// Inserts Key into the corresponding equivalence class for Value. If Value
+  /// is not already in the map a new equivalence class is created.
   template <typename... Ts>
   insert_return_type try_emplace(KeyT &&Key, Ts &&...Args) {
     ValueT Val{std::forward<Ts...>(Args...)};
@@ -118,8 +119,8 @@ public:
     return std::make_pair(StoredData.back().first.begin(), true);
   }
 
-  // Inserts Key into the corresponding equivalence class for Value. If Value
-  // is not already in the map a new equivalence class is created.
+  /// Inserts Key into the corresponding equivalence class for Value. If Value
+  /// is not already in the map a new equivalence class is created.
   template <typename... Ts>
   insert_return_type try_emplace(const KeyT &Key, Ts &&...Args) {
     ValueT Val{std::forward<Ts...>(Args...)};
@@ -134,7 +135,7 @@ public:
     return std::make_pair(StoredData.back().first.begin(), true);
   }
 
-  // Return 1 if the specified key is in the map, 0 otherwise.
+  /// Return 1 if the specified key is in the map, 0 otherwise.
   [[nodiscard]] inline size_type count(const KeyT &Key) const {
     for (auto &KVPair : StoredData) {
       if (KVPair.first.count(Key) >= 1) {
@@ -148,7 +149,7 @@ public:
     return StoredData.size();
   }
 
-  // Returns the size of the map, i.e., the number of equivalence classes.
+  /// Returns the size of the map, i.e., the number of equivalence classes.
   [[nodiscard]] inline size_type size() const {
     return numEquivalenceClasses();
   }
@@ -273,7 +274,7 @@ public:
     return Values.size();
   }
 
-  // Returns the size of the map, i.e., the number of equivalence classes.
+  /// Returns the size of the map, i.e., the number of equivalence classes.
   [[nodiscard]] inline size_t size() const noexcept {
     return numEquivalenceClasses();
   }
