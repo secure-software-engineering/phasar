@@ -168,7 +168,6 @@ private:
 
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
-
 // Copied from <https://en.cppreference.com/w/cpp/utility/variant/visit>
 template <class... Ts> struct Overloaded : Ts... {
   using Ts::operator()...;
