@@ -48,7 +48,7 @@ public:
   getCallToRetFlowFunctionImpl(n_t CallSite, n_t /*RetSite*/,
                                llvm::ArrayRef<f_t> /*Callees*/);
 
-private:
+protected:
   LLVMAliasInfoRef AS;
 };
 } // namespace detail

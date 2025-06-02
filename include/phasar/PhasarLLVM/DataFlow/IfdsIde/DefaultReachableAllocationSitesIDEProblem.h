@@ -1,6 +1,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTREACHABLEALLOCATIONSITESIDEPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTREACHABLEALLOCATIONSITESIDEPROBLEM_H
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
@@ -15,15 +16,25 @@ namespace psr {
 
 namespace detail {
 class IDEReachableAllocationSitesDefaultFlowFunctionsImpl
-    : private IDENoAliasDefaultFlowFunctionsImpl {
+    : private IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
-  using typename IDENoAliasDefaultFlowFunctionsImpl::d_t;
-  using typename IDENoAliasDefaultFlowFunctionsImpl::f_t;
-  using typename IDENoAliasDefaultFlowFunctionsImpl::FlowFunctionPtrType;
-  using typename IDENoAliasDefaultFlowFunctionsImpl::FlowFunctionType;
-  using typename IDENoAliasDefaultFlowFunctionsImpl::n_t;
+  using typename IDEAliasAwareDefaultFlowFunctionsImpl::d_t;
+  using typename IDEAliasAwareDefaultFlowFunctionsImpl::f_t;
+  using typename IDEAliasAwareDefaultFlowFunctionsImpl::FlowFunctionPtrType;
+  using typename IDEAliasAwareDefaultFlowFunctionsImpl::FlowFunctionType;
+  using typename IDEAliasAwareDefaultFlowFunctionsImpl::n_t;
 
-  using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
+  using IDEAliasAwareDefaultFlowFunctionsImpl::isFunctionModeled;
+
+  [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
+    return AS;
+  }
+
+  constexpr IDEReachableAllocationSitesDefaultFlowFunctionsImpl(
+      LLVMAliasInfoRef AS) noexcept
+      : IDEAliasAwareDefaultFlowFunctionsImpl(AS) {
+    assert(AS && "You must provide an alias information handle!");
+  }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
                                                               n_t /*Succ*/);
@@ -61,13 +72,19 @@ public:
 
   using container_type = typename FlowFunctionType::container_type;
 
+  /// Constructs an IDETabulationProblem with the usual arguments + alias
+  /// information.
+  ///
+  /// \note It is useful to use an instance of FilteredAliasSet for the alias
+  /// information to lower suprious aliases
   explicit DefaultReachableAllocationSitesIDEProblem(
-      const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
                                                std::move(ZeroValue)),
-        detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl() {}
+        detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl(AS) {}
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {

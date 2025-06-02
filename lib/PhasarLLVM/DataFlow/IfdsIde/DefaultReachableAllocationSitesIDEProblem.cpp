@@ -27,7 +27,29 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 
 static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
                                    const llvm::Instruction *Context) {
-  abort();
+  container_type Tmp = Facts;
+  for (const auto *Fact : Facts) {
+    auto Aliases = AS.getReachableAllocationSites(Fact, Context);
+    for (const auto *Alias : *Aliases) {
+      if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
+        if (Inst->getParent() == Context->getParent() &&
+            Context->comesBefore(Inst)) {
+          // We will see that inst later
+          continue;
+        }
+      }
+
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
+        // Handle at least one level of indirection...
+        const auto *PointerOp = Load->getPointerOperand()->stripPointerCasts();
+        Tmp.insert(PointerOp);
+      }
+
+      Tmp.insert(Alias);
+    }
+  }
+
+  Facts = std::move(Tmp);
 }
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
