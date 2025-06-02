@@ -24,7 +24,7 @@ namespace {
 class IDEAliasImpl : public DefaultAliasAwareIFDSProblem {
 public:
   IDEAliasImpl(LLVMProjectIRDB *IRDB)
-      : DefaultAliasAwareIFDSProblem(IRDB, &PT, {}, {}), PT(IRDB){};
+      : DefaultAliasAwareIFDSProblem(IRDB, &PT, {}, {}), PT(IRDB) {};
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
@@ -37,7 +37,17 @@ private:
 class IDENoAliasImpl : public DefaultNoAliasIFDSProblem {
 public:
   IDENoAliasImpl(LLVMProjectIRDB *IRDB)
-      : DefaultNoAliasIFDSProblem(IRDB, {}, {}){};
+      : DefaultNoAliasIFDSProblem(IRDB, {}, {}) {};
+
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+    return {};
+  };
+};
+
+class IDEReachableAllocationSitesImpl : public DefaultNoAliasIFDSProblem {
+public:
+  IDEReachableAllocationSitesImpl(LLVMProjectIRDB *IRDB)
+      : DefaultNoAliasIFDSProblem(IRDB, {}, {}) {};
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
@@ -63,6 +73,13 @@ getNormalFlowValueSet(const llvm::Instruction *Instr,
 }
 
 std::set<const llvm::Value *>
+getNormalFlowValueSet(const llvm::Instruction *Instr,
+                      IDEReachableAllocationSitesImpl &RASImpl,
+                      const llvm::Value *Arg) {
+  abort();
+}
+
+std::set<const llvm::Value *>
 getCallFlowValueSet(const llvm::Instruction *Instr, IDEAliasImpl &AliasImpl,
                     const llvm::Value *Arg, const llvm::Function *CalleeFunc) {
   const auto AliasCallFlowFunc =
@@ -80,6 +97,13 @@ getCallFlowValueSet(const llvm::Instruction *Instr, IDENoAliasImpl &NoAliasImpl,
   std::set<const llvm::Value *> NoAliasLLVMValueSet =
       NoAliasCallFlowFunc->computeTargets(Arg);
   return NoAliasLLVMValueSet;
+}
+
+std::set<const llvm::Value *>
+getCallFlowValueSet(const llvm::Instruction *Instr,
+                    IDEReachableAllocationSitesImpl &RASImpl,
+                    const llvm::Value *Arg, const llvm::Function *CalleeFunc) {
+  abort();
 }
 
 std::set<const llvm::Value *>
@@ -103,6 +127,13 @@ getRetFlowValueSet(const llvm::Instruction *Instr, IDENoAliasImpl &NoAliasImpl,
 }
 
 std::set<const llvm::Value *>
+getRetFlowValueSet(const llvm::Instruction *Instr,
+                   IDEReachableAllocationSitesImpl &RASImpl,
+                   const llvm::Value *Arg, const llvm::Instruction *ExitInst) {
+  abort();
+}
+
+std::set<const llvm::Value *>
 getCallToRetFlowValueSet(const llvm::Instruction *Instr,
                          IDEAliasImpl &AliasImpl, const llvm::Value *Arg) {
   const auto AliasCallToRetFlowFunc =
@@ -119,6 +150,13 @@ getCallToRetFlowValueSet(const llvm::Instruction *Instr,
   const auto NoAliasLLVMValueSet =
       NoAliasCallToRetFlowFunc->computeTargets(Arg);
   return NoAliasLLVMValueSet;
+}
+
+std::set<const llvm::Value *>
+getCallToRetFlowValueSet(const llvm::Instruction *Instr,
+                         IDEReachableAllocationSitesImpl &RASImpl,
+                         const llvm::Value *Arg) {
+  abort();
 }
 
 std::string stringifyValueSet(const std::set<const llvm::Value *> &Vals) {
