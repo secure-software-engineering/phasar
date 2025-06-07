@@ -18,8 +18,12 @@
 #include <vector>
 
 namespace psr {
+
+/// A data structure used for storing, serializing and deserializing call-graph
+/// information.
 struct CallGraphData {
-  // Mangled FunName --> [CS-IDs]
+
+  /// Mangled FunName --> [CS-IDs]
   std::unordered_map<std::string, std::vector<uint32_t>> FToFunctionVertexTy{};
 
   CallGraphData() noexcept = default;

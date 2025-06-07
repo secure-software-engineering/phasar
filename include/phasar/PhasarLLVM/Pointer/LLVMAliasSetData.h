@@ -15,6 +15,9 @@
 #include <string>
 
 namespace psr {
+
+/// A data structure used for storing, serializing and deserializing a
+/// LLVMAliasSet
 struct LLVMAliasSetData {
   std::vector<std::vector<std::string>> AliasSets;
   std::vector<std::string> AnalyzedFunctions;

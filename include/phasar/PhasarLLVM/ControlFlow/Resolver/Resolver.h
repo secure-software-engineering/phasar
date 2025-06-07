@@ -67,6 +67,10 @@ getReceiverType(const llvm::CallBase *CallSite);
 [[nodiscard]] bool isVirtualCall(const llvm::Instruction *Inst,
                                  const LLVMVFTableProvider &VTP);
 
+/// \brief A base class for call-target resolvers. Used to build call graphs.
+///
+/// Create a specific resolver by making a new class, inheriting this resolver
+/// class and implementing the virtual functions as needed.
 class Resolver {
 protected:
   const LLVMProjectIRDB *IRDB;

@@ -37,6 +37,12 @@ class DILocation;
 } // namespace llvm
 
 namespace psr {
+
+/// \file This file contains useful structs and functions to get and store
+/// information about the source code or the intermediate representation of the
+/// target being analyzed.
+
+/// \brief Minimal source-code information, based on LLVM debug information
 struct DebugLocation {
   unsigned Line{};
   unsigned Column{};
@@ -45,6 +51,8 @@ struct DebugLocation {
 
 [[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
 
+/// \brief A struct that contains information about a source code line, function
+/// name, file name corresponding to the IR statement.
 struct SourceCodeInfo {
   std::string SourceCodeLine;
   std::string SourceCodeFilename;

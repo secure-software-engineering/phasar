@@ -42,6 +42,9 @@ endif()
 if(SQLite3_FOUND)
     list(APPEND PHASAR_LINK_LIBS phasar_db)
 endif()
+if(PHASAR_USE_SVF)
+    list(APPEND PHASAR_LINK_LIBS phasar_llvm_pointer_svf)
+endif()
 
 add_phasar_library(phasar ${PHASAR_DYNLIB_KIND}
     FILES

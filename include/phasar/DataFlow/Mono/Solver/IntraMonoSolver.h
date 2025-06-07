@@ -29,6 +29,10 @@
 
 namespace psr {
 
+/// \brief A solver class for intraprocedual monotone problems. To solve the
+/// problem, call solve().
+///
+/// \tparam AnalysisDomainTy type of the analysis domain.
 template <typename AnalysisDomainTy> class IntraMonoSolver {
 public:
   using ProblemTy = IntraMonoProblem<AnalysisDomainTy>;

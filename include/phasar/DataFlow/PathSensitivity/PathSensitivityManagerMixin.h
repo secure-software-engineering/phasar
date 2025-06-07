@@ -67,6 +67,11 @@ protected:
   }
 
 public:
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts in FactsRange holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename FactsRangeTy, typename ConfigTy,
       typename Filter = DefaultPathTracingFilter,
@@ -147,6 +152,11 @@ public:
     return Dag;
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
@@ -159,6 +169,11 @@ public:
     return pathsDagToAll(std::move(Inst), FactsRange, Config, PFilter);
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to the
+  /// given data-flow fact Fact holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename ConfigTy, typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
@@ -171,6 +186,11 @@ public:
                          PFilter);
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts in FactsRange holding at Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename ConfigTy, typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
