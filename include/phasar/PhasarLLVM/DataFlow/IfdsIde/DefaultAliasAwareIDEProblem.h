@@ -75,6 +75,8 @@ public:
 
   using container_type = typename FlowFunctionType::container_type;
 
+  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
+
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
   ///
@@ -128,6 +130,8 @@ public:
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
         detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
+
+  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
