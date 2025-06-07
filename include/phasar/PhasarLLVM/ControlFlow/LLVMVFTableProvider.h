@@ -23,6 +23,12 @@ class GlobalVariable;
 namespace psr {
 class LLVMProjectIRDB;
 
+/// \brief A class that provides access to all C++ virtual function tables
+/// (VTables) found in the target program.
+///
+/// Useful for constructing a call graph for a C++-based target.
+/// \note This class only works, if the target program's IR was generated with
+/// debug information. Pass `-g` to the compiler to achieve this.
 class LLVMVFTableProvider {
 public:
   explicit LLVMVFTableProvider(const llvm::Module &Mod);

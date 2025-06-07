@@ -17,11 +17,11 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Constants.h"
@@ -67,9 +67,14 @@ bool psr::isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
 }
 
 bool psr::isHeapAllocatingFunction(const llvm::Function *Fun) noexcept {
-  return llvm::StringSwitch<bool>(Fun->getName())
-      .Cases("_Znwm", "_Znam", "_ZnwPv", "malloc", "calloc", "realloc", true)
-      .Default(false);
+  auto FunName = Fun->getName();
+
+  if (FunName == "realloc") {
+    // For backwards compatibility. We should treat realloc specially.
+    return true;
+  }
+
+  return isHeapAllocatingFunction(FunName);
 }
 
 // For C-style polymorphism we need to check whether a callee candidate would

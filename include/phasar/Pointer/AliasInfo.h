@@ -41,7 +41,7 @@ struct AliasInfoTraits<AliasInfoRef<V, N>> : DefaultAATraits<V, N> {};
 template <typename V, typename N>
 struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 
-/// A type-erased reference to any object implementing the IsAliasInfo
+/// \brief A type-erased reference to any object implementing the IsAliasInfo
 /// interface. Use this, if your analysis is not tied to a specific alias info
 /// implementation.
 ///
@@ -260,8 +260,9 @@ private:
   const VTable *VT{};
 };
 
-/// Similar to AliasInfoRef, but exclusively owns the held reference. Use this,
-/// if you need to decide dynamically, which alias info implementation to use.
+/// \brief Similar to AliasInfoRef, but exclusively owns the held reference. Use
+/// this, if you need to decide dynamically, which alias info implementation to
+/// use.
 ///
 /// Implicitly convertible to AliasInfoRef.
 ///
@@ -314,13 +315,13 @@ public:
     }
   }
 
-  [[nodiscard]] base_t asRef() &noexcept { return *this; }
-  [[nodiscard]] AliasInfoRef<V, N> asRef() const &noexcept { return *this; }
+  [[nodiscard]] base_t asRef() & noexcept { return *this; }
+  [[nodiscard]] AliasInfoRef<V, N> asRef() const & noexcept { return *this; }
   [[nodiscard]] AliasInfoRef<V, N> asRef() && = delete;
 
   /// For better interoperability with unique_ptr
-  [[nodiscard]] base_t get() &noexcept { return asRef(); }
-  [[nodiscard]] AliasInfoRef<V, N> get() const &noexcept { return asRef(); }
+  [[nodiscard]] base_t get() & noexcept { return asRef(); }
+  [[nodiscard]] AliasInfoRef<V, N> get() const & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
 };
 

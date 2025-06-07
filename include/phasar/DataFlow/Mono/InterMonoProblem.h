@@ -31,6 +31,9 @@ namespace psr {
 template <typename T, typename F> class TypeHierarchy;
 template <typename N, typename F> class ICFG;
 
+/// \brief The analysis problem interface for interprocedural monotone problems
+/// (solvable by the InterMonoSolver). Create a subclass from this and override
+/// all pure-virtual functions to create your own inter-mono analysis.
 template <typename AnalysisDomainTy>
 class InterMonoProblem : public IntraMonoProblem<AnalysisDomainTy> {
 public:
@@ -47,6 +50,14 @@ protected:
   const i_t *ICF;
 
 public:
+  /// An interprocedural monotone problem generated from an intermediate
+  /// representation, a type hierarchy of said representation, a control flow
+  /// graph, points-to information and optionally a vector of entry points.
+  /// @param[in] IRDB A project IR database.
+  /// @param[in] TH A type hierarchy based on the given IRDB.
+  /// @param[in] CF A control flow graph based on the given IRDB.
+  /// @param[in] PT Points-to information based on the given IRDB.
+  /// @param[in] EntryPoints A vector of entry points. Provide at least one.
   InterMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
                    const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
                    AliasInfoRef<v_t, n_t> PT,

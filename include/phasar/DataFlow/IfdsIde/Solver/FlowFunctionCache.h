@@ -137,6 +137,10 @@ template <typename ProblemTy> struct FlowFunctionCacheBase {
 
 } // namespace detail
 
+/// This class caches flow and edge functions to avoid their reconstruction.
+/// When a flow or edge function must be applied multiple times, a cached
+/// version is used if it exists, otherwise a new one is created and inserted
+/// into the cache. This class is used within both IDE solver implementations.
 template <typename ProblemTy, bool AutoAddZero>
 class FlowFunctionCache
     : detail::FlowFunctionCacheBase<ProblemTy>,

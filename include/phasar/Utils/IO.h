@@ -28,6 +28,9 @@
 
 namespace psr {
 
+/// \file This file contains functions for reading in text files and json files
+/// and provides error handling capabilities as well, if needed.
+
 [[nodiscard]] llvm::ErrorOr<std::string>
 readTextFileOrErr(const llvm::Twine &Path);
 [[nodiscard]] llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
