@@ -3,20 +3,25 @@
 #include "phasar/Config/Configuration.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Macros.h"
 
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/AssemblyAnnotationWriter.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/Errc.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/SourceMgr.h"
 
 #include <charconv>
+#include <memory>
+#include <system_error>
 
 namespace psr {
 
@@ -34,6 +39,45 @@ static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
     "Non-opaque pointers are not supported anymore. Refactor PhASAR to remove typed pointer support."
 #endif
 }
+
+namespace {
+enum class IRDBParsingError {
+  CouldNotParse = 1,
+  CouldNotVerify = 2,
+};
+
+class IRDBParsingErrorCategory : public std::error_category {
+  [[nodiscard]] const char *name() const noexcept override {
+    return "IRDBParsingError";
+  }
+
+  [[nodiscard]] std::string message(int Value) const override {
+    switch (IRDBParsingError(Value)) {
+    case IRDBParsingError::CouldNotParse:
+      return "Could not parse LLVM IR";
+    case IRDBParsingError::CouldNotVerify:
+      return "Parsed LLVM IR could not be verified";
+    default:
+      "<invalid>";
+    }
+  }
+};
+
+PSR_CONSTINIT IRDBParsingErrorCategory IRDBParsingErrorCat{};
+
+std::error_code make_error_code(IRDBParsingError Err) noexcept {
+  // TODO
+  return {int(Err), IRDBParsingErrorCat};
+}
+} // namespace
+
+} // namespace psr
+
+namespace std {
+template <> struct is_error_code_enum<psr::IRDBParsingError> : true_type {};
+} // namespace std
+
+namespace psr {
 
 std::unique_ptr<llvm::Module>
 LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
@@ -76,10 +120,42 @@ LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
   return getParsedIRModuleOrNull(*FileOrErr.get(), Ctx);
 }
 
+llvm::ErrorOr<LLVMProjectIRDB>
+LLVMProjectIRDB::load(const llvm::Twine &IRFileName,
+                      bool EnableOpaquePointers) {
+  auto FileOrErr =
+      llvm::MemoryBuffer::getFileOrSTDIN(IRFileName, /*IsText=*/true);
+  if (!FileOrErr) {
+    return FileOrErr.getError();
+  }
+
+  auto Ctx = std::make_unique<llvm::LLVMContext>();
+
+  llvm::SMDiagnostic Diag;
+  std::unique_ptr<llvm::Module> M = llvm::parseIR(**FileOrErr, Diag, *Ctx);
+  bool BrokenDebugInfo = false;
+  if (M == nullptr) {
+    Diag.print(nullptr, llvm::errs());
+    return IRDBParsingError::CouldNotParse;
+  }
+
+  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+    PHASAR_LOG_LEVEL(ERROR, FileOrErr.get()->getBufferIdentifier()
+                                << " could not be parsed correctly!");
+    return IRDBParsingError::CouldNotVerify;
+  }
+  if (BrokenDebugInfo) {
+    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
+  }
+
+  return LLVMProjectIRDB(std::move(M), std::move(Ctx), EnableOpaquePointers);
+}
+
 LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                                 bool EnableOpaquePointers) {
-  setOpaquePointersForCtx(Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrNull(IRFileName, Ctx);
+                                 bool EnableOpaquePointers)
+    : Ctx(new llvm::LLVMContext()) {
+  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
+  auto M = getParsedIRModuleOrNull(IRFileName, *Ctx);
 
   if (!M) {
     return;
@@ -171,10 +247,18 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
   }
 }
 
+LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
+                                 std::unique_ptr<llvm::LLVMContext> Ctx,
+                                 bool DoPreprocessing)
+    : LLVMProjectIRDB(std::move(Mod), DoPreprocessing) {
+  this->Ctx = std::move(Ctx);
+}
+
 LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                                 bool EnableOpaquePointers) {
-  setOpaquePointersForCtx(Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrNull(Buf, Ctx);
+                                 bool EnableOpaquePointers)
+    : Ctx(new llvm::LLVMContext()) {
+  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
+  auto M = getParsedIRModuleOrNull(Buf, *Ctx);
   if (!M) {
     return;
   }

@@ -21,6 +21,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -56,6 +57,14 @@ public:
   /// ownership of it. The module is optionally being preprocessed.
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
+  /// Initializes the new ProjectIRDB with the given IR Module and takes
+  /// ownership of it. The module is optionally being preprocessed. Takes the
+  /// given LLVMContext and binds its lifetime to the lifetime of the
+  /// constructed ProjectIRDB
+  explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
+                           std::unique_ptr<llvm::LLVMContext> Ctx,
+                           bool DoPreprocessing = true);
+
   /// Parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
@@ -63,7 +72,10 @@ public:
                            bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
-  LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
+  LLVMProjectIRDB &operator=(const LLVMProjectIRDB &) = delete;
+
+  LLVMProjectIRDB(LLVMProjectIRDB &&) noexcept = default;
+  LLVMProjectIRDB &operator=(LLVMProjectIRDB &&) noexcept = default;
 
   ~LLVMProjectIRDB();
 
@@ -73,6 +85,10 @@ public:
   [[nodiscard]] static std::unique_ptr<llvm::Module>
   getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
                           llvm::LLVMContext &Ctx) noexcept;
+
+  [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
+  load(const llvm::Twine &IRFileName,
+       bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;
@@ -163,7 +179,8 @@ private:
   /// the preprocessing as well
   void preprocessModule(llvm::Module *NonConstMod);
 
-  llvm::LLVMContext Ctx;
+  // LLVMContext is not movable, so wrap it into a unique_ptr
+  std::unique_ptr<llvm::LLVMContext> Ctx;
   MaybeUniquePtr<llvm::Module> Mod = nullptr;
   size_t IdOffset = 0;
   llvm::SmallVector<const llvm::Value *, 0> IdToInst;

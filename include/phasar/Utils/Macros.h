@@ -18,4 +18,12 @@
 #define PSR_CONCEPT concept
 #endif
 
+#if __cpp_constinit >= 201907L
+#define PSR_CONSTINIT constinit
+#elif __clang__
+#define PSR_CONSTINIT [[clang::require_constant_initialization]]
+#else
+#define PSR_CONSTINIT
+#endif
+
 #endif // PHASAR_UTILS_MACROS_H
