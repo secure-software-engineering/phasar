@@ -62,8 +62,7 @@ public:
     if (Gen.empty() && Leak.empty() && Kill.empty()) {
       // This CallSite apparently is not calling a special source/sink/sanitizer
       // function. Fallback to the default-behavior.
-      return this->DefaultAliasAwareIFDSProblem::getSummaryFlowFunction(
-          CallSite, DestFun);
+      return DefaultAliasAwareIFDSProblem::getSummaryFlowFunction(CS, DestFun);
     }
 
     // Since our analysis is alias-aware, we must handle aliasing here:
@@ -109,9 +108,8 @@ void populateWithMayAliases(psr::LLVMAliasInfoRef AS,
                             std::set<const llvm::Value *> &Facts) {
   auto Tmp = Facts;
   for (const auto *Fact : Facts) {
-    for (const auto *Alias : *AS.getAliasSet(Fact)) {
-      Tmp.insert(Alias);
-    }
+    auto Aliases = AS.getAliasSet(Fact);
+    Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
   Facts = std::move(Tmp);
