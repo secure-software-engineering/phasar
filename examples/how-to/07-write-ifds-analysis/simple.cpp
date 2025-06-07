@@ -53,14 +53,11 @@ public:
   [[nodiscard]] FlowFunctionPtrType
   getSummaryFlowFunction(n_t CallSite, f_t DestFun) override {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
-    container_type Gen;
-    container_type Leak;
-    container_type Kill;
 
     // Process the effects of source or sink functions that are called
-    psr::collectGeneratedFacts(Gen, *Config, CS, DestFun);
-    psr::collectLeakedFacts(Leak, *Config, CS, DestFun);
-    psr::collectSanitizedFacts(Kill, *Config, CS, DestFun);
+    auto Gen = psr::getGeneratedFacts<container_type>(*Config, CS, DestFun);
+    auto Leak = psr::getLeakedFacts<container_type>(*Config, CS, DestFun);
+    auto Kill = psr::getSanitizedFacts<container_type>(*Config, CS, DestFun);
 
     if (Gen.empty() && Leak.empty() && Kill.empty()) {
       // This CallSite apparently is not calling a special source/sink/sanitizer
