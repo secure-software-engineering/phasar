@@ -48,9 +48,11 @@ public:
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                          const llvm::CallBase *CallSite) override;
 
-  FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
+  void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                              const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
   getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
@@ -58,8 +60,6 @@ public:
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                               const llvm::Function *CalleeTarget);
-
-  [[nodiscard]] bool isIndependent() const noexcept override { return false; }
 
   [[nodiscard]] std::string str() const override;
 

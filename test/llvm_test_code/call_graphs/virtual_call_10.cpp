@@ -16,7 +16,7 @@ struct ABImpl : A, B {
 };
 
 int main() {
-  auto *ABptr = new ABImpl;
-  ABptr->foo();
+  B *ABptr = new ABImpl;
+  ABptr->bar();
   delete ABptr;
 }

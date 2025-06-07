@@ -92,7 +92,7 @@ public:
   };
 
   [[nodiscard]] static std::vector<const llvm::Function *>
-  getVFVectorFromIRVTable(const llvm::ConstantStruct &);
+  getVFVectorFromIRVTable(const llvm::ConstantStruct &VT, uint32_t Index = 0);
 };
 
 } // namespace psr

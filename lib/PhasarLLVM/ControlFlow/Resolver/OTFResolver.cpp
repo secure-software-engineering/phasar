@@ -65,9 +65,8 @@ void OTFResolver::handlePossibleTargets(const llvm::CallBase *CallSite,
   }
 }
 
-auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
-    -> FunctionSetTy {
-  FunctionSetTy PossibleCallTargets;
+void OTFResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                     const llvm::CallBase *CallSite) {
 
   PHASAR_LOG_LEVEL(DEBUG,
                    "Call virtual function: " << llvmIRToString(CallSite));
@@ -79,7 +78,7 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
                      "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                          << llvmIRToString(CallSite) << "\n");
-    return {};
+    return;
   }
 
   auto VtableIndex = RetrievedVtableIndex.value();
@@ -104,22 +103,18 @@ auto OTFResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
               !isConsistentCall(CallSite, Callee)) {
             continue;
           }
-          PossibleCallTargets.insert(Callee);
+          PossibleTargets.insert(Callee);
         }
       }
     }
   }
-
-  return PossibleCallTargets;
 }
 
-auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
-    -> FunctionSetTy {
+void OTFResolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                         const llvm::CallBase *CallSite) {
   if (!CallSite->getCalledOperand()) {
-    return {};
+    return;
   }
-
-  FunctionSetTy Callees;
 
   auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
 
@@ -138,7 +133,7 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
 
     if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
       if (isConsistentCall(CallSite, F)) {
-        Callees.insert(F);
+        PossibleTargets.insert(F);
       }
     }
 
@@ -181,14 +176,14 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
             if (const auto *F =
                     llvm::dyn_cast<llvm::Function>(CE->getOperand(0));
                 F && isConsistentCall(CallSite, F)) {
-              Callees.insert(F);
+              PossibleTargets.insert(F);
             }
           }
         }
 
         if (const auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
           if (isConsistentCall(CallSite, F)) {
-            Callees.insert(F);
+            PossibleTargets.insert(F);
           }
         } else if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
           ConstantAggregateWL.push_back(CA);
@@ -204,8 +199,6 @@ auto OTFResolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
       }
     }
   }
-
-  return Callees;
 }
 
 std::set<const llvm::Type *>

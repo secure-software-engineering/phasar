@@ -69,22 +69,26 @@ void LLVMVFTable::printAsJson(llvm::raw_ostream &OS) const {
 }
 
 std::vector<const llvm::Function *>
-LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct &VT) {
+LLVMVFTable::getVFVectorFromIRVTable(const llvm::ConstantStruct &VT,
+                                     uint32_t Index) {
   std::vector<const llvm::Function *> VFS;
-  for (const auto &Op : VT.operands()) {
-    if (const auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
-      // Start iterating at offset 2, because offset 0 is vbase offset, offset 1
-      // is RTTI
-      for (const auto *It = std::next(CA->operands().begin(), 2);
-           It != CA->operands().end(); ++It) {
-        const auto *Entry = It->get()->stripPointerCastsAndAliases();
+  if (Index >= VT.getNumOperands()) {
+    return VFS;
+  }
 
-        const auto *F = llvm::dyn_cast<llvm::Function>(Entry);
-        VFS.push_back(F);
-      }
+  const auto *Op = VT.getOperand(Index);
+
+  if (const auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
+    // Start iterating at offset 2, because offset 0 is vbase offset, offset 1
+    // is RTTI
+    for (const auto *It = std::next(CA->operands().begin(), 2);
+         It != CA->operands().end(); ++It) {
+      const auto *Entry = It->get()->stripPointerCastsAndAliases();
+
+      const auto *F = llvm::dyn_cast<llvm::Function>(Entry);
+      VFS.push_back(F);
     }
   }
   return VFS;
 }
-
 } // namespace psr

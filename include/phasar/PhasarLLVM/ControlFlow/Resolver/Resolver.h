@@ -103,22 +103,14 @@ public:
   [[nodiscard]] FunctionSetTy
   resolveIndirectCall(const llvm::CallBase *CallSite);
 
-  [[nodiscard]] virtual FunctionSetTy
-  resolveVirtualCall(const llvm::CallBase *CallSite) = 0;
-
-  [[nodiscard]] virtual FunctionSetTy
-  resolveFunctionPointer(const llvm::CallBase *CallSite);
-
   virtual void otherInst(const llvm::Instruction *Inst);
+
+  [[nodiscard]] virtual std::string str() const = 0;
 
   /// Whether the ICFG needs to reconsider all dynamic call-sites once there
   /// have been changes through handlePossibleTargets().
   ///
-  /// Make true for performance (may be less sound then)
-  [[nodiscard]] virtual bool isIndependent() const noexcept { return false; }
-
-  [[nodiscard]] virtual std::string str() const = 0;
-
+  /// Make false for performance (may be less sound then)
   [[nodiscard]] virtual bool mutatesHelperAnalysisInformation() const noexcept {
     // Conservatively returns true. Override if possible
     return true;
@@ -128,6 +120,13 @@ public:
                                           const LLVMVFTableProvider *VTP,
                                           const DIBasedTypeHierarchy *TH,
                                           LLVMAliasInfoRef PT = nullptr);
+
+protected:
+  virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                  const llvm::CallBase *CallSite) = 0;
+
+  virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                      const llvm::CallBase *CallSite);
 };
 } // namespace psr
 
