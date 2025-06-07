@@ -827,8 +827,7 @@ template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
 
 // LLVM is currently overhauling its casting system. Use the new variant once
 // possible!
-// Note: The new variant (With CastInfo) is not tested yet!
-#if LLVM_MAJOR < 15
+#if LLVM_VERSION_MAJOR < 15
 
 template <typename To, typename L>
 struct isa_impl_cl<To, const psr::EdgeFunction<L>> {
@@ -876,7 +875,7 @@ cast_or_null(const psr::EdgeFunction<L> &EF) noexcept { // NOLINT
 template <typename To, typename L>
 struct CastIsPossible<To, psr::EdgeFunction<L>> {
   static inline bool isPossible(const psr::EdgeFunction<L> &EF) noexcept {
-    return EF->template isa<To>();
+    return EF.template isa<To>();
   }
 };
 
