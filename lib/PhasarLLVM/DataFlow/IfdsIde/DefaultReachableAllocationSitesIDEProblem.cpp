@@ -3,6 +3,8 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Operator.h"
+#include "llvm/Support/Casting.h"
 
 #include <cstdlib>
 
@@ -16,13 +18,127 @@ using container_type = FFTemplates::container_type;
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     getNormalFlowFunctionImpl(n_t Curr, n_t Succ) -> FlowFunctionPtrType {
-  abort();
+
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet =
+        AS.getReachableAllocationSites(Store->getPointerOperand(), Store);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+    Gen.insert(Store->getValueOperand());
+
+    return FFTemplates::lambdaFlow(
+        [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+          if (Store->getPointerOperand() == Source) {
+            return {};
+          }
+          if (Store->getValueOperand() == Source) {
+            return Gen;
+          }
+
+          return {Source};
+        });
+  }
+
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet =
+        AS.getReachableAllocationSites(Load->getPointerOperand(), Load);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+    // Gen.insert(Load->getValueOperand());
+
+    return FFTemplates::lambdaFlow(
+        [Load, Gen{std::move(Gen)}](d_t Source) -> container_type {
+          if (Load->getPointerOperand() == Source) {
+            return Gen;
+          }
+
+          return {Source};
+        });
+  }
+
+  if (const auto *UnaryOp = llvm::dyn_cast<llvm::UnaryOperator>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet = AS.getReachableAllocationSites(UnaryOp, UnaryOp);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+    // Gen.insert(UnaryOp->getValueOperand());
+    // TODO: this is still the impl from noalias. Use
+    // getReachableAllocationSites
+    return FFTemplates::generateFlow(UnaryOp, UnaryOp->getOperand(0));
+  }
+
+  if (const auto *BinaryOp = llvm::dyn_cast<llvm::BinaryOperator>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet = AS.getReachableAllocationSites(BinaryOp, BinaryOp);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+    // Gen.insert(BinaryOp->getValueOperand());
+    // TODO: this is still the impl from noalias. Use
+    // getReachableAllocationSites
+    return FFTemplates::generateFlowIf(BinaryOp, [BinaryOp](d_t Source) {
+      return Source == BinaryOp->getOperand(0) ||
+             Source == BinaryOp->getOperand(1);
+    });
+  }
+  if (const auto *GetElementPtr = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet = AS.getReachableAllocationSites(
+        GetElementPtr->getPointerOperand(), GetElementPtr);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+    // Gen.insert(GetElementPtr->getValueOperand());
+    // TODO: this is still the impl from noalias. Use
+    // getReachableAllocationSites
+    return FFTemplates::generateFlow(GetElementPtr,
+                                     GetElementPtr->getPointerOperand());
+  }
+
+  if (const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet =
+        AS.getReachableAllocationSites(Return->getReturnValue(), Return);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+
+    return FFTemplates::lambdaFlow(
+        [Return, Gen{std::move(Gen)}](d_t Source) -> container_type {
+          if (Return->getReturnValue() == Source) {
+            return Gen;
+          }
+
+          return {Source};
+        });
+  }
+
+  if (const auto *FunctionCall = llvm::dyn_cast<llvm::CallInst>(Curr)) {
+    container_type Gen;
+
+    auto AliasSet = AS.getReachableAllocationSites(
+        FunctionCall->getReturnedArgOperand(), FunctionCall);
+    Gen.insert(AliasSet->begin(), AliasSet->end());
+
+    return FFTemplates::lambdaFlow(
+        [FunctionCall, Gen{std::move(Gen)}](d_t Source) -> container_type {
+          if (FunctionCall->getReturnedArgOperand() == Source) {
+            return Gen;
+          }
+
+          return {Source};
+        });
+  }
+
+  return this->IDEAliasAwareDefaultFlowFunctionsImpl::getNormalFlowFunctionImpl(
+      Curr, Succ);
 }
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     getCallFlowFunctionImpl(n_t CallInst, f_t CalleeFun)
         -> FlowFunctionPtrType {
-  abort();
+  // TODO: talk to Fabian about this function.
+  return this->IDEAliasAwareDefaultFlowFunctionsImpl::getCallFlowFunctionImpl(
+      CallInst, CalleeFun);
 }
 
 static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
@@ -55,12 +171,31 @@ static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     getRetFlowFunctionImpl(n_t CallSite, f_t /*CalleeFun*/, n_t ExitInst,
                            n_t /*RetSite*/) -> FlowFunctionPtrType {
-  abort();
+  // TODO: talk to Fabian about this function.
+  container_type Gen;
+
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
+    const auto PostProcessFacts = [AS = AS, Call](container_type &Facts) {
+      populateWithMayAliases(AS, Facts, Call);
+    };
+
+    return mapFactsToCaller(
+        Call, ExitInst,
+        [](d_t Param, d_t Source) {
+          return Param == Source && Param->getType()->isPointerTy();
+        },
+        {}, {}, true, true, PostProcessFacts);
+  }
+
+  return FFTemplates::killAllFlows();
 }
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     getCallToRetFlowFunctionImpl(n_t CallSite, n_t RetSite,
                                  llvm::ArrayRef<f_t> Callees)
         -> FlowFunctionPtrType {
-  abort();
+  // TODO: talk to Fabian about this function.
+  return this
+      ->IDEAliasAwareDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl(
+          CallSite, RetSite, Callees);
 }
