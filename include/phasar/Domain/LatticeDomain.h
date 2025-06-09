@@ -12,6 +12,7 @@
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/Hashing.h"
@@ -21,6 +22,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <variant>
 
@@ -97,6 +99,13 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   [[nodiscard]] inline const L &assertGetValue() const noexcept {
     assert(std::holds_alternative<L>(*this));
     return std::get<L>(*this);
+  }
+
+  template <typename TransformFn, typename... ArgsT>
+  void onValue(TransformFn Transform, ArgsT &&...Args) {
+    if (auto *Val = getValueOrNull()) {
+      std::invoke(std::move(Transform), *Val, PSR_FWD(Args)...);
+    }
   }
 };
 

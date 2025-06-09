@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
@@ -25,19 +26,78 @@ namespace psr {
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
 /// et al.
 
-struct CFLFieldSensEdgeValue {
-  // TODO: JoinLatticeTraits
+struct StoreEvent {};
+struct LoadEvent {};
+
+struct KillEvent {};
+
+struct GEPEvent {
+  int32_t Field;
+};
+
+struct CFLFieldAccessPath {
+  static constexpr int32_t TopOffset = INT32_MIN;
+
+  // TODO: compose, DenseMapInfo
 
   llvm::SmallVector<int32_t, 4> Loads;
   llvm::SmallVector<int32_t, 4> Stores;
   llvm::SmallDenseSet<int32_t, 2> Kills;
   // Add an offset for pending GEPs; INT32_MIN is Top
   int32_t Offset = {0};
+  int32_t EmptyTombstone = 0;
+
+  [[nodiscard]] bool kills(int32_t Off) const {
+    return Off != TopOffset && Kills.count(Off);
+  }
+
+  [[nodiscard]] bool
+  operator==(const CFLFieldAccessPath &Other) const noexcept {
+    return EmptyTombstone == Other.EmptyTombstone && Loads == Other.Loads &&
+           Stores == Other.Stores && Kills == Other.Kills;
+  }
+
+  bool operator!=(const CFLFieldAccessPath &Other) const noexcept {
+    return !(*this == Other);
+  }
+
+  friend size_t hash_value(const CFLFieldAccessPath &FieldString) noexcept;
+};
+
+struct CFLFieldAccessPathDMI {
+  static CFLFieldAccessPath getEmptyKey() {
+    CFLFieldAccessPath Ret{};
+    Ret.EmptyTombstone = 1;
+    return Ret;
+  }
+  static CFLFieldAccessPath getTombstoneKey() {
+    CFLFieldAccessPath Ret{};
+    Ret.EmptyTombstone = 2;
+    return Ret;
+  }
+  static auto getHashValue(const CFLFieldAccessPath &FieldString) noexcept {
+    return hash_value(FieldString);
+  }
+  static bool isEqual(const CFLFieldAccessPath &L,
+                      const CFLFieldAccessPath &R) noexcept {
+    return L == R;
+  }
+};
+
+struct CFLFieldSensEdgeValue {
+  // TODO: JoinLatticeTraits
+
+  llvm::SmallDenseSet<CFLFieldAccessPath, 2, CFLFieldAccessPathDMI> Paths;
+
+  void applyStore();
+  void applyLoad();
+  void applyKill();
+  void applyGep(GEPEvent Evt);
 };
 
 template <typename AnalysisDomainTy>
 struct CFLFieldSensAnalysisDomain : AnalysisDomainTy {
-  using l_t = CFLFieldSensEdgeValue;
+  using l_t = LatticeDomain<CFLFieldSensEdgeValue>;
 };
 
 class FieldSensAllocSitesAwareIFDSProblem
