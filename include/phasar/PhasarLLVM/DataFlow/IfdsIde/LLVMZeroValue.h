@@ -28,10 +28,9 @@ class Value;
 
 namespace psr {
 
-/**
- * This class may be used to represent the special zero value for IFDS
- * and IDE problems. The LLVMZeroValue is implemented as a singleton.
- */
+/// \brief This class may be used to represent the special zero value (aka. Λ)
+/// for IFDS and IDE problems. The LLVMZeroValue is implemented as a singleton.
+///
 class LLVMZeroValue : public llvm::GlobalVariable {
 private:
   LLVMZeroValue(llvm::Module &Mod);

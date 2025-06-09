@@ -53,6 +53,12 @@ public:
   }
 };
 
+/// \brief The analysis problem interface for IDE problems (solvable by the
+/// IDESolver). Create a subclass from this and override all pure-virtual
+/// functions to create your own IDE analysis.
+///
+/// For more information on how to write an IDE analysis, see [Writing an IDE
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IDE-analysis)
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
@@ -73,6 +79,17 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
+  /// Takes an IR database (IRDB) and collects information from it to create a
+  /// tabulation problem.
+  /// @param[in] IRDB The project IR database, that holds the code under
+  /// analysis
+  /// @param[in] EntryPoints The (mangled) names of all entry functions of the
+  /// target being analyzed, given as a vector of strings. An example would
+  /// simply be `{"main"}`. To set every function as entry point, pass
+  /// `"__ALL__"`
+  /// @param[in] ZeroValue Provides the special tautological zero value (aka.
+  /// Λ). If not provided here, you must set it via \link initializeZeroValue()
+  /// \endlink.
   explicit IDETabulationProblem(
       const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
       std::optional<d_t>

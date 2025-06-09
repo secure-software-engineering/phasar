@@ -27,6 +27,14 @@
 
 namespace psr {
 
+/// \brief Solves the given IFDSTabulationProblem as described in the 1995 paper
+/// by Reps, Horwitz and Sagiv. To solve the problem, call solve(). Results can
+/// then be queried by using resultAt() and resultsAt().
+///
+/// \note PhASAR implements IFDS in terms of IDE, so in case you do not need the
+/// raw SolverResults, for maximum performance you should use
+/// IFDSIDESolverConfig#setComputeValues(bool) to disable IDE's
+/// phase 2.
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IFDSSolver

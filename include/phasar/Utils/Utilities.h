@@ -147,7 +147,7 @@ struct StringIDLess {
   bool operator()(const std::string &LHS, const std::string &RHS) const;
 };
 
-/// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
+/// See <https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit>
 template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
@@ -168,14 +168,16 @@ private:
 
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
-// Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
+// Copied from <https://en.cppreference.com/w/cpp/utility/variant/visit>
+template <class... Ts> struct Overloaded : Ts... {
+  using Ts::operator()...;
+};
 
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
 
 /// Based on the reference implementation of std::remove_if
-/// "https://en.cppreference.com/w/cpp/algorithm/remove" and optimized for the
+/// <https://en.cppreference.com/w/cpp/algorithm/remove> and optimized for the
 /// case that a sorted list of indices is given instead of an unary predicate
 /// specifying the elements to be removed.
 template <typename It, typename EndIt, typename IdxIt,
@@ -247,7 +249,7 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
 }
 
-/// See https://en.cppreference.com/w/cpp/utility/forward_like
+/// See <https://en.cppreference.com/w/cpp/utility/forward_like>
 template <class T, class U>
 [[nodiscard]] constexpr auto &&forward_like(U &&X) noexcept { // NOLINT
   // NOLINTNEXTLINE

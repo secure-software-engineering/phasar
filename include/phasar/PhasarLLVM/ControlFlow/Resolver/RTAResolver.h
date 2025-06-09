@@ -28,6 +28,9 @@ class DICompositeType;
 
 namespace psr {
 class DIBasedTypeHierarchy;
+
+/// \brief A resolver that performs Rapid Type Analysis to resolve calls
+/// to C++ virtual functions. Requires debug information.
 class RTAResolver : public CHAResolver {
 public:
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
