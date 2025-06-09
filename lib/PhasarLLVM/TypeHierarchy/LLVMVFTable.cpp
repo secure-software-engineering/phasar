@@ -10,15 +10,12 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTableData.h"
-#include "phasar/Utils/NlohmannLogging.h"
 
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/GlobalAlias.h"
-#include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
-#include <utility>
 
 using namespace psr;
 
@@ -51,7 +48,7 @@ void LLVMVFTable::print(llvm::raw_ostream &OS) const {
 [[nodiscard]] LLVMVFTableData LLVMVFTable::getVFTableData() const {
   LLVMVFTableData Data;
 
-  for (const auto &Curr : VFT) {
+  for (const auto *Curr : VFT) {
     if (Curr) {
       Data.VFT.push_back(Curr->getName().str());
       continue;

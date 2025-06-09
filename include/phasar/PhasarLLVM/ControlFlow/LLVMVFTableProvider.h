@@ -54,6 +54,13 @@ public:
   getVTableIndexInHierarchy(const llvm::DIType *DerivedType,
                             const llvm::DIType *BaseType) const;
 
+  /// Supercedes DIBasedTypeHierarchy::removeVTablePrefix
+  [[nodiscard]] static llvm::StringRef
+  removeVTablePrefix(llvm::StringRef GlobName) noexcept;
+
+  /// Supercedes DIBasedTypeHierarchy::isVTable
+  [[nodiscard]] static bool isVTable(llvm::StringRef MangledVarName);
+
 private:
   llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
   std::unordered_map<std::pair<const llvm::DIType *, uint32_t>, LLVMVFTable,

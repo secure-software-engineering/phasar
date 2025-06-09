@@ -73,21 +73,21 @@ public:
 
   void printAsJson(llvm::raw_ostream &OS) const override;
 
-  [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() {
+  [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() noexcept {
     return VFT.begin();
   }
 
   [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
-  begin() const {
+  begin() const noexcept {
     return VFT.begin();
   };
 
-  [[nodiscard]] std::vector<const llvm::Function *>::iterator end() {
+  [[nodiscard]] std::vector<const llvm::Function *>::iterator end() noexcept {
     return VFT.end();
   };
 
   [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
-  end() const {
+  end() const noexcept {
     return VFT.end();
   };
 

@@ -4,10 +4,8 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
-#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
 
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
@@ -18,20 +16,26 @@
 #include "llvm/Support/Casting.h"
 
 using namespace psr;
-static constexpr llvm::StringLiteral TIPrefix = "typeinfo name for ";
+
+static constexpr llvm::StringLiteral TSPrefixDemang = "typeinfo name for ";
+static constexpr llvm::StringLiteral VTablePrefixDemang = "vtable for ";
+static constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
 
 static std::string getTypeName(const llvm::DIType *DITy) {
-  auto Ret = [DITy] {
+  auto TypeName = [DITy] {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
-      auto Ident = CompTy->getIdentifier();
-      return Ident.empty() ? llvm::demangle(CompTy->getName().str())
-                           : llvm::demangle(Ident.str());
+      if (auto Ident = CompTy->getIdentifier(); !Ident.empty()) {
+        return Ident;
+      }
     }
-    return llvm::demangle(DITy->getName().str());
+    return DITy->getName();
   }();
 
-  if (llvm::StringRef(Ret).startswith(TIPrefix)) {
-    Ret.erase(0, TIPrefix.size());
+  // In LLVM 17 demangle() takes a StringRef
+  auto Ret = llvm::demangle(TypeName.str());
+
+  if (llvm::StringRef(Ret).startswith(TSPrefixDemang)) {
+    Ret.erase(0, TSPrefixDemang.size());
   }
 
   return Ret;
@@ -85,9 +89,9 @@ static void getBasesOfVirt(
 
 LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
   for (const auto &Glob : Mod.globals()) {
-    if (DIBasedTypeHierarchy::isVTable(Glob.getName())) {
+    if (isVTable(Glob.getName())) {
       auto Demang = llvm::demangle(Glob.getName().str());
-      auto ClearName = DIBasedTypeHierarchy::removeVTablePrefix(Demang);
+      auto ClearName = removeVTablePrefix(Demang);
       // llvm::errs() << "> ClearName: " << ClearName << '\n';
       ClearNameTVMap.try_emplace(ClearName, &Glob);
     }
@@ -161,4 +165,20 @@ LLVMVFTableProvider::getVTableIndexInHierarchy(
   }
 
   return InnerIt->second;
+}
+
+llvm::StringRef
+LLVMVFTableProvider::removeVTablePrefix(llvm::StringRef GlobName) noexcept {
+  if (GlobName.startswith(VTablePrefixDemang)) {
+    return GlobName.drop_front(VTablePrefixDemang.size());
+  }
+  if (GlobName.startswith(VTablePrefix)) {
+    return GlobName.drop_front(VTablePrefix.size());
+  }
+  return GlobName;
+}
+
+/// Supercedes DIBasedTypeHierarchy::isVTable() + removeVTablePrefix
+bool LLVMVFTableProvider::isVTable(llvm::StringRef MangledVarName) {
+  return MangledVarName.startswith(VTablePrefix);
 }
