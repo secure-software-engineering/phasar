@@ -43,7 +43,7 @@ struct CFLFieldAccessPath {
   llvm::SmallVector<int32_t, 4> Loads;
   llvm::SmallVector<int32_t, 4> Stores;
   llvm::SmallDenseSet<int32_t, 2> Kills;
-  // Add an offset for pending GEPs; INT32_MIN is Top
+  // Add an offset for pending GEPs; INT16_MIN is Top
   int32_t Offset = {0};
   int32_t EmptyTombstone = 0;
 
@@ -85,14 +85,24 @@ struct CFLFieldAccessPathDMI {
 };
 
 struct CFLFieldSensEdgeValue {
-  // TODO: JoinLatticeTraits
-
   llvm::SmallDenseSet<CFLFieldAccessPath, 2, CFLFieldAccessPathDMI> Paths;
 
-  void applyStore();
-  void applyLoad();
+  void applyStore(uint8_t DepthKLimit);
+  void applyGepAndStore(GEPEvent Evt, uint8_t DepthKLimit);
+  void applyLoad(uint8_t DepthKLimit);
+  void applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit);
   void applyKill();
+  void applyGepAndKill(GEPEvent Evt);
   void applyGep(GEPEvent Evt);
+  void applyTransform(const CFLFieldAccessPath &Txn, uint8_t DepthKLimit);
+  void applyTransforms(const CFLFieldSensEdgeValue &Txns, uint8_t DepthKLimit);
+
+  bool operator==(const CFLFieldSensEdgeValue &Other) const noexcept {
+    return Paths == Other.Paths;
+  }
+  bool operator!=(const CFLFieldSensEdgeValue &Other) const noexcept {
+    return !(*this == Other);
+  }
 };
 
 template <typename AnalysisDomainTy>
@@ -193,6 +203,7 @@ public:
 private:
   LLVMAliasInfoRef AS;
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
+  uint8_t DepthKLimit = 5; // Original from the paper
 };
 } // namespace psr
 
