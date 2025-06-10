@@ -3,15 +3,19 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Union.h"
 
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
 #include <functional>
@@ -65,6 +69,11 @@ struct CFLFieldSensEdgeFunction {
     assert(DepthKLimit == Other.DepthKLimit);
     return Transform == Other.Transform;
   }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CFLFieldSensEdgeFunction &EF) {
+    return OS << "Txn[" << EF.Transform << ']';
+  }
 };
 
 } // namespace
@@ -90,6 +99,8 @@ void CFLFieldSensEdgeValue::applyGepAndStore(GEPEvent Evt,
 }
 
 void CFLFieldSensEdgeValue::applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit) {
+  llvm::errs() << "[applyGepAndLoad]: " << *this << " + " << Evt.Field << "\n";
+
   auto Save = std::exchange(Paths, {});
 
   for (const auto &F : Save) {
@@ -125,7 +136,10 @@ void CFLFieldSensEdgeValue::applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit) {
     FF.Offset = 0;
     FF.Stores.pop_back();
     Paths.insert(std::move(FF));
+    llvm::errs() << "> pop_back\n";
   }
+
+  llvm::errs() << "=> " << *this << '\n';
 }
 
 void CFLFieldSensEdgeValue::applyGepAndKill(GEPEvent Evt) {
@@ -155,7 +169,11 @@ void CFLFieldSensEdgeValue::applyGep(GEPEvent Evt) {
   Paths.reserve(Save.size());
 
   for (auto F : Save) {
-    F.Offset = addOffsets(F.Offset, Evt.Field);
+    if (F.Stores.empty()) {
+      F.Offset = addOffsets(F.Offset, Evt.Field);
+    } else {
+      F.Stores.back() = addOffsets(F.Stores.back(), -Evt.Field);
+    }
     Paths.insert(std::move(F));
   }
 }
@@ -225,6 +243,46 @@ size_t psr::hash_value(const CFLFieldAccessPath &FieldString) noexcept {
   return llvm::hash_combine(HCL, HCS, HCK);
 }
 
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   const CFLFieldAccessPath &FieldString) {
+  if (FieldString.empty()) {
+    return OS << "ε";
+  }
+
+  if (FieldString.Offset) {
+    if (FieldString.Offset > 0) {
+      OS << '+';
+    }
+
+    OS << FieldString.Offset << '.';
+  }
+
+  for (auto Ld : FieldString.Loads) {
+    OS << 'L' << Ld << '.';
+  }
+
+  for (auto Kl : FieldString.Kills) {
+    OS << 'K' << Kl << '.';
+  }
+
+  for (auto St : FieldString.Stores) {
+    OS << 'S' << St << '.';
+  }
+
+  return OS;
+}
+
+llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
+                                   const CFLFieldSensEdgeValue &EV) {
+  if (EV.Paths.size() == 1) {
+    return OS << *EV.Paths.begin();
+  }
+
+  OS << "{ ";
+  llvm::interleaveComma(EV.Paths, OS);
+  return OS << " }";
+}
+
 auto FieldSensAllocSitesAwareIFDSProblem::initialSeeds()
     -> InitialSeeds<n_t, d_t, l_t> {
   auto UserSeeds = UserProblem->initialSeeds();
@@ -233,11 +291,29 @@ auto FieldSensAllocSitesAwareIFDSProblem::initialSeeds()
   for (const auto &[Inst, Facts] : UserSeeds.getSeeds()) {
     auto &SeedsAtInst = Ret[Inst];
     for (const auto &[Fact, Weight] : Facts) {
-      SeedsAtInst[Fact] = {};
+      SeedsAtInst[Fact] = CFLFieldSensEdgeValue{{CFLFieldAccessPath{}}};
     }
   }
 
   return {std::move(Ret)};
+}
+
+static std::pair<const llvm::Value *, int32_t>
+getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
+  llvm::APInt Offset(64, 0);
+  int32_t OffsVal = CFLFieldAccessPath::TopOffset;
+  const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
+
+  if (llvm::isa<llvm::GEPOperator>(Base)) {
+    return {Base->stripPointerCastsAndAliases(), CFLFieldAccessPath::TopOffset};
+  }
+
+  auto RawOffsVal = Offset.getSExtValue();
+  if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
+    OffsVal = int32_t(RawOffsVal);
+  }
+
+  return {Base->stripPointerCastsAndAliases(), OffsVal};
 }
 
 auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
@@ -250,13 +326,19 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     const auto *PointerOp = Store->getPointerOperand();
+
+    // TODO;: How to deal with BasePtr?
+
     if (CurrNode == SuccNode &&
         (PointerOp == CurrNode ||
          PointerOp->stripPointerCastsAndAliases() == CurrNode)) {
       // Kill
 
+      auto [BasePtr, Offset] =
+          getBaseAndOffset(PointerOp, IRDB->getModule()->getDataLayout());
+
       CFLFieldAccessPath FieldString{};
-      FieldString.Kills.insert(0);
+      FieldString.Kills.insert(Offset);
       return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
     }
 
@@ -267,8 +349,11 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
           AS.isInReachableAllocationSites(PointerOp, SuccNode, true, Store)) {
         // Store
 
+        auto [BasePtr, Offset] =
+            getBaseAndOffset(PointerOp, IRDB->getModule()->getDataLayout());
+
         CFLFieldAccessPath FieldString{};
-        FieldString.Stores.push_back(0);
+        FieldString.Stores.push_back(Offset);
         return CFLFieldSensEdgeFunction{{{std::move(FieldString)}},
                                         DepthKLimit};
       }
@@ -283,21 +368,21 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
       // Load
 
+      // auto [BasePtr, Offset] = getBaseAndOffset(
+      //     Load->getPointerOperand(), IRDB->getModule()->getDataLayout());
+
+      // TODO;: How to deal with BasePtr?
+
       CFLFieldAccessPath FieldString{};
       FieldString.Loads.push_back(0);
+      llvm::errs() << "Handle load: " << llvmIRToString(Load) << '\n';
+      llvm::errs() << "> CurrNode: " << llvmIRToString(CurrNode) << '\n';
       return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
     }
 
     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
-      llvm::APInt Offset(64, 0);
-      int32_t OffsVal = CFLFieldAccessPath::TopOffset;
-      if (Gep->accumulateConstantOffset(IRDB->getModule()->getDataLayout(),
-                                        Offset)) {
-        auto RawOffsVal = Offset.getSExtValue();
-        if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
-          OffsVal = int32_t(RawOffsVal);
-        }
-      }
+      auto OffsVal =
+          getBaseAndOffset(Gep, IRDB->getModule()->getDataLayout()).second;
 
       CFLFieldAccessPath FieldString{};
       FieldString.Offset = OffsVal;
@@ -362,81 +447,97 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
 auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                                  const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
-  if (auto DfltCompose = psr::defaultComposeOrNull(L, R)) {
-    return DfltCompose;
-  }
+  auto Ret = [&]() -> EdgeFunction<l_t> {
+    if (auto DfltCompose = psr::defaultComposeOrNull(L, R)) {
+      return DfltCompose;
+    }
 
-  if (R.isa<AllBottom<l_t>>()) {
-    return R;
-  }
+    if (R.isa<AllBottom<l_t>>()) {
+      return R;
+    }
 
-  const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
-  const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
+    const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
+    const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
 
-  if (FldSensL && FldSensR) {
+    if (FldSensL && FldSensR) {
 
-    // TODO: Be smarter with copying the transforms:
-    auto Txn = FldSensL->Transform;
-    Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
-    // TODO: k-limit the number of paths!
-    return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
-  }
+      // TODO: Be smarter with copying the transforms:
+      auto Txn = FldSensL->Transform;
+      Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
+      // TODO: k-limit the number of paths!
+      return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
+    }
 
-  llvm::report_fatal_error("[FieldSensAllocSitesAwareIFDSProblem::extend]: "
-                           "Unexpected edge functions: " +
-                           llvm::Twine(to_string(L)) + " EXTEND " +
-                           llvm::Twine(to_string(R)));
+    llvm::report_fatal_error("[FieldSensAllocSitesAwareIFDSProblem::extend]: "
+                             "Unexpected edge functions: " +
+                             llvm::Twine(to_string(L)) + " EXTEND " +
+                             llvm::Twine(to_string(R)));
+  }();
+
+  // llvm::errs() << "EXTEND " << L << " X " << R << " ==> " << Ret << '\n';
+
+  return Ret;
 }
 
 auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
                                                   const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
-  if (llvm::isa<AllBottom<l_t>>(R) || llvm::isa<AllTop<l_t>>(L)) {
-    return R;
-  }
-  if (llvm::isa<AllTop<l_t>>(R) || llvm::isa<AllBottom<l_t>>(L)) {
-    return L;
-  }
-
-  const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
-  const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
-
-  if (FldSensL) {
-    if (FldSensR) {
-
-      bool LeftSmaller =
-          FldSensL->Transform.Paths.size() < FldSensR->Transform.Paths.size();
-
-      bool Changed = false;
-      auto Union = setUnion(FldSensL->Transform.Paths,
-                            FldSensR->Transform.Paths, &Changed);
-
-      if (Changed) {
-        // TODO: k-limit the number of paths!
-        return CFLFieldSensEdgeFunction{{std::move(Union)}, DepthKLimit};
-      }
-
-      return LeftSmaller ? L : R;
+  auto Ret = [&]() -> EdgeFunction<l_t> {
+    if (llvm::isa<AllBottom<l_t>>(R) || llvm::isa<AllTop<l_t>>(L)) {
+      return R;
+    }
+    if (llvm::isa<AllTop<l_t>>(R) || llvm::isa<AllBottom<l_t>>(L)) {
+      return L;
     }
 
-    if (R.isa<EdgeIdentity<l_t>>()) {
-      if (FldSensL->Transform.Paths.contains(CFLFieldAccessPath{})) {
-        return L;
+    if (llvm::isa<EdgeIdentity<l_t>>(L) && llvm::isa<EdgeIdentity<l_t>>(R)) {
+      return L;
+    }
+
+    const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
+    const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
+
+    if (FldSensL) {
+      if (FldSensR) {
+
+        bool LeftSmaller =
+            FldSensL->Transform.Paths.size() < FldSensR->Transform.Paths.size();
+
+        bool Changed = false;
+        auto Union = setUnion(FldSensL->Transform.Paths,
+                              FldSensR->Transform.Paths, &Changed);
+
+        if (Changed) {
+          // TODO: k-limit the number of paths!
+          return CFLFieldSensEdgeFunction{{std::move(Union)}, DepthKLimit};
+        }
+
+        return LeftSmaller ? R : L;
       }
 
-      auto Txn = FldSensL->Transform;
+      if (R.isa<EdgeIdentity<l_t>>()) {
+        if (FldSensL->Transform.Paths.contains(CFLFieldAccessPath{})) {
+          return L;
+        }
+
+        auto Txn = FldSensL->Transform;
+        Txn.Paths.insert(CFLFieldAccessPath{});
+        return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
+      }
+    } else if (FldSensR && L.isa<EdgeFunction<l_t>>()) {
+      if (FldSensR->Transform.Paths.contains(CFLFieldAccessPath{})) {
+        return R;
+      }
+
+      auto Txn = FldSensR->Transform;
       Txn.Paths.insert(CFLFieldAccessPath{});
       return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
     }
-  } else if (FldSensR && L.isa<EdgeFunction<l_t>>()) {
-    if (FldSensR->Transform.Paths.contains(CFLFieldAccessPath{})) {
-      return R;
-    }
 
-    auto Txn = FldSensR->Transform;
-    Txn.Paths.insert(CFLFieldAccessPath{});
-    return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
-  }
+    return AllBottom<l_t>{};
+  }();
 
-  return AllBottom<l_t>{};
+  llvm::errs() << "COMBINE " << L << " X " << R << " ==> " << Ret << '\n';
+
+  return Ret;
 }

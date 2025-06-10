@@ -2,8 +2,11 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
+
+#include <iterator>
 
 using namespace psr;
 
@@ -41,14 +44,30 @@ auto detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl::
     auto ValueAllocSites =
         getReachableAllocationSites(AS, Store->getValueOperand(), Store);
 
+    if (EnableStrongUpdateStore) {
+
+      return FFTemplates::lambdaFlow([Store, Gen{std::move(Gen)},
+                                      ValueAliases{std::move(ValueAllocSites)}](
+                                         d_t Source) -> container_type {
+        if (Store->getPointerOperand() == Source ||
+            Store->getPointerOperand()->stripPointerCastsAndAliases() ==
+                Source) {
+          return {};
+        }
+
+        if (Store->getValueOperand() == Source || ValueAliases.count(Source)) {
+          auto Ret = Gen;
+          Ret.insert(Source);
+          return Ret;
+        }
+
+        return {Source};
+      });
+    }
+
     return FFTemplates::lambdaFlow([Store, Gen{std::move(Gen)},
                                     ValueAliases{std::move(ValueAllocSites)}](
                                        d_t Source) -> container_type {
-      if (Store->getPointerOperand() == Source ||
-          Store->getPointerOperand()->stripPointerCastsAndAliases() == Source) {
-        return {};
-      }
-
       if (Store->getValueOperand() == Source || ValueAliases.count(Source)) {
         auto Ret = Gen;
         Ret.insert(Source);

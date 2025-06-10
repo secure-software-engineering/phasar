@@ -17,6 +17,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
 
@@ -47,6 +48,10 @@ struct CFLFieldAccessPath {
   int32_t Offset = {0};
   int32_t EmptyTombstone = 0;
 
+  [[nodiscard]] bool empty() const noexcept {
+    return Loads.empty() && Stores.empty() && Kills.empty() && Offset == 0;
+  }
+
   [[nodiscard]] bool kills(int32_t Off) const {
     return Off != TopOffset && Kills.count(Off);
   }
@@ -62,6 +67,9 @@ struct CFLFieldAccessPath {
   }
 
   friend size_t hash_value(const CFLFieldAccessPath &FieldString) noexcept;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CFLFieldAccessPath &FieldString);
 };
 
 struct CFLFieldAccessPathDMI {
@@ -103,6 +111,9 @@ struct CFLFieldSensEdgeValue {
   bool operator!=(const CFLFieldSensEdgeValue &Other) const noexcept {
     return !(*this == Other);
   }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CFLFieldSensEdgeValue &EV);
 };
 
 template <typename AnalysisDomainTy>

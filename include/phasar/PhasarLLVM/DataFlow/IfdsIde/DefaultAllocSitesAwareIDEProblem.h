@@ -36,6 +36,8 @@ public:
 
   using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
 
+  bool EnableStrongUpdateStore = true;
+
   [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
     return AS;
   }
@@ -99,6 +101,10 @@ public:
                                                std::move(ZeroValue)),
         detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl(AS) {}
 
+  void disableStrongUpdateStore() noexcept {
+    this->EnableStrongUpdateStore = false;
+  }
+
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
     return getNormalFlowFunctionImpl(Curr, Succ);
@@ -124,7 +130,7 @@ public:
 };
 
 class DefaultAllocSitesAwareIFDSProblem
-    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault>,
+    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
       protected detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl {
 public:
   /// Constructs an IFDSTabulationProblem with the usual arguments + alias
@@ -138,6 +144,10 @@ public:
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
         detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl(AS) {}
+
+  void disableStrongUpdateStore() noexcept {
+    this->EnableStrongUpdateStore = false;
+  }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
