@@ -368,13 +368,21 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
       // Load
 
-      // auto [BasePtr, Offset] = getBaseAndOffset(
-      //     Load->getPointerOperand(), IRDB->getModule()->getDataLayout());
+      auto [BasePtr, Offset] = getBaseAndOffset(
+          Load->getPointerOperand(), IRDB->getModule()->getDataLayout());
+
+      int32_t LoadOffs = 0;
+
+      if (BasePtr == CurrNode && Load->getPointerOperand() != CurrNode) {
+        // This is a hack, but we do sth similar in the IDEExtendedTaintAnalysis
+        // (see forEachAliasOf() Lines 144 ff)
+        LoadOffs = Offset;
+      }
 
       // TODO;: How to deal with BasePtr?
 
       CFLFieldAccessPath FieldString{};
-      FieldString.Loads.push_back(0);
+      FieldString.Loads.push_back(LoadOffs);
       llvm::errs() << "Handle load: " << llvmIRToString(Load) << '\n';
       llvm::errs() << "> CurrNode: " << llvmIRToString(CurrNode) << '\n';
       return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};

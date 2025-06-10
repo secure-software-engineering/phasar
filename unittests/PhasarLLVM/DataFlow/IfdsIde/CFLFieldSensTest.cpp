@@ -160,7 +160,7 @@ TEST_F(CFLFieldSensTest, Basic_01) {
 }
 
 TEST_F(CFLFieldSensTest, Basic_02) {
-  GTEST_SKIP() << "Need field-sensitive alias information!";
+  // GTEST_SKIP() << "Need field-sensitive alias information!";
 
   std::map<int, std::set<std::string>> Gt;
 
