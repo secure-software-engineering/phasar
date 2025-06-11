@@ -15,15 +15,15 @@ namespace psr {
 
 namespace detail {
 class IDEReachableAllocationSitesDefaultFlowFunctionsImpl
-    : private IDEAliasAwareDefaultFlowFunctionsImpl {
+    : private IDENoAliasDefaultFlowFunctionsImpl {
 public:
-  using typename IDEAliasAwareDefaultFlowFunctionsImpl::d_t;
-  using typename IDEAliasAwareDefaultFlowFunctionsImpl::f_t;
-  using typename IDEAliasAwareDefaultFlowFunctionsImpl::FlowFunctionPtrType;
-  using typename IDEAliasAwareDefaultFlowFunctionsImpl::FlowFunctionType;
-  using typename IDEAliasAwareDefaultFlowFunctionsImpl::n_t;
+  using typename IDENoAliasDefaultFlowFunctionsImpl::d_t;
+  using typename IDENoAliasDefaultFlowFunctionsImpl::f_t;
+  using typename IDENoAliasDefaultFlowFunctionsImpl::FlowFunctionPtrType;
+  using typename IDENoAliasDefaultFlowFunctionsImpl::FlowFunctionType;
+  using typename IDENoAliasDefaultFlowFunctionsImpl::n_t;
 
-  using IDEAliasAwareDefaultFlowFunctionsImpl::isFunctionModeled;
+  using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
 
   [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
     return AS;
@@ -31,7 +31,7 @@ public:
 
   constexpr IDEReachableAllocationSitesDefaultFlowFunctionsImpl(
       LLVMAliasInfoRef AS) noexcept
-      : IDEAliasAwareDefaultFlowFunctionsImpl(AS) {
+      : IDENoAliasDefaultFlowFunctionsImpl(), AS(AS) {
     assert(AS && "You must provide an alias information handle!");
   }
 
@@ -46,6 +46,9 @@ public:
   [[nodiscard]] FlowFunctionPtrType
   getCallToRetFlowFunctionImpl(n_t CallSite, n_t /*RetSite*/,
                                llvm::ArrayRef<f_t> /*Callees*/);
+
+protected:
+  LLVMAliasInfoRef AS;
 };
 } // namespace detail
 
