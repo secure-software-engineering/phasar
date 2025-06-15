@@ -39,10 +39,7 @@ public:
     psr::LLVMBasedCFG CFG;
     // Here, we just say that for all entry-functions in the EntryPoints, the
     // zero-value should hold at the very first statement.
-    //
-    // In IFDS, we don't care about the edge-values l_t, so we just pass BOTTOM.
-    addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, getZeroValue(),
-                              psr::BinaryDomain::BOTTOM);
+    addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, getZeroValue());
 
     return Seeds;
   };

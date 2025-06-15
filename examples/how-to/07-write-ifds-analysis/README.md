@@ -3,9 +3,6 @@
 Shows, how you can use PhASAR to write an IFDS analysis to analyze LLVM IR.
 For this example, we selected the versatile *taint analysis* as problem to implement.
 
-You may look at the different C++ source files to see, how you can write an IFDS taint analysis using PhASAR.
-We suggest to start with the simplest example [simple.cpp](./simple.cpp).
-
 For more information, we suggest taking a look into PhASAR's Wiki: [Writing an IFDS Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IFDS-analysis).
 
 ## Build
