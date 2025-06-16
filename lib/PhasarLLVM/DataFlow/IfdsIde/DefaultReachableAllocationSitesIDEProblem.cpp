@@ -4,7 +4,6 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 
 #include <cstdlib>
@@ -52,8 +51,11 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     // Gen.insert(Load->getValueOperand());
 
     return FFTemplates::lambdaFlow(
-        [Load, Gen{std::move(Gen)}](d_t Source) -> container_type {
-          if (Load->getPointerOperand() == Source) {
+        [Load, Gen{std::move(Gen)}, AS = AS](d_t Source) -> container_type {
+          // TODO: Fabian fragen, ob getPointerOperand() hier richtig ist.
+          if (Load->getPointerOperand() == Source ||
+              AS.isInReachableAllocationSites(Load->getPointerOperand(), Source,
+                                              true, Load)) {
             return Gen;
           }
 
@@ -76,35 +78,34 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
   // PropagateArgumentWithSource
   // das brauchen wir bei dem call
 
-  // Meine impl muss höchstwahrscheinlich noch entsprechend angepasst werden.
+  // TODO: Fabian fragen, ob diese Impl so passt.
   const auto *Call = llvm::cast<llvm::CallBase>(CallInst);
 
   std::vector<LLVMAliasInfoRef::AllocationSiteSetPtrTy> AliasArgs(
       Call->arg_size());
 
   for (const auto &CurrArg : Call->args()) {
-    if (llvm::isa<llvm::PointerType>(CurrArg)) {
-      AliasArgs.emplace_back(
-          AS.getReachableAllocationSites(CurrArg, true, Call));
-      continue;
-    }
+    AliasArgs.emplace_back(AS.getReachableAllocationSites(CurrArg, true, Call));
   }
 
-  return FFTemplates::lambdaFlow(
-      [AliasArgs{std::move(AliasArgs)}](d_t Source) -> container_type {
-        container_type Gen;
+  if (!AliasArgs.empty()) {
+    return FFTemplates::lambdaFlow(
+        [AliasArgs{std::move(AliasArgs)}](d_t Source) -> container_type {
+          container_type Gen;
 
-        for (const auto &CurrArg : AliasArgs) {
-          if (CurrArg->contains(Source)) {
-            Gen.insert(CurrArg->begin(), CurrArg->end());
+          for (const auto &CurrArg : AliasArgs) {
+            if (CurrArg->contains(Source)) {
+              Gen.insert(CurrArg->begin(), CurrArg->end());
+            }
           }
-        }
 
-        return Gen;
-      });
+          return Gen;
+        });
+  }
 
-  return this->IDENoAliasDefaultFlowFunctionsImpl::getCallFlowFunctionImpl(
-      CallInst, CalleeFun);
+  return mapFactsToCallee(Call, CalleeFun, [](d_t Arg, d_t Source) -> bool {
+    return Arg == Source;
+  });
 }
 
 static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
@@ -142,6 +143,8 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
   // betrifft nur die reachableallocationsites
   // prüfen, ob source in den reachableallocationsites drin ist
 
+  // TODO: Fabian fragen, ob diese Impl so passt.
+
   container_type Gen;
 
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
@@ -157,8 +160,10 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
       Gen.insert(AliasSet->begin(), AliasSet->end());
 
       return FFTemplates::lambdaFlow(
-          [Return, Gen{std::move(Gen)}](d_t Source) -> container_type {
-            if (Return->getReturnValue() == Source) {
+          [Return, Gen{std::move(Gen)}, AS = AS](d_t Source) -> container_type {
+            if (Return->getReturnValue() == Source ||
+                AS.isInReachableAllocationSites(Return->getReturnValue(),
+                                                Source, true, Return)) {
               return Gen;
             }
 
@@ -168,8 +173,9 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 
     return mapFactsToCaller(
         Call, ExitInst,
-        [](d_t Param, d_t Source) {
-          return Param == Source && Param->getType()->isPointerTy();
+        [AS = AS](d_t Param, d_t Source) {
+          return (Param == Source && Param->getType()->isPointerTy()) ||
+                 AS.isInReachableAllocationSites(Param, Source);
         },
         {}, {}, true, true, PostProcessFacts);
   }

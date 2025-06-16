@@ -82,12 +82,12 @@ std::set<const llvm::Value *>
 getNormalFlowValueSet(const llvm::Instruction *Instr,
                       IDEReachableAllocationSitesImpl &RASImpl,
                       const llvm::Value *Arg) {
-#if false
+  // #if false
   const auto RASNormalFlowFunc = RASImpl.getNormalFlowFunction(Instr, nullptr);
   const auto RASLLVMValueSet = RASNormalFlowFunc->computeTargets(Arg);
   return RASLLVMValueSet;
-#endif
-  return {};
+  // #endif
+  //   return {};
 }
 
 std::set<const llvm::Value *>
@@ -114,13 +114,13 @@ std::set<const llvm::Value *>
 getCallFlowValueSet(const llvm::Instruction *Instr,
                     IDEReachableAllocationSitesImpl &RASImpl,
                     const llvm::Value *Arg, const llvm::Function *CalleeFunc) {
-#if false
+  // #if false
   const auto RASCallFlowFunc = RASImpl.getCallFlowFunction(Instr, CalleeFunc);
   std::set<const llvm::Value *> RASLLVMValueSet =
       RASCallFlowFunc->computeTargets(Arg);
   return RASLLVMValueSet;
-#endif
-  return {};
+  // #endif
+  //   return {};
 }
 
 std::set<const llvm::Value *>
@@ -147,14 +147,14 @@ std::set<const llvm::Value *>
 getRetFlowValueSet(const llvm::Instruction *Instr,
                    IDEReachableAllocationSitesImpl &RASImpl,
                    const llvm::Value *Arg, const llvm::Instruction *ExitInst) {
-#if false
+  // #if false
   const auto RASRetFlowFunc =
       RASImpl.getRetFlowFunction(Instr, nullptr, ExitInst, nullptr);
   std::set<const llvm::Value *> RASLLVMValueSet =
       RASRetFlowFunc->computeTargets(Arg);
   return RASLLVMValueSet;
-#endif
-  return {};
+  // #endif
+  //   return {};
 }
 
 std::set<const llvm::Value *>
@@ -180,13 +180,13 @@ std::set<const llvm::Value *>
 getCallToRetFlowValueSet(const llvm::Instruction *Instr,
                          IDEReachableAllocationSitesImpl &RASImpl,
                          const llvm::Value *Arg) {
-#if false
+  // #if false
   const auto RASCallToRetFlowFunc =
       RASImpl.getCallToRetFlowFunction(Instr, nullptr, {});
   const auto RASLLVMValueSet = RASCallToRetFlowFunc->computeTargets(Arg);
   return RASLLVMValueSet;
-#endif
-  return {};
+  // #endif
+  //   return {};
 }
 
 std::string stringifyValueSet(const std::set<const llvm::Value *> &Vals) {
@@ -210,6 +210,7 @@ TEST(PureFlow, NormalFlow01) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   const auto *MainFunc = IRDB.getFunction("main");
   // %0
@@ -309,6 +310,7 @@ TEST(PureFlow, NormalFlow02) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   const auto *MainFunc = IRDB.getFunction("main");
   ASSERT_TRUE(MainFunc);
@@ -373,6 +375,7 @@ TEST(PureFlow, NormalFlow03) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %One = alloca i32, align 4, !psr.id !222; | ID: 3
   const auto *Instr3 = IRDB.getInstruction(3);
@@ -478,6 +481,7 @@ TEST(PureFlow, NormalFlow04) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %Deref1 = alloca i32, align 4, !psr.id !222; | ID: 7
   const auto *Instr7 = IRDB.getInstruction(7);
@@ -558,6 +562,7 @@ TEST(PureFlow, CallFlow01) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // call void @_Z4callii(i32 noundef %2, i32 noundef %3), !dbg !261, !psr.id
   // !262; | ID: 26
@@ -600,6 +605,7 @@ TEST(PureFlow, CallFlow02) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %One = alloca i32, align 4, !psr.id !251; | ID: 17
   const auto *Instr17 = IRDB.getInstruction(17);
@@ -705,6 +711,7 @@ TEST(PureFlow, RetFlow01) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %Two = alloca i32, align 4, !psr.id !251; | ID: 20
   const auto *UnusedValue = IRDB.getValueFromId(20);
@@ -770,6 +777,7 @@ TEST(PureFlow, RetFlow02) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %Two = alloca i32, align 4, !psr.id !268; | ID: 29
   const auto *UnusedValue = IRDB.getValueFromId(29);
@@ -850,6 +858,7 @@ TEST(PureFlow, RetFlow03) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // %ThreeInCall = alloca i32, align 4, !psr.id !254; | ID: 15
   const auto *Instr15 = IRDB.getValueFromId(15);
@@ -956,6 +965,7 @@ TEST(PureFlow, CallToRetFlow01) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // store i32 0, ptr %Zero, align 4, !dbg !252, !psr.id !254; | ID: 22
   const auto *Instr22 = IRDB.getInstruction(22);
@@ -999,6 +1009,7 @@ TEST(PureFlow, CallToRetFlow02) {
   IDENoAliasImpl NoAliasImpl = IDENoAliasImpl(&IRDB);
   IDEReachableAllocationSitesImpl RASImpl =
       IDEReachableAllocationSitesImpl(&IRDB);
+  IRDB.emitPreprocessedIR(llvm::outs());
 
   // store i32 3, ptr %Three, align 4, !dbg !223, !psr.id !225; | ID: 5
   const auto *Instr5 = IRDB.getInstruction(5);
