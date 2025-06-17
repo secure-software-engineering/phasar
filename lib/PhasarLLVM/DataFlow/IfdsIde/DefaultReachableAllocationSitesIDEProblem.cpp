@@ -46,7 +46,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     container_type Gen;
 
     auto AliasSet =
-        AS.getReachableAllocationSites(Load->getPointerOperand(), Load);
+        AS.getReachableAllocationSites(Load->getPointerOperand(), true, Load);
     Gen.insert(AliasSet->begin(), AliasSet->end());
     // Gen.insert(Load->getValueOperand());
 
@@ -81,8 +81,14 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
   // TODO: Fabian fragen, ob diese Impl so passt.
   const auto *Call = llvm::cast<llvm::CallBase>(CallInst);
 
-  std::vector<LLVMAliasInfoRef::AllocationSiteSetPtrTy> AliasArgs(
-      Call->arg_size());
+  // TODO: Fabian fragen, wie ich hier am Besten vorher dem Vector schon die
+  // Größe gebe und später dann drüber loope, auch wenn ich nicht alle "Plätze"
+  // vom Vector setze.
+  //
+  // std::vector<LLVMAliasInfoRef::AllocationSiteSetPtrTy>
+  // AliasArgs(
+  //     Call->arg_size());
+  std::vector<LLVMAliasInfoRef::AllocationSiteSetPtrTy> AliasArgs;
 
   for (const auto &CurrArg : Call->args()) {
     AliasArgs.emplace_back(AS.getReachableAllocationSites(CurrArg, true, Call));
@@ -112,7 +118,7 @@ static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
                                    const llvm::Instruction *Context) {
   container_type Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = AS.getReachableAllocationSites(Fact, Context);
+    auto Aliases = AS.getReachableAllocationSites(Fact, true, Context);
     for (const auto *Alias : *Aliases) {
       if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
         if (Inst->getParent() == Context->getParent() &&
@@ -155,8 +161,8 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     if (const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(Call)) {
       container_type Gen;
 
-      auto AliasSet =
-          AS.getReachableAllocationSites(Return->getReturnValue(), Return);
+      auto AliasSet = AS.getReachableAllocationSites(Return->getReturnValue(),
+                                                     true, Return);
       Gen.insert(AliasSet->begin(), AliasSet->end());
 
       return FFTemplates::lambdaFlow(
