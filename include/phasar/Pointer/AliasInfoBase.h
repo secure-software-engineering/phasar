@@ -72,9 +72,22 @@ struct IsAliasInfo<
         decltype(testAliasInfo(std::declval<T &>(),
                                std::declval<const T &>()))>>> : std::true_type {
 };
+
+template <typename T, typename = void>
+struct IsAliasIterator : std::false_type {};
+
+template <typename T>
+struct IsAliasIterator<
+    T, std::void_t<decltype(std::declval<T>().aliasesof(
+           std::declval<typename T::v_t>(), std::declval<typename T::n_t>(),
+           std::declval<llvm::function_ref<void(typename T::v_t)>>()))>>
+    : std::true_type {};
+
 } // namespace detail
 
 template <typename T> PSR_CONCEPT IsAliasInfo = detail::IsAliasInfo<T>::value;
+template <typename T>
+PSR_CONCEPT IsAliasIterator = detail::IsAliasIterator<T>::value;
 
 } // namespace psr
 

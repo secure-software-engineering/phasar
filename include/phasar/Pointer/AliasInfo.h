@@ -10,11 +10,11 @@
 #ifndef PHASAR_POINTER_ALIASINFO_H
 #define PHASAR_POINTER_ALIASINFO_H
 
+#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/ByRef.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
@@ -59,6 +59,8 @@ struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 template <typename V, typename N>
 class AliasInfoRef : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
   friend class AliasInfo<V, N>;
+  template <typename VV, typename NN> friend class AliasIteratorRef;
+
   using traits_t = AliasInfoTraits<AliasInfoRef<V, N>>;
 
 public:
@@ -193,6 +195,7 @@ private:
     bool (*IsInReachableAllocationSites)(void *, ByConstRef<v_t>,
                                          ByConstRef<v_t>, bool,
                                          ByConstRef<n_t>);
+    void (*AliasesOf)(void *, v_t, n_t, llvm::function_ref<void(v_t)>);
     void (*Print)(const void *, llvm::raw_ostream &);
     void (*PrintAsJson)(const void *, llvm::raw_ostream &);
     void (*MergeWith)(void *, void *);
@@ -229,6 +232,16 @@ private:
          bool IntraProcOnly, ByConstRef<n_t> AtInstruction) {
         return static_cast<ConcreteAA *>(AA)->isInReachableAllocationSites(
             Pointer1, Pointer2, IntraProcOnly, AtInstruction);
+      },
+      [](void *AA, v_t Of, n_t At, llvm::function_ref<void(v_t)> WithAlias) {
+        if constexpr (IsAliasIterator<ConcreteAA>) {
+          return static_cast<ConcreteAA *>(AA)->aliasesof(Of, At, WithAlias);
+        } else {
+          auto AliasSetPtr = static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
+          for (auto &&Alias : *AliasSetPtr) {
+            WithAlias(PSR_FWD(Alias));
+          }
+        }
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->print(OS);
