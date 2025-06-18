@@ -61,8 +61,8 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 }
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
-    getCallFlowFunctionImpl(n_t CallInst,
-                            f_t CalleeFun) -> FlowFunctionPtrType {
+    getCallFlowFunctionImpl(n_t CallInst, f_t CalleeFun)
+        -> FlowFunctionPtrType {
   const auto *Call = llvm::cast<llvm::CallBase>(CallInst);
 
   return mapFactsToCallee(

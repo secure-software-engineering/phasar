@@ -67,8 +67,8 @@ static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
 }
 
 auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getRetFlowFunctionImpl(
-    n_t CallSite, f_t /*CalleeFun*/, n_t ExitInst,
-    n_t /*RetSite*/) -> FlowFunctionPtrType {
+    n_t CallSite, f_t /*CalleeFun*/, n_t ExitInst, n_t /*RetSite*/)
+    -> FlowFunctionPtrType {
   container_type Gen;
 
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
