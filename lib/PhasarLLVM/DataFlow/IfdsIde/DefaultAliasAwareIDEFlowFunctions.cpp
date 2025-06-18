@@ -39,12 +39,6 @@ auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getNormalFlowFunctionImpl(
       Curr, Succ);
 }
 
-auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getCallFlowFunctionImpl(
-    n_t CallInst, f_t CalleeFun) -> FlowFunctionPtrType {
-  return this->IDENoAliasDefaultFlowFunctionsImpl::getCallFlowFunctionImpl(
-      CallInst, CalleeFun);
-}
-
 static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
                                    const llvm::Instruction *Context) {
   container_type Tmp = Facts;
@@ -73,8 +67,8 @@ static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
 }
 
 auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getRetFlowFunctionImpl(
-    n_t CallSite, f_t /*CalleeFun*/, n_t ExitInst, n_t /*RetSite*/)
-    -> FlowFunctionPtrType {
+    n_t CallSite, f_t /*CalleeFun*/, n_t ExitInst,
+    n_t /*RetSite*/) -> FlowFunctionPtrType {
   container_type Gen;
 
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(CallSite)) {
@@ -91,12 +85,4 @@ auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getRetFlowFunctionImpl(
   }
 
   return FFTemplates::killAllFlows();
-}
-
-auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::
-    getCallToRetFlowFunctionImpl(n_t CallSite, n_t RetSite,
-                                 llvm::ArrayRef<f_t> Callees)
-        -> FlowFunctionPtrType {
-  return this->IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl(
-      CallSite, RetSite, Callees);
 }

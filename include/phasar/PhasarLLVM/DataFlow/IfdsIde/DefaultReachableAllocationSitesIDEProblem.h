@@ -1,7 +1,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTREACHABLEALLOCATIONSITESIDEPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTREACHABLEALLOCATIONSITESIDEPROBLEM_H
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
@@ -31,7 +31,7 @@ public:
 
   constexpr IDEReachableAllocationSitesDefaultFlowFunctionsImpl(
       LLVMAliasInfoRef AS) noexcept
-      : IDENoAliasDefaultFlowFunctionsImpl(), AS(AS) {
+      : AS(AS) {
     assert(AS && "You must provide an alias information handle!");
   }
 
@@ -43,9 +43,8 @@ public:
                                                            f_t /*CalleeFun*/,
                                                            n_t ExitInst,
                                                            n_t /*RetSite*/);
-  [[nodiscard]] FlowFunctionPtrType
-  getCallToRetFlowFunctionImpl(n_t CallSite, n_t /*RetSite*/,
-                               llvm::ArrayRef<f_t> /*Callees*/);
+
+  using IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl;
 
 protected:
   LLVMAliasInfoRef AS;
@@ -57,22 +56,7 @@ class DefaultReachableAllocationSitesIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
       protected detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl {
 public:
-  using ProblemAnalysisDomain = AnalysisDomainTy;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using n_t = typename AnalysisDomainTy::n_t;
-  using f_t = typename AnalysisDomainTy::f_t;
-  using t_t = typename AnalysisDomainTy::t_t;
-  using v_t = typename AnalysisDomainTy::v_t;
-  using l_t = typename AnalysisDomainTy::l_t;
-  using i_t = typename AnalysisDomainTy::i_t;
-  using db_t = typename AnalysisDomainTy::db_t;
-
-  using ConfigurationTy = HasNoConfigurationType;
-
-  using FlowFunctionType = FlowFunction<d_t>;
-  using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
-
-  using container_type = typename FlowFunctionType::container_type;
+  using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
 
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
@@ -85,7 +69,7 @@ public:
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
-                                               std::move(ZeroValue)),
+                                               ZeroValue),
         detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl(AS) {}
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,

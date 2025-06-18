@@ -376,7 +376,7 @@ TEST(PureFlow, NormalFlow03) {
             getNormalFlowValueSet(Instr18, AliasImpl, Instr3));
   EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr18}),
             getNormalFlowValueSet(Instr18, NoAliasImpl, Instr3));
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr18}),
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr18}),
             getNormalFlowValueSet(Instr18, RASImpl, Instr3));
   // %3 = load i32, ptr %One, align 4, !dbg !251, !psr.id !252; | ID: 21
   const auto *Instr21 = IRDB.getInstruction(21);
@@ -385,7 +385,7 @@ TEST(PureFlow, NormalFlow03) {
             getNormalFlowValueSet(Instr21, AliasImpl, Instr3));
   EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr21}),
             getNormalFlowValueSet(Instr21, NoAliasImpl, Instr3));
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr21}),
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr21}),
             getNormalFlowValueSet(Instr21, RASImpl, Instr3));
 
   // %tobool = icmp ne i32 %3, 0, !dbg !251, !psr.id !253; | ID: 22
@@ -408,7 +408,7 @@ TEST(PureFlow, NormalFlow03) {
             getNormalFlowValueSet(Instr27, AliasImpl, Instr3));
   EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr27}),
             getNormalFlowValueSet(Instr27, NoAliasImpl, Instr3));
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr27}),
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr27}),
             getNormalFlowValueSet(Instr27, RASImpl, Instr3));
 
   // %5 = load i32, ptr %One, align 4, !dbg !263, !psr.id !264; | ID: 28
@@ -418,7 +418,7 @@ TEST(PureFlow, NormalFlow03) {
             getNormalFlowValueSet(Instr28, AliasImpl, Instr3));
   EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr28}),
             getNormalFlowValueSet(Instr28, NoAliasImpl, Instr3));
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr28}),
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr3, Instr28}),
             getNormalFlowValueSet(Instr28, RASImpl, Instr3));
 
   // %add = add nsw i32 %4, %5, !dbg !265, !psr.id !266; | ID: 29
@@ -455,7 +455,7 @@ TEST(PureFlow, NormalFlow03) {
             getNormalFlowValueSet(Instr38, AliasImpl, Instr37));
   EXPECT_EQ((std::set<const llvm::Value *>{Instr37, Instr38}),
             getNormalFlowValueSet(Instr38, NoAliasImpl, Instr37));
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr38}),
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr37, Instr38}),
             getNormalFlowValueSet(Instr38, RASImpl, Instr37));
 }
 
@@ -871,7 +871,7 @@ TEST(PureFlow, RetFlow03) {
   EXPECT_EQ(std::set<const llvm::Value *>{Instr29},
             getRetFlowValueSet(Instruction30, NoAliasImpl,
                                FunctionZ8newThreePKi->getArg(0), Instruction9));
-  EXPECT_EQ((std::set<const llvm::Value *>{Instr29, Instr15}),
+  EXPECT_EQ((std::set<const llvm::Value *>{Instr29, Instr15, Instruction30}),
             getRetFlowValueSet(Instruction30, RASImpl,
                                FunctionZ8newThreePKi->getArg(0), Instruction9));
 

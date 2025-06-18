@@ -20,12 +20,11 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     getNormalFlowFunctionImpl(n_t Curr, n_t Succ) -> FlowFunctionPtrType {
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    container_type Gen;
 
     auto AliasSet =
         AS.getReachableAllocationSites(Store->getPointerOperand(), true, Store);
-    Gen.insert(AliasSet->begin(), AliasSet->end());
-    Gen.insert(Store->getValueOperand());
+
+    container_type Gen(AliasSet->begin(), AliasSet->end());
 
     return FFTemplates::lambdaFlow(
         [Store, Gen{std::move(Gen)}, AS = AS](d_t Source) -> container_type {
@@ -35,7 +34,9 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
           if (Store->getValueOperand() == Source ||
               AS.isInReachableAllocationSites(Store->getValueOperand(), Source,
                                               true, Store)) {
-            return Gen;
+            auto Ret = Gen;
+            Ret.insert(Source);
+            return Ret;
           }
 
           return {Source};
@@ -43,18 +44,12 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
   }
 
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    container_type Gen;
-
-    auto AliasSet = AS.getReachableAllocationSites(Load, true, Load);
-    Gen.insert(AliasSet->begin(), AliasSet->end());
-    Gen.insert(Load);
-
     return FFTemplates::lambdaFlow(
-        [Load, Gen{std::move(Gen)}, AS = AS](d_t Source) -> container_type {
+        [Load, AS = AS](d_t Source) -> container_type {
           if (Load->getPointerOperand() == Source ||
               AS.isInReachableAllocationSites(Load->getPointerOperand(), Source,
                                               true, Load)) {
-            return Gen;
+            return {Source, Load};
           }
 
           return {Source};
@@ -66,55 +61,29 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 }
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
-    getCallFlowFunctionImpl(n_t CallInst, f_t CalleeFun)
-        -> FlowFunctionPtrType {
+    getCallFlowFunctionImpl(n_t CallInst,
+                            f_t CalleeFun) -> FlowFunctionPtrType {
   const auto *Call = llvm::cast<llvm::CallBase>(CallInst);
 
-  std::vector<LLVMAliasInfoRef::AllocationSiteSetPtrTy> AliasArgs;
-  AliasArgs.reserve(Call->arg_size());
-
-  for (const auto &CurrArg : Call->args()) {
-    AliasArgs.emplace_back(AS.getReachableAllocationSites(CurrArg, true, Call));
-  }
-
   return mapFactsToCallee(
-      Call, CalleeFun,
-      [Call, AliasArgs = std::move(AliasArgs)](d_t Arg, d_t Source) -> bool {
+      Call, CalleeFun, [Call, AS = AS](d_t Arg, d_t Source) -> bool {
         if (Arg == Source) {
           return true;
         }
 
-        if (Arg->getType()->isPointerTy()) {
-          for (const auto &CurrArg : Call->args()) {
-            if (Arg == CurrArg) {
-              return AliasArgs[CurrArg.getOperandNo()]->contains(Source);
-            }
-          }
-        }
-
-        return false;
+        return Arg->getType()->isPointerTy() &&
+               Source->getType()->isPointerTy() &&
+               AS.isInReachableAllocationSites(Arg, Source, true, Call);
       });
 }
 
 static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
                                    const llvm::Instruction *Context) {
   container_type Tmp = Facts;
-  for (const auto *Fact : Facts) {
+  for (const auto *Fact : Tmp) {
     auto Aliases = AS.getReachableAllocationSites(Fact, true, Context);
-    for (const auto *Alias : *Aliases) {
-      if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
-        if (Inst->getParent() == Context->getParent() &&
-            Context->comesBefore(Inst)) {
-          // We will see that inst later
-          continue;
-        }
-      }
-
-      Tmp.insert(Alias);
-    }
+    Facts.insert(Aliases->begin(), Aliases->end());
   }
-
-  Facts = std::move(Tmp);
 }
 
 auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
@@ -127,21 +96,28 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 
   return mapFactsToCaller(
       Call, ExitInst,
-      [AS = AS](d_t Param, d_t Source) {
-        return Param->getType()->isPointerTy() &&
-               (Param == Source ||
-                AS.isInReachableAllocationSites(Param, Source));
+      [AS = AS, ExitInst](d_t Param, d_t Source) {
+        if (!Param->getType()->isPointerTy()) {
+          return false;
+        }
+
+        if (Param == Source) {
+          return true;
+        }
+
+        // Arguments are counted as allocation-sites, so we have generated them
+        // as aliases
+        return !llvm::isa<llvm::Argument>(Source) &&
+               AS.isInReachableAllocationSites(Param, Source, true, ExitInst);
       },
-      [AS = AS](d_t Ret, d_t Source) {
-        return Ret == Source || AS.isInReachableAllocationSites(Ret, Source);
+      [AS = AS, ExitInst](d_t Ret, d_t Source) {
+        if (Ret == Source) {
+          return true;
+        }
+
+        return Ret->getType()->isPointerTy() &&
+               Source->getType()->isPointerTy() &&
+               AS.isInReachableAllocationSites(Ret, Source, true, ExitInst);
       },
       {}, true, true, PostProcessFacts);
-}
-
-auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
-    getCallToRetFlowFunctionImpl(n_t CallSite, n_t RetSite,
-                                 llvm::ArrayRef<f_t> Callees)
-        -> FlowFunctionPtrType {
-  return this->IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl(
-      CallSite, RetSite, Callees);
 }

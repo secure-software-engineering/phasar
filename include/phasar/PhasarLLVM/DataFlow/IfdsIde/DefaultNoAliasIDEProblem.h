@@ -48,21 +48,6 @@ class DefaultNoAliasIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
       protected detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
-  using ProblemAnalysisDomain = AnalysisDomainTy;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using n_t = typename AnalysisDomainTy::n_t;
-  using f_t = typename AnalysisDomainTy::f_t;
-  using t_t = typename AnalysisDomainTy::t_t;
-  using v_t = typename AnalysisDomainTy::v_t;
-  using l_t = typename AnalysisDomainTy::l_t;
-  using i_t = typename AnalysisDomainTy::i_t;
-  using db_t = typename AnalysisDomainTy::db_t;
-
-  using ConfigurationTy = HasNoConfigurationType;
-
-  using FlowFunctionType = FlowFunction<d_t>;
-  using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
-
   using IDETabulationProblem<AnalysisDomainTy>::IDETabulationProblem;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
