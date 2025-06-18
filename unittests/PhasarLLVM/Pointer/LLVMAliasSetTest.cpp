@@ -4,11 +4,14 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
+
+#include <type_traits>
 
 using namespace psr;
 
@@ -63,6 +66,13 @@ TEST(LLVMAliasSet, Global_01) {
   PTS.print(llvm::outs());
   llvm::outs() << '\n';
 }
+
+static_assert(std::is_convertible_v<LLVMAliasSet *, LLVMAliasIteratorRef>);
+static_assert(std::is_convertible_v<LLVMAliasSet *, LLVMAliasInfoRef>);
+static_assert(std::is_convertible_v<LLVMAliasInfoRef, LLVMAliasIteratorRef>);
+static_assert(
+    std::is_convertible_v<ReachableAllocationSitesIterator<LLVMAliasSet>,
+                          LLVMAliasIteratorRef>);
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

@@ -10,8 +10,6 @@
 #ifndef PHASAR_POINTER_ALIASITERATOR_H
 #define PHASAR_POINTER_ALIASITERATOR_H
 
-#include "phasar/Pointer/AliasInfo.h"
-#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
@@ -24,45 +22,37 @@
 
 namespace psr {
 
-template <typename UnderlyingAA> struct ReachableAllocationSitesIterator {
-  using n_t = typename UnderlyingAA::n_t;
-  using v_t = typename UnderlyingAA::v_t;
+namespace detail {
 
-  void aliasesOf(v_t Of, n_t At, llvm::function_ref<void(v_t)> WithAlias) {
-    assert(AA != nullptr);
+template <typename T, typename = void>
+struct IsAliasIterator : std::false_type {};
 
-    auto AliasSetPtr = AA->getReachableAllocationSites(Of, true, At);
-    if (!AliasSetPtr || AliasSetPtr->empty()) {
-      // The alias-relation should be reflexive
-      WithAlias(Of);
-      return;
-    }
+template <typename T>
+struct IsAliasIterator<
+    T, std::void_t<decltype(std::declval<T>().aliasesOf(
+           std::declval<typename T::v_t>(), std::declval<typename T::n_t>(),
+           std::declval<llvm::function_ref<void(typename T::v_t)>>()))>>
+    : std::true_type {};
 
-    for (auto &&Alias : *AliasSetPtr) {
-      WithAlias(PSR_FWD(Alias));
-    }
-  }
+template <typename T, typename = AliasResult>
+struct HasAlias : std::false_type {};
+template <typename T>
+struct HasAlias<T, decltype(std::declval<T>().alias(
+                       std::declval<typename T::v_t>(),
+                       std::declval<typename T::v_t>(),
+                       std::declval<typename T::n_t>()))> : std::true_type {};
 
-  [[nodiscard]] AliasResult alias(v_t Ptr, v_t Alias, n_t At) {
-    assert(AA != nullptr);
+template <typename T, typename = void>
+struct HasGetAliasSet : std::false_type {};
+template <typename T>
+struct HasGetAliasSet<
+    T, std::void_t<decltype(std::declval<T>().getAliasSet(
+           std::declval<typename T::v_t>(), std::declval<typename T::n_t>()))>>
+    : std::true_type {};
 
-    if (Ptr == Alias) {
-      return AliasResult::MustAlias;
-    }
-
-    if (AA->isInReachableAllocationSites(Ptr, Alias, true, At)) {
-      return AliasResult::MayAlias;
-    }
-
-    return AliasResult::NoAlias;
-  }
-
-  UnderlyingAA *AA{};
-};
-
-template <typename UnderlyingAA>
-ReachableAllocationSitesIterator(UnderlyingAA *)
-    -> ReachableAllocationSitesIterator<UnderlyingAA>;
+} // namespace detail
+template <typename T>
+PSR_CONCEPT IsAliasIterator = detail::IsAliasIterator<T>::value;
 
 /// \brief A type-erased reference to any object implementing the
 /// IsAliasIterator interface. Use this, if your alias-aware analysis just needs
@@ -106,6 +96,12 @@ public:
   using n_t = N;
   using v_t = V;
 
+  struct VTable {
+    void (*AliasesOf)(void *, ByConstRef<V>, ByConstRef<N>,
+                      llvm::function_ref<void(V)>);
+    AliasResult (*Alias)(void *, ByConstRef<V>, ByConstRef<V>, ByConstRef<N>);
+  };
+
   template <typename ConcreteAA,
             typename = std::enable_if_t<
                 !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
@@ -115,10 +111,21 @@ public:
       : AA(getOpaquePtr(psr::assertNotNull(AA))), VT(&VtableFor<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
   }
+  template <
+      typename ConcreteAA,
+      typename = std::enable_if_t<
+          !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
+          std::is_same_v<v_t, typename ConcreteAA::v_t> &&
+          std::is_same_v<n_t, typename ConcreteAA::n_t> && CanSSO<ConcreteAA>>>
+  constexpr AliasIteratorRef(ConcreteAA AA) noexcept
+      : AA(getOpaquePtr(AA)), VT(&VtableFor<ConcreteAA>) {
+    static_assert(IsAliasIterator<AliasIteratorRef>);
+  }
 
-  constexpr AliasIteratorRef(AliasInfoRef<V, N> AS) noexcept
-      : AA(AS.AA), VT(AS.VT) {
-    assert(AS != nullptr);
+  constexpr explicit AliasIteratorRef(void *AA, const VTable *VT) noexcept
+      : AA(AA), VT(VT) {
+    assert(AA != nullptr);
+    assert(VT != nullptr);
   }
 
   constexpr AliasIteratorRef(const AliasIteratorRef &) noexcept = default;
@@ -210,14 +217,54 @@ private:
   }
 
   template <typename ConcreteAA>
-  constexpr static detail::AliasIteratorVTableBase<V, N> VtableFor = {
+  constexpr static VTable VtableFor = {
       &aliasesOfThunk<ConcreteAA>,
       &aliasThunk<ConcreteAA>,
   };
 
   void *AA{};
-  const detail::AliasIteratorVTableBase<V, N> *VT{};
+  const VTable *VT{};
 }; // namespace psr
+
+template <typename UnderlyingAA> struct ReachableAllocationSitesIterator {
+  using n_t = typename UnderlyingAA::n_t;
+  using v_t = typename UnderlyingAA::v_t;
+
+  void aliasesOf(v_t Of, n_t At, llvm::function_ref<void(v_t)> WithAlias) {
+    assert(AA != nullptr);
+
+    auto AliasSetPtr = AA->getReachableAllocationSites(Of, true, At);
+    if (!AliasSetPtr || AliasSetPtr->empty()) {
+      // The alias-relation should be reflexive
+      WithAlias(Of);
+      return;
+    }
+
+    for (auto &&Alias : *AliasSetPtr) {
+      WithAlias(PSR_FWD(Alias));
+    }
+  }
+
+  [[nodiscard]] AliasResult alias(v_t Ptr, v_t Alias, n_t At) {
+    assert(AA != nullptr);
+
+    if (Ptr == Alias) {
+      return AliasResult::MustAlias;
+    }
+
+    if (AA->isInReachableAllocationSites(Ptr, Alias, true, At)) {
+      return AliasResult::MayAlias;
+    }
+
+    return AliasResult::NoAlias;
+  }
+
+  UnderlyingAA *AA{};
+};
+
+template <typename UnderlyingAA>
+ReachableAllocationSitesIterator(UnderlyingAA *)
+    -> ReachableAllocationSitesIterator<UnderlyingAA>;
 
 } // namespace psr
 

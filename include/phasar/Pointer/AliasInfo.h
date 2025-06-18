@@ -12,6 +12,7 @@
 
 #include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Pointer/AliasIterator.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/ByRef.h"
@@ -60,7 +61,6 @@ template <typename V, typename N>
 class [[gsl::Pointer]] AliasInfoRef
     : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
   friend class AliasInfo<V, N>;
-  template <typename VV, typename NN> friend class AliasIteratorRef;
 
   using traits_t = AliasInfoTraits<AliasInfoRef<V, N>>;
 
@@ -71,14 +71,14 @@ public:
   using n_t = typename traits_t::n_t;
   using v_t = typename traits_t::v_t;
 
-  AliasInfoRef() noexcept = default;
-  AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
+  constexpr AliasInfoRef() noexcept = default;
+  constexpr AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
   template <typename ConcreteAA,
             typename = std::enable_if_t<
                 !std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
                 std::is_same_v<v_t, typename ConcreteAA::v_t> &&
                 std::is_same_v<n_t, typename ConcreteAA::n_t>>>
-  AliasInfoRef(ConcreteAA *AA) noexcept
+  constexpr AliasInfoRef(ConcreteAA *AA) noexcept
       : AA(AA), VT((std::is_empty_v<ConcreteAA> || AA) ? &VTableFor<ConcreteAA>
                                                        : nullptr) {}
 
@@ -87,11 +87,15 @@ public:
   AliasInfoRef(AliasInfo<V, N> &&) = delete;
   AliasInfoRef &operator=(AliasInfo<V, N> &&) = delete;
 
-  AliasInfoRef(const AliasInfoRef &) noexcept = default;
-  AliasInfoRef &operator=(const AliasInfoRef &) noexcept = default;
+  constexpr AliasInfoRef(const AliasInfoRef &) noexcept = default;
+  constexpr AliasInfoRef &operator=(const AliasInfoRef &) noexcept = default;
   ~AliasInfoRef() noexcept = default;
 
   explicit operator bool() const noexcept { return VT != nullptr; }
+
+  constexpr operator AliasIteratorRef<V, N>() const noexcept {
+    return AliasIteratorRef<V, N>(AA, VT);
+  }
 
   // -- Impl for IsAliasInfo:
 
@@ -184,7 +188,7 @@ public:
   }
 
 private:
-  struct VTable : detail::AliasIteratorVTableBase<V, N> {
+  struct VTable : AliasIteratorRef<V, N>::VTable {
     bool (*IsInterProcedural)(const void *) noexcept;
     AliasAnalysisType (*GetAliasAnalysisType)(const void *) noexcept;
     AliasSetPtrTy (*GetAliasSet)(void *, ByConstRef<v_t>, ByConstRef<n_t>);
