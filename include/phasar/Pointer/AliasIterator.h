@@ -64,7 +64,20 @@ template <typename UnderlyingAA>
 ReachableAllocationSitesIterator(UnderlyingAA *)
     -> ReachableAllocationSitesIterator<UnderlyingAA>;
 
-template <typename V, typename N> class AliasIteratorRef {
+/// \brief A type-erased reference to any object implementing the
+/// IsAliasIterator interface. Use this, if your alias-aware analysis just needs
+/// a minimal interface to work with aliases and does not require the
+/// versatility of AliasInfoRef.
+///
+/// This is a *non-owning* reference similar to std::string_view and
+/// llvm::ArrayRef. Pass values of this type by value.
+///
+/// Example:
+/// \code
+/// LLVMAliasSet ASet(...);
+/// LLVMAliasIteratorRef AA = &ASet;
+/// \endcode
+template <typename V, typename N> class [[gsl::Pointer]] AliasIteratorRef {
   template <typename ConcreteAA>
   static constexpr bool CanSSO = std::is_trivially_copyable_v<ConcreteAA> &&
                                  sizeof(ConcreteAA) <= sizeof(void *);
@@ -104,19 +117,38 @@ public:
   }
 
   constexpr AliasIteratorRef(AliasInfoRef<V, N> AS) noexcept
-      : AA(&psr::assertNotNull(AS.AA)), VT(AS.VT->AliasesOf, AS.VT.Alias) {}
+      : AA(AS.AA), VT(AS.VT) {
+    assert(AS != nullptr);
+  }
 
   constexpr AliasIteratorRef(const AliasIteratorRef &) noexcept = default;
   constexpr AliasIteratorRef &
   operator=(const AliasIteratorRef &) noexcept = default;
   ~AliasIteratorRef() = default;
 
+  /// \brief Invokes the callback WithAlias for all aliases of Of at the
+  /// instruction At.
+  ///
+  /// Note: The alias-relation is reflexive, so WithAlias is also called with
+  /// Of.
+  ///
+  /// \param Of The pointer, for which the aliases should be iterated
+  /// \param At The instruction, where the alias-query is raised.
+  /// Implementations may ignore this parameter
+  /// \param WithAlias Callback to invoke for each alias of Of
   void aliasesOf(ByConstRef<v_t> Of, ByConstRef<n_t> At,
                  llvm::function_ref<void(v_t)> WithAlias) {
     assert(VT != nullptr);
     VT->AliasesOf(AA, Of, At, WithAlias);
   }
 
+  /// \brief Convenience function to aggregate all aliases of Of in a set.
+  ///
+  /// \param Of The pointer, for which the aliases should be iterated
+  /// \param At The instruction, where the alias-query is raised.
+  /// Implementations may ignore this parameter
+  /// \tparam SetT The set-type of the set to create
+  /// \returns A set of type SetT containing all aliases of Of
   template <typename SetT = std::set<v_t>>
   [[nodiscard]] SetT asSet(ByConstRef<v_t> Of, ByConstRef<n_t> At) {
     SetT Set;
@@ -124,6 +156,12 @@ public:
     return Set;
   }
 
+  /// \brief Checks, whether Ptr and Alias may/must/partial/no-alias at
+  /// instruction At.
+  ///
+  /// \param Ptr The pointer, for which the aliases should be iterated
+  /// \param Alias A pointer, which may be a potential alias of Ptr
+  /// \param At The instruction, where the alias-query is raised.
   [[nodiscard]] AliasResult alias(ByConstRef<v_t> Ptr, ByConstRef<v_t> Alias,
                                   ByConstRef<n_t> At) {
     assert(VT != nullptr);
@@ -131,17 +169,10 @@ public:
   }
 
 private:
-  struct VTable {
-    void (*AliasesOf)(void *, ByConstRef<v_t>, ByConstRef<n_t>,
-                      llvm::function_ref<void(v_t)>);
-    AliasResult (*Alias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
-                         ByConstRef<n_t>);
-  };
-
   template <typename ConcreteAA>
   static void aliasesOfThunk(void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
                              llvm::function_ref<void(v_t)> WithAlias) {
-    const auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
+    auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
     if constexpr (IsAliasIterator<ConcreteAA>) {
       return CAA->aliasesof(Of, At, WithAlias);
     } else {
@@ -159,7 +190,7 @@ private:
       return AliasResult::MustAlias;
     }
 
-    const auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
+    auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
     if constexpr (detail::HasAlias<ConcreteAA>::value) {
       return CAA->alias(Ptr, Alias, At);
     } else if constexpr (detail::HasGetAliasSet<ConcreteAA>::value) {
@@ -179,13 +210,13 @@ private:
   }
 
   template <typename ConcreteAA>
-  constexpr static VTable VtableFor = {
+  constexpr static detail::AliasIteratorVTableBase<V, N> VtableFor = {
       &aliasesOfThunk<ConcreteAA>,
       &aliasThunk<ConcreteAA>,
   };
 
   void *AA{};
-  const VTable *VT{};
+  const detail::AliasIteratorVTableBase<V, N> *VT{};
 }; // namespace psr
 
 } // namespace psr

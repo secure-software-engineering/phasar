@@ -27,14 +27,13 @@ public:
 
   using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
 
-  [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
+  [[nodiscard]] constexpr LLVMAliasIteratorRef getAliasInfo() const noexcept {
     return AS;
   }
 
-  constexpr IDEAliasAwareDefaultFlowFunctionsImpl(LLVMAliasInfoRef AS) noexcept
-      : AS(AS) {
-    assert(AS && "You must provide an alias information handle!");
-  }
+  constexpr IDEAliasAwareDefaultFlowFunctionsImpl(
+      LLVMAliasIteratorRef AS) noexcept
+      : AS(AS) {}
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
                                                               n_t /*Succ*/);
@@ -49,7 +48,7 @@ public:
                                llvm::ArrayRef<f_t> /*Callees*/);
 
 private:
-  LLVMAliasInfoRef AS;
+  LLVMAliasIteratorRef AS;
 };
 } // namespace detail
 
@@ -81,7 +80,7 @@ public:
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultAliasAwareIDEProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasIteratorRef AS,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
@@ -123,7 +122,7 @@ public:
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultAliasAwareIFDSProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasIteratorRef AS,
       std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),

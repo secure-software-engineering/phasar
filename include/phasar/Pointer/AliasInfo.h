@@ -51,13 +51,14 @@ struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 /// Example:
 /// \code
 /// LLVMAliasSet ASet(...);
-/// AliasInfoRef AA = &ASet;
+/// LLVMAliasInfoRef AA = &ASet;
 /// \endcode
 ///
 /// NOTE: AliasInfoRef::mergeWith() only works if supplied with a compatible
 /// other AliasInfo. Otherwise, it asserts out
 template <typename V, typename N>
-class AliasInfoRef : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
+class [[gsl::Pointer]] AliasInfoRef
+    : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
   friend class AliasInfo<V, N>;
   template <typename VV, typename NN> friend class AliasIteratorRef;
 
@@ -183,11 +184,9 @@ public:
   }
 
 private:
-  struct VTable {
+  struct VTable : detail::AliasIteratorVTableBase<V, N> {
     bool (*IsInterProcedural)(const void *) noexcept;
     AliasAnalysisType (*GetAliasAnalysisType)(const void *) noexcept;
-    AliasResult (*Alias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
-                         ByConstRef<n_t>);
     AliasSetPtrTy (*GetAliasSet)(void *, ByConstRef<v_t>, ByConstRef<n_t>);
     AllocationSiteSetPtrTy (*GetReachableAllocationSites)(void *,
                                                           ByConstRef<v_t>, bool,
@@ -195,8 +194,6 @@ private:
     bool (*IsInReachableAllocationSites)(void *, ByConstRef<v_t>,
                                          ByConstRef<v_t>, bool,
                                          ByConstRef<n_t>);
-    void (*AliasesOf)(void *, ByConstRef<v_t>, ByConstRef<n_t>,
-                      llvm::function_ref<void(v_t)>);
     void (*Print)(const void *, llvm::raw_ostream &);
     void (*PrintAsJson)(const void *, llvm::raw_ostream &);
     void (*MergeWith)(void *, void *);
@@ -209,16 +206,31 @@ private:
 
   template <typename ConcreteAA>
   static constexpr VTable VTableFor = {
+      {
+          [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
+             llvm::function_ref<void(v_t)> WithAlias) {
+            if constexpr (IsAliasIterator<ConcreteAA>) {
+              return static_cast<ConcreteAA *>(AA)->aliasesof(Of, At,
+                                                              WithAlias);
+            } else {
+              auto AliasSetPtr =
+                  static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
+              for (auto &&Alias : *AliasSetPtr) {
+                WithAlias(PSR_FWD(Alias));
+              }
+            }
+          },
+          [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+             ByConstRef<n_t> AtInstruction) {
+            return static_cast<ConcreteAA *>(AA)->alias(Pointer1, Pointer2,
+                                                        AtInstruction);
+          },
+      },
       [](const void *AA) noexcept {
         return static_cast<const ConcreteAA *>(AA)->isInterProcedural();
       },
       [](const void *AA) noexcept {
         return static_cast<const ConcreteAA *>(AA)->getAliasAnalysisType();
-      },
-      [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
-         ByConstRef<n_t> AtInstruction) {
-        return static_cast<ConcreteAA *>(AA)->alias(Pointer1, Pointer2,
-                                                    AtInstruction);
       },
       [](void *AA, ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) {
         return static_cast<ConcreteAA *>(AA)->getAliasSet(Pointer,
@@ -233,17 +245,6 @@ private:
          bool IntraProcOnly, ByConstRef<n_t> AtInstruction) {
         return static_cast<ConcreteAA *>(AA)->isInReachableAllocationSites(
             Pointer1, Pointer2, IntraProcOnly, AtInstruction);
-      },
-      [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
-         llvm::function_ref<void(v_t)> WithAlias) {
-        if constexpr (IsAliasIterator<ConcreteAA>) {
-          return static_cast<ConcreteAA *>(AA)->aliasesof(Of, At, WithAlias);
-        } else {
-          auto AliasSetPtr = static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
-          for (auto &&Alias : *AliasSetPtr) {
-            WithAlias(PSR_FWD(Alias));
-          }
-        }
       },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->print(OS);
@@ -267,7 +268,7 @@ private:
       [](const void *AA) noexcept {
         delete static_cast<const ConcreteAA *>(AA);
       },
-  };
+  }; // namespace psr
 
   // --
 
@@ -287,7 +288,8 @@ private:
 /// \endcode
 ///
 template <typename V, typename N>
-class [[clang::trivial_abi]] AliasInfo final : public AliasInfoRef<V, N> {
+class [[clang::trivial_abi, gsl::Owner]] AliasInfo final
+    : public AliasInfoRef<V, N> {
   using base_t = AliasInfoRef<V, N>;
 
 public:

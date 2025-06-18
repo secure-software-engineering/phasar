@@ -11,6 +11,7 @@
 #define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -78,7 +79,7 @@ struct IsAliasIterator : std::false_type {};
 
 template <typename T>
 struct IsAliasIterator<
-    T, std::void_t<decltype(std::declval<T>().aliasesof(
+    T, std::void_t<decltype(std::declval<T>().aliasesOf(
            std::declval<typename T::v_t>(), std::declval<typename T::n_t>(),
            std::declval<llvm::function_ref<void(typename T::v_t)>>()))>>
     : std::true_type {};
@@ -98,6 +99,12 @@ struct HasGetAliasSet<
     T, std::void_t<decltype(std::declval<T>().getAliasSet(
            std::declval<typename T::v_t>(), std::declval<typename T::n_t>()))>>
     : std::true_type {};
+
+template <typename V, typename N> struct AliasIteratorVTableBase {
+  void (*AliasesOf)(void *, ByConstRef<V>, ByConstRef<N>,
+                    llvm::function_ref<void(V)>);
+  AliasResult (*Alias)(void *, ByConstRef<V>, ByConstRef<V>, ByConstRef<N>);
+};
 
 } // namespace detail
 
