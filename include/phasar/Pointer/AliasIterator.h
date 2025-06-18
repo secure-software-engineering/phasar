@@ -11,6 +11,9 @@
 #define PHASAR_POINTER_ALIASITERATOR_H
 
 #include "phasar/Pointer/AliasInfo.h"
+#include "phasar/Pointer/AliasInfoBase.h"
+#include "phasar/Pointer/AliasResult.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -40,6 +43,20 @@ template <typename UnderlyingAA> struct ReachableAllocationSitesIterator {
     }
   }
 
+  [[nodiscard]] AliasResult alias(v_t Ptr, v_t Alias, n_t At) {
+    assert(AA != nullptr);
+
+    if (Ptr == Alias) {
+      return AliasResult::MustAlias;
+    }
+
+    if (AA->isInReachableAllocationSites(Ptr, Alias, true, At)) {
+      return AliasResult::MayAlias;
+    }
+
+    return AliasResult::NoAlias;
+  }
+
   UnderlyingAA *AA{};
 };
 
@@ -48,6 +65,30 @@ ReachableAllocationSitesIterator(UnderlyingAA *)
     -> ReachableAllocationSitesIterator<UnderlyingAA>;
 
 template <typename V, typename N> class AliasIteratorRef {
+  template <typename ConcreteAA>
+  static constexpr bool CanSSO = std::is_trivially_copyable_v<ConcreteAA> &&
+                                 sizeof(ConcreteAA) <= sizeof(void *);
+
+  template <typename ConcreteAA>
+  constexpr static ConcreteAA *fromOpaquePtr(void *&EF) noexcept {
+    if constexpr (CanSSO<ConcreteAA>) {
+      return static_cast<ConcreteAA *>(static_cast<void *>(&EF));
+    } else {
+      return static_cast<ConcreteAA *>(EF);
+    }
+  }
+
+  template <typename ConcreteAA>
+  constexpr void *getOpaquePtr(ConcreteAA &AA) noexcept {
+    if constexpr (CanSSO<ConcreteAA>) {
+      void *Ret{};
+      ::new (&Ret) ConcreteAA(AA);
+      return Ret;
+    } else {
+      return &AA;
+    }
+  }
+
 public:
   using n_t = N;
   using v_t = V;
@@ -58,61 +99,94 @@ public:
                 std::is_same_v<v_t, typename ConcreteAA::v_t> &&
                 std::is_same_v<n_t, typename ConcreteAA::n_t>>>
   constexpr AliasIteratorRef(ConcreteAA *AA) noexcept
-      : AA(&psr::assertNotNull(AA)), AliasesOf(&aliasesOfThunk<ConcreteAA>) {
+      : AA(getOpaquePtr(psr::assertNotNull(AA))), VT(&VtableFor<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
   }
 
-  template <typename UnderlyingAA>
-  constexpr AliasIteratorRef(
-      ReachableAllocationSitesIterator<UnderlyingAA> RAS) noexcept
-      : AA(&psr::assertNotNull(RAS.AA)),
-        AliasesOf(&allocSitesOfThunk<UnderlyingAA>) {}
-
   constexpr AliasIteratorRef(AliasInfoRef<V, N> AS) noexcept
-      : AA(&psr::assertNotNull(AS.AA)), AliasesOf(AS.VT->AliasesOf) {}
+      : AA(&psr::assertNotNull(AS.AA)), VT(AS.VT->AliasesOf, AS.VT.Alias) {}
 
   constexpr AliasIteratorRef(const AliasIteratorRef &) noexcept = default;
   constexpr AliasIteratorRef &
   operator=(const AliasIteratorRef &) noexcept = default;
   ~AliasIteratorRef() = default;
 
-  void aliasesOf(v_t Of, n_t At, llvm::function_ref<void(v_t)> WithAlias) {
-    assert(AliasesOf);
-    AliasesOf(AA, std::move(Of), std::move(At), WithAlias);
+  void aliasesOf(ByConstRef<v_t> Of, ByConstRef<n_t> At,
+                 llvm::function_ref<void(v_t)> WithAlias) {
+    assert(VT != nullptr);
+    VT->AliasesOf(AA, Of, At, WithAlias);
   }
 
   template <typename SetT = std::set<v_t>>
-  [[nodiscard]] SetT asSet(v_t Of, n_t At) {
+  [[nodiscard]] SetT asSet(ByConstRef<v_t> Of, ByConstRef<n_t> At) {
     SetT Set;
     aliasesOf(Of, At, [&Set](v_t Alias) { Set.insert(std::move(Alias)); });
     return Set;
   }
 
+  [[nodiscard]] AliasResult alias(ByConstRef<v_t> Ptr, ByConstRef<v_t> Alias,
+                                  ByConstRef<n_t> At) {
+    assert(VT != nullptr);
+    return VT->Alias(AA, Ptr, Alias, At);
+  }
+
 private:
+  struct VTable {
+    void (*AliasesOf)(void *, ByConstRef<v_t>, ByConstRef<n_t>,
+                      llvm::function_ref<void(v_t)>);
+    AliasResult (*Alias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
+                         ByConstRef<n_t>);
+  };
+
   template <typename ConcreteAA>
-  static void aliasesOfThunk(void *AA, v_t Of, n_t At,
+  static void aliasesOfThunk(void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
                              llvm::function_ref<void(v_t)> WithAlias) {
+    const auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
     if constexpr (IsAliasIterator<ConcreteAA>) {
-      return static_cast<ConcreteAA *>(AA)->aliasesof(Of, At, WithAlias);
+      return CAA->aliasesof(Of, At, WithAlias);
     } else {
-      auto AliasSetPtr = static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
+      auto AliasSetPtr = CAA->getAliasSet(Of, At);
       for (auto &&Alias : *AliasSetPtr) {
         WithAlias(PSR_FWD(Alias));
       }
     }
   }
 
-  template <typename UnderlyingAA>
-  static void allocSitesOfThunk(void *AA, v_t Of, n_t At,
-                                llvm::function_ref<void(v_t)> WithAlias) {
-    ReachableAllocationSitesIterator<UnderlyingAA>{
-        static_cast<UnderlyingAA *>(AA)}
-        .aliasesOf(Of, At, WithAlias);
+  template <typename ConcreteAA>
+  static AliasResult aliasThunk(void *AA, ByConstRef<v_t> Ptr,
+                                ByConstRef<v_t> Alias, ByConstRef<n_t> At) {
+    if (Ptr == Alias) {
+      return AliasResult::MustAlias;
+    }
+
+    const auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
+    if constexpr (detail::HasAlias<ConcreteAA>::value) {
+      return CAA->alias(Ptr, Alias, At);
+    } else if constexpr (detail::HasGetAliasSet<ConcreteAA>::value) {
+      auto AliasSetPtr = CAA->getAliasSet(Ptr, At);
+      return AliasSetPtr->count(Alias);
+    } else {
+      AliasResult Ret = AliasResult::NoAlias;
+
+      CAA->aliasesof(Ptr, At, [&Ret, Alias](v_t A) {
+        if (A == Alias) {
+          Ret = AliasResult::MayAlias;
+        }
+      });
+
+      return Ret;
+    }
   }
 
+  template <typename ConcreteAA>
+  constexpr static VTable VtableFor = {
+      &aliasesOfThunk<ConcreteAA>,
+      &aliasThunk<ConcreteAA>,
+  };
+
   void *AA{};
-  void (*AliasesOf)(void *, v_t, n_t, llvm::function_ref<void(v_t)>){};
-};
+  const VTable *VT{};
+}; // namespace psr
 
 } // namespace psr
 

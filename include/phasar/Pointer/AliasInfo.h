@@ -195,7 +195,8 @@ private:
     bool (*IsInReachableAllocationSites)(void *, ByConstRef<v_t>,
                                          ByConstRef<v_t>, bool,
                                          ByConstRef<n_t>);
-    void (*AliasesOf)(void *, v_t, n_t, llvm::function_ref<void(v_t)>);
+    void (*AliasesOf)(void *, ByConstRef<v_t>, ByConstRef<n_t>,
+                      llvm::function_ref<void(v_t)>);
     void (*Print)(const void *, llvm::raw_ostream &);
     void (*PrintAsJson)(const void *, llvm::raw_ostream &);
     void (*MergeWith)(void *, void *);
@@ -233,7 +234,8 @@ private:
         return static_cast<ConcreteAA *>(AA)->isInReachableAllocationSites(
             Pointer1, Pointer2, IntraProcOnly, AtInstruction);
       },
-      [](void *AA, v_t Of, n_t At, llvm::function_ref<void(v_t)> WithAlias) {
+      [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
+         llvm::function_ref<void(v_t)> WithAlias) {
         if constexpr (IsAliasIterator<ConcreteAA>) {
           return static_cast<ConcreteAA *>(AA)->aliasesof(Of, At, WithAlias);
         } else {
