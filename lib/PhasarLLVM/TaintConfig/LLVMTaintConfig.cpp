@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
@@ -182,9 +183,20 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
 }
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
+
+  llvm::SmallVector<const llvm::Function *, 1> VarAnnotations{};
+  llvm::SmallVector<const llvm::Function *, 1> PtrAnnotations{};
+  for (const auto *F : AnnotatedCode.getAllFunctions()) {
+    if (F->getName().startswith("llvm.var.annotation")) {
+      VarAnnotations.push_back(F);
+    }
+    if (F->getName().startswith("llvm.ptr.annotation")) {
+      PtrAnnotations.push_back(F);
+    }
+  }
+
   // handle "local" annotation declarations
-  const auto *Annotation = AnnotatedCode.getFunction("llvm.var.annotation");
-  if (Annotation) {
+  for (const auto *Annotation : VarAnnotations) {
     for (const auto *VarAnnotationUser : Annotation->users()) {
       if (const auto *AnnotationCall =
               llvm::dyn_cast<llvm::CallBase>(VarAnnotationUser)) {
@@ -218,14 +230,6 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
           }
         }
       }
-    }
-  }
-
-  std::vector<const llvm::Function *> PtrAnnotations{};
-  PtrAnnotations.reserve(AnnotatedCode.getNumFunctions());
-  for (const auto *F : AnnotatedCode.getAllFunctions()) {
-    if (F->getName().startswith("llvm.ptr.annotation")) {
-      PtrAnnotations.push_back(F);
     }
   }
 

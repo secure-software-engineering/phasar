@@ -208,7 +208,7 @@ function(generate_ll_file)
       add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -p mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM

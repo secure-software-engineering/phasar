@@ -17,9 +17,10 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Analysis/CFLAliasAnalysisUtils.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
+
+#include "CFLAliasAnalysisUtils.h"
 
 #include <forward_list>
 #include <memory>
@@ -36,9 +37,7 @@ struct AliasSummary;
 
 } // end namespace cflaa
 
-class CFLAndersAAResult : public AAResultBase<CFLAndersAAResult> {
-  friend AAResultBase<CFLAndersAAResult>;
-
+class CFLAndersAAResult : public AAResultBase {
   class FunctionInfo;
 
 public:
@@ -63,7 +62,7 @@ public:
 
   AliasResult query(const MemoryLocation &, const MemoryLocation &);
   AliasResult alias(const MemoryLocation &, const MemoryLocation &,
-                    AAQueryInfo &);
+                    AAQueryInfo &, const Instruction *CtxI);
 
 private:
   /// Ensures that the given function is available in the cache.
@@ -102,26 +101,6 @@ public:
 
   CFLAndersAAResult run(Function &F, FunctionAnalysisManager &AM);
 };
-
-/// Legacy wrapper pass to provide the CFLAndersAAResult object.
-class CFLAndersAAWrapperPass : public ImmutablePass {
-  std::unique_ptr<CFLAndersAAResult> Result;
-
-public:
-  static char ID;
-
-  CFLAndersAAWrapperPass();
-
-  CFLAndersAAResult &getResult() { return *Result; }
-  const CFLAndersAAResult &getResult() const { return *Result; }
-
-  void initializePass() override;
-  void getAnalysisUsage(AnalysisUsage &AU) const override;
-};
-
-// createCFLAndersAAWrapperPass - This pass implements a set-based approach to
-// alias analysis.
-ImmutablePass *createCFLAndersAAWrapperPass();
 
 } // end namespace llvm
 

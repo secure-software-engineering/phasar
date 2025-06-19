@@ -247,7 +247,7 @@ public:
   FeatureTaintGenerator(EdgeFactGenerator &&EFGen)
       : FeatureTaintGenerator(
             [EFGen](InstOrGlobal IG) {
-              return !llvm::empty(std::invoke(EFGen, IG));
+              return !std::empty(std::invoke(EFGen, IG));
             },
             std::forward<EdgeFactGenerator>(EFGen)) {}
 

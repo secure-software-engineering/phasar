@@ -18,6 +18,7 @@
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <cmath>
 #include <variant>
 
 namespace psr::glca {

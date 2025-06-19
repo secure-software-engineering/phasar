@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLEDATA_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMVFTABLEDATA_H_
 
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>

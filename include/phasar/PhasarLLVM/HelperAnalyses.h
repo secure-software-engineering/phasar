@@ -13,6 +13,8 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
 
+#include "llvm/ADT/Twine.h"
+
 #include "nlohmann/json.hpp"
 
 #include <memory>
