@@ -86,6 +86,27 @@ TEST(SVFAliasSetTest, PointsTo_02) {
   EXPECT_TRUE(PT.mayPointsTo(V, AllocObj, V->getNextNode()));
 }
 
+TEST(SVFAliasSetTest, PointsTo_03) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "pointers/basic_01_cpp_dbg.ll");
+
+  auto PT = createLLVMSVFPointsToIterator(IRDB, SVFPointsToAnalysisType::VFS);
+
+  const auto *V = IRDB.getInstruction(5);
+  ASSERT_TRUE(V && V->getType()->isPointerTy());
+
+  const auto *Alloc = IRDB.getInstruction(0);
+
+  auto PSet = PT.asSet(V, V->getNextNode());
+  ASSERT_EQ(1, PSet.size());
+  EXPECT_EQ(Alloc, *PSet.begin());
+
+  auto AllocObjs = PT.asSet(Alloc, Alloc->getNextNode());
+  ASSERT_EQ(1, AllocObjs.size());
+  const auto *AllocObj = *AllocObjs.begin();
+  EXPECT_TRUE(PT.mayPointsTo(V, AllocObj, V->getNextNode()));
+}
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();

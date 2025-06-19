@@ -13,6 +13,7 @@
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/TypeErasureUtils.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLFunctionalExtras.h"
@@ -67,31 +68,8 @@ PSR_CONCEPT IsAliasIterator = detail::IsAliasIterator<T>::value;
 /// LLVMAliasSet ASet(...);
 /// LLVMAliasIteratorRef AA = &ASet;
 /// \endcode
-template <typename V, typename N> class [[gsl::Pointer]] AliasIteratorRef {
-  template <typename ConcreteAA>
-  static constexpr bool CanSSO = std::is_trivially_copyable_v<ConcreteAA> &&
-                                 sizeof(ConcreteAA) <= sizeof(void *);
-
-  template <typename ConcreteAA>
-  constexpr static ConcreteAA *fromOpaquePtr(void *&EF) noexcept {
-    if constexpr (CanSSO<ConcreteAA>) {
-      return static_cast<ConcreteAA *>(static_cast<void *>(&EF));
-    } else {
-      return static_cast<ConcreteAA *>(EF);
-    }
-  }
-
-  template <typename ConcreteAA>
-  constexpr void *getOpaquePtr(ConcreteAA &AA) noexcept {
-    if constexpr (CanSSO<ConcreteAA>) {
-      void *Ret{};
-      ::new (&Ret) ConcreteAA(AA);
-      return Ret;
-    } else {
-      return &AA;
-    }
-  }
-
+template <typename V, typename N>
+class [[gsl::Pointer]] AliasIteratorRef : private TypeErasureUtils {
 public:
   using n_t = N;
   using v_t = V;
@@ -181,7 +159,7 @@ private:
                              llvm::function_ref<void(v_t)> WithAlias) {
     auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
     if constexpr (IsAliasIterator<ConcreteAA>) {
-      return CAA->aliasesof(Of, At, WithAlias);
+      return (void)CAA->aliasesof(Of, At, WithAlias);
     } else {
       auto AliasSetPtr = CAA->getAliasSet(Of, At);
       for (auto &&Alias : *AliasSetPtr) {

@@ -93,9 +93,10 @@ public:
 
   explicit operator bool() const noexcept { return VT != nullptr; }
 
-  constexpr operator AliasIteratorRef<V, N>() const noexcept {
+  constexpr operator AliasIteratorRef<V, N>() const & noexcept {
     return AliasIteratorRef<V, N>(AA, VT);
   }
+  constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 
   // -- Impl for IsAliasInfo:
 

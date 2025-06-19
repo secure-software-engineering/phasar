@@ -69,7 +69,7 @@ TEST(LLVMAliasSet, Global_01) {
 
 static_assert(std::is_convertible_v<LLVMAliasSet *, LLVMAliasIteratorRef>);
 static_assert(std::is_convertible_v<LLVMAliasSet *, LLVMAliasInfoRef>);
-static_assert(std::is_convertible_v<LLVMAliasInfoRef, LLVMAliasIteratorRef>);
+static_assert(std::is_convertible_v<LLVMAliasInfoRef &, LLVMAliasIteratorRef>);
 static_assert(
     std::is_convertible_v<ReachableAllocationSitesIterator<LLVMAliasSet>,
                           LLVMAliasIteratorRef>);
