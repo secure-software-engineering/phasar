@@ -47,7 +47,7 @@ static void populateWithMayAliases(LLVMAliasIteratorRef AS,
                                    const llvm::Instruction *Context) {
   container_type Tmp = Facts;
   for (const auto *Fact : Tmp) {
-    AS.aliasesOf(Fact, Context, [&Facts, Context](const auto *Alias) {
+    AS.forallAliasesOf(Fact, Context, [&Facts, Context](const auto *Alias) {
       if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
         if (Inst->getParent() == Context->getParent() &&
             Context->comesBefore(Inst)) {

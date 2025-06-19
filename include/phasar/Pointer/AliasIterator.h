@@ -30,7 +30,7 @@ struct IsAliasIterator : std::false_type {};
 
 template <typename T>
 struct IsAliasIterator<
-    T, std::void_t<decltype(std::declval<T>().aliasesOf(
+    T, std::void_t<decltype(std::declval<T>().forallAliasesOf(
            std::declval<typename T::v_t>(), std::declval<typename T::n_t>(),
            std::declval<llvm::function_ref<void(typename T::v_t)>>()))>>
     : std::true_type {};
@@ -75,8 +75,8 @@ public:
   using v_t = V;
 
   struct VTable {
-    void (*AliasesOf)(void *, ByConstRef<V>, ByConstRef<N>,
-                      llvm::function_ref<void(V)>);
+    void (*ForallAliasesOf)(void *, ByConstRef<V>, ByConstRef<N>,
+                            llvm::function_ref<void(V)>);
     AliasResult (*Alias)(void *, ByConstRef<V>, ByConstRef<V>, ByConstRef<N>);
   };
 
@@ -121,10 +121,10 @@ public:
   /// \param At The instruction, where the alias-query is raised.
   /// Implementations may ignore this parameter
   /// \param WithAlias Callback to invoke for each alias of Of
-  void aliasesOf(ByConstRef<v_t> Of, ByConstRef<n_t> At,
-                 llvm::function_ref<void(v_t)> WithAlias) {
+  void forallAliasesOf(ByConstRef<v_t> Of, ByConstRef<n_t> At,
+                       llvm::function_ref<void(v_t)> WithAlias) {
     assert(VT != nullptr);
-    VT->AliasesOf(AA, Of, At, WithAlias);
+    VT->ForallAliasesOf(AA, Of, At, WithAlias);
   }
 
   /// \brief Convenience function to aggregate all aliases of Of in a set.
@@ -137,7 +137,8 @@ public:
   template <typename SetT = std::set<v_t>>
   [[nodiscard]] SetT asSet(ByConstRef<v_t> Of, ByConstRef<n_t> At) {
     SetT Set;
-    aliasesOf(Of, At, [&Set](v_t Alias) { Set.insert(std::move(Alias)); });
+    forallAliasesOf(Of, At,
+                    [&Set](v_t Alias) { Set.insert(std::move(Alias)); });
     return Set;
   }
 
@@ -203,46 +204,6 @@ private:
   void *AA{};
   const VTable *VT{};
 }; // namespace psr
-
-template <typename UnderlyingAA> struct ReachableAllocationSitesIterator {
-  using n_t = typename UnderlyingAA::n_t;
-  using v_t = typename UnderlyingAA::v_t;
-
-  void aliasesOf(v_t Of, n_t At, llvm::function_ref<void(v_t)> WithAlias) {
-    assert(AA != nullptr);
-
-    auto AliasSetPtr = AA->getReachableAllocationSites(Of, true, At);
-    if (!AliasSetPtr || AliasSetPtr->empty()) {
-      // The alias-relation should be reflexive
-      WithAlias(Of);
-      return;
-    }
-
-    for (auto &&Alias : *AliasSetPtr) {
-      WithAlias(PSR_FWD(Alias));
-    }
-  }
-
-  [[nodiscard]] AliasResult alias(v_t Ptr, v_t Alias, n_t At) {
-    assert(AA != nullptr);
-
-    if (Ptr == Alias) {
-      return AliasResult::MustAlias;
-    }
-
-    if (AA->isInReachableAllocationSites(Ptr, Alias, true, At)) {
-      return AliasResult::MayAlias;
-    }
-
-    return AliasResult::NoAlias;
-  }
-
-  UnderlyingAA *AA{};
-};
-
-template <typename UnderlyingAA>
-ReachableAllocationSitesIterator(UnderlyingAA *)
-    -> ReachableAllocationSitesIterator<UnderlyingAA>;
 
 } // namespace psr
 

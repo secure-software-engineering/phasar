@@ -202,8 +202,8 @@ template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
     return PT.getPAG().getObjectNode(Nod);
   }
 
-  void foreachPointeesOf(o_t Pointer, n_t /*At*/,
-                         llvm::function_ref<void(o_t)> WithPointee) const {
+  void forallPointeesOf(o_t Pointer, n_t /*At*/,
+                        llvm::function_ref<void(o_t)> WithPointee) const {
     SVF::PointerAnalysis &PTA = PT.getPTA();
 
     auto Nod = getNodeId(Pointer);

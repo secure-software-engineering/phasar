@@ -10,6 +10,7 @@
 #ifndef PHASAR_POINTER_POINTSTOITERATOR_H
 #define PHASAR_POINTER_POINTSTOITERATOR_H
 
+#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/PointerUtils.h"
@@ -28,7 +29,7 @@ struct IsPointsToIterator : std::false_type {};
 
 template <typename T>
 struct IsPointsToIterator<
-    T, std::void_t<decltype(std::declval<const T &>().foreachPointeesOf(
+    T, std::void_t<decltype(std::declval<const T &>().forallPointeesOf(
            std::declval<typename T::o_t>(), std::declval<typename T::n_t>(),
            std::declval<llvm::function_ref<void(typename T::o_t)>>()))>>
     : std::true_type {};
@@ -68,21 +69,35 @@ public:
 
   struct VTable {
     o_t (*AsAbstractObject)(const void *, ByConstRef<v_t>) noexcept;
-    void (*ForeachPointeesOf)(const void *, ByConstRef<o_t>, ByConstRef<n_t>,
-                              llvm::function_ref<void(O)>);
+    void (*ForallPointeesOf)(const void *, ByConstRef<o_t>, ByConstRef<n_t>,
+                             llvm::function_ref<void(O)>);
     bool (*MayPointsTo)(const void *, ByConstRef<o_t>, ByConstRef<o_t>,
                         ByConstRef<n_t>);
     void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
-  template <typename ConcretePTA,
-            typename = std::enable_if_t<
-                !std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
-                std::is_same_v<v_t, typename ConcretePTA::v_t> &&
-                std::is_same_v<o_t, typename ConcretePTA::o_t> &&
-                std::is_same_v<n_t, typename ConcretePTA::n_t>>>
+  template <
+      typename ConcretePTA,
+      std::enable_if_t<!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
+                       std::is_same_v<v_t, typename ConcretePTA::v_t> &&
+                       std::is_same_v<o_t, typename ConcretePTA::o_t> &&
+                       std::is_same_v<n_t, typename ConcretePTA::n_t> &&
+                       !IsAliasInfo<ConcretePTA>> * = nullptr>
   constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
       : PT(getOpaquePtr(psr::assertNotNull(PT))), VT(&VTableFor<ConcretePTA>) {
+    static_assert(detail::IsPointsToIterator<PointsToIteratorRef>::value);
+  }
+
+  template <
+      typename ConcretePTA,
+      std::enable_if_t<!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
+                       std::is_same_v<v_t, typename ConcretePTA::v_t> &&
+                       std::is_same_v<v_t, o_t> &&
+                       std::is_same_v<n_t, typename ConcretePTA::n_t> &&
+                       IsAliasInfo<ConcretePTA>> * = nullptr>
+  constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
+      : PT(&psr::assertNotNull(PT)),
+        VT(&ReachableAllocSitesVTFor<ConcretePTA>) {
     static_assert(detail::IsPointsToIterator<PointsToIteratorRef>::value);
   }
 
@@ -115,15 +130,15 @@ public:
     return VT->AsAbstractObject(PT, Pointer);
   }
 
-  void foreachPointeesOf(ByConstRef<o_t> Pointer, ByConstRef<n_t> At,
-                         llvm::function_ref<void(O)> WithPointee) const {
+  void forallPointeesOf(ByConstRef<o_t> Pointer, ByConstRef<n_t> At,
+                        llvm::function_ref<void(O)> WithPointee) const {
     assert(VT != nullptr);
-    VT->ForeachPointeesOf(PT, Pointer, At, WithPointee);
+    VT->ForallPointeesOf(PT, Pointer, At, WithPointee);
   }
   template <typename SetT = std::set<o_t>>
   [[nodiscard]] SetT asSet(ByConstRef<o_t> Pointer, ByConstRef<n_t> At) {
     SetT Set;
-    foreachPointeesOf(Pointer, At, [&Set](o_t Obj) { Set.insert(Obj); });
+    forallPointeesOf(Pointer, At, [&Set](o_t Obj) { Set.insert(Obj); });
     return Set;
   }
 
@@ -150,12 +165,12 @@ private:
   }
 
   template <typename ConcretePTA>
-  static void foreachPointeesOfThunk(const void *PT, ByConstRef<o_t> Pointer,
-                                     ByConstRef<n_t> At,
-                                     llvm::function_ref<void(O)> WithPointee) {
+  static void forallPointeesOfThunk(const void *PT, ByConstRef<o_t> Pointer,
+                                    ByConstRef<n_t> At,
+                                    llvm::function_ref<void(O)> WithPointee) {
     const auto *CPT = fromOpaquePtr<ConcretePTA>(PT);
     if constexpr (detail::IsPointsToIterator<ConcretePTA>::value) {
-      return (void)CPT->foreachPointeesOf(Pointer, At, WithPointee);
+      return (void)CPT->forallPointeesOf(Pointer, At, WithPointee);
     } else {
       auto PointsToSet = CPT->getPointsToSet(Pointer, At);
       // The PointsToSet can be a set or a pointer to a set
@@ -163,6 +178,19 @@ private:
       for (auto &&Pointee : *PointsToSetPtr) {
         WithPointee(PSR_FWD(Pointee));
       }
+    }
+  }
+
+  template <typename ConcretePTA>
+  static void
+  forallReachableAllocationSitesThunk(const void *AS, ByConstRef<o_t> Pointer,
+                                      ByConstRef<n_t> At,
+                                      llvm::function_ref<void(O)> WithPointee) {
+    auto AliasSetPtr =
+        ((ConcretePTA *)AS)->getReachableAllocationSites(Pointer, true, At);
+
+    for (auto &&Alias : *AliasSetPtr) {
+      WithPointee(PSR_FWD(Alias));
     }
   }
 
@@ -179,13 +207,26 @@ private:
       return PointsToSetPtr->count(Obj);
     } else {
       bool Ret = false;
-      CPT->foreachPointeesOf([&Ret, Obj](o_t Pointee) {
+      CPT->forallPointeesOf([&Ret, Obj](o_t Pointee) {
         if (Pointee == Obj) {
           Ret = true;
         }
       });
       return Ret;
     }
+  }
+
+  template <typename ConcretePTA>
+  static bool maybeInReachableALlocationSitesThunk(const void *AS,
+                                                   ByConstRef<o_t> Pointer,
+                                                   ByConstRef<o_t> Obj,
+                                                   ByConstRef<n_t> At) {
+    if (Pointer == Obj) {
+      return true;
+    }
+
+    return ((ConcretePTA *)AS)
+        ->isInReachableAllocationSites(Pointer, Obj, true, At);
   }
 
   template <typename ConcretePTA>
@@ -198,9 +239,17 @@ private:
   template <typename ConcretePTA>
   static constexpr VTable VTableFor = {
       &asAbstractObjectThunk<ConcretePTA>,
-      &foreachPointeesOfThunk<ConcretePTA>,
+      &forallPointeesOfThunk<ConcretePTA>,
       &mayPointsToThunk<ConcretePTA>,
       &destroyThunk<ConcretePTA>,
+  };
+
+  template <typename ConcreteAA>
+  static constexpr VTable ReachableAllocSitesVTFor = {
+      &asAbstractObjectThunk<ConcreteAA>,
+      &forallReachableAllocationSitesThunk<ConcreteAA>,
+      &maybeInReachableALlocationSitesThunk<ConcreteAA>,
+      &destroyThunk<ConcreteAA>,
   };
 
 protected:
