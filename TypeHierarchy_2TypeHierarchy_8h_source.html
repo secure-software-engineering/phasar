@@ -136,11 +136,13 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">template</a> &lt;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F&gt;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">inline</a> <a class="code hl_namespace" href="namespacellvm.html">llvm</a>::<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">raw_ostream</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>&lt;&lt;(<a class="code hl_namespace" href="namespacellvm.html">llvm</a>::<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">raw_ostream</a> &amp;OS,</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                                            <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="code hl_class" href="classpsr_1_1TypeHierarchy.html">TypeHierarchy</a>&lt;T, F&gt; &amp;TH) {</div>
+<div class="foldopen" id="foldopen00045" data-start="{" data-end="}">
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="namespacepsr.html#a7ae7b2c8318f143513539becc653e1fd">   45</a></span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">inline</a> <a class="code hl_namespace" href="namespacellvm.html">llvm</a>::<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">raw_ostream</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>&lt;&lt;(<a class="code hl_namespace" href="namespacellvm.html">llvm</a>::<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">raw_ostream</a> &amp;OS,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                                     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="code hl_class" href="classpsr_1_1TypeHierarchy.html">TypeHierarchy</a>&lt;T, F&gt; &amp;TH) {</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  TH.print(OS);</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="keywordflow">return</span> OS;</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>}</div>
+</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
@@ -159,12 +161,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1TypeHierarchy_html_aee42aa9608ce537f742e13deca928801"><div class="ttname"><a href="classpsr_1_1TypeHierarchy.html#aee42aa9608ce537f742e13deca928801">psr::TypeHierarchy::isSubType</a></div><div class="ttdeci">virtual bool isSubType(T Type, T SubType) const =0</div></div>
 <div class="ttc" id="aclasspsr_1_1TypeHierarchy_html_af1648495149206846311eb92dd662d89"><div class="ttname"><a href="classpsr_1_1TypeHierarchy.html#af1648495149206846311eb92dd662d89">psr::TypeHierarchy::getSubTypes</a></div><div class="ttdeci">virtual std::set&lt; T &gt; getSubTypes(T Type) const =0</div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
-<div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00017">AnalysisSetup.h:17</a></div></div>
+<div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 18 2025 12:22:00 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jun 21 2025 18:40:53 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
