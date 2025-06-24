@@ -6,6 +6,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAllocSitesAwareIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FieldSensAllocSitesAwareIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -20,12 +21,13 @@
 
 namespace {
 
-void populateWithMayAliases(psr::LLVMAliasInfoRef AS,
+template <typename AliasInfoTy>
+void populateWithMayAliases(const AliasInfoTy &AS,
                             std::set<const llvm::Value *> &Facts,
                             const llvm::Instruction *Context) {
   auto Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = AS.getReachableAllocationSites(Fact, true, Context);
+    auto Aliases = AS.getAliasSet(Fact, Context);
     Tmp.insert(Aliases->begin(), Aliases->end());
   }
 
@@ -111,14 +113,15 @@ protected:
     psr::LLVMProjectIRDB IRDB(IRFileName);
     ASSERT_TRUE(IRDB);
 
-    psr::LLVMAliasSet AS(&IRDB);
+    psr::LLVMAliasSet BaseAS(&IRDB);
+    psr::FilteredLLVMAliasSet AS(&BaseAS);
     psr::LLVMTaintConfig TC(IRDB);
     ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
 
     psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(&TaintProblem, &AS);
 
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
-                            nullptr, &AS);
+                            nullptr, &BaseAS);
 
     auto Results = psr::solveIDEProblem(FsTaintProblem, ICFG);
 
@@ -183,6 +186,14 @@ TEST_F(CFLFieldSensTest, Basic_04) {
   Gt[16] = {"15"};
 
   run({PathToLLFiles + "xtaint04_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_06) {
+  std::map<int, std::set<std::string>> Gt;
+
+  // no leaks expected
+
+  run({PathToLLFiles + "xtaint06_cpp.ll"}, Gt);
 }
 
 } // namespace

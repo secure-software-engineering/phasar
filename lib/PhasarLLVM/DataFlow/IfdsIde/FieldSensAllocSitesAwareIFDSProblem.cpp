@@ -3,6 +3,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Union.h"
@@ -18,6 +19,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <numeric>
 #include <utility>
@@ -343,20 +345,15 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     }
 
     const auto *ValueOp = Store->getValueOperand();
-    if (ValueOp == CurrNode ||
-        AS.isInReachableAllocationSites(ValueOp, CurrNode, true, Store)) {
-      if (PointerOp == SuccNode ||
-          AS.isInReachableAllocationSites(PointerOp, SuccNode, true, Store)) {
-        // Store
+    if (ValueOp == CurrNode && CurrNode != SuccNode) {
+      // Store
 
-        auto [BasePtr, Offset] =
-            getBaseAndOffset(PointerOp, IRDB->getModule()->getDataLayout());
+      auto [BasePtr, Offset] =
+          getBaseAndOffset(PointerOp, IRDB->getModule()->getDataLayout());
 
-        CFLFieldAccessPath FieldString{};
-        FieldString.Stores.push_back(Offset);
-        return CFLFieldSensEdgeFunction{{{std::move(FieldString)}},
-                                        DepthKLimit};
-      }
+      CFLFieldAccessPath FieldString{};
+      FieldString.Stores.push_back(Offset);
+      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
     }
 
     // unaffected by the store
@@ -548,4 +545,76 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
   llvm::errs() << "COMBINE " << L << " X " << R << " ==> " << Ret << '\n';
 
   return Ret;
+}
+
+static std::pair<const llvm::Value *, llvm::SmallVector<int32_t, 10>>
+createAccessPath(const llvm::Value *Pointer, const llvm::DataLayout &DL) {
+
+  std::pair<const llvm::Value *, llvm::SmallVector<int32_t, 10>> Ret;
+  auto &[BasePtr, Offsets] = Ret;
+
+  BasePtr = Pointer;
+  Offsets.push_back(0);
+
+  // Note: llvm::Constant includes llvm::GlobalValue
+  if (llvm::isa<llvm::Constant>(Pointer) ||
+      llvm::isa<llvm::AllocaInst>(Pointer) ||
+      llvm::isa<llvm::Argument>(Pointer) ||
+      llvm::isa<llvm::CallBase>(Pointer)) {
+    // Globals, argument, function calls and allocas define themselves
+    return Ret;
+  }
+
+  while (true) {
+    // TODO: Should we look into the cache within this loop?
+    // TODO: Handle constant GEPs
+
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(BasePtr)) {
+      Offsets.push_back(0);
+      BasePtr = Load->getPointerOperand()->stripPointerCasts();
+    } else if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(BasePtr)) {
+
+      auto GepOffs = detail::AbstractMemoryLocationImpl::computeOffset(DL, Gep);
+      if (GepOffs.has_value() && *GepOffs >= INT32_MIN &&
+          *GepOffs <= INT32_MAX) {
+        Offsets.back() = addOffsets(Offsets.back(), int32_t(*GepOffs));
+      } else {
+        Offsets.back() = CFLFieldAccessPath::TopOffset;
+      }
+      BasePtr = Gep->getPointerOperand()->stripPointerCasts();
+    } else {
+      // TODO aggregate instructions, e.g. insertvalue, extractvalue, ...
+      break;
+    }
+  }
+
+  // NOTE: Do not reverse the offsets as we do in
+  // AbstractMemoryLocationFactoryBase::createImpl().
+  // For the CFL formulation, we need the offsets in inverse order anyway!
+
+  return Ret;
+}
+
+auto FieldSensAllocSitesAwareIFDSProblem::getAccessPath(
+    const llvm::Value *Pointer) -> const CachedAccessPath * {
+  auto &Ret = MemLocCache[Pointer];
+  if (Ret) {
+    return Ret;
+  }
+
+  auto [BasePtr, Offsets] =
+      createAccessPath(Pointer, IRDB->getModule()->getDataLayout());
+  assert(Offsets.size() < UINT32_MAX);
+
+  using OffsetType = CachedAccessPath::OffsetType;
+
+  auto NumBytes =
+      CachedAccessPath::totalSizeToAlloc<OffsetType>(Offsets.size());
+  auto *RawMem = MemLocAlloc.allocate(NumBytes);
+  auto *AP = new (RawMem) CachedAccessPath(BasePtr, Offsets.size());
+  memcpy(AP->getTrailingObjects<OffsetType>(), Offsets.data(),
+         Offsets.size() * sizeof(OffsetType));
+
+  Ret = AP;
+  return AP;
 }

@@ -9,122 +9,28 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 
-#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/MemoryLocationAllocator.h"
 
 #include "llvm/IR/Instructions.h"
-#include "llvm/Support/Compiler.h"
-
-#include <limits>
-#include <new>
+#include "llvm/IR/Operator.h"
 
 namespace psr::detail {
 
-AbstractMemoryLocationFactoryBase::Allocator::Block::Block(Block *Next)
-    : Next(Next) {}
-
-auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
-    Block *Next, size_t NumPointerEntries) -> Block * {
-  // Allocate one more pointer to store the next-block ptr
-
-  if (LLVM_UNLIKELY(NumPointerEntries >
-                    std::numeric_limits<size_t>::max() / sizeof(size_t) - 1)) {
-
-    PHASAR_LOG_LEVEL(CRITICAL, "Cannot allocate " << NumPointerEntries
-                                                  << " pointer entries");
-
-    std::terminate();
-  }
-
-  auto *Ret = reinterpret_cast<Block *>(new (std::align_val_t{
-      alignof(AbstractMemoryLocationImpl)}) size_t[1 + NumPointerEntries]);
-
-  new (Ret) Block(Next);
-
-  __asan_poison_memory_region(Ret->getTrailingObjects<void *>(),
-                              NumPointerEntries * sizeof(void *));
-
-  return Ret;
-}
-
-void AbstractMemoryLocationFactoryBase::Allocator::Block::destroy(
-    Block *Blck, [[maybe_unused]] size_t NumPointerEntries) {
-  __asan_unpoison_memory_region(Blck->getTrailingObjects<void *>(),
-                                NumPointerEntries * sizeof(void *));
-  ::operator delete[](Blck,
-                      std::align_val_t{alignof(AbstractMemoryLocationImpl)});
-}
-
-AbstractMemoryLocationFactoryBase::Allocator::Allocator(
-    size_t InitialCapacity) {
-  if (InitialCapacity <= ExpectedNumAmLsPerBlock) {
-    return;
-  }
-
-  const auto NumPointersPerInitialBlock =
-      (MinNumPointersPerAML + 3) * InitialCapacity;
-  Root = Block::create(nullptr, NumPointersPerInitialBlock);
-  Pos = Root->getTrailingObjects<void *>();
-  End = Pos + NumPointersPerInitialBlock;
-}
-
-AbstractMemoryLocationFactoryBase::Allocator::~Allocator() {
-  auto *Rt = Root;
-  auto *Blck = Rt;
-  while (Blck) {
-    auto *Nxt = Blck->Next;
-    Block::destroy(Blck, Blck == Rt
-                             ? (MinNumPointersPerAML + 3) * InitialCapacity
-                             : NumPointersPerBlock);
-    Blck = Nxt;
-  }
-  Root = nullptr;
-  Pos = nullptr;
-  End = nullptr;
-}
-
-AbstractMemoryLocationFactoryBase::Allocator::Allocator(
-    Allocator &&Other) noexcept
-    : Root(Other.Root), Pos(Other.Pos), End(Other.End) {
-  Other.Root = nullptr;
-  Other.Pos = nullptr;
-  Other.End = nullptr;
-}
-
-auto AbstractMemoryLocationFactoryBase::Allocator::operator=(
-    Allocator &&Other) noexcept -> Allocator & {
-  this->Allocator::~Allocator();
-  new (this) Allocator(std::move(Other));
-  return *this;
-}
+AbstractMemoryLocationFactoryBase::Allocator::Allocator(size_t InitialCapacity)
+    : MemoryLocationAllocator((MinNumPointersPerAML + 3) * InitialCapacity *
+                              sizeof(void *)) {}
 
 AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::Allocator::create(
     const llvm::Value *Baseptr, size_t Lifetime,
     llvm::ArrayRef<ptrdiff_t> Offsets) {
 
-  // All fields inside AML have pointer size, so there is no padding at all
+  auto NumBytesRequired =
+      AbstractMemoryLocationImpl::totalSizeToAlloc<ptrdiff_t>(Offsets.size());
 
-  auto NumPointersRequired =
-      AbstractMemoryLocationImpl::totalSizeToAlloc<ptrdiff_t>(Offsets.size()) /
-      sizeof(void *);
-  auto *Rt = Root;
-  auto *Curr = Pos;
+  auto *RetBytes = this->allocate(NumBytesRequired);
 
-  if (End - Curr < ptrdiff_t(NumPointersRequired)) {
-    Root = Rt = Block::create(Rt, NumPointersPerBlock);
-    Pos = Curr = Rt->getTrailingObjects<void *>();
-    End = Curr + NumPointersPerBlock;
-  }
-
-  auto *Ret = reinterpret_cast<AbstractMemoryLocationImpl *>(Curr);
-
-  Pos += NumPointersRequired;
-
-  __asan_unpoison_memory_region(Ret, NumPointersRequired * sizeof(void *));
-
-  new (Ret) AbstractMemoryLocationImpl(Baseptr, Offsets, Lifetime);
-
-  return Ret;
+  return new (RetBytes) AbstractMemoryLocationImpl(Baseptr, Offsets, Lifetime);
 }
 
 AbstractMemoryLocationFactoryBase::AbstractMemoryLocationFactoryBase(
@@ -203,8 +109,7 @@ AbstractMemoryLocationFactoryBase::createImpl(const llvm::Value *V,
       Baseptr = Load->getPointerOperand();
     } else if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Baseptr)) {
       Baseptr = Cast->getOperand(0);
-    } else if (const auto *Gep =
-                   llvm::dyn_cast<llvm::GetElementPtrInst>(Baseptr)) {
+    } else if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Baseptr)) {
 
       auto GepOffs =
           detail::AbstractMemoryLocationImpl::computeOffset(*DL, Gep);
@@ -319,7 +224,7 @@ AbstractMemoryLocationFactoryBase::withIndirectionOfImpl(
 
 const AbstractMemoryLocationImpl *
 AbstractMemoryLocationFactoryBase::withOffsetImpl(
-    const AbstractMemoryLocationImpl *AML, const llvm::GetElementPtrInst *Gep) {
+    const AbstractMemoryLocationImpl *AML, const llvm::GEPOperator *Gep) {
   assert(DL);
 
   switch (AML->lifetime()) {

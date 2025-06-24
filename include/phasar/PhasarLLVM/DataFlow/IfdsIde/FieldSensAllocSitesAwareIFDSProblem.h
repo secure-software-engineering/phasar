@@ -13,10 +13,16 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
+#include "phasar/Utils/MemoryLocationAllocator.h"
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
@@ -127,6 +133,23 @@ class FieldSensAllocSitesAwareIFDSProblem
   using Base = IDETabulationProblem<
       CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>>;
 
+  struct CachedAccessPath final
+      : public llvm::TrailingObjects<CachedAccessPath, int32_t> {
+
+    using OffsetType = int32_t;
+
+    constexpr CachedAccessPath(const llvm::Value *BasePtr,
+                               uint32_t NumOffsets) noexcept
+        : BasePtr(BasePtr), NumOffsets(NumOffsets) {}
+
+    const llvm::Value *BasePtr{};
+    uint32_t NumOffsets{};
+
+    [[nodiscard]] llvm::ArrayRef<int32_t> offsets() const noexcept {
+      return {this->getTrailingObjects<int32_t>(), NumOffsets};
+    }
+  };
+
 public:
   using typename Base::container_type;
   using typename Base::d_t;
@@ -212,8 +235,14 @@ public:
                             const EdgeFunction<l_t> &R) override;
 
 private:
+  [[nodiscard]] const CachedAccessPath *
+  getAccessPath(const llvm::Value *Pointer);
+
   LLVMAliasInfoRef AS;
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
+  MemoryLocationAllocator MemLocAlloc{};
+  llvm::DenseMap<const llvm::Value *, const CachedAccessPath *> MemLocCache{};
+
   uint8_t DepthKLimit = 5; // Original from the paper
 };
 } // namespace psr

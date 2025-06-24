@@ -1,12 +1,13 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAllocSitesAwareIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
-
-#include <iterator>
 
 using namespace psr;
 
@@ -16,16 +17,32 @@ using FFTemplates = FlowFunctionTemplates<
         container_type>;
 using container_type = FFTemplates::container_type;
 
+static const llvm::Value *getBase(const llvm::Value *V,
+                                  const llvm::DataLayout &DL) {
+  // TODO: Optimize!
+
+  llvm::APInt Offset(64, 0);
+  const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
+
+  return Base->stripPointerCastsAndAliases();
+}
+
 static container_type
-getReachableAllocationSites(LLVMAliasInfoRef AS, const llvm::Value *Pointer,
+getReachableAllocationSites(const LLVMBasePointerAliasSet &AS,
+                            const llvm::Value *Pointer,
                             const llvm::Instruction *Context) {
   if (!Pointer->getType()->isPointerTy()) {
     return {Pointer};
   }
 
+  const auto &DL = Context->getModule()->getDataLayout();
+
   container_type Ret;
-  auto AllocSites = AS.getReachableAllocationSites(Pointer, true, Context);
-  Ret.insert(AllocSites->begin(), AllocSites->end());
+  auto AllocSites = AS.getAliasSet(Pointer, Context);
+  for (const auto *Alias : *AllocSites) {
+    const auto *AliasBase = getBase(Alias, DL);
+    Ret.insert(AliasBase);
+  }
   if (Ret.empty()) {
     Ret.insert(Pointer);
   }
@@ -38,58 +55,56 @@ auto detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl::
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
 
-    container_type Gen =
-        getReachableAllocationSites(AS, Store->getPointerOperand(), Store);
-
-    auto ValueAllocSites =
-        getReachableAllocationSites(AS, Store->getValueOperand(), Store);
+    const auto &DL = Store->getModule()->getDataLayout();
+    const auto *PointerBase = getBase(Store->getPointerOperand(), DL);
+    const auto *ValueBase = getBase(Store->getValueOperand(), DL);
+    container_type Gen = getReachableAllocationSites(AS, PointerBase, Store);
+    Gen.insert(ValueBase);
+    // auto ValueAllocSites =
+    //     getReachableAllocationSites(AS, Store->getValueOperand(), Store);
 
     if (EnableStrongUpdateStore) {
 
-      return FFTemplates::lambdaFlow([Store, Gen{std::move(Gen)},
-                                      ValueAliases{std::move(ValueAllocSites)}](
-                                         d_t Source) -> container_type {
-        if (Store->getPointerOperand() == Source ||
-            Store->getPointerOperand()->stripPointerCastsAndAliases() ==
-                Source) {
-          return {};
-        }
+      return FFTemplates::lambdaFlow(
+          [PointerBase, ValueBase,
+           Gen{std::move(Gen)}](d_t Source) -> container_type {
+            if (PointerBase == Source) {
+              return {};
+            }
 
-        if (Store->getValueOperand() == Source || ValueAliases.count(Source)) {
-          auto Ret = Gen;
-          Ret.insert(Source);
-          return Ret;
-        }
+            if (ValueBase == Source) {
+              auto Ret = Gen;
+              return Ret;
+            }
 
-        return {Source};
-      });
+            return {Source};
+          });
     }
 
-    return FFTemplates::lambdaFlow([Store, Gen{std::move(Gen)},
-                                    ValueAliases{std::move(ValueAllocSites)}](
-                                       d_t Source) -> container_type {
-      if (Store->getValueOperand() == Source || ValueAliases.count(Source)) {
-        auto Ret = Gen;
-        Ret.insert(Source);
-        return Ret;
-      }
+    return FFTemplates::lambdaFlow(
+        [Gen{std::move(Gen)}, ValueBase](d_t Source) -> container_type {
+          if (ValueBase == Source) {
+            auto Ret = Gen;
+            Ret.insert(Source);
+            return Ret;
+          }
 
-      return {Source};
-    });
+          return {Source};
+        });
   }
 
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
-    auto AllocSites =
-        getReachableAllocationSites(AS, Load->getPointerOperand(), Load);
+    const auto &DL = Load->getModule()->getDataLayout();
+    const auto *PointerBase = getBase(Load->getPointerOperand(), DL);
 
-    return FFTemplates::lambdaFlow([Load, AllocSites{std::move(AllocSites)}](
-                                       d_t Source) -> container_type {
-      if (Source == Load->getPointerOperand() || AllocSites.count(Source)) {
-        return {Source, Load};
-      }
+    return FFTemplates::lambdaFlow(
+        [PointerBase, Load](d_t Source) -> container_type {
+          if (Source == PointerBase) {
+            return {Source, Load};
+          }
 
-      return {Source};
-    });
+          return {Source};
+        });
   }
 
   return this->IDENoAliasDefaultFlowFunctionsImpl::getNormalFlowFunctionImpl(
@@ -100,23 +115,14 @@ auto detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl::
     getCallFlowFunctionImpl(n_t CallInst, f_t CalleeFun)
         -> FlowFunctionPtrType {
   if (const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(CallInst)) {
-    return mapFactsToCallee(
-        CallSite, CalleeFun, [CallSite, AS = AS](d_t Arg, d_t Source) {
-          if (Arg == Source) {
-            return true;
-          }
-
-          return Arg->getType()->isPointerTy() &&
-                 Source->getType()->isPointerTy() &&
-                 AS.isInReachableAllocationSites(Arg, Source, true, CallSite);
-        });
+    return mapFactsToCallee(CallSite, CalleeFun);
   }
 
   return FFTemplates::killAllFlows();
 }
 
 static container_type getReturnedAliases(const container_type &Facts,
-                                         psr::LLVMAliasInfoRef AS,
+                                         const LLVMBasePointerAliasSet &AS,
                                          const llvm::Instruction *CallSite) {
   container_type Ret;
   for (const auto *Fact : Facts) {
@@ -137,24 +143,18 @@ auto detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl::getRetFlowFunctionImpl(
       Facts = getReturnedAliases(Facts, AS, Call);
     };
 
-    const auto PropagateParameter = [AS = AS, ExitInst](d_t Formal,
-                                                        d_t Source) {
+    const auto PropagateParameter = [](d_t Formal, d_t Source) {
       if (!Formal->getType()->isPointerTy()) {
         return false;
       }
 
-      return Formal == Source ||
-             AS.isInReachableAllocationSites(Formal, Source, true, ExitInst);
+      return Formal == Source;
     };
 
-    const auto PropagateRet = [AS = AS, ExitInst](d_t RetVal, d_t Source) {
-      if (RetVal == Source) {
-        return true;
-      }
+    const auto &DL = Call->getModule()->getDataLayout();
 
-      return RetVal->getType()->isPointerTy() &&
-             Source->getType()->isPointerTy() &&
-             AS.isInReachableAllocationSites(RetVal, Source, true, ExitInst);
+    const auto PropagateRet = [&DL](d_t RetVal, d_t Source) {
+      return getBase(RetVal, DL) == Source;
     };
 
     return mapFactsToCaller(Call, ExitInst, PropagateParameter, PropagateRet,

@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
 
 #include <cassert>
 
@@ -38,7 +39,7 @@ public:
 
   bool EnableStrongUpdateStore = true;
 
-  [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
+  [[nodiscard]] constexpr const auto &getAliasInfo() const noexcept {
     return AS;
   }
 
@@ -61,7 +62,7 @@ public:
                                llvm::ArrayRef<f_t> /*Callees*/);
 
 private:
-  LLVMAliasInfoRef AS;
+  LLVMBasePointerAliasSet AS;
 };
 } // namespace detail
 
