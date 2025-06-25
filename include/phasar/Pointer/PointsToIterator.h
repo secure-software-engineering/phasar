@@ -58,6 +58,18 @@ struct HasAsAbstractObject<T,
                            decltype(std::declval<const T &>().asAbstractObject(
                                std::declval<typename T::v_t>()))>
     : std::true_type {};
+
+template <typename T, typename = void>
+struct HasReachableAllocationSites : std::false_type {};
+template <typename T>
+struct HasReachableAllocationSites<
+    T, std::void_t<decltype(std::declval<T &>().getReachableAllocationSites(
+                       std::declval<typename T::v_t>(), true,
+                       std::declval<typename T::n_t>())),
+                   decltype(std::declval<T &>().isInReachableAllocationSites(
+                       std::declval<typename T::v_t>(),
+                       std::declval<typename T::v_t>(), true,
+                       std::declval<typename T::n_t>()))>> : std::true_type {};
 } // namespace detail
 
 template <typename T>
@@ -95,7 +107,8 @@ public:
                        std::is_same_v<v_t, typename ConcretePTA::v_t> &&
                        std::is_same_v<o_t, typename ConcretePTA::o_t> &&
                        std::is_same_v<n_t, typename ConcretePTA::n_t> &&
-                       !IsAliasInfo<ConcretePTA>> * = nullptr>
+                       !detail::HasReachableAllocationSites<ConcretePTA>::value>
+          * = nullptr>
   constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
       : PT(getOpaquePtr(psr::assertNotNull(PT))), VT(&VTableFor<ConcretePTA>) {
     static_assert(IsPointsToIterator<PointsToIteratorRef>);
@@ -107,7 +120,8 @@ public:
                        std::is_same_v<v_t, typename ConcretePTA::v_t> &&
                        std::is_same_v<v_t, o_t> &&
                        std::is_same_v<n_t, typename ConcretePTA::n_t> &&
-                       IsAliasInfo<ConcretePTA>> * = nullptr>
+                       detail::HasReachableAllocationSites<ConcretePTA>::value>
+          * = nullptr>
   constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
       : PT(&psr::assertNotNull(PT)),
         VT(&ReachableAllocSitesVTFor<ConcretePTA>) {
@@ -229,7 +243,7 @@ private:
   }
 
   template <typename ConcretePTA>
-  static bool maybeInReachableALlocationSitesThunk(const void *AS,
+  static bool maybeInReachableAllocationSitesThunk(const void *AS,
                                                    ByConstRef<o_t> Pointer,
                                                    ByConstRef<o_t> Obj,
                                                    ByConstRef<n_t> At) {
@@ -260,7 +274,7 @@ private:
   static constexpr VTable ReachableAllocSitesVTFor = {
       &asAbstractObjectThunk<ConcreteAA>,
       &forallReachableAllocationSitesThunk<ConcreteAA>,
-      &maybeInReachableALlocationSitesThunk<ConcreteAA>,
+      &maybeInReachableAllocationSitesThunk<ConcreteAA>,
       &destroyThunk<ConcreteAA>,
   };
 

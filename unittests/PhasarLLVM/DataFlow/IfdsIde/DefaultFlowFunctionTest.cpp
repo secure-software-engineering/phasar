@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultReachableAllocationSitesIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/STLExtras.h"

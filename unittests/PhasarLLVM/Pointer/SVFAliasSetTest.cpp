@@ -2,6 +2,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/SVF/SVFPointsToSet.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
 
@@ -105,6 +106,22 @@ TEST(SVFAliasSetTest, PointsTo_03) {
   ASSERT_EQ(1, AllocObjs.size());
   const auto *AllocObj = *AllocObjs.begin();
   EXPECT_TRUE(PT.mayPointsTo(V, AllocObj, V->getNextNode()));
+}
+
+TEST(SVFAliasSetTest, PointsTo_04) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "pointers/call_01_cpp_dbg.ll");
+
+  auto PT = createLLVMSVFPointsToIterator(IRDB, SVFPointsToAnalysisType::DDA);
+
+  const auto *V = IRDB.getInstruction(3);
+  ASSERT_TRUE(V && V->getType()->isPointerTy());
+
+  auto PSet = PT.asSet(V, V->getNextNode());
+  llvm::errs() << "PointsToSet of " << llvmIRToString(V) << ":\n";
+  for (const auto *Pt : PSet) {
+    llvm::errs() << "  --> " << llvmIRToString(Pt) << '\n';
+  }
 }
 
 int main(int Argc, char **Argv) {

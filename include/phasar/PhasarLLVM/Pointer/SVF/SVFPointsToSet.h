@@ -10,6 +10,7 @@
 #define PHASAR_PHASARLLVM_POINTER_SVF_SVFPOINTSTOSET_H
 
 #include "phasar/Config/phasar-config.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/PointsToInfo.h"
@@ -76,6 +77,12 @@ createSVFPointsToInfo(LLVMProjectIRDB &IRDB, SVFPointsToAnalysisType PTATy);
 [[nodiscard]] LLVMPointsToIterator
 createLLVMSVFPointsToIterator(LLVMProjectIRDB &IRDB,
                               SVFPointsToAnalysisType PTATy);
+
+/// Use SVF to perform the specified pointer analysis and return the results
+/// compatible to psr::LLVMAliasInfo and psr::LLVMAliasInfoRef
+///
+/// \note Only support DDA for now, as VFS seems to not support getRevPts().
+[[nodiscard]] LLVMAliasInfo createLLVMSVFDDAAliasInfo(LLVMProjectIRDB &IRDB);
 
 } // namespace psr
 
