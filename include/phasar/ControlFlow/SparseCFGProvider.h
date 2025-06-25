@@ -48,7 +48,7 @@ struct has_getSparseCFG<
 
 template <typename T, typename D>
 // NOLINTNEXTLINE
-static constexpr bool has_getSparseCFG_v = has_getSparseCFG<T, D>::value;
+constexpr bool has_getSparseCFG_v = has_getSparseCFG<T, D>::value;
 } // namespace psr
 
 #endif // PHASAR_CONTROLFLOW_SPARSECFGPROVIDER_H

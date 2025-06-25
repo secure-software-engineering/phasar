@@ -1,3 +1,15 @@
+/******************************************************************************
+ * Copyright (c) 2025 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, bulletspace and others
+ *****************************************************************************/
+
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFUNCTIONDATAFLOWFACTS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFUNCTIONDATAFLOWFACTS_H
+
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
 #include "phasar/Utils/DefaultValue.h"
@@ -73,3 +85,5 @@ private:
   std::unordered_map<const llvm::Function *, ParameterMappingTy> LLVMFdff;
 };
 } // namespace psr::library_summary
+
+#endif // PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFUNCTIONDATAFLOWFACTS_H
