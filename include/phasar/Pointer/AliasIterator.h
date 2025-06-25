@@ -102,7 +102,6 @@ public:
 
   constexpr explicit AliasIteratorRef(void *AA, const VTable *VT) noexcept
       : AA(AA), VT(VT) {
-    assert(AA != nullptr);
     assert(VT != nullptr);
   }
 
@@ -181,7 +180,8 @@ private:
       return CAA->alias(Ptr, Alias, At);
     } else if constexpr (detail::HasGetAliasSet<ConcreteAA>::value) {
       auto AliasSetPtr = CAA->getAliasSet(Ptr, At);
-      return AliasSetPtr->count(Alias);
+      return AliasSetPtr->count(Alias) ? AliasResult::MayAlias
+                                       : AliasResult::NoAlias;
     } else {
       AliasResult Ret = AliasResult::NoAlias;
 

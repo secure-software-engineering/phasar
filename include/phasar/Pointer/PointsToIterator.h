@@ -60,6 +60,19 @@ struct HasAsAbstractObject<T,
     : std::true_type {};
 } // namespace detail
 
+template <typename T>
+PSR_CONCEPT IsPointsToIterator = detail::IsPointsToIterator<T>::value;
+
+/// A type-erased reference to any object implementing the IsPointsToIterator
+/// interface. Use this, if your alias-aware analysis just needs
+/// a minimal interface to work with points-to relations and does not require
+/// the versatility of PointsToInfoRef.
+///
+/// This is a *non-owning* reference similar to std::string_view and
+/// llvm::ArrayRef. Pass values of this type by value.
+///
+/// \note You can also convert an AliasInfoRef to PointsToIteratorRef. In this
+/// case, it will use the getReachableAllocationSites() API.
 template <typename V, typename O, typename N>
 class [[gsl::Pointer]] PointsToIteratorRef : protected TypeErasureUtils {
 public:
@@ -85,7 +98,7 @@ public:
                        !IsAliasInfo<ConcretePTA>> * = nullptr>
   constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
       : PT(getOpaquePtr(psr::assertNotNull(PT))), VT(&VTableFor<ConcretePTA>) {
-    static_assert(detail::IsPointsToIterator<PointsToIteratorRef>::value);
+    static_assert(IsPointsToIterator<PointsToIteratorRef>);
   }
 
   template <
@@ -98,7 +111,7 @@ public:
   constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
       : PT(&psr::assertNotNull(PT)),
         VT(&ReachableAllocSitesVTFor<ConcretePTA>) {
-    static_assert(detail::IsPointsToIterator<PointsToIteratorRef>::value);
+    static_assert(IsPointsToIterator<PointsToIteratorRef>);
   }
 
   template <typename ConcretePTA,
@@ -116,7 +129,6 @@ public:
   constexpr explicit PointsToIteratorRef(const void *PT,
                                          const VTable *VT) noexcept
       : PT(PT), VT(VT) {
-    assert(PT != nullptr);
     assert(VT != nullptr);
   }
 
@@ -169,7 +181,7 @@ private:
                                     ByConstRef<n_t> At,
                                     llvm::function_ref<void(O)> WithPointee) {
     const auto *CPT = fromOpaquePtr<ConcretePTA>(PT);
-    if constexpr (detail::IsPointsToIterator<ConcretePTA>::value) {
+    if constexpr (IsPointsToIterator<ConcretePTA>) {
       return (void)CPT->forallPointeesOf(Pointer, At, WithPointee);
     } else {
       auto PointsToSet = CPT->getPointsToSet(Pointer, At);
@@ -257,6 +269,7 @@ protected:
   const VTable *VT{};
 };
 
+/// Owning version of PointsToIteratorRef
 template <typename V, typename O, typename N>
 class [[clang::trivial_abi, gsl::Owner]] PointsToIterator
     : public PointsToIteratorRef<V, O, N> {

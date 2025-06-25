@@ -71,7 +71,7 @@ createSVFDDAPointsToInfo(LLVMProjectIRDB &IRDB);
 createSVFPointsToInfo(LLVMProjectIRDB &IRDB, SVFPointsToAnalysisType PTATy);
 
 /// Use SVF to perform the specified pointer analysis and return the results
-/// compatoble to psr::LLVMPointsToIterator, converting the points-to sets to
+/// compatible to psr::LLVMPointsToIterator, converting the points-to sets to
 /// LLVM allocation-sites
 [[nodiscard]] LLVMPointsToIterator
 createLLVMSVFPointsToIterator(LLVMProjectIRDB &IRDB,
