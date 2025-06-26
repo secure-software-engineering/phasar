@@ -10,6 +10,7 @@
 #include "DDA/DDAClient.h"
 #include "InitSVF.h"
 #include "MemoryModel/PointerAnalysis.h"
+#include "PhasarSVFUtils.h"
 #include "SVF-LLVM/LLVMModule.h"
 #include "SVF-LLVM/SVFIRBuilder.h"
 #include "WPA/Andersen.h"
@@ -70,19 +71,13 @@ private:
   [[nodiscard]] o_t
   asAbstractObjectImpl(psr::ByConstRef<v_t> Pointer) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    auto *Nod = ModSet->getSVFValue(Pointer);
-
-    return PAG->getValueNode(Nod);
+    return psr::getNodeId(Pointer, *ModSet, *PAG);
   }
 
   [[nodiscard]] std::optional<v_t> asPointerOrNullImpl(o_t Obj) const noexcept {
-    if (const SVF::MemObj *Mem = PAG->getObject(Obj)) {
-      if (const auto *Val = Mem->getValue()) {
-        auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-        if (const auto *LLVMVal = ModSet->getLLVMValue(Val)) {
-          return LLVMVal;
-        }
-      }
+    if (const auto *LLVMVal = psr::objectNodeToLLVMOrNull(
+            Obj, *SVF::LLVMModuleSet::getLLVMModuleSet(), *PAG)) {
+      return LLVMVal;
     }
 
     return std::nullopt;
@@ -191,15 +186,11 @@ template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
 
   [[nodiscard]] SVF::NodeID getNodeId(v_t Pointer) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    auto *Nod = ModSet->getSVFValue(Pointer);
-
-    return PT.getPAG().getValueNode(Nod);
+    return psr::getNodeId(Pointer, *ModSet, PT.getPAG());
   }
   [[nodiscard]] SVF::NodeID getObjNodeId(o_t Obj) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    auto *Nod = ModSet->getSVFValue(Obj);
-
-    return PT.getPAG().getObjectNode(Nod);
+    return psr::getObjNodeId(Obj, *ModSet, PT.getPAG());
   }
 
   void forallPointeesOf(o_t Pointer, n_t /*At*/,
@@ -213,18 +204,9 @@ template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
     SVF::SVFIR &PAG = PT.getPAG();
     for (auto PointeeNod : Pts) {
-      const SVF::MemObj *Mem = PAG.getObject(PointeeNod);
-      if (!Mem) {
-        continue;
-      }
-
-      const auto *Val = Mem->getValue();
-      if (!Val) {
-        continue;
-      }
-
-      if (const auto *LLVMVal = ModSet->getLLVMValue(Val)) {
-        WithPointee(LLVMVal);
+      if (const auto *PointeeVal =
+              psr::objectNodeToLLVMOrNull(PointeeNod, *ModSet, PAG)) {
+        WithPointee(PointeeVal);
       }
     }
   }

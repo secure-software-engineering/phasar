@@ -112,16 +112,24 @@ TEST(SVFAliasSetTest, PointsTo_04) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "pointers/call_01_cpp_dbg.ll");
 
-  auto PT = createLLVMSVFPointsToIterator(IRDB, SVFPointsToAnalysisType::DDA);
+  auto PT = createLLVMSVFDDAAliasInfo(IRDB);
 
   const auto *V = IRDB.getInstruction(3);
   ASSERT_TRUE(V && V->getType()->isPointerTy());
 
-  auto PSet = PT.asSet(V, V->getNextNode());
-  llvm::errs() << "PointsToSet of " << llvmIRToString(V) << ":\n";
-  for (const auto *Pt : PSet) {
-    llvm::errs() << "  --> " << llvmIRToString(Pt) << '\n';
-  }
+  decltype(PT)::AliasSetTy GroundTruth = {
+      fromMetaDataId(IRDB, "_Z10setIntegerPi.0"), // x
+      IRDB.getValueFromId(3),                     // itself
+      IRDB.getValueFromId(7),                     // i = alloca
+      IRDB.getValueFromId(13),                    // load p before call
+      IRDB.getValueFromId(15),                    // load p after call
+  };
+
+  auto PSet = PT.getAliasSet(V, V->getNextNode());
+  PT.print();
+  PT.printAsJson(llvm::outs());
+
+  EXPECT_EQ(*PSet, GroundTruth);
 }
 
 int main(int Argc, char **Argv) {
