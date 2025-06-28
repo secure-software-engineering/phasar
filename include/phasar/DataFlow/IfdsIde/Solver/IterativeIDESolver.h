@@ -474,7 +474,7 @@ private:
       return true;
     }
 
-    auto NewEF = EF.joinWith(std::move(LocalEF));
+    auto NewEF = Problem.combine(EF, std::move(LocalEF));
     assert(NewEF != nullptr);
 
     if (NewEF != EF) {
@@ -540,7 +540,7 @@ private:
       return;
     }
 
-    auto NewEF = EF.joinWith(std::move(LocalEF));
+    auto NewEF = Problem.combine(EF, std::move(LocalEF));
     assert(NewEF != nullptr);
 
     if (NewEF != EF) {
@@ -622,10 +622,11 @@ private:
         auto FactId = FactCompressor.getOrInsert(Fact);
         auto EF = [&] {
           if constexpr (ComputeValues) {
-            return SourceEF.composeWith(FECache.getNormalEdgeFunction(
+            auto NEF = FECache.getNormalEdgeFunction(
                 Problem, AtInstruction, CSFact, Succ, Fact,
                 combineIds(AtInstructionId, SuccId),
-                combineIds(PropagatedFactId, FactId)));
+                combineIds(PropagatedFactId, FactId));
+            return Problem.extend(SourceEF, std::move(NEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -694,10 +695,11 @@ private:
 
         auto EF = [&] {
           if constexpr (ComputeValues) {
-            return SourceEF.composeWith(FECache.getCallToRetEdgeFunction(
+            auto CEF = FECache.getCallToRetEdgeFunction(
                 Problem, AtInstruction, CSFact, RetSite, Fact, Callees /*Vec*/,
                 combineIds(AtInstructionId, RetSiteId),
-                combineIds(PropagatedFactId, FactId)));
+                combineIds(PropagatedFactId, FactId));
+            return Problem.extend(SourceEF, std::move(CEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -835,10 +837,11 @@ private:
 
         auto CallEF = [&] {
           if constexpr (ComputeValues) {
-            return SourceEF.composeWith(FECache.getCallEdgeFunction(
+            auto CEF = FECache.getCallEdgeFunction(
                 Problem, AtInstruction, CSFact, Callee, Fact,
                 combineIds(AtInstructionId, CalleeId),
-                combineIds(CSFactId, FactId)));
+                combineIds(CSFactId, FactId));
+            return Problem.extend(SourceEF, std::move(CEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -900,7 +903,7 @@ private:
                 Problem, AtInstruction, CSFact, RetSite, Fact,
                 combineIds(AtInstructionId, RetSiteId),
                 combineIds(CSFactId, FactId));
-            return EF ? SourceEF.composeWith(std::move(EF)) : SourceEF;
+            return EF ? Problem.extend(SourceEF, std::move(EF)) : SourceEF;
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -939,8 +942,8 @@ private:
                   Problem, CallSite, Callee, ExitInst, SummaryFact, RetSite,
                   RetFact, ExitId, combineIds(CSId, RSId),
                   combineIds(SummaryFactId, RetFactId));
-              return CallEF.composeWith(Summary.second)
-                  .composeWith(std::move(RetEF));
+              return Problem.extend(Problem.extend(CallEF, Summary.second),
+                                    std::move(RetEF));
             } else {
               return EdgeFunctionPtrType{};
             }
