@@ -7,6 +7,25 @@
 
 Version 2503
 
+## What is PhASAR?
+
+PhASAR is a LLVM-based static analysis framework written in C++. It allows users
+to specify arbitrary data-flow problems which are then solved in a
+fully-automated manner on the specified LLVM IR target code. Computing points-to
+information, call-graph(s), etc. is done by the framework, thus you can focus on
+what matters.
+
+### How do I get started with PhASAR?
+
+We have some documentation on PhASAR in our [***Wiki***](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
+this README first.
+<!-- and then have a look on the material provided on <https://phasar.org/>
+as well. -->
+Please also have a look on PhASAR's project directory and notice the project directory [examples](./examples/) as well as the custom tool `tools/example-tool/myphasartool.cpp`.
+
+**NEW:** You can find PhASAR's API reference [here](https://secure-software-engineering.github.io/phasar/).
+
+
 ## Secure Software Engineering Group
 
 PhASAR is primarily developed and maintained by the Secure Software Engineering Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
@@ -33,25 +52,9 @@ Although phasar currently does not make use of C++-20 features (except for some 
 
 PhASAR is currently set up to support LLVM-15.0.*
 
-## What is PhASAR?
-
-PhASAR is a LLVM-based static analysis framework written in C++. It allows users
-to specify arbitrary data-flow problems which are then solved in a
-fully-automated manner on the specified LLVM IR target code. Computing points-to
-information, call-graph(s), etc. is done by the framework, thus you can focus on
-what matters.
-
 ## Breaking Changes
 
 To keep PhASAR in a state that it is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.
-
-## How do I get started with PhASAR?
-
-We have some documentation on PhASAR in our [***Wiki***](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
-this README first.
-<!-- and then have a look on the material provided on <https://phasar.org/>
-as well. -->
-Please also have a look on PhASAR's project directory and notice the project directory `examples/` as well as the custom tool `tools/example-tool/myphasartool.cpp`.
 
 ## Building PhASAR
 
