@@ -78,7 +78,7 @@ createSVFPointsToInfo(LLVMProjectIRDB &IRDB, SVFPointsToAnalysisType PTATy);
 createLLVMSVFPointsToIterator(LLVMProjectIRDB &IRDB,
                               SVFPointsToAnalysisType PTATy);
 
-/// Use SVF to perform the specified pointer analysis and return the results
+/// Use SVF to perform a ContextDDA pointer analysis and return the results
 /// compatible to psr::LLVMAliasInfo and psr::LLVMAliasInfoRef
 ///
 /// \note Only support DDA for now, as VFS seems to not support getRevPts().
