@@ -13,4 +13,7 @@ add_phasar_library(phasar_llvm_controlflow
     Core
     Support
     Demangle
+
+  MODULE_FILES
+    ControlFlow.cppm
 )
