@@ -4,7 +4,6 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
@@ -102,8 +101,11 @@ protected:
     //   psr::Logger::initializeStderrLogger(SeverityLevel::DEBUG);
     // }
 
-    IDESolver IIASolver(IIAProblem, &HA->getICFG());
+    IDESolver IIASolver(&IIAProblem, &HA->getICFG());
+    // IterativeIDESolver IIASolver(&IIAProblem, &HA->getICFG());
     IIASolver.solve();
+
+    auto Results = IIASolver.getSolverResults();
     // if (PrintDump) {
     //   // IRDB->emitPreprocessedIR(llvm::outs());
     //   IIASolver.dumpResults();
@@ -115,7 +117,7 @@ protected:
     for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
       const auto *Fun = IRDB->getFunctionDefinition(FunName);
       const auto *IRLine = getNthInstruction(Fun, SrcLine);
-      auto ResultMap = IIASolver.resultsAt(IRLine);
+      auto ResultMap = Results.resultsAt(IRLine);
       assert(IRLine && "Could not retrieve IR line!");
       bool FactFound = false;
       for (auto &[Fact, Value] : ResultMap) {
@@ -142,17 +144,17 @@ protected:
       IIASolver.dumpResults(llvm::errs());
       llvm::errs()
           << "\n======================================================\n";
-      printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
+      printDump(HA->getProjectIRDB(), Results);
     }
   }
 
   void TearDown() override {}
 
   // See vara::PhasarTaintAnalysis::taintsForInst
-  [[nodiscard]] inline std::set<std::string>
-  taintsForInst(const llvm::Instruction *Inst,
-                SolverResults<const llvm::Instruction *, const llvm::Value *,
-                              IDEFeatureTaintEdgeFact> SR) {
+  [[nodiscard]] inline std::set<std::string> taintsForInst(
+      const llvm::Instruction *Inst,
+      GenericSolverResults<const llvm::Instruction *, const llvm::Value *,
+                           IDEFeatureTaintEdgeFact> SR) {
 
     if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
       if (Ret->getNumOperands() == 0) {
@@ -187,10 +189,11 @@ protected:
     return AggregatedTaints;
   }
 
-  void printDump(const LLVMProjectIRDB &IRDB,
-                 SolverResults<const llvm::Instruction *, const llvm::Value *,
-                               IDEFeatureTaintEdgeFact>
-                     SR) {
+  void
+  printDump(const LLVMProjectIRDB &IRDB,
+            GenericSolverResults<const llvm::Instruction *, const llvm::Value *,
+                                 IDEFeatureTaintEdgeFact>
+                SR) {
     const llvm::Function *CurrFun = nullptr;
     for (const auto *Inst : IRDB.getAllInstructions()) {
       if (CurrFun != Inst->getFunction()) {
