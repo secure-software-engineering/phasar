@@ -82,8 +82,6 @@ public:
                                                ZeroValue),
         detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
 
-  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
-
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
     return getNormalFlowFunctionImpl(Curr, Succ);
