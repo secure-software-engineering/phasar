@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H
+#define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H
 
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/ICFGBase.h"
@@ -75,4 +75,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
+#endif // PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H

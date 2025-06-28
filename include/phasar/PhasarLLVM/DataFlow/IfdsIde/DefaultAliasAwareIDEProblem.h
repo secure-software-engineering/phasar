@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2025 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, mxHuber and others
+ *****************************************************************************/
+
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
 
@@ -38,17 +47,14 @@ public:
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
                                                               n_t /*Succ*/);
-  [[nodiscard]] FlowFunctionPtrType getCallFlowFunctionImpl(n_t CallInst,
-                                                            f_t CalleeFun);
   [[nodiscard]] FlowFunctionPtrType getRetFlowFunctionImpl(n_t CallSite,
                                                            f_t /*CalleeFun*/,
                                                            n_t ExitInst,
                                                            n_t /*RetSite*/);
-  [[nodiscard]] FlowFunctionPtrType
-  getCallToRetFlowFunctionImpl(n_t CallSite, n_t /*RetSite*/,
-                               llvm::ArrayRef<f_t> /*Callees*/);
+  using IDENoAliasDefaultFlowFunctionsImpl::getCallFlowFunctionImpl;
+  using IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl;
 
-private:
+protected:
   LLVMAliasInfoRef AS;
 };
 } // namespace detail
@@ -58,22 +64,7 @@ class DefaultAliasAwareIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
       protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
-  using ProblemAnalysisDomain = AnalysisDomainTy;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using n_t = typename AnalysisDomainTy::n_t;
-  using f_t = typename AnalysisDomainTy::f_t;
-  using t_t = typename AnalysisDomainTy::t_t;
-  using v_t = typename AnalysisDomainTy::v_t;
-  using l_t = typename AnalysisDomainTy::l_t;
-  using i_t = typename AnalysisDomainTy::i_t;
-  using db_t = typename AnalysisDomainTy::db_t;
-
-  using ConfigurationTy = HasNoConfigurationType;
-
-  using FlowFunctionType = FlowFunction<d_t>;
-  using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
-
-  using container_type = typename FlowFunctionType::container_type;
+  using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
 
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
@@ -86,8 +77,10 @@ public:
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
-                                               std::move(ZeroValue)),
+                                               ZeroValue),
         detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
+
+  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
@@ -128,6 +121,8 @@ public:
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
         detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
+
+  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
