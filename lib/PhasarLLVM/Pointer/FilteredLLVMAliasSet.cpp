@@ -189,32 +189,18 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
 
   AllocSites = std::make_unique<AliasSetTy>();
 
-  // consider the full inter-procedural points-to/alias information
-  if (!IntraProcOnly) {
-    foreachValidAliasIn(AS->getAliasSet(V), V, Fun,
-                        [Set = AllocSites.get(), AS = AS.get(), V](v_t Alias) {
-                          if (AS->interIsReachableAllocationSiteTy(V, Alias)) {
-                            Set->insert(Alias);
-                          }
-                        });
+  const auto *VFun = getFunction(V);
+  const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
 
-  } else {
-    // consider the function-local, i.e. intra-procedural, points-to/alias
-    // information only
+  foreachValidAliasIn(AS->getAliasSet(V), V, Fun,
+                      [Set = AllocSites.get(), V, AS = AS.get(), IntraProcOnly,
+                       VFun, VG](v_t Alias) {
+                        if (psr::isInReachableAllocationSitesTy(
+                                V, Alias, IntraProcOnly, VFun, VG)) {
+                          Set->insert(Alias);
+                        }
+                      });
 
-    // We may not be able to retrieve a function for the given value since some
-    // pointer values can exist outside functions, for instance, in case of
-    // vtables, etc.
-    const auto *VFun = getFunction(V);
-    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
-    foreachValidAliasIn(
-        AS->getAliasSet(V), V, Fun,
-        [Set = AllocSites.get(), AS = AS.get(), V, VFun, VG](v_t Alias) {
-          if (AS->intraIsReachableAllocationSiteTy(V, Alias, VFun, VG)) {
-            Set->insert(Alias);
-          }
-        });
-  }
   return AllocSites.get();
 }
 
@@ -227,16 +213,8 @@ bool FilteredLLVMAliasSet::isInReachableAllocationSites(
     return false;
   }
 
-  bool PVIsReachableAllocationSiteType = false;
-  if (IntraProcOnly) {
-    const auto *VFun = getFunction(V);
-    const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
-    PVIsReachableAllocationSiteType =
-        AS->intraIsReachableAllocationSiteTy(V, PotentialValue, VFun, VG);
-  } else {
-    PVIsReachableAllocationSiteType =
-        AS->interIsReachableAllocationSiteTy(V, PotentialValue);
-  }
+  bool PVIsReachableAllocationSiteType =
+      psr::isInReachableAllocationSitesTy(V, PotentialValue, IntraProcOnly);
 
   if (PVIsReachableAllocationSiteType) {
     const auto PTS = getAliasSet(V, I);
