@@ -8,7 +8,7 @@ For more information, we suggest taking a look into PhASAR's Wiki: [Writing an I
 ## Build
 
 This example program can be built using cmake.
-It assumes, that you have installed PhASAR on your system. If you did not install PhASAR to a default location, you can specify `-Dphasar_ROOT=your/path/to/phasar` replacing "your/path/to/phasar" by the actual path where you have installed PhASAR.
+It assumes, that you have installed PhASAR on your system. If you did not install PhASAR to a default location, you can specify `-Dphasar_ROOT=your/path/to/phasar` when invoking `cmake`, replacing "your/path/to/phasar" by the actual path where you have installed PhASAR.
 
 ```bash
 # Invoked from the 07-write-ifds-analysis root folder:

@@ -5,7 +5,7 @@ Shows, how you can use PhASAR to generate alias information from a LLVM IR modul
 ## Build
 
 This example program can be built using cmake.
-It assumes, that you have installed PhASAR on your system. If you did not install PhASAR to a default location, you can specify `-Dphasar_ROOT=your/path/to/phasar` replacing "your/path/to/phasar" by the actual path where you have installed PhASAR.
+It assumes, that you have installed PhASAR on your system. If you did not install PhASAR to a default location, you can specify `-Dphasar_ROOT=your/path/to/phasar` when invoking `cmake`, replacing "your/path/to/phasar" by the actual path where you have installed PhASAR.
 
 ```bash
 # Invoked from the 03-create-alias-info root folder:
