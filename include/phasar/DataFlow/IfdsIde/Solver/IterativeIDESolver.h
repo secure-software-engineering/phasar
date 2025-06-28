@@ -957,16 +957,15 @@ private:
   }
 
   void processInterJobs() {
-
-    llvm::errs() << "processInterJobs: " << CallWL.size()
-                 << " relevant calls\n";
+    PHASAR_LOG_LEVEL(INFO, "processInterJobs: " << CallWL.size()
+                                                << " relevant calls");
 
     /// Here, no other job is running concurrently, so we save and reset the
     /// CallWL, such that we can start concurrent jobs in the loop below
     std::vector<uint64_t> RelevantCalls(CallWL.begin(), CallWL.end());
 
     scope_exit FinishedInterCalls = [] {
-      llvm::errs() << "> end inter calls\n";
+      PHASAR_LOG_LEVEL(INFO, "> end inter calls");
     };
 
     if constexpr (EnableStatistics) {
@@ -1253,14 +1252,14 @@ private:
   }
 
   void runGC() {
-    llvm::errs() << "runGC() with " << CandidateFunctionsForGC.count()
-                 << " candidates\n";
+    PHASAR_LOG_LEVEL(INFO, "runGC() with " << CandidateFunctionsForGC.count()
+                                           << " candidates");
 
     size_t NumCollectedFuns = 0;
 
     scope_exit FinishGC = [&NumCollectedFuns] {
-      llvm::errs() << "> Finished GC run (collected " << NumCollectedFuns
-                   << " functions)\n";
+      PHASAR_LOG_LEVEL(INFO, "> Finished GC run (collected " << NumCollectedFuns
+                                                             << " functions)");
     };
 
     auto FinalCandidates = getCollectableFunctions();
