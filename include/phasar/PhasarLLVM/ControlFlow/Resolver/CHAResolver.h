@@ -20,10 +20,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
-namespace llvm {
-class CallBase;
-} // namespace llvm
-
 namespace psr {
 class DIBasedTypeHierarchy;
 

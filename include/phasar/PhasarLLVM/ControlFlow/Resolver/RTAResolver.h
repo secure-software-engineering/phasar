@@ -22,12 +22,10 @@
 #include <vector>
 
 namespace llvm {
-class CallBase;
 class DICompositeType;
 } // namespace llvm
 
 namespace psr {
-class DIBasedTypeHierarchy;
 
 /// \brief A resolver that performs Rapid Type Analysis to resolve calls
 /// to C++ virtual functions. Requires debug information.

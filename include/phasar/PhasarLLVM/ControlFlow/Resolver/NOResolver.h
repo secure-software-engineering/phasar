@@ -12,10 +12,6 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
-namespace llvm {
-class CallBase;
-} // namespace llvm
-
 namespace psr {
 
 /// \brief A resolver that doesn't resolve indirect- and virtual calls

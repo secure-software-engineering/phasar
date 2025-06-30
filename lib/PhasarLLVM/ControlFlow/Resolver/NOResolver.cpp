@@ -16,11 +16,7 @@
 
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 
-#include <set>
-
 using namespace psr;
-
-namespace psr {
 
 NOResolver::NOResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP)
@@ -37,5 +33,3 @@ auto NOResolver::resolveFunctionPointer(const llvm::CallBase * /*CallSite*/)
 }
 
 std::string NOResolver::str() const { return "NOResolver"; }
-
-} // namespace psr

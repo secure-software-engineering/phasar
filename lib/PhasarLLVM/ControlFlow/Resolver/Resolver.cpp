@@ -43,6 +43,8 @@
 #include <memory>
 #include <optional>
 
+using namespace psr;
+
 std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
@@ -222,8 +224,6 @@ bool psr::isAddressTakenFunction(const llvm::Function *F) {
   return isAddressTakenImpl(F);
 }
 
-namespace psr {
-
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
   assert(IRDB != nullptr);
@@ -310,5 +310,3 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
   llvm_unreachable("All possible callgraph algorithms should be handled in the "
                    "above switch");
 }
-
-} // namespace psr
