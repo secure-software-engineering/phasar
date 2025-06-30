@@ -111,8 +111,8 @@ static bool fillPossibleTargets(
     PossibleTargets.insert(StaticCallee);
 
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                         "Found static call-site: "
-                             << "  " << llvmIRToString(CS));
+                         "Found static call-site: " << "  "
+                                                    << llvmIRToString(CS));
     return true;
   }
 
@@ -122,8 +122,8 @@ static bool fillPossibleTargets(
 
   // the function call must be resolved dynamically
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                       "Found dynamic call-site: "
-                           << "  " << llvmIRToString(CS));
+                       "Found dynamic call-site: " << "  "
+                                                   << llvmIRToString(CS));
 
   PossibleTargets = Res.resolveIndirectCall(CS);
 
