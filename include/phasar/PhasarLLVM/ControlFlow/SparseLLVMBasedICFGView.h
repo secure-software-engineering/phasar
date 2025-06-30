@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H
+#define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H
 
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/ICFGBase.h"
@@ -29,9 +29,14 @@ struct SVFGCache;
 template <>
 struct CFGTraits<SparseLLVMBasedICFGView> : CFGTraits<LLVMBasedCFG> {};
 
-/// Similar to SparseLLVMBasedICFG; the only difference is that this one *is* no
-/// LLVMBasedICFG -- it contains a pointer to an already existing one.
-/// It still owns the sparse value-flow graphs
+/// \brief Similar to SparseLLVMBasedICFG; the only difference is that this one
+/// *is* no LLVMBasedICFG -- it contains a pointer to an already existing one.
+/// It still owns the sparse value-flow graphs.
+///
+/// Use this in the IDESolver or IFDSSolver to profit from the SparseIFDS or
+/// SparseIDE optimization after Karakays et al. "Symbol-Specific Sparsification
+/// of Interprocedural Distributive Environment Problems"
+/// <https://doi.org/10.48550/arXiv.2401.14813>
 class SparseLLVMBasedICFGView
     : public LLVMBasedCFG,
       public ICFGBase<SparseLLVMBasedICFGView>,
@@ -59,7 +64,6 @@ private:
   [[nodiscard]] llvm::SmallVector<n_t, 2>
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
 
   [[nodiscard]] const SparseLLVMBasedCFG &
@@ -71,4 +75,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
+#endif // PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H

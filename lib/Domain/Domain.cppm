@@ -1,0 +1,25 @@
+module;
+
+#include "phasar/Domain/AnalysisDomain.h"
+#include "phasar/Domain/BinaryDomain.h"
+#include "phasar/Domain/LatticeDomain.h"
+
+export module phasar.domain;
+
+export namespace psr {
+using psr::AnalysisDomain;
+using psr::BinaryDomain;
+using psr::to_string;
+using psr::operator<<;
+using psr::operator==;
+using psr::operator<;
+using psr::Bottom;
+using psr::JoinLatticeTraits;
+using psr::LatticeDomain;
+using psr::NonTopBotValue;
+using psr::Top;
+} // namespace psr
+
+export namespace std {
+using std::hash;
+} // namespace std

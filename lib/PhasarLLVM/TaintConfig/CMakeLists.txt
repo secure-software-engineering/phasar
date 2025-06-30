@@ -15,4 +15,7 @@ add_phasar_library(phasar_taintconfig
   LLVM_LINK_COMPONENTS
     Core
     Support
+
+  MODULE_FILES
+    TaintConfig.cppm
 )

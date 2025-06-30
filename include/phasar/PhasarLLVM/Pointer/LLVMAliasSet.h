@@ -10,21 +10,16 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASSET_H
 
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
 #include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Utils/AnalysisProperties.h"
-#include "phasar/Utils/StableVector.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
-
-#include "nlohmann/json.hpp"
-
-#include <utility>
 
 namespace llvm {
 class Value;
@@ -58,14 +53,15 @@ public:
   using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
   using AliasSetMap = llvm::DenseMap<const llvm::Value *, BoxedPtr<AliasSetTy>>;
 
-  /**
-   * Creates points-to set(s) for all functions in the IRDB. If
-   * UseLazyEvaluation is true, computes points-to-sets for functions that do
-   * not use global variables on the fly
-   */
+  /// \brief Creates alias-sets for all functions in the IRDB.
+  ///
+  /// If UseLazyEvaluation is true, computes alias-sets only for functions that
+  /// use global variables directly and delays all others to when they are first
+  /// requested
   explicit LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation = true,
                         AliasAnalysisType PATy = AliasAnalysisType::CFLAnders);
 
+  /// Loads alias sets from JSON
   explicit LLVMAliasSet(LLVMProjectIRDB *IRDB,
                         const nlohmann::json &SerializedPTS);
 
@@ -74,7 +70,7 @@ public:
   };
 
   [[nodiscard]] inline AliasAnalysisType getAliasAnalysisType() const noexcept {
-    return PTA.getPointerAnalysisType();
+    return PTA->getPointerAnalysisType();
   };
 
   [[nodiscard]] AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
@@ -100,10 +96,6 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const;
-
   [[nodiscard]] LLVMAliasSetData getLLVMAliasSetData() const;
 
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
@@ -112,22 +104,18 @@ public:
     return AnalysisProperties::None;
   }
 
-  /**
-   * Shows a parts of an alias set. Good for debugging when one wants to peak
-   * into a points to set.
-   *
-   * @param ValueSetPair a pair on an Value* and the corresponding points to set
-   * @param Peak the amount of instrutions shown from the points to set
-   */
+  /// Shows a parts of an alias set. Good for debugging when one wants to peak
+  /// into a points to set.
+  ///
+  /// \param ValueSetPair a pair on a Value* and the corresponding points-to set
+  /// \param Peak the amount of instructions shown from the points-to set
   static void peakIntoAliasSet(const AliasSetMap::value_type &ValueSetPair,
                                int Peak);
 
-  /**
-   * Prints out the size distribution for all points to sets.
-   *
-   * @param Peak the amount of instrutions shown from one of the biggest points
-   * to sets, use 0 show nothing.
-   */
+  /// Prints out the size distribution for all points to sets.
+  ///
+  /// \param Peak the amount of instructions shown from one of the biggest
+  /// points-to sets, use 0 to show nothing.
   void drawAliasSetsDistribution(int Peak = 10) const;
 
   [[nodiscard]] inline bool empty() const { return AnalyzedFunctions.empty(); }
@@ -152,12 +140,12 @@ private:
                                         const llvm::GlobalObject *VG) const;
 
   /// Utility function used by computeFunctionsAliasSet(...)
-  void addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
+  void addPointer(FunctionAliasView AA, const llvm::DataLayout &DL,
                   const llvm::Value *V, std::vector<const llvm::Value *> &Reps);
 
   [[nodiscard]] static BoxedPtr<AliasSetTy> getEmptyAliasSet();
 
-  LLVMBasedAliasAnalysis PTA;
+  std::unique_ptr<AliasAnalysisView> PTA;
   llvm::DenseSet<const llvm::Function *> AnalyzedFunctions;
 
   AliasSetOwner<AliasSetTy>::memory_resource_type MRes;

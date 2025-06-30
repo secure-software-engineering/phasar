@@ -49,10 +49,6 @@ void SparseLLVMBasedICFGView::printImpl(llvm::raw_ostream &OS) const {
   ICF->print(OS);
 }
 
-nlohmann::json SparseLLVMBasedICFGView::getAsJsonImpl() const {
-  return ICF->getAsJson();
-}
-
 auto SparseLLVMBasedICFGView::getCallGraphImpl() const noexcept
     -> const CallGraph<n_t, f_t> & {
   return ICF->getCallGraph();

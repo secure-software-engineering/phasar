@@ -7,7 +7,6 @@ add_phasar_library(phasar_llvm_ifdside
     phasar_config
     phasar_utils
     phasar_llvm_pointer
-    phasar_llvm
     phasar_llvm_typehierarchy
     phasar_llvm_controlflow
     phasar_llvm_utils
@@ -20,4 +19,7 @@ add_phasar_library(phasar_llvm_ifdside
 
   LINK_PRIVATE
     ${Boost_LIBRARIES}
+
+  MODULE_FILES
+    IfdsIde.cppm
 )

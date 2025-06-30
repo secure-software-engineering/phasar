@@ -5,14 +5,14 @@ on:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
 
-    - uses: pre-commit/action@v2.0.0
+    - uses: pre-commit/action@v3.0.1
       with:
         extra_args: --from-ref origin/development --to-ref HEAD

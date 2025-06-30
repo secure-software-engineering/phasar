@@ -49,7 +49,7 @@ using namespace std;
 namespace psr {
 
 // provide a VertexPropertyWrite to tell boost how to write a vertex
-class TypeHierarchyVertexWriter {
+class [[deprecated]] TypeHierarchyVertexWriter {
 public:
   TypeHierarchyVertexWriter(const LLVMTypeHierarchy::bidigraph_t &TyGraph)
       : TyGraph(TyGraph) {}
@@ -388,75 +388,6 @@ void LLVMTypeHierarchy::print(llvm::raw_ostream &OS) const {
     }
   }
 }
-
-nlohmann::json LLVMTypeHierarchy::getAsJson() const {
-  nlohmann::json J;
-  vertex_iterator VIv;
-
-  vertex_iterator VIvEnd;
-  out_edge_iterator EI;
-
-  out_edge_iterator EIEnd;
-  // iterate all graph vertices
-  for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
-       ++VIv) {
-    J[PhasarConfig::JsonTypeHierarchyID().str()][TypeGraph[*VIv].getTypeName()];
-    // iterate all out edges of vertex vi_v
-    for (boost::tie(EI, EIEnd) = boost::out_edges(*VIv, TypeGraph); EI != EIEnd;
-         ++EI) {
-      J[PhasarConfig::JsonTypeHierarchyID().str()]
-       [TypeGraph[*VIv].getTypeName()] +=
-          TypeGraph[boost::target(*EI, TypeGraph)].getTypeName();
-    }
-  }
-  return J;
-}
-
-// void LLVMTypeHierarchy::mergeWith(LLVMTypeHierarchy &Other) {
-//   cout << "LLVMTypeHierarchy::mergeWith()" << endl;
-//   boost::copy_graph(Other.TypeGraph, TypeGraph); // G += H;
-//   // build the contractions
-//   vector<pair<vertex_t, vertex_t>> contractions;
-//   map<string, vertex_t> observed;
-//   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
-//     if (observed.find(TypeGraph[V].name) != observed.end()) {
-//       // check which one has the valid pointer and the knowledge of the
-//       vtables if (TypeGraph[V].llvmtype) {
-//         contractions.push_back(make_pair(observed[TypeGraph[V].name], V));
-//       } else {
-//         contractions.push_back(make_pair(V, observed[TypeGraph[V].name]));
-//       }
-//     } else {
-//       observed[TypeGraph[V].name] = V;
-//     }
-//   }
-//   cout << "contractions.size(): " << contractions.size() << '\n';
-//   for (auto contraction : contractions) {
-//     contract_vertices<bidigraph_t, vertex_t, EdgeProperties>(
-//         contraction.first, contraction.second, TypeGraph);
-//   }
-//   // merge the vtables
-//   TypeVFTMap.insert(Other.TypeVFTMap.begin(),
-//   Other.TypeVFTMap.end());
-//   // merge the modules analyzed
-//   contained_modules.insert(Other.contained_modules.begin(),
-//                            Other.contained_modules.end());
-//   // reset the vertex mapping
-//   TypeVertexMap.clear();
-//   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
-//     TypeVertexMap[TypeGraph[V].name] = V;
-//   }
-//   // cache the reachable types
-//   bidigraph_t tc;
-//   boost::transitive_closure(TypeGraph, tc);
-//   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
-//     for (auto OE : boost::make_iterator_range(boost::out_edges(V, tc))) {
-//       auto Source = boost::source(OE, tc);
-//       auto Target = boost::target(OE, tc);
-//       TypeGraph[V].reachableTypes.insert(TypeGraph[Target].name);
-//     }
-//   }
-// }
 
 void LLVMTypeHierarchy::printAsDot(llvm::raw_ostream &OS) const {
   std::stringstream S;

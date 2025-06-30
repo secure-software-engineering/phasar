@@ -18,6 +18,9 @@
 #include <string>
 
 namespace psr {
+/// \brief A structure that is used to store already calculated type hierarchy
+/// data, serialize that data or deserialize a json file with a previously
+/// serialized type hierarchy.
 struct DIBasedTypeHierarchyData {
   // DITypes and llvm::Function * are serialized by serializing their names and
   // using the DebugInfoFinder to deserialize them

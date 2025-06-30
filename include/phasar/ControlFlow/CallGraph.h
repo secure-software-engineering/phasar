@@ -19,10 +19,7 @@
 
 #include "llvm/IR/Function.h"
 
-#include "nlohmann/json.hpp"
-
 #include <functional>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -105,27 +102,6 @@ public:
     CGData.printAsJson(OS);
   }
 
-  /// Creates a JSON representation of this call-graph suitable for presistent
-  /// storage.
-  /// Use the ctor taking a json object for deserialization
-  template <typename FunctionIdGetter, typename InstIdGetter>
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson(FunctionIdGetter GetFunctionId,
-            InstIdGetter GetInstructionId) const {
-    nlohmann::json J;
-
-    for (const auto &[Fun, Callers] : CallersOf) {
-      auto &JCallers = J[std::invoke(GetFunctionId, Fun)];
-
-      for (const auto &CS : *Callers) {
-        JCallers.push_back(std::invoke(GetInstructionId, CS));
-      }
-    }
-
-    return J;
-  }
-
   template <typename FunctionLabelGetter, typename InstParentGetter,
             typename InstLabelGetter>
   void printAsDot(llvm::raw_ostream &OS, FunctionLabelGetter GetFunctionLabel,
@@ -201,8 +177,7 @@ public:
   [[nodiscard]] FunctionVertexTy *addFunctionVertex(f_t Fun) {
     auto [It, Inserted] = CG.CallersOf.try_emplace(std::move(Fun), nullptr);
     if (Inserted) {
-      auto Cap = CG.FunVertexOwner.capacity();
-      assert(CG.FunVertexOwner.size() < Cap &&
+      assert(CG.FunVertexOwner.size() < CG.FunVertexOwner.capacity() &&
              "Trying to add more than MaxNumFunctions Function Vertices");
       It->second = &CG.FunVertexOwner.emplace_back();
     }

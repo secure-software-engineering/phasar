@@ -38,12 +38,6 @@ else()
   set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT OFF)
 endif()
 
-option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
-if(PHASAR_EXPERIMENTAL_CXX20)
-  message(DEPRECATION "The option PHASAR_EXPERIMENTAL_CXX20 is deprecated and will be removed in a future version of PhASAR. Use CMAKE_CXX_STANDARD=20 instead.")
-  set(CMAKE_CXX_STANDARD 20)
-endif()
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -83,6 +77,8 @@ string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
+
+option(PHASAR_BUILD_MODULES "Build C++20 modules for phasar" OFF)
 
 include(CheckCXXCompilerFlag)
 
@@ -313,6 +309,18 @@ if (NOT PHASAR_LLVM_VERSION)
 endif()
 include(add_llvm)
 add_llvm()
+
+# SVF
+option(PHASAR_USE_SVF "Use SVF for more options in alias analysis (default is OFF)" OFF)
+if(PHASAR_USE_SVF)
+  find_package(SVF REQUIRED CONFIG)
+  message(STATUS "Found SVF ${SVF_VERSION}")
+
+  if (NOT PHASAR_USE_Z3)
+    message(WARNING "SVF requires Z3. Set PHASAR_USE_Z3=ON")
+    set(PHASAR_USE_Z3 ON)
+  endif()
+endif()
 
 # Z3 Solver
 if(PHASAR_IN_TREE)

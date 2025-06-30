@@ -11,6 +11,7 @@
 
 #include "phasar/Pointer/PointsToInfoBase.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/PointerUtils.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
@@ -59,11 +60,6 @@ class DummyFieldInsensitivePointsToAnalysis
                      ByConstRef<n_t> /*AtInstruction*/) const {
     static PointsToSetTy Empty{};
     return &Empty;
-  }
-
-  [[nodiscard]] std::vector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> /*AtInstruction*/) const {
-    return {};
   }
 };
 
@@ -129,23 +125,16 @@ class DummyFieldSensitivePointsToAnalysis
     static PointsToSetTy Empty{};
     return &Empty;
   }
-
-  [[nodiscard]] std::vector<v_t>
-  getInterestingPointersAtImpl(ByConstRef<n_t> /*AtInstruction*/) const {
-    return {};
-  }
 };
 
 [[maybe_unused]] void testTypeErasure() {
   DummyFieldInsensitivePointsToAnalysis PTA1;
   [[maybe_unused]] PointsToInfoRef<
-      PointsToTraits<DummyFieldInsensitivePointsToAnalysis>>
-      TEPTA1 = &PTA1;
+      PointsToTraits<DummyFieldInsensitivePointsToAnalysis>> TEPTA1 = &PTA1;
 
   DummyFieldSensitivePointsToAnalysis PTA2;
   [[maybe_unused]] PointsToInfoRef<
-      PointsToTraits<DummyFieldSensitivePointsToAnalysis>>
-      TEPTA2 = &PTA2;
+      PointsToTraits<DummyFieldSensitivePointsToAnalysis>> TEPTA2 = &PTA2;
 
   PointsToInfo<PointsToTraits<DummyFieldInsensitivePointsToAnalysis>> TEPTA3(
       std::in_place_type<DummyFieldInsensitivePointsToAnalysis>);
@@ -154,7 +143,7 @@ class DummyFieldSensitivePointsToAnalysis
       std::in_place_type<DummyFieldSensitivePointsToAnalysis>);
 
   // Make sure, the template gets instantiated:
-  std::ignore = TEPTA1.getInterestingPointersAt(nullptr);
+  std::ignore = TEPTA1.getPointsToSet({}, nullptr);
 }
 
 template class PointsToInfoBase<DummyFieldSensitivePointsToAnalysis>;

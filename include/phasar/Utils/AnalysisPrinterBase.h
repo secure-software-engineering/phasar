@@ -10,6 +10,8 @@
 
 namespace psr {
 
+/// \brief A generic class that serves as the basis for a custom analysis
+/// printer implementation.
 template <typename AnalysisDomainTy> class AnalysisPrinterBase {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;

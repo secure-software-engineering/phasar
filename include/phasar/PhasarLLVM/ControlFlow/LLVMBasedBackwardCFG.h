@@ -22,6 +22,8 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMBasedBackwardCFG;
 
+/// \brief A class that represents a backwards control flow graph. Conforms to
+/// the CFGBase CRTP interface.
 class LLVMBasedBackwardCFG
     : public detail::LLVMBasedCFGImpl<LLVMBasedBackwardCFG> {
   friend CFGBase;

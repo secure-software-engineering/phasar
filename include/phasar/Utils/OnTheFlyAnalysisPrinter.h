@@ -13,6 +13,10 @@
 #include <cassert>
 namespace psr {
 
+/// This class implements the AnalysisPrinterBase that prints the analysis
+/// results *while* the analysis is still running.
+///
+/// Override doOnResult() to customize, how the results are printed.
 template <typename AnalysisDomainTy>
 class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using n_t = typename AnalysisDomainTy::n_t;
@@ -21,10 +25,11 @@ class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
 
 public:
   explicit OnTheFlyAnalysisPrinter(llvm::raw_ostream &OS)
-      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(&OS){};
+      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(&OS) {};
 
   explicit OnTheFlyAnalysisPrinter(const llvm::Twine &Filename)
-      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(openFileStream(Filename)){};
+      : AnalysisPrinterBase<AnalysisDomainTy>(),
+        OS(openFileStream(Filename)) {};
 
   OnTheFlyAnalysisPrinter() = default;
   ~OnTheFlyAnalysisPrinter() = default;

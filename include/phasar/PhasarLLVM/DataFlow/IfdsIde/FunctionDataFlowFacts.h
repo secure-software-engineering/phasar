@@ -1,3 +1,14 @@
+/******************************************************************************
+ * Copyright (c) 2025 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, bulletspace and others
+ *****************************************************************************/
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FUNCTIONDATAFLOWFACTS_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FUNCTIONDATAFLOWFACTS_H
+
 #include "phasar/Utils/DefaultValue.h"
 
 #include "llvm/ADT/StringMap.h"
@@ -23,9 +34,10 @@ struct DataFlowFact {
   std::variant<Parameter, ReturnValue> Fact;
 };
 
+/// \brief Simple representation of a serializable data-flow summary
 class FunctionDataFlowFacts {
 public:
-  using ParamaterMappingTy =
+  using ParameterMappingTy =
       std::unordered_map<uint32_t, std::vector<DataFlowFact>>;
 
   FunctionDataFlowFacts() noexcept = default;
@@ -67,10 +79,12 @@ private:
       return It->second;
     }
 
-    return getDefaultValue<ParamaterMappingTy>();
+    return getDefaultValue<ParameterMappingTy>();
   }
 
-  llvm::StringMap<ParamaterMappingTy> Fdff;
+  llvm::StringMap<ParameterMappingTy> Fdff;
 };
 
 } // namespace psr::library_summary
+
+#endif // PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FUNCTIONDATAFLOWFACTS_H

@@ -22,9 +22,16 @@
 
 namespace psr {
 
+/// \brief Represent the starting points of the analysis.
+///
+/// The initial facts that should hold at the entry points.
 template <typename N, typename D, typename L> class InitialSeeds {
 public:
   using GeneralizedSeeds = std::map<N, std::map<D, L>>;
+
+  using n_t = N;
+  using d_t = D;
+  using l_t = L;
 
   InitialSeeds() = default;
 

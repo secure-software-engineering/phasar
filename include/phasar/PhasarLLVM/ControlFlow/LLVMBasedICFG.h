@@ -44,6 +44,8 @@ class Resolver;
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
 
+/// \brief A class that implements a inter-procedural control flow graph.
+/// Conforms to the ICFGBase CRTP interface.
 class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
 
@@ -135,9 +137,6 @@ public:
 
   using ICFGBase::printAsJson;
 
-  using CFGBase::getAsJson;
-  using ICFGBase::getAsJson;
-
 private:
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
@@ -150,7 +149,6 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   void printAsJsonImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const LLVMBasedCallGraph &getCallGraphImpl() const noexcept {
     return CG;
   }

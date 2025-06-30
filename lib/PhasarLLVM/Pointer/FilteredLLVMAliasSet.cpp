@@ -9,6 +9,8 @@
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/GlobalAlias.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 
 #include "nlohmann/json_fwd.hpp"

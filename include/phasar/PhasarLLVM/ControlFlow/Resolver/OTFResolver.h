@@ -36,6 +36,8 @@ namespace psr {
 
 class DIBasedTypeHierarchy;
 
+/// \brief A resolver that uses alias information to resolve indirect and
+/// virtual calls
 class OTFResolver : public Resolver {
 public:
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,

@@ -64,19 +64,6 @@ bool isConstructor(llvm::StringRef MangledName) {
   return false;
 }
 
-const llvm::Type *legacy::stripPointer(const llvm::Type *Pointer) {
-  const auto *Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
-  while (Next) {
-    assert(!Next->isOpaquePointerTy() &&
-           "Don't call stripPointer, when analyzing IR that uses opaque "
-           "pointers!");
-    Pointer = Next->getNonOpaquePointerElementType();
-    Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
-  }
-
-  return Pointer;
-}
-
 bool isMangled(llvm::StringRef Name) {
   // See llvm/Demangle/Demangle.cpp
   if (Name.startswith("_Z") || Name.startswith("___Z")) {

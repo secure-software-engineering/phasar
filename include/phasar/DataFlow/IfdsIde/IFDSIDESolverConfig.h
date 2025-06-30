@@ -39,22 +39,40 @@ enum class SolverConfigOptions : uint32_t {
   All = ~0U
 };
 
+/// \brief Configuration options for the solving process of IFDS/IDE problems
 struct IFDSIDESolverConfig {
   IFDSIDESolverConfig() noexcept = default;
   IFDSIDESolverConfig(SolverConfigOptions Options) noexcept;
 
+  /// Returns whether the solver should handle unbalanced returns (default:
+  /// false)
   [[nodiscard]] bool followReturnsPastSeeds() const;
+  /// Returns whether the solver should automatically insert an identityFlow
+  /// propagation for the special zero value (default: true)
   [[nodiscard]] bool autoAddZero() const;
+  /// Returns whether the IDE solver should perform IDE's phase 2 (default:
+  /// true). You may want to turn this off for IFDS analyses.
   [[nodiscard]] bool computeValues() const;
+  /// Returns, whether the solver should record all ESG edges (default: false)
+  /// \note This option may severly hurt the solver's performance
   [[nodiscard]] bool recordEdges() const;
+  /// Returns, whether the solver should emit the ESG as DOT graph on the
+  /// command-line (default: false)
   [[nodiscard]] bool emitESG() const;
+  /// Currently unused
   [[nodiscard]] bool computePersistedSummaries() const;
 
+  /// \see followReturnsPastSeeds
   void setFollowReturnsPastSeeds(bool Set = true);
+  /// \see autoAddZero
   void setAutoAddZero(bool Set = true);
+  /// \see computeValues
   void setComputeValues(bool Set = true);
+  /// \see recordEdges
   void setRecordEdges(bool Set = true);
+  /// \see emitESG
   void setEmitESG(bool Set = true);
+  /// \see computePersistedSummaries
   void setComputePersistedSummaries(bool Set = true);
 
   void setConfig(SolverConfigOptions Opt);
