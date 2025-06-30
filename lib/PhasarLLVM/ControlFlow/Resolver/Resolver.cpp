@@ -245,6 +245,21 @@ auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
   return resolveFunctionPointer(CallSite);
 }
 
+llvm::ArrayRef<const llvm::Function *> Resolver::getAddressTakenFunctions() {
+  if (!AddressTakenFunctions) {
+    auto &ATF = AddressTakenFunctions.emplace();
+    // XXX: Find better heuristic
+    ATF.reserve(IRDB->getNumFunctions() / 2);
+    for (const auto *F : IRDB->getAllFunctions()) {
+      if (isAddressTakenFunction(F)) {
+        ATF.push_back(F);
+      }
+    }
+  }
+
+  return *AddressTakenFunctions;
+}
+
 auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
   // we may wish to optimise this function
@@ -254,8 +269,8 @@ auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
                    "Call function pointer: " << llvmIRToString(CallSite));
   FunctionSetTy CalleeTargets;
 
-  for (const auto *F : IRDB->getAllFunctions()) {
-    if (isAddressTakenFunction(F) && isConsistentCall(CallSite, F)) {
+  for (const auto *F : getAddressTakenFunctions()) {
+    if (isConsistentCall(CallSite, F)) {
       CalleeTargets.insert(F);
     }
   }

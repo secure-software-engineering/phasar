@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DerivedTypes.h"
 
 #include <memory>
@@ -82,19 +83,6 @@ getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
 /// Create a specific resolver by making a new class, inheriting this resolver
 /// class and implementing the virtual functions as needed.
 class Resolver {
-protected:
-  const LLVMProjectIRDB *IRDB;
-  const LLVMVFTableProvider *VTP;
-
-  const llvm::Function *
-  getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                            const llvm::CallBase *CallSite) {
-    if (!VTP) {
-      return nullptr;
-    }
-    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP);
-  }
-
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
 
@@ -133,10 +121,28 @@ public:
     return true;
   }
 
+  [[nodiscard]] llvm::ArrayRef<const llvm::Function *>
+  getAddressTakenFunctions();
+
   [[nodiscard]] static std::unique_ptr<Resolver>
   create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
          const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
          LLVMAliasInfoRef PT = nullptr);
+
+protected:
+  const llvm::Function *
+  getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
+                            const llvm::CallBase *CallSite) {
+    if (!VTP) {
+      return nullptr;
+    }
+    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP);
+  }
+
+  const LLVMProjectIRDB *IRDB{};
+  const LLVMVFTableProvider *VTP{};
+  std::optional<llvm::SmallVector<const llvm::Function *, 0>>
+      AddressTakenFunctions{};
 };
 } // namespace psr
 
