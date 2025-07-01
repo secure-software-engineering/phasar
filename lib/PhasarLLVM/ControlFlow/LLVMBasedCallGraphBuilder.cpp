@@ -268,7 +268,7 @@ auto psr::buildLLVMBasedCallGraph(
     PT = PTOwn.asRef();
   }
 
-  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH);
+  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH, PT);
   return buildLLVMBasedCallGraph(IRDB, *Res, EntryPoints, S);
 }
 
