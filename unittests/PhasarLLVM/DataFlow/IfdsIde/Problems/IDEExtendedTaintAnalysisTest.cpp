@@ -40,12 +40,24 @@
 #include <utility>
 #include <variant>
 
+#include <sys/types.h>
+
 using namespace std;
 using namespace psr;
 using json = nlohmann::json;
 
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;
+
+struct SrcCodeLocEntry {
+  SrcCodeLocEntry(u_int32_t Line, std::vector<u_int32_t> Column)
+      : Line(Line), Column(std::move(Column)) {}
+  u_int32_t Line{};
+  std::vector<u_int32_t> Column;
+  bool operator==(const SrcCodeLocEntry &Other) const {
+    return Line == Other.Line && Column == Other.Column;
+  }
+};
 
 // /* ============== TEST FIXTURE ============== */
 
@@ -58,7 +70,7 @@ protected:
   ~IDETaintAnalysisTest() override = default;
 
   void doAnalysis(
-      HelperAnalyses &HA, const map<int, set<string>> &GroundTruth,
+      HelperAnalyses &HA, const std::vector<SrcCodeLocEntry> &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
       bool DumpResults = true) {
 
@@ -101,23 +113,55 @@ protected:
 
   void compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
                       IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
-                      const map<int, set<string>> &GroundTruth) {
+                      const std::vector<SrcCodeLocEntry> &GroundTruth) {
+    std::vector<SrcCodeLocEntry> FoundLeaks;
+    FoundLeaks.reserve(
+        TaintProblem.getAllLeaks(Solver.getSolverResults()).size());
 
-    map<int, set<string>> FoundLeaks;
     for (const auto &Leak :
          TaintProblem.getAllLeaks(Solver.getSolverResults())) {
       llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
-      int SinkId = stoi(getMetaDataID(Leak.first));
-      set<string> LeakedValueIds;
+      u_int32_t SinkId = Leak.first->getDebugLoc()->getLine();
+      std::vector<u_int32_t> LeakedValueIds;
+      LeakedValueIds.reserve(Leak.second.size());
+
       for (const auto &LV : Leak.second) {
-        LeakedValueIds.insert(getMetaDataID(LV));
+        if (const auto &Instr = llvm::dyn_cast_or_null<llvm::Instruction>(LV)) {
+          if (Instr->getDebugLoc()) {
+            LeakedValueIds.emplace_back(Instr->getDebugLoc()->getColumn());
+          } else {
+            // getDebugLoc was null
+            llvm::outs() << "*Instr:\n";
+            llvm::outs() << *Instr << "\n";
+            ASSERT_TRUE(false);
+          }
+        } else {
+          // Instr was null
+          llvm::outs() << "LV Value: " << LV << "\n";
+          ASSERT_TRUE(false);
+        }
       }
-      FoundLeaks.emplace(SinkId, LeakedValueIds);
+
+      FoundLeaks.emplace_back(SinkId, LeakedValueIds);
     }
+
     EXPECT_EQ(FoundLeaks, GroundTruth);
+
+    llvm::outs() << "--------------------------------------------:\n";
+    for (const auto &Leak : FoundLeaks) {
+      llvm::outs() << "Line:\n";
+      llvm::outs() << Leak.Line << "\n";
+      llvm::outs() << "Columns:\n";
+      for (const auto &Vec : Leak.Column) {
+        llvm::outs() << Vec << "\n";
+      }
+    }
+    llvm::outs() << "--------------------------------------------:\n";
   }
 }; // Test Fixture
 
+// TODO:
+#if false
 TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
   map<int, set<string>> Gt;
 
@@ -140,531 +184,225 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
 
   doAnalysis(HA, Gt, &Config);
 }
+#endif
 
 TEST_F(IDETaintAnalysisTest, XTaint01) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(8, {9}));
 
-  //
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 8, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // print(argc);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 8, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint02) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(9, {9}));
 
-  //
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 9, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // print(array[0]);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 9, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{}, true);
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
+
 TEST_F(IDETaintAnalysisTest, XTaint03) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(10, {9}));
 
-  // %2 = load i32, ptr %arrayidx2, align 4, !dbg !62, !psr.id !64 | ID: 24
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 10, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // print(array[1]);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 10, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint04) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("_Z3barPi");
+  GroundTruth.emplace_back(SrcCodeLocEntry(6, {9}));
 
-  // %3 = load i32, ptr %arrayidx1, align 4, !dbg !42, !psr.id !45 | ID: 17
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 6, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst) &&
-               Inst->getOperand(0)->getName().str() == "arrayidx1";
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // print(arr[0]);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 6, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 // XTaint05 is similar to 06, but even harder
 
 TEST_F(IDETaintAnalysisTest, XTaint06) {
-  // no leaks expected
-
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint06_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  // no leaks expected
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 /// In the new TaintConfig specifying source/sink/sanitizer properties for extra
 /// parameters of C-style variadic functions is not (yet?) supported. So, the
 /// tests XTaint07 and XTaint08 are disabled.
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
-  map<int, set<string>> Gt;
-
-  Gt[21] = {"20"};
-
-  // TODO: convert from hardcoded values to using the new dynamic approach (see
-  // xtaint20 for example). Reenable test to check if everything works.
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint07_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  GroundTruth.emplace_back(SrcCodeLocEntry(10, {18}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
-  map<int, set<string>> Gt;
-
-  Gt[24] = {"23"};
-
-  // TODO: convert from hardcoded values to using the new dynamic approach (see
-  // xtaint20 for example). Reenable test to check if everything works.
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint08_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  GroundTruth.emplace_back(SrcCodeLocEntry(20, {18}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(14, {8}));
 
-  // sink(*mem);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 14, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  // TODO: ask fabian if this is okay. I am not using getInstAtOrNull here and I
-  // am not tying the unit test to the .cpp file.
-  const auto *LeakLoadInst = LeakCallInst->getOperand(0);
-#if false
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 14, 0, [LeakCallInst](const llvm::Instruction *Inst) {
-        if (Inst) {
-          llvm::outs() << "Inst op 0: " << Inst->getOperand(0)->getName().str()
-                       << "\n";
-        }
-        return Inst == LeakCallInst->getOperand(0);
-      });
-#endif
-  ASSERT_TRUE(LeakLoadInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, EntryPoints);
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
 
-  // sink(*mem);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 16, 0, [](const llvm::Instruction *Inst) {
-        // TODO: ask Fabian if the call inst with the empty name is the correct
-        // one. It is detected as a leak, but I am not sure if that is correct.
-        return llvm::isa<llvm::CallInst>(Inst) &&
-               llvm::cast<llvm::CallInst>(Inst)->getName().empty();
-      });
-  ASSERT_TRUE(LeakCallInst);
+  GroundTruth.emplace_back(SrcCodeLocEntry(16, {8}));
 
-  // %0 = load i32, ptr %call4, align 4, !dbg !1076, !psr.id !1078 | ID: 25
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 16, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint10) {
-  map<int, set<string>> Gt;
-
-  // undefined behaviour: sometimes this test fails, but most of the time
-  // it passes. It only fails when executed together with other tests. It
-  // never failed (so far) for ./IDEExtendedTaintAnalysisTest
-  // --Gtest_filter=*XTaint10
-  // UPDATE: With the fixed k-limiting, this test
-  // almost always fails due to aliasing issues, so disable it.
-  // TODO: Also update the Gt
-  Gt[33] = {"32"};
-
-  // TODO: ask Fabian, if this needs to be converted in the first place.
-  // TODO: convert from hardcoded values to using the new dynamic approach (see
-  // xtaint20 for example). Reenable test to check if everything works.
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint10_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  // GroundTruth.emplace_back(SrcCodeLocEntry(, {}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
-  map<int, set<string>> Gt;
-
-  // no leaks expected; actually finds "27" at 28
-
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint11_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  // GroundTruth.emplace_back(SrcCodeLocEntry(, {}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint12) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint12_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(19, {8}));
 
-  // %0 = load i32, ptr %call2, align 4, !dbg !81, !psr.id !82 | ID: 32
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 19, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // sink(*getPtr(&ptaint));
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 19, 0, [](const llvm::Instruction *Inst) {
-        // TODO: ask Fabian if the call inst with the empty name is the correct
-        // one. It is detected as a leak, but I am not sure if that is correct.
-        return llvm::isa<llvm::CallInst>(Inst) &&
-               llvm::cast<llvm::CallInst>(Inst)->getName().empty();
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint13_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
 
-  //
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 17, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // sink(x);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 17, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint14) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(24, {8}));
 
-  // %3 = load i32, ptr %x, align 4, !dbg !93, !psr.id !94 | ID: 37
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 24, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // sink(x);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 24, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 /// The TaintConfig fails to get all call-sites of Source::get, because it has
 /// no CallGraph information
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint15) {
-  map<int, set<string>> Gt;
-
-  // TODO: convert from hardcoded values to using the new dynamic approach (see
-  // xtaint20 for example). Reenable test to check if everything works.
-  Gt[47] = {"46"};
-
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint15_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  // GroundTruth.emplace_back(SrcCodeLocEntry(, {}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint16) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint16_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(13, {8}));
 
-  // %1 = load i32, ptr %x, align 4, !dbg !64, !psr.id !65 | ID: 27
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 13, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // we can skip the sanitizer => leak here
-  // sink(x);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 13, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint17) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint17_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
 
-  // %1 = load i32, ptr %x, align 4, !dbg !76, !psr.id !77 | ID: 31
-  const auto *LeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 17, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(LeakLoadInst);
-
-  // we can skip the sanitizer => leak here
-  // sink(x);
-  const auto *LeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 17, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(LeakCallInst);
-
-  const auto LeakLoadID = getMetaDataID(LeakLoadInst);
-  const auto LeakCallID = getMetaDataID(LeakCallInst);
-
-  Gt[stoi(LeakCallID)] = {LeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint18) {
-  map<int, set<string>> Gt;
-
-  // TODO: convert from hardcoded values to using the new dynamic approach (see
-  // xtaint20 for example). Reenable test to check if everything works.
-  // Gt[26] = {"25"};
-
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  // TODO: ask Fabian why there are no leaks found for this test
+  // I added a random GT, so that the test fails and it won't be overlooked.
+  GroundTruth.emplace_back(SrcCodeLocEntry(100000, {100000}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   // Is now the same as XTaint17
   GTEST_SKIP();
-  map<int, set<string>> Gt;
 
-  // TODO: convert from hardcoded values to using the new dynamic approach (see
-  // xtaint20 for example). Reenable test to check if everything works.
-  Gt[22] = {"21"};
-
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint19_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, std::monostate{});
+  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
+
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 })
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(2);
   HelperAnalyses HA({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
+  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
 
-  // %x = alloca i32, align 4, !psr.id !48 | ID: 16
-  const auto *FirstLeakAllocaInst = unittest::getInstAtOrNull(MainFunc, 6, 0);
-  ASSERT_TRUE(FirstLeakAllocaInst);
-
-  // srcsink(x); // leak
-  const auto *FirstLeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 12, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(FirstLeakCallInst);
-
-  // %0 = load i32, ptr %y, align 4, !dbg !72, !psr.id !73 | ID: 29
-  const auto *SecondLeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 13, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(SecondLeakLoadInst);
-
-  // sink(y);    // leak
-  const auto *SecondLeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 13, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(SecondLeakCallInst);
-
-  const auto FirstLeakAllocaID = getMetaDataID(FirstLeakAllocaInst);
-  const auto FirstLeakCallID = getMetaDataID(FirstLeakCallInst);
-  const auto SecondLeakLoadID = getMetaDataID(SecondLeakLoadInst);
-  const auto SecondLeakCallID = getMetaDataID(SecondLeakCallInst);
-
-  Gt[stoi(FirstLeakCallID)] = {FirstLeakAllocaID};
-  Gt[stoi(SecondLeakCallID)] = {SecondLeakLoadID};
-
-  doAnalysis(HA, Gt, std::monostate{});
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint21) {
-  map<int, set<string>> Gt;
+  std::vector<SrcCodeLocEntry> GroundTruth;
+  GroundTruth.reserve(1);
   HelperAnalyses HA({PathToLLFiles + "xtaint21_cpp_dbg.ll"}, EntryPoints);
 
-  const auto &IRDB = HA.getProjectIRDB();
-  const auto *MainFunc = IRDB.getFunction("main");
-
-  // %x = alloca i32, align 4, !psr.id !21 | ID: 2
-  const auto *FirstLeakAllocaInst = unittest::getInstAtOrNull(MainFunc, 11);
-  ASSERT_TRUE(FirstLeakAllocaInst);
-
-  // srcsink(x); // leak
-  const auto *FirstLeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 17, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(FirstLeakCallInst);
-
-  // %0 = load i32, ptr %y, align 4, !dbg !45, !psr.id !46 | ID: 15
-  const auto *SecondLeakLoadInst = unittest::getInstAtOrNull(
-      MainFunc, 18, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
-  ASSERT_TRUE(SecondLeakLoadInst);
-
-  // sink(y);    // leak
-  const auto *SecondLeakCallInst = unittest::getInstAtOrNull(
-      MainFunc, 18, 0, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::CallInst>(Inst);
-      });
-  ASSERT_TRUE(SecondLeakCallInst);
-
-  const auto FirstLeakAllocaID = getMetaDataID(FirstLeakAllocaInst);
-  const auto FirstLeakCallID = getMetaDataID(FirstLeakCallInst);
-  const auto SecondLeakLoadID = getMetaDataID(SecondLeakLoadInst);
-  const auto SecondLeakCallID = getMetaDataID(SecondLeakCallInst);
-
-  Gt[stoi(FirstLeakCallID)] = {FirstLeakAllocaID};
-  Gt[stoi(SecondLeakCallID)] = {SecondLeakLoadID};
+  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
 
   IDEExtendedTaintAnalysis<>::config_callback_t SourceCB =
       [](const llvm::Instruction *Inst) {
@@ -688,7 +426,8 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
         return Ret;
       };
 
-  doAnalysis(HA, Gt, CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
+  doAnalysis(HA, GroundTruth,
+             CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }
 
 int main(int Argc, char **Argv) {

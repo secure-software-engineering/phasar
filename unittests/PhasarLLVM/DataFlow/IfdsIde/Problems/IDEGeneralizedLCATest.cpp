@@ -27,11 +27,23 @@
 #include <unordered_set>
 #include <vector>
 
+#include <sys/types.h>
+
 using namespace psr;
 using namespace psr::glca;
 
 using groundTruth_t =
     std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>;
+
+struct SrcCodeLocEntry {
+  SrcCodeLocEntry(u_int32_t Line, std::vector<u_int32_t> Column)
+      : Line(Line), Column(std::move(Column)) {}
+  u_int32_t Line{};
+  std::vector<u_int32_t> Column;
+  bool operator==(const SrcCodeLocEntry &Other) const {
+    return Line == Other.Line && Column == Other.Column;
+  }
+};
 
 /* ============== TEST FIXTURE ============== */
 
