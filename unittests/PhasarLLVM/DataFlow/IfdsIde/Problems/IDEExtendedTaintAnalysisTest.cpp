@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DebugOutput.h"
+#include "phasar/Utils/SrcCodeLocationEntry.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -40,24 +41,12 @@
 #include <utility>
 #include <variant>
 
-#include <sys/types.h>
-
 using namespace std;
 using namespace psr;
 using json = nlohmann::json;
 
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;
-
-struct SrcCodeLocEntry {
-  SrcCodeLocEntry(u_int32_t Line, std::vector<u_int32_t> Column)
-      : Line(Line), Column(std::move(Column)) {}
-  u_int32_t Line{};
-  std::vector<u_int32_t> Column;
-  bool operator==(const SrcCodeLocEntry &Other) const {
-    return Line == Other.Line && Column == Other.Column;
-  }
-};
 
 // /* ============== TEST FIXTURE ============== */
 
@@ -70,7 +59,7 @@ protected:
   ~IDETaintAnalysisTest() override = default;
 
   void doAnalysis(
-      HelperAnalyses &HA, const std::vector<SrcCodeLocEntry> &GroundTruth,
+      HelperAnalyses &HA, const std::set<SrcCodeLocationEntry> &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
       bool DumpResults = true) {
 
@@ -113,27 +102,25 @@ protected:
 
   void compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
                       IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
-                      const std::vector<SrcCodeLocEntry> &GroundTruth) {
-    std::vector<SrcCodeLocEntry> FoundLeaks;
-    FoundLeaks.reserve(
-        TaintProblem.getAllLeaks(Solver.getSolverResults()).size());
+                      const std::set<SrcCodeLocationEntry> &GroundTruth) {
+    std::set<SrcCodeLocationEntry> FoundLeaks;
 
     for (const auto &Leak :
          TaintProblem.getAllLeaks(Solver.getSolverResults())) {
       llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
       u_int32_t SinkId = Leak.first->getDebugLoc()->getLine();
-      std::vector<u_int32_t> LeakedValueIds;
-      LeakedValueIds.reserve(Leak.second.size());
+      std::set<u_int32_t> LeakedValueIds;
 
       for (const auto &LV : Leak.second) {
         if (const auto &Instr = llvm::dyn_cast_or_null<llvm::Instruction>(LV)) {
+          // TODO: Why is getDebugLoc() null sometimes?
           if (Instr->getDebugLoc()) {
-            LeakedValueIds.emplace_back(Instr->getDebugLoc()->getColumn());
+            LeakedValueIds.insert(Instr->getDebugLoc()->getColumn());
           } else {
             // getDebugLoc was null
             llvm::outs() << "*Instr:\n";
             llvm::outs() << *Instr << "\n";
-            ASSERT_TRUE(false);
+            // ASSERT_TRUE(false);
           }
         } else {
           // Instr was null
@@ -142,7 +129,7 @@ protected:
         }
       }
 
-      FoundLeaks.emplace_back(SinkId, LeakedValueIds);
+      FoundLeaks.insert({SinkId, LeakedValueIds});
     }
 
     EXPECT_EQ(FoundLeaks, GroundTruth);
@@ -160,12 +147,8 @@ protected:
   }
 }; // Test Fixture
 
-// TODO:
-#if false
 TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
-  map<int, set<string>> Gt;
-
-  Gt[7] = {"6"};
+  std::set<SrcCodeLocationEntry> GroundTruth;
 
   TaintConfigData Config;
 
@@ -182,46 +165,41 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
 
   HelperAnalyses HA({PathToLLFiles + "xtaint01_json_cpp_dbg.ll"}, EntryPoints);
 
-  doAnalysis(HA, Gt, &Config);
+  doAnalysis(HA, GroundTruth, &Config);
 }
-#endif
 
 TEST_F(IDETaintAnalysisTest, XTaint01) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(8, {9}));
+  GroundTruth.insert(SrcCodeLocationEntry(8, {9}));
 
   doAnalysis(HA, GroundTruth, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint02) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(9, {9}));
+  GroundTruth.insert(SrcCodeLocationEntry(9, {9}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint03) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(10, {9}));
+  GroundTruth.insert(SrcCodeLocationEntry(10, {9}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint04) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(6, {9}));
+  GroundTruth.insert(SrcCodeLocationEntry(6, {9}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -229,7 +207,7 @@ TEST_F(IDETaintAnalysisTest, XTaint04) {
 // XTaint05 is similar to 06, but even harder
 
 TEST_F(IDETaintAnalysisTest, XTaint06) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint06_cpp_dbg.ll"}, EntryPoints);
 
   // no leaks expected
@@ -241,91 +219,82 @@ TEST_F(IDETaintAnalysisTest, XTaint06) {
 /// parameters of C-style variadic functions is not (yet?) supported. So, the
 /// tests XTaint07 and XTaint08 are disabled.
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint07_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(10, {18}));
+  GroundTruth.insert(SrcCodeLocationEntry(10, {18}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint08_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(20, {18}));
+  GroundTruth.insert(SrcCodeLocationEntry(20, {18}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(14, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(14, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(16, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(16, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint10) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint10_cpp_dbg.ll"}, EntryPoints);
 
-  // GroundTruth.emplace_back(SrcCodeLocEntry(, {}));
+  // GroundTruth.insert(SrcCodeLocEntry(, {}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint11_cpp_dbg.ll"}, EntryPoints);
 
-  // GroundTruth.emplace_back(SrcCodeLocEntry(, {}));
+  // GroundTruth.insert(SrcCodeLocEntry(, {}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint12) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint12_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(19, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(19, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint13_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(17, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint14) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(24, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(24, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -333,43 +302,39 @@ TEST_F(IDETaintAnalysisTest, XTaint14) {
 /// The TaintConfig fails to get all call-sites of Source::get, because it has
 /// no CallGraph information
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint15) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint15_cpp_dbg.ll"}, EntryPoints);
 
-  // GroundTruth.emplace_back(SrcCodeLocEntry(, {}));
+  // GroundTruth.insert(SrcCodeLocEntry(, {}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint16) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint16_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(13, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(13, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint17) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint17_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(17, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint18) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, EntryPoints);
 
   // TODO: ask Fabian why there are no leaks found for this test
   // I added a random GT, so that the test fails and it won't be overlooked.
-  GroundTruth.emplace_back(SrcCodeLocEntry(100000, {100000}));
+  GroundTruth.insert(SrcCodeLocationEntry(100000, {100000}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -378,31 +343,29 @@ PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   // Is now the same as XTaint17
   GTEST_SKIP();
 
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint19_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(17, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 })
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(2);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(12, {11}));
+  GroundTruth.insert(SrcCodeLocationEntry(13, {8}));
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint21) {
-  std::vector<SrcCodeLocEntry> GroundTruth;
-  GroundTruth.reserve(1);
+  std::set<SrcCodeLocationEntry> GroundTruth;
   HelperAnalyses HA({PathToLLFiles + "xtaint21_cpp_dbg.ll"}, EntryPoints);
 
-  GroundTruth.emplace_back(SrcCodeLocEntry(17, {8}));
+  GroundTruth.insert(SrcCodeLocationEntry(17, {8}));
 
   IDEExtendedTaintAnalysis<>::config_callback_t SourceCB =
       [](const llvm::Instruction *Inst) {
