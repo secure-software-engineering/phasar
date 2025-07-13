@@ -124,25 +124,7 @@ auto IDETypeStateAnalysisBase::getRetFlowFunction(n_t CallSite, f_t CalleeFun,
     container_type Res;
     // Handle C-style varargs functions
     if (CalleeFun->isVarArg() && !CalleeFun->isDeclaration()) {
-      const llvm::Instruction *AllocVarArg;
-      // Find the allocation of %struct.__va_list_tag
-      for (const auto &BB : *CalleeFun) {
-        for (const auto &I : BB) {
-          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            if (Alloc->getAllocatedType()->isArrayTy() &&
-                Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                Alloc->getAllocatedType()
-                    ->getArrayElementType()
-                    ->isStructTy() &&
-                Alloc->getAllocatedType()
-                        ->getArrayElementType()
-                        ->getStructName() == "struct.__va_list_tag") {
-              AllocVarArg = Alloc;
-              // TODO break out this nested loop earlier (without goto ;-)
-            }
-          }
-        }
-      }
+      const auto *AllocVarArg = getVaListTagOrNull(*CalleeFun);
       // Generate the varargs things by using an over-approximation
       if (Source == AllocVarArg) {
         for (unsigned Idx = CalleeFun->arg_size(); Idx < CS->arg_size();

@@ -27,8 +27,10 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
@@ -40,7 +42,6 @@
 #include <memory>
 #include <mutex>
 
-using namespace std;
 using namespace psr;
 
 bool psr::isIntegerLikeType(const llvm::Type *T) noexcept {
@@ -275,9 +276,9 @@ std::string psr::getMetaDataID(const llvm::Value *V) {
           .str();
     }
   } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    string FName = Arg->getParent()->getName().str();
-    string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
-    return string(FName + "." + ArgNr);
+    std::string FName = Arg->getParent()->getName().str();
+    std::string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
+    return FName + "." + ArgNr;
   }
   return "-1";
 }
@@ -564,4 +565,43 @@ void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
   if (--It->second->RefCount == 0) {
     MToST.erase(It);
   }
+}
+
+const llvm::AllocaInst *psr::getVaListTagOrNull(const llvm::Function &Fun) {
+  if (Fun.isDeclaration()) {
+    return nullptr;
+  }
+  for (const auto &I : llvm::instructions(Fun)) {
+    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I);
+        Alloca && isVaListAlloca(*Alloca)) {
+      return Alloca;
+    }
+  }
+  return nullptr;
+}
+
+bool psr::isVaListAlloca(const llvm::AllocaInst &Alloc) {
+  // Over-approximate by trying to add the
+  //   alloca [1 x %struct.__va_list_tag], align 16
+  // to the results
+
+  const auto *Ty = Alloc.getAllocatedType();
+  if (Ty->isArrayTy() && Ty->getArrayNumElements() > 0 &&
+      Ty->getArrayElementType()->isStructTy() &&
+      Ty->getArrayElementType()->getStructName() == "struct.__va_list_tag") {
+    return true;
+  }
+
+  // On windows, the alloca just allocates a pointer that is directly used by
+  // the va_start intrinsic.
+  // Note that on linux (where the above __va_list_tag heuristic works), the
+  // alloca is *not* directly used by the va_start intrinsic; there, a gep lays
+  // in between
+  for (const auto &Use : Alloc.uses()) {
+    if (llvm::isa<llvm::VAStartInst>(Use.getUser())) {
+      return true;
+    }
+  }
+
+  return false;
 }

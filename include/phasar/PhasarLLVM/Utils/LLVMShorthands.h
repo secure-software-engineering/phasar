@@ -33,6 +33,7 @@ class StoreInst;
 class BranchInst;
 class Module;
 class CallInst;
+class AllocaInst;
 } // namespace llvm
 
 namespace psr {
@@ -273,6 +274,11 @@ public:
   static llvm::ModuleSlotTracker &
   getSlotTrackerForModule(const llvm::Module *Module);
 };
+
+[[nodiscard]] const llvm::AllocaInst *
+getVaListTagOrNull(const llvm::Function &Fun);
+
+[[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
 } // namespace psr
 
 #endif
