@@ -5,7 +5,6 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
 
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/AssemblyAnnotationWriter.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -14,7 +13,6 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Support/Errc.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/SourceMgr.h"
@@ -66,7 +64,6 @@ class IRDBParsingErrorCategory : public std::error_category {
 PSR_CONSTINIT IRDBParsingErrorCategory IRDBParsingErrorCat{};
 
 std::error_code make_error_code(IRDBParsingError Err) noexcept {
-  // TODO
   return {int(Err), IRDBParsingErrorCat};
 }
 } // namespace
@@ -79,45 +76,64 @@ template <> struct is_error_code_enum<psr::IRDBParsingError> : true_type {};
 
 namespace psr {
 
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
-                                         llvm::LLVMContext &Ctx) noexcept {
-
+llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+LLVMProjectIRDB::getParsedIRModuleOrErr(llvm::MemoryBufferRef IRFileContent,
+                                        llvm::LLVMContext &Ctx) noexcept {
   llvm::SMDiagnostic Diag;
   std::unique_ptr<llvm::Module> M = llvm::parseIR(IRFileContent, Diag, Ctx);
   bool BrokenDebugInfo = false;
   if (M == nullptr) {
     Diag.print(nullptr, llvm::errs());
-    return nullptr;
+    return IRDBParsingError::CouldNotParse;
   }
-  /* Crash in presence of llvm-3.9.1 module (segfault) */
-  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+
+  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
     PHASAR_LOG_LEVEL(ERROR, IRFileContent.getBufferIdentifier()
                                 << " could not be parsed correctly!");
-    return nullptr;
+    return IRDBParsingError::CouldNotVerify;
   }
   if (BrokenDebugInfo) {
     PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
   }
+
   return M;
 }
 
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
-                                         llvm::LLVMContext &Ctx) noexcept {
+llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+LLVMProjectIRDB::getParsedIRModuleOrErr(const llvm::Twine &IRFileName,
+                                        llvm::LLVMContext &Ctx) noexcept {
   // Look at LLVM's IRReader.cpp for reference
 
   auto FileOrErr =
       llvm::MemoryBuffer::getFileOrSTDIN(IRFileName, /*IsText=*/true);
   if (std::error_code EC = FileOrErr.getError()) {
-    llvm::SmallString<128> Buf;
-    auto Err = llvm::SMDiagnostic(IRFileName.toStringRef(Buf),
-                                  llvm::SourceMgr::DK_Error,
-                                  "Could not open input file: " + EC.message());
-    Err.print(nullptr, llvm::errs());
-    return nullptr;
+    return FileOrErr.getError();
   }
-  return getParsedIRModuleOrNull(*FileOrErr.get(), Ctx);
+
+  return getParsedIRModuleOrErr(*FileOrErr.get(), Ctx);
+}
+
+std::unique_ptr<llvm::Module>
+LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
+                                         llvm::LLVMContext &Ctx) noexcept {
+
+  auto Mod = getParsedIRModuleOrErr(IRFileContent, Ctx);
+  if (Mod) {
+    return std::move(*Mod);
+  }
+
+  return nullptr;
+}
+
+std::unique_ptr<llvm::Module>
+LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
+                                         llvm::LLVMContext &Ctx) noexcept {
+  auto Mod = getParsedIRModuleOrErr(IRFileName, Ctx);
+  if (Mod) {
+    return std::move(*Mod);
+  }
+
+  return nullptr;
 }
 
 llvm::ErrorOr<LLVMProjectIRDB>
@@ -131,24 +147,12 @@ LLVMProjectIRDB::load(const llvm::Twine &IRFileName,
 
   auto Ctx = std::make_unique<llvm::LLVMContext>();
 
-  llvm::SMDiagnostic Diag;
-  std::unique_ptr<llvm::Module> M = llvm::parseIR(**FileOrErr, Diag, *Ctx);
-  bool BrokenDebugInfo = false;
-  if (M == nullptr) {
-    Diag.print(nullptr, llvm::errs());
-    return IRDBParsingError::CouldNotParse;
+  auto M = getParsedIRModuleOrErr(**FileOrErr, *Ctx);
+  if (!M) {
+    return M.getError();
   }
 
-  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
-    PHASAR_LOG_LEVEL(ERROR, FileOrErr.get()->getBufferIdentifier()
-                                << " could not be parsed correctly!");
-    return IRDBParsingError::CouldNotVerify;
-  }
-  if (BrokenDebugInfo) {
-    PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
-  }
-
-  return LLVMProjectIRDB(std::move(M), std::move(Ctx), EnableOpaquePointers);
+  return LLVMProjectIRDB(std::move(*M), std::move(Ctx), EnableOpaquePointers);
 }
 
 LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,

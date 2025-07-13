@@ -86,6 +86,13 @@ public:
   getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
                           llvm::LLVMContext &Ctx) noexcept;
 
+  [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+  getParsedIRModuleOrErr(const llvm::Twine &IRFileName,
+                         llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+  getParsedIRModuleOrErr(llvm::MemoryBufferRef IRFileContent,
+                         llvm::LLVMContext &Ctx) noexcept;
+
   [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
   load(const llvm::Twine &IRFileName,
        bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
