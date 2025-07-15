@@ -145,7 +145,7 @@ private:
 
   [[nodiscard]] auto getAllInstructionsImpl() const noexcept {
     return llvm::map_range(
-        llvm::makeArrayRef(IdToInst).drop_front(IdOffset),
+        llvm::ArrayRef(IdToInst).drop_front(IdOffset),
         [](const llvm::Value *V) { return llvm::cast<llvm::Instruction>(V); });
   }
 

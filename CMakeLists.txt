@@ -303,7 +303,7 @@ option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM
 
 # LLVM
 if (NOT PHASAR_LLVM_VERSION)
-  set(PHASAR_LLVM_VERSION 15)
+  set(PHASAR_LLVM_VERSION 16)
 endif()
 include(add_llvm)
 add_llvm()

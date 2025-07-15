@@ -45,8 +45,7 @@ template <typename L> struct AllBottom final {
   using JLattice = JoinLatticeTraits<L>;
 
   [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>, EmptyType,
-                                           l_t>
-      BottomValue;
+                                           l_t> BottomValue;
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const noexcept {
     static_assert(std::is_trivially_copyable_v<AllBottom>);
@@ -85,8 +84,7 @@ template <typename L> struct AllTop final {
   using JLattice = JoinLatticeTraits<L>;
 
   [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>, EmptyType,
-                                           l_t>
-      TopValue;
+                                           l_t> TopValue;
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const noexcept {
     static_assert(std::is_trivially_copyable_v<AllTop>);
@@ -372,7 +370,7 @@ template <typename L, uint8_t N> struct JoinEdgeFunction {
       if (const auto *Join = llvm::dyn_cast<JoinEdgeFunction>(EF)) {
         return {Join->OtherEF, Join->Seed};
       }
-      return {llvm::makeArrayRef(EF), JLattice::top()};
+      return {llvm::ArrayRef(EF), JLattice::top()};
     };
 
     auto [LVec, LSeed] = GetEFArrayAndSeed(LHS);

@@ -350,7 +350,7 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
         /// padding for now.
       }
       Offs +=
-          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedSize());
+          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedValue());
     }
 #ifdef XTAINT_DIAGNOSTICS
     allTaintedValues.insert(ret.begin(), ret.end());

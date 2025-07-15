@@ -82,7 +82,7 @@ function(generate_ll_file)
         NAMES clang++-${PHASAR_LLVM_VERSION} clang++
         HINTS ${binary_hint_paths})
       find_program(opt REQUIRED
-        NAMES opt-${PHASAR_LLVM_VERSION}4 opt
+        NAMES opt-${PHASAR_LLVM_VERSION} opt
         HINTS ${binary_hint_paths})
 
       set(IS_VALID_VERSION "")
