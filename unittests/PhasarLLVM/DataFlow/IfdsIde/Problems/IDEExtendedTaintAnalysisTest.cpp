@@ -67,7 +67,7 @@ protected:
       const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
           &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
-      bool DumpResults = true, const llvm::StringRef FuncName = "main") {
+      bool DumpResults = true) {
     auto TC =
         std::visit(Overloaded{[&](std::monostate) {
                                 return LLVMTaintConfig(HA.getProjectIRDB());
@@ -98,8 +98,7 @@ protected:
 
     TaintProblem.emitTextReport(Solver.getSolverResults());
 
-    compareResults(TaintProblem, Solver, GroundTruth,
-                   HA.getProjectIRDB().getFunction(FuncName));
+    compareResults(TaintProblem, Solver, GroundTruth);
   }
 
   void SetUp() override { ValueAnnotationPass::resetValueID(); }
@@ -110,33 +109,8 @@ protected:
       IDEExtendedTaintAnalysis<> &TaintProblem,
       IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
       const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth,
-      const llvm::Function *Func) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, Func);
-
-    // Debug stuff
-    uint32_t Line = 12;
-    std::set<SrcCodeLocationEntry> TestSet;
-    for (uint32_t Col = 0; Col < 30; Col++) {
-      SrcCodeLocationEntry Curr = {Line, Col};
-      TestSet.insert(Curr);
-    }
-    llvm::outs() << "TestSet Size: " << TestSet.size() << "\n";
-
-    int Counter = 0;
-
-    auto TestInsts = getGroundTruthInsts(TestSet, Func);
-    llvm::outs() << "Line: " << Line << "\n";
-    llvm::outs() << "TestInsts Size: " << TestInsts.size() << "\n";
-    for (const auto *Elem : TestInsts) {
-      if (Elem) {
-        llvm::outs() << Counter << ": " << *Elem << " \n";
-      } else {
-        llvm::outs() << Counter << ": Was nullptr \n";
-      }
-      Counter++;
-    }
-    // Debug stuff
+          &GroundTruth) {
+    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
 
     std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
         FoundLeaks;
@@ -151,22 +125,6 @@ protected:
     }
 
     EXPECT_EQ(FoundLeaks, GroundTruthEntries);
-
-    llvm::outs() << "-----------------GroundTruth----------------:\n";
-    for (const auto &Leak : GroundTruthEntries) {
-      llvm::outs() << "std::get<0>:\n";
-      llvm::outs() << *(std::get<0>(Leak)) << "\n";
-      llvm::outs() << "std::get<1>:\n";
-      llvm::outs() << *(std::get<1>(Leak)) << "\n";
-    }
-    llvm::outs() << "------------------FoundLeaks----------------:\n";
-    for (const auto &Leak : FoundLeaks) {
-      llvm::outs() << "std::get<0>:\n";
-      llvm::outs() << *(std::get<0>(Leak)) << "\n";
-      llvm::outs() << "std::get<1>:\n";
-      llvm::outs() << *(std::get<1>(Leak)) << "\n";
-    }
-    llvm::outs() << "--------------------------------------------:\n";
   }
 }; // Test Fixture
 
@@ -188,7 +146,8 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
   Config.Functions.push_back(std::move(FuncDataMain));
   Config.Functions.push_back(std::move(FuncDataPrint));
 
-  GroundTruth.insert({{8, 3}, {8, 9}});
+  // TODO: completely rework this test?
+  // GroundTruth.insert({{8, 3}, {8, 9}});
 
   doAnalysis(HA, GroundTruth, &Config);
 }
@@ -197,7 +156,8 @@ TEST_F(IDETaintAnalysisTest, XTaint01) {
   HelperAnalyses HA({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  GroundTruth.insert({{8, 3}, {8, 9}});
+  GroundTruth.insert({{8, 3, HA.getProjectIRDB().getFunction("main")},
+                      {8, 9, HA.getProjectIRDB().getFunction("main")}});
 
   doAnalysis(HA, GroundTruth, std::monostate{});
 }
@@ -206,11 +166,13 @@ TEST_F(IDETaintAnalysisTest, XTaint02) {
   HelperAnalyses HA({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(9, 3);
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(9, 3, HA.getProjectIRDB().getFunction("main"));
   SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(9, 9, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
+      SrcCodeLocationEntry(9, 9, HA.getProjectIRDB().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
 
   GroundTruth.insert({Call, Leak});
 
@@ -221,11 +183,13 @@ TEST_F(IDETaintAnalysisTest, XTaint03) {
   HelperAnalyses HA({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(10, 3);
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(10, 3, HA.getProjectIRDB().getFunction("main"));
   SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(10, 9, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
+      SrcCodeLocationEntry(10, 9, HA.getProjectIRDB().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
 
   GroundTruth.insert({Call, Leak});
 
@@ -236,21 +200,23 @@ TEST_F(IDETaintAnalysisTest, XTaint04) {
   HelperAnalyses HA({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(6, 3);
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(6, 3, HA.getProjectIRDB().getFunction("main"));
 
-  // TODO: this counter stuff is not good, but I haven't found a better way to
-  // implement this yet
+  // TODO: the counter implementation isn't great, as it still relies on IR
+  // behaviour that might change based on operating system or other factors. A
+  // better implementation would be good here.
   int Counter = 0;
-  SrcCodeLocationEntry Leak = SrcCodeLocationEntry(
-      6, 9, [Counter](const llvm::Instruction *Inst) mutable {
-        llvm::outs() << "Inst: " << *Inst << "\n";
-        Counter++;
-        return Counter == 3;
-      });
+  SrcCodeLocationEntry Leak =
+      SrcCodeLocationEntry(6, 9, HA.getProjectIRDB().getFunction("_Z3barPi"),
+                           [Counter](const llvm::Instruction *Inst) mutable {
+                             Counter++;
+                             return Counter == 3;
+                           });
 
   GroundTruth.insert({Call, Leak});
 
-  doAnalysis(HA, GroundTruth, std::monostate{}, true, "_Z3barPi");
+  doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
 
 // XTaint05 is similar to 06, but even harder
@@ -271,11 +237,13 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
   HelperAnalyses HA({PathToLLFiles + "xtaint07_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(10, 0);
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(10, 0, HA.getProjectIRDB().getFunction("main"));
   SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(10, 18, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
+      SrcCodeLocationEntry(10, 18, HA.getProjectIRDB().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
   GroundTruth.insert({Call, Leak});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
@@ -285,11 +253,13 @@ TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
   HelperAnalyses HA({PathToLLFiles + "xtaint08_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(20, 0);
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(20, 0, HA.getProjectIRDB().getFunction("main"));
   SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(20, 18, [](const llvm::Instruction *Inst) {
-        return llvm::isa<llvm::LoadInst>(Inst);
-      });
+      SrcCodeLocationEntry(20, 18, HA.getProjectIRDB().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
   GroundTruth.insert({Call, Leak});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
@@ -299,8 +269,10 @@ TEST_F(IDETaintAnalysisTest, XTaint09_1) {
   HelperAnalyses HA({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(14, 3);
-  SrcCodeLocationEntry Leak = SrcCodeLocationEntry(14, 8);
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(14, 3, HA.getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Leak =
+      SrcCodeLocationEntry(14, 8, HA.getProjectIRDB().getFunction("main"));
   GroundTruth.insert({Call, Leak});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
@@ -310,16 +282,18 @@ TEST_F(IDETaintAnalysisTest, XTaint09) {
   HelperAnalyses HA({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  SrcCodeLocationEntry Call = SrcCodeLocationEntry(16, 3);
-  // TODO: this counter stuff is not good, but I haven't found a better way to
-  // implement this yet
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(16, 3, HA.getProjectIRDB().getFunction("main"));
+  // TODO: the counter implementation isn't great, as it still relies on IR
+  // behaviour that might change based on operating system or other factors. A
+  // better implementation would be good here.
   int Counter = 0;
-  SrcCodeLocationEntry Leak = SrcCodeLocationEntry(
-      16, 8, [Counter](const llvm::Instruction *Inst) mutable {
-        llvm::outs() << "Inst: " << *Inst << "\n";
-        Counter++;
-        return Counter == 2;
-      });
+  SrcCodeLocationEntry Leak =
+      SrcCodeLocationEntry(16, 8, HA.getProjectIRDB().getFunction("main"),
+                           [Counter](const llvm::Instruction *Inst) mutable {
+                             Counter++;
+                             return Counter == 2;
+                           });
   GroundTruth.insert({Call, Leak});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
@@ -348,7 +322,8 @@ TEST_F(IDETaintAnalysisTest, XTaint12) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(19, 3), SrcCodeLocationEntry(19, 8)});
+      {SrcCodeLocationEntry(19, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(19, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -358,7 +333,8 @@ TEST_F(IDETaintAnalysisTest, XTaint13) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3), SrcCodeLocationEntry(17, 8)});
+      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(17, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -368,7 +344,8 @@ TEST_F(IDETaintAnalysisTest, XTaint14) {
   HelperAnalyses HA({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, EntryPoints);
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(24, 3), SrcCodeLocationEntry(24, 8)});
+      {SrcCodeLocationEntry(24, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(24, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -389,7 +366,8 @@ TEST_F(IDETaintAnalysisTest, XTaint16) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(13, 3), SrcCodeLocationEntry(13, 8)});
+      {SrcCodeLocationEntry(13, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(13, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -399,7 +377,8 @@ TEST_F(IDETaintAnalysisTest, XTaint17) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3), SrcCodeLocationEntry(17, 8)});
+      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(17, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -411,7 +390,8 @@ TEST_F(IDETaintAnalysisTest, XTaint18) {
   // TODO: ask Fabian why there are no leaks found for this test
   // I added a random GT, so that the test fails and it won't be overlooked.
   GroundTruth.insert(
-      {SrcCodeLocationEntry(8, 10), SrcCodeLocationEntry(8, 14)});
+      {SrcCodeLocationEntry(8, 10, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(8, 14, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -424,7 +404,8 @@ PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3), SrcCodeLocationEntry(17, 8)});
+      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(17, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 })
@@ -433,9 +414,12 @@ TEST_F(IDETaintAnalysisTest, XTaint20) {
   HelperAnalyses HA({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  GroundTruth.insert({SrcCodeLocationEntry(12, 3), SrcCodeLocationEntry(6, 7)});
   GroundTruth.insert(
-      {SrcCodeLocationEntry(13, 3), SrcCodeLocationEntry(13, 8)});
+      {SrcCodeLocationEntry(12, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(6, 7, HA.getProjectIRDB().getFunction("main"))});
+  GroundTruth.insert(
+      {SrcCodeLocationEntry(13, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(13, 8, HA.getProjectIRDB().getFunction("main"))});
 
   doAnalysis(HA, GroundTruth, std::monostate{}, true);
 }
@@ -445,9 +429,11 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3), SrcCodeLocationEntry(11, 7)});
+      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(11, 7, HA.getProjectIRDB().getFunction("main"))});
   GroundTruth.insert(
-      {SrcCodeLocationEntry(18, 3), SrcCodeLocationEntry(18, 8)});
+      {SrcCodeLocationEntry(18, 3, HA.getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(18, 8, HA.getProjectIRDB().getFunction("main"))});
 
   IDEExtendedTaintAnalysis<>::config_callback_t SourceCB =
       [](const llvm::Instruction *Inst) {

@@ -21,6 +21,7 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/SrcCodeLocationEntry.h"
 
+#include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "SourceMapping.h"
@@ -69,19 +70,15 @@ protected:
   //  compare results
   /// \brief compares the computed results with every given tuple (value,
   /// alloca, inst)
-  void compareResults(const std::vector<SrcCodeLocationEntry> &Expected,
-                      const std::vector<EdgeValue> &EVal,
-                      const llvm::StringRef FuncName) {
-    const auto *Func = HA->getProjectIRDB().getFunction(FuncName);
-
-    if (!Func) {
-      llvm::outs() << "Func is nullptr, wasn't found!!!\n";
-      ASSERT_NE(nullptr, Func);
-    }
-
+  void compareResults(const std::set<SrcCodeLocationEntry> &Expected,
+                      const std::vector<EdgeValue> &EVal) {
     for (const auto &Entry : Expected) {
-      const auto *Vr = unittest::getInstAtOrNull(Func, 5, 3);
-      const auto *Inst = unittest::getInstAtOrNull(Func, 6, 3);
+      const auto *Vr = unittest::getInstAtOrNull(
+          std::get<const llvm::Function *>(Entry.Context), Entry.Line,
+          Entry.Column);
+      const auto *Inst = unittest::getInstAtOrNull(
+          std::get<const llvm::Function *>(Entry.Context), Entry.Line,
+          Entry.Column);
 
       bool Flag = false;
 
@@ -130,21 +127,19 @@ protected:
 
 TEST_F(IDEGeneralizedLCATest, SimpleTest) {
   initialize("SimpleTest_c.ll");
-  std::vector<SrcCodeLocationEntry> GroundTruth;
+  std::set<SrcCodeLocationEntry> GroundTruth;
   // Old ground truth
   // GroundTruth.push_back({{EdgeValue(10)}, 3, 20});
   // GroundTruth.push_back({{EdgeValue(15)}, 4, 20});
 
-  /*
-    TODO: No column values work?!
-  */
-
   // New ground truth based on src file
-  GroundTruth.push_back(SrcCodeLocationEntry(5, {3}));
-  GroundTruth.push_back(SrcCodeLocationEntry(6, {3}));
+  GroundTruth.insert(
+      SrcCodeLocationEntry(5, 3, HA->getProjectIRDB().getFunction("main")));
+  GroundTruth.insert(
+      SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main")));
   std::vector<EdgeValue> EVs = {EdgeValue(10), EdgeValue(15)};
 
-  compareResults(GroundTruth, EVs, "main");
+  compareResults(GroundTruth, EVs);
 }
 
 #if false

@@ -54,9 +54,8 @@ protected:
 
   void compareResults(
       const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth,
-      const llvm::Function *Func) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, Func);
+          &GroundTruth) {
+    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
 
     std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
         FoundUninitUses;
@@ -78,7 +77,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   Solver.solve();
   // all_uninit.cpp does not contain undef-uses
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
-  compareResults(GroundTruth, HA->getProjectIRDB().getFunction("main"));
+  compareResults(GroundTruth);
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
@@ -91,8 +90,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
   // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
   // undefined alloca; not sure if it is necessary to report again
-  GroundTruth.insert({SrcCodeLocationEntry(2, 0), SrcCodeLocationEntry(3, 11)});
-  compareResults(GroundTruth, HA->getICFG().getIRDB()->getFunction("main"));
+  GroundTruth.insert(
+      {SrcCodeLocationEntry(2, 0, HA->getICFG().getIRDB()->getFunction("main")),
+       SrcCodeLocationEntry(3, 11,
+                            HA->getICFG().getIRDB()->getFunction("main"))});
+  compareResults(GroundTruth);
 }
 
 #if false
