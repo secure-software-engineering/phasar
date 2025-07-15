@@ -7,7 +7,7 @@ if printf "%s\n" "$@" | grep -Eqe '^--noninteractive|-ni$'; then
 else
     readonly noninteractive="false"
 fi
-readonly LLVM_IR_VERSION=15
+readonly LLVM_IR_VERSION=16
 additional_dependencies=("$@")
 
 (
