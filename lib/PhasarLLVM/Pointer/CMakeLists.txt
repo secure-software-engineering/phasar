@@ -18,6 +18,9 @@ add_phasar_library(phasar_llvm_pointer
 
   LINK_PRIVATE
     ${Boost_LIBRARIES}
+
+  MODULE_FILES
+    Pointer.cppm
 )
 
 add_subdirectory(external)
