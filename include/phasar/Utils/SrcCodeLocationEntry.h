@@ -83,7 +83,7 @@ getGroundTruthInsts(
   return GroundTruthEntries;
 };
 
-static std::set<const llvm::Instruction *>
+inline std::set<const llvm::Instruction *>
 getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth,
                     const llvm::Function *Func) {
   std::set<const llvm::Instruction *> GroundTruthEntries;

@@ -433,8 +433,7 @@ TEST_F(IDETaintAnalysisTest, XTaint20) {
   HelperAnalyses HA({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(12, 3), SrcCodeLocationEntry(12, 11)});
+  GroundTruth.insert({SrcCodeLocationEntry(12, 3), SrcCodeLocationEntry(6, 7)});
   GroundTruth.insert(
       {SrcCodeLocationEntry(13, 3), SrcCodeLocationEntry(13, 8)});
 
@@ -446,7 +445,9 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3), SrcCodeLocationEntry(17, 8)});
+      {SrcCodeLocationEntry(17, 3), SrcCodeLocationEntry(11, 7)});
+  GroundTruth.insert(
+      {SrcCodeLocationEntry(18, 3), SrcCodeLocationEntry(18, 8)});
 
   IDEExtendedTaintAnalysis<>::config_callback_t SourceCB =
       [](const llvm::Instruction *Inst) {
