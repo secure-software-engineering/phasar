@@ -12,16 +12,18 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/SrcCodeLocationEntry.h"
 
+#include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
 
+#include "SourceMapping.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <memory>
 #include <optional>
-
-#include <sys/types.h>
+#include <tuple>
 
 using namespace psr;
 
@@ -50,30 +52,23 @@ protected:
 
   void TearDown() override {}
 
-  void compareResults(const std::set<SrcCodeLocationEntry> &GroundTruth) {
-    std::set<SrcCodeLocationEntry> FoundUninitUses;
+  void compareResults(
+      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
+          &GroundTruth,
+      const llvm::Function *Func) {
+    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, Func);
+
+    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+        FoundUninitUses;
     for (const auto &Kvp : UninitProblem->getAllUndefUses()) {
-      if (!Kvp.first->getDebugLoc()) {
-        llvm::outs() << "\ngetDebugLoc() returns nullptr\n\n";
-        ASSERT_TRUE(false);
-      }
-      u_int32_t InstID = Kvp.first->getDebugLoc().getLine();
-      std::set<u_int32_t> UndefValueIds;
+      const auto *SourceInst = Kvp.first;
+
       for (const auto *UV : Kvp.second) {
-        if (const auto *UVInst =
-                llvm::dyn_cast_or_null<llvm::Instruction>(UV)) {
-          if (UVInst->getDebugLoc()) {
-            UndefValueIds.insert(UVInst->getDebugLoc().getCol());
-          } else {
-            llvm::outs() << "\ngetDebugLoc().getCol() returns nullptr\n\n";
-            ASSERT_TRUE(false);
-          }
-        }
+        FoundUninitUses.insert({SourceInst, UV});
       }
-      FoundUninitUses.insert(SrcCodeLocationEntry(InstID, UndefValueIds));
     }
 
-    EXPECT_EQ(FoundUninitUses, GroundTruth);
+    EXPECT_EQ(FoundUninitUses, GroundTruthEntries);
   }
 }; // Test Fixture
 
@@ -82,8 +77,8 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
   // all_uninit.cpp does not contain undef-uses
-  std::set<SrcCodeLocationEntry> GroundTruth;
-  compareResults(GroundTruth);
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  compareResults(GroundTruth, HA->getProjectIRDB().getFunction("main"));
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
@@ -92,13 +87,12 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   Solver.solve();
 
   // binop_uninit uses uninitialized variable i in 'int j = i + 10;'
-  std::set<SrcCodeLocationEntry> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
   // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
-  GroundTruth.insert(SrcCodeLocationEntry(2, {0}));
   // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
   // undefined alloca; not sure if it is necessary to report again
-  GroundTruth.insert(SrcCodeLocationEntry(3, {11}));
-  compareResults(GroundTruth);
+  GroundTruth.insert({SrcCodeLocationEntry(2, 0), SrcCodeLocationEntry(3, 11)});
+  compareResults(GroundTruth, HA->getICFG().getIRDB()->getFunction("main"));
 }
 
 #if false

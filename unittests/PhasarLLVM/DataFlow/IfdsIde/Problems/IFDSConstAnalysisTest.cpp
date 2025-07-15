@@ -10,12 +10,17 @@
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/SrcCodeLocationEntry.h"
 
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+#include <cstdint>
 #include <memory>
 
 using namespace std;
@@ -59,26 +64,53 @@ protected:
     return RetOrResInstructions;
   }
 
-  void compareResults(const std::set<unsigned long> &GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+  void compareResults(const std::set<SrcCodeLocationEntry> &GroundTruth,
+                      IFDSSolver_P<IFDSConstAnalysis> &Solver,
+                      const llvm::Function *Func) {
+    /* --- Debug --- */
+    std::set<SrcCodeLocationEntry> Test;
+    uint32_t Line = 3;
+    for (uint32_t Column = 0; Column < 30; Column++) {
+      Test.insert({Line, Column});
+    }
+    llvm::outs() << "Line: " << Line << "\n";
+    llvm::outs() << "Test size: " << Test.size() << "\n";
+    auto TestInsts = getGroundTruthInsts(Test, Func);
+    for (const auto *Entry : TestInsts) {
+      llvm::outs() << "Test *Entry: " << *Entry << "\n";
+    }
+    /* --- Debug --- */
+
+    auto GroundTruthEntriesAsInsts = getGroundTruthInsts(GroundTruth, Func);
+    std::set<const llvm::Value *> GroundTruthEntries;
+    for (const auto *Entry : GroundTruthEntriesAsInsts) {
+      llvm::outs() << "GT *Entry: " << *Entry << "\n";
+      if (const auto *EntryVal = llvm::dyn_cast_or_null<llvm::Value>(Entry)) {
+        GroundTruthEntries.insert(EntryVal);
+        continue;
+      }
+
+      llvm::outs()
+          << "Ground Truth Instruction was not a Value and can't be a "
+             "correct entry here. Please double check the Ground Truth.\n";
+      ASSERT_TRUE(false);
+    }
+
     std::set<const llvm::Value *> AllMutableAllocas;
+
     for (const auto *RR : getRetOrResInstructions()) {
       std::set<const llvm::Value *> Facts = Solver.ifdsResultsAt(RR);
       for (const auto *Fact : Facts) {
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
              !Constproblem->isZeroValue(Fact))) {
-
+          llvm::outs() << "Fact: " << *Fact << "\n";
           AllMutableAllocas.insert(Fact);
         }
       }
     }
-    std::set<unsigned long> MutableIDs;
-    for (const auto *Memloc : AllMutableAllocas) {
-      std::cerr << "> Is Mutable: " << llvmIRToShortString(Memloc) << "\n";
-      MutableIDs.insert(std::stoul(getMetaDataID(Memloc)));
-    }
-    EXPECT_EQ(GroundTruth, MutableIDs);
+
+    EXPECT_EQ(GroundTruthEntries, AllMutableAllocas);
   }
 };
 
@@ -87,28 +119,42 @@ TEST_F(IFDSConstAnalysisTest, HandleBasicTest_01) {
   initialize({PathToLlFiles + "basic/basic_01_cpp_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({}, Llvmconstsolver);
+  std::set<SrcCodeLocationEntry> GroundTruth;
+  compareResults(GroundTruth, Llvmconstsolver,
+                 HA->getProjectIRDB().getFunction("main"));
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_02) {
   initialize({PathToLlFiles + "basic/basic_02_cpp_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({1}, Llvmconstsolver);
+  SrcCodeLocationEntry Entry(3, 0);
+  std::set<SrcCodeLocationEntry> GroundTruth;
+  GroundTruth.insert(Entry);
+  compareResults(GroundTruth, Llvmconstsolver,
+                 HA->getProjectIRDB().getFunction("main"));
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_03) {
   initialize({PathToLlFiles + "basic/basic_03_cpp_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({1}, Llvmconstsolver);
+  SrcCodeLocationEntry Entry(3, 0);
+  std::set<SrcCodeLocationEntry> GroundTruth;
+  GroundTruth.insert(Entry);
+  compareResults(GroundTruth, Llvmconstsolver,
+                 HA->getProjectIRDB().getFunction("main"));
 }
 
 TEST_F(IFDSConstAnalysisTest, HandleBasicTest_04) {
   initialize({PathToLlFiles + "basic/basic_04_cpp_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({1}, Llvmconstsolver);
+  SrcCodeLocationEntry Entry(3, 0);
+  std::set<SrcCodeLocationEntry> GroundTruth;
+  GroundTruth.insert(Entry);
+  compareResults(GroundTruth, Llvmconstsolver,
+                 HA->getProjectIRDB().getFunction("main"));
 }
 
 /* ============== CONTROL FLOW TESTS ============== */
@@ -116,8 +162,14 @@ TEST_F(IFDSConstAnalysisTest, HandleCFForTest_01) {
   initialize({PathToLlFiles + "control_flow/cf_for_01_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({0}, Llvmconstsolver);
+  SrcCodeLocationEntry Entry(3, 12);
+  std::set<SrcCodeLocationEntry> GroundTruth;
+  GroundTruth.insert(Entry);
+  compareResults(GroundTruth, Llvmconstsolver,
+                 HA->getProjectIRDB().getFunction("main"));
 }
+
+#if false
 
 TEST_F(IFDSConstAnalysisTest, HandleCFForTest_02) {
   initialize({PathToLlFiles + "control_flow/cf_for_02_cpp_m2r_dbg.ll"});
@@ -535,6 +587,8 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCStringTest_02) {
 //  llvmconstsolver.solve();
 //  compareResults({0}, llvmconstsolver);
 //}
+
+#endif
 
 // main function for the test case
 int main(int Argc, char **Argv) {

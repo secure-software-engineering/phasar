@@ -89,9 +89,11 @@ protected:
     TaintProblem =
         createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
-  static void doAnalysis(const llvm::Twine &IRFile,
-                         const LLVMTaintConfig &Config,
-                         const std::set<SrcCodeLocationEntry> &GroundTruth) {
+  static void doAnalysis(
+      const llvm::Twine &IRFile, const LLVMTaintConfig &Config,
+      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
+          &GroundTruth,
+      const llvm::StringRef FuncName) {
     HelperAnalyses HA(PathToLlFiles + IRFile, EntryPoints);
 
     auto TaintProblem =
@@ -102,49 +104,51 @@ protected:
 
     TaintSolver.dumpResults();
 
-    compare(TaintProblem.Leaks, GroundTruth);
+    compare(TaintProblem.Leaks, GroundTruth,
+            HA.getProjectIRDB().getFunction(FuncName));
   }
 
-  static void doAnalysis(const llvm::Twine &IRFile,
-                         const std::set<SrcCodeLocationEntry> &GroundTruth) {
-    doAnalysis(IRFile, getDefaultConfig(), GroundTruth);
+  static void doAnalysis(
+      const llvm::Twine &IRFile,
+      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
+          &GroundTruth,
+      const llvm::StringRef FuncName) {
+    doAnalysis(IRFile, getDefaultConfig(), GroundTruth, FuncName);
   }
 
   template <typename LeaksTy>
-  static void compare(const LeaksTy &Leaks,
-                      const std::set<SrcCodeLocationEntry> &GroundTruth) {
-    // TODO: zu std::set ändern
-    std::set<SrcCodeLocationEntry> FoundLeaks;
+  static void
+  compare(const LeaksTy &Leaks,
+          const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
+              &GroundTruth,
+          const llvm::Function *Func) {
+    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, Func);
+
+    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+        FoundLeaks;
     for (const auto &Leak : Leaks) {
-      uint32_t SinkId;
-      if (Leak.first) {
-        if (const auto *SinkInst =
-                llvm::dyn_cast_or_null<llvm::Instruction>(Leak.first)) {
-          SinkId = SinkInst->getDebugLoc()->getLine();
-          llvm::outs() << "SinkId: " << SinkId << "\n";
-        }
-      }
-      std::set<uint32_t> LeakedValueIds;
-      for (const auto *LV : Leak.second) {
-        llvm::outs() << "*LV: " << *LV << "\n";
-        if (LV) {
-          if (const auto *LVInst =
-                  llvm::dyn_cast_or_null<llvm::Instruction>(LV)) {
-            LeakedValueIds.insert(LVInst->getDebugLoc()->getColumn());
-            llvm::outs() << "getCol: " << LVInst->getDebugLoc()->getColumn()
-                         << "\n";
+      if (const auto *SinkInst =
+              llvm::dyn_cast_or_null<llvm::Instruction>(Leak.first)) {
+        llvm::outs() << "*SinkInst: " << *SinkInst << "\n";
+        for (const auto *LV : Leak.second) {
+          if (LV) {
+            if (const auto *LVValue = llvm::dyn_cast_or_null<llvm::Value>(LV)) {
+              llvm::outs() << "*LVValue: " << *LVValue << "\n";
+              FoundLeaks.insert({SinkInst, {LVValue}});
+            }
           }
         }
-        // LeakedValueIds.insert(getMetaDataID(LV));
       }
-      FoundLeaks.insert({SinkId, LeakedValueIds});
     }
-    EXPECT_EQ(FoundLeaks, GroundTruth);
+    EXPECT_EQ(FoundLeaks, GroundTruthEntries);
   }
 
-  void
-  compareResults(const std::set<SrcCodeLocationEntry> &GroundTruth) noexcept {
-    compare(TaintProblem->Leaks, GroundTruth);
+  void compareResults(
+      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
+          &GroundTruth,
+      const llvm::StringRef FuncName) noexcept {
+    compare(TaintProblem->Leaks, GroundTruth,
+            HA->getProjectIRDB().getFunction(FuncName));
   }
 }; // Test Fixture
 
@@ -152,55 +156,74 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  SrcCodeLocationEntry Entry(6, {8});
-  std::set<SrcCodeLocationEntry> GroundTruth = {Entry};
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry = SrcCodeLocationEntry(6, 3);
+  SrcCodeLocationEntry EntryTwo = SrcCodeLocationEntry(6, 8);
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  SrcCodeLocationEntry Entry(6, {11});
-  std::set<SrcCodeLocationEntry> GroundTruth = {Entry};
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry(12, 3);
+  SrcCodeLocationEntry EntryTwo(12, 14);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  SrcCodeLocationEntry Entry(5, {8});
-  std::set<SrcCodeLocationEntry> GroundTruth = {Entry};
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry(5, 3);
+  SrcCodeLocationEntry EntryTwo(5, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  SrcCodeLocationEntry Entry(6, {8});
-  std::set<SrcCodeLocationEntry> GroundTruth = {Entry};
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry(6, 3);
+  SrcCodeLocationEntry EntryTwo(6, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  SrcCodeLocationEntry Entry(6, {8});
-  SrcCodeLocationEntry EntryTwo(8, {8});
-  std::set<SrcCodeLocationEntry> GroundTruth = {Entry, EntryTwo};
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry(6, 3);
+  SrcCodeLocationEntry EntryTwo(6, 8);
+  SrcCodeLocationEntry EntryThree(8, 3);
+  SrcCodeLocationEntry EntryFour(8, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({{Entry, EntryTwo}, {EntryThree, EntryFour}});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  SrcCodeLocationEntry Entry(6, {8});
-  std::set<SrcCodeLocationEntry> GroundTruth = {Entry};
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry(6, 3);
+  SrcCodeLocationEntry EntryTwo(6, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 // TODO: Fabian fragen, wie man mit Ground Truth von "main.0" hier umgehen soll.
@@ -222,7 +245,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{12, {8}}});
+  SrcCodeLocationEntry Entry(12, 3);
+  SrcCodeLocationEntry EntryTwo(12, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
@@ -230,7 +258,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{12, {14}}});
+  SrcCodeLocationEntry Entry(12, 3);
+  SrcCodeLocationEntry EntryTwo(12, 14);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
@@ -238,7 +271,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{11, {8}}});
+  SrcCodeLocationEntry Entry(11, 3);
+  SrcCodeLocationEntry EntryTwo(11, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
@@ -246,11 +284,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  // This test weirdly fails, when I just insert {{}, {}} into compareResults.
-  std::set<SrcCodeLocationEntry> GroundTruth;
-  GroundTruth.insert(SrcCodeLocationEntry{11, {8}});
-  GroundTruth.insert(SrcCodeLocationEntry{14, {8}});
-  compareResults(GroundTruth);
+  SrcCodeLocationEntry Entry(14, 3);
+  SrcCodeLocationEntry EntryTwo(14, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
@@ -258,7 +297,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_04_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{16, {8}}});
+  SrcCodeLocationEntry Entry(16, 3);
+  SrcCodeLocationEntry EntryTwo(16, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
@@ -266,7 +310,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_05_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{16, {8}}});
+  SrcCodeLocationEntry Entry(16, 3);
+  SrcCodeLocationEntry EntryTwo(16, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
@@ -274,7 +323,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_06_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{13, {10}}});
+  SrcCodeLocationEntry Entry(13, 3);
+  SrcCodeLocationEntry EntryTwo(13, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
@@ -282,7 +336,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_07_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{14, {10}}});
+  SrcCodeLocationEntry Entry(14, 3);
+  SrcCodeLocationEntry EntryTwo(14, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
@@ -290,7 +349,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_08_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{19, {8}}});
+  SrcCodeLocationEntry Entry(19, 3);
+  SrcCodeLocationEntry EntryTwo(19, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
@@ -298,7 +362,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_09_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{20, {8}}});
+  SrcCodeLocationEntry Entry(20, 3);
+  SrcCodeLocationEntry EntryTwo(20, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
@@ -306,7 +375,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  compareResults({{19, {10}}});
+  SrcCodeLocationEntry Entry(19, 3);
+  SrcCodeLocationEntry EntryTwo(19, 8);
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruth.insert({Entry, EntryTwo});
+  compareResults(GroundTruth, "main");
 }
 
 // TODO: fix seg fault
