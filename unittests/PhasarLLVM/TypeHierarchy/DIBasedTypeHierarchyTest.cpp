@@ -366,7 +366,11 @@ TEST(DBTHTest, BasicTHReconstruction_12_b) {
 
   // check for all subtypes
   const auto &SubTypes = DBTH.getSubTypes(BaseType);
+#if LLVM_VERSION_MAJOR < 16
+  // In LLVM 16, the metadata is pruned to the relations that are actually
+  // *used* in the code
   EXPECT_TRUE(SubTypes.find(ChildType) != SubTypes.end());
+#endif
   const auto &SubTypesChild = DBTH.getSubTypes(ChildType);
   EXPECT_TRUE(SubTypesChild.find(ChildsChildType) != SubTypesChild.end());
 }
@@ -1097,12 +1101,16 @@ TEST(DBTHTest, TransitivelyReachableTypes_12_b) {
   auto ReachableTypesChild = DBTH.getSubTypes(ChildType);
   auto ReachableTypesChildsChild = DBTH.getSubTypes(ChildsChildType);
 
-  EXPECT_EQ(ReachableTypesBase.size(), 3U);
+  EXPECT_EQ(ReachableTypesBase.size(), LLVM_VERSION_MAJOR < 16 ? 3U : 1U);
   EXPECT_EQ(ReachableTypesChild.size(), 2U);
   EXPECT_EQ(ReachableTypesChildsChild.size(), 1U);
   EXPECT_TRUE(ReachableTypesBase.count(BaseType));
+#if LLVM_VERSION_MAJOR < 16
+  // In LLVM 16, the metadata is pruned to the relations that are actually
+  // *used* in the code
   EXPECT_TRUE(ReachableTypesBase.count(ChildType));
   EXPECT_TRUE(ReachableTypesBase.count(ChildsChildType));
+#endif
   EXPECT_FALSE(ReachableTypesChild.count(BaseType));
   EXPECT_TRUE(ReachableTypesChild.count(ChildType));
   EXPECT_TRUE(ReachableTypesChild.count(ChildsChildType));
