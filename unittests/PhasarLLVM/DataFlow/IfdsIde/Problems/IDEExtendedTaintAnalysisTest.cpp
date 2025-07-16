@@ -146,8 +146,15 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
   Config.Functions.push_back(std::move(FuncDataMain));
   Config.Functions.push_back(std::move(FuncDataPrint));
 
-  // TODO: completely rework this test?
-  // GroundTruth.insert({{8, 3}, {8, 9}});
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(8, 3, HA.getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Leak =
+      SrcCodeLocationEntry(8, 9, HA.getProjectIRDB().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
+
+  GroundTruth.insert({Call, Leak});
 
   doAnalysis(HA, GroundTruth, &Config);
 }
@@ -156,8 +163,15 @@ TEST_F(IDETaintAnalysisTest, XTaint01) {
   HelperAnalyses HA({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  GroundTruth.insert({{8, 3, HA.getProjectIRDB().getFunction("main")},
-                      {8, 9, HA.getProjectIRDB().getFunction("main")}});
+  SrcCodeLocationEntry Call =
+      SrcCodeLocationEntry(8, 3, HA.getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Leak =
+      SrcCodeLocationEntry(8, 9, HA.getProjectIRDB().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
+
+  GroundTruth.insert({Call, Leak});
 
   doAnalysis(HA, GroundTruth, std::monostate{});
 }
@@ -201,7 +215,7 @@ TEST_F(IDETaintAnalysisTest, XTaint04) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(6, 3, HA.getProjectIRDB().getFunction("main"));
+      SrcCodeLocationEntry(6, 3, HA.getProjectIRDB().getFunction("_Z3barPi"));
 
   // TODO: the counter implementation isn't great, as it still relies on IR
   // behaviour that might change based on operating system or other factors. A
