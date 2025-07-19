@@ -259,6 +259,38 @@ z3::expr LLVMBasedVarCFG::inferCondition(const llvm::CmpInst *cmp) const {
 }
 #endif
 
+static void
+collectAvailablePPConditions(llvm::StringMap<z3::expr> &Into,
+                             const llvm::Function &StaticRenamingFun,
+                             z3::context &Ctx) {
+  for (const auto *User : StaticRenamingFun.users()) {
+    if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
+        Call && Call->getCalledFunction() == &StaticRenamingFun) {
+      auto GlobName = extractConstantStringFromValue(Call->getArgOperand(0));
+      assert(GlobName && "Expect non-empty optional!");
+      auto SMT2LibSolverStrRep =
+          extractConstantStringFromValue(Call->getArgOperand(1));
+      assert(SMT2LibSolverStrRep && "Expect non-empty optional!");
+      z3::solver Solver(Ctx);
+      Solver.from_string(SMT2LibSolverStrRep.value().data());
+      auto CombinedAssertions = [&] {
+        auto Assertions = Solver.assertions();
+        assert(!Assertions.empty() && "Must have at least one assertion for "
+                                      "any preprocessor conditional!");
+        auto It = Assertions.begin();
+        const auto EndIt = Assertions.end();
+        auto Combined = *It;
+        for (++It; It != EndIt; ++It) {
+          Combined = Combined && *It;
+        }
+        return Combined.simplify();
+      }();
+      Into.try_emplace(GlobName.value(), CombinedAssertions);
+    }
+  }
+  PHASAR_LOG_LEVEL(DEBUG, "AvailablePPConditions" << printAll(Into.keys()));
+}
+
 VarCFGImpl<LLVMBasedICFG, z3::expr>::VarCFGImpl(
     const LLVMBasedICFG &CFG, const stringstringmap_t *StaticBackwardRenaming)
     : CFG(static_cast<const LLVMBasedCFG &>(CFG)),
@@ -269,33 +301,23 @@ VarCFGImpl<LLVMBasedICFG, z3::expr>::VarCFGImpl(
   // preprocessor conditionals are beeing used, this function does not exist and
   // thus the ProjectIRDB returns a nullptr.
   if (StaticRenamingFun) {
-    for (const auto *User : StaticRenamingFun->users()) {
-      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
-          Call && Call->getCalledFunction() == StaticRenamingFun) {
-        auto GlobName = extractConstantStringFromValue(Call->getArgOperand(0));
-        assert(GlobName && "Expect non-empty optional!");
-        auto SMT2LibSolverStrRep =
-            extractConstantStringFromValue(Call->getArgOperand(1));
-        assert(SMT2LibSolverStrRep && "Expect non-empty optional!");
-        z3::solver Solver(CTX);
-        Solver.from_string(SMT2LibSolverStrRep.value().data());
-        auto CombinedAssertions = [&] {
-          auto Assertions = Solver.assertions();
-          assert(!Assertions.empty() && "Must have at least one assertion for "
-                                        "any preprocessor conditional!");
-          auto It = Assertions.begin();
-          const auto EndIt = Assertions.end();
-          auto Combined = *It;
-          for (++It; It != EndIt; ++It) {
-            Combined = Combined && *It;
-          }
-          return Combined.simplify();
-        }();
-        AvailablePPConditions.insert({GlobName.value(), CombinedAssertions});
-      }
-    }
-    PHASAR_LOG_LEVEL(DEBUG, "AvailablePPConditions"
-                                << printAll(AvailablePPConditions.keys()));
+    collectAvailablePPConditions(AvailablePPConditions, *StaticRenamingFun,
+                                 CTX);
+  }
+}
+
+VarCFGImpl<LLVMBasedICFG, z3::expr>::VarCFGImpl(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCFG &CFG,
+    const stringstringmap_t *StaticBackwardRenaming)
+    : CFG(CFG), staticBackwardRenaming(StaticBackwardRenaming) {
+  const auto *StaticRenamingFun =
+      IRDB.getFunction("__static_condition_renaming");
+  // We need to check if StaticRenamingFun is null. In case no static
+  // preprocessor conditionals are beeing used, this function does not exist and
+  // thus the ProjectIRDB returns a nullptr.
+  if (StaticRenamingFun) {
+    collectAvailablePPConditions(AvailablePPConditions, *StaticRenamingFun,
+                                 CTX);
   }
 }
 

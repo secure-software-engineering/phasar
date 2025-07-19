@@ -42,10 +42,18 @@ class LLVMBasedICFG;
 
 template <> class VarCFGImpl<LLVMBasedICFG, z3::expr> {
   friend VarCFG<LLVMBasedICFG, z3::expr>;
+  friend class VariabilityCFGTest;
 
 public:
-  VarCFGImpl(const LLVMBasedICFG &CFG,
-             const stringstringmap_t *StaticBackwardRenaming = nullptr);
+  explicit VarCFGImpl(
+      const LLVMBasedICFG &CFG,
+      const stringstringmap_t *StaticBackwardRenaming = nullptr);
+
+  explicit VarCFGImpl(
+      const LLVMProjectIRDB &IRDB, const LLVMBasedCFG &CFG,
+      const stringstringmap_t *StaticBackwardRenaming = nullptr);
+
+  auto &getContext() noexcept { return CTX; }
 
 private:
   [[nodiscard]] std::vector<std::pair<const llvm::Instruction *, z3::expr>>

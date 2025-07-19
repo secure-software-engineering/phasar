@@ -33,6 +33,8 @@ template <typename CFGTy, typename C> class VarCFGImpl {
 
 template <typename CFGTy, typename C>
 class VarCFG : private VarCFGImpl<CFGTy, C> {
+  friend class VariabilityCFGTest;
+
 public:
   using n_t = typename CFGTy::n_t;
   using f_t = typename CFGTy::f_t;
