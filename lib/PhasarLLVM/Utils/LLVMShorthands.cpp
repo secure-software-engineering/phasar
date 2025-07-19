@@ -17,11 +17,11 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Constants.h"
@@ -67,9 +67,14 @@ bool psr::isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
 }
 
 bool psr::isHeapAllocatingFunction(const llvm::Function *Fun) noexcept {
-  return llvm::StringSwitch<bool>(Fun->getName())
-      .Cases("_Znwm", "_Znam", "_ZnwPv", "malloc", "calloc", "realloc", true)
-      .Default(false);
+  auto FunName = Fun->getName();
+
+  if (FunName == "realloc") {
+    // For backwards compatibility. We should treat realloc specially.
+    return true;
+  }
+
+  return isHeapAllocatingFunction(FunName);
 }
 
 // For C-style polymorphism we need to check whether a callee candidate would
@@ -393,30 +398,6 @@ std::size_t psr::computeModuleHash(const llvm::Module *M) {
   llvm::WriteBitcodeToFile(*M, RSO);
   RSO.flush();
   return std::hash<std::string>{}(SourceCode);
-}
-
-std::optional<llvm::StringRef>
-psr::extractConstantStringFromValue(const llvm::Value *V) {
-  // Check if the value is a C-string.
-  if (const auto *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(V)) {
-    return CDA->getAsCString();
-  }
-  // Check if the value is a gep into a C string.
-  const auto *GEP = llvm::dyn_cast<llvm::ConstantExpr>(V);
-  if (!GEP) {
-    return std::nullopt;
-  }
-  const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(
-      GEP->getOperand(0)); // Pointer operand of the constant GEP
-  if (!GV) {
-    return std::nullopt;
-  }
-  const auto *Init =
-      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(GV->getInitializer());
-  if (!Init) {
-    return std::nullopt;
-  }
-  return Init->getAsCString();
 }
 
 const llvm::Instruction *psr::getNthTermInstruction(const llvm::Function *F,

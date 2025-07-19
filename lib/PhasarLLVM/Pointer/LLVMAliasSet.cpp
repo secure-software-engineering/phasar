@@ -10,10 +10,12 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -45,10 +47,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
-#include <iomanip>
-#include <iterator>
 #include <memory>
-#include <type_traits>
 #include <utility>
 
 namespace psr {
@@ -59,7 +58,7 @@ template class AliasSetOwner<LLVMAliasInfo::AliasSetTy>;
 
 LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
                            AliasAnalysisType PATy)
-    : PTA(*IRDB, UseLazyEvaluation, PATy) {
+    : PTA(AliasAnalysisView::create(*IRDB, UseLazyEvaluation, PATy)) {
   assert(IRDB != nullptr);
 
   auto NumGlobals = IRDB->getNumGlobals();
@@ -99,7 +98,7 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
 
 LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
                            const nlohmann::json &SerializedPTS)
-    : PTA(*IRDB, true) {
+    : PTA(AliasAnalysisView::create(*IRDB, true, AliasAnalysisType::Basic)) {
   assert(IRDB != nullptr);
   // Assume, we already have validated the json schema
 
@@ -317,51 +316,13 @@ bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
   return false;
 }
 
-static llvm::Type *getPointeeTypeOrNull(const llvm::Value *Ptr) {
-  assert(Ptr->getType()->isPointerTy());
-
-  if (!Ptr->getType()->isOpaquePointerTy()) {
-    return Ptr->getType()->getNonOpaquePointerElementType();
-  }
-
-  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Ptr)) {
-    if (auto *Ty = Arg->getParamByValType()) {
-      return Ty;
-    }
-    if (auto *Ty = Arg->getParamStructRetType()) {
-      return Ty;
-    }
-  }
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Ptr)) {
-    return Alloca->getAllocatedType();
-  }
-  return nullptr;
-}
-
-static bool mayAlias(llvm::AAResults &AA, const llvm::DataLayout &DL,
+static bool mayAlias(FunctionAliasView AA, const llvm::DataLayout &DL,
                      const llvm::Value *V, const llvm::Value *Rep) {
-  assert(V->getType()->isPointerTy());
-  assert(Rep->getType()->isPointerTy());
 
-  auto *ElTy = getPointeeTypeOrNull(V);
-  auto *RepElTy = getPointeeTypeOrNull(Rep);
-
-  auto VSize = ElTy && ElTy->isSized()
-                   ? llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy))
-                   : llvm::LocationSize::precise(1);
-
-  auto RepSize = RepElTy && RepElTy->isSized()
-                     ? llvm::LocationSize::precise(DL.getTypeStoreSize(RepElTy))
-                     : llvm::LocationSize::precise(1);
-
-  if (AA.alias(V, VSize, Rep, RepSize) != llvm::AliasResult::NoAlias) {
-    return true;
-  }
-
-  return false;
+  return AA.alias(V, Rep, DL) != AliasResult::NoAlias;
 }
 
-void LLVMAliasSet::addPointer(llvm::AAResults &AA, const llvm::DataLayout &DL,
+void LLVMAliasSet::addPointer(FunctionAliasView AA, const llvm::DataLayout &DL,
                               const llvm::Value *V,
                               std::vector<const llvm::Value *> &Reps) {
   llvm::SmallVector<unsigned> ToMerge;
@@ -474,13 +435,13 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMAliasSet",
                        "Analyzing function: " << F->getName());
 
-  llvm::AAResults &AA = *PTA.getAAResults(F);
+  auto AA = PTA->getAAResults(F);
   bool EvalAAMD = true;
 
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
 
-  auto addPointer = [this, &AA, &DL](const llvm::Value *V, // NOLINT
-                                     std::vector<const llvm::Value *> &Reps) {
+  auto addPointer = [this, AA, &DL](const llvm::Value *V, // NOLINT
+                                    std::vector<const llvm::Value *> &Reps) {
     return this->addPointer(AA, DL, V, Reps);
   };
 
@@ -567,7 +528,7 @@ void LLVMAliasSet::computeFunctionsAliasSet(llvm::Function *F) {
   }
 
   // we no longer need the LLVM representation
-  PTA.erase(F);
+  PTA->erase(F);
 }
 
 AliasResult LLVMAliasSet::alias(const llvm::Value *V1, const llvm::Value *V2,

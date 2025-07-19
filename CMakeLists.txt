@@ -78,6 +78,8 @@ string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
 
+option(PHASAR_BUILD_MODULES "Build C++20 modules for phasar" OFF)
+
 include(CheckCXXCompilerFlag)
 
 # Handle memory issues with linking
@@ -305,20 +307,35 @@ option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM
 
 # LLVM
 if (NOT PHASAR_LLVM_VERSION)
-  set(PHASAR_LLVM_VERSION 14)
+  set(PHASAR_LLVM_VERSION 15)
 endif()
 include(add_llvm)
 add_llvm()
+
+# SVF
+option(PHASAR_USE_SVF "Use SVF for more options in alias analysis (default is OFF)" OFF)
+if(PHASAR_USE_SVF)
+  find_package(SVF REQUIRED CONFIG)
+  message(STATUS "Found SVF ${SVF_VERSION}")
+
+  if (NOT PHASAR_USE_Z3)
+    message(WARNING "SVF requires Z3. Set PHASAR_USE_Z3=ON")
+    set(PHASAR_USE_Z3 ON)
+  endif()
+endif()
 
 # Z3 Solver
 if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
 else()
   if(PHASAR_USE_Z3)
+    # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
+    # as it lacks some functionality (such as z3::expr::simplify()) that we require
+
     # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
     set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS "")
-    find_package(Z3 4.8 REQUIRED)
+    find_package(Z3 4.7.1 REQUIRED)
     set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
 
     if(Z3_FOUND)

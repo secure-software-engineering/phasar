@@ -36,6 +36,7 @@ template <> struct ProjectIRDBTraits<LLVMProjectIRDB> {
   using g_t = const llvm::GlobalVariable *;
 };
 
+/// \brief Project IR Database that manages a LLVM IR module.
 class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
   friend ProjectIRDBBase;
 

@@ -49,9 +49,9 @@ template <typename L> struct AllBottom final {
       BottomValue;
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const noexcept {
+    static_assert(std::is_trivially_copyable_v<AllBottom>);
     static_assert(IsEdgeFunction<AllBottom>);
     if constexpr (HasJoinLatticeTraits<l_t>) {
-      static_assert(std::is_trivially_copyable_v<AllBottom>);
       return JLattice::bottom();
     } else {
       return BottomValue;
@@ -89,9 +89,9 @@ template <typename L> struct AllTop final {
       TopValue;
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const noexcept {
+    static_assert(std::is_trivially_copyable_v<AllTop>);
     static_assert(IsEdgeFunction<AllTop>);
     if constexpr (HasJoinLatticeTraits<l_t>) {
-      static_assert(std::is_trivially_copyable_v<AllTop>);
       return JLattice::top();
     } else {
       return TopValue;

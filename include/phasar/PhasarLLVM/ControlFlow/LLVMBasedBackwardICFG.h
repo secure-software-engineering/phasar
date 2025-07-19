@@ -25,6 +25,8 @@ template <typename N, typename F> class CallGraph;
 template <>
 struct CFGTraits<LLVMBasedBackwardICFG> : CFGTraits<LLVMBasedBackwardCFG> {};
 
+/// \brief  A class that represents a backwards interprocedural control flow
+/// graph. Conforms to the ICFGBase CRTP interface.
 class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
                               public ICFGBase<LLVMBasedBackwardICFG> {
   friend ICFGBase;
@@ -35,7 +37,7 @@ class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
 
   public:
     LLVMBackwardRet(llvm::LLVMContext &Ctx)
-        : Instance(llvm::ReturnInst::Create(Ctx)){};
+        : Instance(llvm::ReturnInst::Create(Ctx)) {};
     [[nodiscard]] const llvm::ReturnInst *getInstance() const noexcept {
       return Instance;
     }

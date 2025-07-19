@@ -11,4 +11,7 @@ add_phasar_library(phasar_llvm_db
     Core
     Support
     IRReader
+
+  MODULE_FILES
+    DB.cppm
 )

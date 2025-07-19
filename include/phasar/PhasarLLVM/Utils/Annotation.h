@@ -10,9 +10,8 @@
 
 namespace psr {
 
-//===----------------------------------------------------------------------===//
-// Helper classes that allow for an easier retrieval of annotation information.
-//===----------------------------------------------------------------------===//
+/// \file Helper classes that allow for an easier retrieval of annotation
+/// information.
 
 class VarAnnotation {
 public:

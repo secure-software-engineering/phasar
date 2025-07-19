@@ -14,7 +14,6 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h" // LLVM_UNLIKELY
-#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <optional>
@@ -155,58 +154,6 @@ private:
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message) (void)0
 #define PHASAR_LOG_LEVEL(level, message) (void)0
 #endif
-
-/// Dummy for printing iterator ranges
-template <typename Iter, typename EndIter> class SequencePrinter {
-  Iter begIt;
-  EndIter endIt;
-
-public:
-  template <typename It, typename EndIt>
-  explicit SequencePrinter(It &&it, EndIt &&end)
-      : begIt(std::forward<It>(it)), endIt(std::forward<EndIt>(end)) {}
-  Iter begin() const { return begIt; }
-  EndIter end() const { return endIt; }
-
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &ROS,
-                                       const SequencePrinter &SP) {
-
-    ROS << "[";
-    auto it = SP.begIt;
-    const auto end = SP.endIt;
-    if (it != end) {
-      ROS << *it;
-      while (++it != end)
-        ROS << ", " << *it;
-    }
-    ROS << "]";
-    return ROS;
-  }
-
-  friend std::ostream &operator<<(std::ostream &OS, const SequencePrinter &SP) {
-    llvm::raw_os_ostream ROS(OS);
-    ROS << SP;
-    return OS;
-  }
-};
-
-/// Creates an ostream-manipulator that prints all elements from the given
-/// iterator range
-template <typename Iter, typename EndIter>
-auto printAll(Iter &&it, EndIter &&endIt) {
-  return SequencePrinter<std::decay_t<Iter>, std::decay_t<EndIter>>(
-      std::forward<Iter>(it), std::forward<EndIter>(endIt));
-}
-
-/// Creates an ostream-manipulator that prints all elements from the given
-/// container
-template <typename ContainerTy> auto printAll(const ContainerTy &Cont) {
-  return printAll(Cont.begin(), Cont.end());
-}
-
-// extern template SequencePrinter<std::set<std::string>::iterator,
-//                                 std::set<std::string>::iterator>
-// printAll<std::set<std::string>>(const std::set<std::string> &);
 
 } // namespace psr
 

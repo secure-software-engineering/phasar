@@ -22,7 +22,6 @@
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 
-#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Function.h"
@@ -38,34 +37,6 @@ namespace psr {
 
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
-
-namespace TypeStateAnalysis {
-
-/// A protocol misuse detected by the IDETypeStateAnalysis
-template <typename StateT> struct Breach final {
-  /// The function in which the error occurred
-  const llvm::Function *Caller{};
-
-  /// The state from which the object transitioned into an error state
-  StateT State;
-
-  bool operator==(const Breach &B) const noexcept {
-    return Caller == B.Caller && State == B.State;
-  }
-
-  bool operator!=(const Breach &B) const noexcept { return !(*this == B); }
-
-  friend llvm::hash_code hash_value(const Breach &B) {
-    return llvm::hash_combine(B.Caller,
-                              std::underlying_type_t<StateT>(B.State));
-  }
-};
-} // namespace TypeStateAnalysis
-} // namespace psr
-
-// TODO(sbf): DO we need to hash Breaches?
-
-namespace psr {
 
 namespace detail {
 
@@ -186,7 +157,6 @@ public:
 
   using typename IDETabProblemType::FlowFunctionPtrType;
   using ConfigurationTy = TypeStateDescriptionTy;
-  using Breach = TypeStateAnalysis::Breach<l_t>;
 
 private:
   static AllBottom<l_t>
@@ -243,7 +213,7 @@ private:
 
   struct TSEdgeFunction {
     using l_t = l_t;
-    IDETypeStateAnalysis *TSA{};
+    const TypeStateDescriptionTy *TSD{};
     // XXX: Do we really need a string here? Can't we just use an integer or sth
     // else that is cheap?
     std::string Token;
@@ -254,19 +224,11 @@ private:
       // assert((Source != TSD->top()) && "Error: call computeTarget with
       // TOP\n");
 
-      auto CurrentState = TSA->TSD->getNextState(
-          Token, Source == TSA->TSD->top() ? TSA->TSD->uninit() : Source,
-          CallSite);
+      auto CurrentState = TSD->getNextState(
+          Token, Source == TSD->top() ? TSD->uninit() : Source, CallSite);
       PHASAR_LOG_LEVEL(DEBUG, "State machine transition: ("
                                   << Token << " , " << LToString(Source)
                                   << ") -> " << LToString(CurrentState));
-      if (Source != CurrentState && TSA->TSD->error() == CurrentState) {
-        TSA->DetectedBreaches.try_emplace(CallSite, Breach{
-                                                        CallSite->getFunction(),
-                                                        Source,
-                                                    });
-      }
-
       return CurrentState;
     }
 
@@ -276,7 +238,7 @@ private:
         return Default;
       }
 
-      return TSEdgeFunctionComposer{This, SecondFunction, This->TSA->TSD};
+      return TSEdgeFunctionComposer{This, SecondFunction, This->TSD};
     }
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunction> This,
@@ -285,7 +247,7 @@ private:
         return Default;
       }
 
-      return makeAllBottom(This->TSA->TSD);
+      return makeAllBottom(This->TSD);
     }
 
     bool operator==(const TSEdgeFunction &Other) const {
@@ -487,7 +449,7 @@ public:
               getWMAliasesAndAllocas(CS->getArgOperand(Idx));
 
           if (CallNode == RetSiteNode && AliasAndAllocas.count(CallNode)) {
-            return TSEdgeFunction{this, DemangledFname, CS};
+            return TSEdgeFunction{TSD, DemangledFname, CS};
           }
         }
       }
@@ -600,13 +562,8 @@ public:
     return true;
   }
 
-  [[nodiscard]] const auto &getProtocolBreaches() const noexcept {
-    return DetectedBreaches;
-  }
-
 private:
   const TypeStateDescriptionTy *TSD{};
-  llvm::DenseMap<const llvm::CallBase *, Breach> DetectedBreaches;
 };
 
 template <typename TypeStateDescriptionTy>

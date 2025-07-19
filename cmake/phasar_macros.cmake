@@ -222,7 +222,7 @@ function(generate_ll_file)
       VERBATIM
     )
   endif()
-
+  
   add_custom_target(${test_code_file_target}
     DEPENDS ${test_code_ll_file}
   )
@@ -308,11 +308,7 @@ function(xtc_making_plans_for_nigell)
   DEPENDS ${test_code_xtc_file}
   VERBATIM
   )
-  add_custom_target(${test_code_file_target}
-    DEPENDS ${test_code_ll_file}
-  )
-  add_dependencies(LLFileGeneration ${test_code_file_target})
-endfunction()
+
 
 macro(add_phasar_executable name)
   set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bin)
@@ -326,7 +322,7 @@ endmacro(add_phasar_executable)
 
 function(add_phasar_library name)
   set(PHASAR_LIB_OPTIONS SHARED STATIC MODULE INTERFACE)
-  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES)
+  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES MODULE_FILES)
   cmake_parse_arguments(PHASAR_LIB "${PHASAR_LIB_OPTIONS}" "" "${PHASAR_LIB_MULTIVAL}" ${ARGN})
   set(srcs ${PHASAR_LIB_UNPARSED_ARGUMENTS})
   list(APPEND srcs ${PHASAR_LIB_FILES})
@@ -361,6 +357,28 @@ function(add_phasar_library name)
   )
 
   target_compile_features(${name} PUBLIC cxx_std_17)
+
+  set(install_module)
+  if(PHASAR_LIB_MODULE_FILES)
+    if(PHASAR_BUILD_MODULES)
+      target_sources(${name} PUBLIC
+        FILE_SET cxx_modules
+        TYPE CXX_MODULES
+        FILES ${PHASAR_LIB_MODULE_FILES}
+      )
+
+      target_compile_features(${name} PUBLIC cxx_std_20)
+
+      set(install_module FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    elseif(NOT srcs)
+      # Add dummy src to prevent cmake error
+      set(dummy_src "${CMAKE_CURRENT_BINARY_DIR}/${name}_dummysrc.cpp")
+      if(NOT EXISTS "${dummy_src}")
+        file(WRITE "${dummy_src}" "")
+      endif()
+      target_sources(${name} PRIVATE "${dummy_src}")
+    endif()
+  endif()
 
   if(LLVM_COMMON_DEPENDS)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
@@ -401,13 +419,15 @@ function(add_phasar_library name)
       EXPORT LLVMExports
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+      ${install_module}
     )
   else()
     install(TARGETS ${name}
       EXPORT PhasarExports
-
       # NOTE: Library, archive and runtime destination are automatically set by
       # GNUInstallDirs which is included in the top-level CMakeLists.txt
+
+      ${install_module}
     )
   endif()
 

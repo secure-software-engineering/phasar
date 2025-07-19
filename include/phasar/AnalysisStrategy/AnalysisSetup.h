@@ -12,11 +12,10 @@
 
 namespace psr {
 class LLVMAliasSet;
-class DIBasedTypeHierarchy;
 class LLVMBasedICFG;
-class LLVMProjectIRDB;
+class DIBasedTypeHierarchy;
 
-// Indicates that an analysis does not need a special configuration (file).
+/// Indicates that an analysis does not need a special configuration (file).
 struct HasNoConfigurationType {};
 
 struct AnalysisSetup {
@@ -31,7 +30,6 @@ struct DefaultAnalysisSetup : AnalysisSetup {
   using PointerAnalysisTy = LLVMAliasSet;
   using CallGraphAnalysisTy = LLVMBasedICFG;
   using TypeHierarchyTy = DIBasedTypeHierarchy;
-  using ProjectIRDBTy = LLVMProjectIRDB;
 };
 
 } // namespace psr

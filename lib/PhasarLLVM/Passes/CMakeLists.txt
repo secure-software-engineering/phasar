@@ -11,4 +11,7 @@ add_phasar_library(phasar_passes
     Support
     Analysis
     Demangle
+
+  MODULE_FILES
+    Passes.cppm
 )

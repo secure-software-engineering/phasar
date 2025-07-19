@@ -11,8 +11,6 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include "TestConfig.h"
-
 using namespace std;
 using namespace psr;
 

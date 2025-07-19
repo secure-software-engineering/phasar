@@ -24,7 +24,7 @@ template <typename DB> struct ProjectIRDBTraits {
   // using g_t
 };
 
-/// This class owns the IR code of the project under analysis and some
+/// This class owns the IR code of the target being analyzed and some
 /// very important information associated with the IR.
 /// When an object of this class is destroyed it will clean up all IR related
 /// stuff that is stored in it.

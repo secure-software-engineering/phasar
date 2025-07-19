@@ -10,6 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_H
 #define PHASAR_PHASARLLVM_DATAFLOW_H
 
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"

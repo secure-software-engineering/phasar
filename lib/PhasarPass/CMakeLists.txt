@@ -11,7 +11,7 @@ add_phasar_library(phasar_pass
     phasar_llvm_controlflow
     phasar_llvm_db
     phasar_llvm_ifdside
-    phasar_mono
+    phasar_llvm_mono
     phasar_passes
     phasar_llvm_utils
     phasar_llvm_pointer
@@ -25,4 +25,7 @@ add_phasar_library(phasar_pass
   LINK_PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
+
+  MODULE_FILES
+    PhasarPass.cppm
 )

@@ -76,7 +76,7 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
 
   if (const auto *DITy = getVarTypeFromIR(Receiver)) {
     while (const auto *DerivedTy =
-               llvm::dyn_cast_or_null<llvm::DIDerivedType>(DITy)) {
+               llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
       // get rid of the pointer
       DITy = DerivedTy->getBaseType();
     }

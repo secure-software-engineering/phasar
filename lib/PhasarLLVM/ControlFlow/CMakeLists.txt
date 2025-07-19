@@ -14,5 +14,9 @@ add_phasar_library(phasar_llvm_controlflow
     Support
     Demangle
 
-  LINK_PUBLIC z3
+  LINK_PUBLIC
+    z3
+
+  MODULE_FILES
+    ControlFlow.cppm
 )

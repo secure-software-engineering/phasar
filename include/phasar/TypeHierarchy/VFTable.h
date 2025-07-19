@@ -20,6 +20,7 @@ class raw_ostream;
 
 namespace psr {
 
+/// \brief A generic class to represent a virtual function table
 template <typename F> class VFTable {
 public:
   virtual ~VFTable() = default;
@@ -40,8 +41,8 @@ public:
 };
 
 template <typename T, typename F>
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const VFTable<F> &Table) {
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                     const VFTable<F> &Table) {
   Table.print(OS);
   return OS;
 }
