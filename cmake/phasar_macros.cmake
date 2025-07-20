@@ -150,7 +150,11 @@ function(generate_ll_file)
   )
 
   # get file path
-  set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
+  if (IS_ABSOLUTE ${GEN_LL_FILE})
+    set(test_code_file_path "${GEN_LL_FILE}")
+  else()
+    set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
+  endif()
 
   # define custom target name
   # target name = parentdir + test code file name + mem2reg + debug
@@ -229,13 +233,12 @@ function(generate_ll_file)
   add_dependencies(LLFileGeneration ${test_code_file_target})
 endfunction()
 
-function(xtc_making_plans_for_nigell)
+function(xtc_making_plans_for_nigell result)
   if(NOT DEFINED ENV{XTC_DESUGAR})
     message(FATAL_ERROR "XTC needs the XTC_DESUGAR environment variable to be set. Please set it to \$JAVA_DEV_ROOT/classes/, where JAVA_DEV_ROOT refers to the root of your xtc-dev repository")
   endif()
-  set(options DEBUG)
   set(testfile FILE)
-  cmake_parse_arguments(GEN_LL "${options}" "${testfile}" "" ${ARGN} )
+  cmake_parse_arguments(GEN_LL "" "${testfile}" "" ${ARGN} )
   # get file extension
   get_filename_component(test_code_file_ext ${GEN_LL_FILE} EXT)
   string(REPLACE "." "_" ll_file_suffix ${test_code_file_ext})
@@ -296,18 +299,19 @@ function(xtc_making_plans_for_nigell)
   add_custom_target(${test_code_file_xtc_target}
     DEPENDS ${test_code_xtc_file}
   )
+  set(${result} ${test_code_xtc_file} PARENT_SCOPE) # Return the desugared filename 
   add_dependencies(LLFileGeneration ${test_code_file_xtc_target})
-
-  # define .ll file generation command
-  set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
-  list(APPEND GEN_CMD ${GEN_C_FLAGS})
-  add_custom_command(
-    OUTPUT ${test_code_ll_file}
-    COMMAND ${GEN_CMD} ${test_code_xtc_file} -o ${test_code_ll_file}
-    COMMENT ${GEN_CMD_COMMENT}
-    DEPENDS ${test_code_xtc_file}
-    VERBATIM
-  )
+  
+  # # define .ll file generation command
+  # set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
+  # list(APPEND GEN_CMD ${GEN_C_FLAGS})
+  # add_custom_command(
+  #   OUTPUT ${test_code_ll_file}
+  #   COMMAND ${GEN_CMD} ${test_code_xtc_file} -o ${test_code_ll_file}
+  #   COMMENT ${GEN_CMD_COMMENT}
+  #   DEPENDS ${test_code_xtc_file}
+  #   VERBATIM
+  # )
 endfunction()
 
 macro(add_phasar_executable name)
