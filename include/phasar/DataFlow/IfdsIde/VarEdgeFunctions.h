@@ -15,7 +15,9 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/TypeName.h"
 
 #include <map>
 #include <memory>
@@ -154,11 +156,16 @@ public:
       return This;
     }
 
+    if (SecondFunction.isConstant()) {
+      return SecondFunction;
+    }
+
     PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::composeWith");
     const VarEdgeFunction *VEF =
         llvm::dyn_cast<VarEdgeFunction>(SecondFunction);
     if (!VEF) {
-      llvm::report_fatal_error("found unexpected edge function");
+      llvm::report_fatal_error("found unexpected second edge function: " +
+                               llvm::Twine(to_string(SecondFunction)));
     }
 
     // TODO(sbf): May want to have a specialization for
@@ -214,10 +221,21 @@ public:
   static EdgeFunction<l_t> join(EdgeFunctionRef<VarEdgeFunction> This,
                                 const EdgeFunction<l_t> OtherFunction) {
     PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::joinWith");
+
+    if (auto Dflt = psr::defaultJoinOrNull<l_t>(This, OtherFunction)) {
+      return Dflt;
+    }
+    if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
+      // TODO: Shouldn't the BottomValue rather be a VarL containing <true,
+      // Bottom>, as defined in the IDEVarTabulationProblem?
+      return AllBottom<l_t>{VarL<user_l_t>{}};
+    }
+
     const auto *VEF =
         OtherFunction.template dyn_cast<VarEdgeFunction<user_l_t>>();
     if (!VEF) {
-      llvm::report_fatal_error("found unexpected edge function");
+      llvm::report_fatal_error("found unexpected other edge function: " +
+                               llvm::Twine(to_string(OtherFunction)));
     }
 
     // We need to call user-joinWith for pair-wise equal constraints.
