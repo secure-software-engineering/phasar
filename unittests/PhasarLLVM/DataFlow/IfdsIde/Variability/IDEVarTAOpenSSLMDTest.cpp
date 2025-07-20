@@ -63,9 +63,9 @@ protected:
       IRDB.emitPreprocessedIR(llvm::outs());
     }
 
-    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-
     LLVMAliasSet PT(&IRDB);
+    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, nullptr,
+                       &PT);
 
     auto StaticRenaming = extractStaticRenaming(&IRDB);
     auto TnoI =

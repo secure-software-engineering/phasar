@@ -3,6 +3,7 @@ set(VARA_PROBLEM_SOURCES
 	IFDSVarTabulationProblemTest.cpp
 	IDEVarTAOpenSSLSecureMemoryTest.cpp
 	IDEVarTAOpenSSLMDTest.cpp
+	IDEVarTAOpenSSLCIPHERTest.cpp
 )
 
 foreach(TEST_SRC ${VARA_PROBLEM_SOURCES})

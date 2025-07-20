@@ -18,7 +18,15 @@
 
 namespace psr {
 
-enum class OpenSSLSecureMemoryState;
+enum class OpenSSLSecureMemoryState {
+  TOP = 42,
+  BOT = 0,
+  ZEROED = 1,
+  FREED = 2,
+  ERROR = 3,
+  ALLOCATED = 4
+};
+
 llvm::StringRef to_string(OpenSSLSecureMemoryState State) noexcept;
 
 class OpenSSLSecureMemoryDescription

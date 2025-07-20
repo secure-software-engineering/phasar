@@ -20,14 +20,6 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
-enum class OpenSSLSecureMemoryState {
-  TOP = 42,
-  BOT = 0,
-  ZEROED = 1,
-  FREED = 2,
-  ERROR = 3,
-  ALLOCATED = 4
-};
 
 namespace {
 

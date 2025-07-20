@@ -7,84 +7,70 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/DataFlow/IfdsIde/IDEVarTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+
+#include "llvm/ADT/StringRef.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
+
 #include <limits>
 #include <tuple>
 #include <utility>
 
-#include "gtest/gtest.h"
-
-#include "llvm/ADT/StringRef.h"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
-
+namespace {
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class IDEVarTabulationProblemTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/variability/secure_memory/";
-  const std::set<std::string> EntryPoints = {"main"};
+  static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER(
+      "build/test/llvm_test_code/variability/secure_memory/");
+  const std::vector<std::string> EntryPoints = {"main"};
 
   // inst ID => value ID => {Z3Constraint x typestate}
   using TSAVarResults_t = std::map<
-      int, std::map<std::string,
-                    std::set<std::pair<
-                        std::string, OpenSSLSecureMemoryDescription::State>>>>;
-  enum OpenSSLSecureMemoryState {
-    TOP = 42,
-    BOT = 0,
-    ZEROED = 1,
-    FREED = 2,
-    ERROR = 3,
-    ALLOCATED = 4
-  };
-  ProjectIRDB *IRDB = nullptr;
+      int,
+      std::map<std::string,
+               std::set<std::pair<std::string, OpenSSLSecureMemoryState>>>>;
 
   void SetUp() override {
     // boost::log::core::get()->set_logging_enabled(false);
   }
 
   // IDELinearConstantAnalysis::lca_restults_t
-  void doAnalysisAndCompareResults(const std::string &llvmFilePath,
+  void doAnalysisAndCompareResults(const std::string &IRFilePath,
                                    TSAVarResults_t &GroundTruth,
-                                   bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
-    if (printDump) {
-      IRDB->emitPreprocessedIR(std::cout, false);
+                                   bool PrintDump = false) {
+    LLVMProjectIRDB IRDB(PathToLLFiles + IRFilePath);
+    if (PrintDump) {
+      IRDB.emitPreprocessedIR(llvm::outs());
     }
-    ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
-    LLVMBasedVarICFG VICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
-                           &PT);
+
+    LLVMAliasSet PT(&IRDB);
+    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, nullptr,
+                       &PT);
     OpenSSLSecureMemoryDescription Desc;
-    IDETypeStateAnalysis TSAProblem(IRDB, &TH, &VICFG, &PT, Desc, EntryPoints);
+    IDETypeStateAnalysis TSAProblem(&IRDB, &PT, &Desc, EntryPoints);
 
-    IDEVarTabulationProblem_P<IDETypeStateAnalysis> VARAProblem(TSAProblem,
-                                                                VICFG);
+    IDEVarTabulationProblem VARAProblem(TSAProblem, ICFG);
 
-    IDESolver_P<IDEVarTabulationProblem_P<IDETypeStateAnalysis>> TSASolver(
-        VARAProblem);
+    IDESolver TSASolver(&VARAProblem, &ICFG);
 
     TSASolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       TSASolver.dumpResults();
     }
 
     for (auto &[instId, Truth] : GroundTruth) {
-      auto Inst = IRDB->getInstruction(instId);
+      const auto *Inst = IRDB.getInstruction(instId);
       ASSERT_NE(nullptr, Inst);
       auto Results = TSASolver.resultsAt(Inst);
 
@@ -93,9 +79,9 @@ protected:
 
       for (auto &[Fact, CondState] : Results) {
         auto FactId = getMetaDataID(Fact);
-        bool has = Truth.count(FactId);
-        EXPECT_TRUE(has);
-        if (has) {
+        bool Has = Truth.count(FactId);
+        EXPECT_TRUE(Has);
+        if (Has) {
           auto &TruthOfFact = Truth[FactId];
           EXPECT_EQ(TruthOfFact.size(), CondState.size());
           for (auto &[Cond, State] : CondState) {
@@ -133,9 +119,9 @@ protected:
     }*/
   }
 
-  void TearDown() override { delete IRDB; }
-
 }; // Test Fixture
+
+static constexpr auto ALLOCATED = OpenSSLSecureMemoryState::ALLOCATED;
 
 TEST_F(IDEVarTabulationProblemTest, DISABLED_HandleBasic_01) {
   TSAVarResults_t GroundTruth;
@@ -154,6 +140,7 @@ TEST_F(IDEVarTabulationProblemTest, HandleBasic_01_2) {
 
   doAnalysisAndCompareResults("memory1_2_c.ll", GroundTruth, true);
 }
+} // namespace
 
 // main function for the test case/*  */
 int main(int argc, char **argv) {
