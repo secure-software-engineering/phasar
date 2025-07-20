@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/IntrinsicInst.h"
 
 #include <cassert>

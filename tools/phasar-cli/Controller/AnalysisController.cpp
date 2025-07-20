@@ -11,6 +11,8 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "AnalysisControllerInternal.h"
@@ -168,6 +170,12 @@ static void executeWholeProgram(AnalysisController &Data) {
       continue;
     case DataFlowAnalysisType::InterMonoTaintAnalysis:
       executeInterMonoTaint(Data);
+      continue;
+    case DataFlowAnalysisType::IDEOpenSSLCipherTypeStateAnalysis:
+    case DataFlowAnalysisType::IDEOpenSSLMDTypeStateAnalysis:
+      PHASAR_LOG_LEVEL(ERROR, "DataFlowAnalysisType "
+                                  << DataFlowAnalysis
+                                  << " not supported by phasar-cli");
       continue;
     }
 

@@ -14,6 +14,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -288,7 +289,8 @@ collectAvailablePPConditions(llvm::StringMap<z3::expr> &Into,
       Into.try_emplace(GlobName.value(), CombinedAssertions);
     }
   }
-  PHASAR_LOG_LEVEL(DEBUG, "AvailablePPConditions" << printAll(Into.keys()));
+  PHASAR_LOG_LEVEL(DEBUG,
+                   "AvailablePPConditions" << PrettyPrinter{Into.keys()});
 }
 
 VarCFGImpl<LLVMBasedICFG, z3::expr>::VarCFGImpl(

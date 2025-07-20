@@ -302,13 +302,13 @@ function(xtc_making_plans_for_nigell)
   set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
   list(APPEND GEN_CMD ${GEN_C_FLAGS})
   add_custom_command(
-  OUTPUT ${test_code_ll_file}
-  COMMAND ${GEN_CMD} ${test_code_xtc_file} -o ${test_code_ll_file}
-  COMMENT ${GEN_CMD_COMMENT}
-  DEPENDS ${test_code_xtc_file}
-  VERBATIM
+    OUTPUT ${test_code_ll_file}
+    COMMAND ${GEN_CMD} ${test_code_xtc_file} -o ${test_code_ll_file}
+    COMMENT ${GEN_CMD_COMMENT}
+    DEPENDS ${test_code_xtc_file}
+    VERBATIM
   )
-
+endfunction()
 
 macro(add_phasar_executable name)
   set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bin)
