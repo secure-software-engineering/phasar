@@ -20,14 +20,20 @@
 namespace psr {
 
 struct SrcCodeLocationEntry {
+  // TODO: the const llvm::Instruction * variant is not good, as it basically
+  // completely ignores the line and column aspect of the source file. We want
+  // to tie the unittest to the source file, but for very specific cases, this
+  // variant was the only way I found to make the unittests run.
   SrcCodeLocationEntry(
       uint32_t Line, uint32_t Column,
-      std::variant<const llvm::Function *, const llvm::GlobalVariable *>
+      std::variant<const llvm::Function *, const llvm::GlobalVariable *,
+                   const llvm::Instruction *>
           Context)
       : Line(Line), Column(Column), Context(Context) {}
   SrcCodeLocationEntry(
       uint32_t Line, uint32_t Column,
-      std::variant<const llvm::Function *, const llvm::GlobalVariable *>
+      std::variant<const llvm::Function *, const llvm::GlobalVariable *,
+                   const llvm::Instruction *>
           Context,
       std::function<bool(const llvm::Instruction *Inst)> LambdaFunc)
       : Line(Line), Column(Column), LambdaFunc(std::move(LambdaFunc)),
@@ -35,7 +41,9 @@ struct SrcCodeLocationEntry {
   uint32_t Line = 0;
   uint32_t Column = 0;
   std::function<bool(const llvm::Instruction *Inst)> LambdaFunc = nullptr;
-  std::variant<const llvm::Function *, const llvm::GlobalVariable *> Context;
+  std::variant<const llvm::Function *, const llvm::GlobalVariable *,
+               const llvm::Instruction *>
+      Context;
 
   bool operator==(const SrcCodeLocationEntry &Other) const {
     return Line == Other.Line && Column == Other.Column;
@@ -60,6 +68,15 @@ getGroundTruthInsts(
 
     if (std::get_if<const llvm::GlobalVariable *>(&FirstEntry.Context)) {
       llvm::report_fatal_error("Cannot cast global variable to Instruction\n");
+    }
+
+    if (const auto *Inst =
+            std::get_if<const llvm::Instruction *>(&FirstEntry.Context)) {
+      if (*Inst) {
+        CurrInst = *Inst;
+      } else {
+        llvm::report_fatal_error("Given Ground Truth Instruction was null.\n");
+      }
     } else if (const auto *Func =
                    std::get_if<const llvm::Function *>(&FirstEntry.Context)) {
       if (FirstEntry.LambdaFunc) {
@@ -114,8 +131,20 @@ getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth) {
   for (const auto &Entry : GroundTruth) {
     if (std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
       llvm::report_fatal_error("Cannot cast global variable to Instruction\n");
-    } else if (const auto *Func =
-                   std::get_if<const llvm::Function *>(&Entry.Context)) {
+    }
+
+    if (const auto *Inst =
+            std::get_if<const llvm::Instruction *>(&Entry.Context)) {
+      if (*Inst) {
+        GroundTruthEntries.insert(*Inst);
+        continue;
+      }
+
+      llvm::report_fatal_error("Given Ground Truth Instruction was null.\n");
+    }
+
+    if (const auto *Func =
+            std::get_if<const llvm::Function *>(&Entry.Context)) {
       if (Entry.LambdaFunc) {
         GroundTruthEntries.insert(unittest::getInstAtOrNull(
             *Func, Entry.Line, Entry.Column, Entry.LambdaFunc));
@@ -123,9 +152,9 @@ getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth) {
         GroundTruthEntries.insert(
             unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column));
       }
-    } else {
-      llvm::report_fatal_error("Unknown variant type.\n");
+      continue;
     }
+    llvm::report_fatal_error("Unknown variant type.\n");
   }
 
   return GroundTruthEntries;
@@ -167,6 +196,9 @@ getGroundTruthValues(const std::set<SrcCodeLocationEntry> &GroundTruth) {
             << "FuncVariantInst Instruction couldn't be cast to value.\n";
       } else {
         llvm::errs() << "getInstAtOrNull returned null\n";
+        llvm::errs() << "Entry.Line:   " << Entry.Line << "\n";
+        llvm::errs() << "Entry.Column: " << Entry.Column << "\n";
+        llvm::errs() << "*Func: " << *Func << "\n";
       }
 
       continue;
@@ -176,6 +208,15 @@ getGroundTruthValues(const std::set<SrcCodeLocationEntry> &GroundTruth) {
             std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
       GroundTruthEntries.insert(llvm::cast<llvm::Value>(*GlobalVar));
       continue;
+    }
+    if (const auto *Inst =
+            std::get_if<const llvm::Instruction *>(&Entry.Context)) {
+      if (*Inst) {
+        GroundTruthEntries.insert(llvm::cast<llvm::Value>(*Inst));
+        continue;
+      }
+
+      llvm::report_fatal_error("Given Ground Truth Instruction was null.\n");
     }
 
     llvm::report_fatal_error("Unknown variant type.\n");

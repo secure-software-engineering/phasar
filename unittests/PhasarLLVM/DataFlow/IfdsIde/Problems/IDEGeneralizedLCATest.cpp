@@ -70,15 +70,17 @@ protected:
   //  compare results
   /// \brief compares the computed results with every given tuple (value,
   /// alloca, inst)
-  void compareResults(const std::set<SrcCodeLocationEntry> &Expected,
-                      const std::vector<EdgeValue> &EVal) {
+  void compareResults(
+      std::vector<std::tuple<SrcCodeLocationEntry,
+                             const IDEGeneralizedLCA::l_t>> &Expected) {
     for (const auto &Entry : Expected) {
+      const auto &SCLEntry = std::get<0>(Entry);
       const auto *Vr = unittest::getInstAtOrNull(
-          std::get<const llvm::Function *>(Entry.Context), Entry.Line,
-          Entry.Column);
+          std::get<const llvm::Function *>(SCLEntry.Context), SCLEntry.Line,
+          SCLEntry.Column);
       const auto *Inst = unittest::getInstAtOrNull(
-          std::get<const llvm::Function *>(Entry.Context), Entry.Line,
-          Entry.Column);
+          std::get<const llvm::Function *>(SCLEntry.Context), SCLEntry.Line,
+          SCLEntry.Column);
 
       bool Flag = false;
 
@@ -97,6 +99,7 @@ protected:
       }
 
       if (Flag) {
+        EXPECT_TRUE(false);
         continue;
       }
 
@@ -104,9 +107,10 @@ protected:
       ASSERT_NE(nullptr, Inst);
 
       auto Result = LCASolver->resultAt(Inst, Vr);
-      // EXPECT_EQ(EVal, Result)
-      //     << "vr:" << Vr->getValueID() << " inst:" << Inst->getValueID()
-      //     << " Expected: " << EVal << " Got:" << Result;
+      auto EVal = std::get<1>(Entry);
+      EXPECT_EQ(EVal, Result)
+          << "vr:" << Vr->getValueID() << " inst:" << Inst->getValueID()
+          << " Expected: " << EVal << " Got:" << Result;
     }
 
     /*for (const auto &[EVal, VrId, InstId] : Expected) {
@@ -126,127 +130,223 @@ protected:
 }; // class Fixture
 
 TEST_F(IDEGeneralizedLCATest, SimpleTest) {
-  initialize("SimpleTest_c.ll");
-  std::set<SrcCodeLocationEntry> GroundTruth;
-  // Old ground truth
-  // GroundTruth.push_back({{EdgeValue(10)}, 3, 20});
-  // GroundTruth.push_back({{EdgeValue(15)}, 4, 20});
+  initialize("SimpleTest_c_dbg.ll");
 
-  // New ground truth based on src file
-  GroundTruth.insert(
-      SrcCodeLocationEntry(5, 3, HA->getProjectIRDB().getFunction("main")));
-  GroundTruth.insert(
-      SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main")));
-  std::vector<EdgeValue> EVs = {EdgeValue(10), EdgeValue(15)};
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
 
-  compareResults(GroundTruth, EVs);
+  /*
+    TODO: ask Fabian why the edge values from the previous ground truths do not
+    work anymore. An example result:
+    vr:58 inst:58 Expected: {15} Got:{<TOP>}
+
+    Also, ask how to determine the correct EdgeValue.
+  */
+
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(10)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(15)}});
+
+  compareResults(GroundTruth);
 }
 
-#if false
-
 TEST_F(IDEGeneralizedLCATest, BranchTest) {
-  initialize("BranchTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(25), EdgeValue(43)}, 3, 22});
-  GroundTruth.push_back({{EdgeValue(24)}, 4, 22});
+  initialize("BranchTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:59 inst:59 Expected: {24} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(25)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(24)}});
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, FPtest) {
-  initialize("FPtest_c.ll");
+  initialize("FPtest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:59 inst:59 Expected: {2.000000e+00} Got:{<TOP>}
 
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(4.5)}, 1, 16});
-  GroundTruth.push_back({{EdgeValue(2.0)}, 2, 16});
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(4.5)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(2.0)}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, StringTest) {
-  initialize("StringTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue("Hello, World")}, 2, 8});
-  GroundTruth.push_back({{EdgeValue("Hello, World")}, 3, 8});
+  initialize("StringTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:58 inst:58 Expected: {"Hello, World"} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
-  initialize("StringBranchTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
+  initialize("StringBranchTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:59 inst:59 Expected: {"Hello, World"} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  /*
+    TODO: check which version is correct here
+  */
+#if false
   GroundTruth.push_back(
-      {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, 15});
-  GroundTruth.push_back({{EdgeValue("Hello Hello")}, 4, 15});
+      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World"), EdgeValue("Hello, World")}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+#endif
+
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
-  initialize("StringTest_cpp.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  const auto *LastMainInstruction =
-      getLastInstructionOf(HA->getProjectIRDB().getFunction("main"));
-  GroundTruth.push_back({{EdgeValue("Hello, World")},
-                         7,
-                         static_cast<unsigned int>(
-                             std::stoi(getMetaDataID(LastMainInstruction)))});
+  initialize("StringTest_cpp_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:58 inst:58 Expected: {"Hello, World"} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("Hello, World")}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
-  initialize("FloatDivision_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(nullptr)}, 1, 24}); // i
-  GroundTruth.push_back({{EdgeValue(1.0)}, 2, 24});     // j
-  GroundTruth.push_back({{EdgeValue(-7.0)}, 3, 24});    // k
+  initialize("FloatDivision_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:59 inst:59 Expected: {-7.000000e+00} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(nullptr)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(1.0)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(-7.0)}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
-  initialize("SimpleFunctionTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(48)}, 10, 31});      // i
-  GroundTruth.push_back({{EdgeValue(nullptr)}, 11, 31}); // j
+  initialize("SimpleFunctionTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:59 inst:59 Expected: {48} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(48)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(9, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(nullptr)}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
-  initialize("GlobalVariableTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(50)}, 7, 13}); // i
-  GroundTruth.push_back({{EdgeValue(8)}, 10, 13}); // j
+  initialize("GlobalVariableTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:58 inst:58 Expected: {8} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(50)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(8)}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
-  initialize("Imprecision_c.ll");
-  //   auto xInst = IRDB->getInstruction(0); // foo.x
-  //   auto yInst = IRDB->getInstruction(1); // foo.y
-  //  auto barInst = IRDB->getInstruction(7);
+  initialize("Imprecision_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:83 inst:83 Expected: {3, 2} Got:{<TOP>}
 
-  // llvm::outs() << "foo.x = " << LCASolver->resultAt(barInst, xInst) <<
-  // std::endl; llvm::outs() << "foo.y = " << LCASolver->resultAt(barInst,
-  // yInst)
-  // << std::endl;
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(1), EdgeValue(2)}});
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(2), EdgeValue(3)}});
 
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(1), EdgeValue(2)}, 0, 7}); // i
-  GroundTruth.push_back({{EdgeValue(2), EdgeValue(3)}, 1, 7}); // j
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, ReturnConstTest) {
-  initialize("ReturnConstTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue(43)}, 7, 8}); // i
+  initialize("ReturnConstTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:59 inst:59 Expected: {43} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue(43)}});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, NullTest) {
-  initialize("NullTest_c.ll");
-  std::vector<groundTruth_t> GroundTruth;
-  GroundTruth.push_back({{EdgeValue("")}, 4, 5}); // foo(null)
+  initialize("NullTest_c_dbg.ll");
+  // TODO: Test fails. An example result:
+  // vr:83 inst:83 Expected: {""} Got:{<TOP>}
+
+  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
+      GroundTruth;
+  GroundTruth.push_back(
+      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       {EdgeValue("")}});
+
   compareResults(GroundTruth);
 }
-
-#endif
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

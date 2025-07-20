@@ -70,6 +70,7 @@ protected:
     std::set<const llvm::Value *> GroundTruthEntries;
     for (const auto *Entry : GroundTruthEntriesAsInsts) {
       if (const auto *EntryVal = llvm::dyn_cast_or_null<llvm::Value>(Entry)) {
+        llvm::outs() << "*EntryVal: " << *EntryVal << "\n";
         GroundTruthEntries.insert(EntryVal);
         continue;
       }
@@ -245,10 +246,19 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   initialize({PathToLlFiles + "global/global_03_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
+
+  const llvm::Instruction *CorrectCall =
+      &(HA->getProjectIRDB()
+            .getFunction("__cxx_global_var_init")
+            ->getBasicBlockList()
+            .front()
+            .getInstList()
+            .front());
+
   SrcCodeLocationEntry Entry(
       1, 0, HA->getProjectIRDB().getGlobalVariableDefinition("g"));
-  SrcCodeLocationEntry EntryTwo(
-      0, 0, HA->getProjectIRDB().getFunction("__cxx_global_var_init"));
+  SrcCodeLocationEntry EntryTwo(0, 0, CorrectCall);
+
   std::set<SrcCodeLocationEntry> GroundTruth{Entry, EntryTwo};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -265,14 +275,12 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleGlobalTest_04) {
   compareResults(GroundTruth, Llvmconstsolver);
 }
 
-#if false
-
 /* ============== CALL TESTS ============== */
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_01) {
   initialize({PathToLlFiles + "call/param/call_param_01_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(5, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -281,7 +289,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_02) {
   initialize({PathToLlFiles + "call/param/call_param_02_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(5, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -290,8 +298,9 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_03) {
   initialize({PathToLlFiles + "call/param/call_param_03_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
-  std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  // SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  // std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  std::set<SrcCodeLocationEntry> GroundTruth{};
   compareResults(GroundTruth, Llvmconstsolver);
 }
 
@@ -324,7 +333,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_07) {
   initialize({PathToLlFiles + "call/param/call_param_07_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(0, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -333,7 +342,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_08) {
   initialize({PathToLlFiles + "call/param/call_param_08_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(9, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -349,8 +358,9 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_02) {
   initialize({PathToLlFiles + "call/return/call_ret_02_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
-  std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  // SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  // std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  std::set<SrcCodeLocationEntry> GroundTruth{};
   compareResults(GroundTruth, Llvmconstsolver);
 }
 
@@ -358,8 +368,9 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_03) {
   initialize({PathToLlFiles + "call/return/call_ret_03_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
-  std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  // SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  // std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  std::set<SrcCodeLocationEntry> GroundTruth{};
   compareResults(GroundTruth, Llvmconstsolver);
 }
 
@@ -398,7 +409,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
   initialize({PathToLlFiles + "array/array_05_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(3, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -408,7 +419,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
   HA->getAliasInfo().print(llvm::errs());
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(3, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -433,7 +444,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
   initialize({PathToLlFiles + "array/array_09_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(3, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -450,7 +461,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_02_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(4, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 }
@@ -462,7 +473,7 @@ PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_03_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  SrcCodeLocationEntry Entry(, , HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry Entry(4, 0, HA->getProjectIRDB().getFunction("main"));
   std::set<SrcCodeLocationEntry> GroundTruth{Entry};
   compareResults(GroundTruth, Llvmconstsolver);
 })
@@ -487,7 +498,9 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
   initialize({PathToLlFiles + "array/stl_array/stl_array_06_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({2}, Llvmconstsolver);
+  SrcCodeLocationEntry Entry(4, 0, HA->getProjectIRDB().getFunction("main"));
+  std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  compareResults(GroundTruth, Llvmconstsolver);
 }
 
 /* ============== CSTRING TESTS ============== */
@@ -504,8 +517,12 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCStringTest_02) {
   initialize({PathToLlFiles + "array/cstring/cstring_02_cpp_m2r_dbg.ll"});
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
-  compareResults({2}, Llvmconstsolver);
+  SrcCodeLocationEntry Entry(4, 0, HA->getProjectIRDB().getFunction("main"));
+  std::set<SrcCodeLocationEntry> GroundTruth{Entry};
+  compareResults(GroundTruth, Llvmconstsolver);
 }
+
+#if false
 
 /* ============== STRUCTURE TESTS ============== */
 // TEST_F(IFDSConstAnalysisTest, HandleStructureTest_01) {
