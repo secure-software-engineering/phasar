@@ -237,25 +237,19 @@ function(xtc_making_plans_for_nigell result)
   if(NOT DEFINED ENV{XTC_DESUGAR})
     message(FATAL_ERROR "XTC needs the XTC_DESUGAR environment variable to be set. Please set it to \$JAVA_DEV_ROOT/classes/, where JAVA_DEV_ROOT refers to the root of your xtc-dev repository")
   endif()
+  if(NOT DEFINED ENV{CLASSPATH})
+    message(FATAL_ERROR "XTC needs the CLASSPATH environment variable to be set. Please refer to the XTC repository's README for setting it correctly. See https://github.com/appleseedlab/superc/tree/master?tab=readme-ov-file#dependencies-and-environment-variables")
+  endif()
   set(testfile FILE)
   cmake_parse_arguments(GEN_LL "" "${testfile}" "" ${ARGN} )
   # get file extension
   get_filename_component(test_code_file_ext ${GEN_LL_FILE} EXT)
-  string(REPLACE "." "_" ll_file_suffix ${test_code_file_ext})
-  # define .ll file name
-  if(GEN_LL_DEBUG)
-    set(ll_file_suffix "${ll_file_suffix}_dbg")
-  endif()
-  # create test code LLVM IR file name
-  string(REPLACE ${test_code_file_ext}
-         "${ll_file_suffix}_xtc.ll" test_code_ll_file
-         ${GEN_LL_FILE}
-  )
+  # get file name w/o extension
+  get_filename_component(test_code_file_name ${GEN_LL_FILE} NAME_WE)
+
   # create test code XTC transformed file name
-    string(REPLACE ${test_code_file_ext}
-         "${ll_file_suffix}_xtc.c" test_code_xtc_file
-         ${GEN_LL_FILE}
-  )
+  set(test_code_xtc_file "${test_code_file_name}_xtc${test_code_file_ext}")
+
   # get file path
   set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
 
@@ -285,9 +279,8 @@ function(xtc_making_plans_for_nigell result)
   endif()
 
   # define additional information for XTC transformation
-  set(GEN_XTC_COMMENT "[XTC] ${GEN_LL_FILE}")
+  set(GEN_XTC_COMMENT "[XTC] ${GEN_LL_FILE} --> ${test_code_xtc_file}")
 
-  set(test_code_file_output_path "${CMAKE_CURRENT_SOURCE_DIR}")
   #define XTC transformation command
   add_custom_command(
     OUTPUT ${test_code_xtc_file}
@@ -301,17 +294,6 @@ function(xtc_making_plans_for_nigell result)
   )
   set(${result} ${test_code_xtc_file} PARENT_SCOPE) # Return the desugared filename 
   add_dependencies(LLFileGeneration ${test_code_file_xtc_target})
-  
-  # # define .ll file generation command
-  # set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
-  # list(APPEND GEN_CMD ${GEN_C_FLAGS})
-  # add_custom_command(
-  #   OUTPUT ${test_code_ll_file}
-  #   COMMAND ${GEN_CMD} ${test_code_xtc_file} -o ${test_code_ll_file}
-  #   COMMENT ${GEN_CMD_COMMENT}
-  #   DEPENDS ${test_code_xtc_file}
-  #   VERBATIM
-  # )
 endfunction()
 
 macro(add_phasar_executable name)

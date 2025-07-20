@@ -52,8 +52,9 @@ protected:
 }; // Test Fixture
 
 TEST_F(VariabilityCFGTest, Basic02) {
-  initialize("basic_02_c_dbg_xtc.ll");
-  const auto *Main = IRDB->getFunctionDefinition("__main_3");
+  initialize("basic_02_xtc_c_dbg.ll");
+  const auto *Main = IRDB->getFunctionDefinition("__main_0");
+  ASSERT_TRUE(Main);
   const auto *CurrInst = getNthInstruction(Main, 5);
   const auto *SuccInst = getNthInstruction(Main, 6);
   ASSERT_NE(CurrInst, nullptr);

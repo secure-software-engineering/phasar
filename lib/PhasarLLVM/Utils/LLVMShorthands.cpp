@@ -22,6 +22,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Analysis/ValueTracking.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Constants.h"
@@ -39,6 +40,8 @@
 #include <cstdlib>
 #include <memory>
 #include <mutex>
+
+#include <llvm-15/llvm/Analysis/ValueTracking.h>
 
 using namespace std;
 using namespace psr;
@@ -303,26 +306,9 @@ const llvm::Instruction *psr::getLastInstructionOf(const llvm::Function *F) {
 
 std::optional<llvm::StringRef>
 psr::extractConstantStringFromValue(const llvm::Value *V) {
-  // Check if the value is a C-string.
-  if (const auto *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(V)) {
-    return CDA->getAsCString();
-  }
-  // Check if the value is a gep into a C string.
-  const auto *GEP = llvm::dyn_cast<llvm::ConstantExpr>(V);
-  if (!GEP) {
-    return std::nullopt;
-  }
-  const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(
-      GEP->getOperand(0)); // Pointer operand of the constant GEP
-  if (!GV) {
-    return std::nullopt;
-  }
-  const auto *Init =
-      llvm::dyn_cast_or_null<llvm::ConstantDataArray>(GV->getInitializer());
-  if (!Init) {
-    return std::nullopt;
-  }
-  return Init->getAsCString();
+  llvm::StringRef Str;
+  bool HasStr = llvm::getConstantStringInfo(V, Str);
+  return HasStr ? std::optional(Str) : std::nullopt;
 }
 
 const llvm::Instruction *psr::getNthInstruction(const llvm::Function *F,
