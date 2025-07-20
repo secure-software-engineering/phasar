@@ -31,8 +31,8 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDEVarTabulationProblemTest : public ::testing::Test {
 protected:
-  static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER(
-      "build/test/llvm_test_code/variability/secure_memory/");
+  static constexpr auto PathToLLFiles =
+      PHASAR_BUILD_SUBFOLDER("variability/secure_memory/");
   const std::vector<std::string> EntryPoints = {"main"};
 
   // inst ID => value ID => {Z3Constraint x typestate}
@@ -56,7 +56,7 @@ protected:
 
     LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, nullptr,
-                       &PT);
+                       &PT, Soundness::Soundy, false);
     OpenSSLSecureMemoryDescription Desc;
     IDETypeStateAnalysis TSAProblem(&IRDB, &PT, &Desc, EntryPoints);
 

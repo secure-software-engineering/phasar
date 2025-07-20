@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/VarAlyzerExperiments/VarAlyzerUtils.h"
+#include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/StringRef.h"
 
@@ -47,7 +48,7 @@ static constexpr auto UNINIT = OpenSSLEVPMDCTXState::UNINIT;
 class IDEVarTAOpenSSLMDTest : public ::testing::Test {
 protected:
   static constexpr auto PathToLLFiles =
-      PHASAR_BUILD_SUBFOLDER("build/test/llvm_test_code/variability/hashing/");
+      PHASAR_BUILD_SUBFOLDER("variability/hashing/");
 
   // inst ID => value ID => {Z3Constraint x typestate}
   using TSAVarResults_t = std::map<
@@ -65,7 +66,7 @@ protected:
 
     LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, nullptr,
-                       &PT);
+                       &PT, Soundness::Soundy, false);
 
     auto StaticRenaming = extractStaticRenaming(&IRDB);
     auto TnoI =
@@ -139,16 +140,16 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash01) {
   // GroundTruth[59]["41"] = {{"true", FINALIZED}};
 
   // ret
-  GroundTruth[62]["41"] = {{"true", FREED}}; // the alloca
+  GroundTruth[61]["41"] = {{"true", FREED}}; // the alloca
   // GroundTruth[62]["45"] = {{"true", FREED}}; // not in the alias set
   // GroundTruth[62]["47"] = {{"true", FREED}}; // not in the alias set
   // GroundTruth[62]["53"] = {{"true", FREED}}; // not in the alias set
   // GroundTruth[62]["57"] = {{"true", FREED}}; // not in the alias set
-  GroundTruth[62]["60"] = {
+  GroundTruth[61]["59"] = {
       {"true", FREED}}; // the load that gets directly passed to the free mthd
 
-  doAnalysisAndCompareResults("hash01_c_dbg_xtc.ll", {"__main_24"}, GroundTruth,
-                              false);
+  doAnalysisAndCompareResults("hash01_xtc_c_dbg.ll", {"__main_21"}, GroundTruth,
+                              true);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
@@ -167,17 +168,19 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
   // GroundTruth[56]["41"] = {{"true", ERROR}};
 
   // GroundTruth[59]["45"] = {{"true", ERROR}}; // not in alias set
-  GroundTruth[59]["50"] = {{"true", ERROR}};
-  GroundTruth[59]["54"] = {{"true", ERROR}};
-  GroundTruth[59]["57"] = {{"true", ERROR}};
-  GroundTruth[59]["41"] = {{"true", ERROR}};
+  GroundTruth[58]["50"] = {{"true", ERROR}};
+  GroundTruth[58]["54"] = {{"true", ERROR}};
+  GroundTruth[58]["56"] = {{"true", ERROR}};
+  GroundTruth[58]["41"] = {{"true", ERROR}};
 
-  doAnalysisAndCompareResults("hash02_c_dbg_xtc.ll", {"__main_24"}, GroundTruth,
+  doAnalysisAndCompareResults("hash02_xtc_c_dbg.ll", {"__main_21"}, GroundTruth,
                               true);
 }
 
 TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
   TSAVarResults_t GroundTruth;
+
+  // TODO: Fix ground truth
 
   GroundTruth[61]["60"] = {{"true", ALLOCATED}};
   GroundTruth[68]["60"] = {{"defined __static_condition11", INITIALIZED},
@@ -185,7 +188,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
 
   // TODO: more GT
 
-  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_28"}, GroundTruth,
+  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
                               true);
 }
 } // namespace
