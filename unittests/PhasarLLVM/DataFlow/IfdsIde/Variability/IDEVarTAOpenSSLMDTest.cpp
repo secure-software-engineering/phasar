@@ -7,84 +7,77 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/DataFlow/IfdsIde/IDEVarTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/VarAlyzerExperiments/VarAlyzerUtils.h"
+
+#include "llvm/ADT/StringRef.h"
+
+#include "TestConfig.h"
+#include "gtest/gtest.h"
+
 #include <limits>
 #include <tuple>
 #include <utility>
 
-#include "gtest/gtest.h"
-
-#include "llvm/ADT/StringRef.h"
-
-#include "phasar/DB/ProjectIRDB.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPMDCTXDescription.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/LLVMShorthands.h"
-#include "phasar/VarAlyzerExperiments/VarAlyzerUtils.h"
-
+namespace {
 using namespace psr;
+
+#if __cplusplus >= 202002L
+using enum OpenSSLEVPMDCTXState;
+#else
+static constexpr auto TOP = OpenSSLEVPMDCTXState::TOP;
+static constexpr auto BOT = OpenSSLEVPMDCTXState::BOT;
+static constexpr auto ALLOCATED = OpenSSLEVPMDCTXState::ALLOCATED;
+static constexpr auto INITIALIZED = OpenSSLEVPMDCTXState::INITIALIZED;
+static constexpr auto SIGN_INITIALIZED = OpenSSLEVPMDCTXState::SIGN_INITIALIZED;
+static constexpr auto FINALIZED = OpenSSLEVPMDCTXState::FINALIZED;
+static constexpr auto FREED = OpenSSLEVPMDCTXState::FREED;
+static constexpr auto ERROR = OpenSSLEVPMDCTXState::ERROR;
+static constexpr auto UNINIT = OpenSSLEVPMDCTXState::UNINIT;
+#endif
 
 /* ============== TEST FIXTURE ============== */
 class IDEVarTAOpenSSLMDTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/variability/hashing/";
+  static constexpr auto PathToLLFiles =
+      PHASAR_BUILD_SUBFOLDER("build/test/llvm_test_code/variability/hashing/");
 
   // inst ID => value ID => {Z3Constraint x typestate}
   using TSAVarResults_t = std::map<
-      int,
-      std::map<
-          std::string,
-          std::set<std::pair<std::string, OpenSSLEVPMDCTXDescription::State>>>>;
-  enum OpenSSLEVPMDCTXState {
-    TOP = 42,
-    BOT = 0,
-    ALLOCATED,
-    INITIALIZED,
-    SIGN_INITIALIZED,
-    FINALIZED,
-    FREED,
-    ERROR,
-    UNINIT,
-  };
-  ProjectIRDB *IRDB = nullptr;
-
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
+      int, std::map<std::string,
+                    std::set<std::pair<std::string, OpenSSLEVPMDCTXState>>>>;
 
   void doAnalysisAndCompareResults(const std::string &LLVMFilePath,
-                                   const std::set<std::string> &EntryPoints,
+                                   llvm::ArrayRef<std::string> EntryPoints,
                                    TSAVarResults_t &GroundTruth,
                                    bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + LLVMFilePath}, IRDBOptions::WPA);
+    LLVMProjectIRDB IRDB(PathToLLFiles + LLVMFilePath);
     if (printDump) {
-      IRDB->emitPreprocessedIR(std::cout, false);
+      IRDB.emitPreprocessedIR(llvm::outs());
     }
-    ValueAnnotationPass::resetValueID();
-    LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToSet PT(*IRDB);
-    LLVMBasedVarICFG VICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
-                           &PT);
 
-    auto staticRenaming = extractStaticRenaming(IRDB);
-    auto tnoi =
-        extractDesugaredTypeNameOfInterest("EVP_MD_CTX", *IRDB, staticRenaming);
-    ASSERT_TRUE(tnoi.has_value());
+    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints);
 
-    OpenSSLEVPMDCTXDescription Desc(&staticRenaming, *tnoi);
-    IDETypeStateAnalysis TSAProblem(IRDB, &TH, &VICFG, &PT, Desc, EntryPoints);
+    LLVMAliasSet PT(&IRDB);
 
-    IDEVarTabulationProblem_P<IDETypeStateAnalysis> VARAProblem(TSAProblem,
-                                                                VICFG);
+    auto StaticRenaming = extractStaticRenaming(&IRDB);
+    auto TnoI =
+        extractDesugaredTypeNameOfInterest("EVP_MD_CTX", IRDB, StaticRenaming);
+    ASSERT_TRUE(TnoI.has_value());
 
-    IDESolver_P<IDEVarTabulationProblem_P<IDETypeStateAnalysis>> TSASolver(
-        VARAProblem);
+    OpenSSLEVPMDCTXDescription Desc(&StaticRenaming, *TnoI);
+    IDETypeStateAnalysis TSAProblem(&IRDB, &PT, &Desc, EntryPoints);
+
+    IDEVarTabulationProblem VARAProblem(TSAProblem, ICFG);
+
+    IDESolver TSASolver(&VARAProblem, &ICFG);
 
     TSASolver.solve();
     if (printDump) {
@@ -92,7 +85,7 @@ protected:
     }
 
     for (auto &[instId, Truth] : GroundTruth) {
-      auto Inst = IRDB->getInstruction(instId);
+      const auto *Inst = IRDB.getInstruction(instId);
       ASSERT_NE(nullptr, Inst);
       auto Results = TSASolver.resultsAt(Inst);
 
@@ -117,8 +110,6 @@ protected:
       }
     }
   }
-
-  void TearDown() override { delete IRDB; }
 
 }; // Test Fixture
 
@@ -197,6 +188,7 @@ TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
   doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_28"}, GroundTruth,
                               true);
 }
+} // namespace
 
 // main function for the test case/*  */
 int main(int argc, char **argv) {

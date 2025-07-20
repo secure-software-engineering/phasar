@@ -21,7 +21,8 @@
 #include <memory>
 #include <optional>
 
-namespace psr {
+namespace {
+using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class VariabilityCFGTest : public ::testing::Test {
@@ -63,7 +64,8 @@ TEST_F(VariabilityCFGTest, Basic02) {
                  "|(defined A)|");
 }
 
-} // namespace psr
+} // namespace
+
 // main function for the test case/*  */
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
