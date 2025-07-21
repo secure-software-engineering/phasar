@@ -92,16 +92,16 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
   // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
   // undefined alloca; not sure if it is necessary to report again
-#if false
+
   const auto Entry =
       SrcCodeLocationEntry(2, 0, HA->getICFG().getIRDB()->getFunction("main"));
   const auto EntryTwo =
       SrcCodeLocationEntry(3, 11, HA->getICFG().getIRDB()->getFunction("main"));
   const auto EntryThree =
       SrcCodeLocationEntry(3, 13, HA->getICFG().getIRDB()->getFunction("main"));
-  GroundTruth.insert({Entry, EntryTwo});
-  GroundTruth.insert({EntryTwo, });
-#endif
+  GroundTruth.insert({EntryTwo, Entry});
+  GroundTruth.insert({EntryThree, EntryTwo});
+
   compareResults(GroundTruth);
 }
 
