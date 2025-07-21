@@ -1,6 +1,11 @@
 #ifndef PHASAR_UTILS_SRCCODELOCATIONENTRY_H
 #define PHASAR_UTILS_SRCCODELOCATIONENTRY_H
 
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/Utils/Utilities.h"
+
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
@@ -13,11 +18,158 @@
 
 #include <cstdint>
 #include <functional>
+#include <iterator>
 #include <set>
+#include <tuple>
 #include <utility>
 #include <variant>
 
 namespace psr {
+
+struct GlobalVar {
+  llvm::StringRef Name;
+
+  friend bool operator<(GlobalVar G1, GlobalVar G2) noexcept {
+    return G1.Name < G2.Name;
+  }
+  friend bool operator==(GlobalVar G1, GlobalVar G2) noexcept {
+    return G1.Name == G2.Name;
+  }
+};
+struct LineCol {
+  uint32_t Line{};
+  uint32_t Col{};
+
+  friend bool operator<(LineCol LC1, LineCol LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col) < std::tie(LC2.Line, LC2.Col);
+  }
+  friend bool operator==(LineCol LC1, LineCol LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col) == std::tie(LC2.Line, LC2.Col);
+  }
+};
+struct LineColFun {
+  uint32_t Line{};
+  uint32_t Col{};
+  llvm::StringRef InFunction{};
+
+  friend bool operator<(LineColFun LC1, LineColFun LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col, LC1.InFunction) <
+           std::tie(LC2.Line, LC2.Col, LC2.InFunction);
+  }
+  friend bool operator==(LineColFun LC1, LineColFun LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col, LC1.InFunction) ==
+           std::tie(LC2.Line, LC2.Col, LC2.InFunction);
+  }
+};
+struct ArgNo {
+  uint32_t Idx{};
+
+  friend bool operator<(ArgNo A1, ArgNo A2) noexcept { return A1.Idx < A2.Idx; }
+  friend bool operator==(ArgNo A1, ArgNo A2) noexcept {
+    return A1.Idx == A2.Idx;
+  }
+};
+struct ArgInFun {
+  uint32_t Idx;
+  llvm::StringRef InFunction{};
+
+  friend bool operator<(ArgInFun A1, ArgInFun A2) noexcept {
+    return std::tie(A1.Idx, A1.InFunction) < std::tie(A2.Idx, A2.InFunction);
+  }
+  friend bool operator==(ArgInFun A1, ArgInFun A2) noexcept {
+    return std::tie(A1.Idx, A1.InFunction) == std::tie(A2.Idx, A2.InFunction);
+  }
+};
+
+struct TestingSrcLocation
+    : public std::variant<LineCol, LineColFun, GlobalVar, ArgNo, ArgInFun> {
+
+  using std::variant<LineCol, LineColFun, GlobalVar, ArgNo, ArgInFun>::variant;
+
+  template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
+    return std::holds_alternative<T>(*this);
+  }
+  template <typename T>
+  [[nodiscard]] constexpr const T *dyn_cast() const noexcept {
+    return std::get_if<T>(this);
+  }
+  template <typename T> [[nodiscard]] constexpr T *dyn_cast() noexcept {
+    return std::get_if<T>(this);
+  }
+};
+
+[[nodiscard]] inline const llvm::Value *
+testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
+               const llvm::Function *InterestingFunction = nullptr) {
+
+  return std::visit(
+      psr::Overloaded{
+          [=](LineCol LC) -> llvm ::Value const * {
+            if (!InterestingFunction) {
+              llvm::report_fatal_error(
+                  "You must provide an InterestingFunction as last parameter "
+                  "to testingLocInIR(), if trying to resolve a LineCol; "
+                  "alternatively use LineColFun instead.");
+            }
+
+            return unittest::getInstAtOrNull(InterestingFunction, LC.Line,
+                                             LC.Col);
+          },
+          [&IRDB](LineColFun LC) -> llvm ::Value const * {
+            const auto *InFun = IRDB.getFunctionDefinition(LC.InFunction);
+            if (!InFun) {
+              llvm::report_fatal_error("Required function '" + LC.InFunction +
+                                       "' does not exist in the IR!");
+            }
+            return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col);
+          },
+          [&IRDB](GlobalVar GV) -> llvm ::Value const * {
+            return IRDB.getModule()->getGlobalVariable(GV.Name, true);
+          },
+          [=](ArgNo A) -> llvm ::Value const * {
+            if (!InterestingFunction) {
+              llvm::report_fatal_error(
+                  "You must provide an InterestingFunction as last parameter "
+                  "to testingLocInIR(), if trying to resolve an ArgNo; "
+                  "alternatively use ArgInFun instead.");
+            }
+            if (InterestingFunction->arg_size() <= A.Idx) {
+              llvm::report_fatal_error(
+                  "Argument index " + llvm::Twine(A.Idx) +
+                  " is out of range (" +
+                  llvm::Twine(InterestingFunction->arg_size()) + ")!");
+            }
+            return InterestingFunction->getArg(A.Idx);
+          },
+          [&IRDB](ArgInFun A) -> llvm ::Value const * {
+            const auto *InFun = IRDB.getFunctionDefinition(A.InFunction);
+            if (!InFun) {
+              llvm::report_fatal_error("Required function '" + A.InFunction +
+                                       "' does not exist in the IR!");
+            }
+            if (InFun->arg_size() <= A.Idx) {
+              llvm::report_fatal_error("Argument index " + llvm::Twine(A.Idx) +
+                                       " is out of range (" +
+                                       llvm::Twine(InFun->arg_size()) + ")!");
+            }
+            return InFun->getArg(A.Idx);
+          },
+      },
+      Loc);
+}
+
+template <typename SetTy>
+[[nodiscard]] inline std::set<const llvm::Value *>
+convertTestingLocationSetInIR(
+    const SetTy &Locs, const LLVMProjectIRDB &IRDB,
+    const llvm::Function *InterestingFunction = nullptr) {
+  std::set<const llvm::Value *> Ret;
+  llvm::transform(Locs, std::inserter(Ret, Ret.end()),
+                  [&](TestingSrcLocation Loc) {
+                    return testingLocInIR(Loc, IRDB, InterestingFunction);
+                  });
+  return Ret;
+}
 
 struct SrcCodeLocationEntry {
   // TODO: the const llvm::Instruction * variant is not good, as it basically
@@ -53,7 +205,7 @@ struct SrcCodeLocationEntry {
   }
 };
 
-static std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+inline std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
 getGroundTruthInsts(
     const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
         &GroundTruth) {
@@ -124,7 +276,7 @@ getGroundTruthInsts(
   return GroundTruthEntries;
 };
 
-static std::set<const llvm::Instruction *>
+inline std::set<const llvm::Instruction *>
 getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth) {
   std::set<const llvm::Instruction *> GroundTruthEntries;
 
@@ -160,7 +312,7 @@ getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth) {
   return GroundTruthEntries;
 };
 
-static std::set<const llvm::Value *>
+inline std::set<const llvm::Value *>
 getGroundTruthValues(const std::set<SrcCodeLocationEntry> &GroundTruth) {
   std::set<const llvm::Value *> GroundTruthEntries;
 

@@ -2,6 +2,7 @@
 #define UNITTEST_TESTUTILS_SOURCEMAPPING_H
 
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/IR/InstIterator.h"
