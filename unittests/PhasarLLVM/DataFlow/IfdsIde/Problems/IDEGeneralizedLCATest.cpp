@@ -22,6 +22,9 @@
 #include "phasar/Utils/SrcCodeLocationEntry.h"
 
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "SourceMapping.h"
@@ -33,8 +36,8 @@
 using namespace psr;
 using namespace psr::glca;
 
-using groundTruth_t =
-    std::tuple<const IDEGeneralizedLCA::l_t, unsigned, unsigned>;
+using groundTruth_t = std::tuple<const IDEGeneralizedLCA::l_t,
+                                 SrcCodeLocationEntry, SrcCodeLocationEntry>;
 
 /* ============== TEST FIXTURE ============== */
 
@@ -70,17 +73,14 @@ protected:
   //  compare results
   /// \brief compares the computed results with every given tuple (value,
   /// alloca, inst)
-  void compareResults(
-      std::vector<std::tuple<SrcCodeLocationEntry,
-                             const IDEGeneralizedLCA::l_t>> &Expected) {
+  void compareResults(std::vector<groundTruth_t> &Expected) {
     for (const auto &Entry : Expected) {
-      const auto &SCLEntry = std::get<0>(Entry);
-      const auto *Vr = unittest::getInstAtOrNull(
-          std::get<const llvm::Function *>(SCLEntry.Context), SCLEntry.Line,
-          SCLEntry.Column);
-      const auto *Inst = unittest::getInstAtOrNull(
-          std::get<const llvm::Function *>(SCLEntry.Context), SCLEntry.Line,
-          SCLEntry.Column);
+      const auto &EVal = std::get<0>(Entry);
+      const auto &SCLVr = std::get<1>(Entry);
+      const auto &SCLInst = std::get<2>(Entry);
+
+      const auto *Vr = getInstLambdaOrNot(SCLVr);
+      const auto *Inst = getInstLambdaOrNot(SCLInst);
 
       bool Flag = false;
 
@@ -103,11 +103,12 @@ protected:
         continue;
       }
 
+      llvm::outs() << "Result: " << LCASolver->resultAt(Inst, Vr) << "\n";
+
       ASSERT_NE(nullptr, Vr);
       ASSERT_NE(nullptr, Inst);
 
       auto Result = LCASolver->resultAt(Inst, Vr);
-      auto EVal = std::get<1>(Entry);
       EXPECT_EQ(EVal, Result)
           << "vr:" << Vr->getValueID() << " inst:" << Inst->getValueID()
           << " Expected: " << EVal << " Got:" << Result;
@@ -127,223 +128,404 @@ protected:
     }*/
   }
 
+private:
+  const llvm::Instruction *
+  getInstLambdaOrNot(const SrcCodeLocationEntry &Entry) {
+    if (Entry.LambdaFunc) {
+      return unittest::getInstAtOrNull(
+          std::get<const llvm::Function *>(Entry.Context), Entry.Line,
+          Entry.Column, Entry.LambdaFunc);
+    }
+
+    return unittest::getInstAtOrNull(
+        std::get<const llvm::Function *>(Entry.Context), Entry.Line,
+        Entry.Column);
+  }
 }; // class Fixture
 
 TEST_F(IDEGeneralizedLCATest, SimpleTest) {
   initialize("SimpleTest_c_dbg.ll");
-
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
-
-  /*
-    TODO: ask Fabian why the edge values from the previous ground truths do not
-    work anymore. An example result:
-    vr:58 inst:58 Expected: {15} Got:{<TOP>}
-
-    Also, ask how to determine the correct EdgeValue.
-  */
+  std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(10)}});
+      {{EdgeValue(10)},
+       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(15)}});
+      {{EdgeValue(15)},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
-
 TEST_F(IDEGeneralizedLCATest, BranchTest) {
   initialize("BranchTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:59 inst:59 Expected: {24} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(25)}});
+      {{EdgeValue(25)},
+       SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::AddOperator>(Inst);
+                            }),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(24)}});
+      {{EdgeValue(24)},
+       SrcCodeLocationEntry(3, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
+
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, FPtest) {
   initialize("FPtest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:59 inst:59 Expected: {2.000000e+00} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(4.5)}});
+      {{EdgeValue(4.5)},
+       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs()
+                                  << "4.5: In lambda *Inst: " << *Inst << "\n";
+                              llvm::outs() << "4.5: In lambda *Inst.getType(): "
+                                           << *Inst->getType() << "\n";
+                              llvm::outs()
+                                  << "4.5: In lambda *Inst.getOpcode(): "
+                                  << Inst->getOpcode() << "\n";
+                              /* Floating-point types are handled by FAdd, FSub
+                                 and FMul, instead of Add, Sub and Mul, which
+                                 are used by Integer types.
+                                 Opcode 18 is operator FMul */
+                              // TODO: ask Fabian if the opcode is a valid
+                              // approach to this issue.
+                              return Inst->getOpcode() == 18;
+                            }),
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(2.0)}});
+      {{EdgeValue(2.0)},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs()
+                                  << "2.0: In lambda *Inst: " << *Inst << "\n";
+                              llvm::outs() << "2.0: In lambda *Inst.getType(): "
+                                           << *Inst->getType() << "\n";
+                              llvm::outs()
+                                  << "2.0: In lambda *Inst.getOpcode(): "
+                                  << Inst->getOpcode() << "\n";
+                              /* Floating-point types are handled by FAdd, FSub
+                                 and FMul, instead of Add, Sub and Mul, which
+                                 are used by Integer types.
+                                 Opcode 16 is operator FSub */
+                              // TODO: ask Fabian if the opcode is a valid
+                              // approach to this issue.
+                              return Inst->getOpcode() == 16;
+                            }),
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, StringTest) {
   initialize("StringTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:58 inst:58 Expected: {"Hello, World"} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
+      {{EdgeValue("Hello, World")},
+       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
+      {{EdgeValue("Hello, World")},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
   initialize("StringBranchTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:59 inst:59 Expected: {"Hello, World"} Got:{<TOP>}
-
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
-  /*
-    TODO: check which version is correct here
-  */
-#if false
-  GroundTruth.push_back(
-      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World"), EdgeValue("Hello, World")}});
-  GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
-#endif
+  std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
+      {{EdgeValue("Hello Hello"), EdgeValue("Hello, World")},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(11, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
+  // TODO: ask Fabian how to reach:
+  // %1 = load ptr, ptr %str1, align 8, !dbg !40
+  // in the if.end branch
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
-  GroundTruth.push_back(
-      {SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
+      {{EdgeValue("Hello, World")},
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) mutable {
+                              return llvm::isa<llvm::StoreInst>(Inst);
+                            }),
+       SrcCodeLocationEntry(11, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::LoadInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   initialize("StringTest_cpp_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:58 inst:58 Expected: {"Hello, World"} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
+  // TODO: ask Fabian, why ReturnInst doesn't work here and how to fix that
+  // test.
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("Hello, World")}});
+      {{EdgeValue("Hello, World")},
+       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst" << *Inst << "\n";
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
   initialize("FloatDivision_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:59 inst:59 Expected: {-7.000000e+00} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(nullptr)}});
+      {{EdgeValue(1.0)},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs()
+                                  << "In lambda *Inst: " << *Inst << "\n";
+                              llvm::outs() << "2.0: In lambda *Inst.getType(): "
+                                           << *Inst->getType() << "\n";
+                              llvm::outs() << "n lambda *Inst.getOpcode(): "
+                                           << Inst->getOpcode() << "\n";
+                              /* Floating-point types are handled by FAdd, FSub
+                                 and FMul, instead of Add, Sub and Mul, which
+                                 are used by Integer types.
+                                 Opcode 18 is operator fptosi */
+                              // TODO: ask Fabian if the opcode is a valid
+                              // approach to this issue.
+                              return Inst->getOpcode() == 45;
+                            }),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst" << *Inst << "\n";
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(1.0)}});
+      {{EdgeValue(nullptr)},
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs()
+                                  << "In lambda *Inst: " << *Inst << "\n";
+                              llvm::outs() << "In lambda *Inst.getType(): "
+                                           << *Inst->getType() << "\n";
+                              llvm::outs() << "In lambda *Inst.getOpcode(): "
+                                           << Inst->getOpcode() << "\n";
+                              /* Floating-point types are handled by FAdd, FSub
+                                 and FMul, instead of Add, Sub and Mul, which
+                                 are used by Integer types.
+                                 Opcode 18 is operator FMul */
+                              // TODO: ask Fabian if the opcode is a valid
+                              // approach to this issue.
+                              return Inst->getOpcode() == 18;
+                            }),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(-7.0)}});
+      {{EdgeValue(-7.0)},
+       SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs()
+                                  << "2.0: In lambda *Inst: " << *Inst << "\n";
+                              llvm::outs() << "2.0: In lambda *Inst.getType(): "
+                                           << *Inst->getType() << "\n";
+                              llvm::outs()
+                                  << "2.0: In lambda *Inst.getOpcode(): "
+                                  << Inst->getOpcode() << "\n";
+                              /* Floating-point types are handled by FAdd, FSub
+                                 and FMul, instead of Add, Sub and Mul, which
+                                 are used by Integer types.
+                                 Opcode 16 is operator FSub */
+                              // TODO: ask Fabian if the opcode is a valid
+                              // approach to this issue.
+                              return Inst->getOpcode() == 16;
+                            }),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst" << *Inst << "\n";
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
   initialize("SimpleFunctionTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:59 inst:59 Expected: {48} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
+  // TODO: ask Fabian if this impl is fine, or if there is a better way to do
+  // it.
+  /* We want the second call inst here:
+    not this -> %call2 = call i32 @foo(i32 noundef %2), !dbg !42, !psr.id !43
+    this -----> %call3 = call i32 @bar(i32 noundef %call2), !dbg !44, !psr.id
+    !45
+  */
+  bool FoundFirstCall = false;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(48)}});
+      {{EdgeValue(48)},
+       SrcCodeLocationEntry(
+           8, 0, HA->getProjectIRDB().getFunction("main"),
+           [&FoundFirstCall](const llvm::Instruction *Inst) mutable {
+             llvm::outs() << "*Inst: " << *Inst << "\n";
+             if (llvm::isa<llvm::CallInst>(Inst) && !FoundFirstCall) {
+               FoundFirstCall = true;
+               return false;
+             }
+             return llvm::isa<llvm::CallInst>(Inst);
+           }),
+       SrcCodeLocationEntry(10, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(9, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(nullptr)}});
+      {{EdgeValue(nullptr)},
+       SrcCodeLocationEntry(9, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst: " << *Inst << "\n";
+                              return llvm::isa<llvm::AddOperator>(Inst);
+                            }),
+       SrcCodeLocationEntry(10, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
   initialize("GlobalVariableTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:58 inst:58 Expected: {8} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(50)}});
+      {{EdgeValue(50)},
+       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst: " << *Inst << "\n";
+                              return llvm::isa<llvm::AddOperator>(Inst);
+                            }),
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(8)}});
+      {{EdgeValue(8)},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst: " << *Inst << "\n";
+                              return llvm::isa<llvm::AddOperator>(Inst);
+                            }),
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
   initialize("Imprecision_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:83 inst:83 Expected: {3, 2} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
+  // TODO: ask Fabian how to handle this test. I do not know how to handle that
+  // source file. I tried the calls in main, line 3 with function foo and line 1
+  // with function bar.
+
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(1), EdgeValue(2)}});
+      {{EdgeValue(1), EdgeValue(2)},
+       SrcCodeLocationEntry(3, 0, HA->getProjectIRDB().getFunction("foo"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst: " << *Inst << "\n";
+                              // return false;
+                              return llvm::isa<llvm::StoreInst>(Inst);
+                            }),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(7, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(2), EdgeValue(3)}});
+      {{EdgeValue(2), EdgeValue(3)},
+       SrcCodeLocationEntry(3, 0, HA->getProjectIRDB().getFunction("foo"),
+                            [](const llvm::Instruction *Inst) {
+                              llvm::outs() << "*Inst: " << *Inst << "\n";
+                              return false;
+                              // return llvm::isa<llvm::LoadInst>(Inst);
+                            }),
+       SrcCodeLocationEntry(8, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, ReturnConstTest) {
   initialize("ReturnConstTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:59 inst:59 Expected: {43} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue(43)}});
+      {{EdgeValue(43)},
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::AddOperator>(Inst);
+                            }),
+       SrcCodeLocationEntry(6, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
 
 TEST_F(IDEGeneralizedLCATest, NullTest) {
   initialize("NullTest_c_dbg.ll");
-  // TODO: Test fails. An example result:
-  // vr:83 inst:83 Expected: {""} Got:{<TOP>}
+  std::vector<groundTruth_t> GroundTruth;
 
-  std::vector<std::tuple<SrcCodeLocationEntry, const IDEGeneralizedLCA::l_t>>
-      GroundTruth;
   GroundTruth.push_back(
-      {SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       {EdgeValue("")}});
+      {{EdgeValue("")},
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
+       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main"),
+                            [](const llvm::Instruction *Inst) {
+                              return llvm::isa<llvm::ReturnInst>(Inst);
+                            })});
 
   compareResults(GroundTruth);
 }
