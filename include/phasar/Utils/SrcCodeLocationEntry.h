@@ -178,14 +178,12 @@ struct SrcCodeLocationEntry {
   // variant was the only way I found to make the unittests run.
   SrcCodeLocationEntry(
       uint32_t Line, uint32_t Column,
-      std::variant<const llvm::Function *, const llvm::GlobalVariable *,
-                   const llvm::Instruction *>
+      std::variant<const llvm::Function *, const llvm::GlobalVariable *>
           Context)
       : Line(Line), Column(Column), Context(Context) {}
   SrcCodeLocationEntry(
       uint32_t Line, uint32_t Column,
-      std::variant<const llvm::Function *, const llvm::GlobalVariable *,
-                   const llvm::Instruction *>
+      std::variant<const llvm::Function *, const llvm::GlobalVariable *>
           Context,
       std::function<bool(const llvm::Instruction *Inst)> LambdaFunc)
       : Line(Line), Column(Column), LambdaFunc(std::move(LambdaFunc)),
@@ -193,9 +191,7 @@ struct SrcCodeLocationEntry {
   uint32_t Line = 0;
   uint32_t Column = 0;
   std::function<bool(const llvm::Instruction *Inst)> LambdaFunc = nullptr;
-  std::variant<const llvm::Function *, const llvm::GlobalVariable *,
-               const llvm::Instruction *>
-      Context;
+  std::variant<const llvm::Function *, const llvm::GlobalVariable *> Context;
 
   bool operator==(const SrcCodeLocationEntry &Other) const {
     return Line == Other.Line && Column == Other.Column;
@@ -222,15 +218,8 @@ getGroundTruthInsts(
       llvm::report_fatal_error("Cannot cast global variable to Instruction\n");
     }
 
-    if (const auto *Inst =
-            std::get_if<const llvm::Instruction *>(&FirstEntry.Context)) {
-      if (*Inst) {
-        CurrInst = *Inst;
-      } else {
-        llvm::report_fatal_error("Given Ground Truth Instruction was null.\n");
-      }
-    } else if (const auto *Func =
-                   std::get_if<const llvm::Function *>(&FirstEntry.Context)) {
+    if (const auto *Func =
+            std::get_if<const llvm::Function *>(&FirstEntry.Context)) {
       if (FirstEntry.LambdaFunc) {
         CurrInst = unittest::getInstAtOrNull(
             *Func, FirstEntry.Line, FirstEntry.Column, FirstEntry.LambdaFunc);
@@ -283,16 +272,6 @@ getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth) {
   for (const auto &Entry : GroundTruth) {
     if (std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
       llvm::report_fatal_error("Cannot cast global variable to Instruction\n");
-    }
-
-    if (const auto *Inst =
-            std::get_if<const llvm::Instruction *>(&Entry.Context)) {
-      if (*Inst) {
-        GroundTruthEntries.insert(*Inst);
-        continue;
-      }
-
-      llvm::report_fatal_error("Given Ground Truth Instruction was null.\n");
     }
 
     if (const auto *Func =
@@ -360,15 +339,6 @@ getGroundTruthValues(const std::set<SrcCodeLocationEntry> &GroundTruth) {
             std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
       GroundTruthEntries.insert(llvm::cast<llvm::Value>(*GlobalVar));
       continue;
-    }
-    if (const auto *Inst =
-            std::get_if<const llvm::Instruction *>(&Entry.Context)) {
-      if (*Inst) {
-        GroundTruthEntries.insert(llvm::cast<llvm::Value>(*Inst));
-        continue;
-      }
-
-      llvm::report_fatal_error("Given Ground Truth Instruction was null.\n");
     }
 
     llvm::report_fatal_error("Unknown variant type.\n");

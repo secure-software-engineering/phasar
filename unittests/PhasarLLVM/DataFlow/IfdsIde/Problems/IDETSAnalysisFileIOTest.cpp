@@ -91,7 +91,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
-  initialize({PathToLlFiles + "typestate_01_c.ll"});
+  initialize({PathToLlFiles + "typestate_01_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
   Llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -102,7 +102,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
-  initialize({PathToLlFiles + "typestate_02_c.ll"});
+  initialize({PathToLlFiles + "typestate_02_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -112,7 +112,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
-  initialize({PathToLlFiles + "typestate_03_c.ll"});
+  initialize({PathToLlFiles + "typestate_03_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -138,7 +138,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
-  initialize({PathToLlFiles + "typestate_04_c.ll"});
+  initialize({PathToLlFiles + "typestate_04_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -160,7 +160,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
-  initialize({PathToLlFiles + "typestate_05_c.ll"});
+  initialize({PathToLlFiles + "typestate_05_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -179,7 +179,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
 
 TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
-  initialize({PathToLlFiles + "typestate_06_c.ll"});
+  initialize({PathToLlFiles + "typestate_06_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -214,7 +214,7 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
-  initialize({PathToLlFiles + "typestate_07_c.ll"});
+  initialize({PathToLlFiles + "typestate_07_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -246,7 +246,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
-  initialize({PathToLlFiles + "typestate_08_c.ll"});
+  initialize({PathToLlFiles + "typestate_08_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -259,7 +259,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
-  initialize({PathToLlFiles + "typestate_09_c.ll"});
+  initialize({PathToLlFiles + "typestate_09_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -277,7 +277,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
-  initialize({PathToLlFiles + "typestate_10_c.ll"});
+  initialize({PathToLlFiles + "typestate_10_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -299,7 +299,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
-  initialize({PathToLlFiles + "typestate_11_c.ll"});
+  initialize({PathToLlFiles + "typestate_11_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -326,7 +326,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
-  initialize({PathToLlFiles + "typestate_12_c.ll"});
+  initialize({PathToLlFiles + "typestate_12_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -346,7 +346,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
-  initialize({PathToLlFiles + "typestate_13_c.ll"});
+  initialize({PathToLlFiles + "typestate_13_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -361,7 +361,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
-  initialize({PathToLlFiles + "typestate_14_c.ll"});
+  initialize({PathToLlFiles + "typestate_14_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -384,7 +384,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
-  initialize({PathToLlFiles + "typestate_15_c.ll"});
+  initialize({PathToLlFiles + "typestate_15_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -446,7 +446,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
 
   /// TODO: After the EF fix everything is BOT; --> Make the TSA more precise!
 
-  initialize({PathToLlFiles + "typestate_16_c.ll"});
+  initialize({PathToLlFiles + "typestate_16_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -483,7 +483,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
 
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
-  initialize({PathToLlFiles + "typestate_17_c.ll"});
+  initialize({PathToLlFiles + "typestate_17_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -514,7 +514,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
   /// TODO: After the EF fix everything is BOT; --> Make the TSA more precise!
 
-  initialize({PathToLlFiles + "typestate_18_c.ll"});
+  initialize({PathToLlFiles + "typestate_18_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();
@@ -536,7 +536,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
 
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
-  initialize({PathToLlFiles + "typestate_19_c.ll"});
+  initialize({PathToLlFiles + "typestate_19_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
 
   Llvmtssolver.solve();

@@ -30,7 +30,7 @@ class GroundTruthCollector
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
-      : GroundTruth(GroundTruth){};
+      : GroundTruth(GroundTruth) {};
 
   void findAndRemove(llvm::DenseMap<int, std::set<std::string>> &Map1,
                      llvm::DenseMap<int, std::set<std::string>> &Map2) {
@@ -122,7 +122,7 @@ TEST_F(AnalysisPrinterTest, XTaint01) {
 
   GroundTruth[13] = {"7"};
   GroundTruthCollector GroundTruthPrinter = {GroundTruth};
-  doAnalysisTest("xtaint01_cpp.ll", GroundTruthPrinter, std::monostate{});
+  doAnalysisTest("xtaint01_cpp_dbg.ll", GroundTruthPrinter, std::monostate{});
 }
 
 // main function for the test case
