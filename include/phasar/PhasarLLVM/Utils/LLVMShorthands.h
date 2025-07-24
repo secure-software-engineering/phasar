@@ -34,6 +34,8 @@ class BranchInst;
 class Module;
 class CallInst;
 class AllocaInst;
+class DIType;
+class DIDerivedType;
 } // namespace llvm
 
 namespace psr {
@@ -105,6 +107,8 @@ std::string llvmIRToShortString(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Function *V);
+LLVM_DUMP_METHOD void dumpDIType(const llvm::DIType *Ty);
+LLVM_DUMP_METHOD void dumpDIType(const llvm::DIDerivedType *Ty);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM

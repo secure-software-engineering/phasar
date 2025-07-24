@@ -181,20 +181,6 @@ getOffsetAndBase(const llvm::Value *V) {
   return {Base, Offset};
 }
 
-namespace t2 {
-LLVM_DUMP_METHOD extern void dumpDIType(const llvm::DIType *Ty) {
-  if (!Ty) {
-    llvm::errs() << "<null>\n";
-  }
-
-  Ty->print(llvm::errs());
-}
-LLVM_DUMP_METHOD extern void dumpDIType(const llvm::DIDerivedType *Ty) {
-  dumpDIType(static_cast<const llvm::DIType *>(Ty));
-}
-
-} // namespace t2
-
 static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
   const auto *DerivedTy =
       llvm::dyn_cast_if_present<llvm::DIDerivedType>(BaseTy);

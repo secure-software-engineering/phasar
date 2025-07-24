@@ -26,4 +26,15 @@
 #define PSR_CONSTINIT
 #endif
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
+#if __has_feature(attribute_deprecated_with_message)
+#define PSR_DEPRECATED(MSG, REPLACEMENT)                                       \
+  __attribute__((deprecated(MSG, REPLACEMENT)))
+#else
+#define PSR_DEPRECATED(MSG, REPLACEMENT) [[deprecated(MSG)]]
+#endif
+
 #endif // PHASAR_UTILS_MACROS_H

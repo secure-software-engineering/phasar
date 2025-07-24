@@ -245,6 +245,18 @@ void psr::dumpIRValue(const llvm::Function *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
 
+void psr::dumpDIType(const llvm::DIType *Ty) {
+  if (!Ty) {
+    llvm::errs() << "<null>\n";
+  }
+
+  Ty->print(llvm::errs());
+}
+
+void psr::dumpDIType(const llvm::DIDerivedType *Ty) {
+  dumpDIType(static_cast<const llvm::DIType *>(Ty));
+}
+
 std::vector<const llvm::Value *>
 psr::globalValuesUsedinFunction(const llvm::Function *F) {
   std::vector<const llvm::Value *> GlobalsUsed;

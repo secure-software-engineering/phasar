@@ -56,7 +56,7 @@ class IRDBParsingErrorCategory : public std::error_category {
     case IRDBParsingError::CouldNotVerify:
       return "Parsed LLVM IR could not be verified";
     default:
-      "<invalid>";
+      return "Unknown error while parsing IRDB";
     }
   }
 };
@@ -159,14 +159,14 @@ LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
                                  bool EnableOpaquePointers)
     : Ctx(new llvm::LLVMContext()) {
   setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrNull(IRFileName, *Ctx);
+  auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
 
   if (!M) {
     return;
   }
 
-  auto *NonConst = M.get();
-  Mod = std::move(M);
+  auto *NonConst = M->get();
+  Mod = std::move(M.get());
   ModulesToSlotTracker::setMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
@@ -262,13 +262,13 @@ LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
                                  bool EnableOpaquePointers)
     : Ctx(new llvm::LLVMContext()) {
   setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrNull(Buf, *Ctx);
+  auto M = getParsedIRModuleOrErr(Buf, *Ctx);
   if (!M) {
     return;
   }
 
-  auto *NonConst = M.get();
-  Mod = std::move(M);
+  auto *NonConst = M->get();
+  Mod = std::move(M.get());
   ModulesToSlotTracker::setMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
