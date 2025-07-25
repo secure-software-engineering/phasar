@@ -62,7 +62,7 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
 }
 
 const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
-  if (CallSite->arg_empty() ||
+  if (!CallSite || CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
     return nullptr;
   }
@@ -149,7 +149,6 @@ namespace psr {
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
   assert(IRDB != nullptr);
-  assert(VTP != nullptr);
 }
 
 void Resolver::preCall(const llvm::Instruction *Inst) {}

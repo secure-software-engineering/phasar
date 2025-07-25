@@ -12,6 +12,8 @@
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
+#include "llvm/ADT/StringMap.h"
+
 #include <unordered_map>
 
 namespace llvm {
@@ -38,7 +40,14 @@ public:
   [[nodiscard]] const LLVMVFTable *
   getVFTableOrNull(const llvm::DIType *Type) const;
 
+  [[nodiscard]] const llvm::GlobalVariable *
+  getVFTableGlobal(const llvm::DIType *Type) const;
+
+  [[nodiscard]] const llvm::GlobalVariable *
+  getVFTableGlobal(llvm::StringRef ClearTypeName) const;
+
 private:
+  llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
   std::unordered_map<const llvm::DIType *, LLVMVFTable> TypeVFTMap;
 };
 } // namespace psr

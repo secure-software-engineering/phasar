@@ -24,7 +24,7 @@ struct SVFGCache;
 /// Conforms to the ICFGBase CRTP interface.
 ///
 /// Use this in the IDESolver or IFDSSolver to profit from the SparseIFDS or
-/// SparseIDE optimization after Karakays et al. "Symbol-Specific Sparsification
+/// SparseIDE optimization after Karakaya et al. "Symbol-Specific Sparsification
 /// of Interprocedural Distributive Environment Problems"
 /// <https://doi.org/10.48550/arXiv.2401.14813>
 class SparseLLVMBasedICFG

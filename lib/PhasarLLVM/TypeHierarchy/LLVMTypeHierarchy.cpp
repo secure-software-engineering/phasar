@@ -20,9 +20,6 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/NlohmannLogging.h"
-#include "phasar/Utils/PAMMMacros.h"
-#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/StringMap.h"
 #include "llvm/Demangle/Demangle.h"
@@ -30,18 +27,12 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Operator.h"
-#include "llvm/Support/Format.h"
 
 #include "boost/graph/graphviz.hpp"
 #include "boost/graph/transitive_closure.hpp"
 
-#include <algorithm>
 #include <cassert>
-#include <memory>
 #include <ostream>
 
 using namespace std;

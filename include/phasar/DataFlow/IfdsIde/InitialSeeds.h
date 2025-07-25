@@ -29,6 +29,10 @@ template <typename N, typename D, typename L> class InitialSeeds {
 public:
   using GeneralizedSeeds = std::map<N, std::map<D, L>>;
 
+  using n_t = N;
+  using d_t = D;
+  using l_t = L;
+
   InitialSeeds() = default;
 
   template <typename LL = L,
