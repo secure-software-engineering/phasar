@@ -29,7 +29,6 @@ set(PHASAR_LINK_LIBS
     phasar_dataflow_ifdside
     phasar_dataflow_mono
     phasar_dataflow_pathsensitivity
-    phasar_db
     phasar_domain
 
     phasar_llvm

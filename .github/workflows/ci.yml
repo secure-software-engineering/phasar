@@ -63,5 +63,16 @@ jobs:
       - name: Run Unittests
         shell: bash
         run: |
-          cd build
-          cmake --build . --target check-phasar-unittests
+          cmake --build ./build --target check-phasar-unittests
+
+      - name: Install PhASAR and Build Examples
+        if: matrix.build == 'DebugLibdeps' # Circumvent conflicting ASAn flags
+        env:
+          CXX: ${{ matrix.compiler[0] }}
+          CC: ${{ matrix.compiler[1] }}
+        shell: bash
+        run: |
+          cmake -DCMAKE_INSTALL_PREFIX=./INSTALL -P ./build/cmake_install.cmake
+          cd ./examples/how-to
+          cmake -S . -B build -Dphasar_ROOT=../../INSTALL
+          cmake --build ./build --target run_sample_programs

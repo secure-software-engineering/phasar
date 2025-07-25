@@ -9,10 +9,12 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 
 namespace psr::glca {
 
@@ -34,30 +36,14 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *Source) {
   std::set<const llvm::Value *> Res;
   // Handle C-style varargs functions
   if (Callee->isVarArg()) {
+    const auto *VaListAlloca = getVaListTagOrNull(*Callee);
     // Map actual parameter into corresponding formal parameter.
     for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
       if (Source == Actuals[Idx] || (LLVMZeroValue::isLLVMZeroValue(Source) &&
                                      isConstant(Actuals[Idx]))) {
-        if (Idx >= Callee->arg_size() && !Callee->isDeclaration()) {
-          // Over-approximate by trying to add the
-          //   alloca [1 x %struct.__va_list_tag], align 16
-          // to the results
-          // find the allocated %struct.__va_list_tag and generate it
-          for (const auto &BB : *Callee) {
-            for (const auto &I : BB) {
-              if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-                if (Alloc->getAllocatedType()->isArrayTy() &&
-                    Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                    Alloc->getAllocatedType()
-                        ->getArrayElementType()
-                        ->isStructTy() &&
-                    Alloc->getAllocatedType()
-                            ->getArrayElementType()
-                            ->getStructName() == "struct.__va_list_tag") {
-                  Res.insert(Alloc);
-                }
-              }
-            }
+        if (Idx >= Callee->arg_size()) {
+          if (VaListAlloca) {
+            Res.insert(VaListAlloca);
           }
         } else {
           Res.insert(Formals[Idx]); // corresponding formal

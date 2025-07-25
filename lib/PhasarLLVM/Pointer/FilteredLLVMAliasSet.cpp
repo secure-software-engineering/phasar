@@ -180,7 +180,7 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
     return &getDefaultValue<AliasSetTy>();
   }
 
-  const auto *Fun = I->getFunction();
+  const auto *Fun = I ? I->getFunction() : nullptr;
   auto &AllocSites = ReachableAllocationSitesMap[ReachableAllocationSitesKey{
       {Fun, IntraProcOnly}, V}];
   if (AllocSites) {
@@ -222,6 +222,11 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
 bool FilteredLLVMAliasSet::isInReachableAllocationSites(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
     const llvm::Instruction *I) {
+
+  if (PotentialValue == V) {
+    return true;
+  }
+
   // if V is not a (interesting) pointer we can return an empty set
   if (!isInterestingPointer(V)) {
     return false;

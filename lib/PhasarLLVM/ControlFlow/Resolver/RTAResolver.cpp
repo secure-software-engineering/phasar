@@ -18,17 +18,16 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
 
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
@@ -76,7 +75,7 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
     if (ReachableTypes.find(PossibleType) != EndIt) {
       const auto *Target =
           getNonPureVirtualVFTEntry(PossibleType, VtableIndex, CallSite);
-      if (Target) {
+      if (Target && psr::isConsistentCall(CallSite, Target)) {
         PossibleCallTargets.insert(Target);
       }
     }
@@ -91,18 +90,52 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
 
 std::string RTAResolver::str() const { return "RTA"; }
 
-/// More or less copied from GeneralStatisticsAnalysis
+static const llvm::DICompositeType *
+isCompositeStructType(const llvm::DIType *Ty) {
+  if (const auto *CompTy = llvm::dyn_cast_if_present<llvm::DICompositeType>(Ty);
+      CompTy && (CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type ||
+                 CompTy->getTag() == llvm::dwarf::DW_TAG_class_type)) {
+
+    return CompTy;
+  }
+
+  return nullptr;
+}
+
 void RTAResolver::resolveAllocatedCompositeTypes() {
   if (!AllocatedCompositeTypes.empty()) {
     return;
   }
 
-  llvm::DebugInfoFinder DIF;
-  DIF.processModule(*IRDB->getModule());
+  llvm::DenseSet<const llvm::DICompositeType *> AllocatedTypes;
 
-  for (const auto *Ty : DIF.types()) {
-    if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Ty)) {
-      AllocatedCompositeTypes.push_back(CompTy);
+  for (const auto *Inst : IRDB->getAllInstructions()) {
+    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Inst)) {
+      if (const auto *Ty = isCompositeStructType(getVarTypeFromIR(Alloca))) {
+        AllocatedTypes.insert(Ty);
+      }
+    } else if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
+      if (const auto *Callee = llvm::dyn_cast<llvm::Function>(
+              Call->getCalledOperand()->stripPointerCastsAndAliases())) {
+        if (psr::isHeapAllocatingFunction(Callee)) {
+          const auto *MDNode = Call->getMetadata("heapallocsite");
+          if (const auto *CompTy = llvm::
+#if LLVM_VERSION_MAJOR >= 15
+                  dyn_cast_if_present
+#else
+                  dyn_cast_or_null
+#endif
+              <llvm::DICompositeType>(MDNode);
+              isCompositeStructType(CompTy)) {
+
+            AllocatedTypes.insert(CompTy);
+          }
+        }
+      }
     }
   }
+
+  AllocatedCompositeTypes.reserve(AllocatedTypes.size());
+  AllocatedCompositeTypes.insert(AllocatedCompositeTypes.end(),
+                                 AllocatedTypes.begin(), AllocatedTypes.end());
 }

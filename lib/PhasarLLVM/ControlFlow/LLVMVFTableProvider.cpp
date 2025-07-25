@@ -16,25 +16,29 @@
 #include "llvm/Support/Casting.h"
 
 using namespace psr;
+static constexpr llvm::StringLiteral TIPrefix = "typeinfo name for ";
 
 static std::string getTypeName(const llvm::DIType *DITy) {
-  if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
-    auto Ident = CompTy->getIdentifier();
-    return Ident.empty() ? llvm::demangle(CompTy->getName().str())
-                         : llvm::demangle(Ident.str());
+  auto Ret = [DITy] {
+    if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
+      auto Ident = CompTy->getIdentifier();
+      return Ident.empty() ? llvm::demangle(CompTy->getName().str())
+                           : llvm::demangle(Ident.str());
+    }
+    return llvm::demangle(DITy->getName().str());
+  }();
+
+  if (llvm::StringRef(Ret).startswith(TIPrefix)) {
+    Ret.erase(0, TIPrefix.size());
   }
-  return llvm::demangle(DITy->getName().str());
+
+  return Ret;
 }
 
 static std::vector<const llvm::Function *> getVirtualFunctions(
     const llvm::StringMap<const llvm::GlobalVariable *> &ClearNameTVMap,
     const llvm::DIType *Type) {
   auto ClearName = getTypeName(Type);
-
-  static constexpr llvm::StringLiteral TIPrefix = "typeinfo name for ";
-  if (llvm::StringRef(ClearName).startswith(TIPrefix)) {
-    ClearName = ClearName.substr(TIPrefix.size());
-  }
 
   auto It = ClearNameTVMap.find(ClearName);
 
@@ -53,8 +57,6 @@ static std::vector<const llvm::Function *> getVirtualFunctions(
 }
 
 LLVMVFTableProvider::LLVMVFTableProvider(const llvm::Module &Mod) {
-  llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
-
   for (const auto &Glob : Mod.globals()) {
     if (DIBasedTypeHierarchy::isVTable(Glob.getName())) {
       auto Demang = llvm::demangle(Glob.getName().str());
@@ -87,4 +89,20 @@ const LLVMVFTable *
 LLVMVFTableProvider::getVFTableOrNull(const llvm::DIType *Type) const {
   auto It = TypeVFTMap.find(Type);
   return It != TypeVFTMap.end() ? &It->second : nullptr;
+}
+
+const llvm::GlobalVariable *
+LLVMVFTableProvider::getVFTableGlobal(const llvm::DIType *Type) const {
+  auto Name = getTypeName(Type);
+  return getVFTableGlobal(Name);
+}
+
+const llvm::GlobalVariable *
+LLVMVFTableProvider::getVFTableGlobal(llvm::StringRef ClearTypeName) const {
+  // llvm::errs() << "[getVFTableGlobal]: " << ClearTypeName << '\n';
+  if (auto It = ClearNameTVMap.find(ClearTypeName);
+      It != ClearNameTVMap.end()) {
+    return It->second;
+  }
+  return nullptr;
 }
