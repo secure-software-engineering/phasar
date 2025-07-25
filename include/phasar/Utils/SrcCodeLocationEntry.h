@@ -329,7 +329,7 @@ getGroundTruthValues(const std::set<SrcCodeLocationEntry> &GroundTruth) {
         llvm::errs() << "getInstAtOrNull returned null\n";
         llvm::errs() << "Entry.Line:   " << Entry.Line << "\n";
         llvm::errs() << "Entry.Column: " << Entry.Column << "\n";
-        llvm::errs() << "*Func: " << *Func << "\n";
+        llvm::errs() << "*Func: " << **Func << "\n";
       }
 
       continue;

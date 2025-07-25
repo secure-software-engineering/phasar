@@ -268,11 +268,12 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
   IFDSSolver Llvmconstsolver(*Constproblem, &HA->getICFG());
   Llvmconstsolver.solve();
 
-  // SrcCodeLocationEntry Entry(
-  //     1, 0, HA->getProjectIRDB().getGlobalVariableDefinition("g"));
-  // SrcCodeLocationEntry EntryTwo(0, 0, );
+  SrcCodeLocationEntry Entry(
+      6, 10, HA->getProjectIRDB().getFunction("__cxx_global_var_init"));
+  SrcCodeLocationEntry EntryTwo(
+      0, 0, HA->getProjectIRDB().getGlobalVariableDefinition("g"));
 
-  std::set<SrcCodeLocationEntry> GroundTruth{}; //{Entry, EntryTwo};
+  std::set<SrcCodeLocationEntry> GroundTruth{Entry, EntryTwo};
   compareResults(GroundTruth, Llvmconstsolver);
 }
 
@@ -542,8 +543,6 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCStringTest_02) {
   compareResults(GroundTruth, Llvmconstsolver);
 }
 
-#if false
-
 /* ============== STRUCTURE TESTS ============== */
 // TEST_F(IFDSConstAnalysisTest, HandleStructureTest_01) {
 //  Initialize({pathToLLFiles + "structs/structs_01_cpp_dbg.ll"});
@@ -652,8 +651,6 @@ TEST_F(IFDSConstAnalysisTest, DISABLED_HandleCStringTest_02) {
 //  llvmconstsolver.solve();
 //  compareResults({0}, llvmconstsolver);
 //}
-
-#endif
 
 // main function for the test case
 int main(int Argc, char **Argv) {

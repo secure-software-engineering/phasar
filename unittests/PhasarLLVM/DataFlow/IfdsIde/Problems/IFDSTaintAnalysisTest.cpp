@@ -86,24 +86,15 @@ protected:
     if (!TSF) {
       TSF = getDefaultConfig();
     }
+
     TaintProblem =
         createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
-  static void doAnalysis(
-      const llvm::Twine &IRFile, const LLVMTaintConfig &Config,
-      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth) {
-    HelperAnalyses HA(PathToLlFiles + IRFile, EntryPoints);
 
-    auto TaintProblem =
-        createAnalysisProblem<IFDSTaintAnalysis>(HA, &Config, EntryPoints);
-
-    IFDSSolver TaintSolver(TaintProblem, &HA.getICFG());
-    TaintSolver.solve();
-
-    TaintSolver.dumpResults();
-
-    compare(TaintProblem.Leaks, GroundTruth);
+  void initialize(const llvm::Twine &IRFile, const LLVMTaintConfig &Config) {
+    HA.emplace(IRFile, EntryPoints);
+    TaintProblem =
+        createAnalysisProblem<IFDSTaintAnalysis>(*HA, &Config, EntryPoints);
   }
 
   template <typename LeaksTy>
@@ -112,6 +103,11 @@ protected:
           const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
               &GroundTruth) {
     auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
+
+    for (const auto &Entry : GroundTruthEntries) {
+      llvm::outs() << "First Entry:  " << *(std::get<0>(Entry)) << "\n";
+      llvm::outs() << "Second Entry: " << *(std::get<1>(Entry)) << "\n";
+    }
 
     std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
         FoundLeaks;
@@ -232,7 +228,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   // GroundTruth[5] = set<string>{"main.0"};
 
   SrcCodeLocationEntry Entry(13, 5, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(0, 0, HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry EntryTwo(0, 1, HA->getProjectIRDB().getFunction("main"));
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
@@ -426,19 +422,31 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
-  SrcCodeLocationEntry Entry(5, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(6, 3, HA->getProjectIRDB().getFunction("main"));
+  initialize({PathToLlFiles + "double_free_01_c_dbg.ll"},
+             getDoubleFreeConfig());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  SrcCodeLocationEntry Entry(6, 3, HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry EntryTwo(6, 8, HA->getProjectIRDB().getFunction("main"));
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
-  doAnalysis("double_free_01_c_dbg.ll", getDoubleFreeConfig(), GroundTruth);
+
+  compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
-  SrcCodeLocationEntry Entry(5, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(8, 3, HA->getProjectIRDB().getFunction("main"));
+  initialize({PathToLlFiles + "double_free_02_c_dbg.ll"},
+             getDoubleFreeConfig());
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  SrcCodeLocationEntry Entry(8, 3, HA->getProjectIRDB().getFunction("main"));
+  SrcCodeLocationEntry EntryTwo(8, 8, HA->getProjectIRDB().getFunction("main"));
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
-  doAnalysis("double_free_02_c_dbg.ll", getDoubleFreeConfig(), GroundTruth);
+
+  compareResults(GroundTruth);
 }
 
 int main(int Argc, char **Argv) {
