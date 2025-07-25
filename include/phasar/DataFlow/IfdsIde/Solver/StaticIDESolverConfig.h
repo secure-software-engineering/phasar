@@ -25,16 +25,15 @@ enum class JumpFunctionGCMode {
 
 struct IDESolverConfigBase {
   template <typename K, typename V>
-  static inline constexpr bool
-      IsSimple1d = sizeof(std::pair<K, V>) <= 32 &&
-                   std::is_nothrow_move_constructible_v<K>
-                       &&std::is_nothrow_move_constructible_v<V>
-                           &&has_llvm_dense_map_info<K>;
+  static inline constexpr bool IsSimple1d =
+      sizeof(std::pair<K, V>) <= 32 &&
+      std::is_nothrow_move_constructible_v<K> &&
+      std::is_nothrow_move_constructible_v<V> && has_llvm_dense_map_info<K>;
 
   template <typename T>
-  static inline constexpr bool
-      IsSimpleVal = sizeof(T) <= 32 && std::is_nothrow_move_constructible_v<T>
-                                           &&has_llvm_dense_map_info<T>;
+  static inline constexpr bool IsSimpleVal =
+      sizeof(T) <= 32 && std::is_nothrow_move_constructible_v<T> &&
+      has_llvm_dense_map_info<T>;
 
   template <typename K, typename V>
   using map_t = std::conditional_t<IsSimple1d<K, V>, DenseTable1d<K, V>,
