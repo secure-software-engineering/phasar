@@ -104,12 +104,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7d3387de9ff0f9bb34877556e5e8694f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40796b2c747e82b1bb00293b90a4870f" id="r_a40796b2c747e82b1bb00293b90a4870f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTable.html">LLVMVFTable</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a40796b2c747e82b1bb00293b90a4870f">getVFTableOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *Type) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:a40796b2c747e82b1bb00293b90a4870f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66537c3da227cfe9cec65f3dd494809d" id="r_a66537c3da227cfe9cec65f3dd494809d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a66537c3da227cfe9cec65f3dd494809d">getVFTableGlobal</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *Type) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a66537c3da227cfe9cec65f3dd494809d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5f4abd7659ce2a43053c28a2e6cdd98" id="r_ac5f4abd7659ce2a43053c28a2e6cdd98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#ac5f4abd7659ce2a43053c28a2e6cdd98">getVFTableGlobal</a> (llvm::StringRef <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ClearTypeName</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:ac5f4abd7659ce2a43053c28a2e6cdd98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A class that provides access to all C++ virtual function tables (VTables) found in the target program. </p>
 <p>Useful for constructing a call graph for a C++-based target. </p><dl class="section note"><dt>Note</dt><dd>This class only works, if the target program's IR was generated with debug information. Pass <code>-g</code> to the compiler to achieve this. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMVFTableProvider_8h_source.html#l00032">32</a> of file <a class="el" href="LLVMVFTableProvider_8h_source.html">LLVMVFTableProvider.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMVFTableProvider_8h_source.html#l00034">34</a> of file <a class="el" href="LLVMVFTableProvider_8h_source.html">LLVMVFTableProvider.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a32980570bceb6dfb4b5dfdaf600d4eef" name="a32980570bceb6dfb4b5dfdaf600d4eef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a32980570bceb6dfb4b5dfdaf600d4eef">&#9670;&#160;</a></span>LLVMVFTableProvider() <span class="overload">[1/2]</span></h2>
@@ -164,6 +168,42 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a66537c3da227cfe9cec65f3dd494809d" name="a66537c3da227cfe9cec65f3dd494809d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66537c3da227cfe9cec65f3dd494809d">&#9670;&#160;</a></span>getVFTableGlobal() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable * psr::LLVMVFTableProvider::getVFTableGlobal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Type</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac5f4abd7659ce2a43053c28a2e6cdd98" name="ac5f4abd7659ce2a43053c28a2e6cdd98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5f4abd7659ce2a43053c28a2e6cdd98">&#9670;&#160;</a></span>getVFTableGlobal() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable * psr::LLVMVFTableProvider::getVFTableGlobal </td>
+          <td>(</td>
+          <td class="paramtype">llvm::StringRef&#160;</td>
+          <td class="paramname"><em>ClearTypeName</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a40796b2c747e82b1bb00293b90a4870f" name="a40796b2c747e82b1bb00293b90a4870f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a40796b2c747e82b1bb00293b90a4870f">&#9670;&#160;</a></span>getVFTableOrNull()</h2>
 
@@ -206,7 +246,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 30 2025 15:51:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Jul 25 2025 16:11:55 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

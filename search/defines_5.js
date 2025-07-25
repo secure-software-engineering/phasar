@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['has_5fmemory_5fresource_0',['HAS_MEMORY_RESOURCE',['../MemoryResource_8h.html#ad86ff56a1942eacd9d796e3c8f3c34f8',1,'MemoryResource.h']]]
+  ['get_5fcounter_0',['GET_COUNTER',['../PAMMMacros_8h.html#a2f628141be8d9bb93608662b4d9d707f',1,'PAMMMacros.h']]],
+  ['get_5fsum_5fcount_1',['GET_SUM_COUNT',['../PAMMMacros_8h.html#a42f083e49cbc8bbb14770f152c975d4d',1,'PAMMMacros.h']]]
 ];

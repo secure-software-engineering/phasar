@@ -96,8 +96,34 @@ Macros</h2></td></tr>
 <tr class="separator:a886bb5afef08c49ad3edb43f16df19b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a61702ca9be186404c0447bbd84a05f" id="r_a2a61702ca9be186404c0447bbd84a05f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;&#160;&#160;static constexpr <a class="el" href="classbool.html">bool</a></td></tr>
 <tr class="separator:a2a61702ca9be186404c0447bbd84a05f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8830b04d087aada14410389c3c95cfc" id="r_ae8830b04d087aada14410389c3c95cfc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#ae8830b04d087aada14410389c3c95cfc">PSR_CONSTINIT</a></td></tr>
+<tr class="separator:ae8830b04d087aada14410389c3c95cfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af989845e24678c452b9222afdac95e7f" id="r_af989845e24678c452b9222afdac95e7f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#af989845e24678c452b9222afdac95e7f">__has_feature</a>(x)&#160;&#160;&#160;0</td></tr>
+<tr class="separator:af989845e24678c452b9222afdac95e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a844bf3de25eb667d9146fceaa8db9846" id="r_a844bf3de25eb667d9146fceaa8db9846"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Macros_8h.html#a844bf3de25eb667d9146fceaa8db9846">PSR_DEPRECATED</a>(MSG,  REPLACEMENT)&#160;&#160;&#160;[[deprecated(MSG)]]</td></tr>
+<tr class="separator:a844bf3de25eb667d9146fceaa8db9846"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="af989845e24678c452b9222afdac95e7f" name="af989845e24678c452b9222afdac95e7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af989845e24678c452b9222afdac95e7f">&#9670;&#160;</a></span>__has_feature</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __has_feature</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x</td><td>)</td>
+          <td>&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00030">30</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+
+</div>
+</div>
 <a id="a2a61702ca9be186404c0447bbd84a05f" name="a2a61702ca9be186404c0447bbd84a05f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2a61702ca9be186404c0447bbd84a05f">&#9670;&#160;</a></span>PSR_CONCEPT</h2>
 
@@ -111,6 +137,52 @@ Macros</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00016">16</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+
+</div>
+</div>
+<a id="ae8830b04d087aada14410389c3c95cfc" name="ae8830b04d087aada14410389c3c95cfc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8830b04d087aada14410389c3c95cfc">&#9670;&#160;</a></span>PSR_CONSTINIT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PSR_CONSTINIT</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00026">26</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
+
+</div>
+</div>
+<a id="a844bf3de25eb667d9146fceaa8db9846" name="a844bf3de25eb667d9146fceaa8db9846"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a844bf3de25eb667d9146fceaa8db9846">&#9670;&#160;</a></span>PSR_DEPRECATED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PSR_DEPRECATED</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">MSG, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">REPLACEMENT&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;[[deprecated(MSG)]]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Macros_8h_source.html#l00037">37</a> of file <a class="el" href="Macros_8h_source.html">Macros.h</a>.</p>
 
 </div>
 </div>
@@ -137,7 +209,7 @@ Macros</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 30 2025 15:51:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Jul 25 2025 16:11:54 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
