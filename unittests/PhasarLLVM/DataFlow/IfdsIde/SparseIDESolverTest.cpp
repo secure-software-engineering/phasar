@@ -194,8 +194,8 @@ static constexpr std::string_view LCATestFiles[] = {
 };
 
 static constexpr std::string_view TaintTestFiles[] = {
-    "double_free_01_c.ll",
-    "double_free_02_c.ll",
+    "double_free_01_c_dbg.ll",
+    "double_free_02_c_dbg.ll",
 };
 
 INSTANTIATE_TEST_SUITE_P(SparseIDETest, LinearConstant,

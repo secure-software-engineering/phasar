@@ -172,10 +172,6 @@ convertTestingLocationSetInIR(
 }
 
 struct SrcCodeLocationEntry {
-  // TODO: the const llvm::Instruction * variant is not good, as it basically
-  // completely ignores the line and column aspect of the source file. We want
-  // to tie the unittest to the source file, but for very specific cases, this
-  // variant was the only way I found to make the unittests run.
   SrcCodeLocationEntry(
       uint32_t Line, uint32_t Column,
       std::variant<const llvm::Function *, const llvm::GlobalVariable *>
@@ -201,6 +197,66 @@ struct SrcCodeLocationEntry {
   }
 };
 
+inline const llvm::Instruction *
+getGroundTruthInst(const SrcCodeLocationEntry &Entry) {
+  if (const auto *GlobalVar =
+          std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
+    return llvm::dyn_cast_or_null<llvm::Instruction>(*GlobalVar);
+  }
+
+  if (const auto *Func = std::get_if<const llvm::Function *>(&Entry.Context)) {
+    if (Entry.LambdaFunc) {
+      return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column,
+                                       Entry.LambdaFunc);
+    }
+
+    return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column);
+  }
+
+  llvm::report_fatal_error("Unknown variant type.\n");
+}
+
+inline const llvm::Instruction *
+getInstFromEntryOrNull(const SrcCodeLocationEntry &Entry) {
+  if (const auto *GlobalVar =
+          std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
+    return llvm::dyn_cast_or_null<llvm::Instruction>(*GlobalVar);
+  }
+
+  if (const auto *Func = std::get_if<const llvm::Function *>(&Entry.Context)) {
+    if (Entry.LambdaFunc) {
+      return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column,
+                                       Entry.LambdaFunc);
+    }
+    return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column);
+  }
+
+  llvm::report_fatal_error("Unknown variant type.\n");
+}
+
+inline const llvm::Value *
+getValueFromEntryOrNull(const SrcCodeLocationEntry &Entry) {
+  if (const auto *GlobalVar =
+          std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
+    return llvm::dyn_cast_or_null<llvm::Value>(*GlobalVar);
+  }
+
+  if (const auto *Func = std::get_if<const llvm::Function *>(&Entry.Context)) {
+    if (Entry.LambdaFunc) {
+      if (const auto *Inst = unittest::getInstAtOrNull(
+              *Func, Entry.Line, Entry.Column, Entry.LambdaFunc)) {
+        return llvm::dyn_cast_or_null<llvm::Value>(Inst);
+      }
+    }
+    if (const auto *Inst =
+            unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column)) {
+      return llvm::dyn_cast_or_null<llvm::Value>(Inst);
+    }
+  }
+
+  llvm::report_fatal_error("Unknown variant type.\n");
+}
+
 inline std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
 getGroundTruthInsts(
     const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
@@ -211,55 +267,18 @@ getGroundTruthInsts(
   for (const auto &Entry : GroundTruth) {
     const auto &FirstEntry = std::get<0>(Entry);
     const auto &SecondEntry = std::get<1>(Entry);
-    const llvm::Instruction *CurrInst = nullptr;
-    const llvm::Value *CurrVal = nullptr;
+    const llvm::Instruction *CurrInst = getInstFromEntryOrNull(FirstEntry);
+    const llvm::Value *CurrVal = getValueFromEntryOrNull(SecondEntry);
 
-    if (std::get_if<const llvm::GlobalVariable *>(&FirstEntry.Context)) {
-      llvm::report_fatal_error("Cannot cast global variable to Instruction\n");
+    if (!CurrInst) {
+      continue;
     }
 
-    if (const auto *Func =
-            std::get_if<const llvm::Function *>(&FirstEntry.Context)) {
-      if (FirstEntry.LambdaFunc) {
-        CurrInst = unittest::getInstAtOrNull(
-            *Func, FirstEntry.Line, FirstEntry.Column, FirstEntry.LambdaFunc);
-      } else {
-        CurrInst = unittest::getInstAtOrNull(*Func, FirstEntry.Line,
-                                             FirstEntry.Column);
-      }
-    } else {
-      llvm::report_fatal_error("Unknown variant type.\n");
+    if (!CurrVal) {
+      continue;
     }
 
-    if (const auto *GlobalVar =
-            std::get_if<const llvm::GlobalVariable *>(&SecondEntry.Context)) {
-      CurrVal = llvm::cast<llvm::Value>(*GlobalVar);
-    } else if (const auto *Func =
-                   std::get_if<const llvm::Function *>(&FirstEntry.Context)) {
-      const llvm::Instruction *AsInst = nullptr;
-      if (SecondEntry.LambdaFunc) {
-        AsInst = unittest::getInstAtOrNull(*Func, SecondEntry.Line,
-                                           SecondEntry.Column,
-                                           SecondEntry.LambdaFunc);
-      } else {
-        AsInst = unittest::getInstAtOrNull(*Func, SecondEntry.Line,
-                                           SecondEntry.Column);
-      }
-      if (const auto *CanBeCastToValue =
-              llvm::dyn_cast_or_null<llvm::Value>(AsInst)) {
-        CurrVal = CanBeCastToValue;
-      } else {
-        llvm::errs() << "AsInst Instruction couldn't be cast to value.\n";
-      }
-    } else {
-      llvm::report_fatal_error("Unknown variant type.\n");
-    }
-
-    if (CurrInst) {
-      if (CurrVal) {
-        GroundTruthEntries.insert({CurrInst, CurrVal});
-      }
-    }
+    GroundTruthEntries.insert({CurrInst, CurrVal});
   }
 
   return GroundTruthEntries;

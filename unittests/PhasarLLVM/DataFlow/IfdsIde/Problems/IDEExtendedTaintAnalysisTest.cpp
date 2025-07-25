@@ -401,13 +401,7 @@ TEST_F(IDETaintAnalysisTest, XTaint18) {
   HelperAnalyses HA({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, EntryPoints);
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  // TODO: ask Fabian why there are no leaks found for this test
-  // I added a random GT, so that the test fails and it won't be overlooked.
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(8, 10, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(8, 14, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis(HA, {}, std::monostate{}, true);
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {

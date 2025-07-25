@@ -16,6 +16,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
 
 #include "SourceMapping.h"
 #include "TestConfig.h"
@@ -103,35 +104,55 @@ protected:
           const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
               &GroundTruth) {
     auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
-
-    for (const auto &Entry : GroundTruthEntries) {
-      llvm::outs() << "First Entry:  " << *(std::get<0>(Entry)) << "\n";
-      llvm::outs() << "Second Entry: " << *(std::get<1>(Entry)) << "\n";
-    }
-
     std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
         FoundLeaks;
+
     for (const auto &Leak : Leaks) {
       if (const auto *SinkInst =
               llvm::dyn_cast_or_null<llvm::Instruction>(Leak.first)) {
-        llvm::outs() << "*SinkInst: " << *SinkInst << "\n";
         for (const auto *LV : Leak.second) {
           if (LV) {
             if (const auto *LVValue = llvm::dyn_cast_or_null<llvm::Value>(LV)) {
-              llvm::outs() << "*LVValue: " << *LVValue << "\n";
               FoundLeaks.insert({SinkInst, {LVValue}});
             }
           }
         }
       }
     }
+
     EXPECT_EQ(FoundLeaks, GroundTruthEntries);
   }
 
-  void compareResults(
-      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth) noexcept {
-    compare(TaintProblem->Leaks, GroundTruth);
+  template <typename LeaksTy>
+  static void
+  compare(const LeaksTy &Leaks,
+          const std::set<std::tuple<SrcCodeLocationEntry, const llvm::Value *>>
+              &GroundTruth) {
+    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+        GroundTruthEntries;
+
+    for (const auto &Entry : GroundTruth) {
+      GroundTruthEntries.insert(
+          {getGroundTruthInst(std::get<0>(Entry)), std::get<1>(Entry)});
+    }
+
+    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+        FoundLeaks;
+
+    for (const auto &Leak : Leaks) {
+      if (const auto *SinkInst =
+              llvm::dyn_cast_or_null<llvm::Instruction>(Leak.first)) {
+        for (const auto *LV : Leak.second) {
+          if (LV) {
+            if (const auto *LVValue = llvm::dyn_cast_or_null<llvm::Value>(LV)) {
+              FoundLeaks.insert({SinkInst, {LVValue}});
+            }
+          }
+        }
+      }
+    }
+
+    EXPECT_EQ(FoundLeaks, GroundTruthEntries);
   }
 }; // Test Fixture
 
@@ -147,7 +168,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
@@ -161,7 +182,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
@@ -174,7 +195,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
@@ -187,7 +208,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
@@ -204,7 +225,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}, {EntryThree, EntryFour}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
@@ -217,22 +238,22 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  // map<int, set<string>> GroundTruth;
-  // GroundTruth[5] = set<string>{"main.0"};
 
-  SrcCodeLocationEntry Entry(13, 5, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(0, 1, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  const auto &IRDB = HA->getProjectIRDB();
+  SrcCodeLocationEntry Entry(5, 3, IRDB.getFunction("main"));
+  const auto *ArgValue =
+      testingLocInIR({ArgNo{0}}, IRDB, IRDB.getFunction("main"));
+  std::set<std::tuple<SrcCodeLocationEntry, const llvm::Value *>> GroundTruth{
+      {Entry, ArgValue}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
@@ -247,7 +268,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
@@ -262,7 +283,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
@@ -277,7 +298,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
@@ -296,7 +317,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}, {EntryThree, EntryFour}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
@@ -311,7 +332,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
@@ -326,7 +347,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
@@ -341,7 +362,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
@@ -356,7 +377,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
@@ -371,7 +392,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
@@ -386,7 +407,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
@@ -401,7 +422,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
@@ -418,7 +439,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
@@ -432,7 +453,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
@@ -446,7 +467,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
       {Entry, EntryTwo}};
 
-  compareResults(GroundTruth);
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 int main(int Argc, char **Argv) {
