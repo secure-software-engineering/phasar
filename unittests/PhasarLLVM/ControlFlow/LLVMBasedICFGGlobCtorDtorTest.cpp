@@ -102,18 +102,18 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest) {
 TEST_F(LLVMBasedICFGGlobCtorDtorTest, CtorTest2) {
 
   llvm::LLVMContext Ctx;
-  auto M1 = LLVMProjectIRDB::getParsedIRModuleOrNull(
+  auto M1 = LLVMProjectIRDB::getParsedIRModuleOrErr(
       PathToLLFiles + "globals_ctor_2_1_cpp.ll", Ctx);
-  auto M2 = LLVMProjectIRDB::getParsedIRModuleOrNull(
+  auto M2 = LLVMProjectIRDB::getParsedIRModuleOrErr(
       PathToLLFiles + "globals_ctor_2_2_cpp.ll", Ctx);
 
-  ASSERT_NE(nullptr, M1);
-  ASSERT_NE(nullptr, M2);
+  ASSERT_TRUE(M1);
+  ASSERT_TRUE(M2);
 
-  auto LinkerError = llvm::Linker::linkModules(*M1, std::move(M2));
+  auto LinkerError = llvm::Linker::linkModules(**M1, std::move(*M2));
   ASSERT_FALSE(LinkerError);
 
-  LLVMProjectIRDB IRDB(std::move(M1), /*DoPreprocessing*/ true);
+  LLVMProjectIRDB IRDB(std::move(*M1), /*DoPreprocessing*/ true);
   DIBasedTypeHierarchy TH(IRDB);
   LLVMAliasSet PT(&IRDB);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,

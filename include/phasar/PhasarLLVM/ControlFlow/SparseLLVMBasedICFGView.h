@@ -34,7 +34,7 @@ struct CFGTraits<SparseLLVMBasedICFGView> : CFGTraits<LLVMBasedCFG> {};
 /// It still owns the sparse value-flow graphs.
 ///
 /// Use this in the IDESolver or IFDSSolver to profit from the SparseIFDS or
-/// SparseIDE optimization after Karakays et al. "Symbol-Specific Sparsification
+/// SparseIDE optimization after Karakaya et al. "Symbol-Specific Sparsification
 /// of Interprocedural Distributive Environment Problems"
 /// <https://doi.org/10.48550/arXiv.2401.14813>
 class SparseLLVMBasedICFGView

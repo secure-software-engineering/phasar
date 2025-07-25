@@ -66,6 +66,8 @@ class DefaultAliasAwareIDEProblem
 public:
   using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
 
+  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
+
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
   ///
@@ -79,8 +81,6 @@ public:
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
                                                ZeroValue),
         detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
-
-  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
