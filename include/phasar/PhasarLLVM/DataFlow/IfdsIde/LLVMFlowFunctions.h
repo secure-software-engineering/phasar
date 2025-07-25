@@ -193,26 +193,8 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
           std::any_of(
               ArgIt, ArgEnd,
               std::bind(std::ref(PropArg), std::placeholders::_1, Source))) {
-        // Over-approximate by trying to add the
-        //   alloca [1 x %struct.__va_list_tag], align 16
-        // to the results
-        // find the allocated %struct.__va_list_tag and generate it
-
-        for (const auto &BB : *DestFun) {
-          for (const auto &I : BB) {
-            if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-              if (Alloc->getAllocatedType()->isArrayTy() &&
-                  Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                  Alloc->getAllocatedType()
-                      ->getArrayElementType()
-                      ->isStructTy() &&
-                  Alloc->getAllocatedType()
-                          ->getArrayElementType()
-                          ->getStructName() == "struct.__va_list_tag") {
-                Res.insert(std::invoke(FactConstructor, Alloc));
-              }
-            }
-          }
+        if (const auto *VaListAlloca = getVaListTagOrNull(*DestFun)) {
+          Res.insert(std::invoke(FactConstructor, VaListAlloca));
         }
       }
 
@@ -306,24 +288,10 @@ FlowFunctionPtrType<D, Container> mapFactsToCaller(
       }
 
       if (ArgIt != ArgEnd) {
-        // Over-approximate by trying to add the
-        //   alloca [1 x %struct.__va_list_tag], align 16
-        // to the results
-        // find the allocated %struct.__va_list_tag and generate it
-
-        for (const auto &I : llvm::instructions(DestFun)) {
-          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            const auto *AllocTy = Alloc->getAllocatedType();
-            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
-                AllocTy->getArrayElementType()->isStructTy() &&
-                AllocTy->getArrayElementType()->getStructName() ==
-                    "struct.__va_list_tag") {
-              if (std::invoke(PropArg, Alloc, Source)) {
-                std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
-                               FactConstructor);
-                break;
-              }
-            }
+        if (const auto *VaListAlloca = getVaListTagOrNull(*DestFun)) {
+          if (std::invoke(PropArg, VaListAlloca, Source)) {
+            std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
+                           FactConstructor);
           }
         }
       }

@@ -74,7 +74,7 @@ void CHAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
   for (const auto &FallbackTy : FallbackTys) {
     const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VtableIndex,
                                                    CallSite, ReceiverTy);
-    if (Target) {
+    if (Target && psr::isConsistentCall(CallSite, Target)) {
       PossibleTargets.insert(Target);
     }
   }

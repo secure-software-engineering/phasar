@@ -44,12 +44,6 @@ public:
   [[nodiscard]] const LLVMVFTable *getVFTableOrNull(const llvm::DIType *Type,
                                                     uint32_t Index = 0) const;
 
-  [[nodiscard]] const llvm::GlobalVariable *
-  getVFTableGlobal(const llvm::DIType *Type) const;
-
-  [[nodiscard]] const llvm::GlobalVariable *
-  getVFTableGlobal(llvm::StringRef ClearTypeName) const;
-
   [[nodiscard]] const llvm::SmallDenseSet<uint32_t> &
   getVTableIndexInHierarchy(const llvm::DIType *DerivedType,
                             const llvm::DIType *BaseType) const;
@@ -60,6 +54,12 @@ public:
 
   /// Supercedes DIBasedTypeHierarchy::isVTable
   [[nodiscard]] static bool isVTable(llvm::StringRef MangledVarName);
+
+  [[nodiscard]] const llvm::GlobalVariable *
+  getVFTableGlobal(const llvm::DIType *Type) const;
+
+  [[nodiscard]] const llvm::GlobalVariable *
+  getVFTableGlobal(llvm::StringRef ClearTypeName) const;
 
 private:
   llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;

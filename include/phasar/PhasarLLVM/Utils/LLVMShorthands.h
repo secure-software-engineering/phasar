@@ -33,6 +33,9 @@ class StoreInst;
 class BranchInst;
 class Module;
 class CallInst;
+class AllocaInst;
+class DIType;
+class DIDerivedType;
 } // namespace llvm
 
 namespace psr {
@@ -103,6 +106,9 @@ std::string llvmIRToShortString(const llvm::Value *V);
 
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
+LLVM_DUMP_METHOD void dumpIRValue(const llvm::Function *V);
+LLVM_DUMP_METHOD void dumpDIType(const llvm::DIType *Ty);
+LLVM_DUMP_METHOD void dumpDIType(const llvm::DIDerivedType *Ty);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
@@ -192,10 +198,11 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
 llvm::SmallVector<const llvm::Instruction *, 2>
-getAllExitPoints(const llvm::Function *F);
+getAllExitPoints(const llvm::Function *F, bool IncludeResume = true);
 void appendAllExitPoints(
     const llvm::Function *F,
-    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints);
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints,
+    bool IncludeResume = true);
 
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.
@@ -271,6 +278,11 @@ public:
   static llvm::ModuleSlotTracker &
   getSlotTrackerForModule(const llvm::Module *Module);
 };
+
+[[nodiscard]] const llvm::AllocaInst *
+getVaListTagOrNull(const llvm::Function &Fun);
+
+[[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
 } // namespace psr
 
 #endif
