@@ -15,7 +15,6 @@
 #define LLVM_ANALYSIS_CFLANDERSALIASANALYSIS_H
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
@@ -67,7 +66,7 @@ public:
 private:
   /// Ensures that the given function is available in the cache.
   /// Returns the appropriate entry from the cache.
-  const Optional<FunctionInfo> &ensureCached(const Function &);
+  const std::optional<FunctionInfo> &ensureCached(const Function &);
 
   /// Inserts the given Function into the cache.
   void scan(const Function &);
@@ -82,7 +81,7 @@ private:
   /// in the cache as an Optional without a value. This way, if we
   /// have any kind of recursion, it is discernable from a function
   /// that simply has empty sets.
-  DenseMap<const Function *, Optional<FunctionInfo>> Cache;
+  DenseMap<const Function *, std::optional<FunctionInfo>> Cache;
 
   std::forward_list<cflaa::FunctionHandle<CFLAndersAAResult>> Handles;
 };

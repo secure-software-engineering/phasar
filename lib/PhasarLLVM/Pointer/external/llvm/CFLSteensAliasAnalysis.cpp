@@ -37,7 +37,6 @@
 #include "CFLSteensAliasAnalysis.h"
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/Constants.h"
@@ -228,7 +227,8 @@ CFLSteensAAResult::FunctionInfo CFLSteensAAResult::buildSetsFrom(Function *Fn) {
 }
 
 void CFLSteensAAResult::scan(Function *Fn) {
-  auto InsertPair = Cache.insert(std::make_pair(Fn, Optional<FunctionInfo>()));
+  auto InsertPair =
+      Cache.insert(std::make_pair(Fn, std::optional<FunctionInfo>()));
   (void)InsertPair;
   assert(InsertPair.second &&
          "Trying to scan a function that has already been cached");
@@ -246,7 +246,7 @@ void CFLSteensAAResult::evict(Function *Fn) { Cache.erase(Fn); }
 
 /// Ensures that the given function is available in the cache, and returns the
 /// entry.
-const Optional<CFLSteensAAResult::FunctionInfo> &
+const std::optional<CFLSteensAAResult::FunctionInfo> &
 CFLSteensAAResult::ensureCached(Function *Fn) {
   auto Iter = Cache.find(Fn);
   if (Iter == Cache.end()) {

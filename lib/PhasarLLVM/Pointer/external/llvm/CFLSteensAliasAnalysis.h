@@ -15,7 +15,6 @@
 #define LLVM_ANALYSIS_CFLSTEENSALIASANALYSIS_H
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/MemoryLocation.h"
 #include "llvm/IR/PassManager.h"
@@ -62,7 +61,7 @@ public:
 
   /// Ensures that the given function is available in the cache.
   /// Returns the appropriate entry from the cache.
-  const Optional<FunctionInfo> &ensureCached(Function *Fn);
+  const std::optional<FunctionInfo> &ensureCached(Function *Fn);
 
   /// Get the alias summary for the given function
   /// Return nullptr if the summary is not found or not available
@@ -98,7 +97,7 @@ private:
   /// in the cache as an Optional without a value. This way, if we
   /// have any kind of recursion, it is discernable from a function
   /// that simply has empty sets.
-  DenseMap<Function *, Optional<FunctionInfo>> Cache;
+  DenseMap<Function *, std::optional<FunctionInfo>> Cache;
   std::forward_list<cflaa::FunctionHandle<CFLSteensAAResult>> Handles;
 
   FunctionInfo buildSetsFrom(Function *F);

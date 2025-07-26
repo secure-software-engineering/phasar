@@ -22,8 +22,8 @@
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/FunctionExtras.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
+#include "llvm/ADT/bit.h"
 
 #include <cstdint>
 #include <functional>
@@ -48,7 +48,7 @@ struct IDEFeatureTaintEdgeFact {
     }
 #endif
 
-    llvm::SmallBitVector Ret(llvm::findLastSet(Bits) + 1);
+    llvm::SmallBitVector Ret(llvm::bit_width(Bits));
     Ret.setBitsInMask((const uint32_t *)&Bits, sizeof(Bits));
     return Ret;
   }
@@ -62,7 +62,7 @@ struct IDEFeatureTaintEdgeFact {
   explicit IDEFeatureTaintEdgeFact() noexcept { Taints.invalid(); }
 
   void unionWith(uintptr_t Facts) {
-    auto RequiredSize = llvm::findLastSet(Facts) + 1;
+    size_t RequiredSize = llvm::bit_width(Facts);
     if (RequiredSize > Taints.size()) {
       Taints.resize(RequiredSize);
     }

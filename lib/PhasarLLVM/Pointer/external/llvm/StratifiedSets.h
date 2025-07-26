@@ -10,7 +10,6 @@
 #define LLVM_ADT_STRATIFIEDSETS_H
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -94,7 +93,7 @@ public:
                  std::vector<StratifiedLink> Links)
       : Values(std::move(Map)), Links(std::move(Links)) {}
 
-  Optional<StratifiedInfo> find(const T &Elem) const {
+  std::optional<StratifiedInfo> find(const T &Elem) const {
     auto Iter = Values.find(Elem);
     if (Iter == Values.end())
       return std::nullopt;
@@ -547,21 +546,21 @@ private:
     return true;
   }
 
-  Optional<const StratifiedInfo *> get(const T &Val) const {
+  std::optional<const StratifiedInfo *> get(const T &Val) const {
     auto Result = Values.find(Val);
     if (Result == Values.end())
       return std::nullopt;
     return &Result->second;
   }
 
-  Optional<StratifiedInfo *> get(const T &Val) {
+  std::optional<StratifiedInfo *> get(const T &Val) {
     auto Result = Values.find(Val);
     if (Result == Values.end())
       return std::nullopt;
     return &Result->second;
   }
 
-  Optional<StratifiedIndex> indexOf(const T &Val) {
+  std::optional<StratifiedIndex> indexOf(const T &Val) {
     auto MaybeVal = get(Val);
     if (!MaybeVal.has_value())
       return std::nullopt;

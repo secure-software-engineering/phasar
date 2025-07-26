@@ -57,7 +57,6 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/iterator_range.h"
@@ -335,7 +334,7 @@ class CFLAndersAAResult::FunctionInfo {
   /// Summary of externally visible effects.
   AliasSummary Summary;
 
-  Optional<AliasAttrs> getAttrs(const Value *) const;
+  std::optional<AliasAttrs> getAttrs(const Value *) const;
 
 public:
   FunctionInfo(const Function &, const SmallVectorImpl<Value *> &,
@@ -353,12 +352,12 @@ static bool hasWriteOnlyState(StateSet Set) {
   return (Set & StateSet(WriteOnlyStateMask)).any();
 }
 
-static Optional<InterfaceValue>
+static std::optional<InterfaceValue>
 getInterfaceValue(InstantiatedValue IValue,
                   const SmallVectorImpl<Value *> &RetVals) {
   auto Val = IValue.Val;
 
-  Optional<unsigned> Index;
+  std::optional<unsigned> Index;
   if (auto Arg = dyn_cast<Argument>(Val))
     Index = Arg->getArgNo() + 1;
   else if (is_contained(RetVals, Val))
@@ -509,7 +508,7 @@ CFLAndersAAResult::FunctionInfo::FunctionInfo(
   populateExternalRelations(Summary.RetParamRelations, Fn, RetVals, ReachSet);
 }
 
-Optional<AliasAttrs>
+std::optional<AliasAttrs>
 CFLAndersAAResult::FunctionInfo::getAttrs(const Value *V) const {
   assert(V != nullptr);
 
@@ -627,8 +626,8 @@ static void initializeWorkList(std::vector<WorkListItem> &WorkList,
   }
 }
 
-static Optional<InstantiatedValue> getNodeBelow(const CFLGraph &Graph,
-                                                InstantiatedValue V) {
+static std::optional<InstantiatedValue> getNodeBelow(const CFLGraph &Graph,
+                                                     InstantiatedValue V) {
   auto NodeBelow = InstantiatedValue{V.Val, V.DerefLevel + 1};
   if (Graph.getNode(NodeBelow))
     return NodeBelow;
@@ -811,7 +810,8 @@ CFLAndersAAResult::buildInfoFrom(const Function &Fn) {
 }
 
 void CFLAndersAAResult::scan(const Function &Fn) {
-  auto InsertPair = Cache.insert(std::make_pair(&Fn, Optional<FunctionInfo>()));
+  auto InsertPair =
+      Cache.insert(std::make_pair(&Fn, std::optional<FunctionInfo>()));
   (void)InsertPair;
   assert(InsertPair.second &&
          "Trying to scan a function that has already been cached");
@@ -826,7 +826,7 @@ void CFLAndersAAResult::scan(const Function &Fn) {
 
 void CFLAndersAAResult::evict(const Function *Fn) { Cache.erase(Fn); }
 
-const Optional<CFLAndersAAResult::FunctionInfo> &
+const std::optional<CFLAndersAAResult::FunctionInfo> &
 CFLAndersAAResult::ensureCached(const Function &Fn) {
   auto Iter = Cache.find(&Fn);
   if (Iter == Cache.end()) {

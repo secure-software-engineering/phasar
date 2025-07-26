@@ -17,7 +17,6 @@
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/None.h"
 #include "llvm/ADT/SmallVector.h"
 
 #include <iterator>
