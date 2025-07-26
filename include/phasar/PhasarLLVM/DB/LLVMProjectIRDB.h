@@ -46,8 +46,17 @@ public:
   /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
+  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
+
+  /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
+  [[deprecated("When moving to the next LLVM version, opaque pointers support "
+               "is removed completely. Please use one of the other "
+               "constructors of LLVMProjectIRDB.")]]
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
+                           bool EnableOpaquePointers);
+
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is optionally being preprocessed.
   ///
@@ -69,8 +78,16 @@ public:
   /// Parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
+
+  /// Parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
+  [[deprecated("When moving to the next LLVM version, opaque pointers support "
+               "is removed completely. Please use one of the other "
+               "constructors of LLVMProjectIRDB.")]]
   explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
+                           bool EnableOpaquePointers);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(const LLVMProjectIRDB &) = delete;
@@ -98,8 +115,13 @@ public:
                          llvm::LLVMContext &Ctx) noexcept;
 
   [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
-  load(const llvm::Twine &IRFileName,
-       bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
+  load(const llvm::Twine &IRFileName);
+
+  [[deprecated("When moving to the next LLVM version, opaque pointers support "
+               "is removed completely. Please use one of the other "
+               "constructors of LLVMProjectIRDB.")]] [[nodiscard]]
+  static llvm::ErrorOr<LLVMProjectIRDB> load(const llvm::Twine &IRFileName,
+                                             bool EnableOpaquePointers);
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;
