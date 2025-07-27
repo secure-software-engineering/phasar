@@ -337,8 +337,7 @@ LLVMTypeHierarchy::getType(llvm::StringRef TypeName) const {
   }
 
   // Sometimes, clang adds a .base suffix
-  std::string TN = TypeName.str() + ".base";
-  return getTypeImpl(TypeGraph, TN);
+  return getTypeImpl(TypeGraph, (TypeName + ".base").str());
 }
 
 std::vector<const llvm::StructType *> LLVMTypeHierarchy::getAllTypes() const {

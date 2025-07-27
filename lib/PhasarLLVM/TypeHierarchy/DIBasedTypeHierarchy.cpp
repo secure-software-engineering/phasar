@@ -315,7 +315,7 @@ bool DIBasedTypeHierarchy::isVTable(llvm::StringRef VarName) {
   if (VarName.startswith(VTablePrefix)) {
     return true;
   }
-  // In LLVM 16 demangle() takes a StringRef
+  // In LLVM 17 demangle() takes a StringRef
   auto Demang = llvm::demangle(VarName.str());
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }

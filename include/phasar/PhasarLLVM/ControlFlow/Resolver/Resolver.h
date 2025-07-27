@@ -57,10 +57,9 @@ getReceiverType(const llvm::CallBase *CallSite);
 
 /// Assuming that `CallSite` is a virtual call, where `Idx` is retrieved through
 /// `getVFTIndex()` and `T` through `getReceiverType()`
-[[nodiscard]] const llvm::Function *
-getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                          const llvm::CallBase *CallSite,
-                          const psr::LLVMVFTableProvider &VTP);
+[[nodiscard]] const llvm::Function *getNonPureVirtualVFTEntry(
+    const llvm::DIType *T, unsigned Idx, const llvm::CallBase *CallSite,
+    const psr::LLVMVFTableProvider &VTP, const llvm::DIType *ReceiverType);
 
 [[nodiscard]] std::string getReceiverTypeName(const llvm::CallBase *CallSite);
 
@@ -104,12 +103,6 @@ public:
   [[nodiscard]] FunctionSetTy
   resolveIndirectCall(const llvm::CallBase *CallSite);
 
-  [[nodiscard]] virtual FunctionSetTy
-  resolveVirtualCall(const llvm::CallBase *CallSite) = 0;
-
-  [[nodiscard]] virtual FunctionSetTy
-  resolveFunctionPointer(const llvm::CallBase *CallSite);
-
   [[deprecated("With the removal of DTAResolver, this is not used "
                "anymore")]] virtual void
   otherInst(const llvm::Instruction *Inst);
@@ -136,17 +129,25 @@ public:
 protected:
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                            const llvm::CallBase *CallSite) {
+                            const llvm::CallBase *CallSite,
+                            const llvm::DIType *ReceiverType) {
     if (!VTP) {
       return nullptr;
     }
-    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP);
+    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP, ReceiverType);
   }
 
   const LLVMProjectIRDB *IRDB{};
   const LLVMVFTableProvider *VTP{};
   std::optional<llvm::SmallVector<const llvm::Function *, 0>>
       AddressTakenFunctions{};
+
+protected:
+  virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                  const llvm::CallBase *CallSite) = 0;
+
+  virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                      const llvm::CallBase *CallSite);
 };
 } // namespace psr
 
