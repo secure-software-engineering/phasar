@@ -11,9 +11,13 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMVFTABLEPROVIDER_H
 
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/Utils/HashUtils.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringMap.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 
+#include <cstdint>
 #include <unordered_map>
 
 namespace llvm {
@@ -37,8 +41,19 @@ public:
   explicit LLVMVFTableProvider(const LLVMProjectIRDB &IRDB);
 
   [[nodiscard]] bool hasVFTable(const llvm::DIType *Type) const;
-  [[nodiscard]] const LLVMVFTable *
-  getVFTableOrNull(const llvm::DIType *Type) const;
+  [[nodiscard]] const LLVMVFTable *getVFTableOrNull(const llvm::DIType *Type,
+                                                    uint32_t Index = 0) const;
+
+  [[nodiscard]] const llvm::SmallDenseSet<uint32_t> &
+  getVTableIndexInHierarchy(const llvm::DIType *DerivedType,
+                            const llvm::DIType *BaseType) const;
+
+  /// Supercedes DIBasedTypeHierarchy::removeVTablePrefix
+  [[nodiscard]] static llvm::StringRef
+  removeVTablePrefix(llvm::StringRef GlobName) noexcept;
+
+  /// Supercedes DIBasedTypeHierarchy::isVTable
+  [[nodiscard]] static bool isVTable(llvm::StringRef MangledVarName);
 
   [[nodiscard]] const llvm::GlobalVariable *
   getVFTableGlobal(const llvm::DIType *Type) const;
@@ -48,7 +63,13 @@ public:
 
 private:
   llvm::StringMap<const llvm::GlobalVariable *> ClearNameTVMap;
-  std::unordered_map<const llvm::DIType *, LLVMVFTable> TypeVFTMap;
+  std::unordered_map<std::pair<const llvm::DIType *, uint32_t>, LLVMVFTable,
+                     PairHash>
+      TypeVFTMap;
+  std::unordered_map<
+      const llvm::DIType *,
+      llvm::SmallDenseMap<const llvm::DIType *, llvm::SmallDenseSet<uint32_t>>>
+      BasesOfVirt;
 };
 } // namespace psr
 

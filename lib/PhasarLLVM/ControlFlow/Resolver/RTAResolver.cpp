@@ -23,16 +23,14 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/BinaryFormat/Dwarf.h"
-#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 
-using namespace std;
 using namespace psr;
 
 RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
@@ -42,10 +40,8 @@ RTAResolver::RTAResolver(const LLVMProjectIRDB *IRDB,
   resolveAllocatedCompositeTypes();
 }
 
-auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
-    -> FunctionSetTy {
-
-  FunctionSetTy PossibleCallTargets;
+void RTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                     const llvm::CallBase *CallSite) {
 
   PHASAR_LOG_LEVEL(DEBUG,
                    "Call virtual function: " << llvmIRToString(CallSite));
@@ -57,7 +53,7 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
                      "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                          << llvmIRToString(CallSite) << "\n");
-    return {};
+    return;
   }
 
   auto VtableIndex = RetrievedVtableIndex.value();
@@ -73,19 +69,18 @@ auto RTAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   auto EndIt = ReachableTypes.end();
   for (const auto *PossibleType : AllocatedCompositeTypes) {
     if (ReachableTypes.find(PossibleType) != EndIt) {
-      const auto *Target =
-          getNonPureVirtualVFTEntry(PossibleType, VtableIndex, CallSite);
+
+      const auto *Target = getNonPureVirtualVFTEntry(PossibleType, VtableIndex,
+                                                     CallSite, ReceiverType);
       if (Target && psr::isConsistentCall(CallSite, Target)) {
-        PossibleCallTargets.insert(Target);
+        PossibleTargets.insert(Target);
       }
     }
   }
 
-  if (PossibleCallTargets.empty()) {
-    return CHAResolver::resolveVirtualCall(CallSite);
+  if (PossibleTargets.empty()) {
+    CHAResolver::resolveVirtualCall(PossibleTargets, CallSite);
   }
-
-  return PossibleCallTargets;
 }
 
 std::string RTAResolver::str() const { return "RTA"; }

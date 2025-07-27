@@ -61,6 +61,15 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
+static const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy) {
+  while (const auto *DerivedTy =
+             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+    // get rid of the pointer
+    DITy = DerivedTy->getBaseType();
+  }
+  return DITy;
+}
+
 const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   if (!CallSite || CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
@@ -75,23 +84,23 @@ const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   }
 
   if (const auto *DITy = getVarTypeFromIR(Receiver)) {
-    while (const auto *DerivedTy =
-               llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
-      // get rid of the pointer
-      DITy = DerivedTy->getBaseType();
-    }
-    return DITy;
+    return stripPointerTypes(DITy);
+  }
+
+  if (const auto *Var =
+          getDILocalVariable(Receiver->stripPointerCastsAndAliases())) {
+    return stripPointerTypes(Var->getType());
   }
 
   return nullptr;
 }
 
-const llvm::Function *
-psr::getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                               const llvm::CallBase *CallSite,
-                               const LLVMVFTableProvider &VTP) {
+const llvm::Function *psr::getNonPureVirtualVFTEntry(
+    const llvm::DIType *T, unsigned Idx, const llvm::CallBase *CallSite,
+    const LLVMVFTableProvider &VTP, const llvm::DIType *ReceiverType) {
+  auto VTIndex = *VTP.getVTableIndexInHierarchy(T, ReceiverType).begin();
 
-  if (const auto *VT = VTP.getVFTableOrNull(T)) {
+  if (const auto *VT = VTP.getVFTableOrNull(T, VTIndex)) {
     const auto *Target = VT->getFunction(Idx);
     if (Target &&
         Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
@@ -135,6 +144,8 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   // check potential receiver type
   const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
+    llvm::errs() << "No receiver type found for call at "
+                 << llvmIRToString(Inst) << '\n';
     return false;
   }
 
@@ -160,28 +171,31 @@ void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
+  FunctionSetTy PossibleTargets;
   if (VTP && isVirtualCall(CallSite, *VTP)) {
-    return resolveVirtualCall(CallSite);
+    resolveVirtualCall(PossibleTargets, CallSite);
   }
-  return resolveFunctionPointer(CallSite);
+
+  if (PossibleTargets.empty()) {
+    resolveFunctionPointer(PossibleTargets, CallSite);
+  }
+
+  return PossibleTargets;
 }
 
-auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
-    -> FunctionSetTy {
+void Resolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                      const llvm::CallBase *CallSite) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
   PHASAR_LOG_LEVEL(DEBUG,
                    "Call function pointer: " << llvmIRToString(CallSite));
-  FunctionSetTy CalleeTargets;
 
   for (const auto *F : IRDB->getAllFunctions()) {
     if (F->hasAddressTaken() && isConsistentCall(CallSite, F)) {
-      CalleeTargets.insert(F);
+      PossibleTargets.insert(F);
     }
   }
-
-  return CalleeTargets;
 }
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
