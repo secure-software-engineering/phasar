@@ -84,6 +84,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classpsr_1_1LLVMVFTableProvider-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">psr::LLVMVFTableProvider Class Reference</div></div>
 </div><!--header-->
@@ -102,18 +103,29 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1640e8d077277ecf0765d2b1f5998d39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d3387de9ff0f9bb34877556e5e8694f" id="r_a7d3387de9ff0f9bb34877556e5e8694f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a7d3387de9ff0f9bb34877556e5e8694f">hasVFTable</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *Type) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:a7d3387de9ff0f9bb34877556e5e8694f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40796b2c747e82b1bb00293b90a4870f" id="r_a40796b2c747e82b1bb00293b90a4870f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTable.html">LLVMVFTable</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a40796b2c747e82b1bb00293b90a4870f">getVFTableOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *Type) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
-<tr class="separator:a40796b2c747e82b1bb00293b90a4870f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d9488ab4d1923ed9f31246c59399a84" id="r_a9d9488ab4d1923ed9f31246c59399a84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTable.html">LLVMVFTable</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a9d9488ab4d1923ed9f31246c59399a84">getVFTableOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *Type, uint32_t Index=0) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a9d9488ab4d1923ed9f31246c59399a84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f264adbb38eee23afc49bb1e2dbaae0" id="r_a7f264adbb38eee23afc49bb1e2dbaae0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::SmallDenseSet&lt; uint32_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a7f264adbb38eee23afc49bb1e2dbaae0">getVTableIndexInHierarchy</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DerivedType</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BaseType</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a7f264adbb38eee23afc49bb1e2dbaae0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66537c3da227cfe9cec65f3dd494809d" id="r_a66537c3da227cfe9cec65f3dd494809d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a66537c3da227cfe9cec65f3dd494809d">getVFTableGlobal</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *Type) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:a66537c3da227cfe9cec65f3dd494809d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5f4abd7659ce2a43053c28a2e6cdd98" id="r_ac5f4abd7659ce2a43053c28a2e6cdd98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#ac5f4abd7659ce2a43053c28a2e6cdd98">getVFTableGlobal</a> (llvm::StringRef <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ClearTypeName</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:ac5f4abd7659ce2a43053c28a2e6cdd98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a2f72b803e9e93349a730282d0b8e3976" id="r_a2f72b803e9e93349a730282d0b8e3976"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> llvm::StringRef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#a2f72b803e9e93349a730282d0b8e3976">removeVTablePrefix</a> (llvm::StringRef <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GlobName</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memdesc:a2f72b803e9e93349a730282d0b8e3976"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supercedes <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html#a44ee34242b429afab0a43afbca895a6a">DIBasedTypeHierarchy::removeVTablePrefix</a>.  <br /></td></tr>
+<tr class="separator:a2f72b803e9e93349a730282d0b8e3976"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa940a1c2f7c71fa8a4689a4aa80c107" id="r_aaa940a1c2f7c71fa8a4689a4aa80c107"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html#aaa940a1c2f7c71fa8a4689a4aa80c107">isVTable</a> (llvm::StringRef <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MangledVarName</a>)</td></tr>
+<tr class="memdesc:aaa940a1c2f7c71fa8a4689a4aa80c107"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supercedes <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html#a1412b1f067a5d97b86d8a3c5a15efd7f">DIBasedTypeHierarchy::isVTable</a>.  <br /></td></tr>
+<tr class="separator:aaa940a1c2f7c71fa8a4689a4aa80c107"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A class that provides access to all C++ virtual function tables (VTables) found in the target program. </p>
 <p>Useful for constructing a call graph for a C++-based target. </p><dl class="section note"><dt>Note</dt><dd>This class only works, if the target program's IR was generated with debug information. Pass <code>-g</code> to the compiler to achieve this. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMVFTableProvider_8h_source.html#l00034">34</a> of file <a class="el" href="LLVMVFTableProvider_8h_source.html">LLVMVFTableProvider.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMVFTableProvider_8h_source.html#l00038">38</a> of file <a class="el" href="LLVMVFTableProvider_8h_source.html">LLVMVFTableProvider.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a32980570bceb6dfb4b5dfdaf600d4eef" name="a32980570bceb6dfb4b5dfdaf600d4eef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a32980570bceb6dfb4b5dfdaf600d4eef">&#9670;&#160;</a></span>LLVMVFTableProvider() <span class="overload">[1/2]</span></h2>
@@ -204,8 +216,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a40796b2c747e82b1bb00293b90a4870f" name="a40796b2c747e82b1bb00293b90a4870f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40796b2c747e82b1bb00293b90a4870f">&#9670;&#160;</a></span>getVFTableOrNull()</h2>
+<a id="a9d9488ab4d1923ed9f31246c59399a84" name="a9d9488ab4d1923ed9f31246c59399a84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d9488ab4d1923ed9f31246c59399a84">&#9670;&#160;</a></span>getVFTableOrNull()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -214,8 +226,46 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTable.html">LLVMVFTable</a> * psr::LLVMVFTableProvider::getVFTableOrNull </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
-          <td class="paramname"><em>Type</em></td><td>)</td>
-          <td> const</td>
+          <td class="paramname"><em>Type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>Index</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7f264adbb38eee23afc49bb1e2dbaae0" name="a7f264adbb38eee23afc49bb1e2dbaae0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f264adbb38eee23afc49bb1e2dbaae0">&#9670;&#160;</a></span>getVTableIndexInHierarchy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::SmallDenseSet&lt; uint32_t &gt; &amp; psr::LLVMVFTableProvider::getVTableIndexInHierarchy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>DerivedType</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>BaseType</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -240,13 +290,69 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aaa940a1c2f7c71fa8a4689a4aa80c107" name="aaa940a1c2f7c71fa8a4689a4aa80c107"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa940a1c2f7c71fa8a4689a4aa80c107">&#9670;&#160;</a></span>isVTable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classbool.html">bool</a> psr::LLVMVFTableProvider::isVTable </td>
+          <td>(</td>
+          <td class="paramtype">llvm::StringRef&#160;</td>
+          <td class="paramname"><em>MangledVarName</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Supercedes <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html#a1412b1f067a5d97b86d8a3c5a15efd7f">DIBasedTypeHierarchy::isVTable</a>. </p>
+
+</div>
+</div>
+<a id="a2f72b803e9e93349a730282d0b8e3976" name="a2f72b803e9e93349a730282d0b8e3976"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f72b803e9e93349a730282d0b8e3976">&#9670;&#160;</a></span>removeVTablePrefix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> llvm::StringRef psr::LLVMVFTableProvider::removeVTablePrefix </td>
+          <td>(</td>
+          <td class="paramtype">llvm::StringRef&#160;</td>
+          <td class="paramname"><em>GlobName</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Supercedes <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html#a44ee34242b429afab0a43afbca895a6a">DIBasedTypeHierarchy::removeVTablePrefix</a>. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/phasar/PhasarLLVM/ControlFlow/<a class="el" href="LLVMVFTableProvider_8h_source.html">LLVMVFTableProvider.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 25 2025 16:11:55 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Jul 27 2025 07:05:32 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

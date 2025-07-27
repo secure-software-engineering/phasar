@@ -122,10 +122,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aef8a779d845d2aea789dfc41022cfa42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee06c45252e24e3b39b8fdf62d141751" id="r_aee06c45252e24e3b39b8fdf62d141751"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#aee06c45252e24e3b39b8fdf62d141751">resolveIndirectCall</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
 <tr class="separator:aee06c45252e24e3b39b8fdf62d141751"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af32b75e4183f70c68b70bb670ff0cc69" id="r_af32b75e4183f70c68b70bb670ff0cc69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#af32b75e4183f70c68b70bb670ff0cc69">resolveVirtualCall</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)=0</td></tr>
-<tr class="separator:af32b75e4183f70c68b70bb670ff0cc69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93bf6e6da9c9d9675b431db15df6f046" id="r_a93bf6e6da9c9d9675b431db15df6f046"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#a93bf6e6da9c9d9675b431db15df6f046">resolveFunctionPointer</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
-<tr class="separator:a93bf6e6da9c9d9675b431db15df6f046"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d5744c1ac8ef906cc542e1e892339da" id="r_a1d5744c1ac8ef906cc542e1e892339da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#a1d5744c1ac8ef906cc542e1e892339da">otherInst</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *Inst)</td></tr>
 <tr class="separator:a1d5744c1ac8ef906cc542e1e892339da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6feb5a80347c6a2657f6ae4ee6420e0" id="r_ad6feb5a80347c6a2657f6ae4ee6420e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#ad6feb5a80347c6a2657f6ae4ee6420e0">str</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
@@ -140,8 +136,12 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a17ff7f332cbb0a708d92102bc7b7f03d" id="r_a17ff7f332cbb0a708d92102bc7b7f03d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#a17ff7f332cbb0a708d92102bc7b7f03d">getNonPureVirtualVFTEntry</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *T, unsigned <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Idx</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
-<tr class="separator:a17ff7f332cbb0a708d92102bc7b7f03d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a361378bb21de13d35597fc0f8497988d" id="r_a361378bb21de13d35597fc0f8497988d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#a361378bb21de13d35597fc0f8497988d">getNonPureVirtualVFTEntry</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *T, unsigned <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Idx</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ReceiverType</a>)</td></tr>
+<tr class="separator:a361378bb21de13d35597fc0f8497988d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae787391514b46b5b5b6a24c524d0d9db" id="r_ae787391514b46b5b5b6a24c524d0d9db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#ae787391514b46b5b5b6a24c524d0d9db">resolveVirtualCall</a> (<a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PossibleTargets</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)=0</td></tr>
+<tr class="separator:ae787391514b46b5b5b6a24c524d0d9db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bafad4d6826830391478abd242dded6" id="r_a8bafad4d6826830391478abd242dded6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#a8bafad4d6826830391478abd242dded6">resolveFunctionPointer</a> (<a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PossibleTargets</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
+<tr class="separator:a8bafad4d6826830391478abd242dded6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -154,7 +154,7 @@ Protected Attributes</h2></td></tr>
 <div class="textblock"><p>A base class for call-target resolvers. Used to build call graphs. </p>
 <p>Create a specific resolver by making a new class, inheriting this resolver class and implementing the virtual functions as needed. </p>
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00075">75</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00074">74</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a0a821f4133911b649d18fe6b9346c440" name="a0a821f4133911b649d18fe6b9346c440"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0a821f4133911b649d18fe6b9346c440">&#9670;&#160;</a></span>FunctionSetTy</h2>
@@ -281,8 +281,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a17ff7f332cbb0a708d92102bc7b7f03d" name="a17ff7f332cbb0a708d92102bc7b7f03d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a17ff7f332cbb0a708d92102bc7b7f03d">&#9670;&#160;</a></span>getNonPureVirtualVFTEntry()</h2>
+<a id="a361378bb21de13d35597fc0f8497988d" name="a361378bb21de13d35597fc0f8497988d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a361378bb21de13d35597fc0f8497988d">&#9670;&#160;</a></span>getNonPureVirtualVFTEntry()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -306,7 +306,13 @@ Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
-          <td class="paramname"><em>CallSite</em>&#160;</td>
+          <td class="paramname"><em>CallSite</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>ReceiverType</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -321,9 +327,9 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00081">81</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00080">80</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a0e113546b62b1ffa25310f0a028f0fc8">psr::getNonPureVirtualVFTEntry()</a>, and <a class="el" href="Resolver_8h_source.html#l00078">VTP</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a2d60ab57214bbfc8497c831250b6532f">psr::getNonPureVirtualVFTEntry()</a>, and <a class="el" href="Resolver_8h_source.html#l00077">VTP</a>.</p>
 
 </div>
 </div>
@@ -392,7 +398,7 @@ Protected Attributes</h2></td></tr>
 
 <p>Reimplemented in <a class="el" href="classpsr_1_1CHAResolver.html#a9be9e5d964c9c65d9f042eea07a755be">psr::CHAResolver</a>, <a class="el" href="classpsr_1_1NOResolver.html#a5d40223fe42910c4b814cfeaa282d2f3">psr::NOResolver</a>, <a class="el" href="classpsr_1_1OTFResolver.html#a26a227d1f531b641e484af5fbd3e6e8b">psr::OTFResolver</a>, and <a class="el" href="classpsr_1_1RTAResolver.html#a81743706e7bc7fdaed317e063c1948df">psr::RTAResolver</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00120">120</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00114">114</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
 </div>
 </div>
@@ -474,8 +480,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a93bf6e6da9c9d9675b431db15df6f046" name="a93bf6e6da9c9d9675b431db15df6f046"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a93bf6e6da9c9d9675b431db15df6f046">&#9670;&#160;</a></span>resolveFunctionPointer()</h2>
+<a id="a8bafad4d6826830391478abd242dded6" name="a8bafad4d6826830391478abd242dded6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8bafad4d6826830391478abd242dded6">&#9670;&#160;</a></span>resolveFunctionPointer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -484,21 +490,31 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a> psr::Resolver::resolveFunctionPointer </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::Resolver::resolveFunctionPointer </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
-          <td class="paramname"><em>CallSite</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a> &amp;&#160;</td>
+          <td class="paramname"><em>PossibleTargets</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
+          <td class="paramname"><em>CallSite</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Reimplemented in <a class="el" href="classpsr_1_1NOResolver.html#a524551ee9c87204eb3aa01755fc38e0c">psr::NOResolver</a>, and <a class="el" href="classpsr_1_1OTFResolver.html#aede8d9c30c215d8db17b851c806fcc33">psr::OTFResolver</a>.</p>
+<p>Reimplemented in <a class="el" href="classpsr_1_1NOResolver.html#a7fbd588ba2d21b730c987fb87503147d">psr::NOResolver</a>, and <a class="el" href="classpsr_1_1OTFResolver.html#acd555993aad4f7660961887fa209fed2">psr::OTFResolver</a>.</p>
 
 </div>
 </div>
@@ -520,8 +536,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="af32b75e4183f70c68b70bb670ff0cc69" name="af32b75e4183f70c68b70bb670ff0cc69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af32b75e4183f70c68b70bb670ff0cc69">&#9670;&#160;</a></span>resolveVirtualCall()</h2>
+<a id="ae787391514b46b5b5b6a24c524d0d9db" name="ae787391514b46b5b5b6a24c524d0d9db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae787391514b46b5b5b6a24c524d0d9db">&#9670;&#160;</a></span>resolveVirtualCall()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -530,21 +546,31 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a> psr::Resolver::resolveVirtualCall </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::Resolver::resolveVirtualCall </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
-          <td class="paramname"><em>CallSite</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1Resolver.html#a0a821f4133911b649d18fe6b9346c440">FunctionSetTy</a> &amp;&#160;</td>
+          <td class="paramname"><em>PossibleTargets</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
+          <td class="paramname"><em>CallSite</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="classpsr_1_1CHAResolver.html#a3b3eafaa44931bd3b17b3041f7215a75">psr::CHAResolver</a>, <a class="el" href="classpsr_1_1NOResolver.html#a37a33ab2665fcc6eb88c3f83fc9a73fa">psr::NOResolver</a>, <a class="el" href="classpsr_1_1OTFResolver.html#a3d9051740f1b02bb92a587c9e46e6963">psr::OTFResolver</a>, and <a class="el" href="classpsr_1_1RTAResolver.html#a2094c19f1cd10130ed84fe58fa4caa56">psr::RTAResolver</a>.</p>
+<p>Implemented in <a class="el" href="classpsr_1_1CHAResolver.html#aa4914f5564ec348a19a78ec7ac949199">psr::CHAResolver</a>, <a class="el" href="classpsr_1_1NOResolver.html#ad28c32a6e20d160b71c26e971c9705e3">psr::NOResolver</a>, <a class="el" href="classpsr_1_1OTFResolver.html#a3ca185bf7f4388e2b95a2ba8c48161a2">psr::OTFResolver</a>, and <a class="el" href="classpsr_1_1RTAResolver.html#a0b4cea3e804e34b1308d8810badf8f7a">psr::RTAResolver</a>.</p>
 
 </div>
 </div>
@@ -596,7 +622,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00077">77</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00076">76</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
 </div>
 </div>
@@ -620,9 +646,9 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00078">78</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00077">77</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Resolver_8h_source.html#l00081">getNonPureVirtualVFTEntry()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Resolver_8h_source.html#l00080">getNonPureVirtualVFTEntry()</a>.</p>
 
 </div>
 </div>
@@ -632,7 +658,7 @@ Protected Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jul 25 2025 16:11:55 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Jul 27 2025 07:05:32 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

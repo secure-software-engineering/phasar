@@ -12,7 +12,7 @@ var searchData=
   ['searchxpx_9',['SearchXPX',['../namespacepsr.html#a62959abb6ffb12411d9cc463b613f440',1,'psr']]],
   ['searchxxo_10',['SearchXXO',['../namespacepsr.html#a1c124bf814f0e9a1a55caeaf276178af',1,'psr']]],
   ['searchxxx_11',['SearchXXX',['../namespacepsr.html#aed836bb6b8dfa94961d311da7a815b55',1,'psr']]],
-  ['second_12',['second',['../structpsr_1_1EdgeFunctionComposer.html#a22f59d6cb3ba32af6440419d56b6a121',1,'psr::EdgeFunctionComposer::Second'],['../structpsr_1_1DummyPair.html#a2bf054e0b9e1ab506bc0530595c6ab7d',1,'psr::DummyPair::second']]],
+  ['second_12',['second',['../structpsr_1_1DummyPair.html#a2bf054e0b9e1ab506bc0530595c6ab7d',1,'psr::DummyPair::second'],['../structpsr_1_1EdgeFunctionComposer.html#a22f59d6cb3ba32af6440419d56b6a121',1,'psr::EdgeFunctionComposer::Second']]],
   ['seconds_13',['Seconds',['../structpsr_1_1hms.html#a737c4ab979ef1ea8ee3202c441fd6c5d',1,'psr::hms']]],
   ['seed_14',['Seed',['../structpsr_1_1JoinEdgeFunction.html#a2072498f47ac0beda2189b99863e7b1d',1,'psr::JoinEdgeFunction']]],
   ['sf_15',['SF',['../classpsr_1_1IDETabulationProblem.html#ae3d1e553aa63b1f496d1f74ffa6f0030',1,'psr::IDETabulationProblem']]],
