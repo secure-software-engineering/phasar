@@ -43,8 +43,8 @@ CHAResolver::CHAResolver(const LLVMProjectIRDB *IRDB,
 
 CHAResolver::~CHAResolver() = default;
 
-auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
-    -> FunctionSetTy {
+void CHAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                     const llvm::CallBase *CallSite) {
   PHASAR_LOG_LEVEL(DEBUG, "Call virtual function: ");
   // Leading to SEGFAULT in Unittests. Error only when run in Debug mode
   // << llvmIRToString(CallSite));
@@ -59,7 +59,7 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
                          // run in Debug mode
                          // << llvmIRToString(CallSite)
                          << "\n");
-    return {};
+    return;
   }
 
   auto VtableIndex = RetrievedVtableIndex.value();
@@ -71,16 +71,13 @@ auto CHAResolver::resolveVirtualCall(const llvm::CallBase *CallSite)
   // also insert all possible subtypes vtable entries
   auto FallbackTys = TH->getSubTypes(ReceiverTy);
 
-  FunctionSetTy PossibleCallees;
-
   for (const auto &FallbackTy : FallbackTys) {
-    const auto *Target =
-        getNonPureVirtualVFTEntry(FallbackTy, VtableIndex, CallSite);
+    const auto *Target = getNonPureVirtualVFTEntry(FallbackTy, VtableIndex,
+                                                   CallSite, ReceiverTy);
     if (Target && psr::isConsistentCall(CallSite, Target)) {
-      PossibleCallees.insert(Target);
+      PossibleTargets.insert(Target);
     }
   }
-  return PossibleCallees;
 }
 
 std::string CHAResolver::str() const { return "CHA"; }

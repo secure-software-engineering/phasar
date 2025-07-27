@@ -25,9 +25,11 @@ public:
 
   ~NOResolver() override = default;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                          const llvm::CallBase *CallSite) override;
 
-  FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
+  void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                              const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
 
