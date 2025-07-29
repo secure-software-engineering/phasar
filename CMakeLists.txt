@@ -82,6 +82,11 @@ option(PHASAR_BUILD_MODULES "Build C++20 modules for phasar" OFF)
 
 include(CheckCXXCompilerFlag)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # Match clang's behavior, when handling naming collisions, such as "using l_t = l_t;"
+  string(APPEND CMAKE_CXX_FLAGS " -fpermissive")
+endif()
+
 # Handle memory issues with linking
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " -gsplit-dwarf")

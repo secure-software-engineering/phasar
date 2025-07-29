@@ -357,11 +357,11 @@ struct IDEFeatureTaintAnalysis::GenerateEF {
     llvm::report_fatal_error("Implemented in 'combine'");
   }
 
-  constexpr friend bool operator==(const GenerateEF &L, const GenerateEF &R) {
+  friend bool operator==(const GenerateEF &L, const GenerateEF &R) {
     return L.Facts == R.Facts;
   }
 
-  constexpr friend llvm::hash_code hash_value(const GenerateEF &EF) {
+  friend llvm::hash_code hash_value(const GenerateEF &EF) {
     return hash_value(EF.Facts);
   }
 };
