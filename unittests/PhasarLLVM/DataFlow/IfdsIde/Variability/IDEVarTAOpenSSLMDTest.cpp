@@ -180,8 +180,6 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
 TEST_F(IDEVarTAOpenSSLMDTest, Hash03) {
   TSAVarResults_t GroundTruth;
 
-  // TODO: Fix ground truth
-
   GroundTruth[61]["60"] = {{"true", ALLOCATED}};
   GroundTruth[73]["60"] = {{"|(defined A)|", INITIALIZED},
                            {"(not |(defined A)|)", ALLOCATED}};

@@ -39,9 +39,6 @@ struct IDEVarProblemAnalysisDomainTransformer : public AnalysisDomainTy {
   using user_l_t = typename AnalysisDomainTy::l_t;
   // transform l_t to be a VarL<l_t>
   using l_t = VarL<typename AnalysisDomainTy::l_t>;
-  // use a variational aware inter-procedural control-flow graph
-  // using i_t = VarICFG<typename AnalysisDomainTy::n_t,
-  //                     typename AnalysisDomainTy::f_t, z3::expr>;
 };
 
 template <typename AnalysisDomainTy,
@@ -113,18 +110,11 @@ public:
     // if curr is a special preprocessor #ifdef instruction, we need to add a
     // preprocessor constraint
     if (VarICF.isPPBranchTarget(Curr, Succ)) {
-      // std::cout << "PP-Edge constaint: "
-      // << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
-      // std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
-      // std::cout << "\tN : " << IDEProblem.NtoString(curr) << '\n';
-      // std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
-      // std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
-      // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(),
       return VarEdgeFunction<user_l_t>(
           std::move(UserEF), VarICF.getPPConstraintOrTrue(Curr, Succ));
     }
+
     // ordinary instruction, no preprocessor constraints
-    // std::cout << "Edge Function: " << *UserEF << '\n';
     return VarEdgeFunction<user_l_t>::from(std::move(UserEF), TrueConstraint);
   }
 
@@ -214,26 +204,6 @@ public:
 
     return std::move(Ret);
   }
-
-  // void printNode(std::ostream &os, n_t n) const override {
-  //   IDEProblem.printNode(os, n);
-  // }
-
-  // void printDataFlowFact(std::ostream &os, d_t d) const override {
-  //   IDEProblem.printDataFlowFact(os, d);
-  // }
-
-  // void printFunction(std::ostream &os, f_t fun) const override {
-  //   IDEProblem.printFunction(os, fun);
-  // }
-
-  // void printEdgeFact(std::ostream &os, l_t l) const override {
-  //   for (auto &[Constraint, Value] : l) {
-  //     os << '<' << Constraint.to_string() << " , ";
-  //     IDEProblem.printEdgeFact(os, Value);
-  //     os << "> ; ";
-  //   }
-  // }
 
 private:
   IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;

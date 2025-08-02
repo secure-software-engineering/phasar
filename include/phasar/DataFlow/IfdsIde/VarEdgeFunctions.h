@@ -46,31 +46,6 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Z3Key &Ky) {
   return OS << to_string(Ky);
 }
 
-// struct Z3Less {
-//   bool operator()(const z3::expr &Lhs, const z3::expr &Rhs) const {
-//     return Lhs.id() < Rhs.id();
-//   }
-// };
-
-// struct Z3Hash {
-//   size_t operator()(const z3::expr &Expr) const noexcept {
-//     llvm::errs() << "Z3Hash: " << Expr.to_string() << ": " << Expr.hash()
-//                  << '\n';
-//     return Expr.hash();
-//   }
-// };
-
-// struct Z3Eq {
-//   size_t operator()(const z3::expr &L, const z3::expr &R) const noexcept {
-//     auto Ret = z3::eq(L, R);
-//     if (!L.is_true() && !R.is_true()) {
-//       llvm::errs() << "Z3Eq: " << L.to_string() << " == " << R.to_string()
-//                    << " ==> " << Ret << '\n';
-//     }
-//     return Ret;
-//   }
-// };
-
 } // namespace psr
 
 namespace std {
@@ -97,9 +72,6 @@ public:
   VarEdgeFunction(EdgeFunction<user_l_t> UserEdgeFn, const z3::expr &Constraint)
       : UserEdgeFns({std::make_pair(Constraint, std::move(UserEdgeFn))}) {
 
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-    //              << "construct VAREdgeFunction with '"
-    //              << Constraint.to_string() << "'");
     PHASAR_LOG_LEVEL(DEBUG, "construct VAREdgeFunction: " << *this);
   }
 
@@ -204,37 +176,6 @@ public:
         }
       }
 
-      // PHASAR_LOG_LEVEL(DEBUG,
-      //                  "UserEdgeFns.size(): " << This->UserEdgeFns.size()
-      //                                         << " ---
-      //                                         VEF->UserEdgeFns.size():
-      //                                         "
-      //                                         << VEF->UserEdgeFns.size());
-      // // We need to compose the constraints as well as the user edge
-      // functions.
-      // // One of the maps will contain one entry only that needs to be
-      // composed
-      // // with the other map (which may contain multiple entries).
-      // auto &OneEntryMap =
-      //     (VEF->UserEdgeFns.size() == 1) ? VEF->UserEdgeFns :
-      //     This->UserEdgeFns;
-      // auto &MulEntryMap =
-      //     (VEF->UserEdgeFns.size() != 1) ? VEF->UserEdgeFns :
-      //     This->UserEdgeFns;
-      // PHASAR_LOG_LEVEL(DEBUG,
-      //                  "OneEntryMap.size(): " << OneEntryMap.size()
-      //                                         << " --- MulEntryMap.size(): "
-      //                                         << MulEntryMap.size());
-      // // access first (and only) element
-      // auto UserEdgeFn = *OneEntryMap.begin();
-
-      // for (auto &[C, EF] : MulEntryMap) {
-      //   // compose constraints and edge functions
-      //   auto ComposedConstraint = C && UserEdgeFn.first;
-
-      //   ResultUserEdgeFns[ComposedConstraint.simplify()] =
-      //       EF.composeWith(UserEdgeFn.second);
-      // }
       return EdgeFunction<l_t>(std::in_place_type<VarEdgeFunction>,
                                std::move(ResultUserEdgeFns));
     }();
@@ -292,22 +233,6 @@ public:
           Changed = true; // Modified entry
         }
       }
-
-      // bool FoundConstraint = false;
-      // for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
-      //   PHASAR_LOG_LEVEL(DEBUG, "z3::eq "
-      //                               << Constraint.to_string() << " <--> "
-      //                               << InConstraint.to_string() << " --> "
-      //                               << z3::eq(Constraint, InConstraint));
-      //   if (z3::eq(Constraint, InConstraint)) {
-      //     FoundConstraint = true;
-      //     ResultUserEdgeFns[InConstraint] =
-      //     UserEdgeFn.joinWith(InUserEdgeFn);
-      //   }
-      // }
-      // if (!FoundConstraint) {
-      //   ResultUserEdgeFns[Constraint] = UserEdgeFn;
-      // }
     }
 
     if (!Changed) {
@@ -329,31 +254,6 @@ public:
   bool operator==(const VarEdgeFunction &Other) const {
     PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::equal_to");
 
-    // calling overloaded operator==
-    // return UserEdgeFns == other.UserEdgeFns;
-
-    // const auto &Lhs = *this;
-    // const auto &Rhs = other;
-
-    // if (Lhs.size() != Rhs.size()) {
-    //   return false;
-    // }
-    // for (auto &[LhsConstraint, LhsEF] : Lhs) {
-    //   bool FoundEntry = false;
-    //   // TODO: Use Rhs.find(LhsConstraint) ?
-    //   for (auto &[RhsConstraint, RhsEF] : Rhs) {
-    //     if (z3::eq(LhsConstraint, RhsConstraint)) {
-    //       if (LhsEF == RhsEF) {
-    //         FoundEntry = true;
-    //         break;
-    //       }
-    //     }
-    //   }
-    //   if (!FoundEntry) {
-    //     return false;
-    //   }
-    // }
-    // return true;
     return UserEdgeFns == Other.UserEdgeFns;
   }
 
