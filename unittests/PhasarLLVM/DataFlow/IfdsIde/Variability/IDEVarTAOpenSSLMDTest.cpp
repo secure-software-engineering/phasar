@@ -102,8 +102,8 @@ protected:
           EXPECT_LE(TruthOfFact.size(), CondState.size());
 
           for (auto &[Cond, State] : CondState) {
-            EXPECT_TRUE(TruthOfFact.count({Cond.to_string(), State}))
-                << "Result (" << Cond.to_string() << ", "
+            EXPECT_TRUE(TruthOfFact.count({to_string(Cond), State}))
+                << "Result (" << to_string(Cond) << ", "
                 << Desc.stateToString(State) << ") not in GroundTruth["
                 << instId << "]";
           }
@@ -177,18 +177,18 @@ TEST_F(IDEVarTAOpenSSLMDTest, Hash02) {
                               true);
 }
 
-TEST_F(IDEVarTAOpenSSLMDTest, DISABLED_Hash03) {
+TEST_F(IDEVarTAOpenSSLMDTest, Hash03) {
   TSAVarResults_t GroundTruth;
 
   // TODO: Fix ground truth
 
   GroundTruth[61]["60"] = {{"true", ALLOCATED}};
-  GroundTruth[68]["60"] = {{"defined __static_condition11", INITIALIZED},
-                           {"not defined __static_condition11", ALLOCATED}};
+  GroundTruth[73]["60"] = {{"|(defined A)|", INITIALIZED},
+                           {"(not |(defined A)|)", ALLOCATED}};
 
   // TODO: more GT
 
-  doAnalysisAndCompareResults("hash03_c_dbg_xtc.ll", {"__main_21"}, GroundTruth,
+  doAnalysisAndCompareResults("hash03_xtc_c_dbg.ll", {"__main_21"}, GroundTruth,
                               true);
 }
 } // namespace

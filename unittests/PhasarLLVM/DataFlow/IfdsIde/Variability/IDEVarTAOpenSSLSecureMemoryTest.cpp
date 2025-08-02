@@ -85,7 +85,7 @@ protected:
           auto &TruthOfFact = Truth[FactId];
           EXPECT_EQ(TruthOfFact.size(), CondState.size());
           for (auto &[Cond, State] : CondState) {
-            EXPECT_TRUE(TruthOfFact.count({Cond.to_string(), State}));
+            EXPECT_TRUE(TruthOfFact.count({to_string(Cond), State}));
           }
         }
       }

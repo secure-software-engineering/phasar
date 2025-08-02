@@ -241,7 +241,7 @@ private:
 
   z3::expr TrueConstraint = VarICF.getTrueConstraint();
   l_t Bottom = {{TrueConstraint, IDEProblem.bottomElement()}};
-  l_t Top = {{TrueConstraint, IDEProblem.topElement()}};
+  l_t Top = {{}};
 };
 
 template <typename UserL>
@@ -250,7 +250,7 @@ template <typename UserL>
   llvm::raw_string_ostream OS(Ret);
 
   for (const auto &[Constraint, Value] : LatticeVal) {
-    OS << '<' << Constraint.to_string() << " , " << LToString(Value) << "> ; ";
+    OS << '<' << Constraint << ", " << LToString(Value) << ">; ";
   }
   return Ret;
 }

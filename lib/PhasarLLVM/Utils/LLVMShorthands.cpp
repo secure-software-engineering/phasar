@@ -30,6 +30,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
@@ -322,6 +323,15 @@ const llvm::Instruction *psr::getNthInstruction(const llvm::Function *F,
     }
   }
   return nullptr;
+}
+
+const llvm::Instruction *psr::getFirstInBB(const llvm::BasicBlock *BB,
+                                           bool IgnoreDbgInstructions) {
+  const llvm::Instruction *Succ = &BB->front();
+  if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
+    Succ = Succ->getNextNonDebugInstruction(false /*Only debug instructions*/);
+  }
+  return Succ;
 }
 
 llvm::SmallVector<const llvm::Instruction *, 2>

@@ -79,26 +79,19 @@ auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
       Branch && isStaticVariableLazyInitializationBranch(Branch)) {
     // Skip the "already initialized" case, such that the analysis is always
     // aware of the initialized value.
-    const auto *NextInst = &Branch->getSuccessor(0)->front();
-    if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(NextInst)) {
-      NextInst = NextInst->getNextNonDebugInstruction(false);
-    }
+    const auto *NextInst =
+        getFirstInBB(Branch->getSuccessor(0), IgnoreDbgInstructions);
     return {NextInst};
   }
 
   llvm::SmallVector<n_t, 2> Successors;
   Successors.reserve(I->getNumSuccessors() + Successors.size());
-  std::transform(
-      llvm::succ_begin(I), llvm::succ_end(I), std::back_inserter(Successors),
-      [IgnoreDbgInstructions{IgnoreDbgInstructions}](
-          const llvm::BasicBlock *BB) {
-        const llvm::Instruction *Succ = &BB->front();
-        if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
-          Succ = Succ->getNextNonDebugInstruction(
-              false /*Only debug instructions*/);
-        }
-        return Succ;
-      });
+  std::transform(llvm::succ_begin(I), llvm::succ_end(I),
+                 std::back_inserter(Successors),
+                 [IgnoreDbgInstructions{IgnoreDbgInstructions}](
+                     const llvm::BasicBlock *BB) {
+                   return getFirstInBB(BB, IgnoreDbgInstructions);
+                 });
   return Successors;
 }
 
@@ -132,11 +125,8 @@ auto detail::LLVMBasedCFGImpl<Derived>::getStartPointsOfImpl(f_t Fun) const
     return {};
   }
   if (!Fun->isDeclaration()) {
-    const auto *EntryInst = &Fun->front().front();
-    if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(EntryInst)) {
-      return {EntryInst->getNextNonDebugInstruction(
-          false /*Only debug instructions*/)};
-    }
+    const auto *EntryInst =
+        getFirstInBB(&Fun->getEntryBlock(), IgnoreDbgInstructions);
     return {EntryInst};
   }
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedCFG",
@@ -204,9 +194,9 @@ bool detail::LLVMBasedCFGImpl<Derived>::isFallThroughSuccessorImpl(
   // assert(false && "FallThrough not valid in LLVM IR");
   if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Inst)) {
     if (B->isConditional()) {
-      return &B->getSuccessor(1)->front() == Succ;
+      return getFirstInBB(B->getSuccessor(1), IgnoreDbgInstructions) == Succ;
     }
-    return &B->getSuccessor(0)->front() == Succ;
+    return getFirstInBB(B->getSuccessor(0), IgnoreDbgInstructions) == Succ;
   }
   return false;
 }
@@ -216,7 +206,7 @@ bool detail::LLVMBasedCFGImpl<Derived>::isBranchTargetImpl(
     n_t Inst, n_t Succ) const noexcept {
   if (Inst->isTerminator()) {
     for (const auto *BB : llvm::successors(Inst->getParent())) {
-      if (&BB->front() == Succ) {
+      if (getFirstInBB(BB, IgnoreDbgInstructions) == Succ) {
         return true;
       }
     }

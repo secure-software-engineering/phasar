@@ -239,7 +239,8 @@ auto IDETypeStateAnalysisBase::getRelevantAllocas(d_t V) -> container_type {
       if (hasMatchingType(Alias)) {
         PHASAR_LOG_LEVEL(
             DEBUG, " -> Alloca: " << DToString(Load->getPointerOperand()));
-        RelevantAllocas.insert(Load->getPointerOperand());
+        RelevantAllocas.insert(
+            Load->getPointerOperand()->stripPointerCastsAndAliases());
       }
     } else {
       // For all other types of aliases, e.g. callsites, function arguments,
@@ -250,7 +251,8 @@ auto IDETypeStateAnalysisBase::getRelevantAllocas(d_t V) -> container_type {
           if (hasMatchingType(Store)) {
             PHASAR_LOG_LEVEL(DEBUG, "    -> Alloca: " << DToString(
                                         Store->getPointerOperand()));
-            RelevantAllocas.insert(Store->getPointerOperand());
+            RelevantAllocas.insert(
+                Store->getPointerOperand()->stripPointerCastsAndAliases());
           }
         }
       }

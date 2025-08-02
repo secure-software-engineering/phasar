@@ -74,14 +74,14 @@ protected:
             for (const auto &[TrueConstaint, TrueIntegerValue] :
                  TruthResultSet) {
 
-              if (Constraint.to_string() == TrueConstaint) {
+              if (to_string(Constraint) == TrueConstaint) {
                 EXPECT_EQ(IntegerValue, TrueIntegerValue);
                 Found = true;
                 break;
               }
             }
             if (!Found) {
-              FAIL() << "Could not find constraint: '" << Constraint.to_string()
+              FAIL() << "Could not find constraint: '" << to_string(Constraint)
                      << "' in ground truth!";
             }
           }

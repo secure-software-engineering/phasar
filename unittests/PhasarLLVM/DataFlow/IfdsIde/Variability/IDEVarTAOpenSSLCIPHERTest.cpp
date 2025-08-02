@@ -51,7 +51,7 @@ protected:
 
     LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, nullptr,
-                       &PT,Soundness::Soundy, false);
+                       &PT, Soundness::Soundy, false);
 
     auto StaticRenaming = extractStaticRenaming(&IRDB);
     OpenSSLEVPCIPHERCTXDescription Desc(&StaticRenaming);
@@ -82,7 +82,7 @@ protected:
           auto &TruthOfFact = Truth[FactId];
           EXPECT_LE(TruthOfFact.size(), CondState.size());
           for (auto &[Cond, State] : CondState) {
-            EXPECT_TRUE(TruthOfFact.count({Cond.to_string(), State}));
+            EXPECT_TRUE(TruthOfFact.count({to_string(Cond), State}));
           }
         }
       }

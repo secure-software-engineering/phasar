@@ -24,10 +24,9 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <iostream>
-
-#include <z3++.h>
+#include "z3++.h"
 
 using namespace psr;
 
@@ -438,15 +437,20 @@ z3::expr VarCFGImpl<LLVMBasedICFG, z3::expr>::getTrueConstraintImpl() const {
 
 bool VarCFGImpl<LLVMBasedICFG, z3::expr>::isPPBranchTargetImpl(
     const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
-  if (auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
+  if (const auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
     if (!isPPBranchNode(T)) {
       return false;
     }
-    for (auto Successor : T->successors()) {
-      if (&Successor->front() == Succ) {
+    for (const auto *Successor : T->successors()) {
+      if (getFirstInBB(Successor, CFG.getIgnoreDbgInstructions()) == Succ) {
         return true;
       }
     }
+    llvm::errs() << "[WARNING][isPPBranchTargetImpl]: Unexpected "
+                    "fallthrough: Cannot determine "
+                    "then/else branch target at: "
+                 << llvmIRToString(Stmt) << " TO " << llvmIRToString(Succ)
+                 << '\n';
   }
   return false;
 }
@@ -454,15 +458,24 @@ bool VarCFGImpl<LLVMBasedICFG, z3::expr>::isPPBranchTargetImpl(
 z3::expr VarCFGImpl<LLVMBasedICFG, z3::expr>::getPPConstraintOrTrueImpl(
     const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
   z3::expr Constraint = getTrueConstraintImpl();
-  if (auto B = llvm::dyn_cast<llvm::BranchInst>(Stmt);
+  if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Stmt);
       B && B->isConditional()) {
     if (isPPBranchNode(B, Constraint)) {
       // num successors == 2
-      if (Succ == &B->getSuccessor(0)->front()) { // then-branch
+      if (Succ == getFirstInBB(B->getSuccessor(0),
+                               CFG.getIgnoreDbgInstructions())) { // then-branch
         return Constraint;
-      } else if (Succ == &B->getSuccessor(1)->front()) { // else-branch
-        return !Constraint;
       }
+      if (Succ == getFirstInBB(B->getSuccessor(1),
+                               CFG.getIgnoreDbgInstructions())) { // else-branch
+        return (!Constraint).simplify();
+      }
+
+      llvm::errs() << "[WARNING][getPPConstraintOrTrueImpl]: Unexpected "
+                      "fallthrough: Cannot determine "
+                      "then/else branch target at: "
+                   << llvmIRToString(Stmt) << " TO " << llvmIRToString(Succ)
+                   << '\n';
     }
   }
   return Constraint;

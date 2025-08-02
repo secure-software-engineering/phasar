@@ -19,82 +19,80 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/TypeName.h"
 
+#include "z3++.h"
+
 #include <map>
 #include <memory>
 #include <utility>
 
-#include <z3++.h>
+namespace psr {
+
+struct Z3Key {
+  z3::expr Expr;
+
+  Z3Key(const z3::expr &Expr) : Expr(Expr) {}
+
+  bool operator==(const Z3Key &Other) const noexcept {
+    return z3::eq(Expr, Other.Expr);
+  }
+
+  friend size_t hash_value(const Z3Key &Ky) noexcept { return Ky.Expr.hash(); }
+};
+
+[[nodiscard]] inline std::string to_string(const Z3Key &Ky) {
+  return Ky.Expr.to_string();
+}
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Z3Key &Ky) {
+  return OS << to_string(Ky);
+}
+
+// struct Z3Less {
+//   bool operator()(const z3::expr &Lhs, const z3::expr &Rhs) const {
+//     return Lhs.id() < Rhs.id();
+//   }
+// };
+
+// struct Z3Hash {
+//   size_t operator()(const z3::expr &Expr) const noexcept {
+//     llvm::errs() << "Z3Hash: " << Expr.to_string() << ": " << Expr.hash()
+//                  << '\n';
+//     return Expr.hash();
+//   }
+// };
+
+// struct Z3Eq {
+//   size_t operator()(const z3::expr &L, const z3::expr &R) const noexcept {
+//     auto Ret = z3::eq(L, R);
+//     if (!L.is_true() && !R.is_true()) {
+//       llvm::errs() << "Z3Eq: " << L.to_string() << " == " << R.to_string()
+//                    << " ==> " << Ret << '\n';
+//     }
+//     return Ret;
+//   }
+// };
+
+} // namespace psr
+
+namespace std {
+template <> struct hash<psr::Z3Key> {
+  size_t operator()(const psr::Z3Key &Ky) const noexcept {
+    return hash_value(Ky);
+  }
+};
+} // namespace std
 
 namespace psr {
 
-struct Z3Less {
-  bool operator()(const z3::expr &Lhs, const z3::expr &Rhs) const {
-    return Lhs.id() < Rhs.id();
-  }
+template <typename L> struct VarL : public std::unordered_map<Z3Key, L> {
+  using std::unordered_map<Z3Key, L>::unordered_map;
 };
-
-struct Z3Hash {
-  size_t operator()(const z3::expr &Expr) const noexcept { return Expr.hash(); }
-};
-
-struct Z3Eq {
-  size_t operator()(const z3::expr &L, const z3::expr &R) const noexcept {
-    return z3::eq(L, R);
-  }
-};
-
-template <typename L>
-struct VarL : public std::unordered_map<z3::expr, L, Z3Hash, Z3Eq> {
-  using std::unordered_map<z3::expr, L, Z3Hash, Z3Eq>::unordered_map;
-};
-
-template <typename L>
-inline bool containsZ3Expr(const VarL<L> &M, const z3::expr &E) {
-  // // TODO: Why cannot we use M.count(E) here?
-  // bool FoundKey = false;
-  // for (auto &[Key, Value] : M) {
-  //   if (z3::eq(Key, E)) {
-  //     FoundKey = true;
-  //     break;
-  //   }
-  // }
-  // return FoundKey;
-  return M.count(E);
-}
-
-// template <typename T>
-// bool operator==(
-//     const std::map<z3::expr, std::shared_ptr<EdgeFunction<T>>, Z3Less> &Lhs,
-//     const std::map<z3::expr, std::shared_ptr<EdgeFunction<T>>, Z3Less> &Rhs)
-//     {
-//   if (Lhs.size() != Rhs.size()) {
-//     return false;
-//   }
-//   for (auto &[LhsConstraint, LhsEF] : Lhs) {
-//     bool FoundEntry = false;
-//     // TODO: Use Rhs.find(LhsConstraint) ?
-//     for (auto &[RhsConstraint, RhsEF] : Rhs) {
-//       if (z3::eq(LhsConstraint, RhsConstraint)) {
-//         if (&*LhsEF == &*RhsEF || LhsEF->equal_to(RhsEF)) {
-//           FoundEntry = true;
-//           break;
-//         }
-//       }
-//     }
-//     if (!FoundEntry) {
-//       return false;
-//     }
-//   }
-//   return true;
-// }
 
 template <typename L> class VarEdgeFunction {
 public:
   using user_l_t = L;
   using l_t = VarL<L>;
 
-  using map_t =
-      std::unordered_map<z3::expr, EdgeFunction<user_l_t>, Z3Hash, Z3Eq>;
+  using map_t = std::unordered_map<Z3Key, EdgeFunction<user_l_t>>;
 
   VarEdgeFunction(EdgeFunction<user_l_t> UserEdgeFn, const z3::expr &Constraint)
       : UserEdgeFns({std::make_pair(Constraint, std::move(UserEdgeFn))}) {
@@ -128,11 +126,12 @@ public:
     PHASAR_LOG_LEVEL(DEBUG, "computeTarget: Source.size(): "
                                 << Source.size() << ", UserEdgeFns.size(): "
                                 << UserEdgeFns.size());
-    auto ResSource = Source;
-    for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
+    // auto ResSource = Source;
+    l_t ResSource{};
+    for (const auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
       PHASAR_LOG_LEVEL(DEBUG, "contains z3 expression '"
-                                  << Constraint.to_string() << "' --> "
-                                  << containsZ3Expr(Source, Constraint));
+                                  << Constraint << "' --> "
+                                  << Source.count(Constraint));
       if (auto It = Source.find(Constraint); It != Source.end()) {
         ResSource[Constraint] = UserEdgeFn.computeTarget(It->second);
       } else {
@@ -146,86 +145,120 @@ public:
         }
       }
     }
+
+    if (ResSource.empty()) {
+      ResSource = Source;
+    } else {
+      // Add all missing facts
+      for (const auto &[Constraint, IncomingEF] : Source) {
+        if (Constraint.Expr.is_true() || Constraint.Expr.is_false()) {
+          continue;
+        }
+        ResSource.try_emplace(Constraint, IncomingEF);
+      }
+    }
+
     PHASAR_LOG_LEVEL(DEBUG, "ResSource.size(): " << ResSource.size());
+    // llvm::errs() << "[computeTarget]: " << *this << '(' << LToString(Source)
+    //              << ") = " << LToString(ResSource) << '\n';
     return ResSource;
   }
 
   static EdgeFunction<l_t> compose(EdgeFunctionRef<VarEdgeFunction> This,
                                    const EdgeFunction<l_t> &SecondFunction) {
-    if (llvm::isa<EdgeIdentity<l_t>>(SecondFunction)) {
-      return This;
-    }
+    auto Ret = [&]() -> EdgeFunction<l_t> {
+      if (llvm::isa<EdgeIdentity<l_t>>(SecondFunction)) {
+        return This;
+      }
 
-    if (SecondFunction.isConstant()) {
-      return SecondFunction;
-    }
+      if (SecondFunction.isConstant()) {
+        return SecondFunction;
+      }
 
-    PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::composeWith");
-    const VarEdgeFunction *VEF =
-        llvm::dyn_cast<VarEdgeFunction>(SecondFunction);
-    if (!VEF) {
-      llvm::report_fatal_error("found unexpected second edge function: " +
-                               llvm::Twine(to_string(SecondFunction)));
-    }
+      PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::composeWith");
+      const VarEdgeFunction *VEF =
+          llvm::dyn_cast<VarEdgeFunction>(SecondFunction);
+      if (!VEF) {
+        llvm::report_fatal_error("found unexpected second edge function: " +
+                                 llvm::Twine(to_string(SecondFunction)));
+      }
 
-    // TODO(sbf): May want to have a specialization for
-    // SecondFunction.isConstant(), once we have that information
+      // TODO(sbf): May want to have a specialization for
+      // SecondFunction.isConstant(), once we have that information
 
-    map_t ResultUserEdgeFns;
-    ResultUserEdgeFns.reserve(This->UserEdgeFns.size());
-    for (const auto &[OtherConstraint, OtherEF] : VEF->UserEdgeFns) {
-      for (const auto &[ThisConstraint, ThisEF] : This->UserEdgeFns) {
-        auto ComposedConstraint =
-            (ThisConstraint && OtherConstraint).simplify();
-        auto ComposedEF = ThisEF.composeWith(OtherEF);
-        auto [It, Inserted] = ResultUserEdgeFns.try_emplace(
-            ComposedConstraint, std::move(ComposedEF));
-        if (!Inserted) {
-          It->second = It->second.joinWith(std::move(ComposedEF));
+      map_t ResultUserEdgeFns;
+      ResultUserEdgeFns.reserve(This->UserEdgeFns.size());
+      for (const auto &[OtherConstraint, OtherEF] : VEF->UserEdgeFns) {
+        for (const auto &[ThisConstraint, ThisEF] : This->UserEdgeFns) {
+          z3::expr ComposedConstraint =
+              (ThisConstraint.Expr && OtherConstraint.Expr).simplify();
+          if (ComposedConstraint.is_false()) {
+            continue;
+          }
+          auto ComposedEF = ThisEF.composeWith(OtherEF);
+          auto [It, Inserted] = ResultUserEdgeFns.try_emplace(
+              ComposedConstraint, std::move(ComposedEF));
+          if (!Inserted) {
+            It->second = It->second.joinWith(std::move(ComposedEF));
+          }
         }
       }
-    }
 
-    // PHASAR_LOG_LEVEL(DEBUG,
-    //                  "UserEdgeFns.size(): " << This->UserEdgeFns.size()
-    //                                         << " --- VEF->UserEdgeFns.size():
-    //                                         "
-    //                                         << VEF->UserEdgeFns.size());
-    // // We need to compose the constraints as well as the user edge functions.
-    // // One of the maps will contain one entry only that needs to be composed
-    // // with the other map (which may contain multiple entries).
-    // auto &OneEntryMap =
-    //     (VEF->UserEdgeFns.size() == 1) ? VEF->UserEdgeFns :
-    //     This->UserEdgeFns;
-    // auto &MulEntryMap =
-    //     (VEF->UserEdgeFns.size() != 1) ? VEF->UserEdgeFns :
-    //     This->UserEdgeFns;
-    // PHASAR_LOG_LEVEL(DEBUG,
-    //                  "OneEntryMap.size(): " << OneEntryMap.size()
-    //                                         << " --- MulEntryMap.size(): "
-    //                                         << MulEntryMap.size());
-    // // access first (and only) element
-    // auto UserEdgeFn = *OneEntryMap.begin();
+      // PHASAR_LOG_LEVEL(DEBUG,
+      //                  "UserEdgeFns.size(): " << This->UserEdgeFns.size()
+      //                                         << " ---
+      //                                         VEF->UserEdgeFns.size():
+      //                                         "
+      //                                         << VEF->UserEdgeFns.size());
+      // // We need to compose the constraints as well as the user edge
+      // functions.
+      // // One of the maps will contain one entry only that needs to be
+      // composed
+      // // with the other map (which may contain multiple entries).
+      // auto &OneEntryMap =
+      //     (VEF->UserEdgeFns.size() == 1) ? VEF->UserEdgeFns :
+      //     This->UserEdgeFns;
+      // auto &MulEntryMap =
+      //     (VEF->UserEdgeFns.size() != 1) ? VEF->UserEdgeFns :
+      //     This->UserEdgeFns;
+      // PHASAR_LOG_LEVEL(DEBUG,
+      //                  "OneEntryMap.size(): " << OneEntryMap.size()
+      //                                         << " --- MulEntryMap.size(): "
+      //                                         << MulEntryMap.size());
+      // // access first (and only) element
+      // auto UserEdgeFn = *OneEntryMap.begin();
 
-    // for (auto &[C, EF] : MulEntryMap) {
-    //   // compose constraints and edge functions
-    //   auto ComposedConstraint = C && UserEdgeFn.first;
+      // for (auto &[C, EF] : MulEntryMap) {
+      //   // compose constraints and edge functions
+      //   auto ComposedConstraint = C && UserEdgeFn.first;
 
-    //   ResultUserEdgeFns[ComposedConstraint.simplify()] =
-    //       EF.composeWith(UserEdgeFn.second);
+      //   ResultUserEdgeFns[ComposedConstraint.simplify()] =
+      //       EF.composeWith(UserEdgeFn.second);
+      // }
+      return EdgeFunction<l_t>(std::in_place_type<VarEdgeFunction>,
+                               std::move(ResultUserEdgeFns));
+    }();
+    // if (!SecondFunction.template isa<EdgeIdentity<l_t>>()) {
+    //   llvm::errs() << "COMPOSE:\n  This:   " << *This
+    //                << "\n  Second: " << SecondFunction << "\n  ==> " << Ret
+    //                << '\n';
     // }
-    return EdgeFunction<l_t>(std::in_place_type<VarEdgeFunction>,
-                             std::move(ResultUserEdgeFns));
+    return Ret;
   }
 
   static EdgeFunction<l_t> join(EdgeFunctionRef<VarEdgeFunction> This,
                                 const EdgeFunction<l_t> OtherFunction) {
     PHASAR_LOG_LEVEL(DEBUG, "VarEdgeFunction::joinWith");
 
+    // llvm::errs() << "JOIN:\n  This:  " << *This
+    //              << "\n  Other: " << OtherFunction << '\n';
+
     if (auto Dflt = psr::defaultJoinOrNull<l_t>(This, OtherFunction)) {
+      // llvm::errs() << "  ==> (default): " << Dflt << '\n';
       return Dflt;
     }
     if (llvm::isa<EdgeIdentity<l_t>>(OtherFunction)) {
+      // llvm::errs() << "  ==> AllBottom\n";
       // TODO: Shouldn't the BottomValue rather be a VarL containing <true,
       // Bottom>, as defined in the IDEVarTabulationProblem?
       return AllBottom<l_t>{VarL<user_l_t>{}};
@@ -278,6 +311,7 @@ public:
     }
 
     if (!Changed) {
+      // llvm::errs() << "  ==> (unchanged): " << *This << '\n';
       return This;
     }
 
@@ -285,8 +319,11 @@ public:
     // ResultUserEdgeFns's initialization
     PHASAR_LOG_LEVEL(DEBUG, "ResultUserEdgeFns.size() --> "
                                 << ResultUserEdgeFns.size());
-    return EdgeFunction<l_t>(std::in_place_type<VarEdgeFunction>,
-                             std::move(ResultUserEdgeFns));
+    auto Ret = EdgeFunction<l_t>(std::in_place_type<VarEdgeFunction>,
+                                 std::move(ResultUserEdgeFns));
+
+    // llvm::errs() << "  ==> " << Ret << '\n';
+    return Ret;
   }
 
   bool operator==(const VarEdgeFunction &Other) const {
@@ -324,7 +361,7 @@ public:
                                        const VarEdgeFunction &EF) {
     OS << "(EF: ";
     for (auto &[Constraint, UserEdgeFn] : EF.UserEdgeFns) {
-      OS << "<" << Constraint.to_string() << ", " << UserEdgeFn << ">";
+      OS << "<" << Constraint << ", " << UserEdgeFn << ">";
     }
     return OS << ")";
   }

@@ -19,8 +19,6 @@
 
 #include "phasar/Utils/Utilities.h"
 
-#include "phasar/Utils/Utilities.h"
-
 #include <optional>
 #include <string>
 #include <vector>
@@ -36,6 +34,7 @@ class StoreInst;
 class BranchInst;
 class Module;
 class CallInst;
+class BasicBlock;
 } // namespace llvm
 
 namespace psr {
@@ -168,6 +167,9 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned Idx);
 
 const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
+
+[[nodiscard]] const llvm::Instruction *
+getFirstInBB(const llvm::BasicBlock *BB, bool IgnoreDbgInstructions = true);
 
 /**
  * The Termination Instruction count starts with one (not zero, as in Function
