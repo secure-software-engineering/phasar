@@ -40,6 +40,26 @@ getDefaultValue() noexcept(std::is_nothrow_default_constructible_v<T>) {
   }
 }
 
+namespace detail {
+struct DefaultCast {
+  template <typename To,
+            typename = std::enable_if_t<CanEfficientlyPassByValue<To>>>
+  operator To() && {
+    return psr::getDefaultValue<To>();
+  }
+
+  template <typename To,
+            typename = std::enable_if_t<!CanEfficientlyPassByValue<To>>>
+  operator const To &() && {
+    return psr::getDefaultValue<To>();
+  }
+};
+} // namespace detail
+
+/// Provides a value that automatically converts to (a const-ref to) the
+/// default-constructed object of the expected receiver type.
+static constexpr detail::DefaultCast default_value() noexcept { return {}; }
+
 } // namespace psr
 
 #endif // PHASAR_UTILS_DEFAULTVALUE_H

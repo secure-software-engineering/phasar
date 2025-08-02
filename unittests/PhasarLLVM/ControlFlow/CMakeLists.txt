@@ -4,6 +4,7 @@ set(ControlFlowSources
 	LLVMBasedICFG_CHATest.cpp
 	LLVMBasedICFG_OTFTest.cpp
 	LLVMBasedICFG_RTATest.cpp
+	LLVMBasedICFG_RTA_MultipleInheritanceTest.cpp
 	LLVMBasedBackwardCFGTest.cpp
 	LLVMBasedBackwardICFGTest.cpp
 	LLVMBasedICFGExportTest.cpp

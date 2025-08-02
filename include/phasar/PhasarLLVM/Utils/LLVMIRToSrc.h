@@ -33,7 +33,6 @@ class Value;
 class GlobalVariable;
 class Module;
 class DIFile;
-class DIType;
 class DILocation;
 } // namespace llvm
 
