@@ -23,7 +23,6 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
@@ -165,13 +164,12 @@ void OTFResolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
     return;
   }
 
-  auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
-
   llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
   llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
   llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
       VisitedConstantAggregates;
 
+  auto PTS = PT.getAliasSet(CallSite->getCalledOperand(), CallSite);
   for (const auto *P : *PTS) {
     if (!llvm::isa<llvm::Constant>(P)) {
       continue;
@@ -180,11 +178,20 @@ void OTFResolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
     GlobalVariableWL.clear();
     ConstantAggregateWL.clear();
 
+    // First check, whether the alias is directly a function -- the easy case
     if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
       if (isConsistentCall(CallSite, F)) {
         PossibleTargets.insert(F);
       }
     }
+
+    // If it is a global, or a gep on a global, we need to check nested function
+    // pointers in the global's initializer.
+    // We cannot expect the alias analysis to be field-sensitive, or even
+    // indirection-sensitive at this point.
+    // When we actually have alias analyses that are sensitive to field offsets
+    // or pointer indirections, we should ask the analysis for this information
+    // and early exit the below iteration (see PT.getAnalysisProperties()).
 
     if (const auto *GVP = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
       GlobalVariableWL.push_back(GVP);

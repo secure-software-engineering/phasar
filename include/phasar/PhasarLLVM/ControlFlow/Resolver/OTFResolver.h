@@ -23,7 +23,8 @@
 namespace psr {
 
 /// \brief A resolver that uses alias information to resolve indirect and
-/// virtual calls
+/// virtual calls; allows incremental refinement of alias-information during
+/// call-graph analysis
 class OTFResolver : public Resolver {
 public:
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
