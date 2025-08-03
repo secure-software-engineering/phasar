@@ -267,7 +267,7 @@ void DOTConfig::importDOTConfig(llvm::StringRef ConfigPath) {
              It != El.value().end(); ++It) {
           // using it.value() directly with the << operator adds unnecessary
           // quotes
-          std::string Val = It.value();
+          auto Val = It.value().get<std::string>();
           AttrStr << It.key() << "=" << Val;
           if (std::next(It) != El.value().end()) {
             AttrStr << ", ";

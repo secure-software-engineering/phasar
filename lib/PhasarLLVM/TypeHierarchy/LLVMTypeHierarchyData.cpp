@@ -17,7 +17,7 @@ namespace psr {
 static LLVMTypeHierarchyData getDataFromJson(const nlohmann::json &Json) {
   LLVMTypeHierarchyData Data;
   Data.PhasarConfigJsonTypeHierarchyID =
-      Json["PhasarConfigJsonTypeHierarchyID"];
+      Json["PhasarConfigJsonTypeHierarchyID"].get<std::string>();
 
   for (const auto &[Key, ValueArray] :
        Json[Data.PhasarConfigJsonTypeHierarchyID].items()) {

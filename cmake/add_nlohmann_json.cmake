@@ -6,6 +6,9 @@ function(add_nlohmann_json)
     set(JSON_BuildTests OFF)
     set(JSON_Install OFF)
 
+    # Not supported by the json schema validator:
+    # set(JSON_ImplicitConversions OFF)
+
     if (PHASAR_IN_TREE)
       set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS nlohmann_json)
     endif()
