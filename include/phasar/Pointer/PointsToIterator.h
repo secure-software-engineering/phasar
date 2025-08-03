@@ -10,7 +10,6 @@
 #ifndef PHASAR_POINTER_POINTSTOITERATOR_H
 #define PHASAR_POINTER_POINTSTOITERATOR_H
 
-#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/PointerUtils.h"
@@ -120,10 +119,11 @@ public:
                        std::is_same_v<v_t, typename ConcretePTA::v_t> &&
                        std::is_same_v<v_t, o_t> &&
                        std::is_same_v<n_t, typename ConcretePTA::n_t> &&
+                       !std::is_const_v<ConcretePTA> && // Need non-const API
                        detail::HasReachableAllocationSites<ConcretePTA>::value>
           * = nullptr>
-  constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
-      : PT(&psr::assertNotNull(PT)),
+  constexpr PointsToIteratorRef(ConcretePTA *PT) noexcept
+      : PT(getOpaquePtr(psr::assertNotNull(PT))),
         VT(&ReachableAllocSitesVTFor<ConcretePTA>) {
     static_assert(IsPointsToIterator<PointsToIteratorRef>);
   }
@@ -198,9 +198,9 @@ private:
     if constexpr (IsPointsToIterator<ConcretePTA>) {
       return (void)CPT->forallPointeesOf(Pointer, At, WithPointee);
     } else {
-      auto PointsToSet = CPT->getPointsToSet(Pointer, At);
+      auto &&PointsToSet = CPT->getPointsToSet(Pointer, At);
       // The PointsToSet can be a set or a pointer to a set
-      auto PointsToSetPtr = getPointerFrom(PointsToSet);
+      auto *PointsToSetPtr = getPointerFrom(PointsToSet);
       for (auto &&Pointee : *PointsToSetPtr) {
         WithPointee(PSR_FWD(Pointee));
       }
@@ -212,8 +212,14 @@ private:
   forallReachableAllocationSitesThunk(const void *AS, ByConstRef<o_t> Pointer,
                                       ByConstRef<n_t> At,
                                       llvm::function_ref<void(O)> WithPointee) {
+    auto *CAS = fromOpaquePtr<ConcretePTA>(AS);
+    // Note: The getReachableAllocationSites() API requires non-const access to
+    // support lazy computation (if requested in the LLVMAliasSet ctor).
+    // The below should still be safe, as we restrict our PointsToInfoRef ctor
+    // to take a non-const pointer to an aliasinfo.
     auto AliasSetPtr =
-        ((ConcretePTA *)AS)->getReachableAllocationSites(Pointer, true, At);
+        const_cast<ConcretePTA *>(CAS)->getReachableAllocationSites(Pointer,
+                                                                    true, At);
 
     for (auto &&Alias : *AliasSetPtr) {
       WithPointee(PSR_FWD(Alias));
@@ -227,9 +233,9 @@ private:
     if constexpr (detail::HasMayPointsTo<ConcretePTA>::value) {
       return CPT->mayPointsTo(Pointer, Obj, At);
     } else if constexpr (detail::HasGetPointsToSet<ConcretePTA>::value) {
-      auto PointsToSet = CPT->getPointsToSet(Pointer, At);
+      auto &&PointsToSet = CPT->getPointsToSet(Pointer, At);
       // The PointsToSet can be a set or a pointer to a set
-      auto PointsToSetPtr = getPointerFrom(PointsToSet);
+      auto *PointsToSetPtr = getPointerFrom(PointsToSet);
       return PointsToSetPtr->count(Obj);
     } else {
       bool Ret = false;
@@ -251,8 +257,10 @@ private:
       return true;
     }
 
-    return ((ConcretePTA *)AS)
-        ->isInReachableAllocationSites(Pointer, Obj, true, At);
+    auto *CAS = fromOpaquePtr<ConcretePTA>(AS);
+    // Note: Same as for getReachableAllocationSites() above.
+    return const_cast<ConcretePTA *>(CAS)->isInReachableAllocationSites(
+        Pointer, Obj, true, At);
   }
 
   template <typename ConcretePTA>

@@ -159,7 +159,7 @@ private:
                              llvm::function_ref<void(v_t)> WithAlias) {
     auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
     if constexpr (IsAliasIterator<ConcreteAA>) {
-      return (void)CAA->aliasesof(Of, At, WithAlias);
+      return (void)CAA->forallAliasesOf(Of, At, WithAlias);
     } else {
       auto AliasSetPtr = CAA->getAliasSet(Of, At);
       for (auto &&Alias : *AliasSetPtr) {
@@ -185,7 +185,7 @@ private:
     } else {
       AliasResult Ret = AliasResult::NoAlias;
 
-      CAA->aliasesof(Ptr, At, [&Ret, Alias](v_t A) {
+      CAA->forallAliasesOf(Ptr, At, [&Ret, Alias](v_t A) {
         if (A == Alias) {
           Ret = AliasResult::MayAlias;
         }
