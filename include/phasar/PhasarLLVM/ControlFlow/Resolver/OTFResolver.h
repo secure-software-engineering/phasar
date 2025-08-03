@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_OTFRESOLVER_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/AliasBasedResolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 namespace psr {
@@ -25,7 +25,7 @@ namespace psr {
 /// \brief A resolver that uses alias information to resolve indirect and
 /// virtual calls; allows incremental refinement of alias-information during
 /// call-graph analysis
-class OTFResolver : public Resolver {
+class OTFResolver : public AliasBasedResolver {
 public:
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               LLVMAliasInfoRef PT);
@@ -35,11 +35,12 @@ public:
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
 
-  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
-                          const llvm::CallBase *CallSite) override;
+  static std::set<const llvm::Type *>
+  getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
 
-  void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
-                              const llvm::CallBase *CallSite) override;
+  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
+  getActualFormalPointerPairs(const llvm::CallBase *CallSite,
+                              const llvm::Function *CalleeTarget);
 
   [[nodiscard]] std::string str() const override;
 

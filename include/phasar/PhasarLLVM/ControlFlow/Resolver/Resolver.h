@@ -100,12 +100,27 @@ public:
                "anymore")]] virtual void
   postCall(const llvm::Instruction *Inst);
 
+  /// \brief  Resolves an indirect call.
+  /// Calls resolveVirtualCall() or resolveFunctionPointer() and returns a set
+  /// of possible callee targets
   [[nodiscard]] FunctionSetTy
   resolveIndirectCall(const llvm::CallBase *CallSite);
 
   [[deprecated("With the removal of DTAResolver, this is not used "
                "anymore")]] virtual void
   otherInst(const llvm::Instruction *Inst);
+
+  /// \brief Implements C++ virtual call resolution.
+  ///
+  /// This function should only be called from other resolvers
+  virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                  const llvm::CallBase *CallSite) = 0;
+
+  /// \brief Implements function-pointer call resolution.
+  ///
+  /// This function should only be called from other resolvers
+  virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                      const llvm::CallBase *CallSite);
 
   [[nodiscard]] virtual std::string str() const = 0;
 
@@ -141,13 +156,6 @@ protected:
   const LLVMVFTableProvider *VTP{};
   std::optional<llvm::SmallVector<const llvm::Function *, 0>>
       AddressTakenFunctions{};
-
-protected:
-  virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,
-                                  const llvm::CallBase *CallSite) = 0;
-
-  virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
-                                      const llvm::CallBase *CallSite);
 };
 } // namespace psr
 

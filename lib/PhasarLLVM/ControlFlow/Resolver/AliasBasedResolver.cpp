@@ -16,19 +16,23 @@ AliasBasedResolver::AliasBasedResolver(
     const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
     llvm::unique_function<void(const llvm::Value *, const llvm::Instruction *,
                                llvm::function_ref<void(const llvm::Value *)>)>
-        &&ForAllAliasesOf)
-    : Resolver(IRDB, VTP), ForAllAliasesOf(std::move(ForAllAliasesOf)) {}
+        &&ForAllAliasesOf,
+    Resolver *FallbackResolver)
+    : Resolver(IRDB, VTP), ForAllAliasesOf(std::move(ForAllAliasesOf)),
+      FallbackResolver(FallbackResolver) {}
 
 AliasBasedResolver::AliasBasedResolver(const LLVMProjectIRDB *IRDB,
                                        const LLVMVFTableProvider *VTP,
-                                       LLVMAliasInfoRef AS)
+                                       LLVMAliasInfoRef AS,
+                                       Resolver *FallbackResolver)
     : AliasBasedResolver(
           IRDB, VTP,
           [AS](const llvm::Value *V, const llvm::Instruction *At,
                llvm::function_ref<void(const llvm::Value *)> WithAlias) {
             auto &&ASet = AS.getAliasSet(V, At);
             llvm::for_each(*ASet, WithAlias);
-          }) {}
+          },
+          FallbackResolver) {}
 
 void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
                                             const llvm::CallBase *CallSite) {
@@ -72,6 +76,10 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
       }
     }
   });
+
+  if (PossibleTargets.empty() && FallbackResolver) {
+    FallbackResolver->resolveVirtualCall(PossibleTargets, CallSite);
+  }
 }
 
 void AliasBasedResolver::resolveFunctionPointer(
@@ -171,6 +179,10 @@ void AliasBasedResolver::resolveFunctionPointer(
       }
     }
   });
+
+  if (PossibleTargets.empty() && FallbackResolver) {
+    FallbackResolver->resolveFunctionPointer(PossibleTargets, CallSite);
+  }
 }
 
 std::string AliasBasedResolver::str() const { return "AliasBased"; }

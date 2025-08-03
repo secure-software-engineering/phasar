@@ -33,11 +33,13 @@ public:
       const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
       llvm::unique_function<void(const llvm::Value *, const llvm::Instruction *,
                                  llvm::function_ref<void(const llvm::Value *)>)>
-          &&ForAllAliasesOf);
+          &&ForAllAliasesOf,
+      Resolver *FallbackResolver = nullptr);
 
   explicit AliasBasedResolver(const LLVMProjectIRDB *IRDB,
                               const LLVMVFTableProvider *VTP,
-                              LLVMAliasInfoRef AS);
+                              LLVMAliasInfoRef AS,
+                              Resolver *FallbackResolver = nullptr);
 
 protected:
   void resolveVirtualCall(FunctionSetTy &PossibleTargets,
@@ -58,6 +60,7 @@ private:
   llvm::unique_function<void(const llvm::Value *, const llvm::Instruction *,
                              llvm::function_ref<void(const llvm::Value *)>)>
       ForAllAliasesOf;
+  Resolver *FallbackResolver = nullptr;
 };
 } // namespace psr
 
