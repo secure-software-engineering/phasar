@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
@@ -19,7 +20,9 @@
 #include <cstdint>
 #include <functional>
 #include <iterator>
+#include <ostream>
 #include <set>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <variant>
@@ -35,6 +38,10 @@ struct GlobalVar {
   friend bool operator==(GlobalVar G1, GlobalVar G2) noexcept {
     return G1.Name == G2.Name;
   }
+
+  [[nodiscard]] std::string str() const {
+    return std::string("GlobalVar { Name: ") + Name.str() + " }";
+  }
 };
 struct LineCol {
   uint32_t Line{};
@@ -45,6 +52,10 @@ struct LineCol {
   }
   friend bool operator==(LineCol LC1, LineCol LC2) noexcept {
     return std::tie(LC1.Line, LC1.Col) == std::tie(LC2.Line, LC2.Col);
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("LineCol { Line: ") + std::to_string(Line) +
+           "; Col: " + std::to_string(Col) + " }";
   }
 };
 struct LineColFun {
@@ -60,6 +71,33 @@ struct LineColFun {
     return std::tie(LC1.Line, LC1.Col, LC1.InFunction) ==
            std::tie(LC2.Line, LC2.Col, LC2.InFunction);
   }
+  [[nodiscard]] std::string str() const {
+    return std::string("LineColFun { Line: ") + std::to_string(Line) +
+           "; Col: " + std::to_string(Col) +
+           "; InFunction: " + InFunction.str() + " }";
+  }
+};
+
+struct LineColFunOp {
+  uint32_t Line{};
+  uint32_t Col{};
+  llvm::StringRef InFunction{};
+  uint32_t OpCode{};
+
+  friend bool operator<(LineColFunOp LC1, LineColFunOp LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col, LC1.InFunction, LC1.OpCode) <
+           std::tie(LC2.Line, LC2.Col, LC2.InFunction, LC2.OpCode);
+  }
+  friend bool operator==(LineColFunOp LC1, LineColFunOp LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col, LC1.InFunction, LC1.OpCode) ==
+           std::tie(LC2.Line, LC2.Col, LC2.InFunction, LC2.OpCode);
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("LineColFunOp { Line: ") + std::to_string(Line) +
+           "; Col: " + std::to_string(Col) +
+           "; InFunction: " + InFunction.str() +
+           "; OpCode: " + llvm::Instruction::getOpcodeName(OpCode) + " }";
+  }
 };
 struct ArgNo {
   uint32_t Idx{};
@@ -67,6 +105,9 @@ struct ArgNo {
   friend bool operator<(ArgNo A1, ArgNo A2) noexcept { return A1.Idx < A2.Idx; }
   friend bool operator==(ArgNo A1, ArgNo A2) noexcept {
     return A1.Idx == A2.Idx;
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("ArgNo { Idx: ") + std::to_string(Idx) + " }";
   }
 };
 struct ArgInFun {
@@ -79,12 +120,18 @@ struct ArgInFun {
   friend bool operator==(ArgInFun A1, ArgInFun A2) noexcept {
     return std::tie(A1.Idx, A1.InFunction) == std::tie(A2.Idx, A2.InFunction);
   }
+  [[nodiscard]] std::string str() const {
+    return std::string("ArgInFun { Idx: ") + std::to_string(Idx) +
+           "; InFunction: " + InFunction.str() + " }";
+  }
 };
 
 struct TestingSrcLocation
-    : public std::variant<LineCol, LineColFun, GlobalVar, ArgNo, ArgInFun> {
-
-  using std::variant<LineCol, LineColFun, GlobalVar, ArgNo, ArgInFun>::variant;
+    : public std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
+                          ArgInFun> {
+  using VarT = std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
+                            ArgInFun>;
+  using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
     return std::holds_alternative<T>(*this);
@@ -96,7 +143,65 @@ struct TestingSrcLocation
   template <typename T> [[nodiscard]] constexpr T *dyn_cast() noexcept {
     return std::get_if<T>(this);
   }
+  [[nodiscard]] std::string str() const {
+    return std::visit([](const auto &Val) { return Val.str(); }, *this);
+  }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const TestingSrcLocation &Loc) {
+    return OS << Loc.str();
+  }
+  friend std::ostream &operator<<(std::ostream &OS,
+                                  const TestingSrcLocation &Loc) {
+    return OS << Loc.str();
+  }
 };
+
+} // namespace psr
+
+namespace std {
+template <> struct hash<psr::LineCol> {
+  size_t operator()(psr::LineCol LC) const noexcept {
+    return llvm::hash_value(std::make_pair(LC.Line, LC.Col));
+  }
+};
+template <> struct hash<psr::LineColFun> {
+  size_t operator()(psr::LineColFun LCF) const noexcept {
+    return llvm::hash_combine(
+        llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction);
+  }
+};
+template <> struct hash<psr::LineColFunOp> {
+  size_t operator()(psr::LineColFunOp LCF) const noexcept {
+    return llvm::hash_combine(
+        llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction,
+        LCF.OpCode);
+  }
+};
+template <> struct hash<psr::GlobalVar> {
+  size_t operator()(psr::GlobalVar GV) const noexcept {
+    return llvm::hash_value(GV.Name);
+  }
+};
+template <> struct hash<psr::ArgNo> {
+  size_t operator()(psr::ArgNo Arg) const noexcept {
+    return llvm::hash_value(Arg.Idx);
+  }
+};
+template <> struct hash<psr::ArgInFun> {
+  size_t operator()(psr::ArgInFun Arg) const noexcept {
+    return llvm::hash_combine(Arg.Idx, Arg.InFunction);
+  }
+};
+
+template <> struct hash<psr::TestingSrcLocation> {
+  size_t operator()(const psr::TestingSrcLocation &Loc) const noexcept {
+    return std::hash<psr::TestingSrcLocation::VarT>{}(Loc);
+  }
+};
+} // namespace std
+
+namespace psr {
 
 [[nodiscard]] inline const llvm::Value *
 testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
@@ -122,6 +227,17 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
                                        "' does not exist in the IR!");
             }
             return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col);
+          },
+          [&IRDB](LineColFunOp LC) -> llvm ::Value const * {
+            const auto *InFun = IRDB.getFunctionDefinition(LC.InFunction);
+            if (!InFun) {
+              llvm::report_fatal_error("Required function '" + LC.InFunction +
+                                       "' does not exist in the IR!");
+            }
+            return unittest::getInstAtOrNull(
+                InFun, LC.Line, LC.Col, [Op = LC.OpCode](const auto *Inst) {
+                  return Inst->getOpcode() == Op;
+                });
           },
           [&IRDB](GlobalVar GV) -> llvm ::Value const * {
             return IRDB.getModule()->getGlobalVariable(GV.Name, true);
