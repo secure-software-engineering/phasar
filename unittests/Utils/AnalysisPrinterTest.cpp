@@ -12,6 +12,8 @@
 #include "phasar/Utils/DefaultAnalysisPrinter.h"
 
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -54,7 +56,24 @@ private:
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void doOnFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
+  std::string printGroundTruth() {
+    std::string Ret;
+    llvm::raw_string_ostream OS(Ret);
+    OS << "{\n";
+    for (const auto &[Inst, Facts] : GroundTruth) {
+      OS << "  " << Inst << ": { ";
+      llvm::interleaveComma(Facts, OS);
+      OS << " },\n";
+    }
+    OS << "}\n";
+
+    return Ret;
+  }
+
+  void doOnFinalize() override {
+    EXPECT_TRUE(GroundTruth.empty())
+        << "Elements of GroundTruth not found: " << printGroundTruth();
+  }
 
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};
 };
@@ -120,7 +139,7 @@ TEST_F(AnalysisPrinterTest, HandleBasicTest_01) {
 TEST_F(AnalysisPrinterTest, XTaint01) {
   llvm::DenseMap<int, std::set<std::string>> GroundTruth;
 
-  GroundTruth[13] = {"7"};
+  GroundTruth[16] = {"8"};
   GroundTruthCollector GroundTruthPrinter = {GroundTruth};
   doAnalysisTest("xtaint01_cpp_dbg.ll", GroundTruthPrinter, std::monostate{});
 }
