@@ -11,12 +11,13 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DefaultAnalysisPrinter.h"
 
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
+
 using namespace psr;
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;
@@ -31,29 +32,23 @@ class GroundTruthCollector
 
 public:
   // constructor init Groundtruth in each fixture
-  GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
-      : GroundTruth(GroundTruth) {};
-
-  void findAndRemove(llvm::DenseMap<int, std::set<std::string>> &Map1,
-                     llvm::DenseMap<int, std::set<std::string>> &Map2) {
-    for (auto Entry = Map1.begin(); Entry != Map1.end();) {
-      auto Iter = Map2.find(Entry->first);
-      if (Iter != Map2.end() && Iter->second == Entry->second) {
-        Map2.erase(Iter);
-      }
-      ++Entry;
-    }
-  }
+  GroundTruthCollector(
+      const LLVMProjectIRDB &IRDB,
+      const std::map<TestingSrcLocation, std::set<TestingSrcLocation>>
+          &GroundTruth)
+      : GroundTruth(convertTestingLocationSetMapInIR(GroundTruth, IRDB)) {};
 
 private:
   void doOnResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
                   DataFlowAnalysisType /*AnalysisType*/) override {
-    llvm::DenseMap<int, std::set<std::string>> FoundLeak;
-    int SinkId = stoi(getMetaDataID(Instr));
-    std::set<std::string> LeakedValueIds;
-    LeakedValueIds.insert(getMetaDataID((DfFact)->base()));
-    FoundLeak.try_emplace(SinkId, LeakedValueIds);
-    findAndRemove(FoundLeak, GroundTruth);
+
+    auto It = GroundTruth.find(Instr);
+    EXPECT_TRUE(It != GroundTruth.end() && It->second.erase(DfFact->base()))
+        << "Did not expect finding a leak of " << DToString(DfFact) << " at "
+        << llvmIRToString(Instr) << '\n';
+    if (It != GroundTruth.end() && It->second.empty()) {
+      GroundTruth.erase(It);
+    }
   }
 
   std::string printGroundTruth() {
@@ -61,9 +56,10 @@ private:
     llvm::raw_string_ostream OS(Ret);
     OS << "{\n";
     for (const auto &[Inst, Facts] : GroundTruth) {
-      OS << "  " << Inst << ": { ";
-      llvm::interleaveComma(Facts, OS);
-      OS << " },\n";
+      OS << "  " << llvmIRToString(Inst) << ": {\n";
+      for (const auto *Val : Facts) {
+        OS << "    " << llvmIRToString(Val) << '\n';
+      }
     }
     OS << "}\n";
 
@@ -75,7 +71,8 @@ private:
         << "Elements of GroundTruth not found: " << printGroundTruth();
   }
 
-  llvm::DenseMap<int, std::set<std::string>> GroundTruth{};
+  std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+      GroundTruth{};
 };
 
 class AnalysisPrinterTest : public ::testing::Test {
@@ -84,7 +81,8 @@ protected:
   const std::vector<std::string> EntryPoints = {"main"};
 
   void doAnalysisTest(
-      llvm::StringRef IRFile, GroundTruthCollector &GTPrinter,
+      llvm::StringRef IRFile,
+      const std::map<TestingSrcLocation, std::set<TestingSrcLocation>> &GT,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config) {
     HelperAnalyses Helpers(PathToLlFiles + IRFile, EntryPoints);
 
@@ -105,7 +103,8 @@ protected:
     auto TaintProblem = createAnalysisProblem<IDEExtendedTaintAnalysis<>>(
         Helpers, TConfig, EntryPoints);
 
-    TaintProblem.setAnalysisPrinter(&GTPrinter);
+    GroundTruthCollector GTCollector(Helpers.getProjectIRDB(), GT);
+    TaintProblem.setAnalysisPrinter(&GTCollector);
     IDESolver Solver(TaintProblem, &Helpers.getICFG());
     Solver.solve();
 
@@ -116,8 +115,10 @@ protected:
 /* ============== BASIC TESTS ============== */
 
 TEST_F(AnalysisPrinterTest, HandleBasicTest_01) {
-  llvm::DenseMap<int, std::set<std::string>> GroundTruth;
-  GroundTruth[7] = {"0"};
+  std::map<TestingSrcLocation, std::set<TestingSrcLocation>> GroundTruth;
+  GroundTruth[LineColFun{8, 3, "main"}] = {
+      LineColFun{4, 14, "main"},
+  };
 
   TaintConfigData Config;
 
@@ -132,16 +133,16 @@ TEST_F(AnalysisPrinterTest, HandleBasicTest_01) {
   Config.Functions.push_back(std::move(FuncDataMain));
   Config.Functions.push_back(std::move(FuncDataPrint));
 
-  GroundTruthCollector GroundTruthPrinter = {GroundTruth};
-  doAnalysisTest("xtaint01_json_cpp_dbg.ll", GroundTruthPrinter, &Config);
+  doAnalysisTest("xtaint01_json_cpp_dbg.ll", GroundTruth, &Config);
 }
 
 TEST_F(AnalysisPrinterTest, XTaint01) {
-  llvm::DenseMap<int, std::set<std::string>> GroundTruth;
+  std::map<TestingSrcLocation, std::set<TestingSrcLocation>> GroundTruth;
 
-  GroundTruth[16] = {"8"};
-  GroundTruthCollector GroundTruthPrinter = {GroundTruth};
-  doAnalysisTest("xtaint01_cpp_dbg.ll", GroundTruthPrinter, std::monostate{});
+  GroundTruth[LineColFun{8, 3, "main"}] = {
+      LineColFun{7, 48, "main"},
+  };
+  doAnalysisTest("xtaint01_cpp_dbg.ll", GroundTruth, std::monostate{});
 }
 
 // main function for the test case

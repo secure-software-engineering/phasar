@@ -20,7 +20,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DebugOutput.h"
-#include "phasar/Utils/SrcCodeLocationEntry.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -35,6 +34,7 @@
 #include "llvm/Support/Casting.h"
 
 #include "SourceMapping.h"
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"

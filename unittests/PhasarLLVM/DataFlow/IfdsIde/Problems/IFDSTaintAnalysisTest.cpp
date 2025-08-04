@@ -11,7 +11,6 @@
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/SrcCodeLocationEntry.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
@@ -19,6 +18,7 @@
 #include "llvm/IR/Value.h"
 
 #include "SourceMapping.h"
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 

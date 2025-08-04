@@ -171,6 +171,23 @@ convertTestingLocationSetInIR(
   return Ret;
 }
 
+template <typename MapTy>
+[[nodiscard]] inline auto convertTestingLocationSetMapInIR(
+    const MapTy &Locs, const LLVMProjectIRDB &IRDB,
+    const llvm::Function *InterestingFunction = nullptr) {
+  std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Ret;
+  llvm::transform(
+      Locs, std::inserter(Ret, Ret.end()), [&](const auto &LocAndSet) {
+        const auto &[InstLoc, Set] = LocAndSet;
+        const auto *LocVal = llvm::dyn_cast_if_present<llvm::Instruction>(
+            testingLocInIR(InstLoc, IRDB, InterestingFunction));
+        auto ConvSet =
+            convertTestingLocationSetInIR(Set, IRDB, InterestingFunction);
+        return std::make_pair(LocVal, std::move(ConvSet));
+      });
+  return Ret;
+}
+
 struct SrcCodeLocationEntry {
   SrcCodeLocationEntry(
       uint32_t Line, uint32_t Column,
