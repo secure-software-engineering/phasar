@@ -25,9 +25,11 @@
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "SrcCodeLocationEntry.h"
@@ -50,9 +52,10 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("inst_interaction/");
 
+  using VarNameT = std::variant<std::string, psr::RetVal>;
   // Function - Line Nr - Variable - Values
   using IIACompactResult_t =
-      std::tuple<TestingSrcLocation, std::string,
+      std::tuple<TestingSrcLocation, VarNameT,
                  IDEInstInteractionAnalysisT<TestingSrcLocation>::l_t>;
 
   std::optional<HelperAnalyses> HA;
@@ -65,6 +68,34 @@ protected:
     HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
                HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
+  }
+
+  [[nodiscard]] bool matchesVar(const llvm::Value *Fact,
+                                const VarNameT &VarName) {
+    return std::visit(
+        psr::Overloaded{
+            [&](const std::string &Name) {
+              if (!llvm::isa<llvm::AllocaInst>(Fact)) {
+                return false;
+              }
+              auto FactName = psr::getVarNameFromIR(Fact);
+              return FactName == Name;
+            },
+            [&](RetVal R) {
+              return llvm::any_of(Fact->users(), [R](const auto *V) {
+                const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(V);
+                return Ret && Ret->getFunction()->getName() == R.InFunction;
+              });
+            },
+        },
+        VarName);
+  }
+  [[nodiscard]] std::string printVar(const VarNameT &VarName) {
+    return std::visit(psr::Overloaded{
+                          [](const std::string &Name) { return Name; },
+                          [](RetVal R) { return R.str(); },
+                      },
+                      VarName);
   }
 
   void
@@ -133,20 +164,18 @@ protected:
           IIASolver.resultsAt(llvm::cast<llvm::Instruction>(IRLoc));
       bool FactFound = false;
       for (auto &[Fact, Value] : ResultMap) {
-        if (!llvm::isa<llvm::AllocaInst>(Fact.getBase())) {
-          continue;
-        }
-        auto FactName = psr::getVarNameFromIR(Fact.getBase());
-        if (FactName == VarName) {
+        if (matchesVar(Fact.getBase(), VarName)) {
           EXPECT_EQ(LatticeVal, Value)
               << "Unexpected taint-set at " << InstLoc << " for variable '"
-              << VarName << "' (" << llvmIRToString(Fact.getBase()) << ")";
+              << printVar(VarName) << "' (" << llvmIRToString(Fact.getBase())
+              << ")";
           FactFound = true;
         }
       }
 
       EXPECT_TRUE(FactFound)
-          << "Variable '" << VarName << "' missing at '" << IRLoc << "'.";
+          << "Variable '" << printVar(VarName) << "' missing at '"
+          << llvmIRToString(IRLoc) << "'.";
     }
   }
 
@@ -488,182 +517,209 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
                               false);
 }
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 20, "retval", {"3"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 20, "i", {"4", "10", "11", "12"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 20, "x", {"5", "14", "15", "16"}));
-//   doAnalysisAndCompareResults("basic_03_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
+  std::set<IIACompactResult_t> GroundTruth;
 
-// PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
-//   // If we use libcxx this won't work since internal implementation is
-//   different LIBCPP_GTEST_SKIP;
+  auto Main20 = LineColFun{6, 3, "main"};
 
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 23, "retval", {"7"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 23, "argc.addr", {"8"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 23, "argv.addr", {"9"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 23, "i", {"10"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 23, "j", {"10", "11", "12", "13"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 23, "k", {"10", "11", "12", "13", "14", "18", "19"}));
-//   doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// })
+  GroundTruth.emplace(Main20, "i",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                          LineColFun{4, 5, "main"},
+                      });
+  GroundTruth.emplace(Main20, "x",
+                      TaintSetT{
+                          LineColFun{3, 12, "main"},
+                          LineColFun{3, 28, "main"},
+                      });
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 11, "i", {"5", "7"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 11, "retval", {"2"}));
-//   doAnalysisAndCompareResults("basic_05_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+  doAnalysisAndCompareResults("basic_03_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 19, "retval", {"5"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 19, "i", {"15", "6", "13"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 19, "j", {"15", "6", "13"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 19, "k", {"6"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 19, "p", {"1", "2", "9", "11"}));
-//   doAnalysisAndCompareResults("basic_06_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+  // If we use libcxx this won't work since internal implementation is different
+  // TODO: Test this out, now that we have a src-code based definition of the
+  // ground-truth!
+  LIBCPP_GTEST_SKIP;
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 15, "retval", {"5"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 15, "argc.addr", {"6"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 15, "argv.addr", {"7"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 15, "i", {"12"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 15, "j", {"8", "9", "10", "11"}));
-//   doAnalysisAndCompareResults("basic_07_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main23 = LineColFun{11, 3, "main"};
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_08) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 12, "retval", {"2"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 12, "i", {"9"}));
-//   doAnalysisAndCompareResults("basic_08_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+  GroundTruth.emplace(Main23, "argc",
+                      TaintSetT{
+                          LineColFun{3, 14, "main"},
+                      });
+  GroundTruth.emplace(Main23, "argv",
+                      TaintSetT{
+                          LineColFun{3, 27, "main"},
+                      });
+  GroundTruth.emplace(Main23, "i",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                      });
+  GroundTruth.emplace(Main23, "j",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 11, "main"},
+                          LineColFun{5, 13, "main"},
+                          LineColFun{5, 7, "main"},
+                      });
+  GroundTruth.emplace(Main23, "k",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 11, "main"},
+                          LineColFun{5, 13, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{6, 7, "main"},
+                          LineColFun{8, 9, "main"},
+                          LineColFun{8, 7, "main"},
+                      });
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_09) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 10, "i", {"4"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 10, "j", {"4", "6", "7"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 10, "retval", {"3"}));
-//   doAnalysisAndCompareResults("basic_09_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+  doAnalysisAndCompareResults("basic_04_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+})
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 6, "i", {"3"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 6, "retval", {"2"}));
-//   doAnalysisAndCompareResults("basic_10_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main11 = LineColFun{10, 3, "main"};
+  GroundTruth.emplace(Main11, "i",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                          LineColFun{8, 7, "main"},
+                      });
 
-// TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
-//   std::set<IIACompactResult_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 20, "FeatureSelector", {"5", "7", "8"}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string,
-//       BitVectorSet<std::string>>(
-//           "main", 20, "retval", {"11", "16"}));
-//   doAnalysisAndCompareResults("basic_11_cpp.ll", {"main"}, GroundTruth,
-//   false);
-// }
+  doAnalysisAndCompareResults("basic_05_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main19 = LineColFun{14, 3, "main"};
+
+  GroundTruth.emplace(Main19, "i",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                          LineColFun{13, 8, "main"},
+                          LineColFun{13, 6, "main"},
+                      });
+  GroundTruth.emplace(Main19, "j",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                          LineColFun{13, 8, "main"},
+                          LineColFun{13, 6, "main"},
+                      });
+  GroundTruth.emplace(Main19, "k",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                      });
+  GroundTruth.emplace(Main19, "p",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{9, 7, "main"},
+                          LineColFun{11, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_06_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main15 = LineColFun{5, 3, "main"};
+
+  GroundTruth.emplace(Main15, "argc",
+                      TaintSetT{
+                          LineColFun{1, 14, "main"},
+                      });
+  GroundTruth.emplace(Main15, "argv",
+                      TaintSetT{
+                          LineColFun{1, 27, "main"},
+                      });
+  // strong update on i
+  GroundTruth.emplace(Main15, "i",
+                      TaintSetT{
+                          LineColFun{4, 5, "main"},
+                      });
+  GroundTruth.emplace(Main15, "j",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                          LineColFun{3, 11, "main"},
+                          LineColFun{3, 13, "main"},
+                          LineColFun{3, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_07_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_08) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main12 = LineColFun{11, 3, "main"};
+
+  // strong update on i
+  GroundTruth.emplace(Main12, "i",
+                      TaintSetT{
+                          LineColFun{10, 5, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_08_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_09) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main10 = LineColFun{6, 3, "main"};
+
+  GroundTruth.emplace(Main10, "i",
+                      TaintSetT{
+                          LineColFun{3, 7, "main"},
+                      });
+  GroundTruth.emplace(Main10, "j",
+                      TaintSetT{
+                          LineColFun{3, 7, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{5, 5, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_09_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main6 = LineColFun{4, 3, "main"};
+  GroundTruth.emplace(Main6, "i",
+                      TaintSetT{
+                          LineColFun{3, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_10_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
+  std::set<IIACompactResult_t> GroundTruth;
+  auto Main20 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main20, "FeatureSelector",
+                      TaintSetT{
+                          LineColFun{3, 14, "main"},
+                          LineColFun{4, 25, "main"},
+                          LineColFun{4, 7, "main"},
+                      });
+
+  GroundTruth.emplace(Main20, RetVal{"main"},
+                      TaintSetT{
+                          LineColFun{7, 5, "main"},
+                          LineColFun{15, 3, "main"},
+                          LineColFun{16, 1, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_11_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
 
 // TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
 //   std::set<IIACompactResult_t> GroundTruth;

@@ -10,6 +10,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -126,11 +127,38 @@ struct ArgInFun {
   }
 };
 
+struct RetVal {
+  llvm::StringRef InFunction;
+
+  friend bool operator<(RetVal R1, RetVal R2) noexcept {
+    return R1.InFunction < R2.InFunction;
+  }
+  friend bool operator==(RetVal R1, RetVal R2) noexcept {
+    return R1.InFunction == R2.InFunction;
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("RetVal { InFunction: ") + InFunction.str() + +" }";
+  }
+};
+struct RetStmt {
+  llvm::StringRef InFunction;
+
+  friend bool operator<(RetStmt R1, RetStmt R2) noexcept {
+    return R1.InFunction < R2.InFunction;
+  }
+  friend bool operator==(RetStmt R1, RetStmt R2) noexcept {
+    return R1.InFunction == R2.InFunction;
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("RetStmt { InFunction: ") + InFunction.str() + +" }";
+  }
+};
+
 struct TestingSrcLocation
     : public std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                          ArgInFun> {
+                          ArgInFun, RetVal, RetStmt> {
   using VarT = std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                            ArgInFun>;
+                            ArgInFun, RetVal, RetStmt>;
   using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
@@ -194,6 +222,18 @@ template <> struct hash<psr::ArgInFun> {
   }
 };
 
+template <> struct hash<psr::RetVal> {
+  size_t operator()(psr::RetVal Ret) const noexcept {
+    return llvm::hash_value(Ret.InFunction);
+  }
+};
+
+template <> struct hash<psr::RetStmt> {
+  size_t operator()(psr::RetStmt Ret) const noexcept {
+    return llvm::hash_value(Ret.InFunction);
+  }
+};
+
 template <> struct hash<psr::TestingSrcLocation> {
   size_t operator()(const psr::TestingSrcLocation &Loc) const noexcept {
     return std::hash<psr::TestingSrcLocation::VarT>{}(Loc);
@@ -206,7 +246,14 @@ namespace psr {
 [[nodiscard]] inline const llvm::Value *
 testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
                const llvm::Function *InterestingFunction = nullptr) {
-
+  const auto GetFunction = [&IRDB](llvm::StringRef Name) {
+    const auto *InFun = IRDB.getFunctionDefinition(Name);
+    if (!InFun) {
+      llvm::report_fatal_error("Required function '" + Name +
+                               "' does not exist in the IR!");
+    }
+    return InFun;
+  };
   return std::visit(
       psr::Overloaded{
           [=](LineCol LC) -> llvm ::Value const * {
@@ -220,20 +267,12 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
             return unittest::getInstAtOrNull(InterestingFunction, LC.Line,
                                              LC.Col);
           },
-          [&IRDB](LineColFun LC) -> llvm ::Value const * {
-            const auto *InFun = IRDB.getFunctionDefinition(LC.InFunction);
-            if (!InFun) {
-              llvm::report_fatal_error("Required function '" + LC.InFunction +
-                                       "' does not exist in the IR!");
-            }
+          [&](LineColFun LC) -> llvm ::Value const * {
+            const auto *InFun = GetFunction(LC.InFunction);
             return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col);
           },
-          [&IRDB](LineColFunOp LC) -> llvm ::Value const * {
-            const auto *InFun = IRDB.getFunctionDefinition(LC.InFunction);
-            if (!InFun) {
-              llvm::report_fatal_error("Required function '" + LC.InFunction +
-                                       "' does not exist in the IR!");
-            }
+          [&](LineColFunOp LC) -> llvm ::Value const * {
+            const auto *InFun = GetFunction(LC.InFunction);
             return unittest::getInstAtOrNull(
                 InFun, LC.Line, LC.Col, [Op = LC.OpCode](const auto *Inst) {
                   return Inst->getOpcode() == Op;
@@ -257,18 +296,36 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
             }
             return InterestingFunction->getArg(A.Idx);
           },
-          [&IRDB](ArgInFun A) -> llvm ::Value const * {
-            const auto *InFun = IRDB.getFunctionDefinition(A.InFunction);
-            if (!InFun) {
-              llvm::report_fatal_error("Required function '" + A.InFunction +
-                                       "' does not exist in the IR!");
-            }
+          [&](ArgInFun A) -> llvm ::Value const * {
+            const auto *InFun = GetFunction(A.InFunction);
             if (InFun->arg_size() <= A.Idx) {
               llvm::report_fatal_error("Argument index " + llvm::Twine(A.Idx) +
                                        " is out of range (" +
                                        llvm::Twine(InFun->arg_size()) + ")!");
             }
             return InFun->getArg(A.Idx);
+          },
+          [&](RetVal R) -> llvm::Value const * {
+            const auto *InFun = GetFunction(R.InFunction);
+            for (const auto &BB : llvm::reverse(InFun->getBasicBlockList())) {
+              if (const auto *Ret =
+                      llvm::dyn_cast<llvm::ReturnInst>(BB.getTerminator())) {
+                return Ret->getReturnValue();
+              }
+            }
+            llvm::report_fatal_error("No return stmt in function " +
+                                     R.InFunction);
+          },
+          [&](RetStmt R) -> llvm::Value const * {
+            const auto *InFun = GetFunction(R.InFunction);
+            for (const auto &BB : llvm::reverse(InFun->getBasicBlockList())) {
+              if (const auto *Ret =
+                      llvm::dyn_cast<llvm::ReturnInst>(BB.getTerminator())) {
+                return Ret;
+              }
+            }
+            llvm::report_fatal_error("No return stmt in function " +
+                                     R.InFunction);
           },
       },
       Loc);
