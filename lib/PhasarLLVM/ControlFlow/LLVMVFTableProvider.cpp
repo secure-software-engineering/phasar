@@ -25,14 +25,24 @@ static std::string getTypeName(const llvm::DIType *DITy) {
   auto TypeName = [DITy] {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
       if (auto Ident = CompTy->getIdentifier(); !Ident.empty()) {
-        return Ident;
+        return Ident.str();
       }
     }
-    return DITy->getName();
+
+    // Get the fully qualified name
+    // This is pretty much a hack, but it works
+    auto ClearName = DITy->getName().str();
+    const auto *Scope = DITy->getScope();
+    while (llvm::isa_and_nonnull<llvm::DINamespace, llvm::DISubprogram,
+                                 llvm::DIType>(Scope)) {
+      ClearName = Scope->getName().str().append("::").append(ClearName);
+      Scope = Scope->getScope();
+    }
+    return ClearName;
   }();
 
   // In LLVM 17 demangle() takes a StringRef
-  auto Ret = llvm::demangle(TypeName.str());
+  auto Ret = llvm::demangle(TypeName);
 
   if (llvm::StringRef(Ret).startswith(TSPrefixDemang)) {
     Ret.erase(0, TSPrefixDemang.size());
