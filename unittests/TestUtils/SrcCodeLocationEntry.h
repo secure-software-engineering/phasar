@@ -65,8 +65,8 @@ struct LineColFun {
   llvm::StringRef InFunction{};
 
   friend bool operator<(LineColFun LC1, LineColFun LC2) noexcept {
-    return std::tie(LC1.Line, LC1.Col, LC1.InFunction) <
-           std::tie(LC2.Line, LC2.Col, LC2.InFunction);
+    return std::tie(LC1.InFunction, LC1.Line, LC1.Col) <
+           std::tie(LC2.InFunction, LC2.Line, LC2.Col);
   }
   friend bool operator==(LineColFun LC1, LineColFun LC2) noexcept {
     return std::tie(LC1.Line, LC1.Col, LC1.InFunction) ==
@@ -86,8 +86,8 @@ struct LineColFunOp {
   uint32_t OpCode{};
 
   friend bool operator<(LineColFunOp LC1, LineColFunOp LC2) noexcept {
-    return std::tie(LC1.Line, LC1.Col, LC1.InFunction, LC1.OpCode) <
-           std::tie(LC2.Line, LC2.Col, LC2.InFunction, LC2.OpCode);
+    return std::tie(LC1.InFunction, LC1.Line, LC1.Col, LC1.OpCode) <
+           std::tie(LC2.InFunction, LC2.Line, LC2.Col, LC2.OpCode);
   }
   friend bool operator==(LineColFunOp LC1, LineColFunOp LC2) noexcept {
     return std::tie(LC1.Line, LC1.Col, LC1.InFunction, LC1.OpCode) ==
@@ -116,7 +116,7 @@ struct ArgInFun {
   llvm::StringRef InFunction{};
 
   friend bool operator<(ArgInFun A1, ArgInFun A2) noexcept {
-    return std::tie(A1.Idx, A1.InFunction) < std::tie(A2.Idx, A2.InFunction);
+    return std::tie(A1.InFunction, A1.Idx) < std::tie(A2.InFunction, A2.Idx);
   }
   friend bool operator==(ArgInFun A1, ArgInFun A2) noexcept {
     return std::tie(A1.Idx, A1.InFunction) == std::tie(A2.Idx, A2.InFunction);
