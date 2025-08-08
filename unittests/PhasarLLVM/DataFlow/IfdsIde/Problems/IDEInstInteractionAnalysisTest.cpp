@@ -192,7 +192,9 @@ protected:
     }
   }
 
-  void TearDown() override {}
+  void TearDown() override {
+    BitVectorSet<TestingSrcLocation>::clearPosition();
+  }
 
 }; // Test Fixture
 
