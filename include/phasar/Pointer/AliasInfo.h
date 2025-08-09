@@ -215,8 +215,8 @@ private:
           [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
              llvm::function_ref<void(v_t)> WithAlias) {
             if constexpr (IsAliasIterator<ConcreteAA>) {
-              return static_cast<ConcreteAA *>(AA)->aliasesof(Of, At,
-                                                              WithAlias);
+              return static_cast<ConcreteAA *>(AA)->forallAliasesOf(Of, At,
+                                                                    WithAlias);
             } else {
               auto AliasSetPtr =
                   static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
