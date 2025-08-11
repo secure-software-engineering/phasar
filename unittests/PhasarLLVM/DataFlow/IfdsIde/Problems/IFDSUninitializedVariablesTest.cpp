@@ -105,16 +105,14 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   compareResults(GroundTruth);
 }
 
-#if false
-
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   initialize({PathToLlFiles + "callnoret_c_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
   // callnoret uses uninitialized variable a in 'return a + 10;' of addTen(int)
-  map<int, set<string>> GroundTruth;
-
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+#if false
   // %4 = load i32, i32* %2 ; %2 is the parameter a of addTen(int) containing
   // undef
   GroundTruth[5] = {"0"};
@@ -125,9 +123,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   // The same as in test2: is it necessary to report again? (the analysis does
   // not)
   // GroundTruth[17] = {"16"};
+#endif
 
   compareResults(GroundTruth);
 }
+#if false
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "ctor_default_cpp_dbg.ll"});

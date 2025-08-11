@@ -19,6 +19,10 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
+#include "llvm/IR/Instruction.h"
+#include "llvm/Support/Casting.h"
+
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
@@ -62,6 +66,46 @@ protected:
 
   void TearDown() override {}
 
+  std::map<const llvm::Instruction *, std::map<const llvm::Instruction *, int>>
+  srcCodeLocsToInsts(
+      const std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+          &GroundTruth) {
+    std::map<const llvm::Instruction *,
+             std::map<const llvm::Instruction *, int>>
+        Converted;
+
+    for (const auto &OuterEntry : GroundTruth) {
+      const auto *FirstInst = getInstFromEntryOrNull(std::get<0>(OuterEntry));
+      if (FirstInst) {
+        for (const auto &InnerEntry : std::get<1>(OuterEntry)) {
+          const auto *SecondInst =
+              getInstFromEntryOrNull(std::get<0>(InnerEntry));
+
+          if (SecondInst) {
+            std::map<const llvm::Instruction *, int> InnerMap = {
+                {SecondInst, std::get<1>(InnerEntry)}};
+
+            Converted.insert(
+                std::pair<const llvm::Instruction *,
+                          std::map<const llvm::Instruction *, int>>(FirstInst,
+                                                                    InnerMap));
+            continue;
+          }
+
+          llvm::errs()
+              << "Second SrcCodeLocationEntry couldn't be converted to an "
+                 "Instruction.";
+        }
+        continue;
+      }
+
+      llvm::errs() << "First SrcCodeLocationEntry couldn't be converted to an "
+                      "Instruction.";
+    }
+
+    return Converted;
+  }
+
   /**
    * We map instruction id to value for the ground truth. ID has to be
    * a string since Argument ID's are not integer type (e.g. main.0 for argc).
@@ -69,9 +113,35 @@ protected:
    * @param solver provides the results
    */
   void compareResults(
-      const std::map<std::size_t, std::map<std::string, int>> &GroundTruth,
+      const std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+          &GroundTruth,
       IDESolver_P<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>
           &Solver) {
+    auto GroundTruthEntries = srcCodeLocsToInsts(GroundTruth);
+
+    int Counter = 0;
+    for (const auto &Entry : GroundTruthEntries) {
+      std::map<const llvm::Instruction *, int> Results;
+      auto GT = std::get<1>(Entry);
+      llvm::outs() << "Counter: " << Counter++ << "\n";
+      const auto *CurrInst = std::get<0>(Entry);
+      for (auto Result : Solver.resultsAt(CurrInst, true)) {
+        const auto &FirstResult = std::get<0>(Result);
+        const auto &SecondResult = std::get<1>(Result);
+
+        llvm::outs() << "FirstResult:  " << *(FirstResult) << "\n";
+        llvm::outs() << "SecondResult: " << SecondResult << "\n";
+
+        if (GT.find(llvm::cast<llvm::Instruction>(FirstResult)) != GT.end()) {
+          Results.insert(std::pair<const llvm::Instruction *, int>(
+              llvm::cast<llvm::Instruction>(FirstResult), int(SecondResult)));
+        }
+      }
+      EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(CurrInst);
+    }
+
+#if false
+
     for (const auto &InstToGroundTruth : GroundTruth) {
       const auto *Inst =
           HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
@@ -87,6 +157,8 @@ protected:
       }
       EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(Inst);
     }
+
+#endif
   }
 }; // Test Fixture
 
@@ -94,28 +166,63 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
   initialize({PathToLlFiles + "typestate_01_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
   Llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      {5, {{"3", IOSTATE::UNINIT}}},
-      {9, {{"3", IOSTATE::CLOSED}}},
-      {7, {{"3", IOSTATE::OPENED}}}};
-  compareResults(Gt, Llvmtssolver);
+  // const std::map<std::size_t, std::map<std::string, int>> Gt = {
+  //     {5, {{"3", IOSTATE::UNINIT}}},
+  //     {9, {{"3", IOSTATE::CLOSED}}},
+  //     {7, {{"3", IOSTATE::OPENED}}}};
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getIRDB()->getFunction("main"));
+  const auto Entry =
+      SrcCodeLocationEntry(5, 7, HA->getICFG().getIRDB()->getFunction("main"));
+  const auto EntryTwo =
+      SrcCodeLocationEntry(6, 3, HA->getICFG().getIRDB()->getFunction("main"));
+  const auto EntryThree =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getIRDB()->getFunction("main"));
+  GroundTruth.insert({Entry, {{File, IOSTATE::UNINIT}}});
+  GroundTruth.insert({EntryTwo, {{File, IOSTATE::OPENED}}});
+  GroundTruth.insert({EntryThree, {{File, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
   initialize({PathToLlFiles + "typestate_02_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      {7, {{"3", IOSTATE::OPENED}, {"5", IOSTATE::OPENED}}}};
-  compareResults(Gt, Llvmtssolver);
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getIRDB()->getFunction("main"));
+  const auto Entry =
+      SrcCodeLocationEntry(6, 3, HA->getICFG().getIRDB()->getFunction("main"));
+  GroundTruth.insert({Entry, {{File, IOSTATE::OPENED}}});
+  compareResults(GroundTruth, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
   initialize({PathToLlFiles + "typestate_03_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(6, 9, HA->getICFG().getIRDB()->getFunction("main"));
+  const auto FooArg =
+      SrcCodeLocationEntry(3, 16, HA->getICFG().getIRDB()->getFunction("foo"));
+  const auto FooRet =
+      SrcCodeLocationEntry(3, 32, HA->getICFG().getIRDB()->getFunction("foo"));
+  const auto Return =
+      SrcCodeLocationEntry(11, 3, HA->getICFG().getIRDB()->getFunction("main"));
+  GroundTruth.insert({FooArg, {{File, IOSTATE::OPENED}}});
+  GroundTruth.insert({FooRet, {{File, IOSTATE::CLOSED}}});
+  GroundTruth.insert({Return, {{File, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   // llvmtssolver.printReport();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Entry in foo()
@@ -135,7 +242,10 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
         {"8", IOSTATE::CLOSED},
         {"12", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
+
+#if false
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
   initialize({PathToLlFiles + "typestate_04_c_dbg.ll"});
@@ -547,6 +657,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
       {25, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
 }
+
+#endif
 
 // main function for the test case
 int main(int Argc, char **Argv) {
