@@ -4,11 +4,11 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instructions.h"
 
 #include "FilteredAliasesUtils.h"
@@ -19,55 +19,11 @@
 
 using namespace psr;
 
-template <typename WithAliasFn>
-static void foreachValidAliasIn(LLVMAliasSet::AliasSetPtrTy AS,
-                                const llvm::Value *V, const llvm::Function *Fun,
-                                WithAliasFn &&WithAlias) {
-  if (!Fun) {
-    llvm::for_each(*AS, WithAlias);
-    return;
-  }
-
-  const auto *Base = V->stripPointerCastsAndAliases();
-  for (const auto *Alias : *AS) {
-
-    // Skip inter-procedural aliases
-    const auto *AliasFun = getFunction(Alias);
-    if (AliasFun && Fun != AliasFun) {
-      continue;
-    }
-
-    if (V == Alias) {
-      std::invoke(WithAlias, Alias);
-      continue;
-    }
-
-    if (llvm::isa<llvm::ConstantExpr, llvm::ConstantData>(Alias)) {
-      // Assume: Compile-time constants are not generated as data-flow facts!
-      continue;
-    }
-
-    const auto *AliasBase = Alias->stripPointerCastsAndAliases();
-
-    if (mustNoalias(Base, AliasBase)) {
-      continue;
-    }
-
-    std::invoke(WithAlias, Alias);
-  }
-}
-
-FilteredLLVMAliasSet::FilteredLLVMAliasSet(LLVMAliasSet *AS) noexcept
-    : AS(AS), Owner(&AS->MRes) {}
-
-FilteredLLVMAliasSet::FilteredLLVMAliasSet(
-    MaybeUniquePtr<LLVMAliasSet, true> AS) noexcept
-    : AS(std::move(AS)), Owner(&this->AS->MRes) {}
-
-FilteredLLVMAliasSet::~FilteredLLVMAliasSet() = default;
+FilteredLLVMAliasSet::FilteredLLVMAliasSet(LLVMAliasIteratorRef AS) noexcept
+    : AS(AS), Owner(&MRes) {}
 
 AliasAnalysisType FilteredLLVMAliasSet::getAliasAnalysisType() const noexcept {
-  return AS->getAliasAnalysisType();
+  return AliasAnalysisType::Invalid; // No idea
 }
 
 AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
@@ -80,25 +36,26 @@ AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
 AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
                                         const llvm::Value *V2,
                                         const llvm::Instruction *I) {
-  if (!I) {
-    return AS->alias(V1, V2);
-  }
+  return alias(V1, V2, I ? I->getFunction() : nullptr);
+}
 
-  return alias(V1, V2, I->getFunction());
+static BoxedPtr<FilteredLLVMAliasSet::AliasSetTy> getEmptyAliasSet() {
+  static FilteredLLVMAliasSet::AliasSetTy EmptySet{};
+  static FilteredLLVMAliasSet::AliasSetTy *EmptySetPtr = &EmptySet;
+  return &EmptySetPtr;
 }
 
 auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
                                        const llvm::Function *Fun)
     -> AliasSetPtrTy {
   if (!isInterestingPointer(V)) {
-    return AS->getEmptyAliasSet();
+    return getEmptyAliasSet();
   }
 
   auto &Entry = AliasSetMap[{Fun, V}];
   if (!Entry) {
     auto Set = Owner.acquire();
-    foreachValidAliasIn(AS->getAliasSet(V), V, Fun,
-                        [&Set](v_t Alias) { Set->insert(Alias); });
+    AS.forallAliasesOf(V, Fun, [&Set](v_t Alias) { Set->insert(Alias); });
     Entry = Set;
   }
   return Entry;
@@ -132,14 +89,13 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
   const auto *VFun = getFunction(V);
   const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
 
-  foreachValidAliasIn(AS->getAliasSet(V), V, Fun,
-                      [Set = AllocSites.get(), V, AS = AS.get(), IntraProcOnly,
-                       VFun, VG](v_t Alias) {
-                        if (psr::isInReachableAllocationSitesTy(
-                                V, Alias, IntraProcOnly, VFun, VG)) {
-                          Set->insert(Alias);
-                        }
-                      });
+  AS.forallAliasesOf(
+      V, Fun, [Set = AllocSites.get(), V, IntraProcOnly, VFun, VG](v_t Alias) {
+        if (psr::isInReachableAllocationSitesTy(V, Alias, IntraProcOnly, VFun,
+                                                VG)) {
+          Set->insert(Alias);
+        }
+      });
 
   return AllocSites.get();
 }

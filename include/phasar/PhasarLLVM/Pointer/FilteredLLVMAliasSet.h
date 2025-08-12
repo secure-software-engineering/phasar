@@ -10,12 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_FILTEREDLLVMALIASSET_H
 #define PHASAR_PHASARLLVM_POINTER_FILTEREDLLVMALIASSET_H
 
+#include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasIterator.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Utils/AnalysisProperties.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
@@ -26,7 +26,6 @@
 
 #include "nlohmann/json_fwd.hpp"
 
-#include <type_traits>
 #include <utility>
 
 namespace llvm {
@@ -36,7 +35,6 @@ class Instruction;
 
 namespace psr {
 
-class LLVMAliasSet;
 class FilteredLLVMAliasSet;
 
 template <>
@@ -52,22 +50,7 @@ public:
   using AliasSetPtrTy = alias_traits_t::AliasSetPtrTy;
   using AllocationSiteSetPtrTy = alias_traits_t::AllocationSiteSetPtrTy;
 
-  FilteredLLVMAliasSet(LLVMAliasSet *AS) noexcept;
-
-  FilteredLLVMAliasSet(const FilteredLLVMAliasSet &) = delete;
-  FilteredLLVMAliasSet &operator=(const FilteredLLVMAliasSet &) = delete;
-  FilteredLLVMAliasSet &operator=(FilteredLLVMAliasSet &&) noexcept = delete;
-
-  FilteredLLVMAliasSet(FilteredLLVMAliasSet &&) noexcept = default;
-
-  ~FilteredLLVMAliasSet();
-
-  template <typename... ArgsT,
-            typename = std::enable_if_t<
-                std::is_constructible_v<LLVMAliasSet, ArgsT...>>>
-  explicit FilteredLLVMAliasSet(ArgsT &&...Args)
-      : FilteredLLVMAliasSet(
-            std::make_unique<LLVMAliasSet>(std::forward<ArgsT>(Args)...)) {}
+  FilteredLLVMAliasSet(LLVMAliasIteratorRef AS) noexcept;
 
   // --- API Functions:
 
@@ -140,9 +123,8 @@ private:
     }
   };
 
-  FilteredLLVMAliasSet(MaybeUniquePtr<LLVMAliasSet, true> AS) noexcept;
-
-  MaybeUniquePtr<LLVMAliasSet, /*RequireAlignment=*/true> AS;
+  FilteredLLVMAliasIterator AS;
+  AliasSetOwner<AliasSetTy>::memory_resource_type MRes;
   AliasSetOwner<AliasSetTy> Owner;
   llvm::DenseMap<std::pair<const llvm::Function *, v_t>, AliasSetPtrTy>
       AliasSetMap;

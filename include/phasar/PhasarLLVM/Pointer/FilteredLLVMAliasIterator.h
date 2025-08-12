@@ -17,6 +17,9 @@
 namespace psr {
 class FilteredLLVMAliasIterator {
 public:
+  constexpr FilteredLLVMAliasIterator(LLVMAliasIteratorRef Underlying) noexcept
+      : Underlying(Underlying) {}
+
   void forallAliasesOf(const llvm::Value *V, const llvm::Function *Fun,
                        llvm::function_ref<void(const llvm::Value *)> WithAlias);
   void forallAliasesOf(const llvm::Value *V, const llvm::Instruction *At,
