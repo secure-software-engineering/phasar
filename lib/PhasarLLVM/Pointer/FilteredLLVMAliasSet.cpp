@@ -9,75 +9,15 @@
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/GlobalAlias.h"
-#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 
+#include "FilteredAliasesUtils.h"
 #include "nlohmann/json_fwd.hpp"
 
 #include <memory>
 #include <type_traits>
 
 using namespace psr;
-
-static const llvm::Function *getFunction(const llvm::Value *V) {
-  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    return Inst->getFunction();
-  }
-  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    return Arg->getParent();
-  }
-  return nullptr;
-}
-
-[[nodiscard]] static bool
-isConstantGlobalValue(const llvm::GlobalValue *GlobV) {
-  if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(GlobV)) {
-    return Glob->isConstant();
-  }
-  if (const auto *Alias = llvm::dyn_cast<llvm::GlobalAlias>(GlobV)) {
-    if (const auto *AliasGlob =
-            llvm::dyn_cast<llvm::GlobalVariable>(Alias->getAliasee())) {
-      return AliasGlob->isConstant();
-    }
-  }
-  return true;
-}
-
-static bool mustNoalias(const llvm::Value *p1, const llvm::Value *p2) {
-  if (p1 == p2) {
-    return false;
-  }
-  assert(p1);
-  assert(p2);
-
-  // Assumptions:
-  // - Globals do not alias with allocas
-  // - Globals do not alias with each other (this may be a bit unsound, though)
-  // - Allocas do not alias each other (relax a bit for allocas of pointers)
-  // - Constant globals are not generated as data-flow facts
-
-  if (const auto *Alloca1 = llvm::dyn_cast<llvm::AllocaInst>(p1)) {
-    if (llvm::isa<llvm::GlobalValue>(p2)) {
-      return true;
-    }
-    if (const auto *Alloca2 = llvm::dyn_cast<llvm::AllocaInst>(p2)) {
-      return !Alloca1->getAllocatedType()->isPointerTy() &&
-             !Alloca2->getAllocatedType()->isPointerTy();
-    }
-  } else if (const auto *Glob1 = llvm::dyn_cast<llvm::GlobalValue>(p1)) {
-    if (llvm::isa<llvm::AllocaInst>(p2) || isConstantGlobalValue(Glob1)) {
-      return true;
-    }
-    if (const auto *Glob2 = llvm::dyn_cast<llvm::GlobalValue>(p2)) {
-      return true; // approximation
-    }
-  } else if (const auto *Glob2 = llvm::dyn_cast<llvm::GlobalValue>(p2)) {
-    return isConstantGlobalValue(Glob2);
-  }
-
-  return false;
-}
 
 template <typename WithAliasFn>
 static void foreachValidAliasIn(LLVMAliasSet::AliasSetPtrTy AS,
