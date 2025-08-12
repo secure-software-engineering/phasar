@@ -74,11 +74,8 @@ public:
   using n_t = N;
   using v_t = V;
 
-  struct VTable {
-    void (*ForallAliasesOf)(void *, ByConstRef<V>, ByConstRef<N>,
-                            llvm::function_ref<void(V)>);
-    AliasResult (*Alias)(void *, ByConstRef<V>, ByConstRef<V>, ByConstRef<N>);
-  };
+  using ForallAliasesOfFn = void (*)(void *, ByConstRef<V>, ByConstRef<N>,
+                                     llvm::function_ref<void(V)>);
 
   template <typename ConcreteAA,
             typename = std::enable_if_t<
@@ -86,7 +83,7 @@ public:
                 std::is_same_v<v_t, typename ConcreteAA::v_t> &&
                 std::is_same_v<n_t, typename ConcreteAA::n_t>>>
   constexpr AliasIteratorRef(ConcreteAA *AA) noexcept
-      : AA(getOpaquePtr(psr::assertNotNull(AA))), VT(&VtableFor<ConcreteAA>) {
+      : AA(getOpaquePtr(psr::assertNotNull(AA))), Fn(TypeErase<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
   }
   template <
@@ -96,13 +93,13 @@ public:
           std::is_same_v<v_t, typename ConcreteAA::v_t> &&
           std::is_same_v<n_t, typename ConcreteAA::n_t> && CanSSO<ConcreteAA>>>
   constexpr AliasIteratorRef(ConcreteAA AA) noexcept
-      : AA(getOpaquePtr(AA)), VT(&VtableFor<ConcreteAA>) {
+      : AA(getOpaquePtr(AA)), Fn(TypeErase<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
   }
 
-  constexpr explicit AliasIteratorRef(void *AA, const VTable *VT) noexcept
-      : AA(AA), VT(VT) {
-    assert(VT != nullptr);
+  constexpr explicit AliasIteratorRef(void *AA, ForallAliasesOfFn Fn) noexcept
+      : AA(AA), Fn(Fn) {
+    assert(Fn != nullptr);
   }
 
   constexpr AliasIteratorRef(const AliasIteratorRef &) noexcept = default;
@@ -122,8 +119,8 @@ public:
   /// \param WithAlias Callback to invoke for each alias of Of
   void forallAliasesOf(ByConstRef<v_t> Of, ByConstRef<n_t> At,
                        llvm::function_ref<void(v_t)> WithAlias) {
-    assert(VT != nullptr);
-    VT->ForallAliasesOf(AA, Of, At, WithAlias);
+    assert(Fn != nullptr);
+    Fn(AA, Of, At, WithAlias);
   }
 
   /// \brief Convenience function to aggregate all aliases of Of in a set.
@@ -139,18 +136,6 @@ public:
     forallAliasesOf(Of, At,
                     [&Set](v_t Alias) { Set.insert(std::move(Alias)); });
     return Set;
-  }
-
-  /// \brief Checks, whether Ptr and Alias may/must/partial/no-alias at
-  /// instruction At.
-  ///
-  /// \param Ptr The pointer, for which the aliases should be iterated
-  /// \param Alias A pointer, which may be a potential alias of Ptr
-  /// \param At The instruction, where the alias-query is raised.
-  [[nodiscard]] AliasResult alias(ByConstRef<v_t> Ptr, ByConstRef<v_t> Alias,
-                                  ByConstRef<n_t> At) {
-    assert(VT != nullptr);
-    return VT->Alias(AA, Ptr, Alias, At);
   }
 
 private:
@@ -169,40 +154,10 @@ private:
   }
 
   template <typename ConcreteAA>
-  static AliasResult aliasThunk(void *AA, ByConstRef<v_t> Ptr,
-                                ByConstRef<v_t> Alias, ByConstRef<n_t> At) {
-    if (Ptr == Alias) {
-      return AliasResult::MustAlias;
-    }
-
-    auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
-    if constexpr (detail::HasAlias<ConcreteAA>::value) {
-      return CAA->alias(Ptr, Alias, At);
-    } else if constexpr (detail::HasGetAliasSet<ConcreteAA>::value) {
-      auto AliasSetPtr = CAA->getAliasSet(Ptr, At);
-      return AliasSetPtr->count(Alias) ? AliasResult::MayAlias
-                                       : AliasResult::NoAlias;
-    } else {
-      AliasResult Ret = AliasResult::NoAlias;
-
-      CAA->forallAliasesOf(Ptr, At, [&Ret, Alias](v_t A) {
-        if (A == Alias) {
-          Ret = AliasResult::MayAlias;
-        }
-      });
-
-      return Ret;
-    }
-  }
-
-  template <typename ConcreteAA>
-  constexpr static VTable VtableFor = {
-      &aliasesOfThunk<ConcreteAA>,
-      &aliasThunk<ConcreteAA>,
-  };
+  static constexpr ForallAliasesOfFn TypeErase = &aliasesOfThunk<ConcreteAA>;
 
   void *AA{};
-  const VTable *VT{};
+  ForallAliasesOfFn Fn{};
 }; // namespace psr
 
 } // namespace psr

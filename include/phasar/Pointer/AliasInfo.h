@@ -94,7 +94,8 @@ public:
   explicit operator bool() const noexcept { return VT != nullptr; }
 
   constexpr operator AliasIteratorRef<V, N>() const & noexcept {
-    return AliasIteratorRef<V, N>(AA, VT);
+    assert(VT != nullptr);
+    return AliasIteratorRef<V, N>(AA, VT->ForallAliasesOf);
   }
   constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 
@@ -189,7 +190,11 @@ public:
   }
 
 private:
-  struct VTable : AliasIteratorRef<V, N>::VTable {
+  struct VTable {
+    typename AliasIteratorRef<V, N>::ForallAliasesOfFn ForallAliasesOf;
+    AliasResult (*Alias)(void *AA, ByConstRef<v_t> Pointer1,
+                         ByConstRef<v_t> Pointer2,
+                         ByConstRef<n_t> AtInstruction);
     bool (*IsInterProcedural)(const void *) noexcept;
     AliasAnalysisType (*GetAliasAnalysisType)(const void *) noexcept;
     AliasSetPtrTy (*GetAliasSet)(void *, ByConstRef<v_t>, ByConstRef<n_t>);
@@ -211,25 +216,22 @@ private:
 
   template <typename ConcreteAA>
   static constexpr VTable VTableFor = {
-      {
-          [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
-             llvm::function_ref<void(v_t)> WithAlias) {
-            if constexpr (IsAliasIterator<ConcreteAA>) {
-              return static_cast<ConcreteAA *>(AA)->forallAliasesOf(Of, At,
-                                                                    WithAlias);
-            } else {
-              auto AliasSetPtr =
-                  static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
-              for (auto &&Alias : *AliasSetPtr) {
-                WithAlias(PSR_FWD(Alias));
-              }
-            }
-          },
-          [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
-             ByConstRef<n_t> AtInstruction) {
-            return static_cast<ConcreteAA *>(AA)->alias(Pointer1, Pointer2,
-                                                        AtInstruction);
-          },
+      [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
+         llvm::function_ref<void(v_t)> WithAlias) {
+        if constexpr (IsAliasIterator<ConcreteAA>) {
+          return static_cast<ConcreteAA *>(AA)->forallAliasesOf(Of, At,
+                                                                WithAlias);
+        } else {
+          auto AliasSetPtr = static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
+          for (auto &&Alias : *AliasSetPtr) {
+            WithAlias(PSR_FWD(Alias));
+          }
+        }
+      },
+      [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
+         ByConstRef<n_t> AtInstruction) {
+        return static_cast<ConcreteAA *>(AA)->alias(Pointer1, Pointer2,
+                                                    AtInstruction);
       },
       [](const void *AA) noexcept {
         return static_cast<const ConcreteAA *>(AA)->isInterProcedural();
