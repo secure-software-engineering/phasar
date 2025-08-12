@@ -17,6 +17,9 @@
 namespace psr {
 class FilteredLLVMAliasIterator {
 public:
+  using n_t = const llvm::Instruction *;
+  using v_t = const llvm::Value *;
+
   constexpr FilteredLLVMAliasIterator(LLVMAliasIteratorRef Underlying) noexcept
       : Underlying(Underlying) {}
 

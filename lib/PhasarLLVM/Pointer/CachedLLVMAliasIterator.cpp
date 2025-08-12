@@ -1,74 +1,55 @@
-#include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/CachedLLVMAliasIterator.h"
 
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Pointer/AliasAnalysisType.h"
-#include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
-#include "llvm/IR/Instructions.h"
-
 #include "FilteredAliasesUtils.h"
-#include "nlohmann/json_fwd.hpp"
-
-#include <memory>
-#include <type_traits>
 
 using namespace psr;
 
-FilteredLLVMAliasSet::FilteredLLVMAliasSet(LLVMAliasIteratorRef AS) noexcept
+CachedLLVMAliasIterator::CachedLLVMAliasIterator(
+    LLVMAliasIteratorRef AS) noexcept
     : AS(AS), Owner(&MRes) {}
 
-AliasAnalysisType FilteredLLVMAliasSet::getAliasAnalysisType() const noexcept {
-  return AliasAnalysisType::Invalid; // No idea
-}
-
-AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
-                                        const llvm::Value *V2,
-                                        const llvm::Function *Fun) {
-  auto V1AS = getAliasSet(V1, Fun);
+AliasResult CachedLLVMAliasIterator::alias(const llvm::Value *V1,
+                                           const llvm::Value *V2,
+                                           const llvm::Instruction *I) {
+  auto V1AS = getAliasSet(V1, I);
   return V1AS->contains(V2) ? AliasResult::MayAlias : AliasResult::NoAlias;
 }
 
-AliasResult FilteredLLVMAliasSet::alias(const llvm::Value *V1,
-                                        const llvm::Value *V2,
-                                        const llvm::Instruction *I) {
-  return alias(V1, V2, I ? I->getFunction() : nullptr);
-}
-
-static BoxedPtr<FilteredLLVMAliasSet::AliasSetTy> getEmptyAliasSet() {
-  static FilteredLLVMAliasSet::AliasSetTy EmptySet{};
-  static FilteredLLVMAliasSet::AliasSetTy *EmptySetPtr = &EmptySet;
+static BoxedPtr<CachedLLVMAliasIterator::AliasSetTy> getEmptyAliasSet() {
+  static CachedLLVMAliasIterator::AliasSetTy EmptySet{};
+  static CachedLLVMAliasIterator::AliasSetTy *EmptySetPtr = &EmptySet;
   return &EmptySetPtr;
 }
 
-auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
-                                       const llvm::Function *Fun)
+auto CachedLLVMAliasIterator::getAliasSet(const llvm::Value *V,
+                                          const llvm::Instruction *I)
     -> AliasSetPtrTy {
   if (!isInterestingPointer(V)) {
     return getEmptyAliasSet();
   }
 
+  const auto *Fun = I ? I->getFunction() : nullptr;
+
+  // XXX: This may be wrong, if the underlying alias analysis is more precise
+  // than on function-level!
+  // Checkout the comment on the CachedLLVMAliasIterator for that; should be
+  // fine for now.
   auto &Entry = AliasSetMap[{Fun, V}];
   if (!Entry) {
     auto Set = Owner.acquire();
-    AS.forallAliasesOf(V, Fun, [&Set](v_t Alias) { Set->insert(Alias); });
+    AS.forallAliasesOf(V, I, [&Set](v_t Alias) { Set->insert(Alias); });
     Entry = Set;
   }
   return Entry;
 }
 
-auto FilteredLLVMAliasSet::getAliasSet(const llvm::Value *V,
-                                       const llvm::Instruction *I)
-    -> AliasSetPtrTy {
-  const auto *Fun = I ? I->getFunction() : nullptr;
-  return getAliasSet(V, Fun);
-}
-
-auto FilteredLLVMAliasSet::getReachableAllocationSites(
+auto CachedLLVMAliasIterator::getReachableAllocationSites(
     const llvm::Value *V, bool IntraProcOnly, const llvm::Instruction *I)
     -> AllocationSiteSetPtrTy {
 
@@ -90,7 +71,7 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
   const auto *VG = llvm::dyn_cast<llvm::GlobalObject>(V);
 
   AS.forallAliasesOf(
-      V, Fun, [Set = AllocSites.get(), V, IntraProcOnly, VFun, VG](v_t Alias) {
+      V, I, [Set = AllocSites.get(), V, IntraProcOnly, VFun, VG](v_t Alias) {
         if (psr::isInReachableAllocationSitesTy(V, Alias, IntraProcOnly, VFun,
                                                 VG)) {
           Set->insert(Alias);
@@ -101,7 +82,7 @@ auto FilteredLLVMAliasSet::getReachableAllocationSites(
 }
 
 // Checks if PotentialValue is in the reachable allocation sites of V.
-bool FilteredLLVMAliasSet::isInReachableAllocationSites(
+bool CachedLLVMAliasIterator::isInReachableAllocationSites(
     const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
     const llvm::Instruction *I) {
 
@@ -125,7 +106,7 @@ bool FilteredLLVMAliasSet::isInReachableAllocationSites(
   return false;
 }
 
-void FilteredLLVMAliasSet::print(llvm::raw_ostream &OS) const {
+void CachedLLVMAliasIterator::print(llvm::raw_ostream &OS) const {
   for (const auto &[FV, PTS] : AliasSetMap) {
     OS << "V: " << llvmIRToString(FV.second) << " in function '"
        << FV.first->getName() << "'\n";
@@ -135,7 +116,7 @@ void FilteredLLVMAliasSet::print(llvm::raw_ostream &OS) const {
   }
 }
 
-nlohmann::json FilteredLLVMAliasSet::getAsJson() const {
+nlohmann::json CachedLLVMAliasIterator::getAsJson() const {
   nlohmann::json J;
 
   for (const auto &[FV, PTS] : AliasSetMap) {
@@ -154,8 +135,9 @@ nlohmann::json FilteredLLVMAliasSet::getAsJson() const {
   return J;
 }
 
-void FilteredLLVMAliasSet::printAsJson(llvm::raw_ostream &OS) const {
+void CachedLLVMAliasIterator::printAsJson(llvm::raw_ostream &OS) const {
   OS << getAsJson();
 }
 
-static_assert(std::is_convertible_v<FilteredLLVMAliasSet *, LLVMAliasInfoRef>);
+static_assert(
+    std::is_convertible_v<CachedLLVMAliasIterator *, LLVMAliasInfoRef>);
