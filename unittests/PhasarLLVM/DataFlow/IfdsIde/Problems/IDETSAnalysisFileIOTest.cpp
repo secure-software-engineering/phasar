@@ -21,6 +21,7 @@
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
@@ -92,15 +93,27 @@ protected:
             continue;
           }
 
-          llvm::errs()
-              << "Second SrcCodeLocationEntry couldn't be converted to an "
-                 "Instruction.";
+          llvm::outs() << "Line: " << std::get<0>(InnerEntry).Line
+                       << "\nColumn: " << std::get<0>(InnerEntry).Column
+                       << "\n";
+          llvm::report_fatal_error(
+              "Second SrcCodeLocationEntry couldn't be converted to an "
+              "Instruction.\n");
+          // llvm::errs()
+          //     << "Second SrcCodeLocationEntry couldn't be converted to an "
+          //        "Instruction.\n";
         }
         continue;
       }
 
-      llvm::errs() << "First SrcCodeLocationEntry couldn't be converted to an "
-                      "Instruction.";
+      llvm::outs() << "Line: " << std::get<0>(OuterEntry).Line
+                   << "\nColumn: " << std::get<0>(OuterEntry).Column << "\n";
+      llvm::report_fatal_error(
+          "First SrcCodeLocationEntry couldn't be converted to an "
+          "Instruction.\n");
+      // llvm::errs() << "First SrcCodeLocationEntry couldn't be converted to an
+      // "
+      //                 "Instruction.\n";
     }
 
     return Converted;
@@ -129,19 +142,23 @@ protected:
         const auto &FirstResult = std::get<0>(Result);
         const auto &SecondResult = std::get<1>(Result);
 
-        llvm::outs() << "FirstResult:  " << *(FirstResult) << "\n";
+        llvm::outs() << "FirstResult:  " << llvmIRToString(FirstResult) << "\n";
         llvm::outs() << "SecondResult: " << SecondResult << "\n";
-
-        if (GT.find(llvm::cast<llvm::Instruction>(FirstResult)) != GT.end()) {
-          Results.insert(std::pair<const llvm::Instruction *, int>(
-              llvm::cast<llvm::Instruction>(FirstResult), int(SecondResult)));
+        if (const auto *CastInst =
+                llvm::dyn_cast_or_null<llvm::Instruction>(FirstResult)) {
+          if (GT.find(CastInst) != GT.end()) {
+            Results.insert(std::pair<const llvm::Instruction *, int>(
+                CastInst, int(SecondResult)));
+          }
+        } else {
+          llvm::errs()
+              << "[Error]: Couldn't cast FirstResult to Instruction.\n";
         }
       }
       EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(CurrInst);
     }
 
 #if false
-
     for (const auto &InstToGroundTruth : GroundTruth) {
       const auto *Inst =
           HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
@@ -157,7 +174,6 @@ protected:
       }
       EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(Inst);
     }
-
 #endif
   }
 }; // Test Fixture
@@ -174,13 +190,13 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
   const auto File =
-      SrcCodeLocationEntry(4, 9, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getFunction("main"));
   const auto Entry =
-      SrcCodeLocationEntry(5, 7, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(5, 7, HA->getICFG().getFunction("main"));
   const auto EntryTwo =
-      SrcCodeLocationEntry(6, 3, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(6, 3, HA->getICFG().getFunction("main"));
   const auto EntryThree =
-      SrcCodeLocationEntry(7, 3, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("main"));
   GroundTruth.insert({Entry, {{File, IOSTATE::UNINIT}}});
   GroundTruth.insert({EntryTwo, {{File, IOSTATE::OPENED}}});
   GroundTruth.insert({EntryThree, {{File, IOSTATE::CLOSED}}});
@@ -195,9 +211,9 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_02) {
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
   const auto File =
-      SrcCodeLocationEntry(4, 9, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getFunction("main"));
   const auto Entry =
-      SrcCodeLocationEntry(6, 3, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(6, 3, HA->getICFG().getFunction("main"));
   GroundTruth.insert({Entry, {{File, IOSTATE::OPENED}}});
   compareResults(GroundTruth, Llvmtssolver);
 }
@@ -209,17 +225,19 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
-  const auto File =
-      SrcCodeLocationEntry(6, 9, HA->getICFG().getIRDB()->getFunction("main"));
-  const auto FooArg =
-      SrcCodeLocationEntry(3, 16, HA->getICFG().getIRDB()->getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
+  const auto FooFile =
+      SrcCodeLocationEntry(3, 16, HA->getICFG().getFunction("foo"));
+  const auto FooBegin =
+      SrcCodeLocationEntry(3, 21, HA->getICFG().getFunction("foo"));
   const auto FooRet =
-      SrcCodeLocationEntry(3, 32, HA->getICFG().getIRDB()->getFunction("foo"));
+      SrcCodeLocationEntry(3, 32, HA->getICFG().getFunction("foo"));
   const auto Return =
-      SrcCodeLocationEntry(11, 3, HA->getICFG().getIRDB()->getFunction("main"));
-  GroundTruth.insert({FooArg, {{File, IOSTATE::OPENED}}});
-  GroundTruth.insert({FooRet, {{File, IOSTATE::CLOSED}}});
-  GroundTruth.insert({Return, {{File, IOSTATE::CLOSED}}});
+      SrcCodeLocationEntry(11, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooBegin, {{FooFile, IOSTATE::OPENED}}});
+  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::CLOSED}}});
+  GroundTruth.insert({Return, {{MainFile, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
 
 #if false
@@ -245,35 +263,49 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
 #endif
 }
 
-#if false
-
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_04) {
   initialize({PathToLlFiles + "typestate_04_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
 
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in foo()
-      {6,
-       {
-           {"2", IOSTATE::OPENED},
-           //{"8", IOSTATE::OPENED} // 6 is before 8, so no info available
-           // before retFF
-       }},
-      // Before closing in main()
-      {12, {{"2", IOSTATE::UNINIT}, {"8", IOSTATE::UNINIT}}},
-      // At exit in main()
-      {14, {{"2", IOSTATE::ERROR}, {"8", IOSTATE::ERROR}}}};
-
-  compareResults(Gt, Llvmtssolver);
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooArg =
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("foo"));
+  const auto FooRet =
+      SrcCodeLocationEntry(4, 49, HA->getICFG().getFunction("foo"));
+  const auto File =
+      SrcCodeLocationEntry(7, 9, HA->getICFG().getFunction("main"));
+  const auto FClose =
+      SrcCodeLocationEntry(9, 3, HA->getICFG().getFunction("main"));
+  const auto Return =
+      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooRet, {{FooArg, IOSTATE::OPENED}}});
+  GroundTruth.insert({FClose, {{File, IOSTATE::UNINIT}}});
+  GroundTruth.insert({Return, {{File, IOSTATE::ERROR}}});
+  compareResults(GroundTruth, Llvmtssolver);
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
   initialize({PathToLlFiles + "typestate_05_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
+  const auto AfterFOpen =
+      SrcCodeLocationEntry(8, 7, HA->getICFG().getFunction("main"));
+  const auto AfterFClose =
+      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
+  const auto Return =
+      SrcCodeLocationEntry(11, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({AfterFOpen, {{File, IOSTATE::OPENED}}});
+  GroundTruth.insert({AfterFClose, {{File, IOSTATE::CLOSED}}});
+  GroundTruth.insert({Return, {{File, IOSTATE::BOT}}});
+  compareResults(GroundTruth, Llvmtssolver);
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before if statement
       {10, {{"4", IOSTATE::OPENED}, {"6", IOSTATE::OPENED}}},
@@ -285,14 +317,24 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
       // After if statement
       {14, {{"4", IOSTATE::BOT}, {"6", IOSTATE::BOT}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
+
+// TODO: fix
+#if false
 
 TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
   initialize({PathToLlFiles + "typestate_06_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({Opened, {{File, IOSTATE::UNINIT}}});
+  compareResults(GroundTruth, Llvmtssolver);
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fopen()
       {8, {{"5", IOSTATE::UNINIT}, {"6", IOSTATE::UNINIT}}},
@@ -323,11 +365,44 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   compareResults(Gt, Llvmtssolver);
 }
 
+#endif
+
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
   initialize({PathToLlFiles + "typestate_07_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooFile =
+      SrcCodeLocationEntry(3, 16, HA->getICFG().getFunction("foo"));
+  const auto FooExit =
+      SrcCodeLocationEntry(3, 32, HA->getICFG().getFunction("foo"));
+  const auto File =
+      SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
+  const auto FClose =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("main"));
+  const auto AfterFClose =
+      SrcCodeLocationEntry(8, 5, HA->getICFG().getFunction("main"));
+  const auto AfterFOpen =
+      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
+  const auto FForFoo =
+      SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooExit, {{FooFile, IOSTATE::CLOSED}}});
+  GroundTruth.insert({FClose, {{File, IOSTATE::UNINIT}}});
+  GroundTruth.insert({AfterFClose, {{File, IOSTATE::ERROR}}});
+  // TODO: fix IOSTATE::OPENED part below failing
+  GroundTruth.insert({AfterFOpen,
+                      {{File, IOSTATE::ERROR},
+                       {AfterFClose, IOSTATE::ERROR},
+                       {FForFoo, IOSTATE::OPENED}}});
+#if false
+  // GroundTruth.insert({, {{, IOSTATE::ERROR}}});
+  // GroundTruth.insert({, {{, IOSTATE::CLOSED}}});
+#endif
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // In foo()
       {6,
@@ -353,26 +428,59 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
       // At exit in main()
       {16, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
   initialize({PathToLlFiles + "typestate_08_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooFile =
+      SrcCodeLocationEntry(5, 9, HA->getICFG().getFunction("foo"));
+  const auto FooRet =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(11, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(13, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::OPENED}}});
+  GroundTruth.insert(
+      {MainReturn, {{FooFile, IOSTATE::OPENED}, {MainFile, IOSTATE::UNINIT}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {6, {{"2", IOSTATE::OPENED}}},
       // At exit in main()
       {11, {{"2", IOSTATE::OPENED}, {"8", IOSTATE::UNINIT}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
   initialize({PathToLlFiles + "typestate_09_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooFile =
+      SrcCodeLocationEntry(5, 9, HA->getICFG().getFunction("foo"));
+  const auto FooRet =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(11, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(15, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::OPENED}}});
+  GroundTruth.insert(
+      {MainReturn, {{FooFile, IOSTATE::CLOSED}, {MainFile, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {8,
@@ -384,13 +492,37 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
       // At exit in main()
       {18, {{"4", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
   initialize({PathToLlFiles + "typestate_10_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto BarFile =
+      SrcCodeLocationEntry(5, 9, HA->getICFG().getFunction("bar"));
+  const auto BarRet =
+      SrcCodeLocationEntry(6, 3, HA->getICFG().getFunction("bar"));
+  const auto FooFile =
+      SrcCodeLocationEntry(10, 9, HA->getICFG().getFunction("foo"));
+  const auto FooRet =
+      SrcCodeLocationEntry(12, 3, HA->getICFG().getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(16, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(20, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({BarRet, {{BarFile, IOSTATE::UNINIT}}});
+  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::OPENED}}});
+  GroundTruth.insert({MainReturn,
+                      {{BarFile, IOSTATE::CLOSED},
+                       {FooFile, IOSTATE::CLOSED},
+                       {MainFile, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in bar()
       {4, {{"2", IOSTATE::UNINIT}}},
@@ -406,13 +538,38 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
         {"5", IOSTATE::CLOSED},
         {"13", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
   initialize({PathToLlFiles + "typestate_11_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto BarFile =
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("bar"));
+  const auto BarRet =
+      SrcCodeLocationEntry(4, 32, HA->getICFG().getFunction("bar"));
+  const auto FooFile =
+      SrcCodeLocationEntry(6, 16, HA->getICFG().getFunction("foo"));
+  const auto FooRet =
+      SrcCodeLocationEntry(6, 49, HA->getICFG().getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(9, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(13, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({BarRet, {{BarFile, IOSTATE::ERROR}}});
+  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::OPENED}}});
+  GroundTruth.insert({MainReturn,
+                      {{BarFile, IOSTATE::ERROR},
+                       {FooFile, IOSTATE::ERROR},
+                       {MainFile, IOSTATE::ERROR}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
+
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in bar(): closing uninitialized file-handle gives error-state
       {6,
@@ -433,13 +590,34 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
       {19,
        {{"2", IOSTATE::ERROR}, {"7", IOSTATE::ERROR}, {"13", IOSTATE::ERROR}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
   initialize({PathToLlFiles + "typestate_12_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto BarFile =
+      SrcCodeLocationEntry(5, 9, HA->getICFG().getFunction("bar"));
+  const auto BarRet =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("bar"));
+  const auto AfterFoo =
+      SrcCodeLocationEntry(15, 3, HA->getICFG().getFunction("main"));
+  const auto MainFile =
+      SrcCodeLocationEntry(13, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(17, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({BarRet, {{BarFile, IOSTATE::OPENED}}});
+  GroundTruth.insert(
+      {AfterFoo, {{MainFile, IOSTATE::OPENED}, {BarFile, IOSTATE::OPENED}}});
+  GroundTruth.insert(
+      {MainReturn, {{MainFile, IOSTATE::CLOSED}, {BarFile, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in bar()
       {6,
@@ -453,13 +631,29 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
       // At exit in main()
       {16, {{"2", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
   initialize({PathToLlFiles + "typestate_13_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getFunction("main"));
+  const auto BeforeFirstFClose =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("main"));
+  const auto BeforeSecondFClose =
+      SrcCodeLocationEntry(8, 3, HA->getICFG().getFunction("main"));
+  const auto Return =
+      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({BeforeFirstFClose, {{File, IOSTATE::OPENED}}});
+  GroundTruth.insert({BeforeSecondFClose, {{File, IOSTATE::CLOSED}}});
+  GroundTruth.insert({Return, {{File, IOSTATE::ERROR}}});
+  compareResults(GroundTruth, Llvmtssolver);
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fclose()
       {8, {{"3", IOSTATE::OPENED}}},
@@ -468,13 +662,38 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
       // At exit in main()
       {11, {{"3", IOSTATE::ERROR}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
   initialize({PathToLlFiles + "typestate_14_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getFunction("main"));
+  const auto BeforeFirstFOpen =
+      SrcCodeLocationEntry(5, 5, HA->getICFG().getFunction("main"));
+  const auto BeforeSecondFOpen =
+      SrcCodeLocationEntry(6, 5, HA->getICFG().getFunction("main"));
+  const auto BeforeFClose =
+      SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("main"));
+  const auto Return =
+      SrcCodeLocationEntry(9, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({BeforeFirstFOpen, {{File, IOSTATE::UNINIT}}});
+  GroundTruth.insert({BeforeSecondFOpen, {{File, IOSTATE::OPENED}}});
+  GroundTruth.insert({BeforeFClose,
+                      {{File, IOSTATE::OPENED},
+                       {BeforeFirstFOpen, IOSTATE::OPENED},
+                       {BeforeSecondFOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({Return,
+                      {{File, IOSTATE::CLOSED},
+                       {BeforeFirstFOpen, IOSTATE::CLOSED},
+                       {BeforeSecondFOpen, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fopen()
       {7, {{"5", IOSTATE::UNINIT}}},
@@ -491,13 +710,49 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
         {"7", IOSTATE::CLOSED},
         {"9", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
   initialize({PathToLlFiles + "typestate_15_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto File =
+      SrcCodeLocationEntry(4, 9, HA->getICFG().getFunction("main"));
+  const auto BeforeFirstFOpen =
+      SrcCodeLocationEntry(5, 5, HA->getICFG().getFunction("main"));
+  const auto BeforeFirstFClose =
+      SrcCodeLocationEntry(6, 3, HA->getICFG().getFunction("main"));
+  const auto BeforeSecondFOpen =
+      SrcCodeLocationEntry(7, 5, HA->getICFG().getFunction("main"));
+  const auto BeforeSecondFClose =
+      SrcCodeLocationEntry(8, 3, HA->getICFG().getFunction("main"));
+  const auto Return =
+      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
+  // GroundTruth.insert(
+  //     {BeforeFirstFOpen,
+  //      {{File, IOSTATE::OPENED}, {BeforeFirstFOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({BeforeFirstFClose,
+                      {{File, IOSTATE::CLOSED},
+                       {BeforeFirstFClose, IOSTATE::CLOSED},
+                       {BeforeSecondFOpen, IOSTATE::CLOSED}}});
+  GroundTruth.insert({BeforeSecondFClose,
+                      {{File, IOSTATE::OPENED},
+                       {BeforeFirstFOpen, IOSTATE::CLOSED},
+                       {BeforeFirstFClose, IOSTATE::CLOSED},
+                       {BeforeSecondFOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({Return,
+                      {{File, IOSTATE::CLOSED},
+                       {BeforeFirstFOpen, IOSTATE::ERROR},
+                       {BeforeFirstFClose, IOSTATE::ERROR},
+                       {BeforeSecondFOpen, IOSTATE::CLOSED},
+                       {BeforeSecondFClose, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // After store of ret val of first fopen()
       {9,
@@ -550,16 +805,44 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
         {"11", IOSTATE::CLOSED},
         {"13", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
 
   /// TODO: After the EF fix everything is BOT; --> Make the TSA more precise!
 
+  /// TODO: fix these not being able to be cast into an instruction
+
   initialize({PathToLlFiles + "typestate_16_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+#if false
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooFile =
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("main"));
+
+  const auto FooExit =
+      SrcCodeLocationEntry(11, 1, HA->getICFG().getFunction("main"));
+  const auto MainFile =
+      SrcCodeLocationEntry(14, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(19, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooExit, {{FooFile, IOSTATE::BOT}}});
+  GroundTruth.insert({MainReturn,
+                      {
+                          {MainFile, IOSTATE::BOT},
+                          {FooFile, IOSTATE::BOT},
+                      }});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#endif
+
+#if false
+
   // Llvmtssolver.dumpResults();
 
   // auto Pts = PT->getAliasSet(IRDB->getInstruction(2));
@@ -589,14 +872,44 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
         {"18", IOSTATE::BOT}}}}; // Overapproximation due to too flat lattice
                                  // (would expect CLOSED for both)!
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
   initialize({PathToLlFiles + "typestate_17_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooFile =
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("foo"));
+  const auto File =
+      SrcCodeLocationEntry(8, 9, HA->getICFG().getFunction("main"));
+  const auto FOpenFile =
+      SrcCodeLocationEntry(8, 9, HA->getICFG().getFunction("main"));
+  const auto BeforeLoop =
+      SrcCodeLocationEntry(14, 3, HA->getICFG().getFunction("main"));
+  const auto BeforeFGetC =
+      SrcCodeLocationEntry(14, 13, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(17, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({BeforeLoop,
+                      {{FooFile, IOSTATE::CLOSED},
+                       {File, IOSTATE::CLOSED},
+                       {FOpenFile, IOSTATE::CLOSED}}});
+  GroundTruth.insert({BeforeFGetC,
+                      {{FooFile, IOSTATE::BOT},
+                       {File, IOSTATE::BOT},
+                       {FOpenFile, IOSTATE::BOT}}});
+  GroundTruth.insert({MainReturn,
+                      {{FooFile, IOSTATE::BOT},
+                       {File, IOSTATE::BOT},
+                       {FOpenFile, IOSTATE::BOT}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
 
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before loop
@@ -619,6 +932,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
            // correct as well as BOT)
        }}};
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
@@ -626,8 +940,24 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
 
   initialize({PathToLlFiles + "typestate_18_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooReturn =
+      SrcCodeLocationEntry(11, 1, HA->getICFG().getFunction("foo"));
+  const auto FooFile =
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(14, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(19, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooReturn, {{FooFile, IOSTATE::BOT}}});
+  GroundTruth.insert(
+      {MainReturn, {{MainFile, IOSTATE::BOT}, {FooFile, IOSTATE::BOT}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // At exit in foo()
       {17,
@@ -642,23 +972,42 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
         {"19", IOSTATE::BOT}}}}; // Overapproximation due to too flat lattice
                                  // (would expect CLOSED for both)!
   compareResults(Gt, Llvmtssolver);
+#endif
 }
 
 // TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
   initialize({PathToLlFiles + "typestate_19_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
-
   Llvmtssolver.solve();
+
+  std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
+      GroundTruth;
+  const auto FooBeforeOpen =
+      SrcCodeLocationEntry(4, 21, HA->getICFG().getFunction("foo"));
+  const auto FooFile =
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("foo"));
+  const auto FooExit =
+      SrcCodeLocationEntry(4, 32, HA->getICFG().getFunction("foo"));
+  const auto MainFile =
+      SrcCodeLocationEntry(7, 9, HA->getICFG().getFunction("main"));
+  const auto MainReturn =
+      SrcCodeLocationEntry(18, 3, HA->getICFG().getFunction("main"));
+  GroundTruth.insert({FooBeforeOpen, {{FooFile, IOSTATE::UNINIT}}});
+  GroundTruth.insert({FooExit, {{FooFile, IOSTATE::BOT}}});
+  GroundTruth.insert(
+      {MainReturn, {{MainFile, IOSTATE::CLOSED}, {FooFile, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
+
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       {11, {{"8", IOSTATE::UNINIT}}},
       {14, {{"8", IOSTATE::BOT}}},
       // At exit in main()
       {25, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
   compareResults(Gt, Llvmtssolver);
-}
-
 #endif
+}
 
 // main function for the test case
 int main(int Argc, char **Argv) {
