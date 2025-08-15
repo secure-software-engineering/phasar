@@ -14,8 +14,12 @@ using namespace psr;
 AliasBasedResolver::AliasBasedResolver(const LLVMProjectIRDB *IRDB,
                                        const LLVMVFTableProvider *VTP,
                                        LLVMAliasIteratorRef AAInfo,
-                                       Resolver *FallbackResolver)
-    : Resolver(IRDB, VTP), AAInfo(AAInfo), FallbackResolver(FallbackResolver) {}
+                                       Resolver *FallbackResolver,
+                                       bool IsSoundFallbackResolver)
+    : Resolver(IRDB, VTP), AAInfo(AAInfo),
+      FallbackResolverAndIsSound(FallbackResolver,
+                                 IsSoundFallbackResolver &&
+                                     FallbackResolver != nullptr) {}
 
 void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
                                             const llvm::CallBase *CallSite) {
@@ -36,7 +40,14 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
-  // TODO: Integrate optimization from #785, once it is merged!
+  FunctionSetTy BaseCallees;
+  if (FallbackResolverAndIsSound.getInt()) {
+    assert(FallbackResolverAndIsSound.getPointer() != nullptr &&
+           "This must be ensured in the ctor");
+    FallbackResolverAndIsSound.getPointer()->resolveVirtualCall(BaseCallees,
+                                                                CallSite);
+  }
+
   AAInfo.forallAliasesOf(
       RetrievedVtableIndex->first, CallSite, [&](const auto *P) {
         if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
@@ -53,7 +64,8 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
               if (Callee == nullptr || !Callee->hasName() ||
                   Callee->getName() ==
                       DIBasedTypeHierarchy::PureVirtualCallName ||
-                  !isConsistentCall(CallSite, Callee)) {
+                  !isConsistentCall(CallSite, Callee) ||
+                  (!BaseCallees.empty() && !BaseCallees.count(Callee))) {
                 return;
               }
               PossibleTargets.insert(Callee);
@@ -62,8 +74,12 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
         }
       });
 
-  if (PossibleTargets.empty() && FallbackResolver) {
-    FallbackResolver->resolveVirtualCall(PossibleTargets, CallSite);
+  if (PossibleTargets.empty()) {
+    if (!BaseCallees.empty()) {
+      PossibleTargets = std::move(BaseCallees);
+    } else if (auto *Fallback = FallbackResolverAndIsSound.getPointer()) {
+      Fallback->resolveVirtualCall(PossibleTargets, CallSite);
+    }
   }
 }
 
@@ -77,6 +93,14 @@ void AliasBasedResolver::resolveFunctionPointer(
   llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
   llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
       VisitedConstantAggregates;
+
+  FunctionSetTy BaseCallees;
+  if (FallbackResolverAndIsSound.getInt()) {
+    assert(FallbackResolverAndIsSound.getPointer() != nullptr &&
+           "This must be ensured in the ctor");
+    FallbackResolverAndIsSound.getPointer()->resolveVirtualCall(BaseCallees,
+                                                                CallSite);
+  }
 
   AAInfo.forallAliasesOf(
       CallSite->getCalledOperand(), CallSite, [&](const auto *P) {
@@ -142,14 +166,16 @@ void AliasBasedResolver::resolveFunctionPointer(
               if (CE->getType()->isPointerTy() && CE->isCast()) {
                 if (const auto *F =
                         llvm::dyn_cast<llvm::Function>(CE->getOperand(0));
-                    F && isConsistentCall(CallSite, F)) {
+                    F && isConsistentCall(CallSite, F) &&
+                    (BaseCallees.empty() || BaseCallees.count(F))) {
                   PossibleTargets.insert(F);
                 }
               }
             }
 
             if (const auto *F = llvm::dyn_cast<llvm::Function>(Op)) {
-              if (isConsistentCall(CallSite, F)) {
+              if (isConsistentCall(CallSite, F) &&
+                  (BaseCallees.empty() || BaseCallees.count(F))) {
                 PossibleTargets.insert(F);
               }
             } else if (auto *CA = llvm::dyn_cast<llvm::ConstantAggregate>(Op)) {
@@ -167,8 +193,12 @@ void AliasBasedResolver::resolveFunctionPointer(
         }
       });
 
-  if (PossibleTargets.empty() && FallbackResolver) {
-    FallbackResolver->resolveFunctionPointer(PossibleTargets, CallSite);
+  if (PossibleTargets.empty()) {
+    if (!BaseCallees.empty()) {
+      PossibleTargets = std::move(BaseCallees);
+    } else if (auto *Fallback = FallbackResolverAndIsSound.getPointer()) {
+      Fallback->resolveVirtualCall(PossibleTargets, CallSite);
+    }
   }
 }
 
