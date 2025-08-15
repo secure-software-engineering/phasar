@@ -177,18 +177,24 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   if (!CallSite) {
     return false;
   }
+  if (!getVFTIndex(CallSite)) {
+    return false;
+  }
   // check potential receiver type
   const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
-    llvm::errs() << "No receiver type found for call at "
-                 << llvmIRToString(Inst) << '\n';
+    // llvm::errs() << "No receiver type found for call at "
+    //              << llvmIRToString(Inst) << '\n';
+    // llvm::errs() << "  > CalledOp: "
+    //              << llvmIRToString(
+    //                     llvm::cast<llvm::LoadInst>(CallSite->getCalledOperand())
+    //                         ->getPointerOperand()
+    //                         ->stripInBoundsConstantOffsets())
+    //              << '\n';
     return false;
   }
 
-  if (!VTP.hasVFTable(RecType)) {
-    return false;
-  }
-  return getVFTIndex(CallSite) >= 0;
+  return VTP.hasVFTable(RecType);
 }
 
 // Derived from LLVM's llvm::Function::hasAddressTaken()
@@ -262,9 +268,8 @@ auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
   FunctionSetTy PossibleTargets;
   if (VTP && isVirtualCall(CallSite, *VTP)) {
     resolveVirtualCall(PossibleTargets, CallSite);
-  }
-
-  if (PossibleTargets.empty()) {
+  } else {
+    // if (PossibleTargets.empty()) {
     resolveFunctionPointer(PossibleTargets, CallSite);
   }
 

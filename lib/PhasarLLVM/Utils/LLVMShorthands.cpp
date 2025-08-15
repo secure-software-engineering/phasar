@@ -238,6 +238,20 @@ std::string psr::llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
   return IRBuffer;
 }
 
+std::string psr::llvmTypeToString(const llvm::DIType *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+  if (Shorten) {
+    return Ty->getName().str();
+  }
+
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  Ty->print(RSO);
+  return IRBuffer;
+}
+
 void psr::dumpIRValue(const llvm::Value *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
@@ -348,7 +362,7 @@ void psr::appendAllExitPoints(
     const llvm::Function *F,
     llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints,
     bool IncludeResume) {
-  if (!F) {
+  if (!F || F->isDeclaration()) {
     return;
   }
 

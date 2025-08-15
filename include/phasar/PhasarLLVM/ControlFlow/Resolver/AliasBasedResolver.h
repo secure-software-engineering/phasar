@@ -29,16 +29,9 @@ namespace psr {
 /// call-graph construction.
 class AliasBasedResolver : public Resolver {
 public:
-  explicit AliasBasedResolver(
-      const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-      llvm::unique_function<void(const llvm::Value *, const llvm::Instruction *,
-                                 llvm::function_ref<void(const llvm::Value *)>)>
-          &&ForAllAliasesOf,
-      Resolver *FallbackResolver = nullptr);
-
   explicit AliasBasedResolver(const LLVMProjectIRDB *IRDB,
                               const LLVMVFTableProvider *VTP,
-                              LLVMAliasInfoRef AS,
+                              LLVMAliasIteratorRef AAInfo,
                               Resolver *FallbackResolver = nullptr);
 
 protected:
@@ -56,10 +49,7 @@ protected:
   }
 
 private:
-  // Should be replaced by LLVMAliasIteratorRef once #783 is merged!
-  llvm::unique_function<void(const llvm::Value *, const llvm::Instruction *,
-                             llvm::function_ref<void(const llvm::Value *)>)>
-      ForAllAliasesOf;
+  LLVMAliasIteratorRef AAInfo;
   Resolver *FallbackResolver = nullptr;
 };
 } // namespace psr

@@ -35,9 +35,6 @@ public:
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
 
-  static std::set<const llvm::Type *>
-  getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
-
   static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
   getActualFormalPointerPairs(const llvm::CallBase *CallSite,
                               const llvm::Function *CalleeTarget);

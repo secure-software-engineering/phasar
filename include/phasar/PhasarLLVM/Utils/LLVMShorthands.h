@@ -103,6 +103,8 @@ std::string llvmIRToShortString(const llvm::Value *V);
  */
 [[nodiscard]] std::string llvmTypeToString(const llvm::Type *Ty,
                                            bool Shorten = false);
+[[nodiscard]] std::string llvmTypeToString(const llvm::DIType *Ty,
+                                           bool Shorten = false);
 
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
