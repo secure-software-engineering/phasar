@@ -7,8 +7,9 @@
 
 namespace {
 
-void populateWithMayAliases(psr::LLVMAliasInfoRef AS,
-                            std::set<const llvm::Value *> &Facts);
+void populateWithMayAliases(psr::LLVMAliasIteratorRef AS,
+                            std::set<const llvm::Value *> &Facts,
+                            const llvm::Instruction *At);
 
 /// To create a custom IFDS analysis, we must create a subclass of the
 /// IFDSTabulationProblem.
@@ -23,7 +24,7 @@ public:
   /// The last parameter of the base-ctor denotes the special zero-value of the
   /// IFDS problem. We use LLVMZeroValue for this.
   explicit ExampleTaintAnalysis(const psr::LLVMProjectIRDB *IRDB,
-                                psr::LLVMAliasInfoRef AS,
+                                psr::LLVMAliasIteratorRef AS,
                                 const psr::LLVMTaintConfig *Config,
                                 std::vector<std::string> EntryPoints)
       : psr::DefaultAliasAwareIFDSProblem(IRDB, AS, std::move(EntryPoints),
@@ -63,8 +64,8 @@ public:
     }
 
     // Since our analysis is alias-aware, we must handle aliasing here:
-    populateWithMayAliases(getAliasInfo(), Gen);
-    populateWithMayAliases(getAliasInfo(), Leak);
+    populateWithMayAliases(getAliasInfo(), Gen, CallSite);
+    populateWithMayAliases(getAliasInfo(), Leak, CallSite);
 
     // We have special behavior to communicate to the analysis solver, so create
     // a flow-function that captures this behavior:
@@ -101,12 +102,12 @@ private:
 };
 
 // For all given facts, we add their aliases:
-void populateWithMayAliases(psr::LLVMAliasInfoRef AS,
-                            std::set<const llvm::Value *> &Facts) {
+void populateWithMayAliases(psr::LLVMAliasIteratorRef AS,
+                            std::set<const llvm::Value *> &Facts,
+                            const llvm::Instruction *At) {
   auto Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = AS.getAliasSet(Fact);
-    Tmp.insert(Aliases->begin(), Aliases->end());
+    AS.forallAliasesOf(Fact, At, [&](const auto *Alias) { Tmp.insert(Alias); });
   }
 
   Facts = std::move(Tmp);

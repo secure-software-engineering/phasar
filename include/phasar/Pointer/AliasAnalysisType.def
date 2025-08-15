@@ -15,7 +15,10 @@ ALIAS_ANALYSIS_TYPE(Basic, "basic", "Basic LLVM alias resolving based on simple,
 ALIAS_ANALYSIS_TYPE(CFLSteens, "cflsteens", "Steensgaard-style alias analysis (equality-based)")
 ALIAS_ANALYSIS_TYPE(CFLAnders, "cflanders", "Andersen-style alias analysis (subset-based) (default)")
 ALIAS_ANALYSIS_TYPE(PointsTo, "points-to", "Alias-information based on (external) points-to information")
+
+#ifdef PHASAR_USE_SVF
 ALIAS_ANALYSIS_TYPE(SVFDDA, "svf-dda", "Alias-information based on SVF's ContextDDA analysis. Requires SVF.")
 ALIAS_ANALYSIS_TYPE(SVFVFS, "svf-vfs", "Alias-information based on SVF's VersionedFlowSensitive analysis. Requires SVF.")
+#endif
 
 #undef ALIAS_ANALYSIS_TYPE

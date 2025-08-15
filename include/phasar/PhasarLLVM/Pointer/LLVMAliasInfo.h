@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_POINTER_LLVMALIASINFO_H_
 
 #include "phasar/Pointer/AliasInfo.h"
+#include "phasar/Pointer/AliasIterator.h"
 
 namespace llvm {
 class Function;
@@ -19,6 +20,9 @@ class Value;
 } // namespace llvm
 
 namespace psr {
+
+using LLVMAliasIteratorRef =
+    AliasIteratorRef<const llvm::Value *, const llvm::Instruction *>;
 
 using LLVMAliasInfoRef =
     AliasInfoRef<const llvm::Value *, const llvm::Instruction *>;
