@@ -25,15 +25,19 @@ namespace psr {
 
 namespace detail {
 
-template <typename T, typename = void>
-struct IsAliasIterator : std::false_type {};
+template <typename T, typename V, typename N, typename = void>
+struct IsAliasIteratorFor : std::false_type {};
 
-template <typename T>
-struct IsAliasIterator<
-    T, std::void_t<decltype(std::declval<T>().forallAliasesOf(
-           std::declval<typename T::v_t>(), std::declval<typename T::n_t>(),
-           std::declval<llvm::function_ref<void(typename T::v_t)>>()))>>
-    : std::true_type {};
+template <typename T, typename V, typename N>
+struct IsAliasIteratorFor<
+    T, V, N,
+    std::void_t<decltype(std::declval<T>().forallAliasesOf(
+        std::declval<V>(), std::declval<N>(),
+        std::declval<llvm::function_ref<void(V)>>()))>> : std::true_type {};
+
+template <typename T, typename = void>
+struct IsAliasIterator
+    : IsAliasIteratorFor<T, typename T::v_t, typename T::n_t> {};
 
 template <typename T, typename = AliasResult>
 struct HasAlias : std::false_type {};
@@ -80,18 +84,18 @@ public:
   template <typename ConcreteAA,
             typename = std::enable_if_t<
                 !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
-                std::is_same_v<v_t, typename ConcreteAA::v_t> &&
-                std::is_same_v<n_t, typename ConcreteAA::n_t>>>
+                (detail::IsAliasIteratorFor<ConcreteAA, V, N>::value ||
+                 detail::HasGetAliasSet<ConcreteAA>::value)>>
   constexpr AliasIteratorRef(ConcreteAA *AA) noexcept
       : AA(getOpaquePtr(psr::assertNotNull(AA))), Fn(TypeErase<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
   }
-  template <
-      typename ConcreteAA,
-      typename = std::enable_if_t<
-          !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
-          std::is_same_v<v_t, typename ConcreteAA::v_t> &&
-          std::is_same_v<n_t, typename ConcreteAA::n_t> && CanSSO<ConcreteAA>>>
+  template <typename ConcreteAA,
+            typename = std::enable_if_t<
+                !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
+                (detail::IsAliasIteratorFor<ConcreteAA, V, N>::value ||
+                 detail::HasGetAliasSet<ConcreteAA>::value) &&
+                CanSSO<ConcreteAA>>>
   constexpr AliasIteratorRef(ConcreteAA AA) noexcept
       : AA(getOpaquePtr(AA)), Fn(TypeErase<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
@@ -143,7 +147,7 @@ private:
   static void aliasesOfThunk(void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
                              llvm::function_ref<void(v_t)> WithAlias) {
     auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
-    if constexpr (IsAliasIterator<ConcreteAA>) {
+    if constexpr (detail::IsAliasIteratorFor<ConcreteAA, V, N>::value) {
       return (void)CAA->forallAliasesOf(Of, At, WithAlias);
     } else {
       auto AliasSetPtr = CAA->getAliasSet(Of, At);
