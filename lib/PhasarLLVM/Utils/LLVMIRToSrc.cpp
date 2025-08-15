@@ -12,14 +12,19 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/APInt.h"
+#include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -29,7 +34,6 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
@@ -43,8 +47,9 @@
 using namespace psr;
 
 static llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
-  if (auto *VAM = llvm::ValueAsMetadata::getIfExists(
-          const_cast<llvm::Value *>(V))) { // NOLINT FIXME when LLVM supports it
+
+  if (auto *VAM =
+          llvm::ValueAsMetadata::getIfExists(const_cast<llvm::Value *>(V))) {
     if (auto *MDV = llvm::MetadataAsValue::getIfExists(V->getContext(), VAM)) {
       for (auto *U : MDV->users()) {
         if (auto *DBGIntr = llvm::dyn_cast<llvm::DbgVariableIntrinsic>(U)) {
@@ -144,109 +149,372 @@ static llvm::DIType *getVarTypeFromIRImpl(const llvm::Value *V) {
   return nullptr;
 }
 
-static const llvm::GEPOperator *getStructGep(const llvm::Value *V) {
-  if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
-    if (Gep->getNumIndices() != 2) {
-      return nullptr;
-    }
-    const auto *FirstIdx =
-        llvm::dyn_cast<llvm::ConstantInt>(Gep->indices().begin()->get());
-    if (!FirstIdx || FirstIdx->getZExtValue() != 0) {
-      return nullptr;
-    }
+// static const llvm::GEPOperator *getStructGep(const llvm::Value *V) {
+//   if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
+//     if (Gep->getNumIndices() != 2) {
+//       return nullptr;
+//     }
+//     const auto *FirstIdx =
+//         llvm::dyn_cast<llvm::ConstantInt>(Gep->indices().begin()->get());
+//     if (!FirstIdx || FirstIdx->getZExtValue() != 0) {
+//       return nullptr;
+//     }
 
-    const auto *SecondIdx = llvm::dyn_cast<llvm::ConstantInt>(
-        std::next(Gep->indices().begin())->get());
-    if (!SecondIdx) {
-      return nullptr;
+//     const auto *SecondIdx = llvm::dyn_cast<llvm::ConstantInt>(
+//         std::next(Gep->indices().begin())->get());
+//     if (!SecondIdx) {
+//       return nullptr;
+//     }
+//     return Gep;
+//   }
+
+//   return nullptr;
+// }
+
+// static std::pair<const llvm::Value *, size_t>
+// getOffsetAndBase(const llvm::Value *V) {
+//   const auto *Base = V->stripPointerCastsAndAliases();
+//   uint64_t Offset = 0;
+//   if (const auto *Gep = getStructGep(Base)) {
+//     // Look for gep ptr, 0, N; where N is a constant
+
+//     const auto *SecondIdx =
+//         llvm::cast<llvm::ConstantInt>(std::next(Gep->indices().begin())->get());
+
+//     Offset = SecondIdx->getZExtValue();
+//     Base = Gep->getPointerOperand();
+//   }
+//   return {Base, Offset};
+// }
+
+static llvm::DIType *stripTAGMember(llvm::DIType *Ty) {
+  if (auto *DerivedTy = llvm::dyn_cast_if_present<llvm::DIDerivedType>(Ty)) {
+    if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_member) {
+      return DerivedTy->getBaseType();
     }
-    return Gep;
   }
-
-  return nullptr;
+  return Ty;
 }
 
-static std::pair<const llvm::Value *, size_t>
-getOffsetAndBase(const llvm::Value *V) {
-  const auto *Base = V->stripPointerCastsAndAliases();
-  uint64_t Offset = 0;
-  if (const auto *Gep = getStructGep(Base)) {
-    // Look for gep ptr, 0, N; where N is a constant
-
-    const auto *SecondIdx =
-        llvm::cast<llvm::ConstantInt>(std::next(Gep->indices().begin())->get());
-
-    Offset = SecondIdx->getZExtValue();
-    Base = Gep->getPointerOperand();
+static llvm::DIType *stripTAGTypedef(llvm::DIType *Ty) {
+  while (auto *DerivedTy = llvm::dyn_cast_if_present<llvm::DIDerivedType>(Ty)) {
+    if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef ||
+        DerivedTy->getTag() == llvm::dwarf::DW_TAG_const_type) {
+      Ty = DerivedTy->getBaseType();
+      continue;
+    }
+    break;
   }
-  return {Base, Offset};
+  return Ty;
 }
 
-static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t Offset) {
-  const auto *DerivedTy =
-      llvm::dyn_cast_if_present<llvm::DIDerivedType>(BaseTy);
-  auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
+// static llvm::DIType *getStructElementType(llvm::DIType *BaseTy, size_t
+// Offset) {
+//   const auto *DerivedTy =
+//       llvm::dyn_cast_if_present<llvm::DIDerivedType>(BaseTy);
+//   auto *StructTy = DerivedTy ? DerivedTy->getBaseType() : BaseTy;
 
-  if (Offset == 0 && DerivedTy) {
-    return StructTy;
-  }
+//   if (Offset == 0 && DerivedTy) {
+//     return StructTy;
+//   }
 
-  if (const auto *CompositeTy =
-          llvm::dyn_cast_if_present<llvm::DICompositeType>(StructTy)) {
-    auto Elems = CompositeTy->getElements();
-    if (!Elems || Offset >= Elems.size()) {
-      return nullptr;
-    }
+//   if (const auto *CompositeTy =
+//           llvm::dyn_cast_if_present<llvm::DICompositeType>(StructTy)) {
 
-    if (auto *ElemTy = llvm::dyn_cast_if_present<llvm::DIType>(Elems[Offset])) {
-      return ElemTy;
-    }
-  }
-  return nullptr;
-}
+//     if (CompositeTy->getTag() == llvm::dwarf::DW_TAG_array_type) {
+//       if (auto *ElemTy = llvm::dyn_cast_if_present<llvm::DIType>(
+//               CompositeTy->getBaseType())) {
+//         return ElemTy;
+//       }
+//     }
 
-static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth) {
-  static constexpr size_t DepthLimit = 10;
+//     auto Elems = CompositeTy->getElements();
+//     if (!Elems || Offset >= Elems.size()) {
+//       // llvm::errs() << "Requested offset " << Offset
+//       //              << " exceeds number of elements (" << Elems.size()
+//       //              << ") of type " << *CompositeTy << '\n';
+//       return nullptr;
+//     }
 
-  V = V->stripPointerCastsAndAliases();
+//     // TODO: DW_TAG_member
 
-  if (auto *VarTy = getVarTypeFromIRImpl(V)) {
-    return VarTy;
-  }
+//     if (auto *ElemTy =
+//     llvm::dyn_cast_if_present<llvm::DIType>(Elems[Offset])) {
+//       return stripTAGMember(ElemTy);
+//     }
+//   }
+//   // llvm::errs() << "No struct element type for " << *BaseTy << " at index "
+//   //              << Offset << '\n';
+//   return nullptr;
+// }
 
-  const auto InternalGetOffsetAndBase =
-      [](const llvm::Value *V) -> std::pair<const llvm::Value *, size_t> {
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-      return getOffsetAndBase(Load->getPointerOperand());
-    }
-    if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
-      return getOffsetAndBase(Gep->getPointerOperand());
-    }
-    return {};
-  };
+// static llvm::DIType *getVarTypeFromIRRec(const llvm::Value *V, size_t Depth)
+// {
+//   static constexpr size_t DepthLimit = 10;
 
-  auto [Base, Offset] = InternalGetOffsetAndBase(V);
-  if (!Base) {
+//   V = V->stripPointerCastsAndAliases();
+
+//   if (auto *VarTy = getVarTypeFromIRImpl(V)) {
+//     return VarTy;
+//   }
+
+//   const auto InternalGetOffsetAndBase =
+//       [](const llvm::Value *V) -> std::pair<const llvm::Value *, size_t> {
+//     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+//       return getOffsetAndBase(Load->getPointerOperand());
+//     }
+//     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(V)) {
+//       return getOffsetAndBase(Gep->getPointerOperand());
+//     }
+//     return {};
+//   };
+
+//   auto [Base, Offset] = InternalGetOffsetAndBase(V);
+//   if (!Base) {
+//     // llvm::errs() << "No Base for val " << llvmIRToString(V) << '\n';
+//     return nullptr;
+//   }
+
+//   // TODO: Get rid of the recursion
+//   if (Depth >= DepthLimit) {
+//     // llvm::errs() << "Reached depth-limit for val " << llvmIRToString(V) <<
+//     // '\n';
+//     return nullptr;
+//   }
+//   auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1);
+//   if (!BaseTy) {
+//     // llvm::errs() << "No BaseTy for val " << llvmIRToString(Base) << '\n';
+//     return nullptr;
+//   }
+//   return getStructElementType(BaseTy, Offset);
+// }
+
+static llvm::DIType *
+getDITypeFromValue(const llvm::Value *V,
+                   llvm::SmallDenseSet<const llvm::Value *> &Visited) {
+  // llvm::errs() << "[getDITypeFromValue]: V: " << llvmIRToString(V) << '\n';
+  if (!V || Visited.count(V)) {
+    // llvm::errs() << "> already visited or null\n";
     return nullptr;
   }
 
-  // TODO: Get rid of the recursion
-  if (Depth >= DepthLimit) {
+  Visited.insert(V);
+
+  auto *Ret = [&]() -> llvm::DIType * {
+    // First, check for direct debug intrinsic references
+    if (auto *VarTy = getVarTypeFromIRImpl(V)) {
+      // llvm::errs() << "  > return varty\n";
+      return VarTy;
+    }
+    // else {
+    //   llvm::errs() << "  > no varty\n";
+    // }
+
+    if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+
+      // Handle LoadInst - trace back to what we're loading from
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Inst)) {
+        const llvm::Value *LoadedFrom = Load->getPointerOperand();
+
+        // Get the type of what we're loading from
+        if (auto *LoadedFromType = getDITypeFromValue(LoadedFrom, Visited)) {
+
+          // If we're loading from a pointer type, dereference it
+          if (auto *DerivedType =
+                  llvm::dyn_cast<llvm::DIDerivedType>(LoadedFromType)) {
+            if (DerivedType->getTag() == llvm::dwarf::DW_TAG_pointer_type) {
+              if (!llvm::isa<llvm::GetElementPtrInst, llvm::AllocaInst,
+                             llvm::GlobalVariable>(Load->getPointerOperand())) {
+                // XXX: In case of a GEP, we did the dereferencing already (see
+                // below!)
+                // For Allocas and Globals, we return the dbg-intrinsic type,
+                // which also does not contain any additional pointer
+
+                return DerivedType->getBaseType();
+              }
+            }
+          }
+
+          // Otherwise return the type as-is
+          return LoadedFromType;
+        }
+
+        // llvm::errs() << "> fallthrough at load\n";
+        return nullptr;
+      }
+
+      // Handle GetElementPtrInst - calculate the resulting type
+      if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Inst)) {
+        // Get the base pointer's type
+        if (auto *BaseType =
+                getDITypeFromValue(GEP->getPointerOperand(), Visited)) {
+          // llvm::errs() << "  > found GEP base type\n";
+          llvm::DIType *CurrentType = BaseType;
+
+          // If base type is a pointer, dereference it first, otherwise, we
+          // cannot access the struct/array members
+          if (auto *DerivedType =
+                  llvm::dyn_cast<llvm::DIDerivedType>(CurrentType)) {
+            if (DerivedType->getTag() == llvm::dwarf::DW_TAG_pointer_type) {
+              CurrentType = DerivedType->getBaseType();
+            }
+          }
+
+          // Regular struct/array GEP handling
+          // First index does not change the type
+          for (const auto &Idx : llvm::drop_begin(GEP->indices())) {
+            // llvm::errs() << "   > Handle index " << llvmIRToString(Idx) <<
+            // '\n';
+            if (auto *CompositeType =
+                    llvm::dyn_cast_if_present<llvm::DICompositeType>(
+                        CurrentType)) {
+              // llvm::errs() << "   > Is composite\n";
+              if (CompositeType->getTag() ==
+                      llvm::dwarf::DW_TAG_structure_type ||
+                  CompositeType->getTag() == llvm::dwarf::DW_TAG_class_type) {
+                // llvm::errs() << "   > Is struct/class\n";
+                if (const auto *ConstInt =
+                        llvm::dyn_cast<llvm::ConstantInt>(Idx.get())) {
+                  uint64_t Index = ConstInt->getZExtValue();
+                  auto Elements = CompositeType->getElements();
+                  if (Index < Elements.size()) {
+                    CurrentType = stripTAGTypedef(stripTAGMember(
+                        llvm::dyn_cast<llvm::DIType>(Elements[Index])));
+                    // llvm::errs() << "   > Adjust type to elemty "
+                    //              << llvmTypeToString(CurrentType) << '\n';
+                  }
+                }
+              } else if (CompositeType->getTag() ==
+                         llvm::dwarf::DW_TAG_array_type) {
+
+                // llvm::errs() << "   > Is array\n";
+                CurrentType = stripTAGTypedef(
+                    stripTAGMember(CompositeType->getBaseType()));
+                // llvm::errs() << "   > Adjust type to elemty "
+                //              << llvmTypeToString(CurrentType) << '\n';
+              }
+            }
+          }
+
+          // TODO: Get pointer back! (then need to sync with load handling
+          // above!)
+          return CurrentType;
+        }
+      }
+      // Handle CallInst - get return type from function debug info
+      else if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
+        if (const auto *CalledFunc = llvm::dyn_cast<llvm::Function>(
+                Call->getCalledOperand()->stripPointerCastsAndAliases())) {
+          if (auto *Subprogram = CalledFunc->getSubprogram()) {
+            if (auto *FnType = llvm::dyn_cast<llvm::DISubroutineType>(
+                    Subprogram->getType())) {
+              auto TypeArray = FnType->getTypeArray();
+              if (TypeArray.begin() != TypeArray.end()) {
+                // Return type is at index 0
+                return llvm::dyn_cast_or_null<llvm::DIType>(TypeArray[0]);
+              }
+            }
+          }
+        } else {
+          const llvm::Value *FnPtr = Call->getCalledOperand();
+
+          // Try to get debug type information for the function pointer
+          if (auto *FnPtrType = getDITypeFromValue(FnPtr, Visited)) {
+            llvm::DIType *CurrentType = FnPtrType;
+
+            // If it's a pointer type, dereference to get the function type
+            if (auto *DerivedType =
+                    llvm::dyn_cast<llvm::DIDerivedType>(CurrentType)) {
+              if (DerivedType->getTag() == llvm::dwarf::DW_TAG_pointer_type) {
+                CurrentType = DerivedType->getBaseType();
+              }
+            }
+
+            // Now we should have a function type
+            if (auto *SubroutineType =
+                    llvm::dyn_cast<llvm::DISubroutineType>(CurrentType)) {
+              auto TypeArray = SubroutineType->getTypeArray();
+              if (TypeArray.size() > 0) {
+                return llvm::dyn_cast_or_null<llvm::DIType>(TypeArray[0]);
+              }
+            }
+          }
+        }
+      }
+
+      // Handle PHI nodes - check all incoming values
+      else if (const auto *Phi = llvm::dyn_cast<llvm::PHINode>(Inst)) {
+        for (unsigned i = 0; i < Phi->getNumIncomingValues(); ++i) {
+          if (auto *Type =
+                  getDITypeFromValue(Phi->getIncomingValue(i), Visited)) {
+            return Type; // Return the first type we find
+          }
+        }
+      }
+
+      // Handle Select instructions
+      else if (const auto *Select = llvm::dyn_cast<llvm::SelectInst>(Inst)) {
+        // Check true value first, then false value
+        if (auto *Type = getDITypeFromValue(Select->getTrueValue(), Visited)) {
+          return Type;
+        }
+        return getDITypeFromValue(Select->getFalseValue(), Visited);
+      }
+
+      // Handle Cast instructions - trace through to the source
+      else if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Inst)) {
+        // TODO: This can be tricky. We are interested in the type, so a cast
+        // could give us all we need; only in case of pointer-casts we need to
+        // recurse
+        return getDITypeFromValue(Cast->getOperand(0), Visited);
+      }
+    }
+
+    // Handle Function Arguments
+    else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+      const llvm::Function *F = Arg->getParent();
+      if (auto *Subprogram = F->getSubprogram()) {
+        auto ArgNo = Arg->getArgNo();
+        if (auto *FnType =
+                llvm::dyn_cast<llvm::DISubroutineType>(Subprogram->getType())) {
+          auto TypeArray = FnType->getTypeArray();
+          // Note: 0 is return type!
+          if (ArgNo + 1 < TypeArray.size()) {
+            return llvm::dyn_cast_or_null<llvm::DIType>(TypeArray[ArgNo + 1]);
+          }
+        }
+      }
+    }
+
+    // Handle Global Variables
+    else if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+      if (const auto *GlobalVar = getDIGlobalVariable(GV)) {
+        return GlobalVar->getType();
+      }
+      // llvm::SmallVector<llvm::DIGlobalVariableExpression *, 1> GVEs;
+      // GV->getDebugInfo(GVEs);
+      // if (!GVEs.empty()) {
+      //   if (auto *GlobalVar = GVEs[0]->getVariable()) {
+      //     return GlobalVar->getType();
+      //   }
+      // }
+    }
+
+    // llvm::errs() << "> fallthrough\n";
     return nullptr;
-  }
-  auto *BaseTy = getVarTypeFromIRRec(Base, Depth + 1);
-  if (!BaseTy) {
-    return nullptr;
-  }
-  return getStructElementType(BaseTy, Offset);
+  }();
+
+  return stripTAGTypedef(Ret);
 }
 
 llvm::DIType *psr::getVarTypeFromIR(const llvm::Value *V) {
   if (!V) {
     return nullptr;
   }
-
-  return getVarTypeFromIRRec(V, 0);
+  // llvm::errs() << '\n';
+  // return getVarTypeFromIRRec(V, 0);
+  llvm::SmallDenseSet<const llvm::Value *> Visited;
+  return getDITypeFromValue(V, Visited);
 }
 
 std::string psr::getFunctionNameFromIR(const llvm::Value *V) {
