@@ -323,7 +323,7 @@ template <typename T> struct AlignNum {
   }
 };
 template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
-AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+AlignNum(llvm::StringRef, size_t, size_t) -> AlignNum<double>;
 } // namespace
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
@@ -353,6 +353,8 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
          << AlignNum("Debug Intrinsics", Statistics.DebugIntrinsics)
          << AlignNum("Switches", Statistics.Switches)
          << AlignNum("GetElementPtrs", Statistics.GetElementPtrs)
+         << AlignNum("Loads", Statistics.LoadInstructions)
+         << AlignNum("Stores", Statistics.StoreInstructions)
          << AlignNum("Phi Nodes", Statistics.PhiNodes)
          << AlignNum("LandingPads", Statistics.LandingPads)
          << AlignNum("Basic Blocks", Statistics.BasicBlocks)

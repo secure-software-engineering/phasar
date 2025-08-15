@@ -195,8 +195,7 @@ private:
     }
 
     [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>,
-                                             EmptyType, l_t>
-        BotElement{};
+                                             EmptyType, l_t> BotElement{};
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunctionComposer> This,
                                   const EdgeFunction<l_t> &OtherFunction) {

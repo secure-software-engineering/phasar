@@ -36,6 +36,10 @@ private:
   LLVMZeroValue(llvm::Module &Mod);
 
   static constexpr llvm::StringLiteral LLVMZeroValueInternalName = "zero_value";
+  static bool isZeroValueHelper(const llvm::Value *V) noexcept {
+    // Need this helper function to make gcc happy
+    return V == getInstance();
+  }
 
 public:
   LLVMZeroValue(const LLVMZeroValue &Z) = delete;
@@ -53,7 +57,7 @@ public:
 
   // NOLINTNEXTLINE(readability-identifier-naming)
   static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) noexcept {
-    return V == getInstance();
+    return isZeroValueHelper(V);
   };
 };
 } // namespace psr

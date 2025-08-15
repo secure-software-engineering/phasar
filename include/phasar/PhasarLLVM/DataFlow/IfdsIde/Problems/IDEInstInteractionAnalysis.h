@@ -942,6 +942,14 @@ public:
 
   inline l_t join(l_t Lhs, l_t Rhs) override { return joinImpl(Lhs, Rhs); }
 
+  struct IIAAKillOrReplaceEF;
+  struct IIAAAddLabelsEF;
+  // These friend declarations are needed to make gcc happy
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAKillOrReplaceEF &EF);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAAddLabelsEF &EF);
+
   // Provide some handy helper edge functions to improve reuse.
 
   // Edge function that kills all labels in a set (and may replaces them with

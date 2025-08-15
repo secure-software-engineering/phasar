@@ -1,5 +1,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFG.h"
 
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include "SVFGCache.h"
@@ -32,7 +33,7 @@ SparseLLVMBasedICFG::SparseLLVMBasedICFG(CallGraph<n_t, f_t> CG,
       AliasAnalysis(PT) {}
 
 SparseLLVMBasedICFG::SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                                         const nlohmann::json &SerializedCG,
+                                         const CallGraphData &SerializedCG,
                                          LLVMAliasInfoRef PT)
     : LLVMBasedICFG(IRDB, SerializedCG), SparseCFGCache(new SVFGCache{}),
       AliasAnalysis(PT) {}
