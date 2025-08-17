@@ -36,13 +36,14 @@ class LLVMBasedICFG;
 //     const std::vector<boost::filesystem::path> &Paths);
 
 std::vector<std::string>
-getEntryPointsForCallersOf(llvm::StringRef FunName, LLVMProjectIRDB &IR,
-                           LLVMBasedICFG &ICF,
+getEntryPointsForCallersOf(llvm::StringRef FunName, const LLVMProjectIRDB &IR,
+                           const LLVMBasedICFG &ICF,
                            llvm::StringRef TypeNameOfInterest);
 
 std::vector<std::string> getEntryPointsForCallersOfDesugared(
-    llvm::StringRef FunName, LLVMProjectIRDB &IR, LLVMBasedICFG &ICF,
-    const stringstringmap_t &FNameMap, llvm::StringRef TypeNameOfInterest);
+    llvm::StringRef FunName, const LLVMProjectIRDB &IR,
+    const LLVMBasedICFG &ICF, const stringstringmap_t &FNameMap,
+    llvm::StringRef TypeNameOfInterest);
 
 std::optional<llvm::StringRef>
 extractDesugaredTypeNameOfInterest(llvm::StringRef OriginalTOI,

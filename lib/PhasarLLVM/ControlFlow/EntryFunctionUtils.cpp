@@ -66,3 +66,22 @@ psr::getEntryFunctionsMut(LLVMProjectIRDB &IRDB,
   }
   return UserEntryPointFns;
 }
+
+std::vector<std::string>
+psr::getDefaultEntryPoints(const LLVMProjectIRDB &IRDB) {
+  if (IRDB.getFunctionDefinition("main")) {
+    return {"main"};
+  }
+
+  return {"__ALL__"};
+}
+
+[[nodiscard]] std::vector<const llvm::Function *>
+psr::getDefaultEntryFunctions(const LLVMProjectIRDB &IRDB) {
+  return getEntryFunctions(IRDB, getDefaultEntryPoints(IRDB));
+}
+
+[[nodiscard]] std::vector<llvm::Function *>
+psr::getDefaultEntryFunctionsMut(LLVMProjectIRDB &IRDB) {
+  return getEntryFunctionsMut(IRDB, getDefaultEntryPoints(IRDB));
+}

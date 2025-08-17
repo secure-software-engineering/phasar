@@ -23,10 +23,9 @@
 
 using namespace psr;
 
-std::vector<std::string>
-psr::getEntryPointsForCallersOf(llvm::StringRef FunName, LLVMProjectIRDB &IR,
-                                LLVMBasedICFG &ICF,
-                                llvm::StringRef TypeNameOfInterest) {
+std::vector<std::string> psr::getEntryPointsForCallersOf(
+    llvm::StringRef FunName, const LLVMProjectIRDB &IR,
+    const LLVMBasedICFG &ICF, llvm::StringRef TypeNameOfInterest) {
 
   // Deduplication is easier on pointers than on fresh allocated strings
   llvm::SmallPtrSet<const llvm::Function *, 8> EntrypointFunctions;
@@ -64,8 +63,9 @@ psr::getEntryPointsForCallersOf(llvm::StringRef FunName, LLVMProjectIRDB &IR,
 }
 
 std::vector<std::string> psr::getEntryPointsForCallersOfDesugared(
-    llvm::StringRef FunName, LLVMProjectIRDB &IR, LLVMBasedICFG &ICF,
-    const stringstringmap_t &FNameMap, llvm::StringRef TypeNameOfInterest) {
+    llvm::StringRef FunName, const LLVMProjectIRDB &IR,
+    const LLVMBasedICFG &ICF, const stringstringmap_t &FNameMap,
+    llvm::StringRef TypeNameOfInterest) {
   auto Search = staticRename(FunName, FNameMap);
   return getEntryPointsForCallersOf(Search, IR, ICF, TypeNameOfInterest);
 }
