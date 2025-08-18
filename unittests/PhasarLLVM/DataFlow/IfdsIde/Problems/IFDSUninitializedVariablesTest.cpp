@@ -55,15 +55,17 @@ protected:
   void compareResults(
       const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
           &GroundTruth) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
+    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, true);
 
     std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
         FoundUninitUses;
     for (const auto &Kvp : UninitProblem->getAllUndefUses()) {
       const auto *SourceInst = Kvp.first;
+      llvm::outs() << "SourceInst: " << SourceInst << "\n";
       llvm::outs() << "*SourceInst: " << *SourceInst << "\n";
 
       for (const auto *UV : Kvp.second) {
+        llvm::outs() << "UV: " << UV << "\n";
         llvm::outs() << "*UV: " << *UV << "\n";
         FoundUninitUses.insert({SourceInst, UV});
       }
@@ -77,6 +79,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "all_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // all_uninit.cpp does not contain undef-uses
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
   compareResults(GroundTruth);
@@ -89,16 +92,16 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
 
   // binop_uninit uses uninitialized variable i in 'int j = i + 10;'
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
   // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
   // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
   // undefined alloca; not sure if it is necessary to report again
-
   const auto Entry =
-      SrcCodeLocationEntry(2, 0, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(2, 0, HA->getICFG().getFunction("main"));
   const auto EntryTwo =
-      SrcCodeLocationEntry(3, 11, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(3, 11, HA->getICFG().getFunction("main"));
   const auto EntryThree =
-      SrcCodeLocationEntry(3, 13, HA->getICFG().getIRDB()->getFunction("main"));
+      SrcCodeLocationEntry(3, 13, HA->getICFG().getFunction("main"));
   GroundTruth.insert({EntryTwo, Entry});
   GroundTruth.insert({EntryThree, EntryTwo});
 
@@ -112,6 +115,21 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
 
   // callnoret uses uninitialized variable a in 'return a + 10;' of addTen(int)
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  const auto IntA =
+      SrcCodeLocationEntry(7, 7, HA->getICFG().getFunction("main"));
+  const auto CopyA =
+      SrcCodeLocationEntry(9, 10, HA->getICFG().getFunction("main"));
+  const auto ArgA =
+      SrcCodeLocationEntry(1, 16, HA->getICFG().getFunction("addTen"));
+  const auto LoadA =
+      SrcCodeLocationEntry(3, 10, HA->getICFG().getFunction("addTen"));
+  const auto Add =
+      SrcCodeLocationEntry(3, 12, HA->getICFG().getFunction("addTen"));
+  GroundTruth.insert({CopyA, IntA});
+  GroundTruth.insert({Add, LoadA});
+  GroundTruth.insert({LoadA, ArgA});
+
 #if false
   // %4 = load i32, i32* %2 ; %2 is the parameter a of addTen(int) containing
   // undef
@@ -127,31 +145,36 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
 
   compareResults(GroundTruth);
 }
-#if false
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "ctor_default_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // ctor.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
   compareResults(GroundTruth);
 }
-
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "struct_member_init_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // struct_member_init.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
   compareResults(GroundTruth);
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "struct_member_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // struct_member_uninit.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
   compareResults(GroundTruth);
 }
 /****************************************************************************************
@@ -173,12 +196,15 @@ Solver(*UninitProblem, false); Solver.solve();
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "global_variable_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // global_variable.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
   compareResults(GroundTruth);
 }
 /****************************************************************************************
@@ -198,17 +224,31 @@ Solver(*UninitProblem, false); Solver.solve();
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   initialize({PathToLlFiles + "return_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   UninitProblem->emitTextReport(Solver.getSolverResults(), llvm::outs());
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  // TODO: ask fabian why I have to use _Z3foov as the name here, but above I
+  // could just use the normal function name.
+  const auto IntI =
+      SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("_Z3foov"));
+  const auto UseOfI =
+      SrcCodeLocationEntry(3, 10, HA->getICFG().getFunction("_Z3foov"));
+
+  GroundTruth.insert({UseOfI, IntI});
+
+#if false
   //%2 = load i32, i32 %1
   GroundTruth[2] = {"0"};
   // What about this call?
   // %3 = call i32 @_Z3foov()
   // GroundTruth[8] = {""};
+#endif
   compareResults(GroundTruth);
 }
 
@@ -217,15 +257,27 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "sanitizer_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
-  map<int, set<string>> GroundTruth;
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
   // all undef-uses are sanitized;
   // However, the uninitialized variable j is read, which causes the analysis to
   // report an undef-use
   // 6 => {2}
 
+  const auto IntI =
+      SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("main"));
+  const auto UseOfI =
+      SrcCodeLocationEntry(4, 7, HA->getICFG().getFunction("main"));
+
+  GroundTruth.insert({UseOfI, IntI});
+
+#if false
   GroundTruth[6] = {"2"};
+#endif
+
   compareResults(GroundTruth);
 }
+
 //---------------------------------------------------------------------
 // Not relevant any more; Test case covered by UninitTest_11
 //---------------------------------------------------------------------
@@ -247,21 +299,51 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "sanitizer2_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // The undef-uses do not affect the program behaviour, but are of course still
   // found and reported
-  map<int, set<string>> GroundTruth;
-  GroundTruth[9] = {"2"};
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  const auto IntJ =
+      SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("main"));
+  const auto LoadJ =
+      SrcCodeLocationEntry(5, 7, HA->getICFG().getFunction("main"));
+
+  GroundTruth.insert({LoadJ, IntJ});
+
   compareResults(GroundTruth);
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "uninit_c_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
-  map<int, set<string>> GroundTruth;
+
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  const auto IntA =
+      SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("main"));
+  const auto IntB =
+      SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("main"));
+  const auto LoadA =
+      SrcCodeLocationEntry(6, 11, HA->getICFG().getFunction("main"));
+  const auto Multiply =
+      SrcCodeLocationEntry(6, 13, HA->getICFG().getFunction("main"));
+  const auto LoadB =
+      SrcCodeLocationEntry(6, 15, HA->getICFG().getFunction("main"));
+
+  GroundTruth.insert({LoadA, IntA});
+  GroundTruth.insert({LoadB, IntB});
+  GroundTruth.insert({Multiply, LoadA});
+  GroundTruth.insert({Multiply, LoadB});
+
+#if false
   GroundTruth[14] = {"1"};
   GroundTruth[15] = {"2"};
   GroundTruth[16] = {"14", "15"};
+#endif
+
   compareResults(GroundTruth);
 }
 /****************************************************************************************
@@ -297,19 +379,43 @@ GroundTruth;
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "growing_example_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  const auto ArgX =
+      SrcCodeLocationEntry(1, 18, HA->getICFG().getFunction("_Z8functionii"));
+  const auto IntI =
+      SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("_Z8functionii"));
+  const auto LoadX =
+      SrcCodeLocationEntry(3, 11, HA->getICFG().getFunction("_Z8functionii"));
+  const auto LoadI =
+      SrcCodeLocationEntry(5, 10, HA->getICFG().getFunction("_Z8functionii"));
+  const auto Add =
+      SrcCodeLocationEntry(5, 12, HA->getICFG().getFunction("_Z8functionii"));
+  const auto IntJ =
+      SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
+  const auto LoadJ =
+      SrcCodeLocationEntry(12, 16, HA->getICFG().getFunction("main"));
+
+  GroundTruth.insert({LoadX, ArgX});
+  GroundTruth.insert({LoadI, IntI});
+  GroundTruth.insert({Add, LoadI});
+  GroundTruth.insert({LoadJ, IntJ});
+
+#if false
   // TODO remove GT[11]
   GroundTruth[11] = {"0"};
 
   GroundTruth[16] = {"2"};
   GroundTruth[18] = {"16"};
   GroundTruth[34] = {"24"};
+#endif
 
   compareResults(GroundTruth);
 }
@@ -367,13 +473,36 @@ Solver(*UninitProblem, false); Solver.solve();
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "recursion_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  map<int, set<string>> GroundTruth;
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  const auto ArgAddrX =
+      SrcCodeLocationEntry(2, 15, HA->getICFG().getFunction("main"));
+  const auto LoadX =
+      SrcCodeLocationEntry(4, 12, HA->getICFG().getFunction("main"));
+  const auto LoadXTwo =
+      SrcCodeLocationEntry(5, 14, HA->getICFG().getFunction("main"));
+  const auto IntI =
+      SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
+  const auto LoadI =
+      SrcCodeLocationEntry(10, 15, HA->getICFG().getFunction("main"));
+
+  // TODO: ask fabian why the original unittest ground truth has 5 elements
+  // TODO: Also, why doesn't this crash if I say getFunction("main") when
+  // looking at insts in foo?
+
+  GroundTruth.insert({LoadI, IntI});
+  GroundTruth.insert({LoadX, ArgAddrX});
+  GroundTruth.insert({LoadXTwo, ArgAddrX});
+
+#if false
+
   // Leaks at 11 and 14 due to field-insensitivity
   GroundTruth[11] = {"2"};
   GroundTruth[14] = {"2"};
@@ -387,13 +516,44 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   // Analysis does not check uninit on actualparameters
   // GroundTruth[32] = {"31"};
   compareResults(GroundTruth);
+
+#endif
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "virtual_call_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
+  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+
+  const auto FooXAddr =
+      SrcCodeLocationEntry(3, 15, HA->getICFG().getFunction("_Z3fooRi"));
+  const auto FooXLoad =
+      SrcCodeLocationEntry(3, 27, HA->getICFG().getFunction("_Z3fooRi"));
+  const auto BarXAddr =
+      SrcCodeLocationEntry(4, 15, HA->getICFG().getFunction("_Z3fooRi"));
+  const auto LoadX =
+      SrcCodeLocationEntry(6, 10, HA->getICFG().getFunction("_Z3barRi"));
+  const auto IntI =
+      SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
+  const auto IntJ =
+      SrcCodeLocationEntry(16, 7, HA->getICFG().getFunction("main"));
+  const auto BazCall =
+      SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"));
+  const auto LoadJ =
+      SrcCodeLocationEntry(17, 10, HA->getICFG().getFunction("main"));
+  // is passed as a reference, so I isn't being loaded here
+  // const auto LoadI =
+  //     SrcCodeLocationEntry(16, 15, HA->getICFG().getFunction("main"));
+
+  GroundTruth.insert({FooXLoad, IntI});
+  GroundTruth.insert({FooXLoad, IntJ});
+  GroundTruth.insert({LoadX, BarXAddr});
+  GroundTruth.insert({LoadX, IntJ});
+  GroundTruth.insert({LoadX, IntJ});
+#if false
   map<int, set<string>> GroundTruth = {
       {3, {"0"}}, {8, {"5"}}, {10, {"5"}}, {35, {"34"}}, {37, {"17"}}};
   // 3  => {0}; due to field-insensitivity
@@ -401,10 +561,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
   // 10 => {5}; due to alias-unawareness
   // 35 => {34}; actual leak
   // 37 => {17}; actual leak
+#endif
   compareResults(GroundTruth);
 }
-
-#endif
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

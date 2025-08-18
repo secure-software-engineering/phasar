@@ -2,6 +2,7 @@
 #define PHASAR_UTILS_SRCCODELOCATIONENTRY_H
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/Hashing.h"
@@ -450,7 +451,8 @@ getValueFromEntryOrNull(const SrcCodeLocationEntry &Entry) {
 inline std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
 getGroundTruthInsts(
     const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-        &GroundTruth) {
+        &GroundTruth,
+    bool PrintData = false) {
   std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
       GroundTruthEntries;
 
@@ -461,13 +463,35 @@ getGroundTruthInsts(
     const llvm::Value *CurrVal = getValueFromEntryOrNull(SecondEntry);
 
     if (!CurrInst) {
+      if (PrintData) {
+        llvm::outs() << "FirstEntry.Line: " << FirstEntry.Line
+                     << " - FirstEntry.Column: " << FirstEntry.Column << "\n";
+      }
+      llvm::report_fatal_error("Couldn't cast first entry to instruction\n");
       continue;
     }
 
     if (!CurrVal) {
+      if (PrintData) {
+        llvm::outs() << "SecondEntry.Line: " << SecondEntry.Line
+                     << " - SecondEntry.Column: " << SecondEntry.Column << "\n";
+      }
+      llvm::report_fatal_error("Couldn't cast second entry to value\n");
       continue;
     }
 
+    if (PrintData) {
+      llvm::outs() << "FirstEntry.Line: " << FirstEntry.Line
+                   << " - FirstEntry.Column: " << FirstEntry.Column << "\n";
+      llvm::outs() << "CurrInst: " << CurrInst << "\n";
+      llvm::outs() << "llvmIRToString(CurrInst): " << llvmIRToString(CurrInst)
+                   << "\n";
+      llvm::outs() << "\nSecondEntry.Line: " << SecondEntry.Line
+                   << " - SecondEntry.Column: " << SecondEntry.Column << "\n";
+      llvm::outs() << "CurrVal: " << CurrVal << "\n";
+      llvm::outs() << "llvmIRToString(CurrVal): " << llvmIRToString(CurrVal)
+                   << "\n";
+    }
     GroundTruthEntries.insert({CurrInst, CurrVal});
   }
 

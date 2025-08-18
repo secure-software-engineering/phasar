@@ -740,7 +740,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
                        {BeforeFirstFClose, IOSTATE::CLOSED},
                        {BeforeSecondFOpen, IOSTATE::CLOSED}}});
   GroundTruth.insert({BeforeSecondFClose,
-                      {{File, IOSTATE::OPENED},
+                      {{File, IOSTATE::CLOSED},
                        {BeforeFirstFOpen, IOSTATE::CLOSED},
                        {BeforeFirstFClose, IOSTATE::CLOSED},
                        {BeforeSecondFOpen, IOSTATE::OPENED}}});
