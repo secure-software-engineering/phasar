@@ -9,6 +9,7 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -18,39 +19,25 @@
 #include "llvm/Support/Casting.h"
 
 #include "TestConfig.h"
+#include "gtest/gtest.h"
 
-#include <memory>
 #include <optional>
-
-#include <gtest/gtest.h>
 
 class GetDITypeFromValueTest : public ::testing::Test {
 protected:
   static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("/types/");
 
-  void SetUp() override { Context = std::make_unique<llvm::LLVMContext>(); }
-
-  void TearDown() override { Context.reset(); }
-
   std::optional<psr::LLVMProjectIRDB> IRDBBuf;
 
   // Helper function to load LLVM IR from file
-  llvm::Module *loadIRFromFile(const llvm::Twine &Filename) {
-
-    auto Ctx = std::make_unique<llvm::LLVMContext>();
-    auto Mod = psr::LLVMProjectIRDB::getParsedIRModuleOrErr(
-        PathToLLFiles + Filename, *Ctx);
-    if (!Mod) {
-      return nullptr;
-    }
-
-    IRDBBuf.emplace(std::move(Mod.get()), std::move(Ctx));
+  [[nodiscard]] llvm::Module *loadIRFromFile(const llvm::Twine &Filename) {
+    IRDBBuf.emplace(PathToLLFiles + Filename);
     return IRDBBuf->getModule();
   }
 
   // Helper to find instruction by name/ID
-  const llvm::Instruction *findInstructionByPSRId(llvm::Module *M,
-                                                  llvm::StringRef Id) {
+  [[nodiscard]] const llvm::Instruction *
+  findInstructionByPSRId(llvm::Module *M, llvm::StringRef Id) {
     return llvm::dyn_cast_if_present<llvm::Instruction>(
         psr::fromMetaDataId(IRDBBuf.value(), Id));
   }
@@ -58,17 +45,10 @@ protected:
   // Helper to find alloca by debug variable name
   llvm::AllocaInst *findAllocaByName(llvm::Module *M, llvm::StringRef VarName) {
     for (auto &F : *M) {
-      for (auto &BB : F) {
-        for (auto &I : BB) {
-          if (auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            auto DbgDeclares = llvm::FindDbgDeclareUses(Alloca);
-            for (auto *DbgDeclare : DbgDeclares) {
-              if (auto *LocalVar = DbgDeclare->getVariable()) {
-                if (LocalVar->getName() == VarName) {
-                  return Alloca;
-                }
-              }
-            }
+      for (auto &I : llvm::instructions(F)) {
+        if (auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+          if (psr::getVarNameFromIR(Alloca) == VarName) {
+            return Alloca;
           }
         }
       }
@@ -77,8 +57,8 @@ protected:
   }
 
   // Helper to find function argument by index
-  llvm::Argument *findFunctionArg(llvm::Module *M, llvm::StringRef FuncName,
-                                  unsigned ArgIdx) {
+  [[nodiscard]] llvm::Argument *
+  findFunctionArg(llvm::Module *M, llvm::StringRef FuncName, unsigned ArgIdx) {
     if (auto *F = M->getFunction(FuncName)) {
       if (ArgIdx < F->arg_size()) {
         return F->getArg(ArgIdx);
@@ -89,16 +69,16 @@ protected:
 
   // Generic instruction finder template
   template <typename InstrType>
-  const InstrType *findFirstInstructionOfType(llvm::Module *M,
-                                              llvm::StringRef FuncName = "") {
-    auto ProcessFunction = [](const llvm::Function &F) -> const InstrType * {
-      for (const auto &BB : F) {
-        for (const auto &I : BB) {
-          if (const auto *Instr = llvm::dyn_cast<InstrType>(&I)) {
-            return Instr;
-          }
+  [[nodiscard]] const InstrType *
+  findFirstInstructionOfType(llvm::Module *M, llvm::StringRef FuncName = "") {
+    const auto ProcessFunction =
+        [](const llvm::Function &F) -> const InstrType * {
+      for (const auto &I : llvm::instructions(F)) {
+        if (const auto *Instr = llvm::dyn_cast<InstrType>(&I)) {
+          return Instr;
         }
       }
+
       return nullptr;
     };
 
@@ -124,15 +104,14 @@ protected:
                                                 PredicateType Predicate,
                                                 llvm::StringRef FuncName = "") {
     auto ProcessFunction = [&](const llvm::Function &F) -> const InstrType * {
-      for (const auto &BB : F) {
-        for (const auto &I : BB) {
-          if (const auto *Instr = llvm::dyn_cast<InstrType>(&I)) {
-            if (Predicate(Instr)) {
-              return Instr;
-            }
+      for (const auto &I : llvm::instructions(F)) {
+        if (const auto *Instr = llvm::dyn_cast<InstrType>(&I)) {
+          if (Predicate(Instr)) {
+            return Instr;
           }
         }
       }
+
       return nullptr;
     };
 
@@ -152,16 +131,16 @@ protected:
   }
 
   // Specialized finders using the template
-  const llvm::CallInst *findVirtualCall(llvm::Module *M,
-                                        llvm::StringRef FuncName = "") {
+  [[nodiscard]] const llvm::CallInst *
+  findVirtualCall(llvm::Module *M, llvm::StringRef FuncName = "") {
     return findInstructionWithPredicate<llvm::CallInst>(
         M, [](const llvm::CallInst *CI) { return CI->isIndirectCall(); },
         FuncName);
   }
 
-  const llvm::GetElementPtrInst *findComplexGEP(llvm::Module *M,
-                                                unsigned MinIndices = 2,
-                                                llvm::StringRef FuncName = "") {
+  [[nodiscard]] const llvm::GetElementPtrInst *
+  findComplexGEP(llvm::Module *M, unsigned MinIndices = 2,
+                 llvm::StringRef FuncName = "") {
     return findInstructionWithPredicate<llvm::GetElementPtrInst>(
         M,
         [MinIndices](const llvm::GetElementPtrInst *GEP) {
@@ -170,8 +149,8 @@ protected:
         FuncName);
   }
 
-  const llvm::PHINode *findPointerPhi(llvm::Module *M,
-                                      llvm::StringRef FuncName = "") {
+  [[nodiscard]] const llvm::PHINode *
+  findPointerPhi(llvm::Module *M, llvm::StringRef FuncName = "") {
     return findInstructionWithPredicate<llvm::PHINode>(
         M, [](const llvm::PHINode *PN) { return PN->getType()->isPointerTy(); },
         FuncName);
@@ -179,7 +158,7 @@ protected:
 
   // Type validation functions returning AssertionResult
   testing::AssertionResult
-  ValidatePointerType(const llvm::Value *V,
+  validatePointerType(const llvm::Value *V,
                       llvm::StringRef ExpectedPointeeTypeName = "",
                       bool RequirePointer = true) {
     auto *DIType = psr::getVarTypeFromIR(V);
@@ -226,7 +205,7 @@ protected:
     return testing::AssertionSuccess();
   }
 
-  testing::AssertionResult ValidateBasicType(const llvm::Value *V,
+  testing::AssertionResult validateBasicType(const llvm::Value *V,
                                              llvm::StringRef ExpectedTypeName,
                                              unsigned ExpectedSize = 0) {
     auto *DIType = psr::getVarTypeFromIR(V);
@@ -256,36 +235,34 @@ protected:
   }
 
   testing::AssertionResult
-  ValidateTypeIsOneOf(const llvm::Value *V,
-                      const std::vector<std::string> &ExpectedTypeNames) {
+  validateTypeIsOneOf(const llvm::Value *V,
+                      llvm::ArrayRef<std::string> ExpectedTypeNames) {
     auto *DIType = psr::getVarTypeFromIR(V);
     if (!DIType) {
       return testing::AssertionFailure() << "getVarTypeFromIR returned nullptr";
     }
 
-    std::string ActualTypeName;
+    std::string_view ActualTypeName;
 
     if (auto *PtrType = llvm::dyn_cast<llvm::DIDerivedType>(DIType)) {
       if (PtrType->getTag() == llvm::dwarf::DW_TAG_pointer_type) {
         auto *BaseType = PtrType->getBaseType();
         if (auto *CompositeType =
                 llvm::dyn_cast<llvm::DICompositeType>(BaseType)) {
-          ActualTypeName = CompositeType->getName().str();
+          ActualTypeName = CompositeType->getName();
         } else if (auto *BasicType =
                        llvm::dyn_cast<llvm::DIBasicType>(BaseType)) {
-          ActualTypeName = BasicType->getName().str();
+          ActualTypeName = BasicType->getName();
         }
       }
     } else if (auto *CompositeType =
                    llvm::dyn_cast<llvm::DICompositeType>(DIType)) {
-      ActualTypeName = CompositeType->getName().str();
+      ActualTypeName = CompositeType->getName();
     } else if (auto *BasicType = llvm::dyn_cast<llvm::DIBasicType>(DIType)) {
-      ActualTypeName = BasicType->getName().str();
+      ActualTypeName = BasicType->getName();
     }
 
-    bool Found = std::find(ExpectedTypeNames.begin(), ExpectedTypeNames.end(),
-                           ActualTypeName) != ExpectedTypeNames.end();
-
+    bool Found = llvm::is_contained(ExpectedTypeNames, ActualTypeName);
     if (!Found) {
       return testing::AssertionFailure()
              << "Type '" << ActualTypeName << "' not found in expected types: ["
@@ -297,16 +274,21 @@ protected:
 
   // Additional validation for specific DWARF attributes
   testing::AssertionResult
-  ValidateBasicTypeWithEncoding(const llvm::Value *V,
+  validateBasicTypeWithEncoding(const llvm::Value *V,
                                 llvm::StringRef ExpectedTypeName,
                                 unsigned ExpectedEncoding) {
-    auto BasicResult = ValidateBasicType(V, ExpectedTypeName);
+    auto BasicResult = validateBasicType(V, ExpectedTypeName);
     if (!BasicResult) {
       return BasicResult;
     }
 
     auto *DIType = psr::getVarTypeFromIR(V);
-    auto *BasicType = llvm::cast<llvm::DIBasicType>(DIType);
+    auto *BasicType = llvm::dyn_cast_if_present<llvm::DIBasicType>(DIType);
+
+    if (!BasicType) {
+      return testing::AssertionFailure()
+             << "Expected DIBasicType, got " << psr::llvmTypeToString(DIType);
+    }
 
     if (BasicType->getEncoding() != ExpectedEncoding) {
       return testing::AssertionFailure()
@@ -318,17 +300,19 @@ protected:
   }
 
   // Helper to get types when validation passes (for additional checks)
-  llvm::DIType *getValidatedType(const llvm::Value *V) {
+  [[nodiscard]] llvm::DIType *getValidatedType(const llvm::Value *V) {
     return psr::getVarTypeFromIR(V);
   }
 
-  llvm::DIBasicType *getValidatedBasicType(const llvm::Value *V) {
-    return llvm::dyn_cast_or_null<llvm::DIBasicType>(psr::getVarTypeFromIR(V));
+  [[nodiscard]] llvm::DIBasicType *getValidatedBasicType(const llvm::Value *V) {
+    return llvm::dyn_cast_if_present<llvm::DIBasicType>(
+        psr::getVarTypeFromIR(V));
   }
 
-  llvm::DIDerivedType *getValidatedPointerType(const llvm::Value *V) {
+  [[nodiscard]] llvm::DIDerivedType *
+  getValidatedPointerType(const llvm::Value *V) {
     auto *DIType = psr::getVarTypeFromIR(V);
-    auto *PtrType = llvm::dyn_cast_or_null<llvm::DIDerivedType>(DIType);
+    auto *PtrType = llvm::dyn_cast_if_present<llvm::DIDerivedType>(DIType);
     if (PtrType && PtrType->getTag() == llvm::dwarf::DW_TAG_pointer_type) {
       return PtrType;
     }
@@ -336,13 +320,12 @@ protected:
   }
 
   // Module loading with assertion
-  llvm::Module *loadAndValidateModule(const std::string &Filename) {
+  [[nodiscard]] llvm::Module *
+  loadAndValidateModule(const std::string &Filename) {
     auto *M = loadIRFromFile(Filename);
     EXPECT_NE(M, nullptr) << "Failed to load module: " << Filename;
     return M;
   }
-
-  std::unique_ptr<llvm::LLVMContext> Context;
 };
 TEST_F(GetDITypeFromValueTest, AllocaWithDebugInfo) {
   auto *M = loadAndValidateModule("test_alloca_simple_c_dbg.ll");
@@ -353,7 +336,7 @@ TEST_F(GetDITypeFromValueTest, AllocaWithDebugInfo) {
   llvm::AllocaInst *Alloca = findAllocaByName(M, "x");
   ASSERT_NE(Alloca, nullptr);
 
-  ASSERT_TRUE(ValidateBasicType(Alloca, "int", 32));
+  ASSERT_TRUE(validateBasicType(Alloca, "int", 32));
 
   // Additional specific checks if needed
   auto *BasicType = getValidatedBasicType(Alloca);
@@ -370,7 +353,7 @@ TEST_F(GetDITypeFromValueTest, LoadFromAlloca) {
   ASSERT_NE(LoadInst, nullptr);
   ASSERT_TRUE(llvm::isa<llvm::LoadInst>(LoadInst));
 
-  EXPECT_TRUE(ValidateBasicType(LoadInst, "int"));
+  EXPECT_TRUE(validateBasicType(LoadInst, "int"));
 }
 
 TEST_F(GetDITypeFromValueTest, ArrayGEP) {
@@ -383,7 +366,7 @@ TEST_F(GetDITypeFromValueTest, ArrayGEP) {
   ASSERT_NE(GEPInst, nullptr);
   ASSERT_TRUE(llvm::isa<llvm::GetElementPtrInst>(GEPInst));
 
-  EXPECT_TRUE(ValidateBasicType(GEPInst, "int"));
+  EXPECT_TRUE(validateBasicType(GEPInst, "int"));
 }
 
 TEST_F(GetDITypeFromValueTest, VirtualFunctionCall) {
@@ -398,7 +381,7 @@ TEST_F(GetDITypeFromValueTest, VirtualFunctionCall) {
   const llvm::Value *arg = VCall->getArgOperand(0);
   ASSERT_NE(arg, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(arg, "B"));
+  EXPECT_TRUE(validatePointerType(arg, "B"));
 }
 
 TEST_F(GetDITypeFromValueTest, MultipleInheritanceVirtualCall) {
@@ -414,7 +397,7 @@ TEST_F(GetDITypeFromValueTest, MultipleInheritanceVirtualCall) {
   const llvm::Value *thisPtr = VCall->getArgOperand(0);
   ASSERT_NE(thisPtr, nullptr);
 
-  EXPECT_TRUE(ValidateTypeIsOneOf(thisPtr, {"Base1", "Base2", "Derived"}));
+  EXPECT_TRUE(validateTypeIsOneOf(thisPtr, {"Base1", "Base2", "Derived"}));
 }
 
 TEST_F(GetDITypeFromValueTest, SignedIntegerType) {
@@ -428,7 +411,7 @@ TEST_F(GetDITypeFromValueTest, SignedIntegerType) {
 
   // Using the specialized validation function
   EXPECT_TRUE(
-      ValidateBasicTypeWithEncoding(Alloca, "int", llvm::dwarf::DW_ATE_signed));
+      validateBasicTypeWithEncoding(Alloca, "int", llvm::dwarf::DW_ATE_signed));
 }
 
 // Example of using the getter functions for complex validation
@@ -445,7 +428,7 @@ TEST_F(GetDITypeFromValueTest, ComplexTypeInspection) {
   ASSERT_NE(ThisPtr, nullptr);
 
   // First validate it's a pointer
-  ASSERT_TRUE(ValidatePointerType(ThisPtr));
+  ASSERT_TRUE(validatePointerType(ThisPtr));
 
   // Then get the pointer type for detailed inspection
   auto *PtrType = getValidatedPointerType(ThisPtr);
@@ -476,7 +459,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_BasicGEP) {
       "_Z23test_pointer_arithmeticv");
   ASSERT_NE(ArrayGEP, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(ArrayGEP, "Point", false));
+  EXPECT_TRUE(validatePointerType(ArrayGEP, "Point", false));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_PointerIncrement) {
@@ -494,7 +477,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_PointerIncrement) {
           });
   ASSERT_NE(PtrArithGEP, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(PtrArithGEP, "Point", false));
+  EXPECT_TRUE(validatePointerType(PtrArithGEP, "Point", false));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_StructMemberAccess) {
@@ -510,7 +493,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_StructMemberAccess) {
       });
   ASSERT_NE(MemberGEP, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(MemberGEP, "Point", false));
+  EXPECT_TRUE(validatePointerType(MemberGEP, "Point", false));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_FieldAccess) {
@@ -530,7 +513,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePointerArithmetic_FieldAccess) {
 
   if (FieldGEP) {
     // Should point to int (the field type)
-    EXPECT_TRUE(ValidatePointerType(FieldGEP, "int", false));
+    EXPECT_TRUE(validatePointerType(FieldGEP, "int", false));
   } else {
     FAIL() << "Expect to find GEP for field access";
   }
@@ -550,7 +533,7 @@ TEST_F(GetDITypeFromValueTest, OpaqueFunctionReturns_SimpleReturn) {
       });
   ASSERT_NE(CreateNodeCall, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(CreateNodeCall, "Node"));
+  EXPECT_TRUE(validatePointerType(CreateNodeCall, "Node"));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaqueFunctionReturns_ChainedCalls) {
@@ -567,7 +550,7 @@ TEST_F(GetDITypeFromValueTest, OpaqueFunctionReturns_ChainedCalls) {
       });
   ASSERT_NE(FindLastCall, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(FindLastCall, "Node"));
+  EXPECT_TRUE(validatePointerType(FindLastCall, "Node"));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaqueFunctionReturns_ComplexSignature) {
@@ -584,7 +567,7 @@ TEST_F(GetDITypeFromValueTest, OpaqueFunctionReturns_ComplexSignature) {
       });
   ASSERT_NE(GetDataCall, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(GetDataCall, "int"));
+  EXPECT_TRUE(validatePointerType(GetDataCall, "int"));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaqueFunctionReturns_PointerToPointer) {
@@ -639,7 +622,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePhiNodes_ConditionalPointers) {
   ASSERT_NE(DIType, nullptr) << "Phi node should have some type information";
 
   // Could be void* or one of the input types
-  EXPECT_TRUE(ValidateTypeIsOneOf(ConditionalPhi, {"TypeA", "TypeB", "void"}));
+  EXPECT_TRUE(validateTypeIsOneOf(ConditionalPhi, {"TypeA", "TypeB", "void"}));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaquePhiNodes_ArrayAccess) {
@@ -658,7 +641,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePhiNodes_ArrayAccess) {
       "_Z18test_phi_scenariosbi");
 
   if (ArrayPhi) {
-    EXPECT_TRUE(ValidatePointerType(ArrayPhi, "TypeA", false));
+    EXPECT_TRUE(validatePointerType(ArrayPhi, "TypeA", false));
   } else {
     FAIL() << "Could not find array-phi";
   }
@@ -698,7 +681,7 @@ TEST_F(GetDITypeFromValueTest, OpaquePhiNodes_LoopInduction) {
   }
 
   if (LoopPhi) {
-    EXPECT_TRUE(ValidatePointerType(LoopPhi, "TypeA", false));
+    EXPECT_TRUE(validatePointerType(LoopPhi, "TypeA", false));
   } else {
     FAIL() << "Did not find loop-phi";
   }
@@ -723,7 +706,7 @@ TEST_F(GetDITypeFromValueTest, OpaqueComplexExpressions_MultiLevelGEP) {
           "_Z24test_complex_expressionsv");
   ASSERT_NE(ComplexGEP, nullptr);
 
-  EXPECT_TRUE(ValidatePointerType(ComplexGEP, "Matrix", false));
+  EXPECT_TRUE(validatePointerType(ComplexGEP, "Matrix", false));
 }
 
 TEST_F(GetDITypeFromValueTest, OpaqueComplexExpressions_IndirectAccess) {
@@ -740,7 +723,7 @@ TEST_F(GetDITypeFromValueTest, OpaqueComplexExpressions_IndirectAccess) {
       });
 
   if (IndirectLoad) {
-    EXPECT_TRUE(ValidatePointerType(IndirectLoad, "Matrix"));
+    EXPECT_TRUE(validatePointerType(IndirectLoad, "Matrix"));
   } else {
     FAIL() << "Did not find load";
   }
@@ -764,7 +747,7 @@ TEST_F(GetDITypeFromValueTest, OpaqueComplexExpressions_DynamicIndexing) {
 
   if (DynamicGEP) {
     // Even with dynamic indexing, type should be preserved
-    EXPECT_TRUE(ValidatePointerType(DynamicGEP, "Container", false));
+    EXPECT_TRUE(validatePointerType(DynamicGEP, "Container", false));
   } else {
     FAIL() << "Did not find dynamic GEP";
   }
@@ -782,8 +765,8 @@ TEST_F(GetDITypeFromValueTest, OpaquePointers_EdgeCaseValidation) {
   ASSERT_TRUE(SomeGEP);
 
   // Test that validation fails appropriately for wrong types
-  EXPECT_FALSE(ValidatePointerType(SomeGEP, "NonExistentType"));
-  EXPECT_FALSE(ValidateBasicType(
+  EXPECT_FALSE(validatePointerType(SomeGEP, "NonExistentType"));
+  EXPECT_FALSE(validateBasicType(
       SomeGEP, "float")); // GEP should be pointer, not basic type
 }
 
