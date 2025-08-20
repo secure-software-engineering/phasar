@@ -13,6 +13,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 
@@ -66,7 +67,7 @@ protected:
 
       for (const auto *UV : Kvp.second) {
         llvm::outs() << "UV: " << UV << "\n";
-        llvm::outs() << "*UV: " << *UV << "\n";
+        llvm::outs() << "*UV: " << *UV << "\n\n";
         FoundUninitUses.insert({SourceInst, UV});
       }
     }
@@ -129,19 +130,6 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   GroundTruth.insert({CopyA, IntA});
   GroundTruth.insert({Add, LoadA});
   GroundTruth.insert({LoadA, ArgA});
-
-#if false
-  // %4 = load i32, i32* %2 ; %2 is the parameter a of addTen(int) containing
-  // undef
-  GroundTruth[5] = {"0"};
-  // The same as in test2: is it necessary to report again?
-  GroundTruth[6] = {"5"};
-  // %5 = load i32, i32* %2 ; %2 is the uninitialized variable a
-  GroundTruth[16] = {"9"};
-  // The same as in test2: is it necessary to report again? (the analysis does
-  // not)
-  // GroundTruth[17] = {"16"};
-#endif
 
   compareResults(GroundTruth);
 }
@@ -230,11 +218,8 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  UninitProblem->emitTextReport(Solver.getSolverResults(), llvm::outs());
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
-  // TODO: ask fabian why I have to use _Z3foov as the name here, but above I
-  // could just use the normal function name.
   const auto IntI =
       SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("_Z3foov"));
   const auto UseOfI =
@@ -242,13 +227,6 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
 
   GroundTruth.insert({UseOfI, IntI});
 
-#if false
-  //%2 = load i32, i32 %1
-  GroundTruth[2] = {"0"};
-  // What about this call?
-  // %3 = call i32 @_Z3foov()
-  // GroundTruth[8] = {""};
-#endif
   compareResults(GroundTruth);
 }
 
@@ -270,10 +248,6 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
       SrcCodeLocationEntry(4, 7, HA->getICFG().getFunction("main"));
 
   GroundTruth.insert({UseOfI, IntI});
-
-#if false
-  GroundTruth[6] = {"2"};
-#endif
 
   compareResults(GroundTruth);
 }
@@ -338,14 +312,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
   GroundTruth.insert({Multiply, LoadA});
   GroundTruth.insert({Multiply, LoadB});
 
-#if false
-  GroundTruth[14] = {"1"};
-  GroundTruth[15] = {"2"};
-  GroundTruth[16] = {"14", "15"};
-#endif
-
   compareResults(GroundTruth);
 }
+
 /****************************************************************************************
  * Fails probably due to field-insensitivity
  *
@@ -403,11 +372,12 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
   const auto LoadJ =
       SrcCodeLocationEntry(12, 16, HA->getICFG().getFunction("main"));
 
+  // TODO: rewrite comment below
+  // TODO remove GT[11]
   GroundTruth.insert({LoadX, ArgX});
   GroundTruth.insert({LoadI, IntI});
   GroundTruth.insert({Add, LoadI});
   GroundTruth.insert({LoadJ, IntJ});
-
 #if false
   // TODO remove GT[11]
   GroundTruth[11] = {"0"};
@@ -483,23 +453,52 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
   const auto ArgAddrX =
-      SrcCodeLocationEntry(2, 15, HA->getICFG().getFunction("main"));
+      SrcCodeLocationEntry(2, 15, HA->getICFG().getFunction("_Z3fooRii"));
   const auto LoadX =
-      SrcCodeLocationEntry(4, 12, HA->getICFG().getFunction("main"));
+      SrcCodeLocationEntry(4, 12, HA->getICFG().getFunction("_Z3fooRii"));
   const auto LoadXTwo =
-      SrcCodeLocationEntry(5, 14, HA->getICFG().getFunction("main"));
+      SrcCodeLocationEntry(5, 14, HA->getICFG().getFunction("_Z3fooRii"));
+  const auto FooExit =
+      SrcCodeLocationEntry(6, 1, HA->getICFG().getFunction("_Z3fooRii"));
+  // const auto IntN =
+  //     SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("_Z3fooRii"));
   const auto IntI =
       SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
-  const auto LoadI =
-      SrcCodeLocationEntry(10, 15, HA->getICFG().getFunction("main"));
+  const auto IntJ =
+      SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
+  const auto RetOfFoo =
+      SrcCodeLocationEntry(10, 11, HA->getICFG().getFunction("main"));
+  const auto LoadJ =
+      SrcCodeLocationEntry(11, 18, HA->getICFG().getFunction("main"));
 
   // TODO: ask fabian why the original unittest ground truth has 5 elements
   // TODO: Also, why doesn't this crash if I say getFunction("main") when
   // looking at insts in foo?
 
-  GroundTruth.insert({LoadI, IntI});
+  // GroundTruth.insert({LoadXTwo, IntI});
+
+  // Leaks due to field-insensitivity
   GroundTruth.insert({LoadX, ArgAddrX});
   GroundTruth.insert({LoadXTwo, ArgAddrX});
+
+  // Load uninitialized variable i
+  // GroundTruth.insert({LoadI, IntI});
+
+  // Load recursive return-value for returning it
+  GroundTruth.insert({LoadJ, IntJ});
+  //
+  // // Load return-value of foo in main
+  // GroundTruth.insert({FooExit, IntJ});
+
+  // ***********
+  // Load recursive return-value for returning it
+  // GroundTruth.insert({RetOfFoo, IntJ});
+  // ***********
+
+  // Load return-value of foo in main
+  // GroundTruth.insert({IntJ, RetOfFoo});
+
+  compareResults(GroundTruth);
 
 #if false
 
@@ -532,8 +531,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
       SrcCodeLocationEntry(3, 15, HA->getICFG().getFunction("_Z3fooRi"));
   const auto FooXLoad =
       SrcCodeLocationEntry(3, 27, HA->getICFG().getFunction("_Z3fooRi"));
+
   const auto BarXAddr =
-      SrcCodeLocationEntry(4, 15, HA->getICFG().getFunction("_Z3fooRi"));
+      SrcCodeLocationEntry(4, 15, HA->getICFG().getFunction("_Z3barRi"));
+  const auto Load =
+      SrcCodeLocationEntry(5, 3, HA->getICFG().getFunction("_Z3barRi"));
   const auto LoadX =
       SrcCodeLocationEntry(6, 10, HA->getICFG().getFunction("_Z3barRi"));
   const auto IntI =
@@ -542,17 +544,27 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
       SrcCodeLocationEntry(16, 7, HA->getICFG().getFunction("main"));
   const auto BazCall =
       SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"));
+  const auto BazCall2 =
+      SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"));
   const auto LoadJ =
       SrcCodeLocationEntry(17, 10, HA->getICFG().getFunction("main"));
   // is passed as a reference, so I isn't being loaded here
   // const auto LoadI =
   //     SrcCodeLocationEntry(16, 15, HA->getICFG().getFunction("main"));
 
-  GroundTruth.insert({FooXLoad, IntI});
-  GroundTruth.insert({FooXLoad, IntJ});
+  // 3  => {0}; due to field-insensitivity
+  GroundTruth.insert({FooXLoad, FooXAddr});
+
+  // 8  => {5}; due to field-insensitivity
+  GroundTruth.insert({Load, BarXAddr});
+
+  // 10 => {5}; due to alias-unawareness
   GroundTruth.insert({LoadX, BarXAddr});
-  GroundTruth.insert({LoadX, IntJ});
-  GroundTruth.insert({LoadX, IntJ});
+  // 35 => {34}; actual leak
+  GroundTruth.insert({BazCall, IntJ});
+  // 37 => {17}; actual leak
+  GroundTruth.insert({BazCall2, IntJ});
+
 #if false
   map<int, set<string>> GroundTruth = {
       {3, {"0"}}, {8, {"5"}}, {10, {"5"}}, {35, {"34"}}, {37, {"17"}}};

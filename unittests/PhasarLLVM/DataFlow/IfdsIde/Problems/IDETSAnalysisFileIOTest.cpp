@@ -155,26 +155,9 @@ protected:
               << "[Error]: Couldn't cast FirstResult to Instruction.\n";
         }
       }
+
       EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(CurrInst);
     }
-
-#if false
-    for (const auto &InstToGroundTruth : GroundTruth) {
-      const auto *Inst =
-          HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
-      // std::cout << "Handle results at " << InstToGroundTruth.first <<
-      // std::endl;
-      auto GT = InstToGroundTruth.second;
-      std::map<std::string, int> Results;
-      for (auto Result : Solver.resultsAt(Inst, true)) {
-        if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
-          Results.insert(std::pair<std::string, int>(
-              getMetaDataID(Result.first), int(Result.second)));
-        }
-      }
-      EXPECT_EQ(Results, GT) << "At " << llvmIRToShortString(Inst);
-    }
-#endif
   }
 }; // Test Fixture
 
@@ -182,10 +165,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_01) {
   initialize({PathToLlFiles + "typestate_01_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
   Llvmtssolver.solve();
-  // const std::map<std::size_t, std::map<std::string, int>> Gt = {
-  //     {5, {{"3", IOSTATE::UNINIT}}},
-  //     {9, {{"3", IOSTATE::CLOSED}}},
-  //     {7, {{"3", IOSTATE::OPENED}}}};
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
@@ -225,21 +204,40 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
+  // %f = alloca ptr, align 8
   const auto MainFile =
       SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
+  // %f.addr = alloca ptr, align 8
   const auto FooFile =
       SrcCodeLocationEntry(3, 16, HA->getICFG().getFunction("foo"));
-  const auto FooBegin =
+  const auto FooFClose =
       SrcCodeLocationEntry(3, 21, HA->getICFG().getFunction("foo"));
+  // %0 = load ptr, ptr %f
+  const auto PassFToFClose =
+      SrcCodeLocationEntry(3, 28, HA->getICFG().getFunction("foo"));
+  // ret void
   const auto FooRet =
       SrcCodeLocationEntry(3, 32, HA->getICFG().getFunction("foo"));
+  // %0 = load ptr, ptr %f, align 8
+  const auto PassFToFoo =
+      SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
+  // ret i32 0
   const auto Return =
       SrcCodeLocationEntry(11, 3, HA->getICFG().getFunction("main"));
-  GroundTruth.insert({FooBegin, {{FooFile, IOSTATE::OPENED}}});
-  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::CLOSED}}});
-  GroundTruth.insert({Return, {{MainFile, IOSTATE::CLOSED}}});
+  // Entry in foo()
+  GroundTruth.insert({FooFClose, {{FooFile, IOSTATE::OPENED}}});
+  // Exit in foo()
+  GroundTruth.insert({FooRet,
+                      {{FooFile, IOSTATE::CLOSED},
+                       {FooFClose, IOSTATE::CLOSED},
+                       {PassFToFClose, IOSTATE::CLOSED}}});
+  // Exit in main()
+  GroundTruth.insert({Return,
+                      {{FooFClose, IOSTATE::CLOSED},
+                       {MainFile, IOSTATE::CLOSED},
+                       {PassFToFoo, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-
+// TODO: go over old and new ground truth with fabian
 #if false
   // llvmtssolver.printReport();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -295,29 +293,25 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
       GroundTruth;
   const auto File =
       SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
+  const auto CallFOpen =
+      SrcCodeLocationEntry(7, 7, HA->getICFG().getFunction("main"));
   const auto AfterFOpen =
       SrcCodeLocationEntry(8, 7, HA->getICFG().getFunction("main"));
+  const auto LoadFile =
+      SrcCodeLocationEntry(9, 12, HA->getICFG().getFunction("main"));
   const auto AfterFClose =
       SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
   const auto Return =
       SrcCodeLocationEntry(11, 3, HA->getICFG().getFunction("main"));
-  GroundTruth.insert({AfterFOpen, {{File, IOSTATE::OPENED}}});
-  GroundTruth.insert({AfterFClose, {{File, IOSTATE::CLOSED}}});
-  GroundTruth.insert({Return, {{File, IOSTATE::BOT}}});
+  GroundTruth.insert(
+      {AfterFOpen, {{File, IOSTATE::OPENED}, {CallFOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({AfterFClose,
+                      {{File, IOSTATE::CLOSED},
+                       {CallFOpen, IOSTATE::CLOSED},
+                       {LoadFile, IOSTATE::CLOSED}}});
+  GroundTruth.insert(
+      {Return, {{File, IOSTATE::BOT}, {CallFOpen, IOSTATE::BOT}}});
   compareResults(GroundTruth, Llvmtssolver);
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // Before if statement
-      {10, {{"4", IOSTATE::OPENED}, {"6", IOSTATE::OPENED}}},
-      // Inside if statement at last instruction
-      {13,
-       {{"4", IOSTATE::CLOSED},
-        {"6", IOSTATE::CLOSED},
-        {"11", IOSTATE::CLOSED}}},
-      // After if statement
-      {14, {{"4", IOSTATE::BOT}, {"6", IOSTATE::BOT}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 // TODO: fix
@@ -374,61 +368,51 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
+  // %f.addr = alloca ptr, align 8
   const auto FooFile =
       SrcCodeLocationEntry(3, 16, HA->getICFG().getFunction("foo"));
-  const auto FooExit =
+  // ret void
+  const auto FooRet =
       SrcCodeLocationEntry(3, 32, HA->getICFG().getFunction("foo"));
-  const auto File =
+  //  %f = alloca ptr, align 8
+  const auto MainFile =
       SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
-  const auto FClose =
+  // %0 = load ptr, ptr %f, align 8
+  const auto MainFileLoad =
+      SrcCodeLocationEntry(7, 10, HA->getICFG().getFunction("main"));
+  // %call = call i32 @fclose(ptr noundef %0)
+  const auto CallFClose =
       SrcCodeLocationEntry(7, 3, HA->getICFG().getFunction("main"));
-  const auto AfterFClose =
+  // %call1 = call noalias ptr @fopen(ptr noundef @.str, ptr noundef @.str.1)
+  const auto Call1FOpen =
+      SrcCodeLocationEntry(8, 7, HA->getICFG().getFunction("main"));
+  // store ptr %call1, ptr %f, align 8
+  const auto StoreOfCall1 =
       SrcCodeLocationEntry(8, 5, HA->getICFG().getFunction("main"));
-  const auto AfterFOpen =
-      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
-  const auto FForFoo =
+  // %1 = load ptr, ptr %f, align 8
+  const auto LoadMainFile =
       SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
-  GroundTruth.insert({FooExit, {{FooFile, IOSTATE::CLOSED}}});
-  GroundTruth.insert({FClose, {{File, IOSTATE::UNINIT}}});
-  GroundTruth.insert({AfterFClose, {{File, IOSTATE::ERROR}}});
-  // TODO: fix IOSTATE::OPENED part below failing
-  GroundTruth.insert({AfterFOpen,
-                      {{File, IOSTATE::ERROR},
-                       {AfterFClose, IOSTATE::ERROR},
-                       {FForFoo, IOSTATE::OPENED}}});
-#if false
-  // GroundTruth.insert({, {{, IOSTATE::ERROR}}});
-  // GroundTruth.insert({, {{, IOSTATE::CLOSED}}});
-#endif
-  compareResults(GroundTruth, Llvmtssolver);
+  // ret i32 0
+  const auto MainReturn =
+      SrcCodeLocationEntry(12, 3, HA->getICFG().getFunction("main"));
 
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // In foo()
-      {6,
-       {
-           {"foo.0", IOSTATE::CLOSED}, {"2", IOSTATE::CLOSED},
-           //{"8", IOSTATE::CLOSED}// 6 is before 8, so no info available
-           // before retFF
-       }},
-      // At fclose()
-      {11, {{"8", IOSTATE::UNINIT}, {"10", IOSTATE::UNINIT}}},
-      // After fclose()
-      {12, {{"8", IOSTATE::ERROR}, {"10", IOSTATE::ERROR}}},
-      // After fopen()
-      {13,
-       {{"8", IOSTATE::ERROR},
-        {"10", IOSTATE::ERROR},
-        {"12", IOSTATE::OPENED}}},
-      // After store
-      {14,
-       {{"8", IOSTATE::OPENED},
-        {"10", IOSTATE::ERROR},
-        {"12", IOSTATE::OPENED}}},
-      // At exit in main()
-      {16, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
+  GroundTruth.insert({FooRet, {{FooFile, IOSTATE::CLOSED}}});
+  GroundTruth.insert(
+      {CallFClose,
+       {{MainFile, IOSTATE::UNINIT}, {MainFileLoad, IOSTATE::UNINIT}}});
+  GroundTruth.insert(
+      {Call1FOpen,
+       {{MainFile, IOSTATE::ERROR}, {MainFileLoad, IOSTATE::ERROR}}});
+  GroundTruth.insert({StoreOfCall1,
+                      {{MainFile, IOSTATE::ERROR},
+                       {MainFileLoad, IOSTATE::ERROR},
+                       {Call1FOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({LoadMainFile,
+                      {{MainFile, IOSTATE::OPENED},
+                       {MainFileLoad, IOSTATE::ERROR},
+                       {Call1FOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert(
+      {MainReturn, {{MainFile, IOSTATE::CLOSED}, {FooFile, IOSTATE::CLOSED}}});
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
@@ -450,15 +434,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_08) {
   GroundTruth.insert(
       {MainReturn, {{FooFile, IOSTATE::OPENED}, {MainFile, IOSTATE::UNINIT}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in foo()
-      {6, {{"2", IOSTATE::OPENED}}},
-      // At exit in main()
-      {11, {{"2", IOSTATE::OPENED}, {"8", IOSTATE::UNINIT}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
@@ -480,19 +455,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_09) {
   GroundTruth.insert(
       {MainReturn, {{FooFile, IOSTATE::CLOSED}, {MainFile, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in foo()
-      {8,
-       {
-           {"4", IOSTATE::OPENED},
-           //{"10", IOSTATE::OPENED}// 8 is before 10, so no info available
-           // before retFF
-       }},
-      // At exit in main()
-      {18, {{"4", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
@@ -521,24 +483,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_10) {
                        {FooFile, IOSTATE::CLOSED},
                        {MainFile, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in bar()
-      {4, {{"2", IOSTATE::UNINIT}}},
-      // At exit in foo()
-      {11,
-       {//{"2", IOSTATE::OPENED},
-        //{"13", IOSTATE::OPENED}, // 2 and 13 are in different functions, so
-        // results are not available before retFF
-        {"5", IOSTATE::OPENED}}},
-      // At exit in main()
-      {19,
-       {{"2", IOSTATE::CLOSED},
-        {"5", IOSTATE::CLOSED},
-        {"13", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
@@ -567,30 +511,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_11) {
                        {FooFile, IOSTATE::ERROR},
                        {MainFile, IOSTATE::ERROR}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in bar(): closing uninitialized file-handle gives error-state
-      {6,
-       {
-           {"2", IOSTATE::ERROR},
-           //{"7", IOSTATE::ERROR},
-           //{"13", IOSTATE::ERROR} // 7 and 13 not yet reached
-       }},
-      // At exit in foo()
-      {11,
-       {
-           //{"2", IOSTATE::OPENED}, // 2 is in different function
-           {"7", IOSTATE::OPENED},
-           //{"13", IOSTATE::OPENED}  // 13 is after 11
-       }},
-      // At exit in main(): due to aliasing the error-state from bar is
-      // propagated back to main
-      {19,
-       {{"2", IOSTATE::ERROR}, {"7", IOSTATE::ERROR}, {"13", IOSTATE::ERROR}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
@@ -616,22 +536,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_12) {
   GroundTruth.insert(
       {MainReturn, {{MainFile, IOSTATE::CLOSED}, {BarFile, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in bar()
-      {6,
-       {
-           {"2", IOSTATE::OPENED},
-           //{"10", IOSTATE::OPENED} // 6 has no information about 10, as it
-           // always completes before
-       }},
-      // At exit in foo()
-      {8, {{"2", IOSTATE::OPENED}, {"10", IOSTATE::OPENED}}},
-      // At exit in main()
-      {16, {{"2", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
@@ -653,16 +557,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_13) {
   GroundTruth.insert({BeforeSecondFClose, {{File, IOSTATE::CLOSED}}});
   GroundTruth.insert({Return, {{File, IOSTATE::ERROR}}});
   compareResults(GroundTruth, Llvmtssolver);
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // Before first fclose()
-      {8, {{"3", IOSTATE::OPENED}}},
-      // Before second fclose()
-      {10, {{"3", IOSTATE::CLOSED}}},
-      // At exit in main()
-      {11, {{"3", IOSTATE::ERROR}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
@@ -693,24 +587,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_14) {
                        {BeforeFirstFOpen, IOSTATE::CLOSED},
                        {BeforeSecondFOpen, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // Before first fopen()
-      {7, {{"5", IOSTATE::UNINIT}}},
-      // Before second fopen()
-      {9, {{"5", IOSTATE::OPENED}}},
-      // After second store
-      {11,
-       {{"5", IOSTATE::OPENED},
-        {"7", IOSTATE::OPENED},
-        {"9", IOSTATE::OPENED}}},
-      // At exit in main()
-      {11,
-       {{"5", IOSTATE::CLOSED},
-        {"7", IOSTATE::CLOSED},
-        {"9", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
@@ -720,162 +596,79 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_15) {
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
+  // 5: %f = alloca ptr, align 8
   const auto File =
       SrcCodeLocationEntry(4, 9, HA->getICFG().getFunction("main"));
-  const auto BeforeFirstFOpen =
-      SrcCodeLocationEntry(5, 5, HA->getICFG().getFunction("main"));
-  const auto BeforeFirstFClose =
-      SrcCodeLocationEntry(6, 3, HA->getICFG().getFunction("main"));
-  const auto BeforeSecondFOpen =
+  // %call = call noalias ptr @fopen
+  const auto FOpen =
+      SrcCodeLocationEntry(5, 7, HA->getICFG().getFunction("main"));
+  // %0 = load ptr, ptr %f, align 8
+  const auto LoadFile =
+      SrcCodeLocationEntry(6, 10, HA->getICFG().getFunction("main"));
+  // %call2 = call noalias ptr @fopen
+  const auto SecondFOpen =
+      SrcCodeLocationEntry(7, 7, HA->getICFG().getFunction("main"));
+  // store ptr %call2, ptr %f, align 8
+  const auto StoreSecondFOpen =
       SrcCodeLocationEntry(7, 5, HA->getICFG().getFunction("main"));
-  const auto BeforeSecondFClose =
-      SrcCodeLocationEntry(8, 3, HA->getICFG().getFunction("main"));
+  // %1 = load ptr, ptr %f, align 8
+  const auto SecondLoadFile =
+      SrcCodeLocationEntry(8, 10, HA->getICFG().getFunction("main"));
+  // ret i32 0
   const auto Return =
       SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
-  // GroundTruth.insert(
-  //     {BeforeFirstFOpen,
-  //      {{File, IOSTATE::OPENED}, {BeforeFirstFOpen, IOSTATE::OPENED}}});
-  GroundTruth.insert({BeforeFirstFClose,
+
+  GroundTruth.insert(
+      {LoadFile, {{File, IOSTATE::OPENED}, {FOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({SecondFOpen,
                       {{File, IOSTATE::CLOSED},
-                       {BeforeFirstFClose, IOSTATE::CLOSED},
-                       {BeforeSecondFOpen, IOSTATE::CLOSED}}});
-  GroundTruth.insert({BeforeSecondFClose,
+                       {FOpen, IOSTATE::CLOSED},
+                       {LoadFile, IOSTATE::CLOSED}}});
+  GroundTruth.insert({StoreSecondFOpen,
                       {{File, IOSTATE::CLOSED},
-                       {BeforeFirstFOpen, IOSTATE::CLOSED},
-                       {BeforeFirstFClose, IOSTATE::CLOSED},
-                       {BeforeSecondFOpen, IOSTATE::OPENED}}});
+                       {FOpen, IOSTATE::CLOSED},
+                       {LoadFile, IOSTATE::CLOSED},
+                       {SecondFOpen, IOSTATE::OPENED}}});
+  GroundTruth.insert({SecondLoadFile,
+                      {{File, IOSTATE::OPENED},
+                       {FOpen, IOSTATE::CLOSED},
+                       {LoadFile, IOSTATE::CLOSED},
+                       {SecondFOpen, IOSTATE::OPENED}}});
   GroundTruth.insert({Return,
                       {{File, IOSTATE::CLOSED},
-                       {BeforeFirstFOpen, IOSTATE::ERROR},
-                       {BeforeFirstFClose, IOSTATE::ERROR},
-                       {BeforeSecondFOpen, IOSTATE::CLOSED},
-                       {BeforeSecondFClose, IOSTATE::CLOSED}}});
+                       {FOpen, IOSTATE::ERROR},
+                       {LoadFile, IOSTATE::ERROR},
+                       {SecondFOpen, IOSTATE::CLOSED},
+                       {SecondLoadFile, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // After store of ret val of first fopen()
-      {9,
-       {
-           {"5", IOSTATE::OPENED}, {"7", IOSTATE::OPENED},
-           // for 9, 11, 13 state is top
-           // {"9", IOSTATE::OPENED},
-           // {"11", IOSTATE::OPENED},
-           // {"13", IOSTATE::OPENED}
-       }},
-      // After first fclose()
-      {11,
-       {
-           {"5", IOSTATE::CLOSED},
-           {"7", IOSTATE::CLOSED},
-           {"9", IOSTATE::CLOSED},
-           // for 11 and 13 state is top
-           // {"11", IOSTATE::CLOSED},
-           // {"13", IOSTATE::CLOSED}
-       }},
-      // After second fopen() but before storing ret val
-      {12,
-       {
-           {"5", IOSTATE::CLOSED},
-           {"7", IOSTATE::CLOSED},
-           {"9", IOSTATE::CLOSED},
-           {"11", IOSTATE::OPENED},
-           // for 13 state is top
-           //{"13", IOSTATE::CLOSED}
-       }},
-      // After storing ret val of second fopen()
-      {13,
-       {
-           {"5", IOSTATE::OPENED},
-           {"7", IOSTATE::CLOSED}, // 7 and 9 do not alias 11
-           {"9", IOSTATE::CLOSED},
-           {"11", IOSTATE::OPENED},
-           // for 13 state is top
-           //{"13", IOSTATE::OPENED}
-       }},
-      // At exit in main()
-      {15,
-       {{"5", IOSTATE::CLOSED},
-        // Due to flow-insensitive alias information, the
-        // closed file-handle (which has ID 13) may alias
-        // the closed file handles 7 and 9. Hence closed
-        // + closed gives error for 7 and 9 => false positive
-        {"7", IOSTATE::ERROR},
-        {"9", IOSTATE::ERROR},
-        {"11", IOSTATE::CLOSED},
-        {"13", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
 
   /// TODO: After the EF fix everything is BOT; --> Make the TSA more precise!
 
-  /// TODO: fix these not being able to be cast into an instruction
-
   initialize({PathToLlFiles + "typestate_16_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
   Llvmtssolver.solve();
 
-#if false
-
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
   const auto FooFile =
-      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("main"));
-
+      SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("foo"));
   const auto FooExit =
-      SrcCodeLocationEntry(11, 1, HA->getICFG().getFunction("main"));
+      SrcCodeLocationEntry(11, 1, HA->getICFG().getFunction("foo"));
   const auto MainFile =
       SrcCodeLocationEntry(14, 9, HA->getICFG().getFunction("main"));
   const auto MainReturn =
       SrcCodeLocationEntry(19, 3, HA->getICFG().getFunction("main"));
+  // At exit in foo()
   GroundTruth.insert({FooExit, {{FooFile, IOSTATE::BOT}}});
-  GroundTruth.insert({MainReturn,
-                      {
-                          {MainFile, IOSTATE::BOT},
-                          {FooFile, IOSTATE::BOT},
-                      }});
+  // At exit in main()
+  GroundTruth.insert(
+      {MainReturn, {{FooFile, IOSTATE::BOT}, {MainFile, IOSTATE::BOT}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#endif
-
-#if false
-
-  // Llvmtssolver.dumpResults();
-
-  // auto Pts = PT->getAliasSet(IRDB->getInstruction(2));
-  // std::cout << "Alias(2) = {";
-  // bool Frst = true;
-  // for (const auto *P : *Pts) {
-  //   if (Frst) {
-  //     Frst = false;
-  //   } else {
-  //     std::cout << ", ";
-  //   }
-  //   std::cout << llvmIRToShortString(P);
-  // }
-  // std::cout << "}" << std::endl;
-
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in foo()
-      {16,
-       {
-           //{"2", IOSTATE::CLOSED},
-           {"2", IOSTATE::BOT} // Overapproximation due to too flat lattice!
-           // {"18", IOSTATE::CLOSED} // pointsTo information is not sufficient
-       }},
-      // At exit in main()
-      {24,
-       {{"2", IOSTATE::BOT},
-        {"18", IOSTATE::BOT}}}}; // Overapproximation due to too flat lattice
-                                 // (would expect CLOSED for both)!
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
-// TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
   initialize({PathToLlFiles + "typestate_17_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
@@ -908,31 +701,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_17) {
                        {File, IOSTATE::BOT},
                        {FOpenFile, IOSTATE::BOT}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // Before loop
-      {15,
-       {{"2", IOSTATE::CLOSED},
-        {"9", IOSTATE::CLOSED},
-        {"13", IOSTATE::CLOSED}}},
-      // Before fgetc() // fgetc(CLOSED)=ERROR   join  CLOSED  = BOT
-      {17,
-       {
-           {"2", IOSTATE::BOT}, {"9", IOSTATE::BOT}, {"13", IOSTATE::BOT},
-           // {"16", IOSTATE::BOT} // at 16 we now have ERROR (actually, this is
-           // correct as well as BOT)
-       }},
-      // At exit in main()
-      {22,
-       {
-           {"2", IOSTATE::BOT}, {"9", IOSTATE::BOT}, {"13", IOSTATE::BOT},
-           //{"16", IOSTATE::BOT} // at 16 we now have ERROR (actually, this is
-           // correct as well as BOT)
-       }}};
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
@@ -956,26 +724,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_18) {
   GroundTruth.insert(
       {MainReturn, {{MainFile, IOSTATE::BOT}, {FooFile, IOSTATE::BOT}}});
   compareResults(GroundTruth, Llvmtssolver);
-
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      // At exit in foo()
-      {17,
-       {
-           //{"2", IOSTATE::CLOSED},
-           {"2", IOSTATE::BOT}, // Overapproximation due to too flat lattice!
-           // {"19", IOSTATE::CLOSED} // pointsTo information not sufficient
-       }},
-      // At exit in main()
-      {25,
-       {{"2", IOSTATE::BOT},
-        {"19", IOSTATE::BOT}}}}; // Overapproximation due to too flat lattice
-                                 // (would expect CLOSED for both)!
-  compareResults(Gt, Llvmtssolver);
-#endif
 }
 
-// TODO: Check this case again!
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
   initialize({PathToLlFiles + "typestate_19_c_dbg.ll"});
   IDESolver Llvmtssolver(*TSProblem, &HA->getICFG());
@@ -983,30 +733,22 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_19) {
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
-  const auto FooBeforeOpen =
-      SrcCodeLocationEntry(4, 21, HA->getICFG().getFunction("foo"));
   const auto FooFile =
       SrcCodeLocationEntry(4, 16, HA->getICFG().getFunction("foo"));
-  const auto FooExit =
-      SrcCodeLocationEntry(4, 32, HA->getICFG().getFunction("foo"));
   const auto MainFile =
       SrcCodeLocationEntry(7, 9, HA->getICFG().getFunction("main"));
+  const auto WhileCond =
+      SrcCodeLocationEntry(11, 3, HA->getICFG().getFunction("main"));
+  const auto StoreCall =
+      SrcCodeLocationEntry(11, 13, HA->getICFG().getFunction("main"));
   const auto MainReturn =
       SrcCodeLocationEntry(18, 3, HA->getICFG().getFunction("main"));
-  GroundTruth.insert({FooBeforeOpen, {{FooFile, IOSTATE::UNINIT}}});
-  GroundTruth.insert({FooExit, {{FooFile, IOSTATE::BOT}}});
-  GroundTruth.insert(
-      {MainReturn, {{MainFile, IOSTATE::CLOSED}, {FooFile, IOSTATE::CLOSED}}});
-  compareResults(GroundTruth, Llvmtssolver);
 
-#if false
-  const std::map<std::size_t, std::map<std::string, int>> Gt = {
-      {11, {{"8", IOSTATE::UNINIT}}},
-      {14, {{"8", IOSTATE::BOT}}},
-      // At exit in main()
-      {25, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
-  compareResults(Gt, Llvmtssolver);
-#endif
+  GroundTruth.insert({WhileCond, {{MainFile, IOSTATE::UNINIT}}});
+  GroundTruth.insert({StoreCall, {{MainFile, IOSTATE::BOT}}});
+  GroundTruth.insert(
+      {MainReturn, {{FooFile, IOSTATE::CLOSED}, {MainFile, IOSTATE::CLOSED}}});
+  compareResults(GroundTruth, Llvmtssolver);
 }
 
 // main function for the test case
