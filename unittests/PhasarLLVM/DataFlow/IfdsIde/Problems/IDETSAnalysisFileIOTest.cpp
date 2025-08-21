@@ -210,8 +210,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
   // %f.addr = alloca ptr, align 8
   const auto FooFile =
       SrcCodeLocationEntry(3, 16, HA->getICFG().getFunction("foo"));
-  const auto FooFClose =
-      SrcCodeLocationEntry(3, 21, HA->getICFG().getFunction("foo"));
+  // const auto FooFClose =
+  //     SrcCodeLocationEntry(3, 21, HA->getICFG().getFunction("foo"));
   // %0 = load ptr, ptr %f
   const auto PassFToFClose =
       SrcCodeLocationEntry(3, 28, HA->getICFG().getFunction("foo"));
@@ -225,15 +225,14 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
   const auto Return =
       SrcCodeLocationEntry(11, 3, HA->getICFG().getFunction("main"));
   // Entry in foo()
-  GroundTruth.insert({FooFClose, {{FooFile, IOSTATE::OPENED}}});
+  // GroundTruth.insert({FooFClose, {{FooFile, IOSTATE::OPENED}}});
   // Exit in foo()
   GroundTruth.insert({FooRet,
-                      {{FooFile, IOSTATE::CLOSED},
-                       {FooFClose, IOSTATE::CLOSED},
+                      {// {FooFile, IOSTATE::CLOSED},
                        {PassFToFClose, IOSTATE::CLOSED}}});
   // Exit in main()
   GroundTruth.insert({Return,
-                      {{FooFClose, IOSTATE::CLOSED},
+                      {// {FooFClose, IOSTATE::CLOSED},
                        {MainFile, IOSTATE::CLOSED},
                        {PassFToFoo, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);

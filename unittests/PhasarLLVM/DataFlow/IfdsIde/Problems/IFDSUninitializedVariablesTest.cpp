@@ -16,6 +16,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/Casting.h"
 
 #include "SourceMapping.h"
 #include "SrcCodeLocationEntry.h"
@@ -452,41 +453,52 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
 
+  // %x.addr = alloca ptr, align 8
   const auto ArgAddrX =
       SrcCodeLocationEntry(2, 15, HA->getICFG().getFunction("_Z3fooRii"));
+  // %retval = alloca ptr, align 8
+  // const auto RetVal =
+  //     SrcCodeLocationEntry(5, 3, HA->getICFG().getFunction("_Z3fooRii"));
+  // %1 = load ptr, ptr %x.addr, align 8, !dbg !240, !psr.id !241 | ID: 11
   const auto LoadX =
       SrcCodeLocationEntry(4, 12, HA->getICFG().getFunction("_Z3fooRii"));
+  // %2 = load ptr, ptr %x.addr
   const auto LoadXTwo =
       SrcCodeLocationEntry(5, 14, HA->getICFG().getFunction("_Z3fooRii"));
+  // %4 = load ptr, ptr %retval
   const auto FooExit =
       SrcCodeLocationEntry(6, 1, HA->getICFG().getFunction("_Z3fooRii"));
   // const auto IntN =
   //     SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("_Z3fooRii"));
   const auto IntI =
       SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
+  // %j = alloca i32, align 4
   const auto IntJ =
       SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
-  const auto RetOfFoo =
+  // %call = call noundef nonnull align 4 dereferenceable(4) ptr @_Z3fooRii(ptr
+  // noundef nonnull align 4 dereferenceable(4) %i, i32 noundef 10)
+  const auto CallFooRec =
       SrcCodeLocationEntry(10, 11, HA->getICFG().getFunction("main"));
+  // %0 = load i32, ptr %call, align 4
+  const auto Load0 =
+      SrcCodeLocationEntry(10, 11, HA->getICFG().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::LoadInst>(Inst);
+                           });
+  // %1 = load i32, ptr %j, align 4, !dbg !274, !psr.id !275 | ID: 31
   const auto LoadJ =
       SrcCodeLocationEntry(11, 18, HA->getICFG().getFunction("main"));
-
-  // TODO: ask fabian why the original unittest ground truth has 5 elements
-  // TODO: Also, why doesn't this crash if I say getFunction("main") when
-  // looking at insts in foo?
-
-  // GroundTruth.insert({LoadXTwo, IntI});
 
   // Leaks due to field-insensitivity
   GroundTruth.insert({LoadX, ArgAddrX});
   GroundTruth.insert({LoadXTwo, ArgAddrX});
 
-  // Load uninitialized variable i
-  // GroundTruth.insert({LoadI, IntI});
-
-  // Load recursive return-value for returning it
+  // Load uninitialized variable
   GroundTruth.insert({LoadJ, IntJ});
-  //
+  // Load recursive return-value for returning it
+  // GroundTruth.insert({FooExit, RetVal});
+  // Load return-value of foo in main
+  GroundTruth.insert({Load0, CallFooRec});
   // // Load return-value of foo in main
   // GroundTruth.insert({FooExit, IntJ});
 
@@ -526,44 +538,73 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
   Solver.solve();
 
   std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
-
+  // %x.addr = alloca ptr, align 8
   const auto FooXAddr =
       SrcCodeLocationEntry(3, 15, HA->getICFG().getFunction("_Z3fooRi"));
+  // %0 = load ptr, ptr %x.addr, align 8
   const auto FooXLoad =
       SrcCodeLocationEntry(3, 27, HA->getICFG().getFunction("_Z3fooRi"));
-
+  // %x.addr = alloca ptr, align 8
   const auto BarXAddr =
       SrcCodeLocationEntry(4, 15, HA->getICFG().getFunction("_Z3barRi"));
+  // %0 = load ptr, ptr %x.addr, align 8
   const auto Load =
       SrcCodeLocationEntry(5, 3, HA->getICFG().getFunction("_Z3barRi"));
+  // %1 = load ptr, ptr %x.addr, align 8
   const auto LoadX =
       SrcCodeLocationEntry(6, 10, HA->getICFG().getFunction("_Z3barRi"));
+  //
   const auto IntI =
       SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
+  // %j = alloca i32, align 4
   const auto IntJ =
       SrcCodeLocationEntry(16, 7, HA->getICFG().getFunction("main"));
+  // %call = call noundef nonnull align 4 dereferenceable(4) ptr %1
   const auto BazCall =
-      SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"));
-  const auto BazCall2 =
-      SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"));
+      SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"),
+                           [](const llvm::Instruction *Inst) {
+                             return llvm::isa<llvm::CallInst>(Inst);
+                           });
+  // This implementation to get %2 is bad, but it works
+  bool SkippedFirst = false;
+  // %2 = load i32, ptr %call, align 4
+  const auto SecondLoadInIfEnd = SrcCodeLocationEntry(
+      16, 11, HA->getICFG().getFunction("main"),
+      [&SkippedFirst](const llvm::Instruction *Inst) mutable {
+        if (llvm::isa<llvm::LoadInst>(Inst)) {
+          if (!SkippedFirst) {
+            SkippedFirst = true;
+            return false;
+          }
+          return true;
+        }
+
+        return false;
+      });
+  // %3 = load i32, ptr %j, align 4
   const auto LoadJ =
       SrcCodeLocationEntry(17, 10, HA->getICFG().getFunction("main"));
   // is passed as a reference, so I isn't being loaded here
   // const auto LoadI =
   //     SrcCodeLocationEntry(16, 15, HA->getICFG().getFunction("main"));
 
+  // TODO: remove this comment: This GT is correct!
   // 3  => {0}; due to field-insensitivity
   GroundTruth.insert({FooXLoad, FooXAddr});
 
+  // TODO: remove this comment: This GT is correct!
   // 8  => {5}; due to field-insensitivity
   GroundTruth.insert({Load, BarXAddr});
 
+  // TODO: remove this comment: This GT is correct!
   // 10 => {5}; due to alias-unawareness
   GroundTruth.insert({LoadX, BarXAddr});
+
+  // TODO: remove this comment: GT is wrong.
   // 35 => {34}; actual leak
-  GroundTruth.insert({BazCall, IntJ});
+  GroundTruth.insert({SecondLoadInIfEnd, BazCall});
   // 37 => {17}; actual leak
-  GroundTruth.insert({BazCall2, IntJ});
+  GroundTruth.insert({LoadJ, IntJ});
 
 #if false
   map<int, set<string>> GroundTruth = {
