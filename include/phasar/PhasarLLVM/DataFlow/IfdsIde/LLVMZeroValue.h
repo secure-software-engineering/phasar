@@ -37,7 +37,9 @@ private:
 
   static constexpr llvm::StringLiteral LLVMZeroValueInternalName = "zero_value";
   static bool isZeroValueHelper(const llvm::Value *V) noexcept {
-    // Need this helper function to make gcc happy
+    // Need this helper function to make gcc happy;
+    // Gcc thinks that LLVMZeroValue is incomplete within the below lambda, so
+    // it cannot compare a LLVMZeroValue* with a Value*
     return V == getInstance();
   }
 
