@@ -79,6 +79,29 @@ struct LineColFun {
            "; InFunction: " + InFunction.str() + " }";
   }
 };
+struct LineColFunLambda {
+  uint32_t Line{};
+  uint32_t Col{};
+  llvm::StringRef InFunction{};
+  std::function<bool(const llvm::Instruction *Inst)> Lambda{};
+
+  // TODO: impl lambda into std::tie and std::string
+
+  friend bool operator<(LineColFunLambda LC1, LineColFunLambda LC2) noexcept {
+    return std::tie(LC1.InFunction, LC1.Line, LC1.Col) <
+           std::tie(LC2.InFunction, LC2.Line, LC2.Col);
+  }
+  friend bool operator==(LineColFunLambda LC1, LineColFunLambda LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col, LC1.InFunction) ==
+           std::tie(LC2.Line, LC2.Col, LC2.InFunction);
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("LineColFun { Line: ") + std::to_string(Line) +
+           "; Col: " + std::to_string(Col) + "; Col: " + std::to_string(Col) +
+           "; InFunction: " + InFunction.str() +
+           "; Lambda: Cannot be converted to string yet. }";
+  }
+};
 
 struct LineColFunOp {
   uint32_t Line{};
@@ -156,10 +179,10 @@ struct RetStmt {
 };
 
 struct TestingSrcLocation
-    : public std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                          ArgInFun, RetVal, RetStmt> {
-  using VarT = std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                            ArgInFun, RetVal, RetStmt>;
+    : public std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
+                          GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt> {
+  using VarT = std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
+                            GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt>;
   using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
@@ -196,6 +219,12 @@ template <> struct hash<psr::LineCol> {
 };
 template <> struct hash<psr::LineColFun> {
   size_t operator()(psr::LineColFun LCF) const noexcept {
+    return llvm::hash_combine(
+        llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction);
+  }
+};
+template <> struct hash<psr::LineColFunLambda> {
+  size_t operator()(psr::LineColFunLambda LCF) const noexcept {
     return llvm::hash_combine(
         llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction);
   }
@@ -271,6 +300,10 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
           [&](LineColFun LC) -> llvm ::Value const * {
             const auto *InFun = GetFunction(LC.InFunction);
             return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col);
+          },
+          [&](LineColFunLambda LC) -> llvm ::Value const * {
+            const auto *InFun = GetFunction(LC.InFunction);
+            return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col, LC.Lambda);
           },
           [&](LineColFunOp LC) -> llvm ::Value const * {
             const auto *InFun = GetFunction(LC.InFunction);

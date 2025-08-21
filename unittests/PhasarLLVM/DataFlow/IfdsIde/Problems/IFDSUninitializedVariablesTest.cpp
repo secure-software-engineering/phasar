@@ -55,9 +55,17 @@ protected:
   void TearDown() override {}
 
   void compareResults(
-      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, true);
+      std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+          &GroundTruthEntries) {
+    for (const auto &Entry : GroundTruthEntries) {
+      const auto *GTInst = std::get<0>(Entry);
+      llvm::outs() << "GTInst: " << GTInst << "\n";
+      llvm::outs() << "*GTInst: " << *GTInst << "\n";
+
+      const auto *GTValue = std::get<1>(Entry);
+      llvm::outs() << "GTValue: " << GTValue << "\n";
+      llvm::outs() << "*GTValue: " << *GTValue << "\n\n";
+    }
 
     std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
         FoundUninitUses;
@@ -74,6 +82,30 @@ protected:
     }
 
     EXPECT_EQ(FoundUninitUses, GroundTruthEntries);
+  }
+
+  void compareResults(
+      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
+          &GroundTruth) {
+    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, true);
+    compareResults(GroundTruthEntries);
+  }
+
+  void compareResults(
+      const std::set<std::tuple<TestingSrcLocation, TestingSrcLocation>>
+          &GroundTruth,
+      const LLVMProjectIRDB &IRDB) {
+    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+        GroundTruthEntries;
+
+    for (const auto &Entry : GroundTruth) {
+      const auto *First = testingLocInIR(std::get<0>(Entry), IRDB);
+      const auto *FirstAsInst = llvm::dyn_cast<const llvm::Instruction>(First);
+      const auto *Second = testingLocInIR(std::get<1>(Entry), IRDB);
+      GroundTruthEntries.insert({FirstAsInst, Second});
+    }
+
+    compareResults(GroundTruthEntries);
   }
 }; // Test Fixture
 
@@ -451,53 +483,48 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::set<std::tuple<TestingSrcLocation, TestingSrcLocation>> GroundTruth;
 
-  // %x.addr = alloca ptr, align 8
-  const auto ArgAddrX =
-      SrcCodeLocationEntry(2, 15, HA->getICFG().getFunction("_Z3fooRii"));
-  // %retval = alloca ptr, align 8
-  // const auto RetVal =
-  //     SrcCodeLocationEntry(5, 3, HA->getICFG().getFunction("_Z3fooRii"));
-  // %1 = load ptr, ptr %x.addr, align 8, !dbg !240, !psr.id !241 | ID: 11
-  const auto LoadX =
-      SrcCodeLocationEntry(4, 12, HA->getICFG().getFunction("_Z3fooRii"));
-  // %2 = load ptr, ptr %x.addr
-  const auto LoadXTwo =
-      SrcCodeLocationEntry(5, 14, HA->getICFG().getFunction("_Z3fooRii"));
-  // %4 = load ptr, ptr %retval
-  const auto FooExit =
-      SrcCodeLocationEntry(6, 1, HA->getICFG().getFunction("_Z3fooRii"));
-  // const auto IntN =
-  //     SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("_Z3fooRii"));
   const auto IntI =
       SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
-  // %j = alloca i32, align 4
-  const auto IntJ =
-      SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
-  // %call = call noundef nonnull align 4 dereferenceable(4) ptr @_Z3fooRii(ptr
-  // noundef nonnull align 4 dereferenceable(4) %i, i32 noundef 10)
-  const auto CallFooRec =
-      SrcCodeLocationEntry(10, 11, HA->getICFG().getFunction("main"));
-  // %0 = load i32, ptr %call, align 4
-  const auto Load0 =
-      SrcCodeLocationEntry(10, 11, HA->getICFG().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
-  // %1 = load i32, ptr %j, align 4, !dbg !274, !psr.id !275 | ID: 31
-  const auto LoadJ =
-      SrcCodeLocationEntry(11, 18, HA->getICFG().getFunction("main"));
 
   // Leaks due to field-insensitivity
+
+  // %1 = load ptr, ptr %x.addr, align 8, !dbg !240, !psr.id !241 | ID: 11
+  LineColFun LoadX{4, 12, "_Z3fooRii"};
+  // %x.addr = alloca ptr, align 8
+  LineColFun ArgAddrX{2, 15, "_Z3fooRii"};
   GroundTruth.insert({LoadX, ArgAddrX});
+  // %2 = load ptr, ptr %x.addr
+  LineColFun LoadXTwo{5, 14, "_Z3fooRii"};
   GroundTruth.insert({LoadXTwo, ArgAddrX});
 
   // Load uninitialized variable
+
+  // %1 = load i32, ptr %j, align 4, !dbg !274, !psr.id !275 | ID: 31
+  LineColFun LoadJ{11, 18, "main"};
+  // %j = alloca i32, align 4
+  LineColFun IntJ{10, 7, "main"};
   GroundTruth.insert({LoadJ, IntJ});
+
   // Load recursive return-value for returning it
-  // GroundTruth.insert({FooExit, RetVal});
+
+  // %retval = alloca ptr, align 8
+  RetStmt RetOfFoo{"_Z3fooRii"};
+  // %4 = load ptr, ptr %retval
+  LineColFun FooExit{6, 1, "_Z3fooRii"};
+  GroundTruth.insert({FooExit, RetOfFoo});
   // Load return-value of foo in main
+  // %0 = load i32, ptr %call, align 4
+  LineColFunLambda Load0{10, 11, "main", [](const llvm::Instruction *Inst) {
+                           return llvm::isa<llvm::LoadInst>(Inst);
+                         }};
+  // %call = call noundef nonnull align 4 dereferenceable(4) ptr @_Z3fooRii(ptr
+  // noundef nonnull align 4 dereferenceable(4) %i, i32 noundef 10)
+  LineColFunLambda CallFooRec{10, 11, "main",
+                              [](const llvm::Instruction *Inst) {
+                                return llvm::isa<llvm::CallInst>(Inst);
+                              }};
   GroundTruth.insert({Load0, CallFooRec});
   // // Load return-value of foo in main
   // GroundTruth.insert({FooExit, IntJ});
@@ -510,7 +537,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   // Load return-value of foo in main
   // GroundTruth.insert({IntJ, RetOfFoo});
 
-  compareResults(GroundTruth);
+  compareResults(GroundTruth, *HA->getICFG().getIRDB());
 
 #if false
 
