@@ -305,12 +305,7 @@ TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_03) {
                               false);
 }
 
-PHASAR_SKIP_TEST(TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_04) {
-  // If we use libcxx this won't work since internal implementation is different
-  // TODO: Test this out, now that we have a src-code based definition of the
-  // ground-truth!
-  LIBCPP_GTEST_SKIP;
-
+TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
   auto Main23 = LineColFun{11, 3, "main"};
 
@@ -346,7 +341,7 @@ PHASAR_SKIP_TEST(TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_04) {
 
   doAnalysisAndCompareResults("basic_04_cpp_dbg.ll", {"main"}, GroundTruth,
                               false);
-})
+}
 
 TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_05) {
   std::set<IIACompactResult_t> GroundTruth;

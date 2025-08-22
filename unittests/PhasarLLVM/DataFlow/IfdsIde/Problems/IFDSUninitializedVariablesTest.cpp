@@ -408,21 +408,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
   const auto LoadJ =
       SrcCodeLocationEntry(12, 16, HA->getICFG().getFunction("main"));
 
-  // TODO: rewrite comment below
-  // TODO remove GT[11]
+  // TODO remove GroundTruth.insert({LoadX, ArgX}) below
   GroundTruth.insert({LoadX, ArgX});
   GroundTruth.insert({LoadI, IntI});
   GroundTruth.insert({Add, LoadI});
   GroundTruth.insert({LoadJ, IntJ});
-#if false
-  // TODO remove GT[11]
-  GroundTruth[11] = {"0"};
-
-  GroundTruth[16] = {"2"};
-  GroundTruth[18] = {"16"};
-  GroundTruth[34] = {"24"};
-#endif
-
   compareResults(GroundTruth);
 }
 
@@ -539,24 +529,6 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   // GroundTruth.insert({IntJ, RetOfFoo});
 
   compareResults(GroundTruth, *HA->getICFG().getIRDB());
-
-#if false
-
-  // Leaks at 11 and 14 due to field-insensitivity
-  GroundTruth[11] = {"2"};
-  GroundTruth[14] = {"2"};
-
-  // Load uninitialized variable i
-  GroundTruth[31] = {"24"};
-  // Load recursive return-value for returning it
-  GroundTruth[20] = {"1"};
-  // Load return-value of foo in main
-  GroundTruth[29] = {"28"};
-  // Analysis does not check uninit on actualparameters
-  // GroundTruth[32] = {"31"};
-  compareResults(GroundTruth);
-
-#endif
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
@@ -616,33 +588,17 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
   // const auto LoadI =
   //     SrcCodeLocationEntry(16, 15, HA->getICFG().getFunction("main"));
 
-  // TODO: remove this comment: This GT is correct!
   // 3  => {0}; due to field-insensitivity
   GroundTruth.insert({FooXLoad, FooXAddr});
-
-  // TODO: remove this comment: This GT is correct!
   // 8  => {5}; due to field-insensitivity
   GroundTruth.insert({Load, BarXAddr});
-
-  // TODO: remove this comment: This GT is correct!
   // 10 => {5}; due to alias-unawareness
   GroundTruth.insert({LoadX, BarXAddr});
-
-  // TODO: remove this comment: GT is wrong.
   // 35 => {34}; actual leak
   GroundTruth.insert({SecondLoadInIfEnd, BazCall});
   // 37 => {17}; actual leak
   GroundTruth.insert({LoadJ, IntJ});
 
-#if false
-  map<int, set<string>> GroundTruth = {
-      {3, {"0"}}, {8, {"5"}}, {10, {"5"}}, {35, {"34"}}, {37, {"17"}}};
-  // 3  => {0}; due to field-insensitivity
-  // 8  => {5}; due to field-insensitivity
-  // 10 => {5}; due to alias-unawareness
-  // 35 => {34}; actual leak
-  // 37 => {17}; actual leak
-#endif
   compareResults(GroundTruth);
 }
 
