@@ -553,6 +553,9 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+
+  LIBCPP_GTEST_SKIP;
+
   std::set<IIACompactResult_t> GroundTruth;
   auto Main23 = LineColFun{11, 3, "main"};
 

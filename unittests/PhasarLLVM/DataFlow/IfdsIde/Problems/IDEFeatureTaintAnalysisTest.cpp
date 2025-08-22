@@ -306,6 +306,9 @@ TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_03) {
 }
 
 TEST_F(IDEFeatureTaintAnalysisTest, HandleBasicTest_04) {
+
+  LIBCPP_GTEST_SKIP;
+
   std::set<IIACompactResult_t> GroundTruth;
   auto Main23 = LineColFun{11, 3, "main"};
 
