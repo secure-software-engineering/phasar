@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/DebugOutput.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -81,7 +82,9 @@ protected:
       }
     }
 
-    EXPECT_EQ(FoundUninitUses, GroundTruthEntries);
+    EXPECT_EQ(FoundUninitUses, GroundTruthEntries)
+        << "Expected: " << PrettyPrinter{GroundTruthEntries}
+        << "; got: " << PrettyPrinter{FoundUninitUses};
   }
 
   void compareResults(
@@ -509,11 +512,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   // Load recursive return-value for returning it
 
-  // %retval = alloca ptr, align 8
-  RetStmt RetOfFoo{"_Z3fooRii"};
   // %4 = load ptr, ptr %retval
   LineColFun FooExit{6, 1, "_Z3fooRii"};
-  GroundTruth.insert({FooExit, RetOfFoo});
+  GroundTruth.insert({FooExit, OperandOf{0, FooExit}});
   // Load return-value of foo in main
   // %0 = load i32, ptr %call, align 4
   LineColFunLambda Load0{10, 11, "main", [](const llvm::Instruction *Inst) {

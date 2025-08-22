@@ -161,7 +161,7 @@ struct RetVal {
     return R1.InFunction == R2.InFunction;
   }
   [[nodiscard]] std::string str() const {
-    return std::string("RetVal { InFunction: ") + InFunction.str() + +" }";
+    return std::string("RetVal { InFunction: ") + InFunction.str() + " }";
   }
 };
 struct RetStmt {
@@ -174,15 +174,34 @@ struct RetStmt {
     return R1.InFunction == R2.InFunction;
   }
   [[nodiscard]] std::string str() const {
-    return std::string("RetStmt { InFunction: ") + InFunction.str() + +" }";
+    return std::string("RetStmt { InFunction: ") + InFunction.str() + " }";
+  }
+};
+
+struct OperandOf {
+  uint32_t OperandIndex{};
+  LineColFun Inst{};
+
+  friend bool operator<(OperandOf R1, OperandOf R2) noexcept {
+    return std::tie(R1.OperandIndex, R2.Inst) <
+           std::tie(R2.OperandIndex, R2.Inst);
+  }
+  friend bool operator==(OperandOf R1, OperandOf R2) noexcept {
+    return R1.OperandIndex == R2.OperandIndex && R1.Inst == R2.Inst;
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("OperandOf { OperandIndex: ") +
+           std::to_string(OperandIndex) + "; Inst: " + Inst.str() + " }";
   }
 };
 
 struct TestingSrcLocation
     : public std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
-                          GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt> {
-  using VarT = std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
-                            GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt>;
+                          GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt,
+                          OperandOf> {
+  using VarT =
+      std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
+                   GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt, OperandOf>;
   using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
@@ -261,6 +280,13 @@ template <> struct hash<psr::RetVal> {
 template <> struct hash<psr::RetStmt> {
   size_t operator()(psr::RetStmt Ret) const noexcept {
     return llvm::hash_value(Ret.InFunction);
+  }
+};
+
+template <> struct hash<psr::OperandOf> {
+  size_t operator()(psr::OperandOf Op) const noexcept {
+    return llvm::hash_combine(Op.OperandIndex,
+                              hash<psr::LineColFun>{}(Op.Inst));
   }
 };
 
@@ -360,6 +386,22 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
             }
             llvm::report_fatal_error("No return stmt in function " +
                                      R.InFunction);
+          },
+          [&](OperandOf Op) -> llvm::Value const * {
+            const auto *Inst = llvm::dyn_cast_if_present<llvm::User>(
+                testingLocInIR(Op.Inst, IRDB));
+            if (!Inst) {
+              return nullptr;
+            }
+
+            if (Inst->getNumOperands() <= Op.OperandIndex) {
+              llvm::report_fatal_error("Requested operand index " +
+                                       llvm::Twine(Op.OperandIndex) +
+                                       " is out of bounds for instruction " +
+                                       llvm::Twine(llvmIRToString(Inst)));
+            }
+
+            return Inst->getOperand(Op.OperandIndex);
           },
       },
       Loc);
