@@ -236,7 +236,8 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
                        {MainFile, IOSTATE::CLOSED},
                        {PassFToFoo, IOSTATE::CLOSED}}});
   compareResults(GroundTruth, Llvmtssolver);
-// TODO: go over old and new ground truth with fabian
+
+  // Old ground truth
 #if false
   // llvmtssolver.printReport();
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
@@ -313,9 +314,6 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_05) {
   compareResults(GroundTruth, Llvmtssolver);
 }
 
-// TODO: fix
-#if false
-
 TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
   initialize({PathToLlFiles + "typestate_06_c_dbg.ll"});
@@ -324,10 +322,62 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
 
   std::map<SrcCodeLocationEntry, std::map<SrcCodeLocationEntry, int>>
       GroundTruth;
-  const auto File =
+
+  // %f = alloca ptr, align 8
+  const auto FileF =
+      SrcCodeLocationEntry(5, 9, HA->getICFG().getFunction("main"));
+  // %d = alloca ptr, align 8
+  const auto FileD =
       SrcCodeLocationEntry(6, 9, HA->getICFG().getFunction("main"));
-  GroundTruth.insert({Opened, {{File, IOSTATE::UNINIT}}});
+  // %call = call noalias ptr @fopen(ptr noundef @.str, ptr noundef @.str.1)
+  const auto FirstFOpenCall =
+      SrcCodeLocationEntry(7, 7, HA->getICFG().getFunction("main"));
+  // store ptr %call, ptr %f, align 8
+  const auto StoreFirstFOpenRetVal =
+      SrcCodeLocationEntry(7, 5, HA->getICFG().getFunction("main"));
+  // %call1 = call noalias ptr @fopen(ptr noundef @.str.2, ptr noundef @.str.3)
+  const auto SecondFOpenCall =
+      SrcCodeLocationEntry(8, 7, HA->getICFG().getFunction("main"));
+  // store ptr %call1, ptr %d, align 8
+  const auto StoreSecondFOpenRetVal =
+      SrcCodeLocationEntry(8, 5, HA->getICFG().getFunction("main"));
+  // %0 = load ptr, ptr %f, align 8
+  const auto LoadFileF =
+      SrcCodeLocationEntry(10, 10, HA->getICFG().getFunction("main"));
+  // %call2 = call i32 @fclose(ptr noundef %0)
+  const auto CallFClose =
+      SrcCodeLocationEntry(10, 3, HA->getICFG().getFunction("main"));
+  // ret i32 0
+  const auto Return =
+      SrcCodeLocationEntry(12, 3, HA->getICFG().getFunction("main"));
+
+  GroundTruth.insert({FirstFOpenCall, {{FileF, IOSTATE::UNINIT}}});
+  GroundTruth.insert({FirstFOpenCall, {{FileD, IOSTATE::UNINIT}}});
+
+  GroundTruth.insert({StoreFirstFOpenRetVal, {{FileF, IOSTATE::UNINIT}}});
+  GroundTruth.insert({StoreFirstFOpenRetVal, {{FileD, IOSTATE::UNINIT}}});
+  GroundTruth.insert(
+      {StoreFirstFOpenRetVal, {{FirstFOpenCall, IOSTATE::OPENED}}});
+
+  GroundTruth.insert({SecondFOpenCall, {{FileF, IOSTATE::OPENED}}});
+  GroundTruth.insert({SecondFOpenCall, {{FileD, IOSTATE::UNINIT}}});
+  GroundTruth.insert({SecondFOpenCall, {{FirstFOpenCall, IOSTATE::OPENED}}});
+
+  GroundTruth.insert({StoreSecondFOpenRetVal, {{FileF, IOSTATE::OPENED}}});
+  GroundTruth.insert({StoreSecondFOpenRetVal, {{FileD, IOSTATE::UNINIT}}});
+  GroundTruth.insert(
+      {StoreSecondFOpenRetVal, {{SecondFOpenCall, IOSTATE::OPENED}}});
+
+  GroundTruth.insert({CallFClose, {{FileF, IOSTATE::OPENED}}});
+  GroundTruth.insert({CallFClose, {{FileD, IOSTATE::UNINIT}}});
+  GroundTruth.insert({CallFClose, {{LoadFileF, IOSTATE::OPENED}}});
+
+  GroundTruth.insert({Return, {{FileF, IOSTATE::OPENED}}});
+  GroundTruth.insert({Return, {{FileD, IOSTATE::UNINIT}}});
   compareResults(GroundTruth, Llvmtssolver);
+
+  // Old ground truth
+#if false
   const std::map<std::size_t, std::map<std::string, int>> Gt = {
       // Before first fopen()
       {8, {{"5", IOSTATE::UNINIT}, {"6", IOSTATE::UNINIT}}},
@@ -356,9 +406,8 @@ TEST_F(IDETSAnalysisFileIOTest, DISABLED_HandleTypeState_06) {
       // After if statement
       {14, {{"5", IOSTATE::CLOSED}, {"6", IOSTATE::OPENED}}}};
   compareResults(Gt, Llvmtssolver);
-}
-
 #endif
+}
 
 TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_07) {
   initialize({PathToLlFiles + "typestate_07_c_dbg.ll"});
