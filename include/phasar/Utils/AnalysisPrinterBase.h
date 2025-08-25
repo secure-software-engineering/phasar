@@ -34,6 +34,7 @@ public:
   void onInitialize() { doOnInitialize(); }
 
   void onFinalize() { doOnFinalize(); }
+  void onFinalize(llvm::raw_ostream &OS) { doOnFinalize(OS); }
 
   AnalysisPrinterBase() = default;
   virtual ~AnalysisPrinterBase() = default;
@@ -48,7 +49,8 @@ private:
                           DataFlowAnalysisType /*AnalysisType*/) = 0;
 
   virtual void doOnInitialize() {}
-  virtual void doOnFinalize() {}
+  virtual void doOnFinalize() { doOnFinalize(llvm::outs()); }
+  virtual void doOnFinalize(llvm::raw_ostream &OS) {}
 };
 
 } // namespace psr
