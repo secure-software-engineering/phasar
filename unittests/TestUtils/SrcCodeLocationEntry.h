@@ -300,7 +300,8 @@ template <> struct hash<psr::TestingSrcLocation> {
 namespace psr {
 
 [[nodiscard]] inline const llvm::Value *
-testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
+testingLocInIR(TestingSrcLocation Loc,
+               const ProjectIRDBBase<LLVMProjectIRDB> &IRDB,
                const llvm::Function *InterestingFunction = nullptr) {
   const auto GetFunction = [&IRDB](llvm::StringRef Name) {
     const auto *InFun = IRDB.getFunctionDefinition(Name);
@@ -410,7 +411,7 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
 template <typename SetTy>
 [[nodiscard]] inline std::set<const llvm::Value *>
 convertTestingLocationSetInIR(
-    const SetTy &Locs, const LLVMProjectIRDB &IRDB,
+    const SetTy &Locs, const ProjectIRDBBase<LLVMProjectIRDB> &IRDB,
     const llvm::Function *InterestingFunction = nullptr) {
   std::set<const llvm::Value *> Ret;
   llvm::transform(Locs, std::inserter(Ret, Ret.end()),
@@ -422,7 +423,7 @@ convertTestingLocationSetInIR(
 
 template <typename MapTy>
 [[nodiscard]] inline auto convertTestingLocationSetMapInIR(
-    const MapTy &Locs, const LLVMProjectIRDB &IRDB,
+    const MapTy &Locs, const ProjectIRDBBase<LLVMProjectIRDB> &IRDB,
     const llvm::Function *InterestingFunction = nullptr) {
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Ret;
   llvm::transform(

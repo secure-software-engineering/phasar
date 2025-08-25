@@ -11,43 +11,25 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Support/Casting.h"
 
-#include "SourceMapping.h"
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-#include "nlohmann/json.hpp"
 
-#include <cstdint>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <variant>
 
-using namespace std;
 using namespace psr;
-using json = nlohmann::json;
 
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;
@@ -59,15 +41,15 @@ protected:
   static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("xtaint/");
   const std::vector<std::string> EntryPoints = {"main"};
 
-  IDETaintAnalysisTest() = default;
-  ~IDETaintAnalysisTest() override = default;
+  using TaintSetT = std::set<TestingSrcLocation>;
 
   void doAnalysis(
-      HelperAnalyses &HA,
-      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth,
+      const llvm::Twine &IRFilePath,
+      const std::map<TestingSrcLocation, TaintSetT> &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
       bool DumpResults = true) {
+    HelperAnalyses HA(PathToLLFiles + IRFilePath, EntryPoints);
+
     auto TC =
         std::visit(Overloaded{[&](std::monostate) {
                                 return LLVMTaintConfig(HA.getProjectIRDB());
@@ -101,27 +83,19 @@ protected:
     compareResults(TaintProblem, Solver, GroundTruth);
   }
 
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
+  void
+  compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
+                 IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
+                 const std::map<TestingSrcLocation, TaintSetT> &GroundTruth) {
+    auto GroundTruthEntries = convertTestingLocationSetMapInIR(
+        GroundTruth, *TaintProblem.getProjectIRDB());
 
-  void TearDown() override {}
-
-  void compareResults(
-      IDEExtendedTaintAnalysis<> &TaintProblem,
-      IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
-      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
-
-    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
+    std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
         FoundLeaks;
 
-    for (const auto &Leak :
+    for (const auto &[LeakInst, LeakVals] :
          TaintProblem.getAllLeaks(Solver.getSolverResults())) {
-      llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
-
-      for (const auto &LV : Leak.second) {
-        FoundLeaks.insert({Leak.first, LV});
-      }
+      FoundLeaks[LeakInst].insert(LeakVals.begin(), LeakVals.end());
     }
 
     EXPECT_EQ(FoundLeaks, GroundTruthEntries);
@@ -129,10 +103,6 @@ protected:
 }; // Test Fixture
 
 TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint01_json_cpp_dbg.ll"}, EntryPoints);
-
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
-
   TaintConfigData Config;
 
   FunctionData FuncDataMain;
@@ -146,302 +116,184 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
   Config.Functions.push_back(std::move(FuncDataMain));
   Config.Functions.push_back(std::move(FuncDataPrint));
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(8, 3, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(8, 9, HA.getProjectIRDB().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {{
+      LineColFun{8, 3, "main"},
+      {LineColFunOp{8, 9, "main", llvm::Instruction::Load}},
+  }};
 
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, &Config);
+  doAnalysis("xtaint01_json_cpp_dbg.ll", GroundTruth, &Config);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint01) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{8, 3, "main"},
+       {LineColFunOp{8, 9, "main", llvm::Instruction::Load}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(8, 3, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(8, 9, HA.getProjectIRDB().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
-
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{});
+  doAnalysis("xtaint01_cpp_dbg.ll", GroundTruth, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint02) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{9, 3, "main"},
+       {LineColFunOp{9, 9, "main", llvm::Instruction::Load}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(9, 3, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(9, 9, HA.getProjectIRDB().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
-
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint02_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint03) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{10, 3, "main"},
+       {LineColFunOp{10, 9, "main", llvm::Instruction::Load}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(10, 3, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(10, 9, HA.getProjectIRDB().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
-
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint03_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint04) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  auto Call = LineColFun{6, 3, "_Z3barPi"};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(6, 3, HA.getProjectIRDB().getFunction("_Z3barPi"));
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {Call, {OperandOf{0, Call}}}};
 
-  // TODO: the counter implementation isn't great, as it still relies on IR
-  // behaviour that might change based on operating system or other factors. A
-  // better implementation would be good here.
-  int Counter = 0;
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(6, 9, HA.getProjectIRDB().getFunction("_Z3barPi"),
-                           [Counter](const llvm::Instruction *Inst) mutable {
-                             Counter++;
-                             return Counter == 3;
-                           });
-
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint04_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 // XTaint05 is similar to 06, but even harder
 
 TEST_F(IDETaintAnalysisTest, XTaint06) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint06_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // no leaks expected
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint06_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 /// In the new TaintConfig specifying source/sink/sanitizer properties for
 /// extra parameters of C-style variadic functions is not (yet?) supported.
 /// So, the tests XTaint07 and XTaint08 are disabled.
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint07_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{10, 0, "main"},
+       {LineColFunOp{10, 18, "main", llvm::Instruction::Load}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(10, 0, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(10, 18, HA.getProjectIRDB().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint07_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint08_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{20, 3, "main"},
+       {LineColFunOp{20, 18, "main", llvm::Instruction::Load}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(20, 0, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(20, 18, HA.getProjectIRDB().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::LoadInst>(Inst);
-                           });
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint08_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{14, 3, "main"}, {LineColFun{14, 8, "main"}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(14, 3, HA.getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(14, 8, HA.getProjectIRDB().getFunction("main"));
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint09_1_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  auto SinkCall = LineColFun{16, 3, "main"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {SinkCall, {OperandOf{0, SinkCall}}}};
 
-  SrcCodeLocationEntry Call =
-      SrcCodeLocationEntry(16, 3, HA.getProjectIRDB().getFunction("main"));
-  // TODO: the counter implementation isn't great, as it still relies on IR
-  // behaviour that might change based on operating system or other factors. A
-  // better implementation would be good here.
-  int Counter = 0;
-  SrcCodeLocationEntry Leak =
-      SrcCodeLocationEntry(16, 8, HA.getProjectIRDB().getFunction("main"),
-                           [Counter](const llvm::Instruction *Inst) mutable {
-                             Counter++;
-                             return Counter == 2;
-                           });
-  GroundTruth.insert({Call, Leak});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint09_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint10) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint10_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // GroundTruth.insert(SrcCodeLocEntry(, {}));
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint10_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint11_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // GroundTruth.insert(SrcCodeLocEntry(, {}));
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint11_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint12) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint12_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{19, 3, "main"}, {LineColFun{19, 8, "main"}}}};
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(19, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(19, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint12_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint13_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}}};
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(17, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint13_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint14) {
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
-  HelperAnalyses HA({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, EntryPoints);
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{24, 3, "main"}, {LineColFun{24, 8, "main"}}}};
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(24, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(24, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint14_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 /// The TaintConfig fails to get all call-sites of Source::get, because it has
 /// no CallGraph information
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint15) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint15_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // GroundTruth.insert(SrcCodeLocEntry(, {}));
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint15_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint16) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint16_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}}};
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(13, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(13, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint16_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint17) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint17_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}}};
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(17, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint17_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint18) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  doAnalysis(HA, {}, std::monostate{}, true);
+  doAnalysis("xtaint18_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   // Is now the same as XTaint17
   GTEST_SKIP();
 
-  HelperAnalyses HA({PathToLLFiles + "xtaint19_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}}};
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(17, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint19_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 })
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{12, 3, "main"}, {LineColFun{6, 7, "main"}}},
+      {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
+  };
 
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(12, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 7, HA.getProjectIRDB().getFunction("main"))});
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(13, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(13, 8, HA.getProjectIRDB().getFunction("main"))});
-
-  doAnalysis(HA, GroundTruth, std::monostate{}, true);
+  doAnalysis("xtaint20_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint21) {
-  HelperAnalyses HA({PathToLLFiles + "xtaint21_cpp_dbg.ll"}, EntryPoints);
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
-
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(17, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(11, 7, HA.getProjectIRDB().getFunction("main"))});
-  GroundTruth.insert(
-      {SrcCodeLocationEntry(18, 3, HA.getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(18, 8, HA.getProjectIRDB().getFunction("main"))});
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{11, 7, "main"}}},
+      {LineColFun{18, 3, "main"}, {LineColFun{18, 8, "main"}}},
+  };
 
   IDEExtendedTaintAnalysis<>::config_callback_t SourceCB =
       [](const llvm::Instruction *Inst) {
@@ -465,7 +317,7 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
         return Ret;
       };
 
-  doAnalysis(HA, GroundTruth,
+  doAnalysis("xtaint21_cpp_dbg.ll", GroundTruth,
              CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }
 
