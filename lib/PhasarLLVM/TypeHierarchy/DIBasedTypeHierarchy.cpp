@@ -23,9 +23,7 @@
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
-#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -317,7 +315,7 @@ bool DIBasedTypeHierarchy::isVTable(llvm::StringRef VarName) {
   if (VarName.startswith(VTablePrefix)) {
     return true;
   }
-  // In LLVM 16 demangle() takes a StringRef
+  // In LLVM 17 demangle() takes a StringRef
   auto Demang = llvm::demangle(VarName.str());
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }

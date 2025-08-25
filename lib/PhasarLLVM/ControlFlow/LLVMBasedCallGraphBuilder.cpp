@@ -6,7 +6,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
@@ -111,8 +111,8 @@ static bool fillPossibleTargets(
     PossibleTargets.insert(StaticCallee);
 
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                         "Found static call-site: "
-                             << "  " << llvmIRToString(CS));
+                         "Found static call-site: " << "  "
+                                                    << llvmIRToString(CS));
     return true;
   }
 
@@ -122,8 +122,8 @@ static bool fillPossibleTargets(
 
   // the function call must be resolved dynamically
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                       "Found dynamic call-site: "
-                           << "  " << llvmIRToString(CS));
+                       "Found dynamic call-site: " << "  "
+                                                   << llvmIRToString(CS));
 
   PossibleTargets = Res.resolveIndirectCall(CS);
 

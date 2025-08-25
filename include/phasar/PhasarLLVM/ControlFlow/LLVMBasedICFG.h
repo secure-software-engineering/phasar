@@ -26,13 +26,11 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 

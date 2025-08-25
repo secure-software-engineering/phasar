@@ -154,8 +154,6 @@ private:
     }
   }
 
-  static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
-
   void populateWithMayAliases(SourceConfigTy &Facts);
 
   bool isMustAlias(const SanitizerConfigTy &Facts, d_t CurrNod);

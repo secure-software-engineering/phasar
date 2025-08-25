@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
@@ -37,23 +38,8 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *Source) {
   std::set<const llvm::Value *> Res;
   // Handle C-style varargs functions
   if (Callee->isVarArg() && !Callee->isDeclaration()) {
-    const llvm::Instruction *AllocVarArg = nullptr;
-    // Find the allocation of %struct.__va_list_tag
-    for (const auto &BB : *Callee) {
-      for (const auto &I : BB) {
-        if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-          if (Alloc->getAllocatedType()->isArrayTy() &&
-              Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-              Alloc->getAllocatedType()->getArrayElementType()->isStructTy() &&
-              Alloc->getAllocatedType()
-                      ->getArrayElementType()
-                      ->getStructName() == "struct.__va_list_tag") {
-            AllocVarArg = Alloc;
-            // TODO break out this nested loop earlier (without goto ;-)
-          }
-        }
-      }
-    }
+    const auto *AllocVarArg = getVaListTagOrNull(*Callee);
+
     // Generate the varargs things by using an over-approximation
     if (Source != nullptr && Source == AllocVarArg &&
         Source->getType()->isPointerTy()) {
