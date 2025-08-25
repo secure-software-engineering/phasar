@@ -92,10 +92,10 @@ protected:
         createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
 
-  void initialize(const llvm::Twine &IRFile, const LLVMTaintConfig &Config) {
+  void initialize(const llvm::Twine &IRFile, const LLVMTaintConfig *Config) {
     HA.emplace(IRFile, EntryPoints);
     TaintProblem =
-        createAnalysisProblem<IFDSTaintAnalysis>(*HA, &Config, EntryPoints);
+        createAnalysisProblem<IFDSTaintAnalysis>(*HA, Config, EntryPoints);
   }
 
   template <typename LeaksTy>
@@ -443,8 +443,8 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
-  initialize({PathToLlFiles + "double_free_01_c_dbg.ll"},
-             getDoubleFreeConfig());
+  auto DoubleFreeConf = getDoubleFreeConfig();
+  initialize({PathToLlFiles + "double_free_01_c_dbg.ll"}, &DoubleFreeConf);
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
@@ -457,8 +457,8 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
-  initialize({PathToLlFiles + "double_free_02_c_dbg.ll"},
-             getDoubleFreeConfig());
+  auto DoubleFreeConf = getDoubleFreeConfig();
+  initialize({PathToLlFiles + "double_free_02_c_dbg.ll"}, &DoubleFreeConf);
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
