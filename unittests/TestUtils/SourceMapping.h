@@ -18,6 +18,10 @@ getInstAtOrNull(const llvm::Function *F, uint32_t ReqLine,
                 uint32_t ReqColumn = 0, PredFn Pred = {}) {
   assert(F != nullptr);
   for (const auto &I : llvm::instructions(F)) {
+    if (I.isDebugOrPseudoInst()) {
+      continue;
+    }
+
     auto [Line, Column] = psr::getLineAndColFromIR(&I);
     if (Line == ReqLine && (ReqColumn == 0 || ReqColumn == Column) &&
         std::invoke(Pred, &I)) {

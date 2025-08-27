@@ -1,31 +1,24 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/DebugOutput.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 
-#include "SourceMapping.h"
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <cstdint>
-#include <memory>
-
-using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
@@ -40,9 +33,6 @@ protected:
 
   std::optional<IFDSTaintAnalysis> TaintProblem;
   std::optional<LLVMTaintConfig> TSF;
-
-  IFDSTaintAnalysisTest() = default;
-  ~IFDSTaintAnalysisTest() override = default;
 
   static LLVMTaintConfig getDefaultConfig() {
     auto SourceCB = [](const llvm::Instruction *Inst) {
@@ -98,62 +88,20 @@ protected:
         createAnalysisProblem<IFDSTaintAnalysis>(*HA, Config, EntryPoints);
   }
 
-  template <typename LeaksTy>
-  static void
-  compare(const LeaksTy &Leaks,
-          const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-              &GroundTruth) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth);
-    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-        FoundLeaks;
-
-    for (const auto &Leak : Leaks) {
-      if (const auto *SinkInst =
-              llvm::dyn_cast_or_null<llvm::Instruction>(Leak.first)) {
-        for (const auto *LV : Leak.second) {
-          if (LV) {
-            if (const auto *LVValue = llvm::dyn_cast_or_null<llvm::Value>(LV)) {
-              FoundLeaks.insert({SinkInst, {LVValue}});
-            }
-          }
-        }
-      }
-    }
-
-    EXPECT_EQ(FoundLeaks, GroundTruthEntries);
-  }
+  using GroundTruthTy =
+      std::map<TestingSrcLocation, std::set<TestingSrcLocation>>;
 
   template <typename LeaksTy>
-  static void
-  compare(const LeaksTy &Leaks,
-          const std::set<std::tuple<SrcCodeLocationEntry, const llvm::Value *>>
-              &GroundTruth) {
-    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-        GroundTruthEntries;
+  void compare(const LeaksTy &Leaks, const GroundTruthTy &GroundTruth) {
+    auto GroundTruthEntries =
+        convertTestingLocationSetMapInIR(GroundTruth, HA->getProjectIRDB());
 
-    for (const auto &Entry : GroundTruth) {
-      GroundTruthEntries.insert(
-          {getGroundTruthInst(std::get<0>(Entry)), std::get<1>(Entry)});
-    }
-
-    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-        FoundLeaks;
-
-    for (const auto &Leak : Leaks) {
-      if (const auto *SinkInst =
-              llvm::dyn_cast_or_null<llvm::Instruction>(Leak.first)) {
-        for (const auto *LV : Leak.second) {
-          if (LV) {
-            if (const auto *LVValue = llvm::dyn_cast_or_null<llvm::Value>(LV)) {
-              FoundLeaks.insert({SinkInst, {LVValue}});
-            }
-          }
-        }
-      }
-    }
-
-    EXPECT_EQ(FoundLeaks, GroundTruthEntries);
+    EXPECT_EQ(Leaks, GroundTruthEntries)
+        << "Taint Leaks do not match:\n  Expected: "
+        << PrettyPrinter{GroundTruthEntries}
+        << "\n  Got: " << PrettyPrinter{Leaks};
   }
+
 }; // Test Fixture
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
@@ -161,12 +109,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry =
-      SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo =
-      SrcCodeLocationEntry(6, 8, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -176,11 +121,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(6, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(5, 11,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{5, 11, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -190,10 +133,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(5, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(5, 8, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{5, 3, "main"};
+  auto EntryTwo = LineColFun{5, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -203,10 +145,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(6, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(6, 8, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -216,14 +157,14 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(6, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(6, 8, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryThree(8, 3,
-                                  HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryFour(8, 8,
-                                 HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}, {EntryThree, EntryFour}};
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  auto EntryThree = LineColFun{8, 3, "main"};
+  auto EntryFour = LineColFun{8, 8, "main"};
+  GroundTruthTy GroundTruth{
+      {Entry, {EntryTwo}},
+      {EntryThree, {EntryFour}},
+  };
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -233,10 +174,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(6, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(6, 8, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -246,12 +186,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  const auto &IRDB = HA->getProjectIRDB();
-  SrcCodeLocationEntry Entry(5, 3, IRDB.getFunction("main"));
-  const auto *ArgValue =
-      testingLocInIR({ArgNo{0}}, IRDB, IRDB.getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, const llvm::Value *>> GroundTruth{
-      {Entry, ArgValue}};
+  auto Entry = LineColFun{5, 3, "main"};
+  auto Main0 = ArgInFun{0, "main"};
+  GroundTruthTy GroundTruth{{Entry, {Main0}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -262,11 +199,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(12, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(12, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{12, 3, "main"};
+  auto EntryTwo = LineColFun{12, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -277,11 +212,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(12, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(10, 14,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{12, 3, "main"};
+  auto EntryTwo = LineColFun{10, 14, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -292,11 +225,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(11, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(11, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{11, 3, "main"};
+  auto EntryTwo = LineColFun{11, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -307,15 +238,14 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(11, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(11, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryThree(14, 3,
-                                  HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryFour(14, 8,
-                                 HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}, {EntryThree, EntryFour}};
+  auto Entry = LineColFun{11, 3, "main"};
+  auto EntryTwo = LineColFun{11, 8, "main"};
+  auto EntryThree = LineColFun{14, 3, "main"};
+  auto EntryFour = LineColFun{14, 8, "main"};
+  GroundTruthTy GroundTruth{
+      {Entry, {EntryTwo}},
+      {EntryThree, {EntryFour}},
+  };
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -326,11 +256,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(16, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(16, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{16, 3, "main"};
+  auto EntryTwo = LineColFun{16, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -341,11 +269,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(16, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(16, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{16, 3, "main"};
+  auto EntryTwo = LineColFun{16, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -356,11 +282,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(13, 5, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(13, 10,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{13, 5, "main"};
+  auto EntryTwo = LineColFun{13, 10, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -371,11 +295,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(14, 5, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(14, 10,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{14, 5, "main"};
+  auto EntryTwo = LineColFun{14, 10, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -386,11 +308,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(19, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(19, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{19, 3, "main"};
+  auto EntryTwo = LineColFun{19, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -401,11 +321,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(20, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(20, 8,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{20, 3, "main"};
+  auto EntryTwo = LineColFun{20, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -416,28 +334,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(19, 5, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(19, 10,
-                                HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
-
-  compare(TaintProblem->Leaks, GroundTruth);
-}
-
-TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
-  initialize({PathToLlFiles + "dummy_source_sink/taint_lib_sum_01_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
-  TaintSolver.solve();
-
-  SrcCodeLocationEntry Entry(8, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(8, 8, HA->getProjectIRDB().getFunction("main"),
-                                [](const llvm::Instruction *Inst) {
-                                  return Inst->getOpcode() ==
-                                         llvm::Instruction::FPToSI;
-                                });
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{19, 5, "main"};
+  auto EntryTwo = LineColFun{19, 10, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -448,10 +347,9 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(6, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(6, 8, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }
@@ -462,10 +360,21 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  SrcCodeLocationEntry Entry(8, 3, HA->getProjectIRDB().getFunction("main"));
-  SrcCodeLocationEntry EntryTwo(8, 8, HA->getProjectIRDB().getFunction("main"));
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth{
-      {Entry, EntryTwo}};
+  auto Entry = LineColFun{8, 3, "main"};
+  auto EntryTwo = LineColFun{8, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
+  initialize({PathToLlFiles + "dummy_source_sink/taint_lib_sum_01_cpp_dbg.ll"});
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{8, 3, "main"};
+  auto EntryTwo = LineColFunOp{8, 8, "main", llvm::Instruction::FPToSI};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }

@@ -60,6 +60,29 @@ struct LineCol {
            "; Col: " + std::to_string(Col) + " }";
   }
 };
+
+struct LineColFunOp {
+  uint32_t Line{};
+  uint32_t Col{};
+  llvm::StringRef InFunction{};
+  uint32_t OpCode{};
+
+  friend bool operator<(LineColFunOp LC1, LineColFunOp LC2) noexcept {
+    return std::tie(LC1.InFunction, LC1.Line, LC1.Col, LC1.OpCode) <
+           std::tie(LC2.InFunction, LC2.Line, LC2.Col, LC2.OpCode);
+  }
+  friend bool operator==(LineColFunOp LC1, LineColFunOp LC2) noexcept {
+    return std::tie(LC1.Line, LC1.Col, LC1.InFunction, LC1.OpCode) ==
+           std::tie(LC2.Line, LC2.Col, LC2.InFunction, LC2.OpCode);
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("LineColFunOp { Line: ") + std::to_string(Line) +
+           "; Col: " + std::to_string(Col) +
+           "; InFunction: " + InFunction.str() +
+           "; OpCode: " + llvm::Instruction::getOpcodeName(OpCode) + " }";
+  }
+};
+
 struct LineColFun {
   uint32_t Line{};
   uint32_t Col{};
@@ -77,6 +100,11 @@ struct LineColFun {
     return std::string("LineColFun { Line: ") + std::to_string(Line) +
            "; Col: " + std::to_string(Col) +
            "; InFunction: " + InFunction.str() + " }";
+  }
+
+  constexpr operator LineColFunOp() const noexcept {
+    // 0 is the wildcard opcode
+    return {Line, Col, InFunction, 0};
   }
 };
 struct LineColFunLambda {
@@ -103,27 +131,6 @@ struct LineColFunLambda {
   }
 };
 
-struct LineColFunOp {
-  uint32_t Line{};
-  uint32_t Col{};
-  llvm::StringRef InFunction{};
-  uint32_t OpCode{};
-
-  friend bool operator<(LineColFunOp LC1, LineColFunOp LC2) noexcept {
-    return std::tie(LC1.InFunction, LC1.Line, LC1.Col, LC1.OpCode) <
-           std::tie(LC2.InFunction, LC2.Line, LC2.Col, LC2.OpCode);
-  }
-  friend bool operator==(LineColFunOp LC1, LineColFunOp LC2) noexcept {
-    return std::tie(LC1.Line, LC1.Col, LC1.InFunction, LC1.OpCode) ==
-           std::tie(LC2.Line, LC2.Col, LC2.InFunction, LC2.OpCode);
-  }
-  [[nodiscard]] std::string str() const {
-    return std::string("LineColFunOp { Line: ") + std::to_string(Line) +
-           "; Col: " + std::to_string(Col) +
-           "; InFunction: " + InFunction.str() +
-           "; OpCode: " + llvm::Instruction::getOpcodeName(OpCode) + " }";
-  }
-};
 struct ArgNo {
   uint32_t Idx{};
 
@@ -180,7 +187,7 @@ struct RetStmt {
 
 struct OperandOf {
   uint32_t OperandIndex{};
-  LineColFun Inst{};
+  LineColFunOp Inst{};
 
   friend bool operator<(OperandOf R1, OperandOf R2) noexcept {
     return std::tie(R1.OperandIndex, R2.Inst) <
@@ -286,7 +293,7 @@ template <> struct hash<psr::RetStmt> {
 template <> struct hash<psr::OperandOf> {
   size_t operator()(psr::OperandOf Op) const noexcept {
     return llvm::hash_combine(Op.OperandIndex,
-                              hash<psr::LineColFun>{}(Op.Inst));
+                              hash<psr::LineColFunOp>{}(Op.Inst));
   }
 };
 
@@ -311,7 +318,7 @@ testingLocInIR(TestingSrcLocation Loc,
     }
     return InFun;
   };
-  return std::visit(
+  const auto *Ret = std::visit(
       psr::Overloaded{
           [=](LineCol LC) -> llvm ::Value const * {
             if (!InterestingFunction) {
@@ -335,8 +342,11 @@ testingLocInIR(TestingSrcLocation Loc,
           [&](LineColFunOp LC) -> llvm ::Value const * {
             const auto *InFun = GetFunction(LC.InFunction);
             return unittest::getInstAtOrNull(
-                InFun, LC.Line, LC.Col, [Op = LC.OpCode](const auto *Inst) {
-                  return Inst->getOpcode() == Op;
+                InFun, LC.Line, LC.Col,
+                [Op = LC.OpCode](const llvm::Instruction *Inst) {
+                  // According to LLVM's doc on llvm::Value::getValueID(), there
+                  // cannot be any opcode==0, so we use it as wildcard here
+                  return Op == 0 || Inst->getOpcode() == Op;
                 });
           },
           [&IRDB](GlobalVar GV) -> llvm ::Value const * {
@@ -406,6 +416,11 @@ testingLocInIR(TestingSrcLocation Loc,
           },
       },
       Loc);
+  if (!Ret) {
+    llvm::report_fatal_error("Cannot convert " + llvm::Twine(Loc.str()) +
+                             " to LLVM");
+  }
+  return Ret;
 }
 
 template <typename SetTy>
@@ -414,10 +429,10 @@ convertTestingLocationSetInIR(
     const SetTy &Locs, const ProjectIRDBBase<LLVMProjectIRDB> &IRDB,
     const llvm::Function *InterestingFunction = nullptr) {
   std::set<const llvm::Value *> Ret;
-  llvm::transform(Locs, std::inserter(Ret, Ret.end()),
-                  [&](TestingSrcLocation Loc) {
-                    return testingLocInIR(Loc, IRDB, InterestingFunction);
-                  });
+  llvm::transform(
+      Locs, std::inserter(Ret, Ret.end()), [&](TestingSrcLocation Loc) {
+        return testingLocInIR(std::move(Loc), IRDB, InterestingFunction);
+      });
   return Ret;
 }
 
@@ -429,11 +444,18 @@ template <typename MapTy>
   llvm::transform(
       Locs, std::inserter(Ret, Ret.end()), [&](const auto &LocAndSet) {
         const auto &[InstLoc, Set] = LocAndSet;
-        const auto *LocVal = llvm::dyn_cast_if_present<llvm::Instruction>(
-            testingLocInIR(InstLoc, IRDB, InterestingFunction));
+        const auto *LocVal = testingLocInIR(InstLoc, IRDB, InterestingFunction);
+        const auto *LocInst =
+            llvm::dyn_cast_if_present<llvm::Instruction>(LocVal);
+        if (!LocInst) {
+          llvm::report_fatal_error(
+              "Cannot convert " + llvm::Twine(InstLoc.str()) +
+              (LocVal ? " aka. " + llvmIRToString(LocVal) : "") +
+              " to an LLVM instruction");
+        }
         auto ConvSet =
             convertTestingLocationSetInIR(Set, IRDB, InterestingFunction);
-        return std::make_pair(LocVal, std::move(ConvSet));
+        return std::make_pair(LocInst, std::move(ConvSet));
       });
   return Ret;
 }

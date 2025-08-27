@@ -1,12 +1,10 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -15,16 +13,13 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
-#include "SourceMapping.h"
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <memory>
 #include <optional>
 #include <tuple>
 
@@ -42,74 +37,25 @@ protected:
 
   std::optional<IFDSUninitializedVariables> UninitProblem;
 
-  IFDSUninitializedVariablesTest() = default;
-  ~IFDSUninitializedVariablesTest() override = default;
-
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
     UninitProblem =
         createAnalysisProblem<IFDSUninitializedVariables>(*HA, EntryPoints);
   }
 
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
+  using GroundTruthTy =
+      std::map<TestingSrcLocation, std::set<TestingSrcLocation>>;
 
-  void TearDown() override {}
+  void compareResults(const GroundTruthTy &GroundTruthEntries) {
+    auto ConvGroundTruth = convertTestingLocationSetMapInIR(
+        GroundTruthEntries, HA->getProjectIRDB());
 
-  void compareResults(
-      std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-          &GroundTruthEntries) {
-    for (const auto &Entry : GroundTruthEntries) {
-      const auto *GTInst = std::get<0>(Entry);
-      llvm::outs() << "GTInst: " << GTInst << "\n";
-      llvm::outs() << "*GTInst: " << *GTInst << "\n";
-
-      const auto *GTValue = std::get<1>(Entry);
-      llvm::outs() << "GTValue: " << GTValue << "\n";
-      llvm::outs() << "*GTValue: " << *GTValue << "\n\n";
-    }
-
-    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-        FoundUninitUses;
-    for (const auto &Kvp : UninitProblem->getAllUndefUses()) {
-      const auto *SourceInst = Kvp.first;
-      llvm::outs() << "SourceInst: " << SourceInst << "\n";
-      llvm::outs() << "*SourceInst: " << *SourceInst << "\n";
-
-      for (const auto *UV : Kvp.second) {
-        llvm::outs() << "UV: " << UV << "\n";
-        llvm::outs() << "*UV: " << *UV << "\n\n";
-        FoundUninitUses.insert({SourceInst, UV});
-      }
-    }
-
-    EXPECT_EQ(FoundUninitUses, GroundTruthEntries)
-        << "Expected: " << PrettyPrinter{GroundTruthEntries}
-        << "; got: " << PrettyPrinter{FoundUninitUses};
+    EXPECT_EQ(UninitProblem->getAllUndefUses(), ConvGroundTruth)
+        << "UndefUses do not match:\n  Expected: "
+        << PrettyPrinter{ConvGroundTruth}
+        << "\n  Got: " << PrettyPrinter{UninitProblem->getAllUndefUses()};
   }
 
-  void compareResults(
-      const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-          &GroundTruth) {
-    auto GroundTruthEntries = getGroundTruthInsts(GroundTruth, true);
-    compareResults(GroundTruthEntries);
-  }
-
-  void compareResults(
-      const std::set<std::tuple<TestingSrcLocation, TestingSrcLocation>>
-          &GroundTruth,
-      const LLVMProjectIRDB &IRDB) {
-    std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-        GroundTruthEntries;
-
-    for (const auto &Entry : GroundTruth) {
-      const auto *First = testingLocInIR(std::get<0>(Entry), IRDB);
-      const auto *FirstAsInst = llvm::dyn_cast<const llvm::Instruction>(First);
-      const auto *Second = testingLocInIR(std::get<1>(Entry), IRDB);
-      GroundTruthEntries.insert({FirstAsInst, Second});
-    }
-
-    compareResults(GroundTruthEntries);
-  }
 }; // Test Fixture
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
@@ -118,7 +64,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   // all_uninit.cpp does not contain undef-uses
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
   compareResults(GroundTruth);
 }
 
@@ -128,19 +74,16 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   Solver.solve();
 
   // binop_uninit uses uninitialized variable i in 'int j = i + 10;'
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
   // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
   // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
   // undefined alloca; not sure if it is necessary to report again
-  const auto Entry =
-      SrcCodeLocationEntry(2, 0, HA->getICFG().getFunction("main"));
-  const auto EntryTwo =
-      SrcCodeLocationEntry(3, 11, HA->getICFG().getFunction("main"));
-  const auto EntryThree =
-      SrcCodeLocationEntry(3, 13, HA->getICFG().getFunction("main"));
-  GroundTruth.insert({EntryTwo, Entry});
-  GroundTruth.insert({EntryThree, EntryTwo});
+  const auto Entry = LineColFun{2, 0, "main"};
+  const auto EntryTwo = LineColFun{3, 11, "main"};
+  const auto EntryThree = LineColFun{3, 13, "main"};
+  GroundTruth.insert({EntryTwo, {Entry}});
+  GroundTruth.insert({EntryThree, {EntryTwo}});
 
   compareResults(GroundTruth);
 }
@@ -151,21 +94,16 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   Solver.solve();
 
   // callnoret uses uninitialized variable a in 'return a + 10;' of addTen(int)
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
-  const auto IntA =
-      SrcCodeLocationEntry(7, 7, HA->getICFG().getFunction("main"));
-  const auto CopyA =
-      SrcCodeLocationEntry(9, 10, HA->getICFG().getFunction("main"));
-  const auto ArgA =
-      SrcCodeLocationEntry(1, 16, HA->getICFG().getFunction("addTen"));
-  const auto LoadA =
-      SrcCodeLocationEntry(3, 10, HA->getICFG().getFunction("addTen"));
-  const auto Add =
-      SrcCodeLocationEntry(3, 12, HA->getICFG().getFunction("addTen"));
-  GroundTruth.insert({CopyA, IntA});
-  GroundTruth.insert({Add, LoadA});
-  GroundTruth.insert({LoadA, ArgA});
+  const auto IntA = LineColFun{7, 7, "main"};
+  const auto CopyA = LineColFun{9, 10, "main"};
+  const auto ArgA = LineColFun{1, 16, "addTen"};
+  const auto LoadA = LineColFun{3, 10, "addTen"};
+  const auto Add = LineColFun{3, 12, "addTen"};
+  GroundTruth.insert({CopyA, {IntA}});
+  GroundTruth.insert({Add, {LoadA}});
+  GroundTruth.insert({LoadA, {ArgA}});
 
   compareResults(GroundTruth);
 }
@@ -176,7 +114,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   // ctor.cpp does not contain undef-uses
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
   compareResults(GroundTruth);
 }
@@ -186,7 +124,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   // struct_member_init.cpp does not contain undef-uses
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
   compareResults(GroundTruth);
 }
@@ -197,7 +135,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   // struct_member_uninit.cpp does not contain undef-uses
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
   compareResults(GroundTruth);
 }
@@ -227,7 +165,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   // global_variable.cpp does not contain undef-uses
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
   compareResults(GroundTruth);
 }
@@ -254,14 +192,12 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
-  const auto IntI =
-      SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("_Z3foov"));
-  const auto UseOfI =
-      SrcCodeLocationEntry(3, 10, HA->getICFG().getFunction("_Z3foov"));
+  const auto IntI = LineColFun{2, 7, "_Z3foov"};
+  const auto UseOfI = LineColFun{3, 10, "_Z3foov"};
 
-  GroundTruth.insert({UseOfI, IntI});
+  GroundTruth.insert({UseOfI, {IntI}});
 
   compareResults(GroundTruth);
 }
@@ -272,18 +208,16 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
   // all undef-uses are sanitized;
   // However, the uninitialized variable j is read, which causes the analysis to
   // report an undef-use
   // 6 => {2}
 
-  const auto IntI =
-      SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("main"));
-  const auto UseOfI =
-      SrcCodeLocationEntry(4, 7, HA->getICFG().getFunction("main"));
+  const auto IntI = LineColFun{3, 7, "main"};
+  const auto UseOfI = LineColFun{4, 7, "main"};
 
-  GroundTruth.insert({UseOfI, IntI});
+  GroundTruth.insert({UseOfI, {IntI}});
 
   compareResults(GroundTruth);
 }
@@ -312,14 +246,12 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 
   // The undef-uses do not affect the program behaviour, but are of course still
   // found and reported
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
-  const auto IntJ =
-      SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("main"));
-  const auto LoadJ =
-      SrcCodeLocationEntry(5, 7, HA->getICFG().getFunction("main"));
+  const auto IntJ = LineColFun{3, 7, "main"};
+  const auto LoadJ = LineColFun{5, 7, "main"};
 
-  GroundTruth.insert({LoadJ, IntJ});
+  GroundTruth.insert({LoadJ, {IntJ}});
 
   compareResults(GroundTruth);
 }
@@ -330,23 +262,17 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
-  const auto IntA =
-      SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("main"));
-  const auto IntB =
-      SrcCodeLocationEntry(3, 7, HA->getICFG().getFunction("main"));
-  const auto LoadA =
-      SrcCodeLocationEntry(6, 11, HA->getICFG().getFunction("main"));
-  const auto Multiply =
-      SrcCodeLocationEntry(6, 13, HA->getICFG().getFunction("main"));
-  const auto LoadB =
-      SrcCodeLocationEntry(6, 15, HA->getICFG().getFunction("main"));
+  const auto IntA = LineColFun{2, 7, "main"};
+  const auto IntB = LineColFun{3, 7, "main"};
+  const auto LoadA = LineColFun{6, 11, "main"};
+  const auto Multiply = LineColFun{6, 13, "main"};
+  const auto LoadB = LineColFun{6, 15, "main"};
 
-  GroundTruth.insert({LoadA, IntA});
-  GroundTruth.insert({LoadB, IntB});
-  GroundTruth.insert({Multiply, LoadA});
-  GroundTruth.insert({Multiply, LoadB});
+  GroundTruth.insert({LoadA, {IntA}});
+  GroundTruth.insert({LoadB, {IntB}});
+  GroundTruth.insert({Multiply, {LoadA, LoadB}});
 
   compareResults(GroundTruth);
 }
@@ -391,28 +317,21 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
-  const auto ArgX =
-      SrcCodeLocationEntry(1, 18, HA->getICFG().getFunction("_Z8functionii"));
-  const auto IntI =
-      SrcCodeLocationEntry(2, 7, HA->getICFG().getFunction("_Z8functionii"));
-  const auto LoadX =
-      SrcCodeLocationEntry(3, 11, HA->getICFG().getFunction("_Z8functionii"));
-  const auto LoadI =
-      SrcCodeLocationEntry(5, 10, HA->getICFG().getFunction("_Z8functionii"));
-  const auto Add =
-      SrcCodeLocationEntry(5, 12, HA->getICFG().getFunction("_Z8functionii"));
-  const auto IntJ =
-      SrcCodeLocationEntry(10, 7, HA->getICFG().getFunction("main"));
-  const auto LoadJ =
-      SrcCodeLocationEntry(12, 16, HA->getICFG().getFunction("main"));
+  const auto ArgX = LineColFun{1, 18, "_Z8functionii"};
+  const auto IntI = LineColFun{2, 7, "_Z8functionii"};
+  const auto LoadX = LineColFun{3, 11, "_Z8functionii"};
+  const auto LoadI = LineColFun{5, 10, "_Z8functionii"};
+  const auto Add = LineColFun{5, 12, "_Z8functionii"};
+  const auto IntJ = LineColFun{10, 7, "main"};
+  const auto LoadJ = LineColFun{12, 16, "main"};
 
   // TODO remove GroundTruth.insert({LoadX, ArgX}) below
-  GroundTruth.insert({LoadX, ArgX});
-  GroundTruth.insert({LoadI, IntI});
-  GroundTruth.insert({Add, LoadI});
-  GroundTruth.insert({LoadJ, IntJ});
+  GroundTruth.insert({LoadX, {ArgX}});
+  GroundTruth.insert({LoadI, {IntI}});
+  GroundTruth.insert({Add, {LoadI}});
+  GroundTruth.insert({LoadJ, {IntJ}});
   compareResults(GroundTruth);
 }
 
@@ -476,10 +395,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<TestingSrcLocation, TestingSrcLocation>> GroundTruth;
-
-  const auto IntI =
-      SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
+  GroundTruthTy GroundTruth;
 
   // Leaks due to field-insensitivity
 
@@ -487,10 +403,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   LineColFun LoadX{4, 12, "_Z3fooRii"};
   // %x.addr = alloca ptr, align 8
   LineColFun ArgAddrX{2, 15, "_Z3fooRii"};
-  GroundTruth.insert({LoadX, ArgAddrX});
+  GroundTruth.insert({LoadX, {ArgAddrX}});
   // %2 = load ptr, ptr %x.addr
   LineColFun LoadXTwo{5, 14, "_Z3fooRii"};
-  GroundTruth.insert({LoadXTwo, ArgAddrX});
+  GroundTruth.insert({LoadXTwo, {ArgAddrX}});
 
   // Load uninitialized variable
 
@@ -498,25 +414,20 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   LineColFun LoadJ{11, 18, "main"};
   // %j = alloca i32, align 4
   LineColFun IntJ{10, 7, "main"};
-  GroundTruth.insert({LoadJ, IntJ});
+  GroundTruth.insert({LoadJ, {IntJ}});
 
   // Load recursive return-value for returning it
 
   // %4 = load ptr, ptr %retval
   LineColFun FooExit{6, 1, "_Z3fooRii"};
-  GroundTruth.insert({FooExit, OperandOf{0, FooExit}});
+  GroundTruth.insert({FooExit, {OperandOf{0, FooExit}}});
   // Load return-value of foo in main
   // %0 = load i32, ptr %call, align 4
-  LineColFunLambda Load0{10, 11, "main", [](const llvm::Instruction *Inst) {
-                           return llvm::isa<llvm::LoadInst>(Inst);
-                         }};
+  LineColFunOp Load0{10, 11, "main", llvm::Instruction::Load};
   // %call = call noundef nonnull align 4 dereferenceable(4) ptr @_Z3fooRii(ptr
   // noundef nonnull align 4 dereferenceable(4) %i, i32 noundef 10)
-  LineColFunLambda CallFooRec{10, 11, "main",
-                              [](const llvm::Instruction *Inst) {
-                                return llvm::isa<llvm::CallInst>(Inst);
-                              }};
-  GroundTruth.insert({Load0, CallFooRec});
+  LineColFunOp CallFooRec{10, 11, "main", llvm::Instruction::Call};
+  GroundTruth.insert({Load0, {CallFooRec}});
   // // Load return-value of foo in main
   // GroundTruth.insert({FooExit, IntJ});
 
@@ -528,7 +439,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   // Load return-value of foo in main
   // GroundTruth.insert({IntJ, RetOfFoo});
 
-  compareResults(GroundTruth, *HA->getICFG().getIRDB());
+  compareResults(GroundTruth);
 }
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
@@ -537,67 +448,45 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>> GroundTruth;
+  GroundTruthTy GroundTruth;
   // %x.addr = alloca ptr, align 8
-  const auto FooXAddr =
-      SrcCodeLocationEntry(3, 15, HA->getICFG().getFunction("_Z3fooRi"));
+  const auto FooXAddr = LineColFun{3, 15, "_Z3fooRi"};
   // %0 = load ptr, ptr %x.addr, align 8
-  const auto FooXLoad =
-      SrcCodeLocationEntry(3, 27, HA->getICFG().getFunction("_Z3fooRi"));
+  const auto FooXLoad = LineColFun{3, 27, "_Z3fooRi"};
   // %x.addr = alloca ptr, align 8
-  const auto BarXAddr =
-      SrcCodeLocationEntry(4, 15, HA->getICFG().getFunction("_Z3barRi"));
+  const auto BarXAddr = LineColFun{4, 15, "_Z3barRi"};
   // %0 = load ptr, ptr %x.addr, align 8
-  const auto Load =
-      SrcCodeLocationEntry(5, 3, HA->getICFG().getFunction("_Z3barRi"));
+  const auto Load = LineColFun{5, 3, "_Z3barRi"};
   // %1 = load ptr, ptr %x.addr, align 8
-  const auto LoadX =
-      SrcCodeLocationEntry(6, 10, HA->getICFG().getFunction("_Z3barRi"));
-  //
-  const auto IntI =
-      SrcCodeLocationEntry(9, 7, HA->getICFG().getFunction("main"));
-  // %j = alloca i32, align 4
-  const auto IntJ =
-      SrcCodeLocationEntry(16, 7, HA->getICFG().getFunction("main"));
-  // %call = call noundef nonnull align 4 dereferenceable(4) ptr %1
-  const auto BazCall =
-      SrcCodeLocationEntry(16, 11, HA->getICFG().getFunction("main"),
-                           [](const llvm::Instruction *Inst) {
-                             return llvm::isa<llvm::CallInst>(Inst);
-                           });
-  // This implementation to get %2 is bad, but it works
-  bool SkippedFirst = false;
-  // %2 = load i32, ptr %call, align 4
-  const auto SecondLoadInIfEnd = SrcCodeLocationEntry(
-      16, 11, HA->getICFG().getFunction("main"),
-      [&SkippedFirst](const llvm::Instruction *Inst) mutable {
-        if (llvm::isa<llvm::LoadInst>(Inst)) {
-          if (!SkippedFirst) {
-            SkippedFirst = true;
-            return false;
-          }
-          return true;
-        }
+  const auto LoadX = LineColFun{6, 10, "_Z3barRi"};
 
-        return false;
-      });
+  // %j = alloca i32, align 4
+  const auto IntJ = LineColFun{16, 7, "main"};
+  // %call = call noundef nonnull align 4 dereferenceable(4) ptr %1
+  const auto BazCall = LineColFunOp{16, 11, "main", llvm::Instruction::Call};
+
+  // %2 = load i32, ptr %call, align 4
+  const auto SecondLoadInIfEnd = OperandOf{
+      // The value operand of the store
+      1 - llvm::StoreInst::getPointerOperandIndex(),
+      LineColFunOp{16, 7, "main", llvm::Instruction::Store},
+  };
   // %3 = load i32, ptr %j, align 4
-  const auto LoadJ =
-      SrcCodeLocationEntry(17, 10, HA->getICFG().getFunction("main"));
+  const auto LoadJ = LineColFun{17, 10, "main"};
   // is passed as a reference, so I isn't being loaded here
   // const auto LoadI =
-  //     SrcCodeLocationEntry(16, 15, HA->getICFG().getFunction("main"));
+  //     LineColFun{16, 15, "main"};
 
   // 3  => {0}; due to field-insensitivity
-  GroundTruth.insert({FooXLoad, FooXAddr});
+  GroundTruth.insert({FooXLoad, {FooXAddr}});
   // 8  => {5}; due to field-insensitivity
-  GroundTruth.insert({Load, BarXAddr});
+  GroundTruth.insert({Load, {BarXAddr}});
   // 10 => {5}; due to alias-unawareness
-  GroundTruth.insert({LoadX, BarXAddr});
+  GroundTruth.insert({LoadX, {BarXAddr}});
   // 35 => {34}; actual leak
-  GroundTruth.insert({SecondLoadInIfEnd, BazCall});
+  GroundTruth.insert({SecondLoadInIfEnd, {BazCall}});
   // 37 => {17}; actual leak
-  GroundTruth.insert({LoadJ, IntJ});
+  GroundTruth.insert({LoadJ, {IntJ}});
 
   compareResults(GroundTruth);
 }
