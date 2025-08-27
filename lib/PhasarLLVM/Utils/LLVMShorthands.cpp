@@ -617,3 +617,12 @@ bool psr::isVaListAlloca(const llvm::AllocaInst &Alloc) {
 
   return false;
 }
+
+const llvm::DIType *psr::stripPointerTypes(const llvm::DIType *DITy) {
+  while (const auto *DerivedTy =
+             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+    // get rid of the pointer
+    DITy = DerivedTy->getBaseType();
+  }
+  return DITy;
+}

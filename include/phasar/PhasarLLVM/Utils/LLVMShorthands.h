@@ -283,6 +283,8 @@ public:
 getVaListTagOrNull(const llvm::Function &Fun);
 
 [[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
+
+[[nodiscard]] const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy);
 } // namespace psr
 
 #endif
