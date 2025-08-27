@@ -39,6 +39,7 @@
 
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <variant>
@@ -69,6 +70,15 @@ protected:
     HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
                HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
+  }
+
+  [[nodiscard]] const llvm::Instruction *getInst(TestingSrcLocation Loc) {
+    const auto *Ret = llvm::dyn_cast_if_present<llvm::Instruction>(
+        testingLocInIR(Loc, HA->getProjectIRDB()));
+    if (!Ret) {
+      throw std::runtime_error("Cannot convert loc " + Loc.str() + " to LLVM");
+    }
+    return Ret;
   }
 
   [[nodiscard]] bool matchesVar(const llvm::Value *Fact,
@@ -199,17 +209,16 @@ protected:
 }; // Test Fixture
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
-  initializeIR("array_01_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_01_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 13);
+  Inst = getInst(LineColFun{5, 3, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 16);
+  Inst = getInst(LineColFun{6, 3, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -217,21 +226,21 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_02) {
-  initializeIR("array_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 3);
+  Inst = getInst(LineColFun{4, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 5);
+  Inst = getInst(LineColFun{3, 3, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(OperandOf{llvm::StoreInst::getPointerOperandIndex(),
+                           LineColFun{3, 16, "main"}});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -239,21 +248,28 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_02) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_03) {
-  initializeIR("array_03_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_03_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 5);
+
+  auto Store = LineColFun{3, 19, "main"};
+  auto LastGep = OperandOf{llvm::StoreInst::getPointerOperandIndex(), Store};
+  auto FirstGep = LineColFun{3, 3, "main"};
+
+  Inst = getInst(FirstGep);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 6);
+
+  const auto *LastGepInst = getInst(LastGep);
+
+  Inst = llvm::cast<llvm::Instruction>(LastGepInst->getOperand(0));
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 7);
+  Inst = LastGepInst;
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -261,17 +277,16 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_03) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_01) {
-  initializeIR("struct_01_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_01_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{8, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 14);
+  Inst = getInst(LineColFun{12, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 17);
+  Inst = getInst(LineColFun{13, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -279,21 +294,20 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_02) {
-  initializeIR("struct_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{12, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 7);
+  Inst = getInst(LineColFun{13, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{14, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -301,87 +315,98 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_02) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_01) {
-  initializeIR("array_01_cpp.ll");
+  initializeIR("array_01_cpp_dbg.ll");
 
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 4);
+  Inst = getInst(LineColFun{4, 7, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 13);
+  Inst = getInst(LineColFun{5, 3, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 13);
-
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 18);
+  Inst = getInst(LineColFun{7, 11, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 16);
+  Inst = getInst(LineColFun{6, 3, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 21);
+  Inst = getInst(LineColFun{8, 11, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_02) {
-  initializeIR("array_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 5);
+  const auto *FirstGep = getInst(LineColFun{3, 3, "main"});
+  Inst = FirstGep;
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 8);
+  Inst = getInst(LineColFun{4, 11, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  const auto *SecondGep = getInst(OperandOf{
+      llvm::StoreInst::getPointerOperandIndex(), LineColFun{3, 16, "main"}});
+  Inst = SecondGep;
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 9);
+  Inst = llvm::cast<llvm::Instruction>(
+      getInst(LineColFunOp{4, 11, "main", llvm::Instruction::Load})
+          ->getOperand(0));
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 5);
+  Inst = FirstGep;
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 6);
+  Inst = SecondGep;
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_03) {
-  initializeIR("array_03_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_03_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 5);
+  Inst = getInst(LineColFun{3, 3, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{4, 11, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  const auto *GepStore =
+      llvm::cast<llvm::StoreInst>(getInst(LineColFun{3, 19, "main"}));
+  const auto *GepLoad =
+      getInst(LineColFunOp{4, 11, "main", llvm::Instruction::Load});
+
+  Inst = llvm::cast<llvm::Instruction>(
+      llvm::cast<llvm::GetElementPtrInst>(GepStore->getPointerOperand())
+          ->getPointerOperand());
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 10);
+  Inst = llvm::cast<llvm::Instruction>(
+      llvm::cast<llvm::GetElementPtrInst>(GepLoad->getOperand(0))
+          ->getPointerOperand());
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 7);
+  Inst = llvm::cast<llvm::Instruction>(GepStore->getPointerOperand());
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 11);
+  Inst = llvm::cast<llvm::Instruction>(GepLoad->getOperand(0));
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = llvm::cast<llvm::Instruction>(
+      llvm::cast<llvm::GetElementPtrInst>(GepStore->getPointerOperand())
+          ->getPointerOperand());
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 11);
+  Inst = llvm::cast<llvm::Instruction>(GepLoad->getOperand(0));
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   // For K-limit of 2, this should be considered equal
   if (IDEIIAFlowFact::KLimit <= 2) {
@@ -392,33 +417,32 @@ TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_03) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
-  initializeIR("struct_01_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_01_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{8, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 14);
+  Inst = getInst(LineColFun{12, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 22);
+  Inst = getInst(LineColFun{15, 13, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 17);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 25);
+  Inst = getInst(LineColFun{16, 13, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 20);
+  Inst = getInst(LineColFun{14, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 28);
+  Inst = getInst(LineColFun{17, 13, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 17);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 20);
+  Inst = getInst(LineColFun{14, 5, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << "Compare:\n";
   llvm::outs() << FlowFact << '\n';
@@ -428,40 +452,39 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
-  initializeIR("struct_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{12, 5, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 11);
+  Inst = getInst(LineColFun{15, 13, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 7);
+  Inst = getInst(LineColFun{13, 7, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 7);
+  Inst = getInst(LineColFun{13, 7, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 12);
+  Inst = getInst(LineColFun{15, 15, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{14, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 15);
+  Inst = getInst(LineColFun{16, 13, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{14, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from 2: " << *Inst << '\n';
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);

@@ -24,6 +24,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "SourceMapping.h"
@@ -36,8 +37,8 @@
 using namespace psr;
 using namespace psr::glca;
 
-using groundTruth_t = std::tuple<const IDEGeneralizedLCA::l_t,
-                                 SrcCodeLocationEntry, SrcCodeLocationEntry>;
+using l_t = IDEGeneralizedLCA::l_t;
+using groundTruth_t = std::tuple<l_t, TestingSrcLocation, TestingSrcLocation>;
 
 /* ============== TEST FIXTURE ============== */
 
@@ -73,75 +74,35 @@ protected:
   //  compare results
   /// \brief compares the computed results with every given tuple (value,
   /// alloca, inst)
-  void compareResults(std::vector<groundTruth_t> &Expected) {
-    for (const auto &Entry : Expected) {
-      const auto &EVal = std::get<0>(Entry);
-      const auto &SCLVr = std::get<1>(Entry);
-      const auto &SCLInst = std::get<2>(Entry);
+  void compareResults(const std::vector<groundTruth_t> &Expected) {
+    for (const auto &[EVal, VarLoc, InstLoc] : Expected) {
+      const auto *Var = testingLocInIR(VarLoc, HA->getProjectIRDB());
+      const auto *Inst = llvm::dyn_cast_if_present<llvm::Instruction>(
+          testingLocInIR(InstLoc, HA->getProjectIRDB()));
 
-      const auto *Vr = getInstLambdaOrNot(SCLVr);
-      const auto *Inst = getInstLambdaOrNot(SCLInst);
+      ASSERT_TRUE(Var) << "Cannot map location " << VarLoc.str() << " to LLVM";
+      ASSERT_TRUE(Inst) << "Cannot map location " << InstLoc.str()
+                        << " to LLVM";
 
-      bool Flag = false;
-
-      if (Vr) {
-        llvm::outs() << "VrId Inst:   " << *Vr << "\n";
-      } else {
-        llvm::outs() << "VrId is nullptr\n";
-        Flag = true;
-      }
-
-      if (Inst) {
-        llvm::outs() << "InstID Inst: " << *Inst << "\n";
-      } else {
-        llvm::outs() << "Inst is nullptr\n";
-        Flag = true;
-      }
-
-      if (Flag) {
-        EXPECT_TRUE(false);
-        continue;
-      }
-
-      llvm::outs() << "Result: " << LCASolver->resultAt(Inst, Vr) << "\n";
-
-      ASSERT_NE(nullptr, Vr);
-      ASSERT_NE(nullptr, Inst);
-
-      auto Result = LCASolver->resultAt(Inst, Vr);
+      auto Result = LCASolver->resultAt(Inst, Var);
       EXPECT_EQ(EVal, Result)
-          << "vr:" << Vr->getValueID() << " inst:" << Inst->getValueID()
-          << " Expected: " << EVal << " Got:" << Result;
+          << "At VarLoc: " << VarLoc.str() << ", InstLoc: " << InstLoc.str()
+          << ";\n  aka. Var: " << llvmIRToString(Var)
+          << "; Inst: " << llvmIRToString(Inst) << ":\n  Expected: " << EVal
+          << " Got:" << LToString(Result);
     }
   }
 
-private:
-  const llvm::Instruction *
-  getInstLambdaOrNot(const SrcCodeLocationEntry &Entry) {
-    if (Entry.LambdaFunc) {
-      return unittest::getInstAtOrNull(
-          std::get<const llvm::Function *>(Entry.Context), Entry.Line,
-          Entry.Column, Entry.LambdaFunc);
-    }
-
-    return unittest::getInstAtOrNull(
-        std::get<const llvm::Function *>(Entry.Context), Entry.Line,
-        Entry.Column);
-  }
 }; // class Fixture
 
 TEST_F(IDEGeneralizedLCATest, SimpleTest) {
   initialize("SimpleTest_c_dbg.ll");
   std::vector<groundTruth_t> GroundTruth;
 
-  GroundTruth.push_back(
-      {{EdgeValue(10)},
-       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(7, 3, HA->getProjectIRDB().getFunction("main"))});
-  GroundTruth.push_back(
-      {{EdgeValue(15)},
-       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(7, 3, HA->getProjectIRDB().getFunction("main"))});
+  GroundTruth.emplace_back(l_t{EdgeValue(10)}, LineColFun{4, 0, "main"},
+                           LineColFun{7, 3, "main"});
+  GroundTruth.emplace_back(l_t{EdgeValue(15)}, LineColFun{5, 0, "main"},
+                           LineColFun{7, 3, "main"});
 
   compareResults(GroundTruth);
 }
@@ -150,13 +111,9 @@ TEST_F(IDEGeneralizedLCATest, BranchTest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue(25)},
-       SrcCodeLocationEntry(7, 11, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(8, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(25)}, LineColFun{7, 11, "main"}, LineColFun{8, 3, "main"}});
   GroundTruth.push_back(
-      {{EdgeValue(24)},
-       SrcCodeLocationEntry(7, 9, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(8, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(24)}, LineColFun{7, 9, "main"}, LineColFun{8, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -166,13 +123,9 @@ TEST_F(IDEGeneralizedLCATest, FPtest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue(4.5)},
-       SrcCodeLocationEntry(4, 9, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(4.5)}, LineColFun{4, 9, "main"}, LineColFun{6, 3, "main"}});
   GroundTruth.push_back(
-      {{EdgeValue(2.0)},
-       SrcCodeLocationEntry(5, 9, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(2.0)}, LineColFun{5, 9, "main"}, LineColFun{6, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -181,14 +134,12 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
   initialize("StringTest_c_dbg.ll");
   std::vector<groundTruth_t> GroundTruth;
 
-  GroundTruth.push_back(
-      {{EdgeValue("Hello, World")},
-       SrcCodeLocationEntry(4, 0, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(7, 3, HA->getProjectIRDB().getFunction("main"))});
-  GroundTruth.push_back(
-      {{EdgeValue("Hello, World")},
-       SrcCodeLocationEntry(5, 0, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(7, 3, HA->getProjectIRDB().getFunction("main"))});
+  GroundTruth.push_back({{EdgeValue("Hello, World")},
+                         LineColFun{4, 0, "main"},
+                         LineColFun{7, 3, "main"}});
+  GroundTruth.push_back({{EdgeValue("Hello, World")},
+                         LineColFun{5, 0, "main"},
+                         LineColFun{7, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -197,14 +148,12 @@ TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
   initialize("StringBranchTest_c_dbg.ll");
   std::vector<groundTruth_t> GroundTruth;
 
-  GroundTruth.push_back(
-      {{EdgeValue("Hello Hello"), EdgeValue("Hello, World")},
-       SrcCodeLocationEntry(5, 15, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(10, 3, HA->getProjectIRDB().getFunction("main"))});
-  GroundTruth.push_back(
-      {{EdgeValue("Hello Hello")},
-       SrcCodeLocationEntry(6, 15, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(10, 3, HA->getProjectIRDB().getFunction("main"))});
+  GroundTruth.push_back({{EdgeValue("Hello Hello"), EdgeValue("Hello, World")},
+                         LineColFun{5, 15, "main"},
+                         LineColFun{10, 3, "main"}});
+  GroundTruth.push_back({{EdgeValue("Hello Hello")},
+                         LineColFun{6, 15, "main"},
+                         LineColFun{10, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -213,10 +162,9 @@ TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
   initialize("StringTest_cpp_dbg.ll");
   std::vector<groundTruth_t> GroundTruth;
 
-  GroundTruth.push_back(
-      {{EdgeValue("Hello, World")},
-       SrcCodeLocationEntry(4, 15, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 1, HA->getProjectIRDB().getFunction("main"))});
+  GroundTruth.push_back({{EdgeValue("Hello, World")},
+                         LineColFun{4, 15, "main"},
+                         LineColFun{6, 1, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -226,17 +174,12 @@ TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue(1.0)},
-       SrcCodeLocationEntry(5, 9, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(8, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(1.0)}, LineColFun{5, 9, "main"}, LineColFun{8, 3, "main"}});
+  GroundTruth.push_back({{EdgeValue(nullptr)},
+                         LineColFun{6, 9, "main"},
+                         LineColFun{8, 3, "main"}});
   GroundTruth.push_back(
-      {{EdgeValue(nullptr)},
-       SrcCodeLocationEntry(6, 9, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(8, 3, HA->getProjectIRDB().getFunction("main"))});
-  GroundTruth.push_back(
-      {{EdgeValue(-7.0)},
-       SrcCodeLocationEntry(7, 9, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(8, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(-7.0)}, LineColFun{7, 9, "main"}, LineColFun{8, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -246,13 +189,10 @@ TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue(48)},
-       SrcCodeLocationEntry(8, 7, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(10, 3, HA->getProjectIRDB().getFunction("main"))});
-  GroundTruth.push_back(
-      {{EdgeValue(nullptr)},
-       SrcCodeLocationEntry(9, 7, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(10, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(48)}, LineColFun{8, 7, "main"}, LineColFun{10, 3, "main"}});
+  GroundTruth.push_back({{EdgeValue(nullptr)},
+                         LineColFun{9, 7, "main"},
+                         LineColFun{10, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -262,13 +202,9 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue(50)},
-       SrcCodeLocationEntry(4, 13, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(50)}, LineColFun{4, 13, "main"}, LineColFun{6, 3, "main"}});
   GroundTruth.push_back(
-      {{EdgeValue(8)},
-       SrcCodeLocationEntry(5, 13, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(8)}, LineColFun{5, 13, "main"}, LineColFun{6, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -277,14 +213,12 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
   initialize("Imprecision_c_dbg.ll");
   std::vector<groundTruth_t> GroundTruth;
 
-  GroundTruth.push_back(
-      {{EdgeValue(1), EdgeValue(2)},
-       SrcCodeLocationEntry(3, 14, HA->getProjectIRDB().getFunction("foo")),
-       SrcCodeLocationEntry(3, 26, HA->getProjectIRDB().getFunction("foo"))});
-  GroundTruth.push_back(
-      {{EdgeValue(2), EdgeValue(3)},
-       SrcCodeLocationEntry(3, 21, HA->getProjectIRDB().getFunction("foo")),
-       SrcCodeLocationEntry(3, 26, HA->getProjectIRDB().getFunction("foo"))});
+  GroundTruth.push_back({{EdgeValue(1), EdgeValue(2)},
+                         LineColFun{3, 14, "foo"},
+                         LineColFun{3, 26, "foo"}});
+  GroundTruth.push_back({{EdgeValue(2), EdgeValue(3)},
+                         LineColFun{3, 21, "foo"},
+                         LineColFun{3, 26, "foo"}});
 
   compareResults(GroundTruth);
 }
@@ -294,9 +228,7 @@ TEST_F(IDEGeneralizedLCATest, ReturnConstTest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue(43)},
-       SrcCodeLocationEntry(6, 12, HA->getProjectIRDB().getFunction("main")),
-       SrcCodeLocationEntry(6, 3, HA->getProjectIRDB().getFunction("main"))});
+      {{EdgeValue(43)}, LineColFun{6, 12, "main"}, LineColFun{6, 3, "main"}});
 
   compareResults(GroundTruth);
 }
@@ -306,9 +238,7 @@ TEST_F(IDEGeneralizedLCATest, NullTest) {
   std::vector<groundTruth_t> GroundTruth;
 
   GroundTruth.push_back(
-      {{EdgeValue("")},
-       SrcCodeLocationEntry(1, 31, HA->getProjectIRDB().getFunction("foo")),
-       SrcCodeLocationEntry(1, 24, HA->getProjectIRDB().getFunction("foo"))});
+      {{EdgeValue("")}, LineColFun{1, 31, "foo"}, LineColFun{1, 24, "foo"}});
 
   compareResults(GroundTruth);
 }
