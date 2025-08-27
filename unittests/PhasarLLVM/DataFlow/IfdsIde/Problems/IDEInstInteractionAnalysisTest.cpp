@@ -15,14 +15,12 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -37,7 +35,6 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -45,6 +42,7 @@
 #include <variant>
 
 using namespace psr;
+using namespace psr::unittest;
 
 using TaintSetT = BitVectorSet<TestingSrcLocation>;
 
@@ -54,7 +52,7 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("inst_interaction/");
 
-  using VarNameT = std::variant<std::string, psr::RetVal>;
+  using VarNameT = std::variant<std::string, unittest::RetVal>;
   // Function - Line Nr - Variable - Values
   using IIACompactResult_t =
       std::tuple<TestingSrcLocation, VarNameT,
@@ -62,8 +60,6 @@ protected:
 
   std::optional<HelperAnalyses> HA;
   LLVMProjectIRDB *IRDB{};
-
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void initializeIR(const std::string &LlvmFilePath,
                     const std::vector<std::string> &EntryPoints = {"main"}) {

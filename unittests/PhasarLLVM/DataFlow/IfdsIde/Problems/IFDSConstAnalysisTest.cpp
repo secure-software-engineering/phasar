@@ -5,7 +5,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -22,6 +21,7 @@
 #include <initializer_list>
 
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 
@@ -39,8 +39,6 @@ protected:
     HA.emplace(IRFile, EntryPoints);
     Constproblem = createAnalysisProblem<IFDSConstAnalysis>(*HA, EntryPoints);
   }
-
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   llvm::ArrayRef<const llvm::Instruction *> getRetOrResInstructions() {
     if (!RetOrResInstructions.empty()) {

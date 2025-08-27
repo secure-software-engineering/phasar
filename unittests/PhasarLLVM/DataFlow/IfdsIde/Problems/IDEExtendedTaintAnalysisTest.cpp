@@ -30,6 +30,7 @@
 #include <variant>
 
 using namespace psr;
+using namespace psr::unittest;
 
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;

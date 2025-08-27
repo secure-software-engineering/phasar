@@ -3,27 +3,23 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
 
-#include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
-#include "llvm/Support/Casting.h"
 
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <optional>
-#include <tuple>
 
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 

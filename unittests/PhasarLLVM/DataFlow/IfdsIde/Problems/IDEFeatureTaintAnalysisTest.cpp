@@ -1,16 +1,13 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEFeatureTaintAnalysis.h"
 
-#include "phasar/Config/Configuration.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/Twine.h"
@@ -26,6 +23,7 @@
 namespace {
 
 using namespace psr;
+using namespace psr::unittest;
 
 using TaintSetT = std::set<TestingSrcLocation>;
 
@@ -43,7 +41,7 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("inst_interaction/");
 
-  using VarNameT = std::variant<std::string, psr::RetVal>;
+  using VarNameT = std::variant<std::string, unittest::RetVal>;
   // Function - Line Nr - Variable - Values
   using IIACompactResult_t =
       std::tuple<TestingSrcLocation, VarNameT, std::set<TestingSrcLocation>>;

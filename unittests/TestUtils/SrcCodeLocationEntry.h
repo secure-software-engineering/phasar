@@ -2,6 +2,7 @@
 #define PHASAR_UTILS_SRCCODELOCATIONENTRY_H
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -10,14 +11,13 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include "SourceMapping.h"
 
 #include <cstdint>
 #include <functional>
@@ -29,7 +29,7 @@
 #include <utility>
 #include <variant>
 
-namespace psr {
+namespace psr::unittest {
 
 struct GlobalVar {
   llvm::StringRef Name;
@@ -107,29 +107,6 @@ struct LineColFun {
     return {Line, Col, InFunction, 0};
   }
 };
-struct LineColFunLambda {
-  uint32_t Line{};
-  uint32_t Col{};
-  llvm::StringRef InFunction{};
-  std::function<bool(const llvm::Instruction *Inst)> Lambda{};
-
-  // TODO: impl lambda into std::tie and std::string
-
-  friend bool operator<(LineColFunLambda LC1, LineColFunLambda LC2) noexcept {
-    return std::tie(LC1.InFunction, LC1.Line, LC1.Col) <
-           std::tie(LC2.InFunction, LC2.Line, LC2.Col);
-  }
-  friend bool operator==(LineColFunLambda LC1, LineColFunLambda LC2) noexcept {
-    return std::tie(LC1.Line, LC1.Col, LC1.InFunction) ==
-           std::tie(LC2.Line, LC2.Col, LC2.InFunction);
-  }
-  [[nodiscard]] std::string str() const {
-    return std::string("LineColFun { Line: ") + std::to_string(Line) +
-           "; Col: " + std::to_string(Col) + "; Col: " + std::to_string(Col) +
-           "; InFunction: " + InFunction.str() +
-           "; Lambda: Cannot be converted to string yet. }";
-  }
-};
 
 struct ArgNo {
   uint32_t Idx{};
@@ -143,7 +120,7 @@ struct ArgNo {
   }
 };
 struct ArgInFun {
-  uint32_t Idx;
+  uint32_t Idx{};
   llvm::StringRef InFunction{};
 
   friend bool operator<(ArgInFun A1, ArgInFun A2) noexcept {
@@ -203,12 +180,10 @@ struct OperandOf {
 };
 
 struct TestingSrcLocation
-    : public std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
-                          GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt,
-                          OperandOf> {
-  using VarT =
-      std::variant<LineCol, LineColFun, LineColFunLambda, LineColFunOp,
-                   GlobalVar, ArgNo, ArgInFun, RetVal, RetStmt, OperandOf>;
+    : public std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
+                          ArgInFun, RetVal, RetStmt, OperandOf> {
+  using VarT = std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
+                            ArgInFun, RetVal, RetStmt, OperandOf>;
   using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
@@ -235,76 +210,91 @@ struct TestingSrcLocation
   }
 };
 
-} // namespace psr
+} // namespace psr::unittest
 
 namespace std {
-template <> struct hash<psr::LineCol> {
-  size_t operator()(psr::LineCol LC) const noexcept {
+template <> struct hash<psr::unittest::LineCol> {
+  size_t operator()(psr::unittest::LineCol LC) const noexcept {
     return llvm::hash_value(std::make_pair(LC.Line, LC.Col));
   }
 };
-template <> struct hash<psr::LineColFun> {
-  size_t operator()(psr::LineColFun LCF) const noexcept {
+template <> struct hash<psr::unittest::LineColFun> {
+  size_t operator()(psr::unittest::LineColFun LCF) const noexcept {
     return llvm::hash_combine(
         llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction);
   }
 };
-template <> struct hash<psr::LineColFunLambda> {
-  size_t operator()(psr::LineColFunLambda LCF) const noexcept {
-    return llvm::hash_combine(
-        llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction);
-  }
-};
-template <> struct hash<psr::LineColFunOp> {
-  size_t operator()(psr::LineColFunOp LCF) const noexcept {
+
+template <> struct hash<psr::unittest::LineColFunOp> {
+  size_t operator()(psr::unittest::LineColFunOp LCF) const noexcept {
     return llvm::hash_combine(
         llvm::hash_value(std::make_pair(LCF.Line, LCF.Col)), LCF.InFunction,
         LCF.OpCode);
   }
 };
-template <> struct hash<psr::GlobalVar> {
-  size_t operator()(psr::GlobalVar GV) const noexcept {
+template <> struct hash<psr::unittest::GlobalVar> {
+  size_t operator()(psr::unittest::GlobalVar GV) const noexcept {
     return llvm::hash_value(GV.Name);
   }
 };
-template <> struct hash<psr::ArgNo> {
-  size_t operator()(psr::ArgNo Arg) const noexcept {
+template <> struct hash<psr::unittest::ArgNo> {
+  size_t operator()(psr::unittest::ArgNo Arg) const noexcept {
     return llvm::hash_value(Arg.Idx);
   }
 };
-template <> struct hash<psr::ArgInFun> {
-  size_t operator()(psr::ArgInFun Arg) const noexcept {
+template <> struct hash<psr::unittest::ArgInFun> {
+  size_t operator()(psr::unittest::ArgInFun Arg) const noexcept {
     return llvm::hash_combine(Arg.Idx, Arg.InFunction);
   }
 };
 
-template <> struct hash<psr::RetVal> {
-  size_t operator()(psr::RetVal Ret) const noexcept {
+template <> struct hash<psr::unittest::RetVal> {
+  size_t operator()(psr::unittest::RetVal Ret) const noexcept {
     return llvm::hash_value(Ret.InFunction);
   }
 };
 
-template <> struct hash<psr::RetStmt> {
-  size_t operator()(psr::RetStmt Ret) const noexcept {
+template <> struct hash<psr::unittest::RetStmt> {
+  size_t operator()(psr::unittest::RetStmt Ret) const noexcept {
     return llvm::hash_value(Ret.InFunction);
   }
 };
 
-template <> struct hash<psr::OperandOf> {
-  size_t operator()(psr::OperandOf Op) const noexcept {
+template <> struct hash<psr::unittest::OperandOf> {
+  size_t operator()(psr::unittest::OperandOf Op) const noexcept {
     return llvm::hash_combine(Op.OperandIndex,
-                              hash<psr::LineColFunOp>{}(Op.Inst));
+                              hash<psr::unittest::LineColFunOp>{}(Op.Inst));
   }
 };
 
-template <> struct hash<psr::TestingSrcLocation> {
-  size_t operator()(const psr::TestingSrcLocation &Loc) const noexcept {
-    return std::hash<psr::TestingSrcLocation::VarT>{}(Loc);
+template <> struct hash<psr::unittest::TestingSrcLocation> {
+  size_t
+  operator()(const psr::unittest::TestingSrcLocation &Loc) const noexcept {
+    return std::hash<psr::unittest::TestingSrcLocation::VarT>{}(Loc);
   }
 };
 } // namespace std
 
-namespace psr {
+namespace psr::unittest {
+
+template <typename PredFn = psr::TrueFn>
+[[nodiscard]] inline const llvm::Instruction *
+getInstAtOrNull(const llvm::Function *F, uint32_t ReqLine,
+                uint32_t ReqColumn = 0, PredFn Pred = {}) {
+  assert(F != nullptr);
+  for (const auto &I : llvm::instructions(F)) {
+    if (I.isDebugOrPseudoInst()) {
+      continue;
+    }
+
+    auto [Line, Column] = psr::getLineAndColFromIR(&I);
+    if (Line == ReqLine && (ReqColumn == 0 || ReqColumn == Column) &&
+        std::invoke(Pred, &I)) {
+      return &I;
+    }
+  }
+  return nullptr;
+}
 
 [[nodiscard]] inline const llvm::Value *
 testingLocInIR(TestingSrcLocation Loc,
@@ -328,20 +318,15 @@ testingLocInIR(TestingSrcLocation Loc,
                   "alternatively use LineColFun instead.");
             }
 
-            return unittest::getInstAtOrNull(InterestingFunction, LC.Line,
-                                             LC.Col);
+            return getInstAtOrNull(InterestingFunction, LC.Line, LC.Col);
           },
           [&](LineColFun LC) -> llvm ::Value const * {
             const auto *InFun = GetFunction(LC.InFunction);
-            return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col);
-          },
-          [&](LineColFunLambda LC) -> llvm ::Value const * {
-            const auto *InFun = GetFunction(LC.InFunction);
-            return unittest::getInstAtOrNull(InFun, LC.Line, LC.Col, LC.Lambda);
+            return getInstAtOrNull(InFun, LC.Line, LC.Col);
           },
           [&](LineColFunOp LC) -> llvm ::Value const * {
             const auto *InFun = GetFunction(LC.InFunction);
-            return unittest::getInstAtOrNull(
+            return getInstAtOrNull(
                 InFun, LC.Line, LC.Col,
                 [Op = LC.OpCode](const llvm::Instruction *Inst) {
                   // According to LLVM's doc on llvm::Value::getValueID(), there
@@ -429,10 +414,10 @@ convertTestingLocationSetInIR(
     const SetTy &Locs, const ProjectIRDBBase<LLVMProjectIRDB> &IRDB,
     const llvm::Function *InterestingFunction = nullptr) {
   std::set<const llvm::Value *> Ret;
-  llvm::transform(
-      Locs, std::inserter(Ret, Ret.end()), [&](TestingSrcLocation Loc) {
-        return testingLocInIR(std::move(Loc), IRDB, InterestingFunction);
-      });
+  llvm::transform(Locs, std::inserter(Ret, Ret.end()),
+                  [&](TestingSrcLocation Loc) {
+                    return testingLocInIR(Loc, IRDB, InterestingFunction);
+                  });
   return Ret;
 }
 
@@ -460,224 +445,6 @@ template <typename MapTy>
   return Ret;
 }
 
-struct SrcCodeLocationEntry {
-  SrcCodeLocationEntry(
-      uint32_t Line, uint32_t Column,
-      std::variant<const llvm::Function *, const llvm::GlobalVariable *>
-          Context)
-      : Line(Line), Column(Column), Context(Context) {}
-  SrcCodeLocationEntry(
-      uint32_t Line, uint32_t Column,
-      std::variant<const llvm::Function *, const llvm::GlobalVariable *>
-          Context,
-      std::function<bool(const llvm::Instruction *Inst)> LambdaFunc)
-      : Line(Line), Column(Column), LambdaFunc(std::move(LambdaFunc)),
-        Context(Context) {}
-  uint32_t Line = 0;
-  uint32_t Column = 0;
-  std::function<bool(const llvm::Instruction *Inst)> LambdaFunc = nullptr;
-  std::variant<const llvm::Function *, const llvm::GlobalVariable *> Context;
-
-  bool operator==(const SrcCodeLocationEntry &Other) const {
-    return Line == Other.Line && Column == Other.Column;
-  }
-  bool operator<(const SrcCodeLocationEntry &Other) const {
-    return std::tie(Line, Column) < std::tie(Other.Line, Other.Column);
-  }
-};
-
-inline const llvm::Instruction *
-getGroundTruthInst(const SrcCodeLocationEntry &Entry) {
-  if (const auto *GlobalVar =
-          std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
-    return llvm::dyn_cast_or_null<llvm::Instruction>(*GlobalVar);
-  }
-
-  if (const auto *Func = std::get_if<const llvm::Function *>(&Entry.Context)) {
-    if (Entry.LambdaFunc) {
-      return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column,
-                                       Entry.LambdaFunc);
-    }
-
-    return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column);
-  }
-
-  llvm::report_fatal_error("Unknown variant type.\n");
-}
-
-inline const llvm::Instruction *
-getInstFromEntryOrNull(const SrcCodeLocationEntry &Entry) {
-  if (const auto *GlobalVar =
-          std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
-    return llvm::dyn_cast_or_null<llvm::Instruction>(*GlobalVar);
-  }
-
-  if (const auto *Func = std::get_if<const llvm::Function *>(&Entry.Context)) {
-    if (Entry.LambdaFunc) {
-      return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column,
-                                       Entry.LambdaFunc);
-    }
-    return unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column);
-  }
-
-  llvm::report_fatal_error("Unknown variant type.\n");
-}
-
-inline const llvm::Value *
-getValueFromEntryOrNull(const SrcCodeLocationEntry &Entry) {
-  if (const auto *GlobalVar =
-          std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
-    return llvm::dyn_cast_or_null<llvm::Value>(*GlobalVar);
-  }
-
-  if (const auto *Func = std::get_if<const llvm::Function *>(&Entry.Context)) {
-    if (Entry.LambdaFunc) {
-      if (const auto *Inst = unittest::getInstAtOrNull(
-              *Func, Entry.Line, Entry.Column, Entry.LambdaFunc)) {
-        return llvm::dyn_cast_or_null<llvm::Value>(Inst);
-      }
-    }
-    if (const auto *Inst =
-            unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column)) {
-      return llvm::dyn_cast_or_null<llvm::Value>(Inst);
-    }
-  }
-
-  llvm::report_fatal_error("Unknown variant type.\n");
-}
-
-inline std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-getGroundTruthInsts(
-    const std::set<std::tuple<SrcCodeLocationEntry, SrcCodeLocationEntry>>
-        &GroundTruth,
-    bool PrintData = false) {
-  std::set<std::tuple<const llvm::Instruction *, const llvm::Value *>>
-      GroundTruthEntries;
-
-  for (const auto &Entry : GroundTruth) {
-    const auto &FirstEntry = std::get<0>(Entry);
-    const auto &SecondEntry = std::get<1>(Entry);
-    const llvm::Instruction *CurrInst = getInstFromEntryOrNull(FirstEntry);
-    const llvm::Value *CurrVal = getValueFromEntryOrNull(SecondEntry);
-
-    if (!CurrInst) {
-      if (PrintData) {
-        llvm::outs() << "FirstEntry.Line: " << FirstEntry.Line
-                     << " - FirstEntry.Column: " << FirstEntry.Column << "\n";
-      }
-      llvm::report_fatal_error("Couldn't cast first entry to instruction\n");
-      continue;
-    }
-
-    if (!CurrVal) {
-      if (PrintData) {
-        llvm::outs() << "SecondEntry.Line: " << SecondEntry.Line
-                     << " - SecondEntry.Column: " << SecondEntry.Column << "\n";
-      }
-      llvm::report_fatal_error("Couldn't cast second entry to value\n");
-      continue;
-    }
-
-    if (PrintData) {
-      llvm::outs() << "FirstEntry.Line: " << FirstEntry.Line
-                   << " - FirstEntry.Column: " << FirstEntry.Column << "\n";
-      llvm::outs() << "CurrInst: " << CurrInst << "\n";
-      llvm::outs() << "llvmIRToString(CurrInst): " << llvmIRToString(CurrInst)
-                   << "\n";
-      llvm::outs() << "\nSecondEntry.Line: " << SecondEntry.Line
-                   << " - SecondEntry.Column: " << SecondEntry.Column << "\n";
-      llvm::outs() << "CurrVal: " << CurrVal << "\n";
-      llvm::outs() << "llvmIRToString(CurrVal): " << llvmIRToString(CurrVal)
-                   << "\n";
-    }
-    GroundTruthEntries.insert({CurrInst, CurrVal});
-  }
-
-  return GroundTruthEntries;
-};
-
-inline std::set<const llvm::Instruction *>
-getGroundTruthInsts(const std::set<SrcCodeLocationEntry> &GroundTruth) {
-  std::set<const llvm::Instruction *> GroundTruthEntries;
-
-  for (const auto &Entry : GroundTruth) {
-    if (std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
-      llvm::report_fatal_error("Cannot cast global variable to Instruction\n");
-    }
-
-    if (const auto *Func =
-            std::get_if<const llvm::Function *>(&Entry.Context)) {
-      if (Entry.LambdaFunc) {
-        GroundTruthEntries.insert(unittest::getInstAtOrNull(
-            *Func, Entry.Line, Entry.Column, Entry.LambdaFunc));
-      } else {
-        GroundTruthEntries.insert(
-            unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column));
-      }
-      continue;
-    }
-    llvm::report_fatal_error("Unknown variant type.\n");
-  }
-
-  return GroundTruthEntries;
-};
-
-inline std::set<const llvm::Value *>
-getGroundTruthValues(const std::set<SrcCodeLocationEntry> &GroundTruth) {
-  std::set<const llvm::Value *> GroundTruthEntries;
-
-  for (const auto &Entry : GroundTruth) {
-    if (const auto *Func =
-            std::get_if<const llvm::Function *>(&Entry.Context)) {
-      if (Entry.LambdaFunc) {
-        if (const auto *FuncVariantInst = unittest::getInstAtOrNull(
-                *Func, Entry.Line, Entry.Column, Entry.LambdaFunc)) {
-          if (const auto *CurrVal =
-                  llvm::dyn_cast_or_null<llvm::Value>(FuncVariantInst)) {
-            GroundTruthEntries.insert(CurrVal);
-            continue;
-          }
-          llvm::errs()
-              << "FuncVariantInst Instruction couldn't be cast to value.\n";
-        }
-
-        continue;
-      }
-
-      if (const auto *FuncVariantInst =
-              unittest::getInstAtOrNull(*Func, Entry.Line, Entry.Column)) {
-        llvm::outs() << "FuncVariantInst: " << FuncVariantInst << "\n";
-        llvm::outs() << "*FuncVariantInst: " << *FuncVariantInst << "\n";
-        if (const auto *CurrVal =
-                llvm::dyn_cast_or_null<llvm::Value>(FuncVariantInst)) {
-          GroundTruthEntries.insert(CurrVal);
-          continue;
-        }
-
-        llvm::errs()
-            << "FuncVariantInst Instruction couldn't be cast to value.\n";
-      } else {
-        llvm::errs() << "getInstAtOrNull returned null\n";
-        llvm::errs() << "Entry.Line:   " << Entry.Line << "\n";
-        llvm::errs() << "Entry.Column: " << Entry.Column << "\n";
-        llvm::errs() << "*Func: " << **Func << "\n";
-      }
-
-      continue;
-    }
-
-    if (const auto *GlobalVar =
-            std::get_if<const llvm::GlobalVariable *>(&Entry.Context)) {
-      GroundTruthEntries.insert(llvm::cast<llvm::Value>(*GlobalVar));
-      continue;
-    }
-
-    llvm::report_fatal_error("Unknown variant type.\n");
-  }
-
-  return GroundTruthEntries;
-};
-
-} // namespace psr
+} // namespace psr::unittest
 
 #endif

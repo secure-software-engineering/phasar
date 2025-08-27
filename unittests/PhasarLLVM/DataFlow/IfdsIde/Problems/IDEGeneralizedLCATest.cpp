@@ -10,24 +10,17 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValue.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
 
-#include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/raw_ostream.h"
 
-#include "SourceMapping.h"
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -36,6 +29,7 @@
 
 using namespace psr;
 using namespace psr::glca;
+using namespace psr::unittest;
 
 using l_t = IDEGeneralizedLCA::l_t;
 using groundTruth_t = std::tuple<l_t, TestingSrcLocation, TestingSrcLocation>;

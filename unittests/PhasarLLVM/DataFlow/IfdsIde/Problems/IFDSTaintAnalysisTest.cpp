@@ -20,6 +20,7 @@
 #include "gtest/gtest.h"
 
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 
