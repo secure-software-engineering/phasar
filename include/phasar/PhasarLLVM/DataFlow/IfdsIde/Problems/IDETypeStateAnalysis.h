@@ -23,9 +23,12 @@
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Metadata.h"
 #include "llvm/IR/Value.h"
 
 #include <set>
@@ -81,6 +84,10 @@ protected:
   isFactoryFunction(llvm::StringRef Name) const noexcept = 0;
   [[nodiscard]] virtual bool
   isTypeNameOfInterest(llvm::StringRef Name) const noexcept = 0;
+  [[nodiscard]] virtual bool
+  isTypeTagOfInterest(llvm::dwarf::Tag CompareTag) const noexcept = 0;
+  [[nodiscard]] virtual bool
+  isTypeOfInterest(const llvm::Metadata *MDOp) const noexcept = 0;
 
   /**
    * @brief Returns all alloca's that are (indirect) aliases of V.
@@ -115,7 +122,7 @@ protected:
   container_type getLocalAliasesAndAllocas(d_t V, llvm::StringRef Fname);
 
   /**
-   * @brief Checks if the type machtes the type of interest.
+   * @brief Checks if the type matches the type of interest.
    */
   bool hasMatchingType(d_t V);
 
@@ -195,8 +202,7 @@ private:
     }
 
     [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>,
-                                             EmptyType, l_t>
-        BotElement{};
+                                             EmptyType, l_t> BotElement{};
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunctionComposer> This,
                                   const EdgeFunction<l_t> &OtherFunction) {
@@ -510,6 +516,18 @@ public:
   isTypeNameOfInterest(llvm::StringRef Name) const noexcept override {
     return Name.contains(TSD->getTypeNameOfInterest());
   }
+
+  [[nodiscard]] bool
+  isTypeTagOfInterest(llvm::dwarf::Tag CompareTag) const noexcept override {
+    llvm::outs() << "TSD Tag: "
+                 << llvm::dwarf::TagString(TSD->getTypeTagOfInterest()) << "\n";
+    return TSD->getTypeTagOfInterest() == CompareTag;
+  }
+
+  [[nodiscard]] bool
+  isTypeOfInterest(const llvm::Metadata *MDOp) const noexcept override {
+    return llvm::isa<TSD->getTypeOfInterest()>(MDOp);
+  };
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {

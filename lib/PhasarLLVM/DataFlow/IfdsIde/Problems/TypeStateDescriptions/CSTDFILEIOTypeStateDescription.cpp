@@ -12,6 +12,9 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 
 #include "llvm/ADT/StringMap.h"
+#include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/Metadata.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <string>
@@ -128,6 +131,16 @@ CSTDFILEIOTypeStateDescription::getNextState(llvm::StringRef Tok,
 
 std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
   return "struct._IO_FILE";
+}
+
+llvm::dwarf::Tag CSTDFILEIOTypeStateDescription::getTypeTagOfInterest() const {
+  // TODO: ask fabian if this tag is the best fit. Afaik there is no IOFILE tag
+  return llvm::dwarf::Tag::DW_TAG_file_type;
+}
+
+llvm::Metadata::MetadataKind
+CSTDFILEIOTypeStateDescription::getTypeOfInterest() const {
+  return llvm::Metadata::DIFileKind;
 }
 
 std::set<int>

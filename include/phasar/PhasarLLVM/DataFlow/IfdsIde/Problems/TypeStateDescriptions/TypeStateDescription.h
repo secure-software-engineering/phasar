@@ -12,6 +12,8 @@
 
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 
+#include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/InstrTypes.h"
 
 #include <set>
@@ -26,6 +28,9 @@ struct TypeStateDescriptionBase {
   [[nodiscard]] virtual bool isConsumingFunction(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual bool isAPIFunction(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual std::string getTypeNameOfInterest() const = 0;
+  [[nodiscard]] virtual llvm::dwarf::Tag getTypeTagOfInterest() const = 0;
+  [[nodiscard]] virtual llvm::Metadata::MetadataKind
+  getTypeOfInterest() const = 0;
   [[nodiscard]] virtual std::set<int>
   getConsumerParamIdx(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual std::set<int>

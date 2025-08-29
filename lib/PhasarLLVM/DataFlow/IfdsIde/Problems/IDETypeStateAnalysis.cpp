@@ -29,6 +29,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Metadata.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -307,9 +308,44 @@ bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
   // - Can I use stripPointerTypes() for all cases below (Alloca, etc)?
   // - How does AllocaInst, LoadInst, etc work under the hood?
   //
+  //
+  // - Dwarf Tags seem to be ill fit for what I am trying to do here. What other
+  // info can I use?
+  //
+  //
   // Run
   // ./unittests/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETSAnalysisFileIOTest
   // for tests, make sure they're compiled with debug info!
+
+  if (V->getType()->isPointerTy()) {
+    if (const auto *DITy = getVarTypeFromIR(V)) {
+      // llvm::outs() << "DITy is: " << llvm::dwarf::TagString(DITy->getTag())
+      //              << "\n";
+      if (const auto *BaseDITy = stripPointerTypes(DITy)) {
+        // llvm::outs() << "BaseDITy is: "
+        //              << llvm::dwarf::TagString(BaseDITy->getTag()) << "\n";
+
+        if (const auto &Operand = BaseDITy->getOperand(0)) {
+          if (const auto *OpType = Operand.get()) {
+            return isTypeOfInterest(OpType);
+          }
+          // llvm::outs() << *(BaseDITy->getOperand(0)) << "\n";
+          // return isTypeOfInterest(Operand);
+          // if (llvm::isa<llvm::DIFile>(BaseDITy->getOperand(0))) {
+          //   llvm::outs() << "Is a DIFile!!!\n";
+          // }
+        }
+        // return isTypeOfInterest(BaseDITy->getTag());
+      }
+
+      return false;
+    }
+
+    return false;
+  }
+
+  return false;
+
 #if false
   // General case
   if (V->getType()->isPointerTy() && !V->getType()->isOpaquePointerTy()) {
@@ -318,7 +354,6 @@ bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
     }
     // fallthrough
   }
-#endif
 
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -352,6 +387,7 @@ bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
     return false;
   }
   return false;
+#endif
 #if false
   if (const auto *DITy = getVarTypeFromIR(V)) {
 

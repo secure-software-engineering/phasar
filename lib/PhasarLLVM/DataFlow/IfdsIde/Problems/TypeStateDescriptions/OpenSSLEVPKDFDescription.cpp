@@ -11,6 +11,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
+#include "llvm/IR/Metadata.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <map>
@@ -75,6 +76,19 @@ OpenSSLEVPKDFDescription::getNextState(llvm::StringRef Tok,
 
 std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
   return "struct.evp_kdf_st";
+}
+
+llvm::dwarf::Tag OpenSSLEVPKDFDescription::getTypeTagOfInterest() const {
+  // TODO: ask Fabian what a good tag would be. The current one is just a
+  // placeholder
+  return llvm::dwarf::Tag::DW_TAG_structure_type;
+}
+
+llvm::Metadata::MetadataKind
+OpenSSLEVPKDFDescription::getTypeOfInterest() const {
+  // TODO: ask Fabian what MetadataKind could work here, if any.
+  // Return type here is a placeholder.
+  return llvm::Metadata::GenericDINodeKind;
 }
 
 std::set<int>

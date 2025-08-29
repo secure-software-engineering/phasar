@@ -13,6 +13,8 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
+#include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <map>
@@ -71,6 +73,9 @@ public:
   getNextState(llvm::StringRef Tok,
                TypeStateDescription::State S) const override;
   [[nodiscard]] std::string getTypeNameOfInterest() const override;
+  [[nodiscard]] llvm::dwarf::Tag getTypeTagOfInterest() const override;
+  [[nodiscard]]
+  llvm::Metadata::MetadataKind getTypeOfInterest() const override;
   [[nodiscard]] std::set<int>
   getConsumerParamIdx(llvm::StringRef F) const override;
   [[nodiscard]] std::set<int>
