@@ -135,7 +135,7 @@ std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
 
 llvm::dwarf::Tag CSTDFILEIOTypeStateDescription::getTypeTagOfInterest() const {
   // TODO: ask fabian if this tag is the best fit. Afaik there is no IOFILE tag
-  return llvm::dwarf::Tag::DW_TAG_file_type;
+  return llvm::dwarf::Tag::DW_TAG_structure_type;
 }
 
 llvm::Metadata::MetadataKind

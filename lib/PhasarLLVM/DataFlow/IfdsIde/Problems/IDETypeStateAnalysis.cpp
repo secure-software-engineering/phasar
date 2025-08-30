@@ -301,6 +301,15 @@ bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Type *Ty) {
   return isTypeNameOfInterest(Str);
 }
 
+bool IDETypeStateAnalysisBase::checkType(const llvm::Value *Value) {
+  if (const auto *DITy = getVarTypeFromIR(Value)) {
+    return isTypeTagOfInterest(DITy->getTag()) &&
+           isTypeNameOfInterest(DITy->getName());
+  }
+
+  return false;
+}
+
 bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
   // TODO:
   // - determine if general case is even needed anymore, or if we only need
@@ -317,30 +326,47 @@ bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
   // ./unittests/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETSAnalysisFileIOTest
   // for tests, make sure they're compiled with debug info!
 
+  // General case
   if (V->getType()->isPointerTy()) {
     if (const auto *DITy = getVarTypeFromIR(V)) {
-      // llvm::outs() << "DITy is: " << llvm::dwarf::TagString(DITy->getTag())
-      //              << "\n";
       if (const auto *BaseDITy = stripPointerTypes(DITy)) {
-        // llvm::outs() << "BaseDITy is: "
-        //              << llvm::dwarf::TagString(BaseDITy->getTag()) << "\n";
-
-        if (const auto &Operand = BaseDITy->getOperand(0)) {
-          if (const auto *OpType = Operand.get()) {
-            return isTypeOfInterest(OpType);
-          }
-          // llvm::outs() << *(BaseDITy->getOperand(0)) << "\n";
-          // return isTypeOfInterest(Operand);
-          // if (llvm::isa<llvm::DIFile>(BaseDITy->getOperand(0))) {
-          //   llvm::outs() << "Is a DIFile!!!\n";
-          // }
-        }
-        // return isTypeOfInterest(BaseDITy->getTag());
+        llvm::outs() << "-------------------------------\n";
+        llvm::outs() << "BaseDITy->getTag(): "
+                     << llvm::dwarf::TagString(BaseDITy->getTag()) << "\n";
+        llvm::outs() << "BaseDITy->getName(): " << BaseDITy->getName() << "\n";
+        return isTypeTagOfInterest(BaseDITy->getTag()) &&
+               isTypeNameOfInterest(BaseDITy->getName());
       }
-
-      return false;
     }
+    return false;
+  }
 
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
+    if (Alloca->getAllocatedType()->isPointerTy()) {
+      checkType(Alloca);
+    }
+    return false;
+  }
+
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+    if (Load->getType()->isPointerTy()) {
+      checkType(Load);
+    }
+    return false;
+  }
+
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
+    if (Store->getValueOperand()->getType()->isPointerTy()) {
+#if false
+      if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
+          hasMatchingTypeName(Store->getValueOperand()
+                                  ->getType()
+                                  ->getNonOpaquePointerElementType())) {
+        return true;
+      }
+#endif
+      checkType(Store->getValueOperand());
+    }
     return false;
   }
 

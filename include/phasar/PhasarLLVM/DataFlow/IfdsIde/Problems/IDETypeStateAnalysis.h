@@ -131,6 +131,7 @@ private:
     return generateFlow(FactToGenerate, LLVMZeroValue::getInstance());
   }
 
+  bool checkType(const llvm::Value *Value);
   bool hasMatchingTypeName(const llvm::Type *Ty);
 
   std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
@@ -514,19 +515,22 @@ public:
 
   [[nodiscard]] bool
   isTypeNameOfInterest(llvm::StringRef Name) const noexcept override {
+    llvm::outs() << "TSD->getTypeNameOfInterest(): "
+                 << TSD->getTypeNameOfInterest() << "\n";
     return Name.contains(TSD->getTypeNameOfInterest());
   }
 
   [[nodiscard]] bool
   isTypeTagOfInterest(llvm::dwarf::Tag CompareTag) const noexcept override {
-    llvm::outs() << "TSD Tag: "
+    llvm::outs() << "TSD->getTypeTagOfInterest(): "
                  << llvm::dwarf::TagString(TSD->getTypeTagOfInterest()) << "\n";
     return TSD->getTypeTagOfInterest() == CompareTag;
   }
 
   [[nodiscard]] bool
   isTypeOfInterest(const llvm::Metadata *MDOp) const noexcept override {
-    return llvm::isa<TSD->getTypeOfInterest()>(MDOp);
+    // return llvm::isa<TSD->getTypeOfInterest()>(MDOp);
+    return false;
   };
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
