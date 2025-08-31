@@ -8,6 +8,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/Utilities.h"
@@ -55,6 +56,13 @@ void Builder::initWorkList(
     llvm::ArrayRef<const llvm::Function *> EntryPointFns) {
   FunctionWL.reserve(IRDB->getNumFunctions());
   FunctionWL.append(EntryPointFns.begin(), EntryPointFns.end());
+
+  IF_LOG_LEVEL_ENABLED(DEBUG, {
+    for (const auto *F : FunctionWL) {
+      PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
+                           "Entry function " << F->getName());
+    }
+  });
 
   CGBuilder.reserve(IRDB->getNumFunctions());
 }
@@ -111,8 +119,8 @@ static bool fillPossibleTargets(
     PossibleTargets.insert(StaticCallee);
 
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                         "Found static call-site: " << "  "
-                                                    << llvmIRToString(CS));
+                         "Found static call-site: "
+                             << "  " << llvmIRToString(CS));
     return true;
   }
 
@@ -122,8 +130,8 @@ static bool fillPossibleTargets(
 
   // the function call must be resolved dynamically
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                       "Found dynamic call-site: " << "  "
-                                                   << llvmIRToString(CS));
+                       "Found dynamic call-site: "
+                           << "  " << llvmIRToString(CS));
 
   PossibleTargets = Res.resolveIndirectCall(CS);
 

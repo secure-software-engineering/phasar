@@ -109,8 +109,9 @@ std::optional<llvm::StringRef> psr::extractDesugaredTypeNameOfInterest(
   auto renamedName = staticRename(OriginalTOI, ForwardRenaming);
 
   for (auto F : IRDB.getAllFunctions()) {
-    if (auto name = getBaseTypeNameIfUsingTypeDef(renamedName, F))
+    if (auto name = getBaseTypeNameIfUsingTypeDef(renamedName, F)) {
       return *name;
+    }
   }
   return std::nullopt;
 }

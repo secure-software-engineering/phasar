@@ -18,7 +18,6 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMSourceManager.h"
-#include "phasar/PhasarLLVM/Utils/SourceMgrPrinter.h"
 #include "phasar/PhasarLLVM/VarAlyzerExperiments/VarAlyzerUtils.h"
 #include "phasar/Utils/Logger.h"
 
@@ -71,39 +70,40 @@ void emitTextReport(const LLVMProjectIRDB &IRDB, SolverResultsT &&SR,
 
   llvm::DenseSet<const llvm::Value *> Seen;
 
-  for (const auto &F : IRDB.getAllFunctions()) {
-    for (const auto &I : llvm::instructions(F)) {
-      const auto &Results = SR.resultsAt(&I, true);
+  for (const auto *I : IRDB.getAllInstructions()) {
+    if (I->isDebugOrPseudoInst()) {
+      continue;
+    }
+    const auto &Results = SR.resultsAt(I);
 
-      for (const auto &[Res, CondL] : Results) {
-        if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Res)) {
-          bool HasError = false;
-          for (const auto &[Cond, TState] : CondL) {
-            if (TState == Desc.error() &&
-                (HasError || Seen.insert(Res).second)) {
-              HasError = true;
-              // ERROR STATE DETECTED
-              const auto *Inst = I.getPrevNonDebugInstruction()
-                                     ? I.getPrevNonDebugInstruction()
-                                     : &I;
-              if (auto Loc = SrcMgr.getDebugLocation(Inst)) {
-                auto VarName = psr::getVarNameFromIR(Res);
-                if (VarName.empty()) {
-                  VarName = llvmIRToString(Res);
-                }
-                SrcMgr.print(llvm::errs(), *Loc, llvm::SourceMgr::DK_Warning,
-                             "Detected type-state error for object '" +
-                                 llvm::Twine(VarName) +
-                                 "' under pre-processor condition '" +
-                                 llvm::Twine(to_string(Cond)) + "'");
-              } else {
-                llvm::errs()
-                    << "Detected type-state error at " << llvmIRToString(&I)
-                    << " for object '" << llvmIRToShortString(Res)
-                    << "' under pre-processor condition '" << to_string(Cond)
-                    << "'\n";
-              }
+    for (const auto &[Res, CondL] : Results) {
+      if (!llvm::isa<llvm::AllocaInst>(Res)) {
+        continue;
+      }
+
+      bool HasError = false;
+      for (const auto &[Cond, TState] : CondL) {
+        if (TState == Desc.error() && (HasError || Seen.insert(Res).second)) {
+          HasError = true;
+          // ERROR STATE DETECTED
+          const auto *Inst = I->getPrevNonDebugInstruction()
+                                 ? I->getPrevNonDebugInstruction()
+                                 : I;
+          if (auto Loc = SrcMgr.getDebugLocation(Inst)) {
+            auto VarName = psr::getVarNameFromIR(Res);
+            if (VarName.empty()) {
+              VarName = llvmIRToString(Res);
             }
+            SrcMgr.print(llvm::errs(), *Loc, llvm::SourceMgr::DK_Warning,
+                         "Detected type-state error for object '" +
+                             llvm::Twine(VarName) +
+                             "' under pre-processor condition '" +
+                             llvm::Twine(to_string(Cond)) + "'");
+          } else {
+            llvm::errs() << "Detected type-state error at " << llvmIRToString(I)
+                         << " for object '" << llvmIRToShortString(Res)
+                         << "' under pre-processor condition '"
+                         << to_string(Cond) << "'\n";
           }
         }
       }
@@ -148,30 +148,20 @@ template <TypeStateAnalysisKind TSAKind>
 void doAnalysis(const LLVMProjectIRDB &IRDB, LLVMAliasInfoRef PT,
                 const LLVMBasedICFG &ICF, llvm::StringRef CtorName,
                 const stringstringmap_t &ForwardRenaming,
-                const stringstringmap_t &BackwardRenaming) {
+                const stringstringmap_t &BackwardRenaming,
+                llvm::ArrayRef<std::string> AnalysisEntryPoints) {
   auto TypeNameOfInterest =
       getTypeNameOfInterest<TSAKind>(IRDB, ForwardRenaming);
-  // if (typeNameOfInterest == "") {
-  //   return 0;
-  // }
-  auto CipherCTXDesc = getTSADesc<TSAKind>(TypeNameOfInterest, ForwardRenaming);
-  auto AnalysisEntryPoints = getEntryPointsForCallersOfDesugared(
-      CtorName, IRDB, ICF, ForwardRenaming, TypeNameOfInterest);
 
-  if (AnalysisEntryPoints.empty()) {
-    // std::cerr << "warning: could not retrieve analysis' entry points
-    // because "
-    //  "the module does not use the EVP library\n";
-    return;
-  }
-  IDETypeStateAnalysis Problem(&IRDB, PT, &CipherCTXDesc, AnalysisEntryPoints);
+  auto TSADesc = getTSADesc<TSAKind>(TypeNameOfInterest, ForwardRenaming);
+
+  IDETypeStateAnalysis Problem(&IRDB, PT, &TSADesc, AnalysisEntryPoints);
   IDEVarTabulationProblem VarProblem(Problem, ICF, &BackwardRenaming);
-  IDESolver Solver(VarProblem, &ICF);
-  Solver.solve();
+  auto Results = solveIDEProblem(VarProblem, ICF);
   if (EmitRawResults) {
-    Solver.dumpResults();
+    Results.dumpResults(ICF);
   } else {
-    emitTextReport(IRDB, Solver.getSolverResults(), CipherCTXDesc);
+    emitTextReport(IRDB, Results, TSADesc);
   }
 }
 
@@ -194,16 +184,30 @@ int main(int argc, char **argv) {
   DIBasedTypeHierarchy TH(IR);
   LLVMAliasSet PT(&IR);
 
-  LLVMBasedICFG ICF(&IR, CallGraphAnalysisType::OTF, getDefaultEntryPoints(IR),
-                    &TH, &PT);
+  std::string Main;
+  if (auto It = ForwardRenaming.find("main"); It != ForwardRenaming.end()) {
+    Main = It->second.str();
+  } else {
+    Main = "__ALL__";
+  }
+  auto AnalysisEntryPoints = std::vector<std::string>{{std::move(Main)}};
+
+  // Note: Cannot use IncludeGlobals, because the generated entrypoints-selector
+  // function can currently only call parameterless functions, except main.
+  // Since main is renamed to __main_123 or similar, it refuses to create a call
+  // to main.
+  LLVMBasedICFG ICF(&IR, CallGraphAnalysisType::OTF, AnalysisEntryPoints, &TH,
+                    &PT, Soundness::Soundy, /*IncludeGlobals=*/false);
+
   if (AnalysisKind == TypeStateAnalysisKind::Cipher) {
     doAnalysis<TypeStateAnalysisKind::Cipher>(
-        IR, &PT, ICF, "EVP_CIPHER_CTX_new", ForwardRenaming, BackwardRenaming);
-  }
-  if (AnalysisKind == TypeStateAnalysisKind::MessageDigest ||
-      AnalysisKind == TypeStateAnalysisKind::MAC) {
+        IR, &PT, ICF, "EVP_CIPHER_CTX_new", ForwardRenaming, BackwardRenaming,
+        AnalysisEntryPoints);
+  } else if (AnalysisKind == TypeStateAnalysisKind::MessageDigest ||
+             AnalysisKind == TypeStateAnalysisKind::MAC) {
     doAnalysis<TypeStateAnalysisKind::MessageDigest>(
-        IR, &PT, ICF, "EVP_MD_CTX_new", ForwardRenaming, BackwardRenaming);
+        IR, &PT, ICF, "EVP_MD_CTX_new", ForwardRenaming, BackwardRenaming,
+        AnalysisEntryPoints);
   }
   return 0;
 }
