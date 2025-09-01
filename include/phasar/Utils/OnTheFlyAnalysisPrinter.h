@@ -11,6 +11,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+
 namespace psr {
 
 /// This class implements the AnalysisPrinterBase that prints the analysis

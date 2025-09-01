@@ -20,6 +20,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/Utils/DefaultAnalysisPrinterSelector.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/SemiRing.h"
@@ -186,17 +187,17 @@ protected:
         std::move(FactToGenerate), getZeroValue());
   }
 
-  template <typename L = l_t>
-  std::enable_if_t<!std::is_same_v<std::decay_t<L>, psr::BinaryDomain>>
-  onResult(n_t Instr, d_t DfFact, l_t LatticeElement,
-           DataFlowAnalysisType AnalysisType) {
-    Printer->onResult(Instr, std::move(DfFact), std::move(LatticeElement),
+  template <typename D = d_t, typename L = l_t>
+  void onResult(n_t Instr, D &&DfFact, L &&LatticeElement,
+                DataFlowAnalysisType AnalysisType) {
+    Printer->onResult(Instr, PSR_FWD(DfFact), PSR_FWD(LatticeElement),
                       AnalysisType);
   }
-  template <typename L = l_t>
-  std::enable_if_t<std::is_same_v<std::decay_t<L>, psr::BinaryDomain>>
-  onResult(n_t Instr, d_t DfFact, DataFlowAnalysisType AnalysisType) {
-    Printer->onResult(Instr, std::move(DfFact), AnalysisType);
+
+  template <typename D = d_t, typename L = l_t>
+  std::enable_if_t<std::is_same_v<L, psr::BinaryDomain>>
+  onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
+    Printer->onResult(Instr, PSR_FWD(DfFact), AnalysisType);
   }
 
   /// Seeds that just start with ZeroValue and bottomElement() at the starting

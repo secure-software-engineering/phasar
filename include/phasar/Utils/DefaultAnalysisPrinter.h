@@ -3,6 +3,7 @@
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -22,9 +23,10 @@ template <typename AnalysisDomainTy> struct Warning {
   l_t LatticeElement;
   DataFlowAnalysisType AnalysisType;
 
-  // Constructor
-  Warning(n_t Inst, d_t DfFact, l_t Lattice,
-          DataFlowAnalysisType DfAnalysisType)
+  // Constructor -- With C++20, we can get rid of it; then the below
+  // emplace_back works on aggregates too
+  constexpr Warning(n_t Inst, ByMoveRef<d_t> DfFact, ByMoveRef<l_t> Lattice,
+                    DataFlowAnalysisType DfAnalysisType) noexcept
       : Instr(std::move(Inst)), Fact(std::move(DfFact)),
         LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
 };

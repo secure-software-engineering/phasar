@@ -24,21 +24,20 @@ public:
   DefaultLLVMAnalysisPrinter() noexcept = default;
 
 private:
-  template <typename D = d_t>
   static std::optional<DebugLocation> getDbgLoc(n_t Instr,
                                                 ByConstRef<d_t> DfFact) {
     auto Ret = getDebugLocation(Instr);
-    if constexpr (std::is_convertible_v<ByConstRef<D>, const llvm::Value *>) {
+    if constexpr (std::is_convertible_v<ByConstRef<d_t>, const llvm::Value *>) {
       if (!Ret) {
         Ret = getDebugLocation(static_cast<const llvm::Value *>(DfFact));
       }
     }
     return Ret;
   }
-  template <typename D = d_t>
+
   void printVariables(llvm::raw_ostream &OS,
                       llvm::ArrayRef<Warning<AnalysisDomainTy>> Results) {
-    if constexpr (std::is_convertible_v<const D &, const llvm::Value *>) {
+    if constexpr (std::is_convertible_v<const d_t &, const llvm::Value *>) {
       bool HasVariable = false;
       for (const auto &Warn : Results) {
         if (auto VarName = getVarNameFromIR(Warn.Fact); !VarName.empty()) {
@@ -102,6 +101,8 @@ private:
       }
       OS << '\n';
     }
+
+    DbgResultsEntries.clear();
     NonDbgResultsEntries.clear();
   }
 
