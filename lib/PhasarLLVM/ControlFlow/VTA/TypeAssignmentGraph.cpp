@@ -7,11 +7,10 @@
  *     Fabian Schiebel and other
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/ControlFlow/TypeAssignmentGraph.h"
+#include "phasar/PhasarLLVM/ControlFlow/VTA/TypeAssignmentGraph.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/PhasarLLVM/Utils/FilteredAliasSet.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -24,7 +23,6 @@
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
-#include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -45,11 +43,7 @@
 #include <variant>
 
 using namespace psr;
-using namespace psr::analysis::call_graph;
-
-using TAGAliasHandler = llvm::function_ref<void(const llvm::Value *)>;
-using TAGAliasInfo = llvm::function_ref<void(
-    const llvm::Value *, const llvm::Instruction *, TAGAliasHandler)>;
+using namespace psr::vta;
 
 static void printNodeImpl(llvm::raw_ostream &OS, Variable Var) {
   OS << "var-";
@@ -67,14 +61,12 @@ static void printNodeImpl(llvm::raw_ostream &OS, Return Ret) {
   OS.write_escaped(Ret.Fun->getName());
 }
 
-void analysis::call_graph::printNode(llvm::raw_ostream &OS, TAGNode TN) {
+void vta::printNode(llvm::raw_ostream &OS, TAGNode TN) {
   std::visit([&OS](auto Nod) { printNodeImpl(OS, Nod); }, TN.Label);
 }
 
 static llvm::SmallBitVector
 getPointerIndicesOfType(llvm::Type *Ty, const llvm::DataLayout &DL) {
-  /// NOTE: Copied from SiLLiS
-
   llvm::SmallBitVector Ret;
 
   auto PointerSize = DL.getPointerSize();
@@ -278,7 +270,7 @@ static void handleGEP(const llvm::GetElementPtrInst *GEP,
 }
 
 static bool handleEntryForStore(const llvm::StoreInst *Store,
-                                TypeAssignmentGraph &TAG, TAGAliasInfo AI,
+                                TypeAssignmentGraph &TAG, AliasInfoTy AI,
                                 const llvm::DataLayout &DL) {
   const auto *Base = Store->getValueOperand()->stripPointerCastsAndAliases();
   bool IsEntry = isVTableOrFun(Base);
@@ -317,7 +309,7 @@ static bool handleEntryForStore(const llvm::StoreInst *Store,
 }
 
 static void handleStore(const llvm::StoreInst *Store, TypeAssignmentGraph &TAG,
-                        TAGAliasInfo AI, const llvm::DataLayout &DL) {
+                        AliasInfoTy AI, const llvm::DataLayout &DL) {
 
   if (handleEntryForStore(Store, TAG, AI, DL)) {
     return;
@@ -390,30 +382,6 @@ static void handlePhi(const llvm::PHINode *Phi, TypeAssignmentGraph &TAG) {
   }
 }
 
-static llvm::StringRef extractTypeName(llvm::StringRef CtorName) {
-  // Example: _ZN3OneC2Ev
-
-  auto EndIdx = CtorName.rfind("C2E");
-  if (EndIdx == llvm::StringRef::npos) {
-    EndIdx = CtorName.rfind("C1E");
-  }
-
-  if (EndIdx == llvm::StringRef::npos) {
-    EndIdx = CtorName.size();
-  }
-
-  auto StartIdx = EndIdx;
-  while (StartIdx) {
-    --StartIdx;
-
-    if (llvm::isDigit(CtorName[StartIdx])) {
-      break;
-    }
-  }
-  return CtorName.slice(StartIdx, EndIdx);
-}
-static llvm::StringRef extractTypeName(std::string &&) = delete;
-
 static const llvm::Value *getTypeFromDI(const llvm::DICompositeType *CompTy,
                                         const llvm::Module &Mod,
                                         const psr::LLVMVFTableProvider &VTP) {
@@ -437,6 +405,8 @@ static const llvm::Value *getTypeFromDI(const llvm::DICompositeType *CompTy,
     return nullptr;
   }
 
+  // TODO: With latest changes from f-TestingAPIChanges, we don't need the below
+  // loop!
   auto ClearName = CompTy->getName().str();
   const auto *Scope = CompTy->getScope();
   while (llvm::isa_and_nonnull<llvm::DINamespace, llvm::DISubprogram,
@@ -471,45 +441,6 @@ static void handleEntryForCall(const llvm::CallBase *Call, TAGNodeId CSNod,
       }
     }
   }
-  // TODO: Fallback solution
-
-  // llvm::SmallDenseSet<const llvm::Value *> Seen;
-  // llvm::SmallVector<const llvm::Value *> WL = {Call};
-
-  // // Search for the ctor call
-
-  // const auto *CallerFun = Call->getFunction();
-
-  // while (!WL.empty()) {
-  //   const auto *CurrObj = WL.pop_back_val();
-  //   for (const auto &Use : CurrObj->uses()) {
-  //     const auto *User = llvm::dyn_cast<llvm::Instruction>(Use.getUser());
-  //     if (!User || User->getFunction() != CallerFun)
-  //       continue;
-
-  //     if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(User);
-  //         Cast && Cast->getDestTy()->isPointerTy()) {
-  //       if (Seen.insert(Cast).second)
-  //         WL.push_back(Cast);
-
-  //       continue;
-  //     }
-
-  //     if (const auto *CtorCall = llvm::dyn_cast<llvm::CallBase>(User);
-  //         CtorCall && CtorCall->getCalledFunction() &&
-  //         Use == CtorCall->getArgOperand(0)) {
-  //       auto CtorName = CtorCall->getCalledFunction()->getName();
-  //       if (psr::isConstructor(CtorName)) {
-  //         auto DemangledCtorName = llvm::demangle(CtorName.str());
-
-  //         auto TypeName = extractTypeName(CtorName);
-
-  //         // TODO
-  //       }
-  //       // TODO: Extract type from ctor fun
-  //     }
-  //   }
-  // }
 }
 
 static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
@@ -599,7 +530,7 @@ static void handleReturn(const llvm::ReturnInst *Ret,
 static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
                      const psr::CallGraph<const llvm::Instruction *,
                                           const llvm::Function *> &BaseCG,
-                     TAGAliasInfo AI, const llvm::DataLayout &DL,
+                     AliasInfoTy AI, const llvm::DataLayout &DL,
                      const psr::LLVMVFTableProvider &VTP) {
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
     handleAlloca(Alloca, TAG, VTP);
@@ -644,7 +575,7 @@ static void buildTAGWithFun(
     const llvm::Function *Fun, TypeAssignmentGraph &TAG,
     const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
         &BaseCG,
-    TAGAliasInfo AI, const llvm::DataLayout &DL,
+    AliasInfoTy AI, const llvm::DataLayout &DL,
     const psr::LLVMVFTableProvider &VTP) {
   for (const auto &I : llvm::instructions(Fun)) {
     dispatch(I, TAG, BaseCG, AI, DL, VTP);
@@ -655,7 +586,7 @@ static auto computeTypeAssignmentGraphImpl(
     const llvm::Module &Mod,
     const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
         &BaseCG,
-    TAGAliasInfo AI, const psr::LLVMVFTableProvider &VTP)
+    AliasInfoTy AI, const psr::LLVMVFTableProvider &VTP)
     -> TypeAssignmentGraph {
   TypeAssignmentGraph TAG;
 
@@ -677,19 +608,14 @@ static auto computeTypeAssignmentGraphImpl(
   return TAG;
 }
 
-auto analysis::call_graph::computeTypeAssignmentGraph(
+auto vta::computeTypeAssignmentGraph(
     const llvm::Module &Mod,
     const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
         &BaseCG,
-    psr::LLVMAliasInfoRef AS, const psr::LLVMVFTableProvider &VTP)
+    AliasInfoTy AS, const psr::LLVMVFTableProvider &VTP)
     -> TypeAssignmentGraph {
-  FilteredAliasSet FAS(AS);
-  return computeTypeAssignmentGraphImpl(
-      Mod, BaseCG,
-      [&FAS](const auto *Fact, const auto *At, TAGAliasHandler Handler) {
-        FAS.foreachAlias(Fact, At, Handler);
-      },
-      VTP);
+
+  return computeTypeAssignmentGraphImpl(Mod, BaseCG, AS, VTP);
 }
 
 void TypeAssignmentGraph::print(llvm::raw_ostream &OS) {

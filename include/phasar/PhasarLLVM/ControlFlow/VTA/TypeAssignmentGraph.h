@@ -22,21 +22,15 @@
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Value.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/HashBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <optional>
 #include <variant>
 
-namespace psr {
-class FilteredAliasSet;
-} // namespace psr
+namespace psr::vta {
 
-namespace psr::analysis::call_graph {
-
-enum class [[clang::enum_extensibility(open)]] TAGNodeId : uint32_t{};
+enum class TAGNodeId : uint32_t {};
 
 struct Variable {
   const llvm::Value *Val;
@@ -67,14 +61,14 @@ constexpr bool operator==(Return L, Return R) noexcept {
 constexpr bool operator==(TAGNode L, TAGNode R) noexcept {
   return L.Label == R.Label;
 }
-}; // namespace psr::analysis::call_graph
+}; // namespace psr::vta
 
 namespace llvm {
-template <> struct DenseMapInfo<psr::analysis::call_graph::TAGNode> {
-  using TAGNode = psr::analysis::call_graph::TAGNode;
-  using Variable = psr::analysis::call_graph::Variable;
-  using Field = psr::analysis::call_graph::Field;
-  using Return = psr::analysis::call_graph::Return;
+template <> struct DenseMapInfo<psr::vta::TAGNode> {
+  using TAGNode = psr::vta::TAGNode;
+  using Variable = psr::vta::Variable;
+  using Field = psr::vta::Field;
+  using Return = psr::vta::Return;
 
   inline static TAGNode getEmptyKey() noexcept {
     return {Variable{llvm::DenseMapInfo<const llvm::Value *>::getEmptyKey()}};
@@ -98,8 +92,8 @@ template <> struct DenseMapInfo<psr::analysis::call_graph::TAGNode> {
   }
 };
 
-template <> struct DenseMapInfo<psr::analysis::call_graph::TAGNodeId> {
-  using GraphNodeId = psr::analysis::call_graph::TAGNodeId;
+template <> struct DenseMapInfo<psr::vta::TAGNodeId> {
+  using GraphNodeId = psr::vta::TAGNodeId;
   inline static GraphNodeId getEmptyKey() noexcept { return GraphNodeId(-1); }
   inline static GraphNodeId getTombstoneKey() noexcept {
     return GraphNodeId(-2);
@@ -114,8 +108,7 @@ template <> struct DenseMapInfo<psr::analysis::call_graph::TAGNodeId> {
 
 } // namespace llvm
 
-namespace psr::analysis::call_graph {
-struct ObjectGraph;
+namespace psr::vta {
 
 struct TypeAssignmentGraph {
   using GraphNodeId = TAGNodeId;
@@ -148,13 +141,18 @@ struct TypeAssignmentGraph {
   void print(llvm::raw_ostream &OS);
 };
 
+using AliasHandlerTy = llvm::function_ref<void(const llvm::Value *)>;
+using AliasInfoTy = llvm::function_ref<void(
+    const llvm::Value *, const llvm::Instruction *, AliasHandlerTy)>;
+
+// TODO: Use AliasIterator here, once available
 [[nodiscard]] TypeAssignmentGraph computeTypeAssignmentGraph(
     const llvm::Module &Mod,
     const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
         &BaseCG,
-    psr::LLVMAliasInfoRef AS, const psr::LLVMVFTableProvider &VTP);
+    AliasInfoTy AS, const psr::LLVMVFTableProvider &VTP);
 
 void printNode(llvm::raw_ostream &OS, TAGNode TN);
-}; // namespace psr::analysis::call_graph
+}; // namespace psr::vta
 
 #endif

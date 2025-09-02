@@ -9,111 +9,100 @@
 
 #include "phasar/Utils/SCCGeneric.h"
 
+#include "phasar/Utils/AdjacencyList.h"
+#include "phasar/Utils/EmptyBaseOptimizationUtils.h"
+#include "phasar/Utils/GraphTraits.h"
+
 #include "gtest/gtest.h"
 
-#include <cstddef>
 #include <cstdint>
-#include <string>
 
 //===----------------------------------------------------------------------===//
 // Unit tests for the Igeneric SCC algorithm
 
 using namespace psr;
 
-using SCCId = analysis::call_graph::SCCId;
-enum class [[clang::enum_extensibility(open)]] NodeId : uint32_t{};
+enum class NodeId : uint32_t {};
+using SCCId = SCCId<NodeId>;
 
-class ExampleGraph {
-public:
-  using GraphNodeId = NodeId;
-
-  ExampleGraph() = default;
-
-  [[nodiscard]] std::vector<GraphNodeId>
-  getEdges(const GraphNodeId Vertex) const {
-    return Adj[uint32_t(Vertex)];
-  }
-  std::vector<std::vector<GraphNodeId>> Adj;
-};
+using ExampleGraph = AdjacencyList<EmptyType, NodeId>;
 
 static void computeSCCsAndCompare(ExampleGraph &Graph) {
-  auto OutputRec = analysis::call_graph::execTarjan(Graph, false);
-  auto OutputIt = analysis::call_graph::execTarjan(Graph, true);
+  auto OutputRec = computeSCCs(Graph);
+  auto OutputIt = computeSCCIterative(Graph);
   ASSERT_EQ(OutputIt.SCCOfNode.size(), Graph.Adj.size())
       << "Iterative Approach did not reach all nodes\n";
   ASSERT_EQ(OutputRec.SCCOfNode.size(), Graph.Adj.size())
       << "Recursive Approach did not reach all nodes\n";
-  EXPECT_EQ(OutputRec.NumSCCs, OutputIt.NumSCCs)
+  EXPECT_EQ(OutputRec.size(), OutputIt.size())
       << "Unequal number of SCC components\n";
   /*std::cout << std::to_string(OutputRec.NumSCCs) << " "
             << std::to_string(OutputIt.NumSCCs) << "\n";*/
-  for (size_t ID = 0; ID < Graph.Adj.size(); ID++) {
-    EXPECT_EQ(OutputRec.SCCOfNode[ID], OutputIt.SCCOfNode[ID])
-        << "SCCs differ at Index: " << std::to_string(ID) << "\n";
+  for (auto Vtx : GraphTraits<ExampleGraph>::vertices(Graph)) {
+    EXPECT_EQ(OutputRec.SCCOfNode[Vtx], OutputIt.SCCOfNode[Vtx])
+        << "SCCs differ at Index: " << uint32_t(Vtx) << "\n";
   }
 }
 
 TEST(SCCGenericTest, SCCTest) {
-  using GraphNodeId = ExampleGraph::GraphNodeId;
-  ExampleGraph GraphOne{{{GraphNodeId(2)},
-                         {GraphNodeId(0)},
-                         {GraphNodeId(1)},
-                         {GraphNodeId(1), GraphNodeId(2)},
-                         {GraphNodeId(1)},
-                         {GraphNodeId(4), GraphNodeId(6)},
-                         {GraphNodeId(4), GraphNodeId(7)},
-                         {GraphNodeId(5)}}};
+  ExampleGraph GraphOne{{{NodeId(2)},
+                         {NodeId(0)},
+                         {NodeId(1)},
+                         {NodeId(1), NodeId(2)},
+                         {NodeId(1)},
+                         {NodeId(4), NodeId(6)},
+                         {NodeId(4), NodeId(7)},
+                         {NodeId(5)}}};
 
   ExampleGraph GraphTwo{{{}, {}, {}, {}, {}, {}, {}, {}, {}, {}}};
 
-  ExampleGraph GraphThree{{{GraphNodeId(1)},
-                           {GraphNodeId(2)},
-                           {GraphNodeId(3)},
-                           {GraphNodeId(4)},
-                           {GraphNodeId(5)},
-                           {GraphNodeId(6)},
-                           {GraphNodeId(0)}}};
+  ExampleGraph GraphThree{{{NodeId(1)},
+                           {NodeId(2)},
+                           {NodeId(3)},
+                           {NodeId(4)},
+                           {NodeId(5)},
+                           {NodeId(6)},
+                           {NodeId(0)}}};
 
-  ExampleGraph GraphFour{
-      {{GraphNodeId(1), GraphNodeId(2), GraphNodeId(3), GraphNodeId(4)},
-       {GraphNodeId(0), GraphNodeId(2), GraphNodeId(3), GraphNodeId(4)},
-       {GraphNodeId(0), GraphNodeId(1), GraphNodeId(3), GraphNodeId(4)},
-       {GraphNodeId(0), GraphNodeId(1), GraphNodeId(2), GraphNodeId(4)},
-       {GraphNodeId(0), GraphNodeId(1), GraphNodeId(2), GraphNodeId(3)}}};
+  ExampleGraph GraphFour{{{NodeId(1), NodeId(2), NodeId(3), NodeId(4)},
+                          {NodeId(0), NodeId(2), NodeId(3), NodeId(4)},
+                          {NodeId(0), NodeId(1), NodeId(3), NodeId(4)},
+                          {NodeId(0), NodeId(1), NodeId(2), NodeId(4)},
+                          {NodeId(0), NodeId(1), NodeId(2), NodeId(3)}}};
 
-  ExampleGraph GraphFive{{{GraphNodeId(1)},
-                          {GraphNodeId(2)},
-                          {GraphNodeId(3), GraphNodeId(4)},
-                          {GraphNodeId(5)},
-                          {GraphNodeId(5)},
-                          {GraphNodeId(2), GraphNodeId(6)},
-                          {GraphNodeId(7)},
-                          {GraphNodeId(1), GraphNodeId(8)},
+  ExampleGraph GraphFive{{{NodeId(1)},
+                          {NodeId(2)},
+                          {NodeId(3), NodeId(4)},
+                          {NodeId(5)},
+                          {NodeId(5)},
+                          {NodeId(2), NodeId(6)},
+                          {NodeId(7)},
+                          {NodeId(1), NodeId(8)},
                           {}}};
 
-  ExampleGraph GraphSix{{{GraphNodeId(1)},
-                         {GraphNodeId(2)},
-                         {GraphNodeId(3)},
-                         {GraphNodeId(4)},
-                         {GraphNodeId(5)},
-                         {GraphNodeId(6)},
-                         {GraphNodeId(7)},
-                         {GraphNodeId(0)},
-                         {GraphNodeId(9)},
-                         {GraphNodeId(10)},
-                         {GraphNodeId(11)},
-                         {GraphNodeId(12)},
-                         {GraphNodeId(13), GraphNodeId(4)},
-                         {GraphNodeId(8)},
-                         {GraphNodeId(9)},
-                         {GraphNodeId(3)},
-                         {GraphNodeId(5)}}};
+  ExampleGraph GraphSix{{{NodeId(1)},
+                         {NodeId(2)},
+                         {NodeId(3)},
+                         {NodeId(4)},
+                         {NodeId(5)},
+                         {NodeId(6)},
+                         {NodeId(7)},
+                         {NodeId(0)},
+                         {NodeId(9)},
+                         {NodeId(10)},
+                         {NodeId(11)},
+                         {NodeId(12)},
+                         {NodeId(13), NodeId(4)},
+                         {NodeId(8)},
+                         {NodeId(9)},
+                         {NodeId(3)},
+                         {NodeId(5)}}};
 
   std::vector<ExampleGraph> TestGraphs = {GraphOne,  GraphTwo,  GraphThree,
                                           GraphFour, GraphFive, GraphSix};
 
-  for (size_t Index = 0; Index < TestGraphs.size(); Index++) {
-    computeSCCsAndCompare(TestGraphs[Index]);
+  for (auto &TestGraph : TestGraphs) {
+    computeSCCsAndCompare(TestGraph);
   }
 
   /*auto OutputRec = analysis::call_graph::execTarjan(Graph, false);

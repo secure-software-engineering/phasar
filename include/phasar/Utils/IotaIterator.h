@@ -32,7 +32,11 @@ public:
   constexpr pointer operator->() const noexcept { return &Elem; }
 
   constexpr IotaIterator &operator++() noexcept {
-    ++Elem;
+    if constexpr (is_incrementable<T>) {
+      ++Elem;
+    } else {
+      Elem = T(size_t(Elem) + 1);
+    }
     return *this;
   }
   constexpr IotaIterator operator++(int) noexcept {
@@ -56,14 +60,25 @@ private:
   T Elem{};
 };
 
-template <typename T>
-using IotaRangeType = llvm::iterator_range<IotaIterator<T>>;
-template <typename T>
-constexpr auto iota(T From, type_identity_t<T> To) noexcept {
-  static_assert(std::is_integral_v<T>, "Iota only works on integers");
-  using iterator_type = IotaIterator<std::decay_t<T>>;
+template <typename IdT>
+using IotaRangeType = llvm::iterator_range<IotaIterator<IdT>>;
+
+template <typename IdT>
+[[nodiscard]] constexpr auto iota(IdT From, type_identity_t<IdT> To) noexcept {
+  static_assert(is_explicitly_convertible_to<size_t, IdT> &&
+                    is_explicitly_convertible_to<IdT, size_t>,
+                "Iota only works on integers and integer-like types");
+  using iterator_type = IotaIterator<std::decay_t<IdT>>;
   auto Ret = llvm::make_range(iterator_type(From), iterator_type(To));
   return Ret;
+}
+
+template <typename IdT> [[nodiscard]] constexpr auto iota(size_t To) noexcept {
+  static_assert(is_explicitly_convertible_to<size_t, IdT> &&
+                    is_explicitly_convertible_to<IdT, size_t>,
+                "Iota only works on integers and integer-like types");
+  using iterator_type = IotaIterator<std::decay_t<IdT>>;
+  return llvm::make_range(iterator_type(), iterator_type(IdT(To)));
 }
 
 static_assert(is_iterable_over_v<IotaRangeType<int>, int>);

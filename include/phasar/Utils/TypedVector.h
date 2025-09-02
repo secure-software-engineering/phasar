@@ -13,6 +13,7 @@
 #include "phasar/Utils/ByRef.h"
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 
 #include <cassert>
@@ -28,7 +29,7 @@ public:
   TypedVector() noexcept = default;
   TypedVector(std::initializer_list<ValueT> IList) : Vec(IList) {}
   TypedVector(size_t Size) : Vec(Size) {}
-  TypedVector(size_t Size, ValueT Default) : Vec(Size, Default){};
+  TypedVector(size_t Size, ValueT Default) : Vec(Size, Default) {};
 
   template <typename Iter>
   explicit TypedVector(Iter From, Iter To)
@@ -90,16 +91,29 @@ public:
     return !(*this == Other);
   }
 
-  [[nodiscard]] llvm::ArrayRef<ValueT> asRef() const &noexcept { return Vec; }
-  [[nodiscard]] llvm::ArrayRef<ValueT> asRef() &&noexcept = delete;
+  [[nodiscard]] llvm::ArrayRef<ValueT> asRef() const & noexcept { return Vec; }
+  [[nodiscard]] llvm::ArrayRef<ValueT> asRef() && noexcept = delete;
 
   [[nodiscard]] llvm::ArrayRef<ValueT>
   // NOLINTNEXTLINE(readability-identifier-naming)
-  drop_front(size_t Offs) const &noexcept {
+  drop_front(size_t Offs) const & noexcept {
     return asRef().drop_front(Offs);
   }
   [[nodiscard]] llvm::ArrayRef<ValueT>
-  drop_front(size_t Offs) &&noexcept = delete;
+  drop_front(size_t Offs) && noexcept = delete;
+
+  [[nodiscard]] auto enumerate() const noexcept {
+    return llvm::map_range(llvm::enumerate(Vec), [](const auto &IndexAndVal) {
+      return std::pair<IdT, ByConstRef<ValueT>>{IdT(IndexAndVal.index()),
+                                                IndexAndVal.value()};
+    });
+  }
+  [[nodiscard]] auto enumerate() noexcept {
+    return llvm::map_range(llvm::enumerate(Vec), [](auto &IndexAndVal) {
+      return std::pair<IdT, ValueT &>{IdT(IndexAndVal.index()),
+                                      IndexAndVal.value()};
+    });
+  }
 
 private:
   llvm::SmallVector<ValueT, SmallSize> Vec{};
