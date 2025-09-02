@@ -73,7 +73,6 @@ public:
   getNextState(llvm::StringRef Tok,
                TypeStateDescription::State S) const override;
   [[nodiscard]] std::string getTypeNameOfInterest() const override;
-  [[nodiscard]] llvm::dwarf::Tag getTypeTagOfInterest() const override;
   [[nodiscard]]
   llvm::Metadata::MetadataKind getTypeOfInterest() const override;
   [[nodiscard]] std::set<int>

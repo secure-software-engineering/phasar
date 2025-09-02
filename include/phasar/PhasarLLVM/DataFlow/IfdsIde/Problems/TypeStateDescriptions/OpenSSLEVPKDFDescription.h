@@ -73,8 +73,6 @@ public:
 
   [[nodiscard]] std::string getTypeNameOfInterest() const override;
 
-  [[nodiscard]] llvm::dwarf::Tag getTypeTagOfInterest() const override;
-
   [[nodiscard]]
   llvm::Metadata::MetadataKind getTypeOfInterest() const override;
 

@@ -301,243 +301,47 @@ bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Type *Ty) {
   return isTypeNameOfInterest(Str);
 }
 
-bool IDETypeStateAnalysisBase::checkType(const llvm::Value *Value) {
-  if (const auto *DITy = getVarTypeFromIR(Value)) {
-    return isTypeTagOfInterest(DITy->getTag()) &&
-           isTypeNameOfInterest(DITy->getName());
+bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Value *Value) {
+  if (const auto *VarTy = getVarTypeFromIR(Value)) {
+    if (const auto *BaseTy = stripPointerTypes(VarTy)) {
+      return hasMatchingTypeName(BaseTy);
+    }
+  }
+
+  return false;
+}
+
+bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::DIType *DITy) {
+  if (llvm::isa<llvm::DICompositeType>(DITy) && !DITy->getName().empty()) {
+    return isTypeNameOfInterest(DITy->getName());
   }
 
   return false;
 }
 
 bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
-  // TODO:
-  // - determine if general case is even needed anymore, or if we only need
-  // the general case
-  // - Can I use stripPointerTypes() for all cases below (Alloca, etc)?
-  // - How does AllocaInst, LoadInst, etc work under the hood?
-  //
-  //
-  // - Dwarf Tags seem to be ill fit for what I am trying to do here. What other
-  // info can I use?
-  //
-  //
-  // Run
-  // ./unittests/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETSAnalysisFileIOTest
-  // for tests, make sure they're compiled with debug info!
-
   // General case
   if (V->getType()->isPointerTy()) {
-    if (const auto *DITy = getVarTypeFromIR(V)) {
-      if (const auto *BaseDITy = stripPointerTypes(DITy)) {
-        llvm::outs() << "-------------------------------\n";
-        llvm::outs() << "BaseDITy->getTag(): "
-                     << llvm::dwarf::TagString(BaseDITy->getTag()) << "\n";
-        llvm::outs() << "BaseDITy->getName(): " << BaseDITy->getName() << "\n";
-        return isTypeTagOfInterest(BaseDITy->getTag()) &&
-               isTypeNameOfInterest(BaseDITy->getName());
-      }
-    }
-    return false;
-  }
-
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-    if (Alloca->getAllocatedType()->isPointerTy()) {
-      checkType(Alloca);
-    }
-    return false;
-  }
-
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    if (Load->getType()->isPointerTy()) {
-      checkType(Load);
-    }
-    return false;
-  }
-
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
-    if (Store->getValueOperand()->getType()->isPointerTy()) {
-#if false
-      if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(Store->getValueOperand()
-                                  ->getType()
-                                  ->getNonOpaquePointerElementType())) {
-        return true;
-      }
-#endif
-      checkType(Store->getValueOperand());
-    }
-    return false;
-  }
-
-  return false;
-
-#if false
-  // General case
-  if (V->getType()->isPointerTy() && !V->getType()->isOpaquePointerTy()) {
-    if (hasMatchingTypeName(V->getType()->getNonOpaquePointerElementType())) {
+    if (hasMatchingTypeName(V)) {
       return true;
     }
     // fallthrough
   }
 
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-    if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (Alloca->getAllocatedType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Alloca->getAllocatedType()->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
+    return Alloca->getAllocatedType()->isPointerTy() &&
+           hasMatchingTypeName(Alloca);
   }
+
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    if (Load->getType()->isPointerTy()) {
-      if (Load->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Load->getType()->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
+    return Load->getType()->isPointerTy() && hasMatchingTypeName(Load);
   }
+
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
-    if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(Store->getValueOperand()
-                                  ->getType()
-                                  ->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
+    return Store->getValueOperand()->getType()->isPointerTy() &&
+           hasMatchingTypeName(Store->getValueOperand());
   }
+
   return false;
-#endif
-#if false
-  if (const auto *DITy = getVarTypeFromIR(V)) {
-
-    llvm::outs() << "------------------------------------------------\n";
-
-    if (DITy) {
-      llvm::outs() << "DITy: exists" << "\n";
-      if (DITy->getTag()) {
-        llvm::outs() << "DITy: had tag" << "\n";
-        llvm::outs() << "tag was: " << DITy->getTag() << "\n";
-        llvm::outs() << "TagString: " << llvm::dwarf::TagString(DITy->getTag())
-                     << "\n";
-      } else {
-        llvm::outs() << "DITy: not tag, sadly" << "\n";
-      }
-    } else {
-      llvm::outs() << "DITy: was nullptr" << "\n";
-    }
-
-    const auto *BaseOfDITy = psr::stripPointerTypes(DITy);
-
-    if (BaseOfDITy) {
-      llvm::outs() << "BaseOfDITy: exists" << "\n";
-
-      if (BaseOfDITy->getTag()) {
-        llvm::outs() << "BaseOfDITy: had tag" << "\n";
-        llvm::outs() << "tag was: " << BaseOfDITy->getTag() << "\n";
-        llvm::outs() << "TagString: "
-                     << llvm::dwarf::TagString(BaseOfDITy->getTag()) << "\n";
-      } else {
-        llvm::outs() << "BaseOfDITy: not tag, sadly" << "\n";
-      }
-    } else {
-      llvm::outs() << "BaseOfDITy: was nullptr" << "\n";
-    }
-
-    // General case
-    if (DITy->getTag() == llvm::dwarf::DW_TAG_structure_type) {
-      // if (hasMatchingType(DITy)) {
-      //   return true;
-      // }
-    }
-
-    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-      llvm::outs() << "Was AllocaInst\n";
-
-      if (Alloca->getAllocatedType()->isPointerTy()) {
-        if (Alloca->getAllocatedType()->isOpaquePointerTy() ||
-            hasMatchingTypeName(
-                Alloca->getAllocatedType()->getNonOpaquePointerElementType())) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-      llvm::outs() << "Was LoadInst\n";
-      if (Load->getType()->isPointerTy()) {
-        if (Load->getType()->isOpaquePointerTy() ||
-            hasMatchingTypeName(
-                Load->getType()->getNonOpaquePointerElementType())) {
-          return true;
-        }
-      }
-      return false;
-    }
-    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
-      llvm::outs() << "Was StoreInst\n";
-      if (Store->getValueOperand()->getType()->isPointerTy()) {
-        if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
-            hasMatchingTypeName(Store->getValueOperand()
-                                    ->getType()
-                                    ->getNonOpaquePointerElementType())) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    return false;
-
-#if false
-  // General case
-  if (V->getType()->isPointerTy() && !V->getType()->isOpaquePointerTy()) {
-    if (hasMatchingTypeName(V->getType()->getNonOpaquePointerElementType())) {
-      return true;
-    }
-    // fallthrough
-  }
-
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-    if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (Alloca->getAllocatedType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Alloca->getAllocatedType()->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
-  }
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    if (Load->getType()->isPointerTy()) {
-      if (Load->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Load->getType()->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
-  }
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
-    if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(Store->getValueOperand()
-                                  ->getType()
-                                  ->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
-  }
-  return false;
-#endif
-#endif
 }
 } // namespace psr::detail

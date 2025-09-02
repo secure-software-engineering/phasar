@@ -125,7 +125,12 @@ OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::getNextState(
 }
 
 std::string OpenSSLEVPKDFCTXDescription::getTypeNameOfInterest() const {
-  return "struct.evp_kdf_ctx_st";
+  return "evp_kdf_ctx_st";
+}
+
+llvm::Metadata::MetadataKind
+OpenSSLEVPKDFCTXDescription::getTypeOfInterest() const {
+  return llvm::Metadata::DICompositeTypeKind;
 }
 
 std::set<int>

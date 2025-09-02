@@ -130,17 +130,12 @@ CSTDFILEIOTypeStateDescription::getNextState(llvm::StringRef Tok,
 }
 
 std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
-  return "struct._IO_FILE";
-}
-
-llvm::dwarf::Tag CSTDFILEIOTypeStateDescription::getTypeTagOfInterest() const {
-  // TODO: ask fabian if this tag is the best fit. Afaik there is no IOFILE tag
-  return llvm::dwarf::Tag::DW_TAG_structure_type;
+  return "_IO_FILE";
 }
 
 llvm::Metadata::MetadataKind
 CSTDFILEIOTypeStateDescription::getTypeOfInterest() const {
-  return llvm::Metadata::DIFileKind;
+  return llvm::Metadata::DICompositeTypeKind;
 }
 
 std::set<int>

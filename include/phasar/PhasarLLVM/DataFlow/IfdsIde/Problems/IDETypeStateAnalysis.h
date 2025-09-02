@@ -84,10 +84,6 @@ protected:
   isFactoryFunction(llvm::StringRef Name) const noexcept = 0;
   [[nodiscard]] virtual bool
   isTypeNameOfInterest(llvm::StringRef Name) const noexcept = 0;
-  [[nodiscard]] virtual bool
-  isTypeTagOfInterest(llvm::dwarf::Tag CompareTag) const noexcept = 0;
-  [[nodiscard]] virtual bool
-  isTypeOfInterest(const llvm::Metadata *MDOp) const noexcept = 0;
 
   /**
    * @brief Returns all alloca's that are (indirect) aliases of V.
@@ -131,8 +127,9 @@ private:
     return generateFlow(FactToGenerate, LLVMZeroValue::getInstance());
   }
 
-  bool checkType(const llvm::Value *Value);
   bool hasMatchingTypeName(const llvm::Type *Ty);
+  bool hasMatchingTypeName(const llvm::Value *Value);
+  bool hasMatchingTypeName(const llvm::DIType *DITy);
 
   std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
   LLVMAliasInfoRef PT{};
@@ -517,21 +514,11 @@ public:
   isTypeNameOfInterest(llvm::StringRef Name) const noexcept override {
     llvm::outs() << "TSD->getTypeNameOfInterest(): "
                  << TSD->getTypeNameOfInterest() << "\n";
+    llvm::outs() << "Compare Name: " << Name << "\n";
+    llvm::outs() << "Name.contains(TSD->getTypeNameOfInterest()): "
+                 << Name.contains(TSD->getTypeNameOfInterest()) << "\n";
     return Name.contains(TSD->getTypeNameOfInterest());
   }
-
-  [[nodiscard]] bool
-  isTypeTagOfInterest(llvm::dwarf::Tag CompareTag) const noexcept override {
-    llvm::outs() << "TSD->getTypeTagOfInterest(): "
-                 << llvm::dwarf::TagString(TSD->getTypeTagOfInterest()) << "\n";
-    return TSD->getTypeTagOfInterest() == CompareTag;
-  }
-
-  [[nodiscard]] bool
-  isTypeOfInterest(const llvm::Metadata *MDOp) const noexcept override {
-    // return llvm::isa<TSD->getTypeOfInterest()>(MDOp);
-    return false;
-  };
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
