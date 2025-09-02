@@ -225,16 +225,3 @@ void Logger::addLinePrefix(llvm::raw_ostream &OS,
 }
 
 } // namespace psr
-
-void psr::initializeLogger(bool UseLogger, const std::string &LogFile) {
-  if (!UseLogger) {
-    Logger::disable();
-    return;
-  }
-  if (LogFile.empty()) {
-    Logger::initializeStderrLogger(Logger::getLoggerFilterLevel());
-  } else {
-    std::ignore =
-        Logger::initializeFileLogger(LogFile, Logger::getLoggerFilterLevel());
-  }
-}

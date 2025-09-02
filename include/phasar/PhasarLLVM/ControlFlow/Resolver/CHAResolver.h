@@ -22,24 +22,34 @@
 
 namespace llvm {
 class CallBase;
-class Function;
 } // namespace llvm
 
 namespace psr {
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
+
+/// \brief A resolver that performs Class Hierarchy Analysis to resolve calls
+/// to C++ virtual functions. Requires debug information.
 class CHAResolver : public Resolver {
 public:
   CHAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
-  ~CHAResolver() override = default;
+  // Deleting an incomplete type (LLVMTypeHierarchy) is UB, so instantiate the
+  // dtor in CHAResolver.cpp
+  ~CHAResolver() override;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                          const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
 
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return false;
+  }
+
 protected:
-  MaybeUniquePtr<const LLVMTypeHierarchy, true> TH;
+  MaybeUniquePtr<const DIBasedTypeHierarchy, true> TH;
 };
 } // namespace psr
 

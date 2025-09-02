@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/call_graph.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -37,7 +37,7 @@ namespace {
 /////////////////////////////
 psr::LLVMBasedICFG createBaseCG(psr::LLVMProjectIRDB &IRDB,
                                 const psr::LLVMVFTableProvider &VTP,
-                                const psr::LLVMTypeHierarchy &TH,
+                                const psr::DIBasedTypeHierarchy &TH,
                                 psr::LLVMAliasInfoRef /*PT*/) {
   psr::RTAResolver Res(&IRDB, &VTP, &TH);
 
@@ -74,7 +74,7 @@ protected:
     ASSERT_TRUE(IRDB->isValid());
 
     psr::LLVMVFTableProvider VTP(*IRDB);
-    psr::LLVMTypeHierarchy TH(*IRDB);
+    psr::DIBasedTypeHierarchy TH(*IRDB);
     psr::LLVMAliasSet AS(IRDB.get());
     // implement function locally
     auto BaseCG = createBaseCG(*IRDB, VTP, TH, &AS);

@@ -11,11 +11,11 @@
 
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -26,8 +26,6 @@
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -49,7 +47,8 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      std::vector<std::string> EntryPoints,
                                      bool TaintMainArgs)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
-      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs) {
+      Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
+      Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
 }
@@ -117,16 +116,17 @@ bool IFDSTaintAnalysis::isSanitizerCall(const llvm::CallBase * /*CB*/,
       [this](const auto &Arg) { return Config->isSanitizer(&Arg); });
 }
 
-static bool canSkipAtContext(const llvm::Value *Val,
-                             const llvm::Instruction *Context) noexcept {
+static bool
+canSkipAtQueryInst(const llvm::Value *Val,
+                   const llvm::Instruction *AliasQueryInst) noexcept {
   if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Val)) {
     /// Mapping instructions between functions is done via the call-FF and
     /// ret-FF
-    if (Inst->getFunction() != Context->getFunction()) {
+    if (Inst->getFunction() != AliasQueryInst->getFunction()) {
       return true;
     }
-    if (Inst->getParent() == Context->getParent() &&
-        Context->comesBefore(Inst)) {
+    if (Inst->getParent() == AliasQueryInst->getParent() &&
+        AliasQueryInst->comesBefore(Inst)) {
       // We will see that inst later
       return true;
     }
@@ -135,7 +135,7 @@ static bool canSkipAtContext(const llvm::Value *Val,
 
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Val)) {
     // An argument is only valid in the function it belongs to
-    if (Arg->getParent() != Context->getFunction()) {
+    if (Arg->getParent() != AliasQueryInst->getFunction()) {
       return true;
     }
   }
@@ -152,12 +152,12 @@ static bool isCompiletimeConstantData(const llvm::Value *Val) noexcept {
 }
 
 void IFDSTaintAnalysis::populateWithMayAliases(
-    container_type &Facts, const llvm::Instruction *Context) const {
+    container_type &Facts, const llvm::Instruction *AliasQueryInst) const {
   container_type Tmp = Facts;
   for (const auto *Fact : Facts) {
-    auto Aliases = PT.getAliasSet(Fact);
+    auto Aliases = PT.getAliasSet(Fact, AliasQueryInst);
     for (const auto *Alias : *Aliases) {
-      if (canSkipAtContext(Alias, Context)) {
+      if (canSkipAtQueryInst(Alias, AliasQueryInst)) {
         continue;
       }
 
@@ -179,7 +179,7 @@ void IFDSTaintAnalysis::populateWithMayAliases(
 }
 
 void IFDSTaintAnalysis::populateWithMustAliases(
-    container_type &Facts, const llvm::Instruction *Context) const {
+    container_type &Facts, const llvm::Instruction *AliasQueryInst) const {
   /// TODO: Find must-aliases; Currently the AliasSet only contains
   /// may-aliases
 }
@@ -404,7 +404,39 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
       Kill.insert(SRet);
     }
   }
+  if (Gen.empty() && Leak.empty() && Kill.empty()) {
+    if (Llvmfdff.contains(DestFun)) {
+      // Note: The LLVMfdff is constant during the lifetime of the analysis, so
+      // it is fine to capture a reference here:
+      const auto &DestFunFacts = Llvmfdff.getFactsForFunction(DestFun);
+      return lambdaFlow([CallSite, DestFun,
+                         &DestFunFacts](d_t Source) -> container_type {
+        std::set<d_t> Facts;
+        const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
+        for (const auto &[Arg, DestParam] :
+             llvm::zip(CS->args(), DestFun->args())) {
+          if (Source == Arg.get()) {
+            auto VecFacts = DestFunFacts.find(DestParam.getArgNo());
+            if (VecFacts != DestFunFacts.end()) {
+              for (const auto &VecFact : VecFacts->second) {
+                if (const auto *Param = std::get_if<library_summary::Parameter>(
+                        &VecFact.Fact)) {
+                  Facts.insert(CS->getArgOperand(Param->Index));
+                } else {
+                  Facts.insert(CallSite);
+                }
+              }
+            }
+          }
+        }
+        Facts.insert(Source);
+        return Facts;
+      });
+    }
 
+    // not found
+    return nullptr;
+  }
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
       return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
@@ -483,10 +515,21 @@ bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, BinaryDomain> & /*SR*/,
+    GenericSolverResults<n_t, d_t, BinaryDomain> /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
   Printer->onFinalize();
+}
+
+bool IFDSTaintAnalysis::isInteresting(
+    const llvm::Instruction *Inst) const noexcept {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
+    if (const auto *StaticCallee = Call->getCalledFunction()) {
+      return Config->mayLeakValuesAt(Inst, StaticCallee);
+    }
+    return true;
+  }
+  return Config->mayLeakValuesAt(Inst, nullptr);
 }
 
 } // namespace psr

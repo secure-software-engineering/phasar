@@ -10,7 +10,6 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include "phasar/ControlFlow/ICFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
@@ -18,18 +17,14 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
+#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
-#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/SemiRing.h"
 #include "phasar/Utils/Soundness.h"
 
-#include "llvm/ADT/StringRef.h"
-
 #include <cassert>
-#include <functional>
-#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -58,6 +53,12 @@ public:
   }
 };
 
+/// \brief The analysis problem interface for IDE problems (solvable by the
+/// IDESolver). Create a subclass from this and override all pure-virtual
+/// functions to create your own IDE analysis.
+///
+/// For more information on how to write an IDE analysis, see [Writing an IDE
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IDE-analysis)
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
@@ -78,6 +79,17 @@ public:
 
   using ConfigurationTy = HasNoConfigurationType;
 
+  /// Takes an IR database (IRDB) and collects information from it to create a
+  /// tabulation problem.
+  /// @param[in] IRDB The project IR database, that holds the code under
+  /// analysis
+  /// @param[in] EntryPoints The (mangled) names of all entry functions of the
+  /// target being analyzed, given as a vector of strings. An example would
+  /// simply be `{"main"}`. To set every function as entry point, pass
+  /// `"__ALL__"`
+  /// @param[in] ZeroValue Provides the special tautological zero value (aka.
+  /// Λ). If not provided here, you must set it via \link initializeZeroValue()
+  /// \endlink.
   explicit IDETabulationProblem(
       const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
       std::optional<d_t>
@@ -134,7 +146,7 @@ public:
   /// Generates a text report of the results that is written to the specified
   /// output stream.
   virtual void
-  emitTextReport([[maybe_unused]] const SolverResults<n_t, d_t, l_t> &Results,
+  emitTextReport([[maybe_unused]] GenericSolverResults<n_t, d_t, l_t> Results,
                  llvm::raw_ostream &OS = llvm::outs()) {
     OS << "No text report available!\n";
   }
@@ -142,7 +154,7 @@ public:
   /// Generates a graphical report, e.g. in html or other markup languages, of
   /// the results that is written to the specified output stream.
   virtual void emitGraphicalReport(
-      [[maybe_unused]] const SolverResults<n_t, d_t, l_t> &Results,
+      [[maybe_unused]] GenericSolverResults<n_t, d_t, l_t> Results,
       llvm::raw_ostream &OS = llvm::outs()) {
     OS << "No graphical report available!\n";
   }
@@ -150,6 +162,8 @@ public:
   /// Sets the level of soundness to be used by the analysis. Returns false if
   /// the level of soundness is ignored. Otherwise, true.
   virtual bool setSoundness(Soundness /*S*/) { return false; }
+
+  const ProjectIRDBBase<db_t> *getProjectIRDB() const noexcept { return IRDB; }
 
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType

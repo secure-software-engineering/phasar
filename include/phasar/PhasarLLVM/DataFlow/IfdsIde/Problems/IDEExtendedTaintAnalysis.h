@@ -42,7 +42,6 @@
 namespace psr {
 
 class LLVMBasedICFG;
-template <typename N, typename D, typename L> class SolverResults;
 
 struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = AbstractMemoryLocation;
@@ -52,6 +51,8 @@ struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
 };
 namespace XTaint {
 
+/// \brief An IDE-based taint analysis that uses k-limited field-access paths to
+/// achieve field sensitivity
 class IDEExtendedTaintAnalysis
     : public IDETabulationProblem<IDEExtendedTaintAnalysisDomain>,
       public AnalysisBase {
@@ -153,8 +154,6 @@ private:
     }
   }
 
-  static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
-
   void populateWithMayAliases(SourceConfigTy &Facts);
 
   bool isMustAlias(const SanitizerConfigTy &Facts, d_t CurrNod);
@@ -170,7 +169,7 @@ private:
                                    SourceConfigTy &&SourceConfig,
                                    SinkConfigTy &&SinkConfig);
 
-  void doPostProcessing(const SolverResults<n_t, d_t, l_t> &SR);
+  void doPostProcessing(GenericSolverResults<n_t, d_t, l_t> SR);
 
 public:
   /// Constructor. If EntryPoints is empty, use the TaintAPI functions as
@@ -250,7 +249,7 @@ public:
 
   // Printing functions
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
@@ -289,13 +288,13 @@ public:
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  const LeakMap_t &getAllLeaks(const SolverResults<n_t, d_t, l_t> &SR) &;
+  const LeakMap_t &getAllLeaks(GenericSolverResults<n_t, d_t, l_t> SR) &;
 
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  LeakMap_t getAllLeaks(const SolverResults<n_t, d_t, l_t> &SR) &&;
+  LeakMap_t getAllLeaks(GenericSolverResults<n_t, d_t, l_t> SR) &&;
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may or may not be sanitized.
   ///

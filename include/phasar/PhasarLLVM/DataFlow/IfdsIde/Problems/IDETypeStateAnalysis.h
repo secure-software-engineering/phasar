@@ -15,25 +15,19 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
-#include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -517,7 +511,7 @@ public:
     return Name.contains(TSD->getTypeNameOfInterest());
   }
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
     LLVMBasedCFG CFG;
     for (const auto &F : this->IRDB->getAllFunctions()) {
@@ -553,6 +547,19 @@ public:
     }
 
     this->Printer->onFinalize();
+  }
+
+  [[nodiscard]] bool
+  isInteresting(const llvm::Instruction *Inst) const noexcept {
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
+    if (!Call) {
+      return false;
+    }
+    if (const auto *StaticCallee = Call->getCalledFunction()) {
+      return TSD->isAPIFunction(StaticCallee->getName().str());
+    }
+
+    return true;
   }
 
 private:

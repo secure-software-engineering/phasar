@@ -46,11 +46,22 @@ public:
   using d_t = D;
   using l_t = L;
 
+  /// Returns the result that the IDE analysis computed for the fact Node right
+  /// after the statement Stmt.
+  ///
+  /// A default-constructed l_t, if no analysis result was computed at this
+  /// point.
   [[nodiscard]] ByConstRef<l_t> resultAt(ByConstRef<n_t> Stmt,
                                          ByConstRef<d_t> Node) const {
     return self().Results.get(Stmt, Node);
   }
 
+  /// Returns the results that the IDE analysis computed right after the
+  /// statement Stmt.
+  ///
+  /// \param Stmt The statement, where the analysis results are requested
+  /// \param StripZero Whether the special zero value should be stripped from
+  /// the result.
   [[nodiscard]] std::unordered_map<d_t, l_t> resultsAt(ByConstRef<n_t> Stmt,
                                                        bool StripZero) const {
     std::unordered_map<d_t, l_t> Result = self().Results.row(Stmt);
@@ -60,8 +71,27 @@ public:
     return Result;
   }
 
+  /// Returns the results that the IDE analysis computed right after the
+  /// statement Stmt.
+  ///
+  /// Does not strip the special zero value from the result.
   [[nodiscard]] const std::unordered_map<d_t, l_t> &
   resultsAt(ByConstRef<n_t> Stmt) const {
+    return self().Results.row(Stmt);
+  }
+
+  /// The internal representation of this SolverResults object.
+  [[nodiscard]] const auto &rowMapView() const {
+    return self().Results.rowMapView();
+  }
+
+  /// Whether the analysis has computed any results for the statement Stmt.
+  [[nodiscard]] bool containsNode(ByConstRef<N> Stmt) const {
+    return self().Results.containsRow(Stmt);
+  }
+
+  /// Similar to resultsAt(ByConstRef<N>).
+  [[nodiscard]] const auto &row(ByConstRef<N> Stmt) const {
     return self().Results.row(Stmt);
   }
 
@@ -130,6 +160,8 @@ public:
     return self().Results.cellVec();
   }
 
+  [[nodiscard]] size_t size() const noexcept { return self().Results.size(); }
+
   template <typename ICFGTy>
   void dumpResults(const ICFGTy &ICF,
                    llvm::raw_ostream &OS = llvm::outs()) const {
@@ -180,6 +212,15 @@ public:
     STOP_TIMER("DFA IDE Result Dumping", Full);
   }
 
+  template <typename HandlerFn>
+  void foreachResultEntry(HandlerFn Handler) const {
+    for (const auto &[Row, RowMap] : rowMapView()) {
+      for (const auto &[Col, Val] : RowMap) {
+        std::invoke(Handler, std::make_tuple(Row, Col, Val));
+      }
+    }
+  }
+
 private:
   [[nodiscard]] const Derived &self() const noexcept {
     static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
@@ -224,12 +265,12 @@ public:
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
       : Results(std::move(ResTab)), ZV(std::move(ZV)) {}
 
-  [[nodiscard]] SolverResults<N, D, L> get() const &noexcept {
+  [[nodiscard]] SolverResults<N, D, L> get() const & noexcept {
     return {Results, ZV};
   }
   SolverResults<N, D, L> get() && = delete;
 
-  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
+  [[nodiscard]] operator SolverResults<N, D, L>() const & noexcept {
     return get();
   }
 

@@ -366,7 +366,7 @@ void LLVMTaintConfig::forAllLeakCandidatesAtImpl(
     }
   }
 
-  // Do not iterate over the actual paramaters of Inst as we did in
+  // Do not iterate over the actual parameters of Inst as we did in
   // forAllGeneratedValuesAt, because sink-values are not propagated in the
   // current taint analyses. Handling sink-values should be done in the
   // SinkCallBack
@@ -474,7 +474,7 @@ void LLVMTaintConfig::printImpl(llvm::raw_ostream &OS) const {
   OS << "TaintConfiguration: ";
   if (SourceValues.empty() && SinkValues.empty() && SanitizerValues.empty() &&
       !getRegisteredSourceCallBack() && !getRegisteredSinkCallBack()) {
-    OS << "empty";
+    OS << "empty\n";
     return;
   }
   OS << "\n\tSourceCallBack registered: " << (bool)SourceCallBack << '\n';

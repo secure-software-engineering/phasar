@@ -20,6 +20,9 @@ using namespace psr;
 
 using llvm::demangle;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
+
 namespace psr {
 
 // Check basic type hierarchy construction
@@ -27,8 +30,9 @@ TEST(LTHTest, BasicTHReconstruction_1) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
                        "type_hierarchies/type_hierarchy_1_cpp.ll");
   LLVMTypeHierarchy LTH(IRDB);
-  EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
-  EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
+
+  ASSERT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
+  ASSERT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
   EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
@@ -163,12 +167,10 @@ TEST(LTHTest, BasicTHReconstruction_7) {
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
-  // has three types because of padding (introduction of intermediate type)
-  EXPECT_EQ(LTH.getAllTypes().size(), 3U);
+  EXPECT_EQ(LTH.getAllTypes().size(), 2U);
   EXPECT_EQ(
       LTH.isSubType(LTH.getType("struct.Base"), LTH.getType("struct.Child")),
       true);
-
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Base")).size(), 2U);
   EXPECT_EQ(LTH.getSubTypes(LTH.getType("struct.Child")).size(), 1U);
   auto BaseReachable = LTH.getSubTypes(LTH.getType("struct.Base"));
@@ -267,8 +269,7 @@ TEST(LTHTest, TransitivelyReachableTypes) {
       TH3.getType("struct.NonvirtualStruct")));
   ASSERT_TRUE(ReachableTypesNonvirtualstruct3.size() == 1U);
 
-  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base")));
-  ASSERT_FALSE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
   ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Child")));
   ASSERT_TRUE(ReachableTypesBase4.size() == 2U);
   ASSERT_TRUE(ReachableTypesChild4.count(TH4.getType("struct.Child")));
@@ -409,6 +410,8 @@ PHASAR_SKIP_TEST(TEST(LTHTest, HandleSTLString) {
 })
 
 } // namespace psr
+
+#pragma GCC diagnostic pop
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

@@ -3,7 +3,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -39,7 +39,6 @@ static SetTy makeSet(const nlohmann::json &J) {
 }
 
 static void checkSer(const nlohmann::json &Ser, const GroundTruthTy &Gt) {
-
   ASSERT_TRUE(Ser.count("AliasSets"));
   ASSERT_TRUE(Ser.count("AnalyzedFunctions"));
 
@@ -77,18 +76,19 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   ValueAnnotationPass::resetValueID();
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + File);
 
-  // llvm::outs() << *IRDB.getWPAModule() << '\n';
-
   LLVMAliasSet PTS(&IRDB, false);
-  LLVMTypeHierarchy TH(IRDB);
+  DIBasedTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, {EntryPoint.str()}, &TH,
                     &PTS);
 
-  auto Ser = PTS.getAsJson();
-  checkSer(Ser, Gt);
+  std::string SerString;
+  llvm::raw_string_ostream StringStream(SerString);
+  PTS.printAsJson(StringStream);
+  nlohmann::json PrintAsJsonSer = nlohmann::json::parse(SerString);
+  checkSer(PrintAsJsonSer, Gt);
 
-  LLVMAliasSet Deser(&IRDB, Ser);
-  checkDeser(*IRDB.getModule(), PTS, Deser);
+  LLVMAliasSet PrintAsJsonDeser(&IRDB, PrintAsJsonSer);
+  checkDeser(*IRDB.getModule(), PTS, PrintAsJsonDeser);
 }
 
 TEST(LLVMAliasSetSerializationTest, Ser_Intra01) {
@@ -103,11 +103,11 @@ TEST(LLVMAliasSetSerializationTest, Ser_Inter01) {
 
 TEST(LLVMAliasSetSerializationTest, Ser_Global01) {
   analyze("pointers/global_01_cpp.ll",
-          {{{"0", "15", "17", "2", "3", "9", "_Z3fooPi.0"},
+          {{{"0", "14", "16", "2", "8", "_Z3fooPi.0"},
             {"1"},
+            {"11"},
             {"12"},
-            {"13"},
-            {"7"}},
+            {"6"}},
            {"_GLOBAL__sub_I_global_01.cpp", "_Z3fooPi", "__cxx_global_var_init",
             "main"}});
 }

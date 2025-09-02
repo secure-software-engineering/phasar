@@ -85,6 +85,53 @@ void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
     }
   }
 }
+
+// ----------------------------------
+
+template <typename ContainerTy,
+          typename = std::enable_if_t<std::is_same_v<
+              typename ContainerTy::value_type, const llvm::Value *>>>
+[[nodiscard]] ContainerTy getGeneratedFacts(const LLVMTaintConfig &Config,
+                                            const llvm::CallBase *CB,
+                                            const llvm::Function *Callee) {
+  ContainerTy Ret;
+  collectGeneratedFacts(Ret, Config, CB, Callee);
+  return Ret;
+}
+
+template <typename ContainerTy, typename Pred,
+          typename = std::enable_if_t<std::is_same_v<
+              typename ContainerTy::value_type, const llvm::Value *>>>
+[[nodiscard]] ContainerTy
+getLeakedFacts(const LLVMTaintConfig &Config, const llvm::CallBase *CB,
+               const llvm::Function *Callee, Pred &&LeakIf) {
+  ContainerTy Ret;
+  collectLeakedFacts(Ret, Config, CB, Callee, PSR_FWD(LeakIf));
+  return Ret;
+}
+
+template <typename ContainerTy,
+          typename = std::enable_if_t<std::is_same_v<
+              typename ContainerTy::value_type, const llvm::Value *>>>
+[[nodiscard]] ContainerTy getLeakedFacts(const LLVMTaintConfig &Config,
+                                         const llvm::CallBase *CB,
+                                         const llvm::Function *Callee) {
+  ContainerTy Ret;
+  collectLeakedFacts(Ret, Config, CB, Callee);
+  return Ret;
+}
+
+template <typename ContainerTy,
+          typename = std::enable_if_t<std::is_same_v<
+              typename ContainerTy::value_type, const llvm::Value *>>>
+[[nodiscard]] ContainerTy getSanitizedFacts(const LLVMTaintConfig &Config,
+                                            const llvm::CallBase *CB,
+                                            const llvm::Function *Callee) {
+  ContainerTy Ret;
+  collectSanitizedFacts(Ret, Config, CB, Callee);
+  return Ret;
+}
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_TAINTCONFIG_TAINTCONFIGUTILITIES_H

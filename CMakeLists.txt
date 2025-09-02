@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.14...3.28)
 
 # Avoid IPO/LTO Warnings:
 cmake_policy(SET CMP0069 NEW)
@@ -7,6 +7,12 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 # Allow overwriting options of external projects from this CMakeLists file
 cmake_policy(SET CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
+if ("${CMAKE_VERSION}" GREATER_EQUAL "3.21")
+  # Allow overwriting cache variables of external projects from this CMakeLists file
+  cmake_policy(SET CMP0126 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
+endif()
 
 # Allow portable use of CMAKE_VISIBILITY_INLINES_HIDDEN not only for shared libraries
 cmake_policy(SET CMP0063 NEW)
@@ -18,9 +24,12 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
 endif()
 
 if (NOT PHASAR_IN_TREE)
-  project (phasar)
-  set(CMAKE_PROJECT_NAME "phasar")
+  project (phasar
+    LANGUAGES C CXX
+    DESCRIPTION "A LLVM-based static analysis framework."
+  )
 endif ()
+set(PHASAR_VERSION 2503)
 
 # NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -28,8 +37,6 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 else()
   set(PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT OFF)
 endif()
-
-option(PHASAR_EXPERIMENTAL_CXX20 "Build phasar in C++20 mode. This is an experimental feature" OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -65,11 +72,13 @@ set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 # https://reviews.llvm.org/D157613
 
 string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og -fno-omit-frame-pointer")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
 option(CMAKE_VISIBILITY_INLINES_HIDDEN "Hide inlined functions from the DSO table (default ON)" ON)
+
+option(PHASAR_BUILD_MODULES "Build C++20 modules for phasar" OFF)
 
 include(CheckCXXCompilerFlag)
 
@@ -162,6 +171,7 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
 
 option(PHASAR_BUILD_TOOLS "Build PhASAR-based tools (default is ON)" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
+option(PHASAR_USE_CONAN "Using Conan for dependencies instead of submodules." OFF)
 
 #option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(PHASAR_BUILD_DYNLIB "Build one fat shared library. Requires BUILD_SHARED_LIBS to be turned OFF (default is OFF)" OFF)
@@ -212,7 +222,8 @@ else()
   message(STATUS "Dynamic log disabled")
 endif()
 
-if (NOT PHASAR_IN_TREE)
+if (PHASAR_USE_CONAN)
+elseif (NOT PHASAR_IN_TREE)
   # RPATH
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
@@ -247,24 +258,13 @@ else()
   set(PHASAR_CONFIG_INSTALL_DIR "${PHASAR_CUSTOM_CONFIG_INSTALL_DIR}")
 endif()
 
-
-# Headers
-
-add_library(phasar_interface INTERFACE)
-target_include_directories(phasar_interface
-  INTERFACE
-    $<BUILD_INTERFACE:${PHASAR_SRC_DIR}/include/>     # The regular include folder
-    $<BUILD_INTERFACE:${PHASAR_BINARY_DIR}/include/>  # The location of phasar-config.h
-    $<INSTALL_INTERFACE:include/>                     # The installed include folder
-)
-
 ### Adding external libraries
 
 # Threads
 find_package(Threads)
 
 # Boost
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
 
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
@@ -280,10 +280,11 @@ if (NOT PHASAR_IN_TREE)
   if(PHASAR_BUILD_UNITTESTS AND NOT TARGET gtest)
     include(FetchContent)
 
+    set(INSTALL_GTEST OFF)
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.13.0
+        GIT_TAG v1.16.0
     )
     FetchContent_MakeAvailable(googletest)
   endif()
@@ -303,24 +304,47 @@ endif()
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
+if (NOT PHASAR_LLVM_VERSION)
+  set(PHASAR_LLVM_VERSION 15)
+endif()
 include(add_llvm)
 add_llvm()
+
+# SVF
+option(PHASAR_USE_SVF "Use SVF for more options in alias analysis (default is OFF)" OFF)
+if(PHASAR_USE_SVF)
+  find_package(SVF REQUIRED CONFIG)
+  message(STATUS "Found SVF ${SVF_VERSION}")
+
+  if (NOT PHASAR_USE_Z3)
+    message(WARNING "SVF requires Z3. Set PHASAR_USE_Z3=ON")
+    set(PHASAR_USE_Z3 ON)
+  endif()
+endif()
 
 # Z3 Solver
 if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
-endif()
-if(PHASAR_USE_Z3 AND NOT PHASAR_IN_TREE)
-  # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
-  # as it lacks some functionality (such as z3::expr::simplify()) that we require
-  find_package(Z3 4.7.1 REQUIRED)
+else()
+  if(PHASAR_USE_Z3)
+    # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
+    # as it lacks some functionality (such as z3::expr::simplify()) that we require
 
-  if(NOT TARGET z3)
-    add_library(z3 IMPORTED SHARED)
-    set_property(TARGET z3 PROPERTY
-             IMPORTED_LOCATION ${Z3_LIBRARIES})
-    set_property(TARGET z3 PROPERTY
-             INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+    # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
+    set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "")
+    find_package(Z3 4.7.1 REQUIRED)
+    set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
+
+    if(Z3_FOUND)
+      if (NOT TARGET z3)
+        add_library(z3 IMPORTED SHARED)
+        set_property(TARGET z3 PROPERTY
+                IMPORTED_LOCATION ${Z3_LIBRARIES})
+        set_property(TARGET z3 PROPERTY
+                INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+      endif()
+    endif()
   endif()
 endif()
 
@@ -346,9 +370,6 @@ if(NOT PHASAR_IN_TREE)
   add_definitions(${LLVM_DEFINITIONS_LIST})
 endif()
 
-# Installed config
-configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
-
 # Warnings
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ${PHASAR_BUILD_OPTIONAL_TARGETS_DEFAULT})
 if (PHASAR_ENABLE_WARNINGS)
@@ -358,6 +379,18 @@ if (PHASAR_ENABLE_WARNINGS)
     string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter")
   endif()
 endif (PHASAR_ENABLE_WARNINGS)
+
+
+# Headers
+add_library(phasar_interface INTERFACE)
+file(GLOB_RECURSE PHASAR_PUBLIC_HEADERS include/*.h include/*.def)
+configure_file(config.h.in include/phasar/Config/phasar-config.h @ONLY)
+
+target_sources(phasar_interface INTERFACE
+  FILE_SET HEADERS
+  BASE_DIRS "${PHASAR_SRC_DIR}/include" "${PHASAR_BINARY_DIR}/include"
+  FILES ${PHASAR_PUBLIC_HEADERS} "${PHASAR_BINARY_DIR}/include/phasar/Config/phasar-config.h"
+)
 
 # Some preprocessor symbols that need to be available in phasar sources, but should not be installed
 add_cxx_compile_definitions(PHASAR_SRC_DIR="${CMAKE_SOURCE_DIR}")
@@ -403,41 +436,28 @@ set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Install dir of lib
 # Install targets of phasar-cli, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
-# Install Phasar include directory
-install(DIRECTORY include/
-  DESTINATION include
-  FILES_MATCHING
-  PATTERN "*.def"
-  PATTERN "*.h"
-)
-
-# Install the config file
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/phasar/Config/
-  DESTINATION include/phasar/Config
-  FILES_MATCHING
-  PATTERN "*.def"
-  PATTERN "*.h"
-)
-
 if(NOT PHASAR_IN_TREE)
   install(TARGETS phasar_interface
     EXPORT PhasarExports
+    FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
-
-  # Install the export-set containing all the phasar targets
-  install(EXPORT PhasarExports
-    FILE PhasarExports.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
-  install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
-    FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
-    NAMESPACE phasar::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
-  )
+  if (NOT PHASAR_USE_CONAN)
+    # Install the export-set containing all the phasar targets
+    install(EXPORT PhasarExports
+      FILE PhasarExports.cmake
+      NAMESPACE phasar::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+    install(EXPORT ${PHASAR_DEPS_EXPORT_SET}
+      FILE ${PHASAR_DEPS_EXPORT_SET}.cmake
+      NAMESPACE phasar::deps::
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+    )
+  endif()
 else()
   install(TARGETS phasar_interface
     EXPORT LLVMExports
+    FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS phasar_interface)
 endif()
@@ -447,6 +467,7 @@ install(DIRECTORY utils/
   DESTINATION bin
   FILES_MATCHING
   PATTERN "CodeGen" EXCLUDE # CodeGen does not contain files to install
+  PATTERN "conan" EXCLUDE   # Don't install conan utils
   PATTERN "phasar-*"
   PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
               GROUP_EXECUTE GROUP_READ
@@ -472,7 +493,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake
-  VERSION 2403
+  VERSION ${PHASAR_VERSION}
   COMPATIBILITY SameMajorVersion
 )
 

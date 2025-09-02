@@ -12,16 +12,17 @@
 
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/iterator_range.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -37,6 +38,7 @@ template <> struct ProjectIRDBTraits<LLVMProjectIRDB> {
   using g_t = const llvm::GlobalVariable *;
 };
 
+/// \brief Project IR Database that manages a LLVM IR module.
 class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
   friend ProjectIRDBBase;
 
@@ -44,7 +46,8 @@ public:
   /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
-  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
+  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName,
+                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is optionally being preprocessed.
   ///
@@ -55,22 +58,48 @@ public:
   /// ownership of it. The module is optionally being preprocessed.
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
+  /// Initializes the new ProjectIRDB with the given IR Module and takes
+  /// ownership of it. The module is optionally being preprocessed. Takes the
+  /// given LLVMContext and binds its lifetime to the lifetime of the
+  /// constructed ProjectIRDB
+  explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
+                           std::unique_ptr<llvm::LLVMContext> Ctx,
+                           bool DoPreprocessing = true);
+
   /// Parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
-  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
+                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
-  LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
+  LLVMProjectIRDB &operator=(const LLVMProjectIRDB &) = delete;
+
+  LLVMProjectIRDB(LLVMProjectIRDB &&) noexcept = default;
+  LLVMProjectIRDB &operator=(LLVMProjectIRDB &&) noexcept = default;
 
   ~LLVMProjectIRDB();
 
-  [[nodiscard]] static std::unique_ptr<llvm::Module>
-  getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
-                          llvm::LLVMContext &Ctx) noexcept;
-  [[nodiscard]] static std::unique_ptr<llvm::Module>
-  getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
-                          llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] PSR_DEPRECATED("Deprecated in favor of getParsedIRModuleOrErr",
+                               "getParsedIRModuleOrErr") static std::
+      unique_ptr<llvm::Module> getParsedIRModuleOrNull(
+          const llvm::Twine &IRFileName, llvm::LLVMContext &Ctx) noexcept;
+
+  [[nodiscard]] PSR_DEPRECATED("Deprecated in favor of getParsedIRModuleOrErr",
+                               "getParsedIRModuleOrErr") static std::
+      unique_ptr<llvm::Module> getParsedIRModuleOrNull(
+          llvm::MemoryBufferRef IRFileContent, llvm::LLVMContext &Ctx) noexcept;
+
+  [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+  getParsedIRModuleOrErr(const llvm::Twine &IRFileName,
+                         llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+  getParsedIRModuleOrErr(llvm::MemoryBufferRef IRFileContent,
+                         llvm::LLVMContext &Ctx) noexcept;
+
+  [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
+  load(const llvm::Twine &IRFileName,
+       bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;
@@ -161,7 +190,8 @@ private:
   /// the preprocessing as well
   void preprocessModule(llvm::Module *NonConstMod);
 
-  llvm::LLVMContext Ctx;
+  // LLVMContext is not movable, so wrap it into a unique_ptr
+  std::unique_ptr<llvm::LLVMContext> Ctx;
   MaybeUniquePtr<llvm::Module> Mod = nullptr;
   size_t IdOffset = 0;
   llvm::SmallVector<const llvm::Value *, 0> IdToInst;

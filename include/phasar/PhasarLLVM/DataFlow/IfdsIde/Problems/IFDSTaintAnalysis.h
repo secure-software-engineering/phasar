@@ -11,11 +11,11 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 
@@ -80,13 +80,17 @@ public:
 
   bool isZeroValue(d_t FlowFact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, BinaryDomain> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
+
+  [[nodiscard]] bool
+  isInteresting(const llvm::Instruction *Inst) const noexcept;
 
 private:
   const LLVMTaintConfig *Config{};
   LLVMAliasInfoRef PT{};
   bool TaintMainArgs{};
+  library_summary::LLVMFunctionDataFlowFacts Llvmfdff;
 
   bool isSourceCall(const llvm::CallBase *CB,
                     const llvm::Function *Callee) const;
@@ -95,9 +99,9 @@ private:
                        const llvm::Function *Callee) const;
 
   void populateWithMayAliases(container_type &Facts,
-                              const llvm::Instruction *Context) const;
+                              const llvm::Instruction *AliasQueryInst) const;
   void populateWithMustAliases(container_type &Facts,
-                               const llvm::Instruction *Context) const;
+                               const llvm::Instruction *AliasQueryInst) const;
 };
 } // namespace psr
 

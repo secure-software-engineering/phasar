@@ -10,11 +10,8 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
-#include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/TypeTraits.h"
 
-#include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
@@ -35,16 +32,6 @@ namespace psr {
 std::string createTimeStamp();
 
 bool isConstructor(llvm::StringRef MangledName);
-
-namespace legacy {
-// May need to call this function from a safe environment where we have already
-// checked that it does not take any harm. Surround it with the legacy namespace
-// as a marker that this function will be removed soon.
-
-/// [[deprecated("Requires non-opaque pointers, which will no longer be "
-///              "supported by LLVM in the next version!")]]
-const llvm::Type *stripPointer(const llvm::Type *Pointer);
-} // namespace legacy
 
 bool isMangled(llvm::StringRef Name);
 
@@ -153,11 +140,6 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   }
 }
 
-template <typename T>
-void intersectWith(BitVectorSet<T> &Dest, const BitVectorSet<T> &Src) {
-  Dest.setIntersectWith(Src);
-}
-
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::vector<bool> &Bits);
 
@@ -165,7 +147,7 @@ struct StringIDLess {
   bool operator()(const std::string &LHS, const std::string &RHS) const;
 };
 
-/// See "https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit"
+/// See <https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit>
 template <typename Fn> class scope_exit { // NOLINT
 public:
   template <typename FFn, typename = decltype(std::declval<FFn>()())>
@@ -186,14 +168,16 @@ private:
 
 template <typename Fn> scope_exit(Fn) -> scope_exit<Fn>;
 
-// Copied from "https://en.cppreference.com/w/cpp/utility/variant/visit"
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
+// Copied from <https://en.cppreference.com/w/cpp/utility/variant/visit>
+template <class... Ts> struct Overloaded : Ts... {
+  using Ts::operator()...;
+};
 
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
 
 /// Based on the reference implementation of std::remove_if
-/// "https://en.cppreference.com/w/cpp/algorithm/remove" and optimized for the
+/// <https://en.cppreference.com/w/cpp/algorithm/remove> and optimized for the
 /// case that a sorted list of indices is given instead of an unary predicate
 /// specifying the elements to be removed.
 template <typename It, typename EndIt, typename IdxIt,
@@ -265,9 +249,10 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
   return remove_by_index(begin(Cont), end(Cont), begin(Idx), end(Idx));
 }
 
-/// See https://en.cppreference.com/w/cpp/utility/forward_like
+/// See <https://en.cppreference.com/w/cpp/utility/forward_like>
 template <class T, class U>
-[[nodiscard]] constexpr auto &&forward_like(U &&X) noexcept { // NOLINT
+[[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr auto &&
+forward_like(U &&X) noexcept { // NOLINT
   // NOLINTNEXTLINE
   constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
   if constexpr (std::is_lvalue_reference_v<T &&>) {
@@ -303,19 +288,25 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE void assertNotNull(const T & /*Value*/) {}
-
-template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE void
-assertNotNull([[maybe_unused]] const std::optional<T> &Value) {
-  assert(Value.has_value());
+template <typename T> LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
+  return Value;
 }
 
 template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE void
-assertNotNull([[maybe_unused]] const T *Value) {
+LLVM_ATTRIBUTE_ALWAYS_INLINE const T &
+assertNotNull(const std::optional<T> &Value) {
+  assert(Value.has_value());
+  return *Value;
+}
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(std::optional<T> &Value) {
+  assert(Value.has_value());
+  return *Value;
+}
+
+template <typename T> LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T *Value) {
   assert(Value != nullptr);
+  return *Value;
 }
 
 template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {

@@ -19,8 +19,6 @@
 
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/DenseMap.h"
-
 #include <string>
 #include <vector>
 
@@ -35,6 +33,9 @@ class StoreInst;
 class BranchInst;
 class Module;
 class CallInst;
+class AllocaInst;
+class DIType;
+class DIDerivedType;
 } // namespace llvm
 
 namespace psr {
@@ -55,11 +56,23 @@ bool isIntegerLikeType(const llvm::Type *T) noexcept;
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 
-// TODO add description
+/// Returns true if the provided function and the function type are both not
+/// null and have the same number of parameters and the same return type. If the
+/// argument ExactMatch is set to true, which it is by default, the two provided
+/// arguments must also have the same type for each argument, for the function
+/// to return true.
+///
+/// \note This function is less useful in practice than you may think. Consider
+/// using isConsistentCall() instead.
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
                       bool ExactMatch = true);
 
-// TODO add description
+/// Returns true iff the provided functions are both not null and have the same
+/// number of paramters, the same return type and each parameter of both
+/// functions has the same type aswell.
+///
+/// \note This function is less useful in practice than you may think. Consider
+/// using isConsistentCall() instead.
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 
@@ -93,6 +106,9 @@ std::string llvmIRToShortString(const llvm::Value *V);
 
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
+LLVM_DUMP_METHOD void dumpIRValue(const llvm::Function *V);
+LLVM_DUMP_METHOD void dumpDIType(const llvm::DIType *Ty);
+LLVM_DUMP_METHOD void dumpDIType(const llvm::DIDerivedType *Ty);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
@@ -182,10 +198,11 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo);
 
 llvm::SmallVector<const llvm::Instruction *, 2>
-getAllExitPoints(const llvm::Function *F);
+getAllExitPoints(const llvm::Function *F, bool IncludeResume = true);
 void appendAllExitPoints(
     const llvm::Function *F,
-    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints);
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints,
+    bool IncludeResume = true);
 
 /**
  * @brief Returns the LLVM Module to which the given LLVM Value belongs to.
@@ -232,7 +249,7 @@ bool isGuardVariable(const llvm::Value *V);
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
 /**
- * Tests for https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
+ * Tests for <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>
  * e.g.
  * int boo __attribute__((annotate("bar"));
  * @param F The function to test - Target of the call instruction
@@ -241,7 +258,7 @@ bool isVarAnnotationIntrinsic(const llvm::Function *F);
 
 /**
  * Retrieves String annotation value as per
- * https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic
+ * <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>
  * Test the call function be tested by isVarAnnotationIntrinsic
  *
  */
@@ -249,7 +266,7 @@ llvm::StringRef getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst);
 
 class ModulesToSlotTracker {
   friend class LLVMProjectIRDB;
-  friend class LLVMBasedICFG;
+  friend class GlobalCtorsDtorsModel;
   friend class LLVMZeroValue;
 
 private:
@@ -261,6 +278,11 @@ public:
   static llvm::ModuleSlotTracker &
   getSlotTrackerForModule(const llvm::Module *Module);
 };
+
+[[nodiscard]] const llvm::AllocaInst *
+getVaListTagOrNull(const llvm::Function &Fun);
+
+[[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
 } // namespace psr
 
 #endif

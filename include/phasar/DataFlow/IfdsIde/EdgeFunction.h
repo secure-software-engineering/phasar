@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/EmptyBaseOptimizationUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
@@ -64,7 +65,7 @@ concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_
   {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
   {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
 };
-  // clang-format on
+// clang-format on
 
 #endif
 
@@ -77,10 +78,10 @@ enum class EdgeFunctionAllocationPolicy {
 class EdgeFunctionBase {
 public:
   template <typename ConcreteEF>
-  static constexpr bool
-      IsSOOCandidate = sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
-                       alignof(ConcreteEF) <= alignof(void *) &&
-                       std::is_trivially_copyable_v<ConcreteEF>;
+  static constexpr bool IsSOOCandidate =
+      sizeof(ConcreteEF) <= sizeof(void *) && // NOLINT
+      alignof(ConcreteEF) <= alignof(void *) &&
+      std::is_trivially_copyable_v<ConcreteEF>;
 
   using AllocationPolicy = EdgeFunctionAllocationPolicy;
 
@@ -88,7 +89,9 @@ protected:
   struct RefCountedBase {
     mutable std::atomic_size_t Rc = 0;
   };
-  template <typename T> struct RefCounted : RefCountedBase { T Value; };
+  template <typename T> struct RefCounted : RefCountedBase {
+    T Value;
+  };
 
   template <typename T> struct CachedRefCounted : RefCounted<T> {
     EdgeFunctionSingletonCache<T> *Cache{};
@@ -117,8 +120,8 @@ protected:
                                  : AllocationPolicy::CustomHeapAllocated;
 };
 
-/// Non-null reference to an edge function that is guarenteed to be managed by
-/// an EdgeFunction object.
+/// \brief Non-null reference to an edge function that is guarenteed to be
+/// managed by an EdgeFunction object.
 template <typename EF>
 class [[clang::trivial_abi]] EdgeFunctionRef final : EdgeFunctionBase {
   template <typename L> friend class EdgeFunction;
@@ -163,8 +166,8 @@ private:
       IsCached{};
 };
 
-/// Ref-counted and type-erased edge function with small-object optimization.
-/// Supports caching.
+/// \brief Ref-counted and type-erased edge function with small-object
+/// optimization. Supports caching.
 template <typename L>
 // -- combined copy and move assignment
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
@@ -264,8 +267,8 @@ public:
   explicit EdgeFunction(
       std::in_place_type_t<ConcreteEF> /*unused*/,
       ArgTys &&...Args) noexcept(IsSOOCandidate<std::decay_t<ConcreteEF>> &&
-                                     std::is_nothrow_constructible_v<ConcreteEF,
-                                                                     ArgTys...>)
+                                 std::is_nothrow_constructible_v<ConcreteEF,
+                                                                 ArgTys...>)
       : EdgeFunction(
             [](auto &&...Args) {
               if constexpr (IsSOOCandidate<std::decay_t<ConcreteEF>>) {
@@ -824,8 +827,7 @@ template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
 
 // LLVM is currently overhauling its casting system. Use the new variant once
 // possible!
-// Note: The new variant (With CastInfo) is not tested yet!
-#if LLVM_MAJOR < 15
+#if LLVM_VERSION_MAJOR < 15
 
 template <typename To, typename L>
 struct isa_impl_cl<To, const psr::EdgeFunction<L>> {
@@ -873,7 +875,7 @@ cast_or_null(const psr::EdgeFunction<L> &EF) noexcept { // NOLINT
 template <typename To, typename L>
 struct CastIsPossible<To, psr::EdgeFunction<L>> {
   static inline bool isPossible(const psr::EdgeFunction<L> &EF) noexcept {
-    return EF->template isa<To>();
+    return EF.template isa<To>();
   }
 };
 

@@ -19,21 +19,25 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 #include <optional>
@@ -57,8 +61,17 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
-  if (CallSite->arg_empty() ||
+static const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy) {
+  while (const auto *DerivedTy =
+             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+    // get rid of the pointer
+    DITy = DerivedTy->getBaseType();
+  }
+  return DITy;
+}
+
+const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
+  if (!CallSite || CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
     return nullptr;
   }
@@ -70,16 +83,29 @@ const llvm::StructType *psr::getReceiverType(const llvm::CallBase *CallSite) {
     return nullptr;
   }
 
-  if (Receiver->getType()->isOpaquePointerTy()) {
-    llvm::errs() << "WARNING: The IR under analysis uses opaque pointers, "
-                    "which are not supported by phasar yet!\n";
-    return nullptr;
+  if (const auto *DITy = getVarTypeFromIR(Receiver)) {
+    return stripPointerTypes(DITy);
   }
 
-  if (!Receiver->getType()->isOpaquePointerTy()) {
-    if (const auto *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
-            Receiver->getType()->getNonOpaquePointerElementType())) {
-      return ReceiverTy;
+  if (const auto *Var =
+          getDILocalVariable(Receiver->stripPointerCastsAndAliases())) {
+    return stripPointerTypes(Var->getType());
+  }
+
+  return nullptr;
+}
+
+const llvm::Function *psr::getNonPureVirtualVFTEntry(
+    const llvm::DIType *T, unsigned Idx, const llvm::CallBase *CallSite,
+    const LLVMVFTableProvider &VTP, const llvm::DIType *ReceiverType) {
+  auto VTIndex = *VTP.getVTableIndexInHierarchy(T, ReceiverType).begin();
+
+  if (const auto *VT = VTP.getVFTableOrNull(T, VTIndex)) {
+    const auto *Target = VT->getFunction(Idx);
+    if (Target &&
+        Target->getName() != DIBasedTypeHierarchy::PureVirtualCallName &&
+        isConsistentCall(CallSite, Target)) {
+      return Target;
     }
   }
 
@@ -108,29 +134,32 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
   return true;
 }
 
-namespace psr {
+bool psr::isVirtualCall(const llvm::Instruction *Inst,
+                        const LLVMVFTableProvider &VTP) {
+  assert(Inst != nullptr);
+  const auto *CallSite = llvm::dyn_cast<llvm::CallBase>(Inst);
+  if (!CallSite) {
+    return false;
+  }
+  // check potential receiver type
+  const auto *RecType = getReceiverType(CallSite);
+  if (!RecType) {
+    llvm::errs() << "No receiver type found for call at "
+                 << llvmIRToString(Inst) << '\n';
+    return false;
+  }
 
-Resolver::Resolver(const LLVMProjectIRDB *IRDB) : IRDB(IRDB), VTP(nullptr) {
-  assert(IRDB != nullptr);
+  if (!VTP.hasVFTable(RecType)) {
+    return false;
+  }
+  return getVFTIndex(CallSite) >= 0;
 }
 
-Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
-    : IRDB(IRDB), VTP(VTP) {}
+namespace psr {
 
-const llvm::Function *
-Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
-                                    const llvm::CallBase *CallSite) {
-  if (!VTP) {
-    return nullptr;
-  }
-  if (const auto *VT = VTP->getVFTableOrNull(T)) {
-    const auto *Target = VT->getFunction(Idx);
-    if (Target && Target->getName() != LLVMTypeHierarchy::PureVirtualCallName &&
-        isConsistentCall(CallSite, Target)) {
-      return Target;
-    }
-  }
-  return nullptr;
+Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
+    : IRDB(IRDB), VTP(VTP) {
+  assert(IRDB != nullptr);
 }
 
 void Resolver::preCall(const llvm::Instruction *Inst) {}
@@ -140,22 +169,33 @@ void Resolver::handlePossibleTargets(const llvm::CallBase *CallSite,
 
 void Resolver::postCall(const llvm::Instruction *Inst) {}
 
-auto Resolver::resolveFunctionPointer(const llvm::CallBase *CallSite)
+auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
     -> FunctionSetTy {
+  FunctionSetTy PossibleTargets;
+  if (VTP && isVirtualCall(CallSite, *VTP)) {
+    resolveVirtualCall(PossibleTargets, CallSite);
+  }
+
+  if (PossibleTargets.empty()) {
+    resolveFunctionPointer(PossibleTargets, CallSite);
+  }
+
+  return PossibleTargets;
+}
+
+void Resolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                      const llvm::CallBase *CallSite) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
   PHASAR_LOG_LEVEL(DEBUG,
                    "Call function pointer: " << llvmIRToString(CallSite));
-  FunctionSetTy CalleeTargets;
 
   for (const auto *F : IRDB->getAllFunctions()) {
     if (F->hasAddressTaken() && isConsistentCall(CallSite, F)) {
-      CalleeTargets.insert(F);
+      PossibleTargets.insert(F);
     }
   }
-
-  return CalleeTargets;
 }
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
@@ -163,23 +203,20 @@ void Resolver::otherInst(const llvm::Instruction *Inst) {}
 std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
                                            const LLVMProjectIRDB *IRDB,
                                            const LLVMVFTableProvider *VTP,
-                                           const LLVMTypeHierarchy *TH,
+                                           const DIBasedTypeHierarchy *TH,
                                            LLVMAliasInfoRef PT) {
   assert(IRDB != nullptr);
   assert(VTP != nullptr);
 
   switch (Ty) {
   case CallGraphAnalysisType::NORESOLVE:
-    return std::make_unique<NOResolver>(IRDB);
+    return std::make_unique<NOResolver>(IRDB, VTP);
   case CallGraphAnalysisType::CHA:
     assert(TH != nullptr);
     return std::make_unique<CHAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::RTA:
     assert(TH != nullptr);
     return std::make_unique<RTAResolver>(IRDB, VTP, TH);
-  case CallGraphAnalysisType::DTA:
-    assert(TH != nullptr);
-    return std::make_unique<DTAResolver>(IRDB, VTP, TH);
   case CallGraphAnalysisType::VTA:
     llvm::report_fatal_error(
         "The VTA callgraph algorithm is not implemented yet");

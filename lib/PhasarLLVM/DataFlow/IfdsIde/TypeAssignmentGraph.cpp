@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/FilteredAliasSet.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Utilities.h"
@@ -228,8 +229,7 @@ static void handleAlloca(const llvm::AllocaInst *Alloca,
     return;
   }
 
-  const auto *AllocTy =
-      llvm::dyn_cast<llvm::StructType>(Alloca->getAllocatedType());
+  const auto *AllocTy = getVarTypeFromIR(Alloca);
   if (!AllocTy) {
     return;
   }

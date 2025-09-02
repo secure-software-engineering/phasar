@@ -10,7 +10,7 @@
 #include "AnalysisController.h"
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "AnalysisControllerInternal.h"
@@ -71,7 +71,7 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
     WithResultFileOrStdout("/psr-cg.json",
-                           [&HA](auto &OS) { OS << HA.getICFG().getAsJson(); });
+                           [&HA](auto &OS) { HA.getICFG().printAsJson(OS); });
   }
 
   if (EmitterOptions &
@@ -127,6 +127,9 @@ static void executeWholeProgram(AnalysisController &Data) {
     case DataFlowAnalysisType::IFDSTaintAnalysis:
       executeIFDSTaint(Data);
       continue;
+    case DataFlowAnalysisType::SparseIFDSTaintAnalysis:
+      executeSparseIFDSTaint(Data);
+      continue;
     case DataFlowAnalysisType::IDEExtendedTaintAnalysis:
       executeIDEXTaint(Data);
       continue;
@@ -150,6 +153,9 @@ static void executeWholeProgram(AnalysisController &Data) {
       continue;
     case DataFlowAnalysisType::IDEInstInteractionAnalysis:
       executeIDEIIA(Data);
+      continue;
+    case DataFlowAnalysisType::IDEFeatureTaintAnalysis:
+      executeIDEFIIA(Data);
       continue;
     case DataFlowAnalysisType::IntraMonoFullConstantPropagation:
       executeIntraMonoFullConstant(Data);

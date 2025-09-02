@@ -11,12 +11,11 @@
 #define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
-#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Macros.h"
 
-#include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 #include <optional>
 #include <tuple>
@@ -49,7 +48,7 @@ auto testAliasInfo(
         CAI.isInterProcedural(), CAI.getAliasAnalysisType(),
         AI.alias(*VT, *VT, *NT), AI.getAliasSet(*VT, *NT),
         AI.getReachableAllocationSites(*VT, true, *NT),
-        AI.isInReachableAllocationSites(*VT, *VT, true, *NT), CAI.getAsJson(),
+        AI.isInReachableAllocationSites(*VT, *VT, true, *NT),
         CAI.getAnalysisProperties(), CAI.isContextSensitive(),
         CAI.isFieldSensitive(), CAI.isFlowSensitive()));
 template <typename T, typename = void, typename = void>
@@ -69,7 +68,7 @@ struct IsAliasInfo<
         std::tuple<bool, AliasAnalysisType, AliasResult,
                    typename AliasInfoTraits<T>::AliasSetPtrTy,
                    typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool,
-                   nlohmann::json, AnalysisProperties, bool, bool, bool>,
+                   AnalysisProperties, bool, bool, bool>,
         decltype(testAliasInfo(std::declval<T &>(),
                                std::declval<const T &>()))>>> : std::true_type {
 };

@@ -26,16 +26,13 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdlib>
 #include <filesystem>
 #include <system_error>
 #include <type_traits>
-
-namespace llvm {
-class DbgInfoIntrinsic;
-} // namespace llvm
 
 namespace psr {
 template <typename Derived, typename AnalysisDomainTy, typename GraphType>
@@ -70,6 +67,11 @@ protected:
   }
 
 public:
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts in FactsRange holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename FactsRangeTy, typename ConfigTy,
       typename Filter = DefaultPathTracingFilter,
@@ -150,6 +152,11 @@ public:
     return Dag;
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
@@ -162,6 +169,11 @@ public:
     return pathsDagToAll(std::move(Inst), FactsRange, Config, PFilter);
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to the
+  /// given data-flow fact Fact holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename ConfigTy, typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
@@ -174,6 +186,11 @@ public:
                          PFilter);
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts in FactsRange holding at Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename ConfigTy, typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>

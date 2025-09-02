@@ -26,7 +26,6 @@
 #include <vector>
 
 namespace llvm {
-class Instruction;
 class CallBase;
 class Function;
 class Type;
@@ -35,28 +34,25 @@ class Value;
 
 namespace psr {
 
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 
+/// \brief A resolver that uses alias information to resolve indirect and
+/// virtual calls
 class OTFResolver : public Resolver {
-protected:
-  LLVMAliasInfoRef PT;
-
 public:
   OTFResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               LLVMAliasInfoRef PT);
 
   ~OTFResolver() override = default;
 
-  void preCall(const llvm::Instruction *Inst) override;
-
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
 
-  void postCall(const llvm::Instruction *Inst) override;
+  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                          const llvm::CallBase *CallSite) override;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
-
-  FunctionSetTy resolveFunctionPointer(const llvm::CallBase *CallSite) override;
+  void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                              const llvm::CallBase *CallSite) override;
 
   static std::set<const llvm::Type *>
   getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
@@ -66,6 +62,14 @@ public:
                               const llvm::Function *CalleeTarget);
 
   [[nodiscard]] std::string str() const override;
+
+  [[nodiscard]] bool
+  mutatesHelperAnalysisInformation() const noexcept override {
+    return true;
+  }
+
+protected:
+  LLVMAliasInfoRef PT;
 };
 } // namespace psr
 

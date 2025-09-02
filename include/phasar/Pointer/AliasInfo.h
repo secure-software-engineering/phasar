@@ -14,14 +14,13 @@
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include "nlohmann/json.hpp"
 
 #include <memory>
 #include <type_traits>
@@ -42,7 +41,7 @@ struct AliasInfoTraits<AliasInfoRef<V, N>> : DefaultAATraits<V, N> {};
 template <typename V, typename N>
 struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 
-/// A type-erased reference to any object implementing the IsAliasInfo
+/// \brief A type-erased reference to any object implementing the IsAliasInfo
 /// interface. Use this, if your analysis is not tied to a specific alias info
 /// implementation.
 ///
@@ -140,11 +139,6 @@ public:
     VT->Print(AA, OS);
   }
 
-  [[nodiscard]] nlohmann::json getAsJson() const {
-    assert(VT != nullptr);
-    return VT->GetAsJson(AA);
-  }
-
   void printAsJson(llvm::raw_ostream &OS) const {
     assert(VT != nullptr);
     VT->PrintAsJson(AA, OS);
@@ -200,7 +194,6 @@ private:
                                          ByConstRef<v_t>, bool,
                                          ByConstRef<n_t>);
     void (*Print)(const void *, llvm::raw_ostream &);
-    nlohmann::json (*GetAsJson)(const void *);
     void (*PrintAsJson)(const void *, llvm::raw_ostream &);
     void (*MergeWith)(void *, void *);
     void (*IntroduceAlias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
@@ -240,9 +233,6 @@ private:
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->print(OS);
       },
-      [](const void *AA) {
-        return static_cast<const ConcreteAA *>(AA)->getAsJson();
-      },
       [](const void *AA, llvm::raw_ostream &OS) {
         static_cast<const ConcreteAA *>(AA)->printAsJson(OS);
       },
@@ -270,8 +260,9 @@ private:
   const VTable *VT{};
 };
 
-/// Similar to AliasInfoRef, but exclusively owns the held reference. Use this,
-/// if you need to decide dynamically, which alias info implementation to use.
+/// \brief Similar to AliasInfoRef, but exclusively owns the held reference. Use
+/// this, if you need to decide dynamically, which alias info implementation to
+/// use.
 ///
 /// Implicitly convertible to AliasInfoRef.
 ///
@@ -324,13 +315,13 @@ public:
     }
   }
 
-  [[nodiscard]] base_t asRef() &noexcept { return *this; }
-  [[nodiscard]] AliasInfoRef<V, N> asRef() const &noexcept { return *this; }
+  [[nodiscard]] base_t asRef() & noexcept { return *this; }
+  [[nodiscard]] AliasInfoRef<V, N> asRef() const & noexcept { return *this; }
   [[nodiscard]] AliasInfoRef<V, N> asRef() && = delete;
 
   /// For better interoperability with unique_ptr
-  [[nodiscard]] base_t get() &noexcept { return asRef(); }
-  [[nodiscard]] AliasInfoRef<V, N> get() const &noexcept { return asRef(); }
+  [[nodiscard]] base_t get() & noexcept { return asRef(); }
+  [[nodiscard]] AliasInfoRef<V, N> get() const & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
 };
 

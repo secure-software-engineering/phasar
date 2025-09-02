@@ -19,7 +19,7 @@ endif()
 
 
 if(PHASAR_USE_Z3)
-  set(ADDITIONAL_LINK_LIBS z3)
+  set(ADDITIONAL_LINK_LIBS ${Z3_LIBRARIES})
 endif()
 
 add_phasar_library(phasar_llvm_pathsensitivity
@@ -41,4 +41,7 @@ add_phasar_library(phasar_llvm_pathsensitivity
   LINK_PUBLIC
     nlohmann_json::nlohmann_json
     ${ADDITIONAL_LINK_LIBS}
+
+  MODULE_FILES
+    PathSensitivity.cppm
 )

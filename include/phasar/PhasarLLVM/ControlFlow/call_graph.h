@@ -26,17 +26,6 @@ computeVTACallgraph(const llvm::Module &Mod,
                     psr::LLVMAliasInfoRef AS,
                     const psr::LLVMVFTableProvider &VTP);
 
-namespace analysis::call_graph {
-struct ObjectGraph;
-} // namespace analysis::call_graph
-
-[[nodiscard]] psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
-computeVTACallgraph(const llvm::Module &Mod,
-                    const psr::CallGraph<const llvm::Instruction *,
-                                         const llvm::Function *> &BaseCG,
-                    const analysis::call_graph::ObjectGraph &ObjGraph,
-                    const psr::LLVMVFTableProvider &VTP);
-
 } // namespace psr
 
 #endif

@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 #define PHASAR_PHASARLLVM_UTILS_LLVMIRTOSRC_H
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 #include "nlohmann/json.hpp"
 
 #include <optional>
@@ -31,33 +33,26 @@ class Value;
 class GlobalVariable;
 class Module;
 class DIFile;
+class DILocation;
 } // namespace llvm
 
 namespace psr {
 
-[[nodiscard]] std::string getVarNameFromIR(const llvm::Value *V);
+/// \file This file contains useful structs and functions to get and store
+/// information about the source code or the intermediate representation of the
+/// target being analyzed.
 
-[[nodiscard]] std::string getFunctionNameFromIR(const llvm::Value *V);
+/// \brief Minimal source-code information, based on LLVM debug information
+struct DebugLocation {
+  unsigned Line{};
+  unsigned Column{};
+  const llvm::DIFile *File{};
+};
 
-[[nodiscard]] std::string getFilePathFromIR(const llvm::Value *V);
-[[nodiscard]] std::string getFilePathFromIR(const llvm::DIFile *DIF);
+[[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
 
-[[nodiscard]] std::string getDirectoryFromIR(const llvm::Value *V);
-
-[[nodiscard]] const llvm::DIFile *getDIFileFromIR(const llvm::Value *V);
-
-[[nodiscard]] unsigned int getLineFromIR(const llvm::Value *V);
-
-[[nodiscard]] unsigned int getColumnFromIR(const llvm::Value *V);
-
-[[nodiscard]] std::pair<unsigned, unsigned>
-getLineAndColFromIR(const llvm::Value *V);
-
-[[nodiscard]] std::string getSrcCodeFromIR(const llvm::Value *V,
-                                           bool Trim = true);
-
-[[nodiscard]] std::string getModuleIDFromIR(const llvm::Value *V);
-
+/// \brief A struct that contains information about a source code line, function
+/// name, file name corresponding to the IR statement.
 struct SourceCodeInfo {
   std::string SourceCodeLine;
   std::string SourceCodeFilename;
@@ -78,6 +73,33 @@ struct SourceCodeInfo {
   [[nodiscard]] bool equivalentWith(const SourceCodeInfo &Other) const;
 };
 
+[[nodiscard]] llvm::DILocation *getDILocation(const llvm::Value *V);
+
+[[nodiscard]] std::string getVarNameFromIR(const llvm::Value *V);
+[[nodiscard]] llvm::DIType *getVarTypeFromIR(const llvm::Value *V);
+
+[[nodiscard]] std::string getFunctionNameFromIR(const llvm::Value *V);
+
+[[nodiscard]] std::string getFilePathFromIR(const llvm::Value *V);
+[[nodiscard]] std::string getFilePathFromIR(const llvm::DIFile *DIF);
+
+[[nodiscard]] std::string getDirectoryFromIR(const llvm::Value *V);
+
+[[nodiscard]] const llvm::DIFile *getDIFileFromIR(const llvm::Value *V);
+
+[[nodiscard]] unsigned int getLineFromIR(const llvm::Value *V);
+
+[[nodiscard]] unsigned int getColumnFromIR(const llvm::Value *V);
+
+[[nodiscard]] std::pair<unsigned, unsigned>
+getLineAndColFromIR(const llvm::Value *V);
+
+[[nodiscard]] std::string getSrcCodeFromIR(const llvm::Value *V,
+                                           bool Trim = true);
+[[nodiscard]] std::string getSrcCodeFromIR(DebugLocation Loc, bool Trim = true);
+
+[[nodiscard]] std::string getModuleIDFromIR(const llvm::Value *V);
+
 /// Used from the JSON library internally to implicitly convert between json and
 /// SourceCodeInfo
 void from_json(const nlohmann::json &J, SourceCodeInfo &Info);
@@ -86,12 +108,6 @@ void from_json(const nlohmann::json &J, SourceCodeInfo &Info);
 void to_json(nlohmann::json &J, const SourceCodeInfo &Info);
 
 [[nodiscard]] SourceCodeInfo getSrcCodeInfoFromIR(const llvm::Value *V);
-
-struct DebugLocation {
-  unsigned Line{};
-  unsigned Column{};
-  const llvm::DIFile *File{};
-};
 
 [[nodiscard]] std::optional<DebugLocation>
 getDebugLocation(const llvm::Value *V);
