@@ -14,6 +14,7 @@
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/PointerUnion.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace llvm {
@@ -32,7 +33,9 @@ struct TypeAssignmentGraph;
 enum class TAGNodeId : uint32_t;
 
 struct TypeAssignment {
-  TypedVector<SCCId<TAGNodeId>, llvm::SmallDenseSet<const llvm::Value *>>
+  TypedVector<SCCId<TAGNodeId>,
+              llvm::SmallDenseSet<llvm::PointerUnion<const llvm::Function *,
+                                                     const llvm::DIType *>>>
       TypesPerSCC;
 
   void print(llvm::raw_ostream &OS, const TypeAssignmentGraph &TAG,

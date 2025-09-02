@@ -15,12 +15,17 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/PointerUnion.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -37,7 +42,7 @@ struct Variable {
 };
 
 struct Field {
-  const llvm::Type *Base;
+  const llvm::DIType *Base;
   size_t ByteOffset;
 };
 
@@ -112,22 +117,23 @@ namespace psr::vta {
 
 struct TypeAssignmentGraph {
   using GraphNodeId = TAGNodeId;
+  using TypeInfoTy =
+      llvm::PointerUnion<const llvm::Function *, const llvm::DIType *>;
   Compressor<TAGNode, GraphNodeId> Nodes;
 
-  llvm::SmallVector<llvm::SmallDenseSet<GraphNodeId>, 0> Adj;
-  llvm::SmallDenseMap<GraphNodeId, llvm::SmallDenseSet<const llvm::Value *>>
+  TypedVector<TAGNodeId, llvm::SmallDenseSet<TAGNodeId>> Adj;
+  llvm::SmallDenseMap<TAGNodeId, llvm::SmallDenseSet<TypeInfoTy>>
       TypeEntryPoints;
 
-  [[nodiscard]] inline std::optional<GraphNodeId>
-  get(TAGNode TN) const noexcept {
+  [[nodiscard]] inline std::optional<TAGNodeId> get(TAGNode TN) const noexcept {
     return Nodes.getOrNull(TN);
   }
 
-  [[nodiscard]] inline TAGNode operator[](GraphNodeId Id) const noexcept {
+  [[nodiscard]] inline TAGNode operator[](TAGNodeId Id) const noexcept {
     return Nodes[Id];
   }
 
-  inline void addEdge(GraphNodeId From, GraphNodeId To) {
+  inline void addEdge(TAGNodeId From, TAGNodeId To) {
     assert(size_t(From) < Adj.size());
     assert(size_t(To) < Adj.size());
 
@@ -135,7 +141,7 @@ struct TypeAssignmentGraph {
       return;
     }
 
-    Adj[size_t(From)].insert(To);
+    Adj[From].insert(To);
   }
 
   void print(llvm::raw_ostream &OS);
@@ -154,5 +160,58 @@ using AliasInfoTy = llvm::function_ref<void(
 
 void printNode(llvm::raw_ostream &OS, TAGNode TN);
 }; // namespace psr::vta
+
+namespace psr {
+template <> struct GraphTraits<vta::TypeAssignmentGraph> {
+  using graph_type = vta::TypeAssignmentGraph;
+  using value_type = vta::TAGNode;
+  using vertex_t = vta::TAGNodeId;
+  using edge_t = vertex_t;
+
+  static constexpr vertex_t Invalid = vertex_t(UINT32_MAX);
+
+  [[nodiscard]] static const auto &outEdges(const graph_type &G,
+                                            vertex_t Vtx) noexcept {
+    assert(G.Adj.inbounds(Vtx));
+    return G.Adj[Vtx];
+  }
+
+  [[nodiscard]] static const auto &nodes(const graph_type &G) noexcept {
+    return G.Nodes;
+  }
+
+  [[nodiscard]] static auto roots(const graph_type &G) noexcept {
+    return llvm::make_first_range(G.TypeEntryPoints);
+  }
+
+  [[nodiscard]] static auto vertices(const graph_type &G) noexcept {
+    return iota<vertex_t>(G.Adj.size());
+  }
+
+  [[nodiscard]] static value_type node(const graph_type &G,
+                                       vertex_t Vtx) noexcept {
+    assert(G.Adj.inbounds(Vtx));
+    assert(G.Adj.size() == G.Nodes.size());
+    return G.Nodes[Vtx];
+  }
+
+  [[nodiscard]] static size_t size(const graph_type &G) noexcept {
+    assert(G.Adj.size() == G.Nodes.size());
+    return G.Adj.size();
+  }
+
+  [[nodiscard]] static size_t
+  roots_size(const graph_type &G) noexcept { // NOLINT
+    return G.TypeEntryPoints.size();
+  }
+
+  [[nodiscard]] static vertex_t target(edge_t Edge) noexcept { return Edge; }
+
+  [[nodiscard]] static vertex_t withEdgeTarget(edge_t /*Edge*/,
+                                               vertex_t NewTgt) noexcept {
+    return NewTgt;
+  }
+};
+} // namespace psr
 
 #endif

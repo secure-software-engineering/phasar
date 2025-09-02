@@ -25,6 +25,7 @@
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
@@ -233,6 +234,30 @@ std::string psr::llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
   llvm::raw_string_ostream RSO(IRBuffer);
   Ty->print(RSO, false, Shorten);
   return IRBuffer;
+}
+std::string psr::llvmTypeToString(const llvm::DIType *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+
+  std::string Ret;
+
+  if (Shorten) {
+    Ret = Ty->getName().str();
+    if (!Ret.empty()) {
+      const auto *Scope = Ty->getScope();
+      while (llvm::isa_and_nonnull<llvm::DINamespace, llvm::DISubprogram,
+                                   llvm::DIType>(Scope)) {
+        Ret = Scope->getName().str().append("::").append(Ret);
+        Scope = Scope->getScope();
+      }
+      return Ret;
+    }
+  }
+
+  llvm::raw_string_ostream RSO(Ret);
+  Ty->print(RSO);
+  return Ret;
 }
 
 void psr::dumpIRValue(const llvm::Value *V) {

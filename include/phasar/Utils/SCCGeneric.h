@@ -419,7 +419,7 @@ SCCDependencyGraph<typename GraphTraits<G>::vertex_t> computeSCCDependencies(
     }
   }
 
-  Ret.SCCRoots.reserve(Roots.count());
+  Ret.SCCRoots.reserve(Roots.size());
   for (auto Rt : Roots) {
     Ret.SCCRoots.push_back(Rt);
   }

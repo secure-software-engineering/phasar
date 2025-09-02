@@ -14,6 +14,8 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/SCCGeneric.h"
 
+#include "llvm/IR/DebugInfoMetadata.h"
+
 using namespace psr;
 using namespace psr::vta;
 
@@ -59,12 +61,17 @@ void TypeAssignment::print(llvm::raw_ostream &OS,
   OS << "digraph TypeAssignment {\n";
   psr::scope_exit CloseBrace = [&OS] { OS << "}\n"; };
 
-  Compressor<const llvm::Value *> Types;
-  auto GetOrAddType = [&](const llvm::Value *Ty) {
+  Compressor<TypeAssignmentGraph::TypeInfoTy> Types;
+  auto GetOrAddType = [&](TypeAssignmentGraph::TypeInfoTy Ty) {
     auto [Id, Inserted] = Types.insert(Ty);
     if (Inserted) {
       OS << (size_t(Id) + SCCs.size()) << "[label=\"";
-      OS.write_escaped(Ty->getName());
+      if (const auto *Fun = Ty.dyn_cast<const llvm::Function *>()) {
+        OS << "fun-" << Fun->getName();
+      } else if (const auto *DITy = Ty.dyn_cast<const llvm::DIType *>()) {
+        OS << "type-";
+        OS.write_escaped(llvmTypeToString(DITy, true));
+      }
       OS << "\"];\n";
     }
     return Id + SCCs.size();
@@ -79,7 +86,7 @@ void TypeAssignment::print(llvm::raw_ostream &OS,
     }
     OS << "\"];\n";
 
-    for (const auto *Ty : TypesPerSCC[Ctr]) {
+    for (auto Ty : TypesPerSCC[Ctr]) {
       auto TyId = GetOrAddType(Ty);
       OS << uint32_t(Ctr) << "->" << TyId << ";\n";
     }

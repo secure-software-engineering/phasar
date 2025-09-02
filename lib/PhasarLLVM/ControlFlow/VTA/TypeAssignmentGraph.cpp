@@ -23,7 +23,9 @@
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -32,6 +34,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Casting.h"
@@ -39,7 +42,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <string>
+#include <optional>
 #include <variant>
 
 using namespace psr;
@@ -65,31 +68,53 @@ void vta::printNode(llvm::raw_ostream &OS, TAGNode TN) {
   std::visit([&OS](auto Nod) { printNodeImpl(OS, Nod); }, TN.Label);
 }
 
+static const llvm::DIType *stripMemberAndTypedef(const llvm::DIType *Ty) {
+  while (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(Ty)) {
+    if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef ||
+        DerivedTy->getTag() == llvm::dwarf::DW_TAG_member) {
+      Ty = DerivedTy->getBaseType();
+      continue;
+    }
+    break;
+  }
+  return Ty;
+}
+
+static bool isPointerTy(const llvm::DIType *Ty) {
+  if (const auto *DerivedTy =
+          llvm::dyn_cast<llvm::DIDerivedType>(stripMemberAndTypedef(Ty))) {
+    return DerivedTy->getTag() == llvm::dwarf::DW_TAG_pointer_type ||
+           DerivedTy->getTag() == llvm::dwarf::DW_TAG_reference_type;
+  }
+  return false;
+}
+
+static const llvm::DICompositeType *isCompositeTy(const llvm::DIType *Ty) {
+  return llvm::dyn_cast<llvm::DICompositeType>(stripMemberAndTypedef(Ty));
+}
+
 static llvm::SmallBitVector
-getPointerIndicesOfType(llvm::Type *Ty, const llvm::DataLayout &DL) {
+getPointerIndicesOfType(llvm::DICompositeType *Ty, const llvm::DataLayout &DL) {
   llvm::SmallBitVector Ret;
 
-  auto PointerSize = DL.getPointerSize();
-  // LOGS("[getPointerIndicesOfType]: " << *Ty );
-  auto MaxNumPointers =
-      !Ty->isSized() ? 1 : DL.getTypeAllocSize(Ty) / PointerSize;
+  auto PointerSize = DL.getPointerSizeInBits();
+
+  // TODO: Does every type provide a meaningful getSizeInBits?
+  auto MaxNumPointers = Ty->getSizeInBits() / PointerSize;
   if (!MaxNumPointers) {
     return Ret;
   }
   Ret.resize(MaxNumPointers);
 
-  llvm::SmallVector<std::pair<llvm::Type *, ptrdiff_t>> WorkList = {{Ty, 0}};
+  llvm::SmallVector<std::pair<llvm::DIType *, ptrdiff_t>> WorkList = {{Ty, 0}};
 
   while (!WorkList.empty()) {
-    auto [CurrTy, CurrByteOffs] = WorkList.pop_back_val();
+    auto [CurrTy, CurrBitOffs] = WorkList.pop_back_val();
 
-    if (CurrTy->isPointerTy()) {
-      size_t Idx = CurrByteOffs / PointerSize;
-      if (CurrByteOffs % PointerSize) [[unlikely]] {
+    if (isPointerTy(CurrTy)) {
+      size_t Idx = CurrBitOffs / PointerSize;
+      if (CurrBitOffs % PointerSize) [[unlikely]] {
         PHASAR_LOG_LEVEL(WARNING, "Unaligned pointer..");
-        /*llvm::errs() << "[WARNING][getPointerIndicesOfType]: Unaligned pointer
-           " "found at offset "
-                     << CurrByteOffs << " in type " << *Ty;*/
       }
       assert(Ret.size() > Idx &&
              "reserved unsufficient space for pointer indices");
@@ -97,24 +122,57 @@ getPointerIndicesOfType(llvm::Type *Ty, const llvm::DataLayout &DL) {
       continue;
     }
 
-    if (CurrTy->isArrayTy()) {
-      auto *ElemTy = CurrTy->getArrayElementType();
-      auto ArrayLen = CurrTy->getArrayNumElements();
-      auto ElemSize = DL.getTypeAllocSize(ElemTy);
-      for (size_t I = 0, Offs = CurrByteOffs; I < ArrayLen;
-           ++I, Offs += ElemSize) {
-        WorkList.emplace_back(ElemTy, Offs);
-      }
+    const auto *CompTy = isCompositeTy(CurrTy);
+    if (!CompTy) {
       continue;
     }
 
-    if (auto *Struct = llvm::dyn_cast<llvm::StructType>(CurrTy)) {
-      auto NumElems = Struct->getNumElements();
-      const auto *SL = DL.getStructLayout(Struct);
-      for (size_t I = 0; I < NumElems; ++I) {
-        auto Offs = CurrByteOffs + SL->getElementOffset(I);
-        WorkList.emplace_back(Struct->getElementType(I), Offs);
+    auto Tag = CompTy->getTag();
+
+    if (Tag == llvm::dwarf::DW_TAG_array_type) {
+      auto *ElemTy = CompTy->getBaseType();
+      const auto *ArrayLenRange =
+          llvm::cast<llvm::DISubrange>(CompTy->getElements()[0]);
+      auto ArrayLenBound = ArrayLenRange->getCount();
+      if (const auto *ArrayLenCInt =
+              ArrayLenBound.dyn_cast<llvm::ConstantInt *>()) {
+        auto ArrayLen = ArrayLenCInt->getSExtValue();
+        // Count is -1 for flexible array members;
+        if (ArrayLen < 0) {
+          continue;
+        }
+
+        auto ElemSize = int64_t(ElemTy->getSizeInBits());
+        for (int64_t I = 0, Offs = CurrBitOffs; I < ArrayLen;
+             ++I, Offs += ElemSize) {
+          WorkList.emplace_back(ElemTy, Offs);
+        }
       }
+
+      continue;
+    }
+
+    if (Tag == llvm::dwarf::DW_TAG_structure_type ||
+        Tag == llvm::dwarf::DW_TAG_class_type) {
+
+      auto Elems = CompTy->getElements();
+      uint64_t Offs = CurrBitOffs;
+      for (auto *Elem : Elems) {
+        auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elem);
+        if (!ElemTy) {
+          continue;
+        }
+
+        scope_exit IncOffs = [&] { Offs += ElemTy->getSizeInBits(); };
+
+        if (Elem->getTag() != llvm::dwarf::DW_TAG_inheritance &&
+            Elem->getTag() != llvm::dwarf::DW_TAG_member) {
+          continue;
+        }
+
+        WorkList.emplace_back(ElemTy, Offs);
+      }
+
       continue;
     }
   }
@@ -133,12 +191,17 @@ static void addFields(const llvm::Module &Mod, TypeAssignmentGraph &TAG,
 
   size_t PointerSize = DL.getPointerSize();
 
-  for (auto *ST : Structs) {
-    auto Offsets = getPointerIndicesOfType(ST, DL);
-    for (auto Offs : Offsets.set_bits()) {
-      addTAGNode({Field{ST, Offs * PointerSize}}, TAG);
+  llvm::DebugInfoFinder DIF;
+  DIF.processModule(Mod);
+
+  for (auto *DITy : DIF.types()) {
+    if (auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
+      auto Offsets = getPointerIndicesOfType(CompTy, DL);
+      for (auto Offs : Offsets.set_bits()) {
+        addTAGNode({Field{CompTy, Offs * PointerSize}}, TAG);
+      }
+      addTAGNode({Field{CompTy, SIZE_MAX}}, TAG);
     }
-    addTAGNode({Field{ST, SIZE_MAX}}, TAG);
   }
 }
 
@@ -200,22 +263,13 @@ static void initializeWithFun(const llvm::Function *Fun,
   }
 }
 
-[[nodiscard]] static bool isVTableOrFun(const llvm::Value *Val) {
-  const auto *Base = Val->stripPointerCastsAndAliases();
-  if (llvm::isa<llvm::Function>(Base)) {
-    return true;
-  }
-
-  if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Base)) {
-    return Glob->isConstant() && Glob->getName().startswith("_ZTV");
-  }
-
-  return false;
-}
-
 static void handleAlloca(const llvm::AllocaInst *Alloca,
                          TypeAssignmentGraph &TAG,
-                         const psr::LLVMVFTableProvider &VTP) {
+                         const psr::LLVMVFTableProvider & /*VTP*/) {
+  if (Alloca->getAllocatedType()->isPointerTy()) {
+    return;
+  }
+
   auto TN = TAG.get({Variable{Alloca}});
   if (!TN) {
     return;
@@ -226,9 +280,7 @@ static void handleAlloca(const llvm::AllocaInst *Alloca,
     return;
   }
 
-  if (const auto *TV = VTP.getVFTableGlobal(AllocTy)) {
-    TAG.TypeEntryPoints[*TN].insert(TV);
-  }
+  TAG.TypeEntryPoints[*TN].insert(AllocTy);
 }
 
 static std::optional<TAGNodeId> getGEPNode(const llvm::GetElementPtrInst *GEP,
@@ -242,7 +294,12 @@ static std::optional<TAGNodeId> getGEPNode(const llvm::GetElementPtrInst *GEP,
     return SIZE_MAX;
   }();
 
-  return TAG.get({Field{GEP->getSourceElementType(), Offs}});
+  auto *VarTy = getVarTypeFromIR(GEP);
+  if (!VarTy) {
+    return std::nullopt;
+  }
+
+  return TAG.get({Field{VarTy, Offs}});
 }
 
 static void handleGEP(const llvm::GetElementPtrInst *GEP,
@@ -272,10 +329,10 @@ static void handleGEP(const llvm::GetElementPtrInst *GEP,
 static bool handleEntryForStore(const llvm::StoreInst *Store,
                                 TypeAssignmentGraph &TAG, AliasInfoTy AI,
                                 const llvm::DataLayout &DL) {
-  const auto *Base = Store->getValueOperand()->stripPointerCastsAndAliases();
-  bool IsEntry = isVTableOrFun(Base);
+  const auto *Base = llvm::dyn_cast<llvm::Function>(
+      Store->getValueOperand()->stripPointerCastsAndAliases());
 
-  if (!IsEntry) {
+  if (!Base) {
     return false;
   }
 
@@ -382,46 +439,10 @@ static void handlePhi(const llvm::PHINode *Phi, TypeAssignmentGraph &TAG) {
   }
 }
 
-static const llvm::Value *getTypeFromDI(const llvm::DICompositeType *CompTy,
-                                        const llvm::Module &Mod,
-                                        const psr::LLVMVFTableProvider &VTP) {
-  if (!CompTy->getIdentifier().empty()) {
-
-    std::string Buf;
-    auto TypeName = CompTy->getIdentifier();
-    if (TypeName.startswith("_ZTS") || TypeName.startswith("_ZTI")) {
-      Buf = TypeName.str();
-      Buf[3] = 'V';
-      TypeName = Buf;
-    }
-
-    if (const auto *GlobTV = Mod.getNamedGlobal(TypeName)) {
-      return GlobTV;
-    }
-    if (const auto *Alias = Mod.getNamedAlias(TypeName)) {
-      return Alias->getAliasee()->stripPointerCastsAndAliases();
-    }
-
-    return nullptr;
-  }
-
-  // TODO: With latest changes from f-TestingAPIChanges, we don't need the below
-  // loop!
-  auto ClearName = CompTy->getName().str();
-  const auto *Scope = CompTy->getScope();
-  while (llvm::isa_and_nonnull<llvm::DINamespace, llvm::DISubprogram,
-                               llvm::DIType>(Scope)) {
-    ClearName = Scope->getName().str().append("::").append(ClearName);
-    Scope = Scope->getScope();
-  }
-
-  return VTP.getVFTableGlobal(ClearName);
-}
-
 static void handleEntryForCall(const llvm::CallBase *Call, TAGNodeId CSNod,
                                TypeAssignmentGraph &TAG,
                                const llvm::Function *Callee,
-                               const psr::LLVMVFTableProvider &VTP) {
+                               const psr::LLVMVFTableProvider & /*VTP*/) {
 
   if (!psr::isHeapAllocatingFunction(Callee)) {
     return;
@@ -434,11 +455,7 @@ static void handleEntryForCall(const llvm::CallBase *Call, TAGNodeId CSNod,
         CompTy && (CompTy->getTag() == llvm::dwarf::DW_TAG_structure_type ||
                    CompTy->getTag() == llvm::dwarf::DW_TAG_class_type)) {
 
-      if (const auto *Ty = getTypeFromDI(CompTy, *Call->getModule(), VTP)) {
-
-        TAG.TypeEntryPoints[CSNod].insert(Ty);
-        return;
-      }
+      TAG.TypeEntryPoints[CSNod].insert(CompTy);
     }
   }
 }
@@ -459,7 +476,8 @@ static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
       HasArgNode = true;
     }
 
-    bool IsEntry = isVTableOrFun(Arg.get());
+    bool IsEntry =
+        llvm::isa<llvm::Function>(Arg.get()->stripPointerCastsAndAliases());
     EntryArgs.push_back(IsEntry);
   }
 
@@ -481,8 +499,8 @@ static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
 
       if (EntryArgs.test(Param.getArgNo())) {
         TAG.TypeEntryPoints[*ParamNodId].insert(
-            Call->getArgOperand(Param.getArgNo())
-                ->stripPointerCastsAndAliases());
+            llvm::cast<llvm::Function>(Call->getArgOperand(Param.getArgNo())
+                                           ->stripPointerCastsAndAliases()));
       }
 
       if (!Arg) {
@@ -515,8 +533,8 @@ static void handleReturn(const llvm::ReturnInst *Ret,
 
   if (const auto *RetVal = Ret->getReturnValue()) {
     const auto *Base = RetVal->stripPointerCastsAndAliases();
-    if (isVTableOrFun(Base)) {
-      TAG.TypeEntryPoints[*TNId].insert(Base);
+    if (const auto *RetFun = llvm::dyn_cast<llvm::Function>(Base)) {
+      TAG.TypeEntryPoints[*TNId].insert(RetFun);
       return;
     }
 
@@ -532,6 +550,10 @@ static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
                                           const llvm::Function *> &BaseCG,
                      AliasInfoTy AI, const llvm::DataLayout &DL,
                      const psr::LLVMVFTableProvider &VTP) {
+  if (llvm::isa<llvm::DbgInfoIntrinsic>(&I)) {
+    return;
+  }
+
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
     handleAlloca(Alloca, TAG, VTP);
     return;
@@ -595,14 +617,14 @@ static auto computeTypeAssignmentGraphImpl(
   addFields(Mod, TAG, DL);
   addGlobals(Mod, TAG);
 
-  for (const auto &Fun : Mod) {
-    initializeWithFun(&Fun, TAG);
+  for (const auto *Fun : BaseCG.getAllVertexFunctions()) {
+    initializeWithFun(Fun, TAG);
   }
 
   TAG.Adj.resize(TAG.Nodes.size());
 
-  for (const auto &Fun : Mod) {
-    buildTAGWithFun(&Fun, TAG, BaseCG, AI, DL, VTP);
+  for (const auto *Fun : BaseCG.getAllVertexFunctions()) {
+    buildTAGWithFun(Fun, TAG, BaseCG, AI, DL, VTP);
   }
 
   return TAG;

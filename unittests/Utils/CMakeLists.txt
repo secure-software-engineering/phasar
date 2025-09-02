@@ -11,7 +11,6 @@ set(UtilsSources
   OnTheFlyAnalysisPrinterTest.cpp
   SourceMgrPrinterTest.cpp
   SCCGenericTest.cpp
-  VTACallGraphTest.cpp
 )
 
 if(PHASAR_ENABLE_DYNAMIC_LOG)
