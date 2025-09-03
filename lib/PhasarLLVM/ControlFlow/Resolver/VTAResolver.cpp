@@ -14,12 +14,13 @@ using namespace psr;
 
 VTAResolver::VTAResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP,
-                         const LLVMBasedCallGraph *BaseCG, vta::AliasInfoTy AS)
-    : Resolver(IRDB, VTP), BaseCG(BaseCG) {
-  assert(BaseCG != nullptr);
+                         MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG,
+                         vta::AliasInfoTy AS)
+    : Resolver(IRDB, VTP), BaseCG(std::move(BaseCG)) {
+  assert(this->BaseCG != nullptr);
 
-  auto TAG =
-      vta::computeTypeAssignmentGraph(*IRDB->getModule(), *BaseCG, AS, *VTP);
+  auto TAG = vta::computeTypeAssignmentGraph(*IRDB->getModule(), *this->BaseCG,
+                                             AS, *VTP);
 
   SCCs = computeSCCs(TAG);
   auto Deps = computeSCCDependencies(TAG, SCCs);

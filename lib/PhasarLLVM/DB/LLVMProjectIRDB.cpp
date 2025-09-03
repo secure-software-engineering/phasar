@@ -16,6 +16,7 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/WithColor.h"
 
 #include <charconv>
 #include <memory>
@@ -155,6 +156,20 @@ LLVMProjectIRDB::load(const llvm::Twine &IRFileName,
   return LLVMProjectIRDB(std::move(*M), std::move(Ctx), EnableOpaquePointers);
 }
 
+LLVMProjectIRDB LLVMProjectIRDB::loadOrExit(const llvm::Twine &IRFileName,
+                                            bool EnableOpaquePointers,
+                                            int ErrorExitCode) {
+  auto Ret = load(IRFileName, EnableOpaquePointers);
+  if (!Ret) {
+    llvm::WithColor::error()
+        << "Could not load LLVM-" << LLVM_VERSION_MAJOR << " IR file "
+        << IRFileName << ": " << Ret.getError().message() << '\n';
+    std::exit(ErrorExitCode);
+  }
+
+  return std::move(*Ret);
+}
+
 LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
                                  bool EnableOpaquePointers)
     : Ctx(new llvm::LLVMContext()) {
@@ -162,6 +177,9 @@ LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
   auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
 
   if (!M) {
+    llvm::WithColor::error()
+        << "Could not load LLVM-" << LLVM_VERSION_MAJOR << " IR file "
+        << IRFileName << ": " << M.getError().message() << '\n';
     return;
   }
 
@@ -264,6 +282,9 @@ LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
   setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
   auto M = getParsedIRModuleOrErr(Buf, *Ctx);
   if (!M) {
+    llvm::WithColor::error() << "Could not load " << LLVM_VERSION_MAJOR
+                             << " IR buffer: " << Buf.getBufferIdentifier()
+                             << ": " << M.getError().message() << '\n';
     return;
   }
 

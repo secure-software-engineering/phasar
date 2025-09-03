@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/VTA/TypePropagator.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/SCCGeneric.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -25,11 +26,13 @@ class VTAResolver : public Resolver {
 public:
   explicit VTAResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP,
-                       const LLVMBasedCallGraph *BaseCG, vta::AliasInfoTy AS);
+                       MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG,
+                       vta::AliasInfoTy AS);
   explicit VTAResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP,
-                       const LLVMBasedCallGraph *BaseCG, LLVMAliasInfoRef AS)
-      : VTAResolver(IRDB, VTP, BaseCG,
+                       MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG,
+                       LLVMAliasInfoRef AS)
+      : VTAResolver(IRDB, VTP, std::move(BaseCG),
                     [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
                          vta::AliasHandlerTy WithAlias) {
                       auto ASet = AS.getAliasSet(Ptr, At);
@@ -50,7 +53,7 @@ private:
   void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
                               const llvm::CallBase *CallSite) override;
 
-  const LLVMBasedCallGraph *BaseCG{};
+  MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG{};
   vta::TypeAssignment TA{};
   SCCHolder<vta::TAGNodeId> SCCs{};
   Compressor<vta::TAGNode, vta::TAGNodeId> Nodes;

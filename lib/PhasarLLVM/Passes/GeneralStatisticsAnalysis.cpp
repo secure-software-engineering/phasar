@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/AlignNum.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
 #include "phasar/Utils/PAMMMacros.h"
@@ -23,11 +24,9 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
-#include <type_traits>
 
 namespace psr {
 
@@ -296,35 +295,6 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
 }
 
 } // namespace psr
-
-namespace {
-template <typename T> struct AlignNum {
-  llvm::StringRef Name;
-  T Num;
-
-  AlignNum(llvm::StringRef Name, T Num) noexcept : Name(Name), Num(Num) {}
-  AlignNum(llvm::StringRef Name, size_t Numerator, size_t Denominator) noexcept
-      : Name(Name), Num(double(Numerator) / double(Denominator)) {}
-
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const AlignNum &AN) {
-    static constexpr size_t NumOffs = 32;
-
-    auto Len = AN.Name.size() + 1;
-    auto Diff = -(Len < NumOffs) & (NumOffs - Len);
-
-    OS << AN.Name << ':';
-    // Default is two fixed-point decimal places, so shift the output by three
-    // spaces
-    OS.indent(Diff + std::is_floating_point_v<T> * 3);
-    OS << llvm::formatv("{0,+7}\n", AN.Num);
-
-    return OS;
-  }
-};
-template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
-AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
-} // namespace
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
                                    const GeneralStatistics &Statistics) {
