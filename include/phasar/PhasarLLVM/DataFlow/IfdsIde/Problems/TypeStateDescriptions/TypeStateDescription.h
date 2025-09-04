@@ -28,8 +28,6 @@ struct TypeStateDescriptionBase {
   [[nodiscard]] virtual bool isConsumingFunction(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual bool isAPIFunction(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual std::string getTypeNameOfInterest() const = 0;
-  [[nodiscard]] virtual llvm::Metadata::MetadataKind
-  getTypeOfInterest() const = 0;
   [[nodiscard]] virtual std::set<int>
   getConsumerParamIdx(llvm::StringRef F) const = 0;
   [[nodiscard]] virtual std::set<int>

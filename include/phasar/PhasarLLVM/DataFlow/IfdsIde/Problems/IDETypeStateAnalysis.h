@@ -512,11 +512,6 @@ public:
 
   [[nodiscard]] bool
   isTypeNameOfInterest(llvm::StringRef Name) const noexcept override {
-    llvm::outs() << "TSD->getTypeNameOfInterest(): "
-                 << TSD->getTypeNameOfInterest() << "\n";
-    llvm::outs() << "Compare Name: " << Name << "\n";
-    llvm::outs() << "Name.contains(TSD->getTypeNameOfInterest()): "
-                 << Name.contains(TSD->getTypeNameOfInterest()) << "\n";
     return Name.contains(TSD->getTypeNameOfInterest());
   }
 

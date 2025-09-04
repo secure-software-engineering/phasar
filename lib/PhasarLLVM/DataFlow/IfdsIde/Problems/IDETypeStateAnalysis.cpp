@@ -306,9 +306,11 @@ bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Value *Value) {
     if (const auto *BaseTy = stripPointerTypes(VarTy)) {
       return hasMatchingTypeName(BaseTy);
     }
+
+    return isTypeNameOfInterest(VarTy->getName());
   }
 
-  return false;
+  return true;
 }
 
 bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::DIType *DITy) {

@@ -78,13 +78,6 @@ std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
   return "struct.evp_kdf_st";
 }
 
-llvm::Metadata::MetadataKind
-OpenSSLEVPKDFDescription::getTypeOfInterest() const {
-  // TODO: ask Fabian what MetadataKind could work here, if any.
-  // Return type here is a placeholder.
-  return llvm::Metadata::GenericDINodeKind;
-}
-
 std::set<int>
 OpenSSLEVPKDFDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (isConsumingFunction(F)) {

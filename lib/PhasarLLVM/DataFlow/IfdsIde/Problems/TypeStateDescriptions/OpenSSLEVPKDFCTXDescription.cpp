@@ -128,11 +128,6 @@ std::string OpenSSLEVPKDFCTXDescription::getTypeNameOfInterest() const {
   return "evp_kdf_ctx_st";
 }
 
-llvm::Metadata::MetadataKind
-OpenSSLEVPKDFCTXDescription::getTypeOfInterest() const {
-  return llvm::Metadata::DICompositeTypeKind;
-}
-
 std::set<int>
 OpenSSLEVPKDFCTXDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (isConsumingFunction(F)) {

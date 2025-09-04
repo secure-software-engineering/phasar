@@ -133,11 +133,6 @@ std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
   return "_IO_FILE";
 }
 
-llvm::Metadata::MetadataKind
-CSTDFILEIOTypeStateDescription::getTypeOfInterest() const {
-  return llvm::Metadata::DICompositeTypeKind;
-}
-
 std::set<int>
 CSTDFILEIOTypeStateDescription::getConsumerParamIdx(llvm::StringRef F) const {
   if (isConsumingFunction(F)) {

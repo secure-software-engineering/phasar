@@ -73,9 +73,6 @@ public:
 
   [[nodiscard]] std::string getTypeNameOfInterest() const override;
 
-  [[nodiscard]]
-  llvm::Metadata::MetadataKind getTypeOfInterest() const override;
-
   [[nodiscard]] std::set<int>
   getConsumerParamIdx(llvm::StringRef F) const override;
 
