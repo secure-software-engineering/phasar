@@ -76,3 +76,20 @@ jobs:
           cd ./examples/how-to
           cmake -S . -B build -Dphasar_ROOT=../../INSTALL
           cmake --build ./build --target run_sample_programs
+  test-coverage:
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4.2.2
+
+      - name: Build Project
+        uses: threeal/cmake-action@v2.0.0
+
+      - name: Test Project
+        uses: threeal/ctest-action@v1.1.0
+
+      - name: Check Test Coverage and generate HTML report
+        uses: threeal/gcovr-action@v1.1.0
+        with:
+          gcov-executable: llvm-cov gcov
+          html-out: coverage.html
