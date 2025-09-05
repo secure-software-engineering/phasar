@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_H
 
 #include "phasar/Utils/AnalysisProperties.h"
+#include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/ByRef.h"
@@ -28,6 +29,7 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Table.h"

@@ -17,8 +17,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"

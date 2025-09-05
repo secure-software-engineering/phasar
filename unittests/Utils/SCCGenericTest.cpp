@@ -19,7 +19,7 @@
 #include <cstdint>
 
 //===----------------------------------------------------------------------===//
-// Unit tests for the Igeneric SCC algorithm
+// Unit tests for the generic SCC algorithm
 
 using namespace psr;
 
@@ -53,7 +53,7 @@ static void computeSCCsAndCompare(ExampleGraph &Graph) {
   }
 
 #if __cplusplus >= 202002L
-  auto SCCDeps = computeSCCDependencies(Graph, OutputRec);
+  [[maybe_unused]] auto SCCDeps = computeSCCDependencies(Graph, OutputRec);
   static_assert(is_const_graph<decltype(SCCDeps)>);
 #endif
 }

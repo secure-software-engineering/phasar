@@ -20,8 +20,6 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include <llvm/ADT/StringMap.h>
-
 namespace llvm {
 class Module;
 class DIType;

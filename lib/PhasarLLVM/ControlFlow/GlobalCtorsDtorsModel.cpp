@@ -20,6 +20,7 @@
 #include "llvm/IR/IRBuilder.h"
 
 #include <functional>
+#include <map>
 
 namespace psr {
 template <typename MapTy>

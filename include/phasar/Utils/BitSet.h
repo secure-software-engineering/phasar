@@ -19,17 +19,6 @@
 
 namespace psr {
 
-namespace internal {
-inline llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
-                                          uintptr_t & /*Store*/) {
-  return BV.getData();
-}
-inline llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
-                                          uintptr_t &Store) {
-  return BV.getData(Store);
-}
-} // namespace internal
-
 /// \brief A set-type that can compactly store sets of sequential integer-like
 /// types.
 ///
@@ -41,6 +30,15 @@ inline llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
 /// \tparam BitVectorTy The underlying bit-vector to use. Must be either
 /// llvm::BitVector or llvm::SmallBitVector.
 template <typename IdT, typename BitVectorTy = llvm::BitVector> class BitSet {
+  static llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
+                                            uintptr_t & /*Store*/) {
+    return BV.getData();
+  }
+  static llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
+                                            uintptr_t &Store) {
+    return BV.getData(Store);
+  }
+
 public:
   /// Wraps BitVectorTy::const_set_bits_iterator, as LLVM's bitset iterators
   /// unfortunately do not conform to the named requirement of an iterator
@@ -153,8 +151,8 @@ public:
     uintptr_t LhsStore{};
     uintptr_t RhsStore{};
 
-    auto LhsWords = internal::getWords(Lhs.Bits, LhsStore);
-    auto RhsWords = internal::getWords(Rhs.Bits, RhsStore);
+    auto LhsWords = getWords(Lhs.Bits, LhsStore);
+    auto RhsWords = getWords(Rhs.Bits, RhsStore);
     if (LhsWords.size() == RhsWords.size()) {
       return LhsWords == RhsWords;
     }
@@ -207,8 +205,8 @@ public:
     uintptr_t Buf = 0;
     uintptr_t OfBuf = 0;
 
-    auto Words = internal::getWords(Bits, Buf);
-    auto OfWords = internal::getWords(Of.Bits, OfBuf);
+    auto Words = getWords(Bits, Buf);
+    auto OfWords = getWords(Of.Bits, OfBuf);
     if (Words.size() > OfWords.size()) {
       if (llvm::any_of(Words.drop_front(OfWords.size()),
                        [](uintptr_t W) { return W != 0; })) {

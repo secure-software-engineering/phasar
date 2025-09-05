@@ -40,7 +40,7 @@ struct AdjacencyList<EmptyType, VtxId, EdgeTy> {
 };
 
 /// A simple graph implementation based on an adjacency list
-template <typename VtxId, typename T, typename EdgeTy>
+template <typename T, typename VtxId, typename EdgeTy>
 struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   using graph_type = AdjacencyList<T, VtxId, EdgeTy>;
   using value_type = T;
