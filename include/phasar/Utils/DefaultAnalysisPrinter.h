@@ -3,11 +3,11 @@
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
-#include "phasar/Utils/IO.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Printer.h"
 
-#include <optional>
+#include "llvm/Support/raw_ostream.h"
+
 #include <type_traits>
 #include <vector>
 
@@ -23,9 +23,10 @@ template <typename AnalysisDomainTy> struct Warning {
   l_t LatticeElement;
   DataFlowAnalysisType AnalysisType;
 
-  // Constructor
-  Warning(n_t Inst, d_t DfFact, l_t Lattice,
-          DataFlowAnalysisType DfAnalysisType)
+  // Constructor -- With C++20, we can get rid of it; then the below
+  // emplace_back works on aggregates too
+  constexpr Warning(n_t Inst, ByMoveRef<d_t> DfFact, ByMoveRef<l_t> Lattice,
+                    DataFlowAnalysisType DfAnalysisType) noexcept
       : Instr(std::move(Inst)), Fact(std::move(DfFact)),
         LatticeElement(std::move(Lattice)), AnalysisType(DfAnalysisType) {}
 };
@@ -39,36 +40,29 @@ class DefaultAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
-  explicit DefaultAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs())
-      : OS(&OS) {}
-
-  explicit DefaultAnalysisPrinter(const llvm::Twine &Filename)
-      : AnalysisPrinterBase<AnalysisDomainTy>(),
-        OS(openFileStream(Filename)) {};
-
-  ~DefaultAnalysisPrinter() override = default;
+  DefaultAnalysisPrinter() noexcept = default;
 
 private:
   void doOnResult(n_t Instr, d_t DfFact, l_t Lattice,
                   DataFlowAnalysisType AnalysisType) override {
-    AnalysisResults.emplace_back(Instr, DfFact, Lattice, AnalysisType);
+    AnalysisResults.emplace_back(Instr, std::move(DfFact), std::move(Lattice),
+                                 AnalysisType);
   }
 
-  void doOnFinalize() override {
+  void doOnFinalize(llvm::raw_ostream &OS) override {
     for (const auto &Iter : AnalysisResults) {
-
-      *OS << "\nAt IR statement: " << NToString(Iter.Instr) << "\n";
-
-      *OS << "\tFact: " << DToString(Iter.Fact) << "\n";
+      OS << "At IR statement: " << NToString(Iter.Instr) << '\n';
+      OS << "  Fact: " << DToString(Iter.Fact) << '\n';
 
       if constexpr (!std::is_same_v<l_t, BinaryDomain>) {
-        *OS << "Value: " << LToString(Iter.LatticeElement) << "\n";
+        OS << "  Value: " << LToString(Iter.LatticeElement) << '\n';
       }
+      OS << '\n';
     }
+    AnalysisResults.clear();
   }
 
   std::vector<Warning<AnalysisDomainTy>> AnalysisResults{};
-  MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::outs();
 };
 
 } // namespace psr

@@ -3,6 +3,7 @@
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Macros.h"
 
 #include "llvm/Support/raw_ostream.h"
 
@@ -18,25 +19,26 @@ template <typename AnalysisDomainTy> class AnalysisPrinterBase {
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
-  template <typename L = l_t, typename = std::enable_if_t<!std::is_same_v<
-                                  std::decay_t<L>, psr::BinaryDomain>>>
-  void onResult(n_t Instr, d_t DfFact, l_t LatticeElement,
+  template <typename D = d_t, typename L = l_t>
+  void onResult(n_t Instr, D &&DfFact, L &&LatticeElement,
                 DataFlowAnalysisType AnalysisType) {
-    doOnResult(Instr, DfFact, LatticeElement, AnalysisType);
+    doOnResult(Instr, PSR_FWD(DfFact), PSR_FWD(LatticeElement), AnalysisType);
   }
 
-  template <typename L = l_t, typename = std::enable_if_t<std::is_same_v<
-                                  std::decay_t<L>, psr::BinaryDomain>>>
-  void onResult(n_t Instr, d_t DfFact, DataFlowAnalysisType AnalysisType) {
-    doOnResult(Instr, DfFact, psr::BinaryDomain::BOTTOM, AnalysisType);
+  template <typename D = d_t, typename L = l_t>
+  std::enable_if_t<std::is_same_v<L, psr::BinaryDomain>>
+  onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
+    doOnResult(Instr, PSR_FWD(DfFact), psr::BinaryDomain::BOTTOM, AnalysisType);
   }
 
   void onInitialize() { doOnInitialize(); }
 
   void onFinalize() { doOnFinalize(); }
+  void onFinalize(llvm::raw_ostream &OS) { doOnFinalize(OS); }
 
   AnalysisPrinterBase() = default;
   virtual ~AnalysisPrinterBase() = default;
+
   AnalysisPrinterBase(const AnalysisPrinterBase &) = delete;
   AnalysisPrinterBase &operator=(const AnalysisPrinterBase &) = delete;
 
@@ -48,7 +50,8 @@ private:
                           DataFlowAnalysisType /*AnalysisType*/) = 0;
 
   virtual void doOnInitialize() {}
-  virtual void doOnFinalize() {}
+  virtual void doOnFinalize() { doOnFinalize(llvm::outs()); }
+  virtual void doOnFinalize(llvm::raw_ostream &OS) {}
 };
 
 } // namespace psr
