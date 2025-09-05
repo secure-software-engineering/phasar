@@ -3,11 +3,13 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h" // for resultsAtInLLVMSSA
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/Fn.h"
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/Twine.h"
@@ -27,13 +29,13 @@ using namespace psr::unittest;
 
 using TaintSetT = std::set<TestingSrcLocation>;
 
-// static std::string printSet(const std::set<std::string> &EdgeFact) {
-//   std::string Ret;
-//   llvm::raw_string_ostream ROS(Ret);
-//   llvm::interleaveComma(EdgeFact, ROS << '<');
-//   ROS << '>';
-//   return Ret;
-// }
+static std::string printSet(const TaintSetT &EdgeFact) {
+  std::string Ret;
+  llvm::raw_string_ostream ROS(Ret);
+  llvm::interleaveComma(EdgeFact, ROS << '<');
+  ROS << '>';
+  return Ret;
+}
 
 /* ============== TEST FIXTURE ============== */
 class IDEFeatureTaintAnalysisTest : public ::testing::Test {
@@ -85,6 +87,23 @@ protected:
                       VarName);
   }
 
+  static TaintSetT generateTaintsAtInst(const llvm::Instruction *Inst) {
+    TaintSetT Labels;
+    auto [Line, Col] = getLineAndColFromIR(Inst);
+    if (Col == 0 && llvm::isa<llvm::StoreInst>(Inst)) {
+      std::tie(Line, Col) = getLineAndColFromIR(
+          Inst->getOperand(llvm::StoreInst::getPointerOperandIndex()));
+    }
+    if (Line != 0) {
+      Labels.insert(LineColFun{
+          Line,
+          Col,
+          Inst->getFunction()->getName(),
+      });
+    }
+    return Labels;
+  }
+
   void
   doAnalysisAndCompareResults(const std::string &LlvmFilePath,
                               const std::vector<std::string> &EntryPoints,
@@ -92,58 +111,26 @@ protected:
                               bool PrintDump = false) {
     initializeIR(LlvmFilePath, EntryPoints);
 
-    // IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &ICFG,
-    // &PT,
-    //                                                           EntryPoints);
-
     // use Phasar's instruction ids as testing labels
     auto Generator =
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
-               Current) -> std::set<TestingSrcLocation> {
+               Current) -> TaintSetT {
       return std::visit(
           psr::Overloaded{
-              [](const llvm::GlobalVariable *Glob)
-                  -> std::set<TestingSrcLocation> {
-                std::set<TestingSrcLocation> Labels;
-                Labels.insert(GlobalVar{Glob->getName()});
-                return Labels;
+              [](const llvm::GlobalVariable *Glob) {
+                return TaintSetT{GlobalVar{Glob->getName()}};
               },
-              [](const llvm::Instruction *Inst)
-                  -> std::set<TestingSrcLocation> {
-                std::set<TestingSrcLocation> Labels;
-                auto [Line, Col] = getLineAndColFromIR(Inst);
-                if (Col == 0 && llvm::isa<llvm::StoreInst>(Inst)) {
-                  std::tie(Line, Col) = getLineAndColFromIR(Inst->getOperand(
-                      llvm::StoreInst::getPointerOperandIndex()));
-                }
-                if (Line != 0) {
-                  Labels.insert(LineColFun{
-                      Line,
-                      Col,
-                      Inst->getFunction()->getName(),
-                  });
-                }
-                return Labels;
-              }},
+              fn<&generateTaintsAtInst>,
+          },
           Current);
     };
     assert(HA);
     auto IIAProblem = createAnalysisProblem<IDEFeatureTaintAnalysis>(
         *HA, EntryPoints, Generator);
 
-    // if (PrintDump) {
-    //   psr::Logger::initializeStderrLogger(SeverityLevel::DEBUG);
-    // }
-
     IDESolver IIASolver(IIAProblem, &HA->getICFG());
     IIASolver.solve();
-    // if (PrintDump) {
-    //   // IRDB->emitPreprocessedIR(llvm::outs());
-    //   IIASolver.dumpResults();
-    //   llvm::errs()
-    //       << "\n======================================================\n";
-    //   printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
-    // }
+
     // do the comparison
     for (const auto &[InstLoc, VarName, ExpectedVal] : GroundTruth) {
       const auto *IRLoc = testingLocInIR(InstLoc, *IRDB);
@@ -168,9 +155,9 @@ protected:
 
     if (PrintDump || HasFailure()) {
       IIASolver.dumpResults(llvm::errs());
-      // llvm::errs()
-      //     << "\n======================================================\n";
-      // printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
+      llvm::errs()
+          << "\n======================================================\n";
+      printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
     }
   }
 
@@ -178,62 +165,61 @@ protected:
     BitVectorSet<TestingSrcLocation, llvm::SmallBitVector>::clearPosition();
   }
 
-  // // See vara::PhasarTaintAnalysis::taintsForInst
-  // [[nodiscard]] inline std::set<std::string>
-  // taintsForInst(const llvm::Instruction *Inst,
-  //               SolverResults<const llvm::Instruction *, const llvm::Value *,
-  //                             IDEFeatureTaintEdgeFact> SR) {
+  // See vara::PhasarTaintAnalysis::taintsForInst
+  [[nodiscard]] inline TaintSetT
+  taintsForInst(const llvm::Instruction *Inst,
+                SolverResults<const llvm::Instruction *, const llvm::Value *,
+                              IDEFeatureTaintEdgeFact> SR) {
 
-  //   if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
-  //     if (Ret->getNumOperands() == 0) {
-  //       return {};
-  //     }
-  //   } else if (llvm::isa<llvm::UnreachableInst>(Inst)) {
-  //     return {};
-  //   }
+    if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
+      if (Ret->getNumOperands() == 0) {
+        return {};
+      }
+    } else if (llvm::isa<llvm::UnreachableInst>(Inst)) {
+      return {};
+    }
 
-  //   std::set<std::string> AggregatedTaints;
+    TaintSetT AggregatedTaints;
 
-  //   if (Inst->getType()->isVoidTy()) { // For void types, we need to look
-  //   what
-  //                                      // taints flow into the inst
+    if (Inst->getType()->isVoidTy()) {
+      // For void types, we need to look what
+      // taints flow into the inst
 
-  //     // auto Results = SR.resultsAt(Inst);
-  //     assert(Inst->getNumOperands() >= 1 &&
-  //            "Found case without first operand.");
-  //     AggregatedTaints =
-  //         SR.resultAt(Inst, Inst->getOperand(0)).toSet<std::string>();
+      assert(Inst->getNumOperands() >= 1 &&
+             "Found case without first operand.");
+      AggregatedTaints =
+          SR.resultAt(Inst, Inst->getOperand(0)).toSet<TestingSrcLocation>();
 
-  //   } else {
-  //     auto Results = SR.resultsAtInLLVMSSA(Inst);
-  //     auto SearchPosTaints = Results.find(Inst);
-  //     if (SearchPosTaints != Results.end()) {
-  //       AggregatedTaints = SearchPosTaints->second.toSet<std::string>();
-  //     }
-  //   }
+    } else {
+      auto Results = SR.resultsAtInLLVMSSA(Inst);
+      auto SearchPosTaints = Results.find(Inst);
+      if (SearchPosTaints != Results.end()) {
+        AggregatedTaints = SearchPosTaints->second.toSet<TestingSrcLocation>();
+      }
+    }
 
-  //   // additionalStaticTaints
-  //   AggregatedTaints.insert(getMetaDataID(Inst));
+    // additionalStaticTaints
+    auto AdditionalTaints = generateTaintsAtInst(Inst);
+    AggregatedTaints.insert(AdditionalTaints.begin(), AdditionalTaints.end());
 
-  //   return AggregatedTaints;
-  // }
+    return AggregatedTaints;
+  }
 
-  // void printDump(const LLVMProjectIRDB &IRDB,
-  //                SolverResults<const llvm::Instruction *, const llvm::Value
-  //                *,
-  //                              IDEFeatureTaintEdgeFact>
-  //                    SR) {
-  //   const llvm::Function *CurrFun = nullptr;
-  //   for (const auto *Inst : IRDB.getAllInstructions()) {
-  //     if (CurrFun != Inst->getFunction()) {
-  //       CurrFun = Inst->getFunction();
-  //       llvm::errs() << "\n=================== '" << CurrFun->getName()
-  //                    << "' ===================\n";
-  //     }
-  //     llvm::errs() << "  N: " << llvmIRToString(Inst) << '\n';
-  //     llvm::errs() << "  D: " << printSet(taintsForInst(Inst, SR)) << "\n\n";
-  //   }
-  // }
+  void printDump(const LLVMProjectIRDB &IRDB,
+                 SolverResults<const llvm::Instruction *, const llvm::Value *,
+                               IDEFeatureTaintEdgeFact>
+                     SR) {
+    const llvm::Function *CurrFun = nullptr;
+    for (const auto *Inst : IRDB.getAllInstructions()) {
+      if (CurrFun != Inst->getFunction()) {
+        CurrFun = Inst->getFunction();
+        llvm::errs() << "\n=================== '" << CurrFun->getName()
+                     << "' ===================\n";
+      }
+      llvm::errs() << "  N: " << llvmIRToString(Inst) << '\n';
+      llvm::errs() << "  D: " << printSet(taintsForInst(Inst, SR)) << "\n\n";
+    }
+  }
 
 }; // Test Fixture
 
