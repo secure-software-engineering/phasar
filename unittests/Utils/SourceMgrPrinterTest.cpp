@@ -31,8 +31,8 @@ public:
   GroundTruthCollector(std::initializer_list<std::string> GroundTruth,
                        bool Dump = false)
       : SourceMgrPrinter<LLVMIFDSAnalysisDomainDefault>(
-            [](DataFlowAnalysisType) { return ""; }, OS),
-        GroundTruth(GroundTruth), OS(Str), Dump(Dump){};
+            [](auto &&...) { return ""; }, OS),
+        GroundTruth(GroundTruth), OS(Str), Dump(Dump) {};
 
 private:
   void doOnFinalize() override {

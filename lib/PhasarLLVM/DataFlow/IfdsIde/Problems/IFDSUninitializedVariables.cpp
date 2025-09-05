@@ -204,8 +204,8 @@ IFDSUninitializedVariables::getNormalFlowFunction(
             !llvm::isa<llvm::CastInst>(Curr) &&
             !llvm::isa<llvm::PHINode>(Curr)) {
           UndefValueUses[Curr].insert(Operand);
-          Printer->onResult(Curr, Operand,
-                            DataFlowAnalysisType::IFDSUninitializedVariables);
+          onResult(Curr, Operand,
+                   DataFlowAnalysisType::IFDSUninitializedVariables);
         }
         return {Source, Curr};
       }
@@ -398,41 +398,43 @@ void IFDSUninitializedVariables::emitTextReport(
     GenericSolverResults<n_t, d_t, l_t> /*Result*/, llvm::raw_ostream &OS) {
   OS << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
+
   if (UndefValueUses.empty()) {
     OS << "No uses of uninitialized variables found by the analysis!\n";
-  } else {
-    if (!IRDB->debugInfoAvailable()) {
-      // Emit only IR code, function name and module info
-      OS << "\nWARNING: No Debug Info available - emiting results without "
-            "source code mapping!\n";
-      OS << "\nTotal uses of uninitialized IR Value's: "
-         << UndefValueUses.size() << '\n';
-      size_t Count = 0;
-      for (const auto &User : UndefValueUses) {
-        OS << "\n---------------------------------  " << ++Count
-           << ". Use  ---------------------------------\n\n";
-        OS << "At IR statement: " << NToString(User.first);
-        OS << "\n    in function: " << getFunctionNameFromIR(User.first);
-        OS << "\n    in module  : " << getModuleIDFromIR(User.first) << "\n\n";
-        for (const auto *UndefV : User.second) {
-          OS << "   Uninit Value: " << DToString(UndefV);
-          OS << '\n';
-        }
-      }
-      OS << '\n';
-    } else {
-      auto UninitResults = aggregateResults();
-      OS << "\nTotal uses of uninitialized variables: " << UninitResults.size()
-         << '\n';
-      size_t Count = 0;
-      for (auto Res : UninitResults) {
-        OS << "\n---------------------------------  " << ++Count
-           << ". Use  ---------------------------------\n\n";
-        Res.print(OS);
+    return;
+  }
+  if (!IRDB->debugInfoAvailable()) {
+    // Emit only IR code, function name and module info
+    OS << "\nWARNING: No Debug Info available - emiting results without "
+          "source code mapping!\n";
+    OS << "\nTotal uses of uninitialized IR Value's: " << UndefValueUses.size()
+       << '\n';
+    size_t Count = 0;
+    for (const auto &User : UndefValueUses) {
+      OS << "\n---------------------------------  " << ++Count
+         << ". Use  ---------------------------------\n\n";
+      OS << "At IR statement: " << NToString(User.first);
+      OS << "\n    in function: " << getFunctionNameFromIR(User.first);
+      OS << "\n    in module  : " << getModuleIDFromIR(User.first) << "\n\n";
+      for (const auto *UndefV : User.second) {
+        OS << "   Uninit Value: " << DToString(UndefV);
+        OS << '\n';
       }
     }
-    Printer->onFinalize();
+    OS << '\n';
+  } else {
+    auto UninitResults = aggregateResults();
+    OS << "\nTotal uses of uninitialized variables: " << UninitResults.size()
+       << '\n';
+    size_t Count = 0;
+    for (auto Res : UninitResults) {
+      OS << "\n---------------------------------  " << ++Count
+         << ". Use  ---------------------------------\n\n";
+      Res.print(OS);
+    }
   }
+
+  // Printer->onFinalize(OS);
 }
 
 std::vector<IFDSUninitializedVariables::UninitResult>

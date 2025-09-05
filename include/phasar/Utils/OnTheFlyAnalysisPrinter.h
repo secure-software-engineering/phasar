@@ -11,6 +11,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+
 namespace psr {
 
 /// This class implements the AnalysisPrinterBase that prints the analysis
@@ -24,15 +25,11 @@ class OnTheFlyAnalysisPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
-  explicit OnTheFlyAnalysisPrinter(llvm::raw_ostream &OS)
-      : AnalysisPrinterBase<AnalysisDomainTy>(), OS(&OS) {};
+  explicit OnTheFlyAnalysisPrinter(llvm::raw_ostream &OS = llvm::outs())
+      : OS(&OS) {};
 
   explicit OnTheFlyAnalysisPrinter(const llvm::Twine &Filename)
-      : AnalysisPrinterBase<AnalysisDomainTy>(),
-        OS(openFileStream(Filename)) {};
-
-  OnTheFlyAnalysisPrinter() = default;
-  ~OnTheFlyAnalysisPrinter() = default;
+      : OS(openFileStream(Filename)) {};
 
   [[nodiscard]] bool isValid() const noexcept { return OS != nullptr; }
 
@@ -40,11 +37,13 @@ private:
   void doOnResult(n_t Instr, d_t DfFact, l_t LatticeElement,
                   DataFlowAnalysisType /*AnalysisType*/) override {
     assert(isValid());
-    *OS << "\nAt IR statement: " << NToString(Instr) << "\n";
-    *OS << "\tFact: " << DToString(DfFact) << "\n";
+    *OS << "At IR statement: " << NToString(Instr) << '\n';
+    *OS << "  Fact: " << DToString(DfFact) << '\n';
+
     if constexpr (!std::is_same_v<l_t, BinaryDomain>) {
-      *OS << "Value: " << LToString(LatticeElement) << "\n";
+      *OS << "  Value: " << LToString(LatticeElement) << '\n';
     }
+    *OS << '\n';
   }
 
   MaybeUniquePtr<llvm::raw_ostream> OS = nullptr;

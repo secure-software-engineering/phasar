@@ -7,6 +7,11 @@
 
 namespace {
 /// A listener that gets notified, whenever the taint analysis detects a leak
+///
+/// Checkout the analysis-printers that are already provided by PhASAR:
+/// - "phasar/Utils/OnTheFlyReporter.h"
+/// - "phasar/PhasarLLVM/Utils/LLVMAnalysisPrinter.h"
+/// - "phasar/PhasarLLVM/Utils/SourceMgrPrinter.h"
 class LeakReporter
     : public psr::AnalysisPrinterBase<psr::LLVMIFDSAnalysisDomainDefault> {
 
