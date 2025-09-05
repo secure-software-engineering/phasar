@@ -23,6 +23,7 @@
 
 #include <optional>
 #include <string>
+#include <tuple>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -47,6 +48,15 @@ struct DebugLocation {
   unsigned Line{};
   unsigned Column{};
   const llvm::DIFile *File{};
+
+  friend constexpr bool operator<(DebugLocation L, DebugLocation R) noexcept {
+    return std::tie(L.File, L.Line, L.Column) <
+           std::tie(R.File, R.Line, R.Column);
+  }
+  friend constexpr bool operator==(DebugLocation L, DebugLocation R) noexcept {
+    return std::tie(L.File, L.Line, L.Column) ==
+           std::tie(R.File, R.Line, R.Column);
+  }
 };
 
 [[nodiscard]] llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V);
