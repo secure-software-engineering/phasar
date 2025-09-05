@@ -518,7 +518,7 @@ void IFDSTaintAnalysis::emitTextReport(
     GenericSolverResults<n_t, d_t, BinaryDomain> /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
-  Printer->onFinalize();
+  Printer->onFinalize(OS);
 }
 
 bool IFDSTaintAnalysis::isInteresting(
