@@ -15,6 +15,7 @@
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
+
 using namespace psr;
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;
@@ -30,7 +31,7 @@ class GroundTruthCollector
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
-      : GroundTruth(GroundTruth){};
+      : GroundTruth(GroundTruth) {};
 
   void findAndRemove(llvm::DenseMap<int, std::set<std::string>> &Map1,
                      llvm::DenseMap<int, std::set<std::string>> &Map2) {
@@ -54,7 +55,9 @@ private:
     findAndRemove(FoundLeak, GroundTruth);
   }
 
-  void doOnFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
+  void doOnFinalize(llvm::raw_ostream & /*OS*/) override {
+    EXPECT_TRUE(GroundTruth.empty());
+  }
 
   llvm::DenseMap<int, std::set<std::string>> GroundTruth{};
 };

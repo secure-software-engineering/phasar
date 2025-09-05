@@ -40,8 +40,6 @@ public:
   IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
                              std::vector<std::string> EntryPoints = {"main"});
 
-  ~IFDSUninitializedVariables() override = default;
-
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;

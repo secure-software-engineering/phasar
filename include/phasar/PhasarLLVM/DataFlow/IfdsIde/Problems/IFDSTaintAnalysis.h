@@ -58,8 +58,6 @@ public:
                     std::vector<std::string> EntryPoints = {"main"},
                     bool TaintMainArgs = true);
 
-  ~IFDSTaintAnalysis() override = default;
-
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
