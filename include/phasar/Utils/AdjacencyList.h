@@ -19,6 +19,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
 
+#include <algorithm>
 #include <iterator>
 #include <limits>
 #include <type_traits>
@@ -57,10 +58,10 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// \returns The vertex-descriptor for the newly created node
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static vertex_t addNode(graph_type &G, TT &&Val) {
+  static constexpr vertex_t addNode(graph_type &G, TT &&Val) {
     assert(G.Adj.size() == G.Nodes.size());
 
-    auto Ret = G.Nodes.size();
+    auto Ret = vertex_t(G.Nodes.size());
     G.Nodes.push_back(std::forward<TT>(Val));
     G.Adj.emplace_back();
     return Ret;
@@ -71,15 +72,15 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// \returns The vertex-descriptor for the newly created node
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_empty_v<TT>>>
-  static vertex_t addNode(graph_type &G, value_type /*Val*/ = {}) {
-    auto Ret = G.Adj.size();
+  static constexpr vertex_t addNode(graph_type &G, value_type /*Val*/ = {}) {
+    auto Ret = vertex_t(G.Adj.size());
     G.Adj.emplace_back();
     return Ret;
   }
 
   /// Makes the node Vtx as root in the graph G. A node should not be registered
   /// as root multiple times
-  static void addRoot(graph_type &G, vertex_t Vtx) {
+  static constexpr void addRoot(graph_type &G, vertex_t Vtx) {
     assert(G.Adj.inbounds(Vtx));
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -88,7 +89,8 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Gets a range of all root nodes of graph G
-  static llvm::ArrayRef<vertex_t> roots(const graph_type &G) noexcept {
+  static constexpr llvm::ArrayRef<vertex_t>
+  roots(const graph_type &G) noexcept {
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
@@ -99,7 +101,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// be nodes inside G. Multi-edges are supported, i.e. edges are not
   /// deduplicated automatically; to manually deduplicate the edges of one
   /// source-node, call dedupOutEdges()
-  static void addEdge(graph_type &G, vertex_t From, edge_t To) {
+  static constexpr void addEdge(graph_type &G, vertex_t From, edge_t To) {
     assert(G.Adj.inbounds(From));
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -108,8 +110,8 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Gets a range of all edges outgoing from node Vtx in graph G
-  static llvm::ArrayRef<edge_t> outEdges(const graph_type &G,
-                                         vertex_t Vtx) noexcept {
+  static constexpr llvm::ArrayRef<edge_t> outEdges(const graph_type &G,
+                                                   vertex_t Vtx) noexcept {
     assert(G.Adj.inbounds(Vtx));
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -118,7 +120,8 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Gets the number of edges outgoing from node Vtx in graph G
-  static size_t outDegree(const graph_type &G, vertex_t Vtx) noexcept {
+  static constexpr size_t outDegree(const graph_type &G,
+                                    vertex_t Vtx) noexcept {
     assert(G.Adj.inbounds(Vtx));
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -127,41 +130,53 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Deduplicates the edges outgoing from node Vtx in graph G. Deduplication is
-  /// based on operator< and operator== of the edge_t type
-  static void dedupOutEdges(graph_type &G, vertex_t Vtx) noexcept {
+  /// based on operator== of the edge_t type, and operator< if available.
+  static constexpr void dedupOutEdges(graph_type &G, vertex_t Vtx) noexcept {
     assert(G.Adj.inbounds(Vtx));
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
     auto &OutEdges = G.Adj[Vtx];
-    std::sort(OutEdges.begin(), OutEdges.end());
-    OutEdges.erase(std::unique(OutEdges.begin(), OutEdges.end()),
-                   OutEdges.end());
+
+    if constexpr (IsLessComparable<edge_t>) {
+      std::sort(OutEdges.begin(), OutEdges.end());
+      OutEdges.erase(std::unique(OutEdges.begin(), OutEdges.end()),
+                     OutEdges.end());
+    } else {
+      auto End = OutEdges.end();
+      for (auto It = OutEdges.begin(); It < End; ++It) {
+        End = std::remove(std::next(It), End, *It);
+      }
+      OutEdges.erase(End, OutEdges.end());
+    }
   }
 
   /// Gets a const range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static llvm::ArrayRef<value_type> nodes(const graph_type &G) noexcept {
+  static constexpr llvm::ArrayRef<value_type>
+  nodes(const graph_type &G) noexcept {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
   /// Gets a mutable range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static llvm::MutableArrayRef<value_type> nodes(graph_type &G) noexcept {
+  static constexpr llvm::MutableArrayRef<value_type>
+  nodes(graph_type &G) noexcept {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
   /// Gets a range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_empty_v<TT>>>
-  static RepeatRangeType<value_type> nodes(const graph_type &G) noexcept {
+  static constexpr RepeatRangeType<value_type>
+  nodes(const graph_type &G) noexcept {
     return repeat(value_type{}, G.Adj.size());
   }
 
   /// Gets a range of vertex-descriptors for all nodes in graph G
-  static auto vertices(const graph_type &G) noexcept {
+  static constexpr auto vertices(const graph_type &G) noexcept {
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
@@ -171,7 +186,8 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static const value_type &node(const graph_type &G, vertex_t Vtx) noexcept {
+  static constexpr const value_type &node(const graph_type &G,
+                                          vertex_t Vtx) noexcept {
     assert(G.Adj.inbounds(Vtx));
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes[Vtx];
@@ -179,7 +195,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static value_type &node(graph_type &G, vertex_t Vtx) noexcept {
+  static constexpr value_type &node(graph_type &G, vertex_t Vtx) noexcept {
     assert(G.Adj.inbounds(Vtx));
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes[Vtx];
@@ -188,14 +204,14 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
   template <typename TT = value_type,
             typename = std::enable_if_t<std::is_empty_v<TT>>>
-  static value_type node([[maybe_unused]] const graph_type &G,
-                         [[maybe_unused]] vertex_t Vtx) noexcept {
+  static constexpr value_type node([[maybe_unused]] const graph_type &G,
+                                   [[maybe_unused]] vertex_t Vtx) noexcept {
     assert(G.Adj.inbounds(Vtx));
     return {};
   }
 
   /// Gets the number of nodes in graph G
-  static size_t size(const graph_type &G) noexcept {
+  static constexpr size_t size(const graph_type &G) noexcept {
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
@@ -203,7 +219,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Gets the number of nodes in graph G that are marked as root
-  static size_t roots_size(const graph_type &G) noexcept { // NOLINT
+  static constexpr size_t roots_size(const graph_type &G) noexcept { // NOLINT
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
     }
@@ -211,7 +227,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Pre-allocates space to hold up to Capacity nodes
-  static void reserve(graph_type &G, size_t Capacity) {
+  static constexpr void reserve(graph_type &G, size_t Capacity) {
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
       G.Nodes.reserve(Capacity);
@@ -224,7 +240,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// was another not-popped node inserted in between.
   ///
   /// \returns True, iff the removal was successful
-  static bool pop(graph_type &G, vertex_t Vtx) {
+  static constexpr bool pop(graph_type &G, vertex_t Vtx) {
     if (Vtx == G.Adj.size() - 1) {
       G.Adj.pop_back();
       if constexpr (!std::is_empty_v<value_type>) {
@@ -237,7 +253,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
 
   /// Gets the vertex-descriptor of the target-node of the given Edge
   template <typename E = edge_t>
-  static std::enable_if_t<std::is_same_v<E, vertex_t>, vertex_t>
+  static constexpr std::enable_if_t<std::is_same_v<E, vertex_t>, vertex_t>
   target(edge_t Edge) noexcept {
     return Edge;
   }
@@ -246,21 +262,21 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// weight of the returned edge and the parameter edge is same, but the target
   /// nodes may differ.
   template <typename E = edge_t>
-  static std::enable_if_t<std::is_same_v<E, vertex_t>, edge_t>
+  static constexpr std::enable_if_t<std::is_same_v<E, vertex_t>, edge_t>
   withEdgeTarget(edge_t /*edge*/, vertex_t Tar) noexcept {
     return Tar;
   }
 
   /// Gets the weight associated with the given edge
-  static EmptyType weight(edge_t /*unused*/) noexcept { return {}; }
+  static constexpr EmptyType weight(edge_t /*unused*/) noexcept { return {}; }
 
   /// Removes the edge denoted by It outgoing from source-vertex Vtx from the
   /// graph G. This function is not required by the is_graph_trait concept.
   ///
   /// \returns An edge_iterator directly following It that should be used to
   /// continue iteration instead of std::next(It)
-  static edge_iterator removeEdge(graph_type &G, vertex_t Vtx,
-                                  edge_iterator It) noexcept {
+  static constexpr edge_iterator removeEdge(graph_type &G, vertex_t Vtx,
+                                            edge_iterator It) noexcept {
     assert(G.Adj.inbounds(Vtx));
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
@@ -278,7 +294,8 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   ///
   /// \returns A roots_iterator directly following It that should be used to
   /// continue iteration instead of std::next(It)
-  static roots_iterator removeRoot(graph_type &G, roots_iterator It) noexcept {
+  static constexpr roots_iterator removeRoot(graph_type &G,
+                                             roots_iterator It) noexcept {
     if constexpr (!std::is_empty_v<value_type>) {
       assert(G.Adj.size() == G.Nodes.size());
     }

@@ -7,7 +7,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-// #include "phasar/AnalysisConfig.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"

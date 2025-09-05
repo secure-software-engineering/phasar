@@ -181,6 +181,11 @@ template <> struct GraphTraits<vta::TypeAssignmentGraph> {
     assert(G.Adj.inbounds(Vtx));
     return G.Adj[Vtx];
   }
+  [[nodiscard]] static size_t outDegree(const graph_type &G,
+                                        vertex_t Vtx) noexcept {
+    assert(G.Adj.inbounds(Vtx));
+    return G.Adj[Vtx].size();
+  }
 
   [[nodiscard]] static const auto &nodes(const graph_type &G) noexcept {
     return G.Nodes;

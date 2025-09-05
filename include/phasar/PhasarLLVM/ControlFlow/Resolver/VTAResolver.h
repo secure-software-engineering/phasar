@@ -22,6 +22,15 @@
 #include "llvm/ADT/STLFunctionalExtras.h"
 
 namespace psr {
+///\brief A Resolver that uses a variant of the Variable Type Analysis to
+/// resolver indirect calls.
+///
+/// Uses debug-information to achieve better results with C++ virtual calls.
+/// Uses alias-information as fallback mechanism for when types don't help or
+/// are not found, e.g., to resolve function-pointer calls.
+///
+/// Requires a base-call-graph or at least a base-resolver to resolve indirect
+/// calls while constructing the type-assignment graph.
 class VTAResolver : public Resolver {
 public:
   struct DefaultReachableFunctions {
@@ -29,9 +38,21 @@ public:
                     llvm::function_ref<void(const llvm::Function *)> WithFun);
   };
 
+  /// Constructs a VTAResolver with a given pre-computed call-graph and
+  /// call-back based alias-information (to-be-replaced by AliasIterator once
+  /// available)
+  ///
+  /// Builds the type-assignment graph and propagates allocated types though
+  /// it's SCCs.
   explicit VTAResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP, vta::AliasInfoTy AS,
                        MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG);
+
+  /// Constructs a VTAResolver with a given pre-computed call-graph and
+  /// LLVMAliasInfoRef alias-information.
+  ///
+  /// Builds the type-assignment graph and propagates allocated types though
+  /// it's SCCs.
   explicit VTAResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP, LLVMAliasInfoRef AS,
                        MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG)
@@ -44,12 +65,28 @@ public:
             },
             std::move(BaseCG)) {}
 
+  /// Constructs a VTAResolver with a given base-resolver (no base-call-graph)
+  /// and call-back based alias-information (to-be-replaced by AliasIterator
+  /// once available).
+  /// Uses the optional parameter ReachableFunctions to consider only a subset
+  /// of all functions for building the type-assignment graph
+  ///
+  /// Builds the type-assignment graph and propagates allocated types though
+  /// it's SCCs.
   explicit VTAResolver(
       const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
       vta::AliasInfoTy AS, MaybeUniquePtr<Resolver> BaseRes,
       llvm::function_ref<void(const LLVMProjectIRDB &,
                               llvm::function_ref<void(const llvm::Function *)>)>
           ReachableFunctions = DefaultReachableFunctions{});
+
+  /// Constructs a VTAResolver with a given base-resolver (no base-call-graph)
+  /// and LLVMAliasInfoRef alias-information.
+  /// Uses the optional parameter ReachableFunctions to consider only a subset
+  /// of all functions for building the type-assignment graph
+  ///
+  /// Builds the type-assignment graph and propagates allocated types though
+  /// it's SCCs.
   explicit VTAResolver(
       const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
       LLVMAliasInfoRef AS, MaybeUniquePtr<Resolver> BaseRes,

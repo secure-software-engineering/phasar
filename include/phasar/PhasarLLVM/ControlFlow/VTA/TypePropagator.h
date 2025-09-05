@@ -32,6 +32,8 @@ namespace psr::vta {
 struct TypeAssignmentGraph;
 enum class TAGNodeId : uint32_t;
 
+/// \brief A concrete type-assignment that assigns a set of possible types to
+/// each SCC of the TypeAssignmentGraph
 struct TypeAssignment {
   TypedVector<SCCId<TAGNodeId>,
               llvm::SmallDenseSet<llvm::PointerUnion<const llvm::Function *,
@@ -42,6 +44,7 @@ struct TypeAssignment {
              const SCCHolder<TypeAssignmentGraph::GraphNodeId> &SCCs);
 };
 
+/// Computes a TypeAssignment, based on a given TypeAssignmentGraph
 [[nodiscard]] TypeAssignment
 propagateTypes(const TypeAssignmentGraph &TAG, const SCCHolder<TAGNodeId> &SCCs,
                const SCCDependencyGraph<TAGNodeId> &Deps,

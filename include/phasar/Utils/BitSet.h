@@ -30,9 +30,20 @@ inline llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
 }
 } // namespace internal
 
-template <typename IdT, typename BitVectorTy = llvm::SmallBitVector>
-class BitSet {
+/// \brief A set-type that can compactly store sets of sequential integer-like
+/// types.
+///
+/// Use this type for sequential (unsigned) integers and ids that can convert
+/// from and to uint32_t.
+///
+/// \tparam IdT The type of elements to store in this set. Must be losslessly
+/// convertible from and to uint32_t.
+/// \tparam BitVectorTy The underlying bit-vector to use. Must be either
+/// llvm::BitVector or llvm::SmallBitVector.
+template <typename IdT, typename BitVectorTy = llvm::BitVector> class BitSet {
 public:
+  /// Wraps BitVectorTy::const_set_bits_iterator, as LLVM's bitset iterators
+  /// unfortunately do not conform to the named requirement of an iterator
   class Iterator {
   public:
     using value_type = IdT;
@@ -94,6 +105,7 @@ public:
     Bits.set(Index);
   }
 
+  /// Same as insert(), but returns, whether the set was changed.
   [[nodiscard]] bool tryInsert(IdT Id) {
     auto Index = uint32_t(Id);
     if (Bits.size() <= Index) {
@@ -110,6 +122,7 @@ public:
       Bits.reset(uint32_t(Id));
     }
   }
+  /// Same as erase(), but returns, whether the set was changed.
   [[nodiscard]] bool tryErase(IdT Id) noexcept {
     if (contains(Id)) {
       return Bits.reset(uint32_t(Id)), true;
@@ -120,9 +133,10 @@ public:
 
   void mergeWith(const BitSet &Other) { Bits |= Other.Bits; }
 
+  /// Same as mergeWith(), but returns, whether the set was changed.
   bool tryMergeWith(const BitSet &Other) {
     /// TODO: Make this more efficient
-    return *this == Other ? false : (mergeWith(Other), true);
+    return isSupersetOf(Other) ? false : (mergeWith(Other), true);
   }
 
   void clear() noexcept { Bits.reset(); }
@@ -166,6 +180,7 @@ public:
   }
   [[nodiscard]] iterator end() const noexcept { return Bits.set_bits_end(); }
 
+  /// Same as mergeWith()
   void operator|=(const BitSet &Other) { Bits |= Other.Bits; }
   void operator-=(const BitSet &Other) { Bits.reset(Other.Bits); }
 
@@ -177,10 +192,12 @@ public:
     return Ret;
   }
 
+  /// Same as mergeWith(), but returns *this to allow a fluent interface.
   BitSet &insertAllOf(const BitSet &Other) {
     Bits |= Other.Bits;
     return *this;
   }
+  /// Same as operator-=, but returns *this to allow a fluent interface.
   BitSet &eraseAllOf(const BitSet &Other) {
     Bits.reset(Other.Bits);
     return *this;
@@ -212,10 +229,13 @@ public:
     return Of.isSubsetOf(*this);
   }
 
-  // The number of bits available
+  /// The number of bits available. This operation is O(1)
   [[nodiscard]] size_t capacity() const noexcept { return Bits.size(); }
-  // The number of bits set to 1
+  /// The number of bits set to 1. In contrast to most other containers, this
+  /// operation is linear in O(capacity())
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
+  /// Whether this set contains no elements. In contrast to most other
+  /// containers, this operation is linear in O(capacity())
   [[nodiscard]] bool empty() const noexcept { return Bits.none(); }
 
 private:

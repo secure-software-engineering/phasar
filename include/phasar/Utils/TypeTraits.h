@@ -165,6 +165,12 @@ struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
     : std::true_type {};
 
+template <typename T, typename = bool>
+struct IsLessComparable : std::false_type {};
+template <typename T>
+struct IsLessComparable<T, decltype(std::declval<T>() < std::declval<T>())>
+    : std::true_type {};
+
 template <typename T, typename = size_t> struct HasDepth : std::false_type {};
 template <typename T>
 struct HasDepth<T, decltype(std::declval<const T &>().depth())>
@@ -284,6 +290,9 @@ PSR_CONCEPT IsEqualityComparable = detail::IsEqualityComparable<T>::value;
 
 template <typename T, typename U>
 PSR_CONCEPT AreEqualityComparable = detail::AreEqualityComparable<T, U>::value;
+
+template <typename T>
+PSR_CONCEPT IsLessComparable = detail::IsLessComparable<T>::value;
 
 template <typename ProblemTy>
 PSR_CONCEPT has_isInteresting_v = // NOLINT

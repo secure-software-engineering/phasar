@@ -18,7 +18,6 @@
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -27,12 +26,9 @@
 #include <type_traits>
 
 namespace psr {
-class LLVMBasedICFG;
-} // namespace psr
-
-namespace psr {
 
 namespace detail {
+// Unfortunately, `enum class` cannot be templated...
 struct SCCIdBase {
   uint32_t Value{};
 
@@ -58,6 +54,10 @@ struct SCCIdBase {
 };
 } // namespace detail
 
+/// \brief The Id of a strongly-connected component in a graph.
+///
+/// \tparam GraphNodeId The vertex-type of the graph where this SCC was computed
+/// for.
 template <typename GraphNodeId> struct SCCId : detail::SCCIdBase {
   using detail::SCCIdBase::SCCIdBase;
 };
@@ -84,24 +84,27 @@ template <typename GraphNodeId> struct DenseMapInfo<psr::SCCId<GraphNodeId>> {
 
 namespace psr {
 
-// holds the scc's of a given graph
+/// \brief Holds the SCCs of a given graph. Each SCC is assigned a unique
+/// sequential id.
 template <typename GraphNodeId> struct SCCHolder {
   TypedVector<GraphNodeId, SCCId<GraphNodeId>, 0> SCCOfNode;
   TypedVector<SCCId<GraphNodeId>, llvm::SmallVector<GraphNodeId, 1>>
       NodesInSCC{};
 
+  /// Number of SCCs
   [[nodiscard]] size_t size() const noexcept { return NodesInSCC.size(); }
   [[nodiscard]] bool empty() const noexcept { return NodesInSCC.empty(); }
 };
 
-// holds a graph were the scc's are collapsed to a single node. Resulting graph
-// is a DAG
+/// \brief Holds a graph where the SCCs are collapsed to a single node.
+/// Conforms to the is_const_graph concept.
 template <typename GraphNodeId> struct SCCDependencyGraph {
   TypedVector<SCCId<GraphNodeId>, llvm::SmallDenseSet<SCCId<GraphNodeId>>>
       ChildrenOfSCC;
   llvm::SmallVector<SCCId<GraphNodeId>, 0> SCCRoots;
 };
 
+/// \brief Implements the is_const_graph concept for SCCDependencyGraph
 template <typename GraphNodeId>
 struct GraphTraits<SCCDependencyGraph<GraphNodeId>> {
   using graph_type = SCCDependencyGraph<GraphNodeId>;
@@ -111,56 +114,58 @@ struct GraphTraits<SCCDependencyGraph<GraphNodeId>> {
 
   static inline constexpr auto Invalid = vertex_t(UINT32_MAX);
 
-  [[nodiscard]] static const auto &outEdges(const graph_type &G,
-                                            vertex_t Vtx) noexcept {
+  [[nodiscard]] static constexpr const auto &outEdges(const graph_type &G,
+                                                      vertex_t Vtx) noexcept {
     assert(G.ChildrenOfSCC.inbounds(Vtx));
     return G.ChildrenOfSCC[Vtx];
   }
 
-  [[nodiscard]] static size_t outDegree(const graph_type &G,
-                                        vertex_t Vtx) noexcept {
+  [[nodiscard]] static constexpr size_t outDegree(const graph_type &G,
+                                                  vertex_t Vtx) noexcept {
     assert(G.ChildrenOfSCC.inbounds(Vtx));
     return G.ChildrenOfSCC[Vtx].size();
   }
 
-  [[nodiscard]] static RepeatRangeType<value_type>
-  nodes(const graph_type &G) noexcept {
+  [[nodiscard]] static constexpr auto nodes(const graph_type &G) noexcept {
     return repeat(EmptyType{}, G.ChildrenOfSCC.size());
   }
 
-  [[nodiscard]] static llvm::ArrayRef<vertex_t>
+  [[nodiscard]] static constexpr llvm::ArrayRef<vertex_t>
   roots(const graph_type &G) noexcept {
     return G.SCCRoots;
   }
 
-  [[nodiscard]] static auto vertices(const graph_type &G) noexcept {
-    return iota<vertex_t>(G.Adj.size());
+  [[nodiscard]] static constexpr auto vertices(const graph_type &G) noexcept {
+    return iota<vertex_t>(G.ChildrenOfSCC.size());
   }
 
-  [[nodiscard]] static value_type node([[maybe_unused]] const graph_type &G,
-                                       [[maybe_unused]] vertex_t Vtx) noexcept {
+  [[nodiscard]] static constexpr value_type
+  node([[maybe_unused]] const graph_type &G,
+       [[maybe_unused]] vertex_t Vtx) noexcept {
     assert(G.ChildrenOfSCC.inbounds(Vtx));
     return {};
   }
 
-  [[nodiscard]] static size_t size(const graph_type &G) noexcept {
+  [[nodiscard]] static constexpr size_t size(const graph_type &G) noexcept {
     return G.ChildrenOfSCC.size();
   }
 
-  [[nodiscard]] static size_t
+  [[nodiscard]] static constexpr size_t
   roots_size(const graph_type &G) noexcept { // NOLINT
     return G.SCCRoots.size();
   }
 
-  [[nodiscard]] constexpr vertex_t target(edge_t Edge) noexcept { return Edge; }
+  [[nodiscard]] static constexpr vertex_t target(edge_t Edge) noexcept {
+    return Edge;
+  }
 
-  [[nodiscard]] vertex_t withEdgeTarget(edge_t /*edge*/,
-                                        vertex_t Tar) noexcept {
+  [[nodiscard]] static constexpr vertex_t
+  withEdgeTarget(edge_t /*edge*/, vertex_t Tar) noexcept {
     return Tar;
   }
 };
 
-// holds topologically sorted SCCDependencyGraph
+/// \brief Holds topologically sorted SCCDependencyGraph nodes
 template <typename GraphNodeId> struct SCCOrder {
   llvm::SmallVector<SCCId<GraphNodeId>, 0> SCCIds;
 };
@@ -180,21 +185,13 @@ template <typename GraphNodeId> struct SCCData {
         Seen(NumFuns) {}
 };
 
-template <typename GraphNodeId> struct SCCDataIt {
-  TypedVector<GraphNodeId, uint32_t, 128> Disc;
-  TypedVector<GraphNodeId, uint32_t, 128> Low;
-  BitSet<GraphNodeId> OnStack;
-  llvm::SmallVector<GraphNodeId> Stack;
+template <typename GraphNodeId> struct SCCDataIt : SCCData<GraphNodeId> {
   llvm::SmallVector<std::pair<GraphNodeId, uint32_t>> CallStack;
-  uint32_t Time = 0;
-  BitSet<GraphNodeId> Seen;
 
-  explicit SCCDataIt(size_t NumFuns)
-      : Disc(NumFuns, UINT32_MAX), Low(NumFuns, UINT32_MAX), OnStack(NumFuns),
-        Seen(NumFuns) {}
+  using SCCData<GraphNodeId>::SCCData;
 };
 
-constexpr void setMin(uint32_t &InOut, uint32_t Other) {
+constexpr void setMin(uint32_t &InOut, uint32_t Other) noexcept {
   if (Other < InOut) {
     InOut = Other;
   }
@@ -258,6 +255,10 @@ computeSCCsRec(const G &Graph, typename GraphTraits<G>::vertex_t CurrNode,
 
 } // namespace detail
 
+/// \brief Computes the strongly-connected components (SCCs) of a given graph.
+/// The graph should conform to the is_const_graph concept.
+///
+/// Uses Tarjan's algorithm (recursive) to compute the SCCs.
 template <typename G>
 [[nodiscard]] SCCHolder<typename GraphTraits<G>::vertex_t>
 computeSCCs(const G &Graph) {
@@ -282,7 +283,11 @@ computeSCCs(const G &Graph) {
   return Ret;
 }
 
-// Note: generated by FhGenie GPT o3 Mini
+/// \brief Computes the strongly-connected components (SCCs) of a given graph.
+/// The graph should conform to the is_const_graph concept.
+///
+/// Uses a non-recursive variant of Tarjan's algorithm to compute the SCCs.
+/// \attention Largely generated by FhGenie GPT o3 Mini, so use with caution!
 template <typename G>
 SCCHolder<typename GraphTraits<std::decay_t<G>>::vertex_t>
 computeSCCIterative(const G &Graph) {
@@ -302,7 +307,7 @@ computeSCCIterative(const G &Graph) {
   TypedVector<VertexTy, int> Lowlink(NumNodes, 0);
 
   // marker for Tarjan's stack.
-  BitSet<VertexTy, llvm::BitVector> InStack(NumNodes, false);
+  BitSet<VertexTy> InStack(NumNodes, false);
 
   int CurrentIndex = 0;
 
@@ -403,6 +408,9 @@ computeSCCIterative(const G &Graph) {
   return Holder;
 }
 
+/// \brief Creates a graph based on the given input Graph, collapsing all SCCs
+/// to single nodes. The resulting graph is always a DAG, i.e., it contains no
+/// cycles
 template <typename G>
 SCCDependencyGraph<typename GraphTraits<G>::vertex_t> computeSCCDependencies(
     const G &Graph, const SCCHolder<typename GraphTraits<G>::vertex_t> &SCCs) {
@@ -436,6 +444,11 @@ SCCDependencyGraph<typename GraphTraits<G>::vertex_t> computeSCCDependencies(
   return Ret;
 }
 
+/// \brief Computes a topological order of the nodes in the given
+/// dependency-graph.
+///
+/// Uses a simple, recursive postorder-DFS search to find a topological
+/// ordering.
 template <typename GraphNodeId>
 [[nodiscard]] SCCOrder<GraphNodeId>
 computeSCCOrder(const SCCHolder<GraphNodeId> &SCCs,

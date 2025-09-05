@@ -51,6 +51,11 @@ static void computeSCCsAndCompare(ExampleGraph &Graph) {
           << "SCCs differ at Index: " << uint32_t(Vtx) << "\n";
     }
   }
+
+#if __cplusplus >= 202002L
+  auto SCCDeps = computeSCCDependencies(Graph, OutputRec);
+  static_assert(is_const_graph<decltype(SCCDeps)>);
+#endif
 }
 
 TEST(SCCGenericTest, SCCTest) {
@@ -113,19 +118,6 @@ TEST(SCCGenericTest, SCCTest) {
   for (auto &TestGraph : TestGraphs) {
     computeSCCsAndCompare(TestGraph);
   }
-
-  /*auto OutputRec = analysis::call_graph::execTarjan(Graph, false);
-  auto OutputIt = analysis::call_graph::execTarjan(Graph, true);
-  ASSERT_EQ(OutputIt.SCCOfNode.size(), Graph.Adj.size())
-      << "Iterative Approach did not reach all nodes\n";
-  ASSERT_EQ(OutputRec.SCCOfNode.size(), Graph.Adj.size())
-      << "Recursive Approach did not reach all nodes\n";
-  EXPECT_EQ(OutputRec.NumSCCs, OutputIt.NumSCCs)
-      << "Unequal number of SCC components\n";
-  for (size_t ID = 0; ID < Graph.Adj.size(); ID++) {
-    EXPECT_EQ(OutputRec.SCCOfNode[ID], OutputIt.SCCOfNode[ID])
-        << "SCCs differ at Index: " << std::to_string(ID) << "\n";
-  }*/
 }
 
 // main function for the test case
