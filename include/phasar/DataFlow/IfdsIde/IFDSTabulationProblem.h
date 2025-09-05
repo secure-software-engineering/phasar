@@ -59,6 +59,13 @@ public:
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}
+
+  IFDSTabulationProblem(IFDSTabulationProblem &&) noexcept = default;
+  IFDSTabulationProblem &operator=(IFDSTabulationProblem &&) noexcept = default;
+
+  IFDSTabulationProblem(const IFDSTabulationProblem &) = delete;
+  IFDSTabulationProblem &operator=(const IFDSTabulationProblem &) = delete;
+
   ~IFDSTabulationProblem() override = default;
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,

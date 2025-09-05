@@ -55,6 +55,14 @@ class IDETypeStateAnalysisBase
 public:
   virtual ~IDETypeStateAnalysisBase() = default;
 
+  IDETypeStateAnalysisBase(IDETypeStateAnalysisBase &&) noexcept = default;
+  IDETypeStateAnalysisBase &
+  operator=(IDETypeStateAnalysisBase &&) noexcept = default;
+
+  IDETypeStateAnalysisBase(const IDETypeStateAnalysisBase &) = delete;
+  IDETypeStateAnalysisBase &
+  operator=(const IDETypeStateAnalysisBase &) noexcept = delete;
+
 protected:
   IDETypeStateAnalysisBase(LLVMAliasInfoRef PT) noexcept : PT(PT) {}
 
@@ -348,8 +356,6 @@ public:
     assert(PT);
   }
 
-  ~IDETypeStateAnalysis() override = default;
-
   // start formulating our analysis by specifying the parts required for IFDS
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override {
@@ -513,32 +519,19 @@ public:
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
-    LLVMBasedCFG CFG;
+
     for (const auto &F : this->IRDB->getAllFunctions()) {
       for (const auto &BB : *F) {
         for (const auto &I : BB) {
           auto Results = SR.resultsAt(&I, true);
 
-          if (CFG.isExitInst(&I)) {
-            for (auto Res : Results) {
-              if (const auto *Alloca =
-                      llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
-                if (Res.second == TSD->error()) {
-                  // ERROR STATE DETECTED
-                  this->Printer->onResult(&I, Res.first, TSD->error(),
-                                          TSD->analysisType());
-                }
-              }
-            }
-          } else {
-            for (auto Res : Results) {
-              if (const auto *Alloca =
-                      llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
-                if (Res.second == TSD->error()) {
-                  // ERROR STATE DETECTED
-                  this->Printer->onResult(&I, Res.first, TSD->error(),
-                                          TSD->analysisType());
-                }
+          for (auto Res : Results) {
+            if (const auto *Alloca =
+                    llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
+              if (Res.second == TSD->error()) {
+                // ERROR STATE DETECTED
+                this->onResult(&I, Res.first, TSD->error(),
+                               TSD->analysisType());
               }
             }
           }
@@ -546,7 +539,7 @@ public:
       }
     }
 
-    this->Printer->onFinalize();
+    this->Printer->onFinalize(OS);
   }
 
   [[nodiscard]] bool
