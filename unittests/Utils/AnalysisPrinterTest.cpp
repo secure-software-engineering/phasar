@@ -68,7 +68,7 @@ private:
     return Ret;
   }
 
-  void doOnFinalize() override {
+  void doOnFinalize(llvm::raw_ostream & /*OS*/) override {
     EXPECT_TRUE(GroundTruth.empty())
         << "Elements of GroundTruth not found: " << printGroundTruth();
   }
