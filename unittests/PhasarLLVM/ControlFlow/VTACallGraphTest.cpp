@@ -68,7 +68,7 @@ psr::LLVMBasedCallGraph createBaseCG(psr::LLVMProjectIRDB &IRDB,
 psr::LLVMBasedCallGraph computeVTACallGraph(
     psr::LLVMProjectIRDB &IRDB, const psr::LLVMVFTableProvider &VTP,
     psr::LLVMAliasInfoRef AS, const psr::LLVMBasedCallGraph &BaseCG) {
-  psr::VTAResolver Res(&IRDB, &VTP, &BaseCG, AS);
+  psr::VTAResolver Res(&IRDB, &VTP, AS, &BaseCG);
   return psr::buildLLVMBasedCallGraph(IRDB, Res, getEntryPoints(IRDB));
 }
 

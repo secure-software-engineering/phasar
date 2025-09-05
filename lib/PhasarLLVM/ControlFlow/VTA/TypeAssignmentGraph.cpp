@@ -10,6 +10,8 @@
 #include "phasar/PhasarLLVM/ControlFlow/VTA/TypeAssignmentGraph.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -184,15 +186,13 @@ static void addTAGNode(TAGNode TN, TypeAssignmentGraph &TAG) {
   TAG.Nodes.getOrInsert(TN);
 }
 
-static void addFields(const llvm::Module &Mod, TypeAssignmentGraph &TAG,
+static void addFields(const LLVMProjectIRDB &IRDB, TypeAssignmentGraph &TAG,
                       const llvm::DataLayout &DL) {
-  auto &&Structs = Mod.getIdentifiedStructTypes();
-  TAG.Nodes.reserve(TAG.Nodes.size() + Structs.size());
 
   size_t PointerSize = DL.getPointerSize();
 
   llvm::DebugInfoFinder DIF;
-  DIF.processModule(Mod);
+  DIF.processModule(*IRDB.getModule());
 
   for (auto *DITy : DIF.types()) {
     if (auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
@@ -205,11 +205,11 @@ static void addFields(const llvm::Module &Mod, TypeAssignmentGraph &TAG,
   }
 }
 
-static void addGlobals(const llvm::Module &Mod, TypeAssignmentGraph &TAG) {
-  auto NumGlobals = Mod.global_size();
+static void addGlobals(const LLVMProjectIRDB &IRDB, TypeAssignmentGraph &TAG) {
+  auto NumGlobals = IRDB.getNumGlobals();
   TAG.Nodes.reserve(TAG.Nodes.size() + NumGlobals);
 
-  for (const auto &Glob : Mod.globals()) {
+  for (const auto &Glob : IRDB.getModule()->globals()) {
     if (Glob.getValueType()->isIntOrIntVectorTy() ||
         Glob.getValueType()->isFloatingPointTy()) {
       continue;
@@ -461,9 +461,7 @@ static void handleEntryForCall(const llvm::CallBase *Call, TAGNodeId CSNod,
 }
 
 static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
-                       const psr::CallGraph<const llvm::Instruction *,
-                                            const llvm::Function *> &BaseCG,
-                       const psr::LLVMVFTableProvider &VTP) {
+                       Resolver &BaseRes, const psr::LLVMVFTableProvider &VTP) {
 
   llvm::SmallVector<std::optional<TAGNodeId>> Args;
   llvm::SmallBitVector EntryArgs;
@@ -488,8 +486,13 @@ static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
     return;
   }
 
-  for (const auto *Callee : BaseCG.getCalleesOfCallAt(Call)) {
+  const auto HandleCallTarget = [&](const llvm::Function *Callee) {
     handleEntryForCall(Call, *CSNod, TAG, Callee, VTP);
+
+    if (Callee->isDeclaration()) {
+      // XXX: Integrate with getLibCSummary()
+      return;
+    }
 
     for (const auto &[Param, Arg] : llvm::zip(Callee->args(), Args)) {
       auto ParamNodId = TAG.get({Variable{&Param}});
@@ -520,6 +523,15 @@ static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
         TAG.addEdge(*RetNod, *CSNod);
       }
     }
+  };
+
+  if (const auto *StaticCallee = llvm::dyn_cast<llvm::Function>(
+          Call->getCalledOperand()->stripPointerCastsAndAliases())) {
+    HandleCallTarget(StaticCallee);
+  } else {
+    for (const auto *Callee : BaseRes.resolveIndirectCall(Call)) {
+      HandleCallTarget(Callee);
+    }
   }
 }
 
@@ -546,9 +558,8 @@ static void handleReturn(const llvm::ReturnInst *Ret,
 }
 
 static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
-                     const psr::CallGraph<const llvm::Instruction *,
-                                          const llvm::Function *> &BaseCG,
-                     AliasInfoTy AI, const llvm::DataLayout &DL,
+                     Resolver &BaseRes, AliasInfoTy AI,
+                     const llvm::DataLayout &DL,
                      const psr::LLVMVFTableProvider &VTP) {
   if (llvm::isa<llvm::DbgInfoIntrinsic>(&I)) {
     return;
@@ -583,7 +594,7 @@ static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
     }
   }
   if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&I)) {
-    handleCall(Call, TAG, BaseCG, VTP);
+    handleCall(Call, TAG, BaseRes, VTP);
     return;
   }
   if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(&I)) {
@@ -593,51 +604,49 @@ static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
   // TODO: Handle more cases
 }
 
-static void buildTAGWithFun(
-    const llvm::Function *Fun, TypeAssignmentGraph &TAG,
-    const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
-        &BaseCG,
-    AliasInfoTy AI, const llvm::DataLayout &DL,
-    const psr::LLVMVFTableProvider &VTP) {
+static void buildTAGWithFun(const llvm::Function *Fun, TypeAssignmentGraph &TAG,
+                            Resolver &BaseRes, AliasInfoTy AI,
+                            const llvm::DataLayout &DL,
+                            const psr::LLVMVFTableProvider &VTP) {
   for (const auto &I : llvm::instructions(Fun)) {
-    dispatch(I, TAG, BaseCG, AI, DL, VTP);
+    dispatch(I, TAG, BaseRes, AI, DL, VTP);
   }
 }
 
-static auto computeTypeAssignmentGraphImpl(
-    const llvm::Module &Mod,
-    const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
-        &BaseCG,
-    AliasInfoTy AI, const psr::LLVMVFTableProvider &VTP)
+static auto computeTypeAssignmentGraphImpl(const LLVMProjectIRDB &IRDB,
+                                           Resolver &BaseRes, AliasInfoTy AI,
+                                           const psr::LLVMVFTableProvider &VTP,
+                                           ReachableFunsTy ReachableFunctions)
     -> TypeAssignmentGraph {
   TypeAssignmentGraph TAG;
 
-  const auto &DL = Mod.getDataLayout();
+  const auto &DL = IRDB.getModule()->getDataLayout();
 
-  addFields(Mod, TAG, DL);
-  addGlobals(Mod, TAG);
+  addFields(IRDB, TAG, DL);
+  addGlobals(IRDB, TAG);
 
-  for (const auto *Fun : BaseCG.getAllVertexFunctions()) {
-    initializeWithFun(Fun, TAG);
-  }
+  assert(ReachableFunctions);
+
+  ReachableFunctions(IRDB,
+                     [&TAG](const auto *Fun) { initializeWithFun(Fun, TAG); });
 
   TAG.Adj.resize(TAG.Nodes.size());
 
-  for (const auto *Fun : BaseCG.getAllVertexFunctions()) {
-    buildTAGWithFun(Fun, TAG, BaseCG, AI, DL, VTP);
-  }
+  ReachableFunctions(IRDB, [&](const auto *Fun) {
+    buildTAGWithFun(Fun, TAG, BaseRes, AI, DL, VTP);
+  });
 
   return TAG;
 }
 
-auto vta::computeTypeAssignmentGraph(
-    const llvm::Module &Mod,
-    const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
-        &BaseCG,
-    AliasInfoTy AS, const psr::LLVMVFTableProvider &VTP)
+auto vta::computeTypeAssignmentGraph(const LLVMProjectIRDB &IRDB,
+                                     const psr::LLVMVFTableProvider &VTP,
+                                     AliasInfoTy AS, Resolver &BaseRes,
+                                     ReachableFunsTy ReachableFunctions)
     -> TypeAssignmentGraph {
 
-  return computeTypeAssignmentGraphImpl(Mod, BaseCG, AS, VTP);
+  return computeTypeAssignmentGraphImpl(IRDB, BaseRes, AS, VTP,
+                                        ReachableFunctions);
 }
 
 void TypeAssignmentGraph::print(llvm::raw_ostream &OS) {

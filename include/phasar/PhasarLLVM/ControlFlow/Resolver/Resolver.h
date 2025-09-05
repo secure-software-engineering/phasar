@@ -17,9 +17,12 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/STLFunctionalExtras.h"
 #include "llvm/IR/DerivedTypes.h"
 
 #include <memory>
@@ -115,11 +118,22 @@ public:
     // Conservatively returns true. Override if possible
     return true;
   }
-  static std::unique_ptr<Resolver> create(CallGraphAnalysisType Ty,
-                                          const LLVMProjectIRDB *IRDB,
-                                          const LLVMVFTableProvider *VTP,
-                                          const DIBasedTypeHierarchy *TH,
-                                          LLVMAliasInfoRef PT = nullptr);
+
+  struct DefaultBaseResolverProvider {
+    MaybeUniquePtr<Resolver> operator()(const LLVMProjectIRDB *IRDB,
+                                        const LLVMVFTableProvider *VTP,
+                                        const DIBasedTypeHierarchy *TH,
+                                        LLVMAliasInfoRef PT);
+  };
+
+  static std::unique_ptr<Resolver>
+  create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
+         const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
+         LLVMAliasInfoRef PT = nullptr,
+         llvm::function_ref<MaybeUniquePtr<Resolver>(
+             const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+             const DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT)>
+             GetBaseRes = DefaultBaseResolverProvider{});
 
 protected:
   virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,

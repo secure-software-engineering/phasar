@@ -63,6 +63,12 @@ static cl::opt<psr::CallGraphAnalysisType>
            },
            cl::init(psr::CallGraphAnalysisType::OTF), cl::cat(CGCat));
 
+static cl::opt<bool> BuildBaseCG(
+    "build-base-cg",
+    cl::desc("Whether to build-up an explicit base-call-graph to "
+             "initialize the VTA algorithm. May take more time, but may reduce "
+             "the size of the type-assignment graph"));
+
 static cl::opt<psr::AliasAnalysisType>
     AAType("aa-type",
            cl::desc("The alias-analysis type for those call-graph "
@@ -94,6 +100,12 @@ int main(int Argc, char *Argv[]) {
   auto TH = psr::DIBasedTypeHierarchy(IRDB);
   auto EntryPoints = psr::getDefaultEntryPoints(IRDB);
 
+  if (BuildBaseCG && CGType != psr::CallGraphAnalysisType::VTA) {
+    llvm::WithColor::warning() << "The option --build-base-cg only works for "
+                                  "the cg-type 'vta'. It will be ignored for '"
+                               << CGType << "'\n";
+  }
+
   auto CG = [&] {
     switch (CGType) {
     case psr::CallGraphAnalysisType::NORESOLVE:
@@ -104,9 +116,15 @@ int main(int Argc, char *Argv[]) {
     }
     case psr::CallGraphAnalysisType::VTA: {
       auto BaseRes = psr::RTAResolver(&IRDB, &VTP, &TH);
-      auto BaseCG = psr::buildLLVMBasedCallGraph(IRDB, BaseRes, EntryPoints);
       auto AA = psr::LLVMAliasSet(&IRDB, true, AAType);
-      auto Res = psr::VTAResolver(&IRDB, &VTP, &BaseCG, &AA);
+      auto Res = [&] {
+        if (BuildBaseCG) {
+          auto BaseCG = std::make_unique<psr::LLVMBasedCallGraph>(
+              psr::buildLLVMBasedCallGraph(IRDB, BaseRes, EntryPoints));
+          return psr::VTAResolver(&IRDB, &VTP, &AA, std::move(BaseCG));
+        }
+        return psr::VTAResolver(&IRDB, &VTP, &AA, &BaseRes);
+      }();
       return psr::buildLLVMBasedCallGraph(IRDB, Res, EntryPoints);
     }
     case psr::CallGraphAnalysisType::OTF: {

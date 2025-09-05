@@ -1,26 +1,58 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/PrecomputedResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/VTA/TypeAssignmentGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/VTA/TypePropagator.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/SCCGeneric.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/InstrTypes.h"
 
 using namespace psr;
 
+void VTAResolver::DefaultReachableFunctions::operator()(
+    const LLVMProjectIRDB &IRDB,
+    llvm::function_ref<void(const llvm::Function *)> WithFun) {
+  llvm::for_each(IRDB.getAllFunctions(), WithFun);
+}
+
+static VTAResolver createWithBaseCGResolver(
+    const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+    MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG, vta::AliasInfoTy AS) {
+  auto ReachableFunctions =
+      [BaseCG = BaseCG.get()](
+          const LLVMProjectIRDB &,
+          llvm::function_ref<void(const llvm::Function *)> WithFun) {
+        llvm::for_each(BaseCG->getAllVertexFunctions(), WithFun);
+      };
+  auto BaseRes =
+      std::make_unique<PrecomputedResolver>(IRDB, VTP, std::move(BaseCG));
+
+  return VTAResolver(IRDB, VTP, AS, std::move(BaseRes), ReachableFunctions);
+}
+
 VTAResolver::VTAResolver(const LLVMProjectIRDB *IRDB,
-                         const LLVMVFTableProvider *VTP,
-                         MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG,
-                         vta::AliasInfoTy AS)
-    : Resolver(IRDB, VTP), BaseCG(std::move(BaseCG)) {
+                         const LLVMVFTableProvider *VTP, vta::AliasInfoTy AS,
+                         MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG)
+    : psr::VTAResolver(
+          createWithBaseCGResolver(IRDB, VTP, std::move(BaseCG), AS)) {}
+
+VTAResolver::VTAResolver(
+    const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+    vta::AliasInfoTy AS, MaybeUniquePtr<Resolver> BaseRes,
+    llvm::function_ref<void(const LLVMProjectIRDB &,
+                            llvm::function_ref<void(const llvm::Function *)>)>
+        ReachableFunctions)
+    : Resolver(IRDB, VTP), BaseCG(std::move(BaseRes)) {
   assert(this->BaseCG != nullptr);
 
-  auto TAG = vta::computeTypeAssignmentGraph(*IRDB->getModule(), *this->BaseCG,
-                                             AS, *VTP);
+  auto TAG = vta::computeTypeAssignmentGraph(*IRDB, *VTP, AS, *this->BaseCG,
+                                             ReachableFunctions);
 
   SCCs = computeSCCs(TAG);
   auto Deps = computeSCCDependencies(TAG, SCCs);
@@ -55,9 +87,7 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
   auto *VT = CallSite->getCalledOperand()->stripPointerCastsAndAliases();
   auto VtableIndex = RetrievedVtableIndex.value();
 
-  auto BaseCalleesVec = BaseCG->getCalleesOfCallAt(CallSite);
-  llvm::SmallDenseSet<const llvm::Function *> BaseCallees(
-      BaseCalleesVec.begin(), BaseCalleesVec.end());
+  auto BaseCallees = BaseCG->resolveIndirectCall(CallSite);
 
   auto ReceiverIdx = CallSite->hasStructRetAttr();
   if (CallSite->arg_size() > ReceiverIdx) {
@@ -111,9 +141,7 @@ void VTAResolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
   // llvm::errs() << "[resolveFunctionPointer] At " << llvmIRToString(CallSite)
   //              << '\n';
 
-  auto BaseCalleesVec = BaseCG->getCalleesOfCallAt(CallSite);
-  llvm::SmallDenseSet<const llvm::Function *> BaseCallees(
-      BaseCalleesVec.begin(), BaseCalleesVec.end());
+  auto BaseCallees = BaseCG->resolveIndirectCall(CallSite);
 
   auto TNId = Nodes.getOrNull({vta::Variable{
       CallSite->getCalledOperand()->stripPointerCastsAndAliases()}});

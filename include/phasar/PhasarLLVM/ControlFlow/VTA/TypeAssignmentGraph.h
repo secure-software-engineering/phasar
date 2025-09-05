@@ -11,9 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_TYPEASSIGNMENTGRAPH_H
 
 #include "phasar/ControlFlow/CallGraph.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/IotaIterator.h"
@@ -32,6 +30,12 @@
 
 #include <optional>
 #include <variant>
+
+namespace psr {
+class Resolver;
+class LLVMProjectIRDB;
+class LLVMVFTableProvider;
+} // namespace psr
 
 namespace psr::vta {
 
@@ -151,12 +155,14 @@ using AliasHandlerTy = llvm::function_ref<void(const llvm::Value *)>;
 using AliasInfoTy = llvm::function_ref<void(
     const llvm::Value *, const llvm::Instruction *, AliasHandlerTy)>;
 
+using ReachableFunsHandlerTy = llvm::function_ref<void(const llvm::Function *)>;
+using ReachableFunsTy =
+    llvm::function_ref<void(const LLVMProjectIRDB &, ReachableFunsHandlerTy)>;
+
 // TODO: Use AliasIterator here, once available
 [[nodiscard]] TypeAssignmentGraph computeTypeAssignmentGraph(
-    const llvm::Module &Mod,
-    const psr::CallGraph<const llvm::Instruction *, const llvm::Function *>
-        &BaseCG,
-    AliasInfoTy AS, const psr::LLVMVFTableProvider &VTP);
+    const LLVMProjectIRDB &IRDB, const psr::LLVMVFTableProvider &VTP,
+    AliasInfoTy AS, Resolver &BaseRes, ReachableFunsTy ReachableFunctions);
 
 void printNode(llvm::raw_ostream &OS, TAGNode TN);
 }; // namespace psr::vta

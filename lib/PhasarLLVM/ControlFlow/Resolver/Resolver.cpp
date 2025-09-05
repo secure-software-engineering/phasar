@@ -17,11 +17,14 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -208,11 +211,20 @@ void Resolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}
 
-std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
-                                           const LLVMProjectIRDB *IRDB,
-                                           const LLVMVFTableProvider *VTP,
-                                           const DIBasedTypeHierarchy *TH,
-                                           LLVMAliasInfoRef PT) {
+MaybeUniquePtr<Resolver> Resolver::DefaultBaseResolverProvider::operator()(
+    const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+    const DIBasedTypeHierarchy *TH, LLVMAliasInfoRef /*PT*/) {
+  return std::make_unique<RTAResolver>(IRDB, VTP, TH);
+}
+
+std::unique_ptr<Resolver> Resolver::create(
+    CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
+    const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
+    LLVMAliasInfoRef PT,
+    llvm::function_ref<MaybeUniquePtr<Resolver>(
+        const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+        const DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT)>
+        GetBaseRes) {
   assert(IRDB != nullptr);
   assert(VTP != nullptr);
 
@@ -225,9 +237,12 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
   case CallGraphAnalysisType::RTA:
     assert(TH != nullptr);
     return std::make_unique<RTAResolver>(IRDB, VTP, TH);
-  case CallGraphAnalysisType::VTA:
-    llvm::report_fatal_error(
-        "The VTA callgraph algorithm is not implemented yet");
+  case CallGraphAnalysisType::VTA: {
+    assert(PT);
+    auto BaseRes = GetBaseRes(IRDB, VTP, TH, PT);
+    assert(BaseRes != nullptr);
+    return std::make_unique<VTAResolver>(IRDB, VTP, PT, std::move(BaseRes));
+  }
   case CallGraphAnalysisType::OTF:
     assert(PT);
     return std::make_unique<OTFResolver>(IRDB, VTP, PT);
