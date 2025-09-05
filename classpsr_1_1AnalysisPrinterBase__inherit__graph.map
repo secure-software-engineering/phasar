@@ -1,39 +1,13 @@
 <map id="psr::AnalysisPrinterBase&lt; AnalysisDomainTy &gt;" name="psr::AnalysisPrinterBase&lt; AnalysisDomainTy &gt;">
-<area shape="rect" id="Node000001" title="A generic class that serves as the basis for a custom analysis printer implementation." alt="" coords="5,596,185,636"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1DefaultAnalysisPrinter.html" title="A default implementation of the AnalysisPrinterBase. Aggregates all analysis results in a vector and ..." alt="" coords="587,10,783,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,582,106,470,127,321,142,247,160,179,182,125,207,88,249,57,295,34,344,18,396,8,447,4,497,3,587,10,586,15,497,8,447,9,396,14,346,23,297,39,252,61,211,92,186,127,165,181,147,248,132,322,112,471,102,583"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1NullAnalysisPrinter.html" title=" " alt="" coords="597,74,772,114"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="97,582,109,481,131,349,146,284,163,225,184,177,207,145,251,114,299,92,351,77,404,68,456,65,507,65,598,74,597,79,507,70,457,70,404,73,352,82,301,97,254,119,211,149,188,180,168,227,151,285,136,350,114,482,103,583"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1OnTheFlyAnalysisPrinter.html" title=" " alt="" coords="579,138,790,178"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="98,582,112,492,135,377,150,321,167,270,186,229,208,201,250,172,297,151,346,137,397,129,449,125,498,126,587,135,586,140,498,131,449,131,398,134,348,142,299,156,253,177,211,205,191,231,172,272,155,322,140,379,117,493,104,583"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1SourceMgrPrinter.html" title=" " alt="" coords="599,202,771,242"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="93,582,96,512,111,421,126,374,146,329,173,288,208,253,253,224,302,204,354,192,407,185,460,184,511,187,600,199,599,204,510,192,460,189,408,191,355,197,304,209,255,229,211,257,177,291,151,331,131,376,117,422,102,512,98,583"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="557,266,812,321"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="96,582,105,526,123,456,138,420,156,386,179,355,208,329,234,315,268,305,357,292,459,287,557,286,557,292,459,292,358,297,270,310,236,320,211,333,183,359,161,389,142,422,128,458,110,527,102,583"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="541,345,828,400"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="101,582,113,539,134,488,165,439,185,417,208,399,233,388,266,379,350,367,446,363,541,364,541,369,446,368,351,373,267,384,235,393,211,404,189,421,170,442,139,491,119,541,106,584"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="555,424,815,464"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="113,583,152,533,178,508,208,489,250,470,294,456,385,438,474,430,555,430,555,435,474,435,385,443,295,461,252,475,211,493,182,512,156,536,117,586"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="571,488,799,528"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="137,587,171,569,209,554,302,531,398,517,489,508,570,505,570,510,490,514,398,522,303,536,210,559,173,574,140,592"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="555,553,814,608"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="199,607,555,586,555,591,200,613"/>
-<area shape="rect" id="Node000011" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="545,632,824,672"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="181,637,210,642,296,650,384,655,545,656,545,661,384,660,296,656,209,647,180,642"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="577,696,792,736"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="138,642,172,661,210,677,305,699,403,712,496,717,577,718,577,723,495,723,402,717,304,704,209,682,170,666,135,646"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="549,761,820,816"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="115,647,153,704,180,731,211,753,251,771,293,784,381,801,469,806,549,804,549,809,469,812,381,806,292,790,249,776,208,757,176,735,149,707,110,650"/>
-<area shape="rect" id="Node000014" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="561,840,808,880"/>
-<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="106,649,119,692,139,741,170,789,189,810,211,827,255,851,302,868,351,879,400,885,498,886,584,878,584,883,498,892,400,891,350,884,300,873,252,856,208,832,185,814,166,793,135,744,114,694,101,651"/>
-<area shape="rect" id="Node000015" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="570,905,799,960"/>
-<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="100,650,106,711,123,788,137,826,156,863,181,896,211,924,237,936,273,944,365,952,470,950,570,942,570,948,470,955,365,957,272,950,235,941,208,928,177,900,152,866,132,829,118,789,101,712,95,650"/>
-<area shape="rect" id="Node000016" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="587,984,783,1038"/>
-<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="104,650,119,732,143,835,174,929,192,965,211,988,238,1002,276,1012,374,1022,484,1022,586,1017,587,1022,484,1027,373,1027,275,1017,236,1006,208,992,187,968,169,932,138,836,114,733,99,651"/>
-<area shape="rect" id="Node000017" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="549,1063,821,1103"/>
-<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="103,650,115,746,137,870,152,932,169,986,189,1030,211,1058,234,1071,267,1081,352,1092,451,1095,548,1091,549,1096,451,1100,352,1098,266,1086,232,1076,208,1062,184,1033,164,988,147,933,132,871,110,747,97,650"/>
-<area shape="rect" id="Node000018" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="545,1128,824,1182"/>
-<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="102,650,111,761,132,907,146,979,164,1044,186,1097,198,1116,211,1130,234,1144,266,1154,350,1165,448,1167,545,1164,545,1169,448,1172,350,1170,265,1159,232,1148,208,1134,194,1119,181,1099,159,1046,141,981,126,908,106,761,96,651"/>
-<area shape="rect" id="Node000019" href="$classpsr_1_1AnalysisPrinterBase.html" title=" " alt="" coords="563,1206,806,1261"/>
-<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="101,650,108,775,126,943,141,1027,160,1103,183,1164,196,1187,211,1204,251,1232,295,1252,342,1265,391,1271,441,1273,489,1271,577,1258,578,1264,490,1276,441,1278,391,1277,341,1270,293,1257,248,1236,208,1208,192,1190,178,1166,154,1105,136,1028,121,943,103,775,95,650"/>
+<area shape="rect" id="Node000001" title="A generic class that serves as the basis for a custom analysis printer implementation." alt="" coords="5,133,185,173"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1DefaultAnalysisPrinter.html" title="A default implementation of the AnalysisPrinterBase. Aggregates all analysis results in a vector and ..." alt="" coords="243,5,439,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,122,177,88,232,55,261,43,263,48,235,60,180,92,133,127"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1DefaultLLVMAnalysisPrinter.html" title=" " alt="" coords="233,69,448,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,127,263,107,264,112,187,132"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1NullAnalysisPrinter.html" title=" " alt="" coords="253,133,428,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,151,253,151,253,156,199,156"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1OnTheFlyAnalysisPrinter.html" title=" " alt="" coords="235,197,446,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="187,174,264,195,263,200,185,179"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1SourceMgrPrinter.html" title=" " alt="" coords="255,261,427,301"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="133,180,180,215,235,247,263,259,261,264,232,252,177,219,129,184"/>
 </map>

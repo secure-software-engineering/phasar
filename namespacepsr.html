@@ -231,6 +231,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1DefaultAnalysisPrinter.html">DefaultAnalysisPrinter</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A default implementation of the <a class="el" href="classpsr_1_1AnalysisPrinterBase.html" title="A generic class that serves as the basis for a custom analysis printer implementation.">AnalysisPrinterBase</a>. Aggregates all analysis results in a vector and prints them when the analysis is finished.  <a href="classpsr_1_1DefaultAnalysisPrinter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DefaultAnalysisPrinterSelector.html">DefaultAnalysisPrinterSelector</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DefaultAnalysisPrinterSelector_3_01LLVMIFDSAnalysisDomainDefault_01_4.html">DefaultAnalysisPrinterSelector&lt; LLVMIFDSAnalysisDomainDefault &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DefaultAnalysisSetup.html">DefaultAnalysisSetup</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DefaultConstruct.html">DefaultConstruct</a></td></tr>
@@ -247,6 +251,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DefaultIDESolverConfig.html">DefaultIDESolverConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_00_01std_1_1enable__if__t_3_01std_1_1is__base_adc4e44d50d6a7f0c5ce731aba6dd5ad.html">DefaultIDESolverConfig&lt; ProblemTy, std::enable_if_t&lt; std::is_base_of_v&lt; IFDSTabulationProblem&lt; typename ProblemTy::ProblemAnalysisDomain &gt;, ProblemTy &gt; &gt; &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1DefaultLLVMAnalysisPrinter.html">DefaultLLVMAnalysisPrinter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1DefaultMapKeyCompressor.html">DefaultMapKeyCompressor</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2332,7 +2338,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>An <a class="el" href="structpsr_1_1AnalysisDomain.html">AnalysisDomain</a> that specializes sensible defaults for LLVM-based IFDS analysis. </p>
 
-<p class="definition">Definition at line <a class="el" href="LLVMAnalysisDomain_8h_source.html#l00043">43</a> of file <a class="el" href="LLVMAnalysisDomain_8h_source.html">LLVMAnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMAnalysisDomain_8h_source.html#l00046">46</a> of file <a class="el" href="LLVMAnalysisDomain_8h_source.html">LLVMAnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -3350,7 +3356,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="reference">References <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, and <a class="el" href="EntryPointUtils_8h_source.html#l00061">forallStartingPoints()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EntryPointUtils_8h_source.html#l00118">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00106">addSeedsForStartingPoints()</a>, and <a class="el" href="IDETabulationProblem_8h_source.html#l00181">psr::IDETabulationProblem&lt; AnalysisDomainTy, Container &gt;::createDefaultSeeds()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EntryPointUtils_8h_source.html#l00118">addSeedsForStartingPoints()</a>, <a class="el" href="EntryPointUtils_8h_source.html#l00106">addSeedsForStartingPoints()</a>, and <a class="el" href="IDETabulationProblem_8h_source.html#l00209">psr::IDETabulationProblem&lt; AnalysisDomainTy, Container &gt;::createDefaultSeeds()</a>.</p>
 
 </div>
 </div>
@@ -4843,6 +4849,8 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classpsr_1_1DefaultLLVMAnalysisPrinter.html#a683788223e189a8fcff256e8910dc15b">psr::DefaultLLVMAnalysisPrinter&lt; AnalysisDomainTy &gt;::DefaultLLVMAnalysisPrinter()</a>.</p>
 
 </div>
 </div>
@@ -12321,7 +12329,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 27 2025 07:05:32 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Sep 5 2025 09:48:29 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
