@@ -12,6 +12,7 @@
 #include "phasar/Utils/AdjacencyList.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"
 #include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/TypedVector.h"
 
 #include "gtest/gtest.h"
 
@@ -23,7 +24,6 @@
 using namespace psr;
 
 enum class NodeId : uint32_t {};
-using SCCId = SCCId<NodeId>;
 
 using ExampleGraph = AdjacencyList<EmptyType, NodeId>;
 
@@ -34,13 +34,22 @@ static void computeSCCsAndCompare(ExampleGraph &Graph) {
       << "Iterative Approach did not reach all nodes\n";
   ASSERT_EQ(OutputRec.SCCOfNode.size(), Graph.Adj.size())
       << "Recursive Approach did not reach all nodes\n";
-  EXPECT_EQ(OutputRec.size(), OutputIt.size())
+  ASSERT_EQ(OutputRec.size(), OutputIt.size())
       << "Unequal number of SCC components\n";
-  /*std::cout << std::to_string(OutputRec.NumSCCs) << " "
-            << std::to_string(OutputIt.NumSCCs) << "\n";*/
+
+  const auto None = SCCId<NodeId>(UINT32_MAX);
+  TypedVector<SCCId<NodeId>, SCCId<NodeId>> Isomorphism(OutputRec.size(), None);
+
   for (auto Vtx : GraphTraits<ExampleGraph>::vertices(Graph)) {
-    EXPECT_EQ(OutputRec.SCCOfNode[Vtx], OutputIt.SCCOfNode[Vtx])
-        << "SCCs differ at Index: " << uint32_t(Vtx) << "\n";
+    auto RecSCC = OutputRec.SCCOfNode[Vtx];
+    auto ItSCC = OutputIt.SCCOfNode[Vtx];
+
+    if (Isomorphism[RecSCC] == None) {
+      Isomorphism[RecSCC] = ItSCC;
+    } else {
+      EXPECT_EQ(Isomorphism[RecSCC], ItSCC)
+          << "SCCs differ at Index: " << uint32_t(Vtx) << "\n";
+    }
   }
 }
 

@@ -18,11 +18,13 @@
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
 
 #include <cstdint>
+#include <type_traits>
 
 namespace psr {
 class LLVMBasedICFG;
@@ -293,20 +295,20 @@ computeSCCIterative(const G &Graph) {
   // Number of nodes (vertices are assumed to be consecutive indices).
   size_t NumNodes = GTraits::size(Graph);
 
-  // Use TypedVector for per-vertex data instead of unordered_map.
-  TypedVector<VertexTy, int> Dfn; // discovery index.
-  Dfn.resize(NumNodes, UNVISITED);
-  TypedVector<VertexTy, int> Lowlink; // smallest index reachable.
-  Lowlink.resize(NumNodes, 0);
-  TypedVector<VertexTy, bool> InStack; // marker for Tarjan's stack.
-  InStack.resize(NumNodes, false);
+  // discovery index.
+  TypedVector<VertexTy, int> Dfn(NumNodes, UNVISITED);
+
+  // smallest index reachable.
+  TypedVector<VertexTy, int> Lowlink(NumNodes, 0);
+
+  // marker for Tarjan's stack.
+  BitSet<VertexTy, llvm::BitVector> InStack(NumNodes, false);
 
   int CurrentIndex = 0;
 
   // Our final SCC holder. Pre-resize SCCOfNode to the number of nodes.
   SCCHolder<VertexTy> Holder;
   Holder.SCCOfNode.resize(NumNodes);
-  // Initially, holder.NodesInSCC is empty and holder.NumSCCs is zero.
 
   // Instead of storing a vector of out-edges, we store an iterator pair.
   using OutEdgeRange =
@@ -319,18 +321,25 @@ computeSCCIterative(const G &Graph) {
     OutEdgeIterator It;
     OutEdgeIterator ItEnd;
   };
-  std::vector<DFSFrame> DfsStack;
-  std::vector<VertexTy> S; // Tarjan's stack (vertices in the current DFS path).
+  llvm::SmallVector<DFSFrame> DfsStack;
+  // Tarjan's stack (vertices in the current DFS path).
+  llvm::SmallVector<VertexTy> S;
 
   // Helper to push a new DFS frame.
-  const auto PushFrame = [&](const VertexTy &V) {
+  const auto PushFrame = [&](VertexTy V) {
     auto &&Range = GTraits::outEdges(Graph, V);
-    DFSFrame Frame{
+    static_assert(
+        std::is_lvalue_reference_v<decltype(Range)> ||
+            std::is_trivially_destructible_v<std::decay_t<decltype(Range)>>,
+        "We assume that outEdges gives either a reference or a view into the "
+        "out-edges, but never an owning container by value. Otherwise, the "
+        "DFSFrame iterators may be dangling");
+
+    DfsStack.emplace_back(DFSFrame{
         V,
         std::begin(Range),
         std::end(Range),
-    };
-    DfsStack.push_back(Frame);
+    });
   };
 
   // Iterate over all vertices (assumed to be dense).
@@ -344,7 +353,7 @@ computeSCCIterative(const G &Graph) {
     Lowlink[V] = CurrentIndex;
     CurrentIndex++;
     S.push_back(V);
-    InStack[V] = true;
+    InStack.insert(V);
 
     // DFS simulation using the explicit stack.
     while (!DfsStack.empty()) {
@@ -361,8 +370,8 @@ computeSCCIterative(const G &Graph) {
           Lowlink[W] = CurrentIndex;
           CurrentIndex++;
           S.push_back(W);
-          InStack[W] = true;
-        } else if (InStack[W]) {
+          InStack.insert(W);
+        } else if (InStack.contains(W)) {
           // w is in the current DFS path; update lowlink.
           Lowlink[U] = std::min(Lowlink[U], Dfn[W]);
         }
@@ -375,7 +384,7 @@ computeSCCIterative(const G &Graph) {
           do {
             W = S.back();
             S.pop_back();
-            InStack[W] = false;
+            InStack.erase(W);
             // Assign w the current SCC id.
             Holder.SCCOfNode[W] = static_cast<SCCId>(Holder.size());
             Comp.push_back(W);

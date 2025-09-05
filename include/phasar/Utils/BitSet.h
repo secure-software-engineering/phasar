@@ -18,7 +18,20 @@
 #include <iterator>
 
 namespace psr {
-template <typename IdT> class BitSet {
+
+namespace internal {
+inline llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
+                                          uintptr_t & /*Store*/) {
+  return BV.getData();
+}
+inline llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
+                                          uintptr_t &Store) {
+  return BV.getData(Store);
+}
+} // namespace internal
+
+template <typename IdT, typename BitVectorTy = llvm::SmallBitVector>
+class BitSet {
 public:
   class Iterator {
   public:
@@ -28,7 +41,7 @@ public:
     using difference_type = ptrdiff_t;
     using iterator_category = std::forward_iterator_tag;
 
-    Iterator(llvm::SmallBitVector::const_set_bits_iterator It) noexcept
+    Iterator(typename BitVectorTy::const_set_bits_iterator It) noexcept
         : It(It) {}
 
     Iterator &operator++() noexcept {
@@ -50,7 +63,7 @@ public:
     }
 
   private:
-    llvm::SmallBitVector::const_set_bits_iterator It;
+    typename BitVectorTy::const_set_bits_iterator It;
   };
 
   using iterator = Iterator;
@@ -126,8 +139,8 @@ public:
     uintptr_t LhsStore{};
     uintptr_t RhsStore{};
 
-    auto LhsWords = Lhs.Bits.getData(LhsStore);
-    auto RhsWords = Rhs.Bits.getData(RhsStore);
+    auto LhsWords = internal::getWords(Lhs.Bits, LhsStore);
+    auto RhsWords = internal::getWords(Rhs.Bits, RhsStore);
     if (LhsWords.size() == RhsWords.size()) {
       return LhsWords == RhsWords;
     }
@@ -177,8 +190,8 @@ public:
     uintptr_t Buf = 0;
     uintptr_t OfBuf = 0;
 
-    auto Words = Bits.getData(Buf);
-    auto OfWords = Of.Bits.getData(OfBuf);
+    auto Words = internal::getWords(Bits, Buf);
+    auto OfWords = internal::getWords(Of.Bits, OfBuf);
     if (Words.size() > OfWords.size()) {
       if (llvm::any_of(Words.drop_front(OfWords.size()),
                        [](uintptr_t W) { return W != 0; })) {
@@ -205,10 +218,8 @@ public:
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
   [[nodiscard]] bool empty() const noexcept { return Bits.none(); }
 
-  [[nodiscard]] bool test(uint32_t Ident) { return Bits.test(Ident); }
-
 private:
-  llvm::SmallBitVector Bits;
+  BitVectorTy Bits;
 };
 } // namespace psr
 
