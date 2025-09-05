@@ -292,9 +292,9 @@ public:
 
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
 
-  [[nodiscard]] const BitVectorTy &getBits() const &noexcept { return Bits; }
-  [[nodiscard]] BitVectorTy &getBits() &noexcept { return Bits; }
-  [[nodiscard]] BitVectorTy &&getBits() &&noexcept { return std::move(Bits); }
+  [[nodiscard]] const BitVectorTy &getBits() const & noexcept { return Bits; }
+  [[nodiscard]] BitVectorTy &getBits() & noexcept { return Bits; }
+  [[nodiscard]] BitVectorTy &&getBits() && noexcept { return std::move(Bits); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
     bool LeftEmpty = Lhs.empty();
@@ -391,6 +391,11 @@ public:
     const_iterator EndIter(Position.right.find(Bits.size()));
     EndIter.setBits(Bits);
     return EndIter;
+  }
+
+  static void clearPosition() {
+    Position.left.clear();
+    Position.right.clear();
   }
 };
 
