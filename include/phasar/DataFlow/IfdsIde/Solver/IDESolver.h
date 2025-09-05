@@ -1616,7 +1616,7 @@ public:
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string D1Label = DToString(D1Fact);
+          std::string D1Label{DToString(D1Fact)};
 
           // Get or create the fact subgraph
           D1FSG = FG->getOrCreateFactSG(D1FactId, D1Label);
@@ -1634,7 +1634,7 @@ public:
           if (!IDEProblem.isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string D2Label = DToString(D2Fact);
+            std::string D2Label{DToString(D2Fact)};
             DOTNode D2 = {FuncName, D2Label, N2StmtId, D2FactId, false, true};
             std::string EFLabel;
             auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
@@ -1719,7 +1719,7 @@ public:
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string D1Label = DToString(D1Fact);
+          std::string D1Label{DToString(D1Fact)};
           D1 = {FNameOfN1, D1Label, N1StmtId, D1FactId, false, true};
           // FG should already exist even for single statement functions
           if (!G.containsFactSG(FNameOfN1, D1FactId)) {
@@ -1738,7 +1738,7 @@ public:
           } else {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string D2Label = DToString(D2Fact);
+            std::string D2Label{DToString(D2Fact)};
             D2 = {FNameOfN2, D2Label, N2StmtId, D2FactId, false, true};
             // FG should already exist even for single statement functions
             if (!G.containsFactSG(FNameOfN2, D2FactId)) {

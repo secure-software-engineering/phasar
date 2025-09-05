@@ -49,8 +49,6 @@ public:
   IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     std::vector<std::string> EntryPoints = {"main"});
 
-  ~IFDSConstAnalysis() override = default;
-
   /**
    * If the current instruction is a store instruction, the memory locations's
    * state of initialization is checked. If the memory location was already

@@ -5,53 +5,34 @@
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMSourceManager.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <type_traits>
 
 namespace psr {
 
-namespace detail {
-class SourceMgrPrinterBase {
-public:
-  explicit SourceMgrPrinterBase(
-      llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
-      llvm::raw_ostream &OS = llvm::errs(),
-      llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning);
-
-  explicit SourceMgrPrinterBase(
-      llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
-      const llvm::Twine &OutFileName,
-      llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning);
-
-protected:
-  LLVMSourceManager SrcMgr;
-
-  llvm::unique_function<std::string(DataFlowAnalysisType)> GetPrintMessage;
-  MaybeUniquePtr<llvm::raw_ostream> OS = &llvm::errs();
-  llvm::SourceMgr::DiagKind WarningKind;
-};
-} // namespace detail
-
 template <typename AnalysisDomainTy>
-class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy>,
-                         private detail::SourceMgrPrinterBase {
+class SourceMgrPrinter : public AnalysisPrinterBase<AnalysisDomainTy> {
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
 public:
   explicit SourceMgrPrinter(
-      llvm::unique_function<std::string(DataFlowAnalysisType)> &&PrintMessage,
+      llvm::unique_function<std::string(n_t Inst, ByConstRef<d_t> Fact,
+                                        ByConstRef<l_t>, DataFlowAnalysisType)>
+          &&GetMessage,
       llvm::raw_ostream &OS = llvm::errs(),
       llvm::SourceMgr::DiagKind WKind = llvm::SourceMgr::DK_Warning)
-      : detail::SourceMgrPrinterBase(std::move(PrintMessage), OS, WKind) {}
+      : OS(&OS), WarningKind(WKind), GetPrintMessage(std::move(GetMessage)) {}
 
 private:
-  void doOnResult(n_t Inst, d_t Fact, l_t /*Value*/,
+  void doOnResult(n_t Inst, d_t Fact, l_t Value,
                   DataFlowAnalysisType AnalysisType) override {
     auto SrcLoc = SrcMgr.getDebugLocation(Inst);
     if constexpr (std::is_convertible_v<d_t, const llvm::Value *>) {
@@ -61,10 +42,22 @@ private:
       }
     }
 
+    auto Msg = GetPrintMessage(Inst, Fact, Value, AnalysisType);
     if (SrcLoc) {
-      SrcMgr.print(*OS, *SrcLoc, WarningKind, GetPrintMessage(AnalysisType));
+      SrcMgr.print(*OS, *SrcLoc, WarningKind, Msg);
+    } else {
+      llvm::SMDiagnostic Diag("", WarningKind, Msg);
+      Diag.print(nullptr, *OS);
     }
   }
+
+  LLVMSourceManager SrcMgr;
+
+  llvm::raw_ostream *OS = &llvm::errs();
+  llvm::SourceMgr::DiagKind WarningKind;
+  llvm::unique_function<std::string(n_t Inst, ByConstRef<d_t> Fact,
+                                    ByConstRef<l_t>, DataFlowAnalysisType)>
+      GetPrintMessage;
 };
 
 } // namespace psr

@@ -101,15 +101,19 @@ static llvm::DISubprogram *getDISubprogram(const llvm::Value *V) {
 
 llvm::DILocation *psr::getDILocation(const llvm::Value *V) {
   // Arguments and Instruction such as AllocaInst
-  if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
-    if (auto *MN = DbgIntr->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      return llvm::dyn_cast<llvm::DILocation>(MN);
-    }
-  } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     if (auto *MN = I->getMetadata(llvm::LLVMContext::MD_dbg)) {
       return llvm::dyn_cast<llvm::DILocation>(MN);
     }
   }
+
+  if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
+    if (auto *MN = DbgIntr->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      return llvm::dyn_cast<llvm::DILocation>(MN);
+    }
+  }
+
   return nullptr;
 }
 
