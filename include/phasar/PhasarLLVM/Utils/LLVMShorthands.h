@@ -104,6 +104,14 @@ std::string llvmIRToShortString(const llvm::Value *V);
 [[nodiscard]] std::string llvmTypeToString(const llvm::Type *Ty,
                                            bool Shorten = false);
 
+/**
+ * @brief Returns a string-representation of a LLVM Debug-Info type.
+ *
+ * @param Shorten Tries to shorten the output
+ */
+[[nodiscard]] std::string llvmTypeToString(const llvm::DIType *Ty,
+                                           bool Shorten = false);
+
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Instruction *V);
 LLVM_DUMP_METHOD void dumpIRValue(const llvm::Function *V);
