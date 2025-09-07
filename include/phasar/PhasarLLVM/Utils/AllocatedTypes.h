@@ -15,11 +15,6 @@
 #include <vector>
 
 namespace psr {
-class LLVMProjectIRDB;
-
-[[nodiscard]] std::vector<const llvm::DICompositeType *>
-collectAllocatedTypes(const LLVMProjectIRDB &IRDB);
-
 [[nodiscard]] std::vector<const llvm::DICompositeType *>
 collectAllocatedTypes(const llvm::Module &Mod);
 } // namespace psr

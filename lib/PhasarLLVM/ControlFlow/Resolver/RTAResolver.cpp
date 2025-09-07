@@ -85,5 +85,5 @@ void RTAResolver::resolveAllocatedCompositeTypes() {
     return;
   }
 
-  AllocatedCompositeTypes = collectAllocatedTypes(*IRDB);
+  AllocatedCompositeTypes = collectAllocatedTypes(*IRDB->getModule());
 }

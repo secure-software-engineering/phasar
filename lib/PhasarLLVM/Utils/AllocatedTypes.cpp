@@ -60,8 +60,3 @@ psr::collectAllocatedTypes(const llvm::Module &Mod) {
                                  AllocatedTypes.begin(), AllocatedTypes.end());
   return AllocatedCompositeTypes;
 }
-
-std::vector<const llvm::DICompositeType *>
-psr::collectAllocatedTypes(const LLVMProjectIRDB &IRDB) {
-  return collectAllocatedTypes(*IRDB.getModule());
-}
