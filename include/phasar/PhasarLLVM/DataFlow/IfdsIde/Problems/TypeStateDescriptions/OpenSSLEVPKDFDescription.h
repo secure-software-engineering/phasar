@@ -12,10 +12,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
-#include "llvm/BinaryFormat/Dwarf.h"
-#include "llvm/IR/DebugInfoMetadata.h"
-
-#include <map>
 #include <set>
 #include <string>
 

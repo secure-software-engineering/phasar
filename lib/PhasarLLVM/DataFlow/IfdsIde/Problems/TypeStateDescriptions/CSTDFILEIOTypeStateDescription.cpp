@@ -9,12 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-
 #include "llvm/ADT/StringMap.h"
-#include "llvm/BinaryFormat/Dwarf.h"
-#include "llvm/IR/DebugInfoMetadata.h"
-#include "llvm/IR/Metadata.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <string>

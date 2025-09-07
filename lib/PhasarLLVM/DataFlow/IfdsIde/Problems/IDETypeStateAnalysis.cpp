@@ -288,21 +288,16 @@ auto IDETypeStateAnalysisBase::getLocalAliasesAndAllocas(
   return AliasAndAllocas;
 }
 
-bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Type *Ty) {
-  if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty);
-      StructTy && StructTy->hasName()) {
-    return isTypeNameOfInterest(StructTy->getName());
+bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::DIType *DITy) {
+  if (llvm::isa<llvm::DICompositeType>(DITy) && !DITy->getName().empty()) {
+    return isTypeNameOfInterest(DITy->getName());
   }
-  // primitive type
-  std::string Str;
-  llvm::raw_string_ostream S(Str);
-  S << *Ty;
-  S.flush();
-  return isTypeNameOfInterest(Str);
+
+  return true; // Conservatively return true
 }
 
-bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Value *Value) {
-  if (const auto *VarTy = getVarTypeFromIR(Value)) {
+bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
+  if (const auto *VarTy = getVarTypeFromIR(V)) {
     if (const auto *BaseTy = stripPointerTypes(VarTy)) {
       return hasMatchingTypeName(BaseTy);
     }
@@ -311,39 +306,5 @@ bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Value *Value) {
   }
 
   return true;
-}
-
-bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::DIType *DITy) {
-  if (llvm::isa<llvm::DICompositeType>(DITy) && !DITy->getName().empty()) {
-    return isTypeNameOfInterest(DITy->getName());
-  }
-
-  return false;
-}
-
-bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
-  // General case
-  if (V->getType()->isPointerTy()) {
-    if (hasMatchingTypeName(V)) {
-      return true;
-    }
-    // fallthrough
-  }
-
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-    return Alloca->getAllocatedType()->isPointerTy() &&
-           hasMatchingTypeName(Alloca);
-  }
-
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    return Load->getType()->isPointerTy() && hasMatchingTypeName(Load);
-  }
-
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
-    return Store->getValueOperand()->getType()->isPointerTy() &&
-           hasMatchingTypeName(Store->getValueOperand());
-  }
-
-  return false;
 }
 } // namespace psr::detail

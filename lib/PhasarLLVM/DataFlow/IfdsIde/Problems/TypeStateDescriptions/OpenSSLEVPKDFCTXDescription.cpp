@@ -11,8 +11,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <set>

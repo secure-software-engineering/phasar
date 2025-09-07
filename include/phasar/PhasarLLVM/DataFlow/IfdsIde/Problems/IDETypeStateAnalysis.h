@@ -15,6 +15,7 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
@@ -37,9 +38,6 @@
 #include <utility>
 
 namespace psr {
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 
 namespace detail {
 
@@ -135,8 +133,6 @@ private:
     return generateFlow(FactToGenerate, LLVMZeroValue::getInstance());
   }
 
-  bool hasMatchingTypeName(const llvm::Type *Ty);
-  bool hasMatchingTypeName(const llvm::Value *Value);
   bool hasMatchingTypeName(const llvm::DIType *DITy);
 
   std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
@@ -288,11 +284,7 @@ private:
     template <typename LL = l_t,
               typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
     TSConstant(l_t Value, EmptyType /*unused*/ = {}) noexcept
-        : ConstantEdgeFunction<l_t>{Value} {
-      if constexpr (!HasJoinLatticeTraits<l_t>) {
-        this->TSD = TSD;
-      }
-    }
+        : ConstantEdgeFunction<l_t>{Value} {}
 
     /// XXX: Cannot default compose() and join(), because l_t does not implement
     /// JoinLatticeTraits (because bottom value is not constant)
