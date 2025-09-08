@@ -128,6 +128,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad6feb5a80347c6a2657f6ae4ee6420e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54028f4b56531715e3c83568ad17804f" id="r_a54028f4b56531715e3c83568ad17804f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#a54028f4b56531715e3c83568ad17804f">mutatesHelperAnalysisInformation</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a54028f4b56531715e3c83568ad17804f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfd985755370be8ff776af05304c3398" id="r_acfd985755370be8ff776af05304c3398"><td class="memItemLeft" align="right" valign="top">llvm::ArrayRef&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#acfd985755370be8ff776af05304c3398">getAddressTakenFunctions</a> ()</td></tr>
+<tr class="separator:acfd985755370be8ff776af05304c3398"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -145,16 +147,18 @@ Protected Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:aa3891aa3a092858d4ac6cf432a356747" id="r_aa3891aa3a092858d4ac6cf432a356747"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#aa3891aa3a092858d4ac6cf432a356747">IRDB</a></td></tr>
+<tr class="memitem:aa3891aa3a092858d4ac6cf432a356747" id="r_aa3891aa3a092858d4ac6cf432a356747"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#aa3891aa3a092858d4ac6cf432a356747">IRDB</a> {}</td></tr>
 <tr class="separator:aa3891aa3a092858d4ac6cf432a356747"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa94ba4a76ce3b67a362e772dd25952c9" id="r_aa94ba4a76ce3b67a362e772dd25952c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#aa94ba4a76ce3b67a362e772dd25952c9">VTP</a></td></tr>
+<tr class="memitem:aa94ba4a76ce3b67a362e772dd25952c9" id="r_aa94ba4a76ce3b67a362e772dd25952c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#aa94ba4a76ce3b67a362e772dd25952c9">VTP</a> {}</td></tr>
 <tr class="separator:aa94ba4a76ce3b67a362e772dd25952c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7e465552b413d52c3d3d9690020de08" id="r_ae7e465552b413d52c3d3d9690020de08"><td class="memItemLeft" align="right" valign="top">std::optional&lt; llvm::SmallVector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *, 0 &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1Resolver.html#ae7e465552b413d52c3d3d9690020de08">AddressTakenFunctions</a> {}</td></tr>
+<tr class="separator:ae7e465552b413d52c3d3d9690020de08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A base class for call-target resolvers. Used to build call graphs. </p>
 <p>Create a specific resolver by making a new class, inheriting this resolver class and implementing the virtual functions as needed. </p>
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00074">74</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00084">84</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a0a821f4133911b649d18fe6b9346c440" name="a0a821f4133911b649d18fe6b9346c440"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0a821f4133911b649d18fe6b9346c440">&#9670;&#160;</a></span>FunctionSetTy</h2>
@@ -168,7 +172,7 @@ Protected Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00090">90</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00086">86</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
 </div>
 </div>
@@ -281,6 +285,23 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="acfd985755370be8ff776af05304c3398" name="acfd985755370be8ff776af05304c3398"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfd985755370be8ff776af05304c3398">&#9670;&#160;</a></span>getAddressTakenFunctions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">llvm::ArrayRef&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function * &gt; psr::Resolver::getAddressTakenFunctions </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a361378bb21de13d35597fc0f8497988d" name="a361378bb21de13d35597fc0f8497988d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a361378bb21de13d35597fc0f8497988d">&#9670;&#160;</a></span>getNonPureVirtualVFTEntry()</h2>
 
@@ -327,9 +348,9 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00080">80</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00131">131</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a2d60ab57214bbfc8497c831250b6532f">psr::getNonPureVirtualVFTEntry()</a>, and <a class="el" href="Resolver_8h_source.html#l00077">VTP</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a2d60ab57214bbfc8497c831250b6532f">psr::getNonPureVirtualVFTEntry()</a>, and <a class="el" href="Resolver_8h_source.html#l00141">VTP</a>.</p>
 
 </div>
 </div>
@@ -398,7 +419,7 @@ Protected Attributes</h2></td></tr>
 
 <p>Reimplemented in <a class="el" href="classpsr_1_1CHAResolver.html#a9be9e5d964c9c65d9f042eea07a755be">psr::CHAResolver</a>, <a class="el" href="classpsr_1_1NOResolver.html#a5d40223fe42910c4b814cfeaa282d2f3">psr::NOResolver</a>, <a class="el" href="classpsr_1_1OTFResolver.html#a26a227d1f531b641e484af5fbd3e6e8b">psr::OTFResolver</a>, and <a class="el" href="classpsr_1_1RTAResolver.html#a81743706e7bc7fdaed317e063c1948df">psr::RTAResolver</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00114">114</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00116">116</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
 </div>
 </div>
@@ -602,6 +623,30 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ae7e465552b413d52c3d3d9690020de08" name="ae7e465552b413d52c3d3d9690020de08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7e465552b413d52c3d3d9690020de08">&#9670;&#160;</a></span>AddressTakenFunctions</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;llvm::SmallVector&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *, 0&gt; &gt; psr::Resolver::AddressTakenFunctions {}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00143">143</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+
+</div>
+</div>
 <a id="aa3891aa3a092858d4ac6cf432a356747" name="aa3891aa3a092858d4ac6cf432a356747"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa3891aa3a092858d4ac6cf432a356747">&#9670;&#160;</a></span>IRDB</h2>
 
@@ -612,7 +657,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a>* psr::Resolver::IRDB</td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a>* psr::Resolver::IRDB {}</td>
         </tr>
       </table>
   </td>
@@ -622,7 +667,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00076">76</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00140">140</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
 </div>
 </div>
@@ -636,7 +681,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a>* psr::Resolver::VTP</td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a>* psr::Resolver::VTP {}</td>
         </tr>
       </table>
   </td>
@@ -646,9 +691,9 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00077">77</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Resolver_8h_source.html#l00141">141</a> of file <a class="el" href="Resolver_8h_source.html">Resolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Resolver_8h_source.html#l00080">getNonPureVirtualVFTEntry()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Resolver_8h_source.html#l00131">getNonPureVirtualVFTEntry()</a>.</p>
 
 </div>
 </div>
@@ -658,7 +703,7 @@ Protected Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 5 2025 11:03:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Sep 8 2025 13:22:05 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

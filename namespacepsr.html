@@ -1292,6 +1292,9 @@ Functions</h2></td></tr>
 <tr class="separator:a0c6959c1f4616b7ac0a3d1b31338091c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a679d9acea54c1a3f985bbfab74f34e2e" id="r_a679d9acea54c1a3f985bbfab74f34e2e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; unsigned &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a679d9acea54c1a3f985bbfab74f34e2e">getVFTIndex</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
 <tr class="separator:a679d9acea54c1a3f985bbfab74f34e2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa78e21a7839c7e3a0c77c4d5b78790c5" id="r_aa78e21a7839c7e3a0c77c4d5b78790c5"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa78e21a7839c7e3a0c77c4d5b78790c5">getVFTIndexAndVT</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
+<tr class="memdesc:aa78e21a7839c7e3a0c77c4d5b78790c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Similar to <a class="el" href="namespacepsr.html#a679d9acea54c1a3f985bbfab74f34e2e">getVFTIndex()</a>, but also returns a pointer to the vtable.  <br /></td></tr>
+<tr class="separator:aa78e21a7839c7e3a0c77c4d5b78790c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a525c1623c5f37d06002abd3de5de71ca" id="r_a525c1623c5f37d06002abd3de5de71ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a525c1623c5f37d06002abd3de5de71ca">getReceiverType</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite)</td></tr>
 <tr class="separator:a525c1623c5f37d06002abd3de5de71ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d60ab57214bbfc8497c831250b6532f" id="r_a2d60ab57214bbfc8497c831250b6532f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2d60ab57214bbfc8497c831250b6532f">getNonPureVirtualVFTEntry</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *T, unsigned <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Idx</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *CallSite, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">psr::LLVMVFTableProvider</a> &amp;VTP, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ReceiverType</a>)</td></tr>
@@ -1302,6 +1305,8 @@ Functions</h2></td></tr>
 <tr class="separator:a1d7e8e0325ae290072875ea2a35f9332"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa07c6073aa988b829a7cafd4cbc2b34d" id="r_aa07c6073aa988b829a7cafd4cbc2b34d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa07c6073aa988b829a7cafd4cbc2b34d">isVirtualCall</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *Inst, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;VTP)</td></tr>
 <tr class="separator:aa07c6073aa988b829a7cafd4cbc2b34d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab29947d8961b853bef8cdb53f252dfeb" id="r_ab29947d8961b853bef8cdb53f252dfeb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab29947d8961b853bef8cdb53f252dfeb">isAddressTakenFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *F)</td></tr>
+<tr class="separator:ab29947d8961b853bef8cdb53f252dfeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a730d4670b41691d7020c0ffb2739629a" id="r_a730d4670b41691d7020c0ffb2739629a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a730d4670b41691d7020c0ffb2739629a">valueOf</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a730d4670b41691d7020c0ffb2739629a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd222dec963d5bf72bfa545831ff275d" id="r_acd222dec963d5bf72bfa545831ff275d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html">library_summary::FunctionDataFlowFacts</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#acd222dec963d5bf72bfa545831ff275d">getLibCSummary</a> ()</td></tr>
@@ -5454,7 +5459,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Assuming that <code>CallSite</code> is a virtual call, where <code>Idx</code> is retrieved through <code><a class="el" href="namespacepsr.html#a679d9acea54c1a3f985bbfab74f34e2e">getVFTIndex()</a></code> and <code>T</code> through <code><a class="el" href="namespacepsr.html#a525c1623c5f37d06002abd3de5de71ca">getReceiverType()</a></code> </p>
 
-<p class="reference">Referenced by <a class="el" href="Resolver_8h_source.html#l00080">psr::Resolver::getNonPureVirtualVFTEntry()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Resolver_8h_source.html#l00131">psr::Resolver::getNonPureVirtualVFTEntry()</a>.</p>
 
 </div>
 </div>
@@ -6238,6 +6243,26 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
+<a id="aa78e21a7839c7e3a0c77c4d5b78790c5" name="aa78e21a7839c7e3a0c77c4d5b78790c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa78e21a7839c7e3a0c77c4d5b78790c5">&#9670;&#160;</a></span>getVFTIndexAndVT()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::pair&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *, uint64_t &gt; &gt; psr::getVFTIndexAndVT </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
+          <td class="paramname"><em>CallSite</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Similar to <a class="el" href="namespacepsr.html#a679d9acea54c1a3f985bbfab74f34e2e">getVFTIndex()</a>, but also returns a pointer to the vtable. </p>
+
+</div>
+</div>
 <a id="a6f244e5fa59b79b3b8eecc6d6e63466f" name="a6f244e5fa59b79b3b8eecc6d6e63466f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6f244e5fa59b79b3b8eecc6d6e63466f">&#9670;&#160;</a></span>globalValuesUsedinFunction()</h2>
 
@@ -6703,6 +6728,26 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="ProjectIRDBBase_8h_source.html#l00164">164</a> of file <a class="el" href="ProjectIRDBBase_8h_source.html">ProjectIRDBBase.h</a>.</p>
+
+</div>
+</div>
+<a id="ab29947d8961b853bef8cdb53f252dfeb" name="ab29947d8961b853bef8cdb53f252dfeb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab29947d8961b853bef8cdb53f252dfeb">&#9670;&#160;</a></span>isAddressTakenFunction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::isAddressTakenFunction </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
+          <td class="paramname"><em>F</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A variant of F-&gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">hasAddressTaken()</a> that is better suited for our use cases.</p>
+<p>Especially, it filteres out global aliases. </p>
 
 </div>
 </div>
@@ -12329,7 +12374,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 5 2025 11:03:32 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Sep 8 2025 13:22:04 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

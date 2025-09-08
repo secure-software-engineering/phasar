@@ -3,7 +3,7 @@ var searchData=
   ['actuals_0',['Actuals',['../classpsr_1_1glca_1_1MapFactsToCalleeFlowFunction.html#a90089a71bdb812e51c92423264aa2053',1,'psr::glca::MapFactsToCalleeFlowFunction']]],
   ['addedfunctions_1',['AddedFunctions',['../classpsr_1_1InterMonoSolver.html#a997067fe3e75ffd9f79128b03ecf2895',1,'psr::InterMonoSolver']]],
   ['additionalconstraint_2',['AdditionalConstraint',['../structpsr_1_1Z3BasedPathSensitivityConfig.html#ae5179931670248f3fe0b90a71cb42d32',1,'psr::Z3BasedPathSensitivityConfig']]],
-  ['addresstakenfunctions_3',['AddressTakenFunctions',['../structpsr_1_1GeneralStatistics.html#a82b2a39e4d1f9377b6fc8a56d2e92eaf',1,'psr::GeneralStatistics']]],
+  ['addresstakenfunctions_3',['addresstakenfunctions',['../classpsr_1_1Resolver.html#ae7e465552b413d52c3d3d9690020de08',1,'psr::Resolver::AddressTakenFunctions'],['../structpsr_1_1GeneralStatistics.html#a82b2a39e4d1f9377b6fc8a56d2e92eaf',1,'psr::GeneralStatistics::AddressTakenFunctions']]],
   ['adj_4',['adj',['../structpsr_1_1AdjacencyList.html#a363672df09d59da6cd9ce250ab423ddc',1,'psr::AdjacencyList::Adj'],['../structpsr_1_1AdjacencyList_3_01llvm_1_1NoneType_00_01EdgeTy_01_4.html#a977aae01ebe110d69d26f8cb0771273c',1,'psr::AdjacencyList&lt; llvm::NoneType, EdgeTy &gt;::Adj']]],
   ['aliassets_5',['AliasSets',['../structpsr_1_1LLVMAliasSetData.html#ab25955670212dfc221625724af3453e0',1,'psr::LLVMAliasSetData']]],
   ['allinterpropagationsbytes_6',['AllInterPropagationsBytes',['../structpsr_1_1IterativeIDESolverStats.html#aff01f7aac2ca521daf85f3e1e551c111',1,'psr::IterativeIDESolverStats']]],
