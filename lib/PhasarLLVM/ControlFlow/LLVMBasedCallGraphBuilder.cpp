@@ -153,12 +153,8 @@ bool Builder::processFunction(const llvm::Function *F) {
   for (const auto &I : llvm::instructions(F)) {
     const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I);
     if (!CS) {
-      Res->otherInst(&I);
       continue;
     }
-
-    Res->preCall(&I);
-    scope_exit PostCall = [&] { Res->postCall(&I); };
 
     FixpointReached &=
         fillPossibleTargets(PossibleTargets, *Res, CS, IndirectCalls);
@@ -202,9 +198,6 @@ bool Builder::constructDynamicCall(const llvm::Instruction *CS) {
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
                        "Looking into dynamic call-site: ");
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG", "  " << llvmIRToString(CS));
-
-  Res->preCall(CallSite);
-  scope_exit PostCall = [&] { Res->postCall(CallSite); };
 
   // call the resolve routine
 
@@ -275,7 +268,7 @@ auto psr::buildLLVMBasedCallGraph(
     PT = PTOwn.asRef();
   }
 
-  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH);
+  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH, PT);
   return buildLLVMBasedCallGraph(IRDB, *Res, EntryPoints, S);
 }
 
