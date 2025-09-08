@@ -13,7 +13,6 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -25,8 +24,8 @@
 #include <memory>
 #include <optional>
 
-using namespace std;
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureMemoryTest : public ::testing::Test {
@@ -38,7 +37,8 @@ protected:
   std::optional<HelperAnalyses> HA;
   OpenSSLSecureMemoryDescription Desc{};
   std::optional<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>> TSProblem;
-  unique_ptr<IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>
+  std::unique_ptr<
+      IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>
       Llvmtssolver;
 
   enum OpenSSLSecureMemoryState {
@@ -49,8 +49,6 @@ protected:
     ERROR = 3,
     ALLOCATED = 4
   };
-  IDETSAnalysisOpenSSLSecureMemoryTest() = default;
-  ~IDETSAnalysisOpenSSLSecureMemoryTest() override = default;
 
   void initialize(const llvm::Twine &&IRFile) {
     HA.emplace(IRFile, EntryPoints);
@@ -58,16 +56,12 @@ protected:
     TSProblem = createAnalysisProblem<
         IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>(*HA, &Desc,
                                                               EntryPoints);
-    Llvmtssolver = make_unique<
+    Llvmtssolver = std::make_unique<
         IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>(
         *TSProblem, &HA->getICFG());
 
     Llvmtssolver->solve();
   }
-
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
-
-  void TearDown() override {}
 
   /**
    * We map instruction id to value for the ground truth. ID has to be

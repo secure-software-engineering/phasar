@@ -10,32 +10,41 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
-#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
+#include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <variant>
 
 using namespace psr;
+using namespace psr::unittest;
+
+using TaintSetT = BitVectorSet<TestingSrcLocation>;
 
 /* ============== TEST FIXTURE ============== */
 class IDEInstInteractionAnalysisTest : public ::testing::Test {
@@ -43,21 +52,69 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("inst_interaction/");
 
+  using VarNameT = std::variant<std::string, unittest::RetVal>;
   // Function - Line Nr - Variable - Values
   using IIACompactResult_t =
-      std::tuple<std::string, std::size_t, std::string,
-                 IDEInstInteractionAnalysisT<std::string, true>::l_t>;
+      std::tuple<TestingSrcLocation, VarNameT,
+                 IDEInstInteractionAnalysisT<TestingSrcLocation>::l_t>;
 
   std::optional<HelperAnalyses> HA;
   LLVMProjectIRDB *IRDB{};
-
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
 
   void initializeIR(const std::string &LlvmFilePath,
                     const std::vector<std::string> &EntryPoints = {"main"}) {
     HA.emplace(PathToLlFiles + LlvmFilePath, EntryPoints,
                HelperAnalysisConfig{}.withCGType(CallGraphAnalysisType::CHA));
     IRDB = &HA->getProjectIRDB();
+  }
+
+  [[nodiscard]] const llvm::Instruction *getInst(TestingSrcLocation Loc) {
+    const auto *Ret = llvm::dyn_cast_if_present<llvm::Instruction>(
+        testingLocInIR(Loc, HA->getProjectIRDB()));
+    if (!Ret) {
+      throw std::runtime_error("Cannot convert loc " + Loc.str() + " to LLVM");
+    }
+    return Ret;
+  }
+
+  [[nodiscard]] bool matchesVar(const llvm::Value *Fact,
+                                const VarNameT &VarName) {
+    return std::visit(
+        psr::Overloaded{
+            [&](const std::string &Name) {
+              if (!llvm::isa<llvm::AllocaInst>(Fact) &&
+                  !llvm::isa<llvm::GlobalVariable>(Fact)) {
+                return false;
+              }
+              auto FactName = psr::getVarNameFromIR(Fact);
+              return FactName == Name;
+            },
+            [&](RetVal R) {
+              return llvm::any_of(Fact->users(), [R](const auto *V) {
+                const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(V);
+                return Ret && Ret->getFunction()->getName() == R.InFunction;
+              });
+            },
+        },
+        VarName);
+  }
+  [[nodiscard]] std::string printVar(const VarNameT &VarName) {
+    return std::visit(psr::Overloaded{
+                          [](const std::string &Name) { return Name; },
+                          [](RetVal R) { return R.str(); },
+                      },
+                      VarName);
+  }
+  [[nodiscard]] LatticeDomain<std::set<TestingSrcLocation>>
+  sorted(const IDEInstInteractionAnalysisT<TestingSrcLocation>::l_t &Values) {
+    if (const auto *Set = Values.getValueOrNull()) {
+      std::set<TestingSrcLocation> Ret(Set->begin(), Set->end());
+      return Ret;
+    }
+    if (Values.isBottom()) {
+      return Bottom{};
+    }
+    return Top{};
   }
 
   void
@@ -70,31 +127,39 @@ protected:
       IRDB->emitPreprocessedIR(llvm::outs());
     }
 
-    // IDEInstInteractionAnalysisT<std::string, true> IIAProblem(IRDB, &ICFG,
-    // &PT,
-    //                                                           EntryPoints);
     assert(HA);
     auto IIAProblem =
-        createAnalysisProblem<IDEInstInteractionAnalysisT<std::string>>(
+        createAnalysisProblem<IDEInstInteractionAnalysisT<TestingSrcLocation>>(
             *HA, EntryPoints);
-    // use Phasar's instruction ids as testing labels
+
     auto Generator =
         [](std::variant<const llvm::Instruction *, const llvm::GlobalVariable *>
-               Current) -> std::set<std::string> {
+               Current) -> std::set<TestingSrcLocation> {
       return std::visit(
-          [](const auto *InstOrGlob) -> std::set<std::string> {
-            std::set<std::string> Labels;
-            if (InstOrGlob->hasMetadata()) {
-              std::string Label =
-                  llvm::cast<llvm::MDString>(
-                      InstOrGlob->getMetadata(PhasarConfig::MetaDataKind())
-                          ->getOperand(0))
-                      ->getString()
-                      .str();
-              Labels.insert(Label);
-            }
-            return Labels;
-          },
+          psr::Overloaded{
+              [](const llvm::GlobalVariable *Glob)
+                  -> std::set<TestingSrcLocation> {
+                std::set<TestingSrcLocation> Labels;
+                Labels.insert(GlobalVar{Glob->getName()});
+                return Labels;
+              },
+              [](const llvm::Instruction *Inst)
+                  -> std::set<TestingSrcLocation> {
+                std::set<TestingSrcLocation> Labels;
+                auto [Line, Col] = getLineAndColFromIR(Inst);
+                if (Col == 0 && llvm::isa<llvm::StoreInst>(Inst)) {
+                  std::tie(Line, Col) = getLineAndColFromIR(Inst->getOperand(
+                      llvm::StoreInst::getPointerOperandIndex()));
+                }
+                if (Line != 0) {
+                  Labels.insert(LineColFun{
+                      Line,
+                      Col,
+                      Inst->getFunction()->getName(),
+                  });
+                }
+                return Labels;
+              }},
           Current);
     };
     // register the above generator function
@@ -105,49 +170,48 @@ protected:
       IIASolver.dumpResults();
     }
     // do the comparison
-    for (const auto &[FunName, SrcLine, VarName, LatticeVal] : GroundTruth) {
-      const auto *Fun = IRDB->getFunctionDefinition(FunName);
-      const auto *IRLine = getNthInstruction(Fun, SrcLine);
-      auto ResultMap = IIASolver.resultsAt(IRLine);
-      assert(IRLine && "Could not retrieve IR line!");
+    for (const auto &[InstLoc, VarName, ExpectedVal] : GroundTruth) {
+      //   const auto *Fun = IRDB->getFunctionDefinition(FunName);
+      //   const auto *IRLine = getNthInstruction(Fun, SrcLine);
+      const auto *IRLoc = testingLocInIR(InstLoc, *IRDB);
+      ASSERT_TRUE(IRLoc) << "Could not retrieve IR Loc: " << InstLoc.str();
+      ASSERT_TRUE(llvm::isa<llvm::Instruction>(IRLoc));
+      auto ResultMap =
+          IIASolver.resultsAt(llvm::cast<llvm::Instruction>(IRLoc));
       bool FactFound = false;
-      for (auto &[Fact, Value] : ResultMap) {
-        std::string FactStr;
-        llvm::raw_string_ostream RSO(FactStr);
-        RSO << *Fact.getBase();
-        llvm::StringRef FactRef(FactStr);
-        if (FactRef.ltrim().startswith("%" + VarName + " ") ||
-            FactRef.ltrim().startswith("@" + VarName + " ")) {
-          PHASAR_LOG_LEVEL(DFADEBUG, "Checking variable: " << FactStr);
-          EXPECT_EQ(LatticeVal, Value);
+      for (auto &[Fact, ComputedVal] : ResultMap) {
+        if (matchesVar(Fact.getBase(), VarName)) {
+          EXPECT_EQ(sorted(ExpectedVal), sorted(ComputedVal))
+              << "Unexpected taint-set at " << InstLoc << " for variable '"
+              << printVar(VarName) << "' (" << llvmIRToString(Fact.getBase())
+              << ")";
           FactFound = true;
         }
       }
-      if (!FactFound) {
-        PHASAR_LOG_LEVEL(DFADEBUG, "Variable '" << VarName << "' missing at '"
-                                                << llvmIRToString(IRLine)
-                                                << "'.");
-      }
-      EXPECT_TRUE(FactFound);
+
+      EXPECT_TRUE(FactFound)
+          << "Variable '" << printVar(VarName) << "' missing at '"
+          << llvmIRToString(IRLoc) << "'.";
     }
   }
 
-  void TearDown() override {}
+  void TearDown() override {
+    BitVectorSet<TestingSrcLocation>::clearPosition();
+  }
 
 }; // Test Fixture
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
-  initializeIR("array_01_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_01_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 13);
+  Inst = getInst(LineColFun{5, 3, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 16);
+  Inst = getInst(LineColFun{6, 3, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -155,21 +219,21 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_02) {
-  initializeIR("array_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 3);
+  Inst = getInst(LineColFun{4, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 5);
+  Inst = getInst(LineColFun{3, 3, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(OperandOf{llvm::StoreInst::getPointerOperandIndex(),
+                           LineColFun{3, 16, "main"}});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -177,21 +241,28 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_02) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_03) {
-  initializeIR("array_03_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_03_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 5);
+
+  auto Store = LineColFun{3, 19, "main"};
+  auto LastGep = OperandOf{llvm::StoreInst::getPointerOperandIndex(), Store};
+  auto FirstGep = LineColFun{3, 3, "main"};
+
+  Inst = getInst(FirstGep);
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 6);
+
+  const auto *LastGepInst = getInst(LastGep);
+
+  Inst = llvm::cast<llvm::Instruction>(LastGepInst->getOperand(0));
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 7);
+  Inst = LastGepInst;
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -199,17 +270,16 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensArrayConstruction_03) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_01) {
-  initializeIR("struct_01_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_01_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{8, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 14);
+  Inst = getInst(LineColFun{12, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 17);
+  Inst = getInst(LineColFun{13, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -217,21 +287,20 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_02) {
-  initializeIR("struct_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{12, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 7);
+  Inst = getInst(LineColFun{13, 7, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{14, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << FlowFact << '\n';
@@ -239,87 +308,98 @@ TEST_F(IDEInstInteractionAnalysisTest, FieldSensStructConstruction_02) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_01) {
-  initializeIR("array_01_cpp.ll");
+  initializeIR("array_01_cpp_dbg.ll");
 
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 4);
+  Inst = getInst(LineColFun{4, 7, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 13);
+  Inst = getInst(LineColFun{5, 3, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 13);
-
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 18);
+  Inst = getInst(LineColFun{7, 11, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 16);
+  Inst = getInst(LineColFun{6, 3, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 21);
+  Inst = getInst(LineColFun{8, 11, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_02) {
-  initializeIR("array_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 5);
+  const auto *FirstGep = getInst(LineColFun{3, 3, "main"});
+  Inst = FirstGep;
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 8);
+  Inst = getInst(LineColFun{4, 11, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  const auto *SecondGep = getInst(OperandOf{
+      llvm::StoreInst::getPointerOperandIndex(), LineColFun{3, 16, "main"}});
+  Inst = SecondGep;
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 9);
+  Inst = llvm::cast<llvm::Instruction>(
+      getInst(LineColFunOp{4, 11, "main", llvm::Instruction::Load})
+          ->getOperand(0));
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 5);
+  Inst = FirstGep;
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 6);
+  Inst = SecondGep;
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_03) {
-  initializeIR("array_03_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("array_03_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{2, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 5);
+  Inst = getInst(LineColFun{3, 3, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{4, 11, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  const auto *GepStore =
+      llvm::cast<llvm::StoreInst>(getInst(LineColFun{3, 19, "main"}));
+  const auto *GepLoad =
+      getInst(LineColFunOp{4, 11, "main", llvm::Instruction::Load});
+
+  Inst = llvm::cast<llvm::Instruction>(
+      llvm::cast<llvm::GetElementPtrInst>(GepStore->getPointerOperand())
+          ->getPointerOperand());
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 10);
+  Inst = llvm::cast<llvm::Instruction>(
+      llvm::cast<llvm::GetElementPtrInst>(GepLoad->getOperand(0))
+          ->getPointerOperand());
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 7);
+  Inst = llvm::cast<llvm::Instruction>(GepStore->getPointerOperand());
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 11);
+  Inst = llvm::cast<llvm::Instruction>(GepLoad->getOperand(0));
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = llvm::cast<llvm::Instruction>(
+      llvm::cast<llvm::GetElementPtrInst>(GepStore->getPointerOperand())
+          ->getPointerOperand());
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 11);
+  Inst = llvm::cast<llvm::Instruction>(GepLoad->getOperand(0));
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   // For K-limit of 2, this should be considered equal
   if (IDEIIAFlowFact::KLimit <= 2) {
@@ -330,33 +410,32 @@ TEST_F(IDEInstInteractionAnalysisTest, ArrayEquality_03) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
-  initializeIR("struct_01_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_01_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{8, 7, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 14);
+  Inst = getInst(LineColFun{12, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 22);
+  Inst = getInst(LineColFun{15, 13, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 17);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 25);
+  Inst = getInst(LineColFun{16, 13, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 20);
+  Inst = getInst(LineColFun{14, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 28);
+  Inst = getInst(LineColFun{17, 13, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 17);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 20);
+  Inst = getInst(LineColFun{14, 5, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   llvm::outs() << "Compare:\n";
   llvm::outs() << FlowFact << '\n';
@@ -366,40 +445,39 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_01) {
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
-  initializeIR("struct_02_cpp.ll");
-  const auto *Main = IRDB->getFunction("main");
-  const auto *Inst = getNthInstruction(Main, 2);
+  initializeIR("struct_02_cpp_dbg.ll");
+  const auto *Inst = getInst(LineColFun{12, 5, "main"});
   auto FlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, FlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 11);
+  Inst = getInst(LineColFun{15, 13, "main"});
   auto OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 7);
+  Inst = getInst(LineColFun{13, 7, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 7);
+  Inst = getInst(LineColFun{13, 7, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 12);
+  Inst = getInst(LineColFun{15, 15, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{14, 5, "main"});
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 15);
+  Inst = getInst(LineColFun{16, 13, "main"});
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_EQ(FlowFact, OtherFlowFact);
 
-  Inst = getNthInstruction(Main, 6);
+  Inst = getInst(LineColFun{13, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from: " << *Inst << '\n';
   FlowFact = IDEIIAFlowFact::create(Inst);
-  Inst = getNthInstruction(Main, 9);
+  Inst = getInst(LineColFun{14, 5, "main"});
   llvm::outs() << "Instruction to create flow fact from 2: " << *Inst << '\n';
   OtherFlowFact = IDEIIAFlowFact::create(Inst);
   ASSERT_NE(FlowFact, OtherFlowFact);
@@ -426,454 +504,683 @@ TEST_F(IDEInstInteractionAnalysisTest, StructEquality_02) {
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "i", {"4"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "j", {"4", "5", "6", "7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "retval", {"3"}));
-  doAnalysisAndCompareResults("basic_01_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main9 = LineColFun{4, 3, "main"};
+  GroundTruth.emplace(Main9, "i", TaintSetT{LineColFun{2, 7, "main"}});
+  GroundTruth.emplace(Main9, "j",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                          LineColFun{3, 11, "main"},
+                          LineColFun{3, 13, "main"},
+                          LineColFun{3, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_01_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "retval", {"6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argc.addr", {"7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "argv.addr", {"8"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "i", {"16", "18"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "j", {"9", "10", "11", "12"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "k", {"21", "16", "18", "20"}));
-  doAnalysisAndCompareResults("basic_02_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main24 = LineColFun{10, 3, "main"};
+
+  GroundTruth.emplace(Main24, "argc", TaintSetT{LineColFun{1, 14, "main"}});
+  GroundTruth.emplace(Main24, "argv", TaintSetT{LineColFun{1, 27, "main"}});
+  GroundTruth.emplace(Main24, "i",
+                      TaintSetT{
+                          LineColFun{5, 7, "main"},
+                          LineColFun{7, 7, "main"},
+                      });
+  GroundTruth.emplace(Main24, "j",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                          LineColFun{3, 11, "main"},
+                          LineColFun{3, 13, "main"},
+                          LineColFun{3, 7, "main"},
+                      });
+  GroundTruth.emplace(Main24, "k",
+                      TaintSetT{
+                          LineColFun{5, 7, "main"},
+                          LineColFun{7, 7, "main"},
+                          LineColFun{9, 11, "main"},
+                          LineColFun{9, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_02_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "retval", {"3"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "i", {"4", "10", "11", "12"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "x", {"5", "14", "15", "16"}));
-  doAnalysisAndCompareResults("basic_03_cpp.ll", {"main"}, GroundTruth, false);
+
+  auto Main20 = LineColFun{6, 3, "main"};
+
+  GroundTruth.emplace(Main20, "i",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                          LineColFun{4, 5, "main"},
+                      });
+  GroundTruth.emplace(Main20, "x",
+                      TaintSetT{
+                          LineColFun{3, 12, "main"},
+                          LineColFun{3, 28, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_03_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
-PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
-  // If we use libcxx this won't work since internal implementation is different
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+
   LIBCPP_GTEST_SKIP;
 
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "retval", {"7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "argc.addr", {"8"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "argv.addr", {"9"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "i", {"10"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "j", {"10", "11", "12", "13"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 23, "k", {"10", "11", "12", "13", "14", "18", "19"}));
-  doAnalysisAndCompareResults("basic_04_cpp.ll", {"main"}, GroundTruth, false);
-})
+  auto Main23 = LineColFun{11, 3, "main"};
+
+  GroundTruth.emplace(Main23, "argc",
+                      TaintSetT{
+                          LineColFun{3, 14, "main"},
+                      });
+  GroundTruth.emplace(Main23, "argv",
+                      TaintSetT{
+                          LineColFun{3, 27, "main"},
+                      });
+  GroundTruth.emplace(Main23, "i",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                      });
+  GroundTruth.emplace(Main23, "j",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 11, "main"},
+                          LineColFun{5, 13, "main"},
+                          LineColFun{5, 7, "main"},
+                      });
+  GroundTruth.emplace(Main23, "k",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 11, "main"},
+                          LineColFun{5, 13, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{6, 7, "main"},
+                          LineColFun{8, 9, "main"},
+                          LineColFun{8, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_04_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
+}
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 11, "i", {"5", "7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 11, "retval", {"2"}));
-  doAnalysisAndCompareResults("basic_05_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main11 = LineColFun{10, 3, "main"};
+  GroundTruth.emplace(Main11, "i",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                          LineColFun{8, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_05_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "retval", {"5"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "i", {"15", "6", "13"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "j", {"15", "6", "13"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "k", {"6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 19, "p", {"1", "2", "9", "11"}));
-  doAnalysisAndCompareResults("basic_06_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main19 = LineColFun{14, 3, "main"};
+
+  GroundTruth.emplace(Main19, "i",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                          LineColFun{13, 8, "main"},
+                          LineColFun{13, 6, "main"},
+                      });
+  GroundTruth.emplace(Main19, "j",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                          LineColFun{13, 8, "main"},
+                          LineColFun{13, 6, "main"},
+                      });
+  GroundTruth.emplace(Main19, "k",
+                      TaintSetT{
+                          LineColFun{6, 7, "main"},
+                      });
+  GroundTruth.emplace(Main19, "p",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{9, 7, "main"},
+                          LineColFun{11, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_06_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_07) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "retval", {"5"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "argc.addr", {"6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "argv.addr", {"7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "i", {"12"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 15, "j", {"8", "9", "10", "11"}));
-  doAnalysisAndCompareResults("basic_07_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main15 = LineColFun{5, 3, "main"};
+
+  GroundTruth.emplace(Main15, "argc",
+                      TaintSetT{
+                          LineColFun{1, 14, "main"},
+                      });
+  GroundTruth.emplace(Main15, "argv",
+                      TaintSetT{
+                          LineColFun{1, 27, "main"},
+                      });
+  // strong update on i
+  GroundTruth.emplace(Main15, "i",
+                      TaintSetT{
+                          LineColFun{4, 5, "main"},
+                      });
+  GroundTruth.emplace(Main15, "j",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                          LineColFun{3, 11, "main"},
+                          LineColFun{3, 13, "main"},
+                          LineColFun{3, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_07_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_08) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "retval", {"2"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "i", {"9"}));
-  doAnalysisAndCompareResults("basic_08_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main12 = LineColFun{11, 3, "main"};
+
+  // strong update on i
+  GroundTruth.emplace(Main12, "i",
+                      TaintSetT{
+                          LineColFun{10, 5, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_08_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_09) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "i", {"4"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "j", {"4", "6", "7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "retval", {"3"}));
-  doAnalysisAndCompareResults("basic_09_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main10 = LineColFun{6, 3, "main"};
+
+  GroundTruth.emplace(Main10, "i",
+                      TaintSetT{
+                          LineColFun{3, 7, "main"},
+                      });
+  GroundTruth.emplace(Main10, "j",
+                      TaintSetT{
+                          LineColFun{3, 7, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{5, 5, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_09_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_10) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "i", {"3"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "retval", {"2"}));
-  doAnalysisAndCompareResults("basic_10_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main6 = LineColFun{4, 3, "main"};
+  GroundTruth.emplace(Main6, "i",
+                      TaintSetT{
+                          LineColFun{3, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_10_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_11) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "FeatureSelector", {"5", "7", "8"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "retval", {"11", "16"}));
-  doAnalysisAndCompareResults("basic_11_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main20 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main20, "FeatureSelector",
+                      TaintSetT{
+                          LineColFun{3, 14, "main"},
+                          LineColFun{4, 25, "main"},
+                          LineColFun{4, 7, "main"},
+                      });
+
+  GroundTruth.emplace(Main20, RetVal{"main"},
+                      TaintSetT{
+                          LineColFun{7, 5, "main"},
+                          LineColFun{15, 3, "main"},
+                          LineColFun{16, 1, "main"},
+                      });
+
+  doAnalysisAndCompareResults("basic_11_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "retval", {"8"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "i", {"9"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "j", {"12", "9", "10", "11"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 14, "k", {"15", "1", "2", "13", "12", "9", "10", "11"}));
-  doAnalysisAndCompareResults("call_01_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main14 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main14, "i",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                      });
+  GroundTruth.emplace(Main14, "j",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 11, "main"},
+                          LineColFun{5, 13, "main"},
+                          LineColFun{5, 7, "main"},
+                      });
+  GroundTruth.emplace(Main14, "k",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 11, "main"},
+                          LineColFun{5, 13, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{6, 7, "main"},
+                          LineColFun{6, 14, "main"},
+                          LineColFun{1, 12, "_Z2idi"},
+                          LineColFun{1, 24, "_Z2idi"},
+                      });
+
+  doAnalysisAndCompareResults("call_01_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 13, "retval", {"12"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 13, "i", {"13"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 13, "j", {"14"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 13, "k",
-          {"4", "5", "15", "6", "3", "14", "2", "13", "16", "18"}));
-  doAnalysisAndCompareResults("call_02_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main13 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main13, "i",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                      });
+  GroundTruth.emplace(Main13, "j",
+                      TaintSetT{
+                          LineColFun{5, 7, "main"},
+                      });
+  GroundTruth.emplace(Main13, "k",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{6, 15, "main"},
+                          LineColFun{6, 18, "main"},
+                          LineColFun{6, 7, "main"},
+                          LineColFun{1, 13, "_Z3sumii"},
+                          LineColFun{1, 20, "_Z3sumii"},
+                          LineColFun{1, 32, "_Z3sumii"},
+                          LineColFun{1, 36, "_Z3sumii"},
+                          LineColFun{1, 34, "_Z3sumii"},
+                      });
+
+  doAnalysisAndCompareResults("call_02_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "retval", {"20"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "i", {"21"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "j",
-          {"22", "15", "6", "21", "2", "13", "8", "9", "12", "10", "24"}));
-  doAnalysisAndCompareResults("call_03_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main10 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main10, "i",
+                      TaintSetT{
+                          LineColFun{9, 7, "main"},
+                      });
+  GroundTruth.emplace(Main10, "j",
+                      TaintSetT{
+                          LineColFun{9, 7, "main"},
+                          LineColFun{10, 21, "main"},
+                          LineColFun{6, 1, "_Z9factorialj"},
+                          LineColFun{3, 5, "_Z9factorialj"},
+                          LineColFun{9, 7, "main"},
+                          LineColFun{1, 29, "_Z9factorialj"},
+                          LineColFun{5, 3, "_Z9factorialj"},
+                          LineColFun{5, 10, "_Z9factorialj"},
+                          LineColFun{5, 24, "_Z9factorialj"},
+                          LineColFun{5, 12, "_Z9factorialj"},
+                          LineColFun{5, 26, "_Z9factorialj"},
+                          LineColFun{10, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("call_03_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "retval", {"33"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "i", {"34"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "j",
-          {"15", "6", "2", "13", "8", "9", "12", "10", "35", "34", "37"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 20, "k",
-          {"41", "19", "15", "6",  "44", "2",  "13", "8",  "45",
-           "18", "9",  "12", "10", "46", "24", "25", "35", "27",
-           "23", "26", "38", "34", "37", "42", "40"}));
-  doAnalysisAndCompareResults("call_04_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main10 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main10, "i",
+                      TaintSetT{
+                          LineColFun{13, 7, "main"},
+                      });
+  GroundTruth.emplace(Main10, "j",
+                      TaintSetT{
+                          LineColFun{6, 1, "_Z9factorialj"},
+                          LineColFun{3, 5, "_Z9factorialj"},
+                          LineColFun{1, 29, "_Z9factorialj"},
+                          LineColFun{5, 3, "_Z9factorialj"},
+                          LineColFun{5, 10, "_Z9factorialj"},
+                          LineColFun{5, 24, "_Z9factorialj"},
+                          LineColFun{5, 12, "_Z9factorialj"},
+                          LineColFun{5, 26, "_Z9factorialj"},
+                          LineColFun{14, 21, "main"},
+                          LineColFun{13, 7, "main"},
+                          LineColFun{14, 7, "main"},
+                      });
+  GroundTruth.emplace(Main10, "k",
+                      TaintSetT{
+                          LineColFun{16, 12, "main"},
+                          LineColFun{8, 24, "_Z2idi"},
+                          LineColFun{6, 1, "_Z9factorialj"},
+                          LineColFun{3, 5, "_Z9factorialj"},
+                          LineColFun{16, 5, "main"},
+                          LineColFun{1, 29, "_Z9factorialj"},
+                          LineColFun{5, 3, "_Z9factorialj"},
+                          LineColFun{5, 10, "_Z9factorialj"},
+                          LineColFun{16, 5, "main"},
+                          LineColFun{8, 12, "_Z2idi"},
+                          LineColFun{5, 24, "_Z9factorialj"},
+                          LineColFun{5, 12, "_Z9factorialj"},
+                          LineColFun{5, 26, "_Z9factorialj"},
+                          LineColFun{16, 5, "main"},
+                          LineColFun{10, 20, "_Z3sumii"},
+                          LineColFun{10, 32, "_Z3sumii"},
+                          LineColFun{14, 21, "main"},
+                          LineColFun{10, 34, "_Z3sumii"},
+                          LineColFun{10, 36, "_Z3sumii"},
+                          LineColFun{10, 13, "_Z3sumii"},
+                          LineColFun{15, 14, "main"},
+                          LineColFun{13, 7, "main"},
+                          LineColFun{14, 7, "main"},
+                          LineColFun{16, 15, "main"},
+                          LineColFun{15, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("call_04_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "retval", {"8"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "i", {"3", "11", "9"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 10, "j", {"3", "10", "12"}));
-  doAnalysisAndCompareResults("call_05_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main10 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main10, "i",
+                      TaintSetT{
+                          LineColFun{2, 38, "_Z18setValueToFortyTwoPi"},
+                          LineColFun{7, 3, "main"},
+                          LineColFun{5, 7, "main"},
+                      });
+  GroundTruth.emplace(Main10, "j",
+                      TaintSetT{
+                          LineColFun{2, 38, "_Z18setValueToFortyTwoPi"},
+                          LineColFun{6, 7, "main"},
+                          LineColFun{8, 3, "main"},
+                      });
+
+  doAnalysisAndCompareResults("call_05_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
   // NOTE: Here we are suffering from IntraProceduralAliasesOnly
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "retval", {"11"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "i", {"3", "1", "2", "16", "18", "12"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "j", {"19", "21", "3", "1", "2", "13"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "k", {"22", "3", "14", "1", "2", "24"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 24, "l", {"15", "3", "1", "2", "25", "27"}));
-  doAnalysisAndCompareResults("call_06_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main24 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main24, "i",
+                      TaintSetT{
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{2, 19, "_Z9incrementi"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{9, 17, "main"},
+                          LineColFun{9, 5, "main"},
+                          LineColFun{5, 7, "main"},
+                      });
+  GroundTruth.emplace(Main24, "j",
+                      TaintSetT{
+                          LineColFun{10, 17, "main"},
+                          LineColFun{10, 5, "main"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{2, 19, "_Z9incrementi"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{6, 7, "main"},
+                      });
+  GroundTruth.emplace(Main24, "k",
+                      TaintSetT{
+                          LineColFun{11, 17, "main"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{7, 7, "main"},
+                          LineColFun{2, 19, "_Z9incrementi"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{11, 5, "main"},
+                      });
+  GroundTruth.emplace(Main24, "l",
+                      TaintSetT{
+                          LineColFun{8, 7, "main"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{2, 19, "_Z9incrementi"},
+                          LineColFun{2, 31, "_Z9incrementi"},
+                          LineColFun{12, 17, "main"},
+                          LineColFun{12, 5, "main"},
+                      });
+
+  doAnalysisAndCompareResults("call_06_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_07) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "retval", {"7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "VarIR", {"6", "3", "8"}));
-  doAnalysisAndCompareResults("call_07_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main6 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main6, "VarIR",
+                      TaintSetT{
+                          LineColFun{7, 7, "main"},
+                          LineColFun{3, 6, "_Z13inputRefParamRi"},
+                          LineColFun{8, 3, "main"},
+                      });
+  doAnalysisAndCompareResults("call_07_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "retval", {"3"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "i", {"7"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 9, "j", {"0", "5", "6"}));
-  doAnalysisAndCompareResults("global_01_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main9 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main9, "i",
+                      TaintSetT{
+                          LineColFun{6, 5, "main"},
+                      });
+  GroundTruth.emplace(Main9, "j",
+                      TaintSetT{
+                          GlobalVar{"i"},
+                          LineColFun{5, 7, "main"},
+                          LineColFun{5, 5, "main"},
+                      });
+
+  doAnalysisAndCompareResults("global_01_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "_Z5initBv", 2, "a", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "_Z5initBv", 2, "b", {"2"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "a", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "b", {"2"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "retval", {"6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "c", {"1", "8", "7"}));
-  doAnalysisAndCompareResults("global_02_cpp.ll", {"main"}, GroundTruth, false);
+
+  auto Main12 = RetStmt{"main"};
+  auto Init2 = RetStmt{"_Z5initBv"};
+
+  GroundTruth.emplace(Init2, "a",
+                      TaintSetT{
+                          GlobalVar{"a"},
+                      });
+  GroundTruth.emplace(Init2, "b",
+                      TaintSetT{
+                          LineColFun{4, 18, "_Z5initBv"},
+                      });
+
+  GroundTruth.emplace(Main12, "a",
+                      TaintSetT{
+                          GlobalVar{"a"},
+                      });
+  GroundTruth.emplace(Main12, "b",
+                      TaintSetT{
+                          LineColFun{4, 18, "_Z5initBv"},
+                      });
+  GroundTruth.emplace(Main12, "c",
+                      TaintSetT{
+                          GlobalVar{"b"},
+                          LineColFun{7, 7, "main"},
+                          LineColFun{7, 11, "main"},
+                      });
+
+  doAnalysisAndCompareResults("global_02_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_03) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 1, "GlobalFeature", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 2, "GlobalFeature", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "GlobalFeature", {"0"}));
-  doAnalysisAndCompareResults("global_03_cpp.ll", {"main"}, GroundTruth, false);
+  GroundTruth.emplace(LineColFun{6, 11, "main"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+  GroundTruth.emplace(LineColFun{6, 25, "main"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+  GroundTruth.emplace(RetStmt{"main"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+
+  doAnalysisAndCompareResults("global_03_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_04) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 1, "GlobalFeature", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 2, "GlobalFeature", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "GlobalFeature", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "_Z7doStuffi", 1, "GlobalFeature", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "_Z7doStuffi", 2, "GlobalFeature", {"0"}));
-  doAnalysisAndCompareResults("global_04_cpp.ll", {"main", "_Z7doStuffi"},
+  GroundTruth.emplace(LineColFun{8, 11, "main"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+  GroundTruth.emplace(LineColFun{8, 25, "main"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+  GroundTruth.emplace(RetStmt{"main"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+  GroundTruth.emplace(LineColFun{3, 31, "_Z7doStuffi"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+  GroundTruth.emplace(LineColFun{3, 22, "_Z7doStuffi"}, "GlobalFeature",
+                      TaintSetT{
+                          GlobalVar{"GlobalFeature"},
+                      });
+
+  doAnalysisAndCompareResults("global_04_cpp_dbg.ll", {"main", "_Z7doStuffi"},
                               GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "retval", {"4"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "i", {"5"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "j", {"10"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "k", {"9", "8", "5"}));
-  doAnalysisAndCompareResults("KillTest_01_cpp.ll", {"main"}, GroundTruth,
+  auto Main12 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main12, "i",
+                      TaintSetT{
+                          LineColFun{2, 7, "main"},
+                      });
+  GroundTruth.emplace(Main12, "j",
+                      TaintSetT{
+                          LineColFun{5, 5, "main"},
+                      });
+  GroundTruth.emplace(Main12, "k",
+                      TaintSetT{
+                          LineColFun{4, 7, "main"},
+                          LineColFun{4, 11, "main"},
+                          LineColFun{2, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("KillTest_01_cpp_dbg.ll", {"main"}, GroundTruth,
                               false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_02) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "retval", {"6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "A", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "B", {"2"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 12, "C", {"1", "7", "8"}));
-  doAnalysisAndCompareResults("KillTest_02_cpp.ll", {"main"}, GroundTruth,
+  auto Main12 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main12, "A",
+                      TaintSetT{
+                          GlobalVar{"A"},
+                      });
+  GroundTruth.emplace(Main12, "B",
+                      TaintSetT{
+                          LineColFun{4, 18, "_Z5initBv"},
+                      });
+  GroundTruth.emplace(Main12, "C",
+                      TaintSetT{
+                          GlobalVar{"B"},
+                          LineColFun{7, 11, "main"},
+                          LineColFun{7, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("KillTest_02_cpp_dbg.ll", {"main"}, GroundTruth,
                               false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleReturnTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "retval", {"3"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "localVar", {"4"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 6, "call", {"0"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 8, "localVar", {"0", "6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 8, "call", {"0"}));
-  doAnalysisAndCompareResults("return_01_cpp.ll", {"main"}, GroundTruth, false);
+  auto Main6 = LineColFun{7, 12, "main"};
+  auto Main8 = RetStmt{"main"};
+
+  GroundTruth.emplace(Main6, "localVar",
+                      TaintSetT{
+                          LineColFun{6, 12, "main"},
+                      });
+  GroundTruth.emplace(Main8, "localVar",
+                      TaintSetT{
+                          LineColFun{2, 30, "_Z20returnIntegerLiteralv"},
+                          LineColFun{7, 12, "main"},
+                      });
+
+  doAnalysisAndCompareResults("return_01_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleHeapTest_01) {
   std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "retval", {"3"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "i", {"5", "6"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 17, "j", {"5", "6", "7", "8", "9"}));
-  doAnalysisAndCompareResults("heap_01_cpp.ll", {"main"}, GroundTruth, false);
+
+  auto Main17 = RetStmt{"main"};
+  GroundTruth.emplace(Main17, "i",
+                      TaintSetT{
+                          LineColFun{3, 12, "main"},
+                          LineColFun{3, 8, "main"},
+                      });
+  GroundTruth.emplace(Main17, "j",
+                      TaintSetT{
+                          LineColFun{3, 12, "main"},
+                          LineColFun{3, 8, "main"},
+                          LineColFun{4, 12, "main"},
+                          LineColFun{4, 11, "main"},
+                          LineColFun{4, 7, "main"},
+                      });
+
+  doAnalysisAndCompareResults("heap_01_cpp_dbg.ll", {"main"}, GroundTruth,
+                              false);
 }
 
-PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
-  GTEST_SKIP() << "This test heavily depends on the used stdlib version. TODO: "
-                  "add a better one";
+// PHASAR_SKIP_TEST(TEST_F(IDEInstInteractionAnalysisTest, HandleRVOTest_01) {
+//   GTEST_SKIP() << "This test heavily depends on the used stdlib version.
+//   TODO: "
+//                   "add a better one";
 
-  std::set<IIACompactResult_t> GroundTruth;
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "retval", {"75", "76"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "str", {"70", "65", "72", "74", "77"}));
-  GroundTruth.emplace(
-      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
-          "main", 16, "ref.tmp", {"66", "9", "72", "73", "71"}));
-  doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
-})
+//   std::set<IIACompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
+//           "main", 16, "retval", {"75", "76"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
+//           "main", 16, "str", {"70", "65", "72", "74", "77"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string,
+//       BitVectorSet<std::string>>(
+//           "main", 16, "ref.tmp", {"66", "9", "72", "73", "71"}));
+//   doAnalysisAndCompareResults("rvo_01_cpp.ll", {"main"}, GroundTruth, false);
+// })
 
 // TEST_F(IDEInstInteractionAnalysisTest, HandleStruct_01) {
 //   std::set<IIACompactResult_t> GroundTruth;

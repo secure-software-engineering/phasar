@@ -732,12 +732,12 @@ void IDEExtendedTaintAnalysis::emitTextReport(
 
   for (auto &[Inst, LeakSet] : Leaks) {
     for (const auto &Leak : LeakSet) {
-      Printer->onResult(Inst, makeFlowFact(Leak), Top{},
-                        DataFlowAnalysisType::IDEExtendedTaintAnalysis);
+      onResult(Inst, makeFlowFact(Leak), Top{},
+               DataFlowAnalysisType::IDEExtendedTaintAnalysis);
     }
   }
 
-  Printer->onFinalize();
+  Printer->onFinalize(OS);
 }
 
 // Helpers:

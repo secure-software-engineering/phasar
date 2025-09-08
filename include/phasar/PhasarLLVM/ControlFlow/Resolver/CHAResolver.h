@@ -38,7 +38,8 @@ public:
   // dtor in CHAResolver.cpp
   ~CHAResolver() override;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                          const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
 
