@@ -130,7 +130,7 @@ protected:
 
     IDESolver IIASolver(IIAProblem, &HA->getICFG());
     // IterativeIDESolver IIASolver(&IIAProblem, &HA->getICFG());
-    IIASolver.solve();
+    auto Results = IIASolver.solve();
 
     // do the comparison
     for (const auto &[InstLoc, VarName, ExpectedVal] : GroundTruth) {
@@ -167,10 +167,10 @@ protected:
   }
 
   // See vara::PhasarTaintAnalysis::taintsForInst
-  [[nodiscard]] inline TaintSetT
-  taintsForInst(const llvm::Instruction *Inst,
-                SolverResults<const llvm::Instruction *, const llvm::Value *,
-                              IDEFeatureTaintEdgeFact> SR) {
+  [[nodiscard]] inline TaintSetT taintsForInst(
+      const llvm::Instruction *Inst,
+      GenericSolverResults<const llvm::Instruction *, const llvm::Value *,
+                           IDEFeatureTaintEdgeFact> SR) {
 
     if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
       if (Ret->getNumOperands() == 0) {
