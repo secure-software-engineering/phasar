@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_UTILS_ALLOCATEDTYPES_H
 
 #include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/Module.h"
 
 #include <vector>
 

@@ -24,12 +24,9 @@
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/StringRef.h"
-#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Metadata.h"
 #include "llvm/IR/Value.h"
 
 #include <set>

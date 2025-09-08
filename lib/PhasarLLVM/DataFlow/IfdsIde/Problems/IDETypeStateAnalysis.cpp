@@ -9,10 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
@@ -21,10 +18,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -35,7 +29,6 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <algorithm>
 #include <utility>
 
 namespace psr::detail {
