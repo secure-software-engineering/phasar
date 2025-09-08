@@ -61,7 +61,7 @@ CheckOptions:
   - key:             readability-identifier-naming.ParameterIgnoredRegexp
     value:           (d|d1|d2|d3|d4|d5|eP|f|n)
   - key:             readability-identifier-naming.FunctionIgnoredRegexp
-    value:           (try_emplace|from_json|to_json|equal_to|to_string|DToString|NToString|FToString|LToString|hash_value)
+    value:           (try_emplace|from_json|to_json|equal_to|to_string|DToString|NToString|FToString|LToString|hash_value|dyn_cast)
   - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value:           1
   - key:             cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions
