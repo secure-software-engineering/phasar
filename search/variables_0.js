@@ -8,7 +8,7 @@ var searchData=
   ['aliassets_5',['AliasSets',['../structpsr_1_1LLVMAliasSetData.html#ab25955670212dfc221625724af3453e0',1,'psr::LLVMAliasSetData']]],
   ['allinterpropagationsbytes_6',['AllInterPropagationsBytes',['../structpsr_1_1IterativeIDESolverStats.html#aff01f7aac2ca521daf85f3e1e551c111',1,'psr::IterativeIDESolverStats']]],
   ['allocainstructions_7',['AllocaInstructions',['../structpsr_1_1GeneralStatistics.html#a6db9c88c636f37f223a2a7b6af26086f',1,'psr::GeneralStatistics']]],
-  ['allocatedtypes_8',['AllocatedTypes',['../structpsr_1_1GeneralStatistics.html#a444acbb9f2b55e2d6b6f5ce29f66d875',1,'psr::GeneralStatistics']]],
+  ['allocatedtypes_8',['AllocatedTypes',['../structpsr_1_1GeneralStatistics.html#ab52bf79af65a2e1db7541817a57bdb22',1,'psr::GeneralStatistics']]],
   ['allocationsites_9',['AllocationSites',['../structpsr_1_1GeneralStatistics.html#a10619440e073c0163021020bbbb889ec',1,'psr::GeneralStatistics']]],
   ['allowlazypts_10',['AllowLazyPTS',['../structpsr_1_1HelperAnalysisConfig.html#ab57adcd27e5a366722809df1ceac5da1',1,'psr::HelperAnalysisConfig']]],
   ['analysis_11',['analysis',['../classpsr_1_1InterMonoSolver.html#a5904b4d370a8036bd36d9356144e8b41',1,'psr::InterMonoSolver::Analysis'],['../classpsr_1_1IntraMonoSolver.html#a17377523a9ac55360e6702b07a7a5806',1,'psr::IntraMonoSolver::Analysis']]],

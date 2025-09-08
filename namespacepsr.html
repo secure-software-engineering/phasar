@@ -1403,6 +1403,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a7f2e06d8983d42e8a2e4e8c89f67e2b8" id="r_a7f2e06d8983d42e8a2e4e8c89f67e2b8"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ContainerTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_same_v&lt;              typename ContainerTy::value_type, const llvm::Value *&gt;&gt;&gt; </td></tr>
 <tr class="memitem:a7f2e06d8983d42e8a2e4e8c89f67e2b8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ContainerTy</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7f2e06d8983d42e8a2e4e8c89f67e2b8">getSanitizedFacts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMTaintConfig.html">LLVMTaintConfig</a> &amp;Config, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CB</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Callee)</td></tr>
 <tr class="separator:a7f2e06d8983d42e8a2e4e8c89f67e2b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af839f000d0a9a967de11bf65b2698651" id="r_af839f000d0a9a967de11bf65b2698651"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DICompositeType * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af839f000d0a9a967de11bf65b2698651">collectAllocatedTypes</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Module &amp;Mod)</td></tr>
+<tr class="separator:af839f000d0a9a967de11bf65b2698651"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac596293214cd88e5d679467a26ff4bea" id="r_ac596293214cd88e5d679467a26ff4bea"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac596293214cd88e5d679467a26ff4bea">toString</a> (<a class="el" href="namespacepsr.html#ae5f717dbbc929e4ab62af63a25de5169">DataFlowAnalysisType</a> D)</td></tr>
 <tr class="separator:ac596293214cd88e5d679467a26ff4bea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af39520f6d6ca49277dbf0abfc0184ce4" id="r_af39520f6d6ca49277dbf0abfc0184ce4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ae5f717dbbc929e4ab62af63a25de5169">DataFlowAnalysisType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af39520f6d6ca49277dbf0abfc0184ce4">toDataFlowAnalysisType</a> (llvm::StringRef S)</td></tr>
@@ -1473,6 +1475,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ad5194e99034602c0e2fb40acb5a65d50" id="r_ad5194e99034602c0e2fb40acb5a65d50"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad5194e99034602c0e2fb40acb5a65d50">llvmTypeToString</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Type *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Shorten</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a>)</td></tr>
 <tr class="memdesc:ad5194e99034602c0e2fb40acb5a65d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string-representation of a LLVM type.  <br /></td></tr>
 <tr class="separator:ad5194e99034602c0e2fb40acb5a65d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cf69d66c4dce52d63040e3c38da4e03" id="r_a7cf69d66c4dce52d63040e3c38da4e03"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7cf69d66c4dce52d63040e3c38da4e03">llvmTypeToString</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Shorten</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a>)</td></tr>
+<tr class="memdesc:a7cf69d66c4dce52d63040e3c38da4e03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string-representation of a LLVM Debug-Info type.  <br /></td></tr>
+<tr class="separator:a7cf69d66c4dce52d63040e3c38da4e03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a45ff01c901f1df19fc82368272fe7ebf" id="r_a45ff01c901f1df19fc82368272fe7ebf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_DUMP_METHOD</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a45ff01c901f1df19fc82368272fe7ebf">dumpIRValue</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V)</td></tr>
 <tr class="separator:a45ff01c901f1df19fc82368272fe7ebf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a904cef550d8a2ac1867a7ba952a6a28b" id="r_a904cef550d8a2ac1867a7ba952a6a28b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_DUMP_METHOD</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a904cef550d8a2ac1867a7ba952a6a28b">dumpIRValue</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *V)</td></tr>
@@ -1533,6 +1538,8 @@ Functions</h2></td></tr>
 <tr class="separator:a9b5168e705e4c6d4b1fb17d9cd451bc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af61d0c31860bf7b59fec9e727b4da235" id="r_af61d0c31860bf7b59fec9e727b4da235"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af61d0c31860bf7b59fec9e727b4da235">isVaListAlloca</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::AllocaInst &amp;Alloc)</td></tr>
 <tr class="separator:af61d0c31860bf7b59fec9e727b4da235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03415155db9f1bbab43632f0135bd1ac" id="r_a03415155db9f1bbab43632f0135bd1ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a03415155db9f1bbab43632f0135bd1ac">stripPointerTypes</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DITy</a>)</td></tr>
+<tr class="separator:a03415155db9f1bbab43632f0135bd1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2878628a5d57ead74de5afad8d56af14" id="r_a2878628a5d57ead74de5afad8d56af14"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2878628a5d57ead74de5afad8d56af14">toString</a> (<a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PA</a>)</td></tr>
 <tr class="separator:a2878628a5d57ead74de5afad8d56af14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67f9450c8286b53bca8a7f4fea6424f2" id="r_a67f9450c8286b53bca8a7f4fea6424f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">AliasAnalysisType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a67f9450c8286b53bca8a7f4fea6424f2">toAliasAnalysisType</a> (llvm::StringRef S)</td></tr>
@@ -2667,7 +2674,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <tr><td class="fieldname"><a id="a8d44ba15d7517ff82312fe69f445d5eeab24436a7bab0fa6dc89ad0684c6fc675" name="a8d44ba15d7517ff82312fe69f445d5eeab24436a7bab0fa6dc89ad0684c6fc675"></a>BOT&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00024">24</a> of file <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html">CSTDFILEIOTypeStateDescription.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00023">23</a> of file <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html">CSTDFILEIOTypeStateDescription.h</a>.</p>
 
 </div>
 </div>
@@ -2887,7 +2894,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <tr><td class="fieldname"><a id="ae0bcb42b2c9f8cf36f66167ee0ae628fab24436a7bab0fa6dc89ad0684c6fc675" name="ae0bcb42b2c9f8cf36f66167ee0ae628fab24436a7bab0fa6dc89ad0684c6fc675"></a>BOT&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="OpenSSLEVPKDFDescription_8h_source.html#l00029">29</a> of file <a class="el" href="OpenSSLEVPKDFDescription_8h_source.html">OpenSSLEVPKDFDescription.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="OpenSSLEVPKDFDescription_8h_source.html#l00028">28</a> of file <a class="el" href="OpenSSLEVPKDFDescription_8h_source.html">OpenSSLEVPKDFDescription.h</a>.</p>
 
 </div>
 </div>
@@ -3798,6 +3805,24 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00190">190</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156">llvmIRToString()</a>.</p>
+
+</div>
+</div>
+<a id="af839f000d0a9a967de11bf65b2698651" name="af839f000d0a9a967de11bf65b2698651"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af839f000d0a9a967de11bf65b2698651">&#9670;&#160;</a></span>collectAllocatedTypes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DICompositeType * &gt; psr::collectAllocatedTypes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Module &amp;&#160;</td>
+          <td class="paramname"><em>Mod</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -7215,8 +7240,44 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
+<a id="a7cf69d66c4dce52d63040e3c38da4e03" name="a7cf69d66c4dce52d63040e3c38da4e03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cf69d66c4dce52d63040e3c38da4e03">&#9670;&#160;</a></span>llvmTypeToString() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string psr::llvmTypeToString </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Ty</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
+          <td class="paramname"><em>Shorten</em> = <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns a string-representation of a LLVM Debug-Info type. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">Shorten</td><td>Tries to shorten the output </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ad5194e99034602c0e2fb40acb5a65d50" name="ad5194e99034602c0e2fb40acb5a65d50"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5194e99034602c0e2fb40acb5a65d50">&#9670;&#160;</a></span>llvmTypeToString()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5194e99034602c0e2fb40acb5a65d50">&#9670;&#160;</a></span>llvmTypeToString() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -8882,7 +8943,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00034">34</a> of file <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html">CSTDFILEIOTypeStateDescription.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">33</a> of file <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html">CSTDFILEIOTypeStateDescription.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">to_string()</a>.</p>
 
@@ -10367,6 +10428,24 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
+<a id="a03415155db9f1bbab43632f0135bd1ac" name="a03415155db9f1bbab43632f0135bd1ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03415155db9f1bbab43632f0135bd1ac">&#9670;&#160;</a></span>stripPointerTypes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType * psr::stripPointerTypes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>DITy</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa59e41f42491509243d6cb71c719fc5a" name="aa59e41f42491509243d6cb71c719fc5a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa59e41f42491509243d6cb71c719fc5a">&#9670;&#160;</a></span>strongUpdateStore() <span class="overload">[1/2]</span></h2>
 
@@ -10496,7 +10575,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00329">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01563">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01034">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getData()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00034">operator&lt;&lt;()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00329">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01563">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01034">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getData()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
 
 </div>
 </div>
@@ -12374,7 +12453,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 8 2025 13:22:04 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Sep 8 2025 13:50:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
