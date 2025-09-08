@@ -12,7 +12,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
-#include <map>
 #include <set>
 #include <string>
 

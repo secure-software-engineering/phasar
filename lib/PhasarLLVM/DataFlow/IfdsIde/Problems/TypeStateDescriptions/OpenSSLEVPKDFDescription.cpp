@@ -9,8 +9,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
-
 #include "llvm/Support/ErrorHandling.h"
 
 #include <map>
@@ -74,7 +72,7 @@ OpenSSLEVPKDFDescription::getNextState(llvm::StringRef Tok,
 }
 
 std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
-  return "struct.evp_kdf_st";
+  return "evp_kdf_st";
 }
 
 std::set<int>

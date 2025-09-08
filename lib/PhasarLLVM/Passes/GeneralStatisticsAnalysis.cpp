@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
+#include "phasar/PhasarLLVM/Utils/AllocatedTypes.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -39,31 +40,6 @@ static bool isAddressTaken(const llvm::Function &Fun) noexcept {
     }
   }
   return false;
-}
-
-template <typename Set>
-static void collectAllocatedTypes(const llvm::CallBase *CallSite, Set &Into) {
-  for (const auto *User : CallSite->users()) {
-    if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User);
-        Cast && Cast->getDestTy()->isPointerTy() &&
-        !Cast->getDestTy()->isOpaquePointerTy()) {
-      const auto *ElemTy = Cast->getDestTy()->getNonOpaquePointerElementType();
-      if (ElemTy->isStructTy()) {
-        // finally check for ctor call
-        for (const auto *User : Cast->users()) {
-          if (llvm::isa<llvm::CallBase>(User)) {
-            // potential call to the structures ctor
-            const auto *CTor = llvm::cast<llvm::CallBase>(User);
-            if (CTor->getCalledFunction() &&
-                CTor->getCalledFunction()->getArg(0)->getType() ==
-                    Cast->getDestTy()) {
-              Into.insert(ElemTy);
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
@@ -131,7 +107,6 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         // check for alloca instruction for possible types
         if (const llvm::AllocaInst *Alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-          Stats.AllocatedTypes.insert(Alloc->getAllocatedType());
           // do not add allocas from llvm internal functions
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
@@ -186,9 +161,6 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
               // do not add allocas from llvm internal functions
               Stats.AllocaInstructions.insert(&I);
               ++Stats.AllocationSites;
-              // check if an instance of a user-defined type is allocated on the
-              // heap
-              collectAllocatedTypes(CallSite, Stats.AllocatedTypes);
             }
           } else {
             ++Stats.IndCalls;
@@ -197,6 +169,9 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
       }
     }
   }
+
+  Stats.AllocatedTypes = collectAllocatedTypes(M);
+
   // check for global pointers
   for (const auto &Global : M.globals()) {
     ++Stats.Globals;
@@ -323,7 +298,7 @@ template <typename T> struct AlignNum {
   }
 };
 template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
-AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+AlignNum(llvm::StringRef, size_t, size_t) -> AlignNum<double>;
 } // namespace
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,

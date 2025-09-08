@@ -87,15 +87,6 @@ psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-static const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy) {
-  while (const auto *DerivedTy =
-             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
-    // get rid of the pointer
-    DITy = DerivedTy->getBaseType();
-  }
-  return DITy;
-}
-
 const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
   if (!CallSite || CallSite->arg_empty() ||
       (CallSite->hasStructRetAttr() && CallSite->arg_size() < 2)) {
