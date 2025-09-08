@@ -363,7 +363,7 @@ testingLocInIR(TestingSrcLocation Loc,
           },
           [&](RetVal R) -> llvm::Value const * {
             const auto *InFun = GetFunction(R.InFunction);
-            for (const auto &BB : llvm::reverse(InFun->getBasicBlockList())) {
+            for (const auto &BB : llvm::reverse(*InFun)) {
               if (const auto *Ret =
                       llvm::dyn_cast<llvm::ReturnInst>(BB.getTerminator())) {
                 return Ret->getReturnValue();
@@ -374,7 +374,7 @@ testingLocInIR(TestingSrcLocation Loc,
           },
           [&](RetStmt R) -> llvm::Value const * {
             const auto *InFun = GetFunction(R.InFunction);
-            for (const auto &BB : llvm::reverse(InFun->getBasicBlockList())) {
+            for (const auto &BB : llvm::reverse(*InFun)) {
               if (const auto *Ret =
                       llvm::dyn_cast<llvm::ReturnInst>(BB.getTerminator())) {
                 return Ret;
