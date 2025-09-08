@@ -532,7 +532,16 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span> </div>
 <div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span> </div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEFEATURETAINTANALYSIS_H</span></div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">namespace</a> <a class="code hl_namespace" href="namespacestd.html">std</a> {</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span><span class="keyword">template</span> &lt;&gt; <span class="keyword">struct </span>hash&lt;<a class="code hl_namespace" href="namespacepsr.html">psr</a>::<a class="code hl_struct" href="structpsr_1_1IDEFeatureTaintEdgeFact.html">IDEFeatureTaintEdgeFact</a>&gt; {</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>  <span class="keywordtype">size_t</span></div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>  operator()(<span class="keyword">const</span> <a class="code hl_struct" href="structpsr_1_1IDEFeatureTaintEdgeFact.html">psr::IDEFeatureTaintEdgeFact</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFact</a>) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr.html#a89a5a197a0c956411069a5985d8b7caf">hash_value</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFact</a>);</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>  }</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>};</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>} <span class="comment">// namespace std</span></div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span> </div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEFEATURETAINTANALYSIS_H</span></div>
 <div class="ttc" id="aBitVectorSet_8h_html"><div class="ttname"><a href="BitVectorSet_8h.html">BitVectorSet.h</a></div></div>
 <div class="ttc" id="aDefaultEdgeFunctionSingletonCache_8h_html"><div class="ttname"><a href="DefaultEdgeFunctionSingletonCache_8h.html">DefaultEdgeFunctionSingletonCache.h</a></div></div>
 <div class="ttc" id="aEdgeFunction_8h_html"><div class="ttname"><a href="EdgeFunction_8h.html">EdgeFunction.h</a></div></div>
@@ -598,6 +607,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a6cc99285b5058131accd52ece38b2cc1"><div class="ttname"><a href="namespacepsr.html#a6cc99285b5058131accd52ece38b2cc1">psr::ElementType</a></div><div class="ttdeci">typename detail::ElementType&lt; Container &gt;::type ElementType</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00288">TypeTraits.h:288</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
+<div class="ttc" id="anamespacepsr_html_a89a5a197a0c956411069a5985d8b7caf"><div class="ttname"><a href="namespacepsr.html#a89a5a197a0c956411069a5985d8b7caf">psr::hash_value</a></div><div class="ttdeci">llvm::hash_code hash_value(psr::AbstractMemoryLocation Val)</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ac1657d444b8f6ddfe706d149969f200f"><div class="ttname"><a href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString</a></div><div class="ttdeci">std::string LToString(const IDEFeatureTaintEdgeFact &amp;EdgeFact)</div></div>
 <div class="ttc" id="anamespacepsr_html_add33d940596eaff0ef8b39851bbfe6cc"><div class="ttname"><a href="namespacepsr.html#add33d940596eaff0ef8b39851bbfe6cc">psr::FlowFunctionPtrType</a></div><div class="ttdeci">FlowFunctionPtrTypeOf&lt; FlowFunction&lt; D, Container &gt; &gt; FlowFunctionPtrType</div><div class="ttdef"><b>Definition</b> <a href="FlowFunctions_8h_source.html#l00098">FlowFunctions.h:98</a></div></div>
@@ -629,7 +639,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 8 2025 13:50:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Sep 8 2025 14:08:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
