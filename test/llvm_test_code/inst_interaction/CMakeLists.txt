@@ -41,9 +41,9 @@ set(SourcesOpt
 )
 
 foreach(TEST_SRC ${Sources})
-  generate_ll_file(FILE ${TEST_SRC})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
 
 foreach(TEST_SRC ${SourcesOpt})
-  generate_ll_file(FILE ${TEST_SRC} O1)
+  generate_ll_file(FILE ${TEST_SRC} DEBUG O1)
 endforeach(TEST_SRC)

@@ -123,8 +123,8 @@ static constexpr std::string_view TaintTestFiles[] = {
     "dummy_source_sink/taint_exception_09_cpp_dbg.ll",
     "dummy_source_sink/taint_exception_10_cpp_dbg.ll",
     // -- double-free
-    "double_free_01_c.ll",
-    "double_free_02_c.ll",
+    "double_free_01_c_dbg.ll",
+    "double_free_02_c_dbg.ll",
 };
 
 INSTANTIATE_TEST_SUITE_P(InteractiveIDESolverTest, TaintAnalysis,
