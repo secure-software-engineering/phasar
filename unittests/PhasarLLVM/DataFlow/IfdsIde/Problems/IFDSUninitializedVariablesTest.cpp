@@ -3,23 +3,23 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/DebugOutput.h"
 
-#include "llvm/IR/Module.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <memory>
 #include <optional>
 
-using namespace std;
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 
@@ -33,41 +33,34 @@ protected:
 
   std::optional<IFDSUninitializedVariables> UninitProblem;
 
-  IFDSUninitializedVariablesTest() = default;
-  ~IFDSUninitializedVariablesTest() override = default;
-
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
     UninitProblem =
         createAnalysisProblem<IFDSUninitializedVariables>(*HA, EntryPoints);
   }
 
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
+  using GroundTruthTy =
+      std::map<TestingSrcLocation, std::set<TestingSrcLocation>>;
 
-  void TearDown() override {}
+  void compareResults(const GroundTruthTy &GroundTruthEntries) {
+    auto ConvGroundTruth = convertTestingLocationSetMapInIR(
+        GroundTruthEntries, HA->getProjectIRDB());
 
-  void compareResults(map<int, set<string>> &GroundTruth) {
-
-    map<int, set<string>> FoundUninitUses;
-    for (const auto &Kvp : UninitProblem->getAllUndefUses()) {
-      auto InstID = stoi(getMetaDataID(Kvp.first));
-      set<string> UndefValueIds;
-      for (const auto *UV : Kvp.second) {
-        UndefValueIds.insert(getMetaDataID(UV));
-      }
-      FoundUninitUses[InstID] = UndefValueIds;
-    }
-
-    EXPECT_EQ(FoundUninitUses, GroundTruth);
+    EXPECT_EQ(UninitProblem->getAllUndefUses(), ConvGroundTruth)
+        << "UndefUses do not match:\n  Expected: "
+        << PrettyPrinter{ConvGroundTruth}
+        << "\n  Got: " << PrettyPrinter{UninitProblem->getAllUndefUses()};
   }
+
 }; // Test Fixture
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "all_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // all_uninit.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
   compareResults(GroundTruth);
 }
 
@@ -77,32 +70,36 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   Solver.solve();
 
   // binop_uninit uses uninitialized variable i in 'int j = i + 10;'
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
+
   // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
-  GroundTruth[6] = {"1"};
   // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
   // undefined alloca; not sure if it is necessary to report again
-  GroundTruth[7] = {"6"};
+  const auto Entry = LineColFun{2, 0, "main"};
+  const auto EntryTwo = LineColFun{3, 11, "main"};
+  const auto EntryThree = LineColFun{3, 13, "main"};
+  GroundTruth.insert({EntryTwo, {Entry}});
+  GroundTruth.insert({EntryThree, {EntryTwo}});
+
   compareResults(GroundTruth);
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   initialize({PathToLlFiles + "callnoret_c_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
   // callnoret uses uninitialized variable a in 'return a + 10;' of addTen(int)
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
 
-  // %4 = load i32, i32* %2 ; %2 is the parameter a of addTen(int) containing
-  // undef
-  GroundTruth[5] = {"0"};
-  // The same as in test2: is it necessary to report again?
-  GroundTruth[6] = {"5"};
-  // %5 = load i32, i32* %2 ; %2 is the uninitialized variable a
-  GroundTruth[16] = {"9"};
-  // The same as in test2: is it necessary to report again? (the analysis does
-  // not)
-  // GroundTruth[17] = {"16"};
+  const auto IntA = LineColFun{7, 7, "main"};
+  const auto CopyA = LineColFun{9, 10, "main"};
+  const auto ArgA = LineColFun{1, 16, "addTen"};
+  const auto LoadA = LineColFun{3, 10, "addTen"};
+  const auto Add = LineColFun{3, 12, "addTen"};
+  GroundTruth.insert({CopyA, {IntA}});
+  GroundTruth.insert({Add, {LoadA}});
+  GroundTruth.insert({LoadA, {ArgA}});
 
   compareResults(GroundTruth);
 }
@@ -111,25 +108,31 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "ctor_default_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // ctor.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
+
   compareResults(GroundTruth);
 }
-
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "struct_member_init_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // struct_member_init.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
+
   compareResults(GroundTruth);
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "struct_member_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // struct_member_uninit.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
+
   compareResults(GroundTruth);
 }
 /****************************************************************************************
@@ -151,12 +154,15 @@ Solver(*UninitProblem, false); Solver.solve();
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "global_variable_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // global_variable.cpp does not contain undef-uses
-  map<int, set<string>> GroundTruth;
+  GroundTruthTy GroundTruth;
+
   compareResults(GroundTruth);
 }
 /****************************************************************************************
@@ -176,17 +182,19 @@ Solver(*UninitProblem, false); Solver.solve();
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   initialize({PathToLlFiles + "return_uninit_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
-  UninitProblem->emitTextReport(Solver.getSolverResults(), llvm::outs());
-  map<int, set<string>> GroundTruth;
-  //%2 = load i32, i32 %1
-  GroundTruth[2] = {"0"};
-  // What about this call?
-  // %3 = call i32 @_Z3foov()
-  // GroundTruth[8] = {""};
+
+  GroundTruthTy GroundTruth;
+
+  const auto IntI = LineColFun{2, 7, "_Z3foov"};
+  const auto UseOfI = LineColFun{3, 10, "_Z3foov"};
+
+  GroundTruth.insert({UseOfI, {IntI}});
+
   compareResults(GroundTruth);
 }
 
@@ -195,15 +203,21 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "sanitizer_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
-  map<int, set<string>> GroundTruth;
+
+  GroundTruthTy GroundTruth;
   // all undef-uses are sanitized;
   // However, the uninitialized variable j is read, which causes the analysis to
   // report an undef-use
   // 6 => {2}
 
-  GroundTruth[6] = {"2"};
+  const auto IntI = LineColFun{3, 7, "main"};
+  const auto UseOfI = LineColFun{4, 7, "main"};
+
+  GroundTruth.insert({UseOfI, {IntI}});
+
   compareResults(GroundTruth);
 }
+
 //---------------------------------------------------------------------
 // Not relevant any more; Test case covered by UninitTest_11
 //---------------------------------------------------------------------
@@ -225,23 +239,40 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
   initialize({PathToLlFiles + "sanitizer2_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
+
   // The undef-uses do not affect the program behaviour, but are of course still
   // found and reported
-  map<int, set<string>> GroundTruth;
-  GroundTruth[9] = {"2"};
+  GroundTruthTy GroundTruth;
+
+  const auto IntJ = LineColFun{3, 7, "main"};
+  const auto LoadJ = LineColFun{5, 7, "main"};
+
+  GroundTruth.insert({LoadJ, {IntJ}});
+
   compareResults(GroundTruth);
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "uninit_c_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[14] = {"1"};
-  GroundTruth[15] = {"2"};
-  GroundTruth[16] = {"14", "15"};
+
+  GroundTruthTy GroundTruth;
+
+  const auto IntA = LineColFun{2, 7, "main"};
+  const auto IntB = LineColFun{3, 7, "main"};
+  const auto LoadA = LineColFun{6, 11, "main"};
+  const auto Multiply = LineColFun{6, 13, "main"};
+  const auto LoadB = LineColFun{6, 15, "main"};
+
+  GroundTruth.insert({LoadA, {IntA}});
+  GroundTruth.insert({LoadB, {IntB}});
+  GroundTruth.insert({Multiply, {LoadA, LoadB}});
+
   compareResults(GroundTruth);
 }
+
 /****************************************************************************************
  * Fails probably due to field-insensitivity
  *
@@ -275,20 +306,28 @@ GroundTruth;
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "growing_example_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  map<int, set<string>> GroundTruth;
-  // TODO remove GT[11]
-  GroundTruth[11] = {"0"};
+  GroundTruthTy GroundTruth;
 
-  GroundTruth[16] = {"2"};
-  GroundTruth[18] = {"16"};
-  GroundTruth[34] = {"24"};
+  const auto ArgX = LineColFun{1, 18, "_Z8functionii"};
+  const auto IntI = LineColFun{2, 7, "_Z8functionii"};
+  const auto LoadX = LineColFun{3, 11, "_Z8functionii"};
+  const auto LoadI = LineColFun{5, 10, "_Z8functionii"};
+  const auto Add = LineColFun{5, 12, "_Z8functionii"};
+  const auto IntJ = LineColFun{10, 7, "main"};
+  const auto LoadJ = LineColFun{12, 16, "main"};
 
+  // TODO remove GroundTruth.insert({LoadX, ArgX}) below
+  GroundTruth.insert({LoadX, {ArgX}});
+  GroundTruth.insert({LoadI, {IntI}});
+  GroundTruth.insert({Add, {LoadI}});
+  GroundTruth.insert({LoadJ, {IntJ}});
   compareResults(GroundTruth);
 }
 
@@ -345,42 +384,109 @@ Solver(*UninitProblem, false); Solver.solve();
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "recursion_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  map<int, set<string>> GroundTruth;
-  // Leaks at 11 and 14 due to field-insensitivity
-  GroundTruth[11] = {"2"};
-  GroundTruth[14] = {"2"};
+  GroundTruthTy GroundTruth;
 
-  // Load uninitialized variable i
-  GroundTruth[31] = {"24"};
+  // Leaks due to field-insensitivity
+
+  // %1 = load ptr, ptr %x.addr, align 8, !dbg !240, !psr.id !241 | ID: 11
+  LineColFun LoadX{4, 12, "_Z3fooRii"};
+  // %x.addr = alloca ptr, align 8
+  LineColFun ArgAddrX{2, 15, "_Z3fooRii"};
+  GroundTruth.insert({LoadX, {ArgAddrX}});
+  // %2 = load ptr, ptr %x.addr
+  LineColFun LoadXTwo{5, 14, "_Z3fooRii"};
+  GroundTruth.insert({LoadXTwo, {ArgAddrX}});
+
+  // Load uninitialized variable
+
+  // %1 = load i32, ptr %j, align 4, !dbg !274, !psr.id !275 | ID: 31
+  LineColFun LoadJ{11, 18, "main"};
+  // %j = alloca i32, align 4
+  LineColFun IntJ{10, 7, "main"};
+  GroundTruth.insert({LoadJ, {IntJ}});
+
   // Load recursive return-value for returning it
-  GroundTruth[20] = {"1"};
+
+  // %4 = load ptr, ptr %retval
+  LineColFun FooExit{6, 1, "_Z3fooRii"};
+  GroundTruth.insert({FooExit, {OperandOf{0, FooExit}}});
   // Load return-value of foo in main
-  GroundTruth[29] = {"28"};
-  // Analysis does not check uninit on actualparameters
-  // GroundTruth[32] = {"31"};
+  // %0 = load i32, ptr %call, align 4
+  LineColFunOp Load0{10, 11, "main", llvm::Instruction::Load};
+  // %call = call noundef nonnull align 4 dereferenceable(4) ptr @_Z3fooRii(ptr
+  // noundef nonnull align 4 dereferenceable(4) %i, i32 noundef 10)
+  LineColFunOp CallFooRec{10, 11, "main", llvm::Instruction::Call};
+  GroundTruth.insert({Load0, {CallFooRec}});
+  // // Load return-value of foo in main
+  // GroundTruth.insert({FooExit, IntJ});
+
+  // ***********
+  // Load recursive return-value for returning it
+  // GroundTruth.insert({RetOfFoo, IntJ});
+  // ***********
+
+  // Load return-value of foo in main
+  // GroundTruth.insert({IntJ, RetOfFoo});
+
   compareResults(GroundTruth);
 }
+
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
 
   initialize({PathToLlFiles + "virtual_call_cpp_dbg.ll"});
   IFDSSolver Solver(*UninitProblem, &HA->getICFG());
   Solver.solve();
 
-  map<int, set<string>> GroundTruth = {
-      {3, {"0"}}, {8, {"5"}}, {10, {"5"}}, {35, {"34"}}, {37, {"17"}}};
+  GroundTruthTy GroundTruth;
+  // %x.addr = alloca ptr, align 8
+  const auto FooXAddr = LineColFun{3, 15, "_Z3fooRi"};
+  // %0 = load ptr, ptr %x.addr, align 8
+  const auto FooXLoad = LineColFun{3, 27, "_Z3fooRi"};
+  // %x.addr = alloca ptr, align 8
+  const auto BarXAddr = LineColFun{4, 15, "_Z3barRi"};
+  // %0 = load ptr, ptr %x.addr, align 8
+  const auto Load = LineColFun{5, 3, "_Z3barRi"};
+  // %1 = load ptr, ptr %x.addr, align 8
+  const auto LoadX = LineColFun{6, 10, "_Z3barRi"};
+
+  // %j = alloca i32, align 4
+  const auto IntJ = LineColFun{16, 7, "main"};
+  // %call = call noundef nonnull align 4 dereferenceable(4) ptr %1
+  const auto BazCall = LineColFunOp{16, 11, "main", llvm::Instruction::Call};
+
+  // %2 = load i32, ptr %call, align 4
+  const auto SecondLoadInIfEnd = OperandOf{
+      // The value operand of the store
+      1 - llvm::StoreInst::getPointerOperandIndex(),
+      LineColFunOp{16, 7, "main", llvm::Instruction::Store},
+  };
+  // %3 = load i32, ptr %j, align 4
+  const auto LoadJ = LineColFun{17, 10, "main"};
+  // is passed as a reference, so I isn't being loaded here
+  // const auto LoadI =
+  //     LineColFun{16, 15, "main"};
+
   // 3  => {0}; due to field-insensitivity
+  GroundTruth.insert({FooXLoad, {FooXAddr}});
   // 8  => {5}; due to field-insensitivity
+  GroundTruth.insert({Load, {BarXAddr}});
   // 10 => {5}; due to alias-unawareness
+  GroundTruth.insert({LoadX, {BarXAddr}});
   // 35 => {34}; actual leak
+  GroundTruth.insert({SecondLoadInIfEnd, {BazCall}});
   // 37 => {17}; actual leak
+  GroundTruth.insert({LoadJ, {IntJ}});
+
   compareResults(GroundTruth);
 }
+
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
