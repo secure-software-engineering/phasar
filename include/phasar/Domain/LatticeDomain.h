@@ -11,6 +11,7 @@
 #define PHASAR_DOMAIN_LATTICEDOMAIN_H
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -100,9 +101,7 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   }
 };
 
-template <typename L,
-          typename = std::void_t<decltype(std::declval<llvm::raw_ostream &>()
-                                          << std::declval<L>())>>
+template <typename L>
 inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                      const LatticeDomain<L> &LD) {
   if (LD.isBottom()) {
@@ -114,7 +113,11 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
 
   const auto *Val = LD.getValueOrNull();
   assert(Val && "Only alternative remaining is L");
-  return OS << *Val;
+  if constexpr (is_llvm_printable_v<L>) {
+    return OS << *Val;
+  } else {
+    return OS << PrettyPrinter{*Val};
+  }
 }
 
 template <typename L>

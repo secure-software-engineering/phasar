@@ -1,5 +1,6 @@
-set(XTAINT_SOURCES
+set(XTAINT_DBG_SOURCES
     xtaint01.cpp
+    xtaint01_json.cpp
     # xtaint01_json.cpp
     xtaint02.cpp
     xtaint03.cpp
@@ -23,14 +24,6 @@ set(XTAINT_SOURCES
     xtaint20.cpp
     xtaint21.cpp
 )
-
-set(XTAINT_DBG_SOURCES
-    xtaint01_json.cpp
-)
-
-foreach(TEST_SRC ${XTAINT_SOURCES})
-  generate_ll_file(FILE ${TEST_SRC})
-endforeach(TEST_SRC)
 
 foreach(TEST_SRC ${XTAINT_DBG_SOURCES})
  generate_ll_file(FILE ${TEST_SRC} DEBUG)
