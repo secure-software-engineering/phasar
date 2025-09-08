@@ -2,22 +2,25 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/DebugOutput.h"
 
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
+
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <memory>
-
-using namespace std;
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 
@@ -31,9 +34,6 @@ protected:
 
   std::optional<IFDSTaintAnalysis> TaintProblem;
   std::optional<LLVMTaintConfig> TSF;
-
-  IFDSTaintAnalysisTest() = default;
-  ~IFDSTaintAnalysisTest() override = default;
 
   static LLVMTaintConfig getDefaultConfig() {
     auto SourceCB = [](const llvm::Instruction *Inst) {
@@ -78,113 +78,120 @@ protected:
     if (!TSF) {
       TSF = getDefaultConfig();
     }
+
     TaintProblem =
         createAnalysisProblem<IFDSTaintAnalysis>(*HA, &*TSF, EntryPoints);
   }
 
-  static void doAnalysis(const llvm::Twine &IRFile,
-                         const LLVMTaintConfig &Config,
-                         const map<int, set<string>> &GroundTruth) {
-    HelperAnalyses HA(PathToLlFiles + IRFile, EntryPoints);
-
-    auto TaintProblem =
-        createAnalysisProblem<IFDSTaintAnalysis>(HA, &Config, EntryPoints);
-
-    IFDSSolver TaintSolver(TaintProblem, &HA.getICFG());
-    TaintSolver.solve();
-
-    TaintSolver.dumpResults();
-
-    compare(TaintProblem.Leaks, GroundTruth);
+  void initialize(const llvm::Twine &IRFile, const LLVMTaintConfig *Config) {
+    HA.emplace(IRFile, EntryPoints);
+    TaintProblem =
+        createAnalysisProblem<IFDSTaintAnalysis>(*HA, Config, EntryPoints);
   }
 
-  static void doAnalysis(const llvm::Twine &IRFile,
-                         const map<int, set<string>> &GroundTruth) {
-    doAnalysis(IRFile, getDefaultConfig(), GroundTruth);
-  }
+  using GroundTruthTy =
+      std::map<TestingSrcLocation, std::set<TestingSrcLocation>>;
 
   template <typename LeaksTy>
-  static void compare(const LeaksTy &Leaks,
-                      const map<int, set<string>> &GroundTruth) {
-    map<int, set<string>> FoundLeaks;
-    for (const auto &Leak : Leaks) {
-      int SinkId = stoi(getMetaDataID(Leak.first));
-      set<string> LeakedValueIds;
-      for (const auto *LV : Leak.second) {
-        LeakedValueIds.insert(getMetaDataID(LV));
-      }
-      FoundLeaks.insert(make_pair(SinkId, LeakedValueIds));
-    }
-    EXPECT_EQ(FoundLeaks, GroundTruth);
+  void compare(const LeaksTy &Leaks, const GroundTruthTy &GroundTruth) {
+    auto GroundTruthEntries =
+        convertTestingLocationSetMapInIR(GroundTruth, HA->getProjectIRDB());
+
+    EXPECT_EQ(Leaks, GroundTruthEntries)
+        << "Taint Leaks do not match:\n  Expected: "
+        << PrettyPrinter{GroundTruthEntries}
+        << "\n  Got: " << PrettyPrinter{Leaks};
   }
 
-  void compareResults(const map<int, set<string>> &GroundTruth) noexcept {
-    compare(TaintProblem->Leaks, GroundTruth);
-  }
 }; // Test Fixture
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[13] = set<string>{"12"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[4] = set<string>{"2"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{5, 11, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[9] = set<string>{"8"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{5, 3, "main"};
+  auto EntryTwo = LineColFun{5, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[18] = set<string>{"17"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[19] = set<string>{"18"};
-  GroundTruth[24] = set<string>{"23"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  auto EntryThree = LineColFun{8, 3, "main"};
+  auto EntryFour = LineColFun{8, 8, "main"};
+  GroundTruthTy GroundTruth{
+      {Entry, {EntryTwo}},
+      {EntryThree, {EntryFour}},
+  };
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[22] = set<string>{"21"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[5] = set<string>{"main.0"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{5, 3, "main"};
+  auto Main0 = ArgInFun{0, "main"};
+  GroundTruthTy GroundTruth{{Entry, {Main0}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
@@ -192,9 +199,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[14] = set<string>{"13"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{12, 3, "main"};
+  auto EntryTwo = LineColFun{12, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
@@ -202,9 +212,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[5] = set<string>{"0"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{12, 3, "main"};
+  auto EntryTwo = LineColFun{10, 14, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
@@ -212,9 +225,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[16] = set<string>{"15"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{11, 3, "main"};
+  auto EntryTwo = LineColFun{11, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
@@ -222,10 +238,17 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[11] = set<string>{"10"};
-  GroundTruth[20] = set<string>{"19"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{11, 3, "main"};
+  auto EntryTwo = LineColFun{11, 8, "main"};
+  auto EntryThree = LineColFun{14, 3, "main"};
+  auto EntryFour = LineColFun{14, 8, "main"};
+  GroundTruthTy GroundTruth{
+      {Entry, {EntryTwo}},
+      {EntryThree, {EntryFour}},
+  };
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
@@ -233,9 +256,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_04_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[32] = set<string>{"31"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{16, 3, "main"};
+  auto EntryTwo = LineColFun{16, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
@@ -244,9 +270,11 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
-  map<int, set<string>> GroundTruth;
-  GroundTruth[32] = set<string>{"31"};
-  compareResults(GroundTruth);
+  auto Entry = LineColFun{16, 3, "main"};
+  auto EntryTwo = LineColFun{16, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
@@ -254,9 +282,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_06_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[14] = set<string>{"13"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{13, 5, "main"};
+  auto EntryTwo = LineColFun{13, 10, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
@@ -264,9 +295,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_07_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[30] = set<string>{"29"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{14, 5, "main"};
+  auto EntryTwo = LineColFun{14, 10, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
@@ -274,9 +308,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_08_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[32] = set<string>{"31"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{19, 3, "main"};
+  auto EntryTwo = LineColFun{19, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
@@ -284,9 +321,12 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_09_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[62] = set<string>{"61"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{20, 3, "main"};
+  auto EntryTwo = LineColFun{20, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
@@ -294,32 +334,50 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
       {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[60] = set<string>{"59"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{19, 5, "main"};
+  auto EntryTwo = LineColFun{19, 10, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
-  doAnalysis("double_free_01_c.ll", getDoubleFreeConfig(),
-             {
-                 {6, {"5"}},
-             });
+  auto DoubleFreeConf = getDoubleFreeConfig();
+  initialize({PathToLlFiles + "double_free_01_c_dbg.ll"}, &DoubleFreeConf);
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{6, 3, "main"};
+  auto EntryTwo = LineColFun{6, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
-  doAnalysis("double_free_02_c.ll", getDoubleFreeConfig(),
-             {
-                 {11, {"10"}},
-             });
+  auto DoubleFreeConf = getDoubleFreeConfig();
+  initialize({PathToLlFiles + "double_free_02_c_dbg.ll"}, &DoubleFreeConf);
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto Entry = LineColFun{8, 3, "main"};
+  auto EntryTwo = LineColFun{8, 8, "main"};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_lib_sum_01_cpp_dbg.ll"});
   IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[20] = {"19"};
-  compareResults(GroundTruth);
+
+  auto Entry = LineColFun{8, 3, "main"};
+  auto EntryTwo = LineColFunOp{8, 8, "main", llvm::Instruction::FPToSI};
+  GroundTruthTy GroundTruth{{Entry, {EntryTwo}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
 }
 
 int main(int Argc, char **Argv) {

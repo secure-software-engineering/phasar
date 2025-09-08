@@ -305,6 +305,8 @@ public:
   }
   [[nodiscard]] iterator end() noexcept { return {Bits.set_bits_end(), {}}; }
 
+  static void clearPosition() noexcept { Position.clear(); }
+
 private:
   inline static Compressor<T> Position;
 
