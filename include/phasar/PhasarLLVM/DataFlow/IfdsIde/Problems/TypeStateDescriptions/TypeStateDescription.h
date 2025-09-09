@@ -12,10 +12,12 @@
 
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 
-#include "llvm/IR/InstrTypes.h"
-
 #include <set>
 #include <string>
+
+namespace llvm {
+class CallBase;
+} // namespace llvm
 
 namespace psr {
 

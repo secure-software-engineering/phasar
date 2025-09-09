@@ -23,6 +23,7 @@
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLFunctionalExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DerivedTypes.h"
 
 #include <memory>
@@ -47,6 +48,10 @@ enum class CallGraphAnalysisType;
 [[nodiscard]] std::optional<unsigned>
 getVFTIndex(const llvm::CallBase *CallSite);
 
+/// Similar to getVFTIndex(), but also returns a pointer to the vtable
+[[nodiscard]] std::optional<std::pair<const llvm::Value *, uint64_t>>
+getVFTIndexAndVT(const llvm::CallBase *CallSite);
+
 /// Assuming that `CallSite` is a call to a non-static member function,
 /// retrieves the type of the receiver. Returns nullptr, if the receiver-type
 /// could not be extracted
@@ -70,25 +75,16 @@ getReceiverType(const llvm::CallBase *CallSite);
 [[nodiscard]] bool isVirtualCall(const llvm::Instruction *Inst,
                                  const LLVMVFTableProvider &VTP);
 
+/// A variant of F->hasAddressTaken() that is better suited for our use cases.
+///
+/// Especially, it filteres out global aliases.
+[[nodiscard]] bool isAddressTakenFunction(const llvm::Function *F);
+
 /// \brief A base class for call-target resolvers. Used to build call graphs.
 ///
 /// Create a specific resolver by making a new class, inheriting this resolver
 /// class and implementing the virtual functions as needed.
 class Resolver {
-protected:
-  const LLVMProjectIRDB *IRDB;
-  const LLVMVFTableProvider *VTP;
-
-  const llvm::Function *
-  getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
-                            const llvm::CallBase *CallSite,
-                            const llvm::DIType *ReceiverType) {
-    if (!VTP) {
-      return nullptr;
-    }
-    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP, ReceiverType);
-  }
-
 public:
   using FunctionSetTy = llvm::SmallDenseSet<const llvm::Function *, 4>;
 
@@ -96,17 +92,23 @@ public:
 
   virtual ~Resolver() = default;
 
-  virtual void preCall(const llvm::Instruction *Inst);
+  [[deprecated("With the removal of DTAResolver, this is not used "
+               "anymore")]] virtual void
+  preCall(const llvm::Instruction *Inst);
 
   virtual void handlePossibleTargets(const llvm::CallBase *CallSite,
                                      FunctionSetTy &PossibleTargets);
 
-  virtual void postCall(const llvm::Instruction *Inst);
+  [[deprecated("With the removal of DTAResolver, this is not used "
+               "anymore")]] virtual void
+  postCall(const llvm::Instruction *Inst);
 
   [[nodiscard]] FunctionSetTy
   resolveIndirectCall(const llvm::CallBase *CallSite);
 
-  virtual void otherInst(const llvm::Instruction *Inst);
+  [[deprecated("With the removal of DTAResolver, this is not used "
+               "anymore")]] virtual void
+  otherInst(const llvm::Instruction *Inst);
 
   [[nodiscard]] virtual std::string str() const = 0;
 
@@ -118,6 +120,9 @@ public:
     // Conservatively returns true. Override if possible
     return true;
   }
+
+  [[nodiscard]] llvm::ArrayRef<const llvm::Function *>
+  getAddressTakenFunctions();
 
   struct DefaultBaseResolverProvider {
     MaybeUniquePtr<Resolver> operator()(const LLVMProjectIRDB *IRDB,
@@ -141,6 +146,23 @@ protected:
 
   virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
                                       const llvm::CallBase *CallSite);
+
+  const llvm::Function *
+  getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
+                            const llvm::CallBase *CallSite,
+                            const llvm::DIType *ReceiverType) {
+    if (!VTP) {
+      return nullptr;
+    }
+    return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP, ReceiverType);
+  }
+
+  // ---
+
+  const LLVMProjectIRDB *IRDB{};
+  const LLVMVFTableProvider *VTP{};
+  std::optional<llvm::SmallVector<const llvm::Function *, 0>>
+      AddressTakenFunctions{};
 };
 } // namespace psr
 

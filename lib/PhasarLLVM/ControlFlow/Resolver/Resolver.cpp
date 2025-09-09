@@ -36,12 +36,15 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 #include <optional>
+
+using namespace psr;
 
 std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
@@ -62,13 +65,27 @@ std::optional<unsigned> psr::getVFTIndex(const llvm::CallBase *CallSite) {
   return std::nullopt;
 }
 
-static const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy) {
-  while (const auto *DerivedTy =
-             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
-    // get rid of the pointer
-    DITy = DerivedTy->getBaseType();
+std::optional<std::pair<const llvm::Value *, uint64_t>>
+psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
+  // deal with a virtual member function
+  // retrieve the vtable entry that is called
+  const auto *Load =
+      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
+  if (Load == nullptr) {
+    return std::nullopt;
   }
-  return DITy;
+
+  const auto *GEP =
+      llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
+  if (GEP == nullptr) {
+    return std::nullopt;
+  }
+
+  if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
+    return {{GEP->getPointerOperand(), CI->getZExtValue()}};
+  }
+
+  return std::nullopt;
 }
 
 const llvm::DIType *psr::getReceiverType(const llvm::CallBase *CallSite) {
@@ -164,7 +181,59 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   return Idx >= 0;
 }
 
-namespace psr {
+// Derived from LLVM's llvm::Function::hasAddressTaken()
+static bool isAddressTakenImpl(const llvm::Value *F) {
+  if (!F) {
+    return false;
+  }
+
+  for (const auto &Use : F->uses()) {
+    const auto *User = Use.getUser();
+
+    if (llvm::isa<llvm::GlobalAlias>(User)) {
+      if (isAddressTakenImpl(User)) {
+        return true;
+      }
+
+      continue;
+    }
+
+    if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(User)) {
+      if (Glob->getName() == "llvm.compiler.used" ||
+          Glob->getName() == "llvm.used") {
+        continue;
+      }
+
+      return true;
+    }
+
+    const auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
+    if (!Call) {
+      return true;
+    }
+
+    if (Call->isDebugOrPseudoInst()) {
+      continue;
+    }
+
+    const auto *Intrinsic = llvm::dyn_cast<llvm::IntrinsicInst>(Call);
+    if (Intrinsic && Intrinsic->isAssumeLikeIntrinsic()) {
+      continue;
+    }
+
+    if (Call->isCallee(&Use)) {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+bool psr::isAddressTakenFunction(const llvm::Function *F) {
+  return isAddressTakenImpl(F);
+}
 
 Resolver::Resolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP)
     : IRDB(IRDB), VTP(VTP) {
@@ -192,6 +261,21 @@ auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
   return PossibleTargets;
 }
 
+llvm::ArrayRef<const llvm::Function *> Resolver::getAddressTakenFunctions() {
+  if (!AddressTakenFunctions) {
+    auto &ATF = AddressTakenFunctions.emplace();
+    // XXX: Find better heuristic
+    ATF.reserve(IRDB->getNumFunctions() / 2);
+    for (const auto *F : IRDB->getAllFunctions()) {
+      if (isAddressTakenFunction(F)) {
+        ATF.push_back(F);
+      }
+    }
+  }
+
+  return *AddressTakenFunctions;
+}
+
 void Resolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
                                       const llvm::CallBase *CallSite) {
   // we may wish to optimise this function
@@ -200,8 +284,8 @@ void Resolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
   PHASAR_LOG_LEVEL(DEBUG,
                    "Call function pointer: " << llvmIRToString(CallSite));
 
-  for (const auto *F : IRDB->getAllFunctions()) {
-    if (F->hasAddressTaken() && isConsistentCall(CallSite, F)) {
+  for (const auto *F : getAddressTakenFunctions()) {
+    if (isConsistentCall(CallSite, F)) {
       PossibleTargets.insert(F);
     }
   }
@@ -251,5 +335,3 @@ std::unique_ptr<Resolver> Resolver::create(
   llvm_unreachable("All possible callgraph algorithms should be handled in the "
                    "above switch");
 }
-
-} // namespace psr

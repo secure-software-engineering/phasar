@@ -20,6 +20,7 @@
 #include "llvm/IR/PassManager.h"
 
 #include <set>
+#include <vector>
 
 namespace llvm {
 class Type;
@@ -27,6 +28,7 @@ class Value;
 class Instruction;
 class AnalysisUsage;
 class Module;
+class DICompositeType;
 } // namespace llvm
 
 namespace psr {
@@ -67,7 +69,7 @@ struct GeneralStatistics {
   size_t NumInstWithMultipleUses = 0;
   size_t NumInstsUsedOutsideBB = 0;
   size_t NonVoidInsts = 0;
-  std::set<const llvm::Type *> AllocatedTypes;
+  std::vector<const llvm::DICompositeType *> AllocatedTypes;
   std::set<const llvm::Instruction *> AllocaInstructions;
   std::set<const llvm::Instruction *> RetResInstructions;
   std::string ModuleName{};

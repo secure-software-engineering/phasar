@@ -129,7 +129,8 @@ protected:
         *HA, EntryPoints, Generator);
 
     IDESolver IIASolver(IIAProblem, &HA->getICFG());
-    IIASolver.solve();
+    // IterativeIDESolver IIASolver(&IIAProblem, &HA->getICFG());
+    auto Results = IIASolver.solve();
 
     // do the comparison
     for (const auto &[InstLoc, VarName, ExpectedVal] : GroundTruth) {
@@ -157,7 +158,7 @@ protected:
       IIASolver.dumpResults(llvm::errs());
       llvm::errs()
           << "\n======================================================\n";
-      printDump(HA->getProjectIRDB(), IIASolver.getSolverResults());
+      printDump(HA->getProjectIRDB(), Results);
     }
   }
 
@@ -166,10 +167,10 @@ protected:
   }
 
   // See vara::PhasarTaintAnalysis::taintsForInst
-  [[nodiscard]] inline TaintSetT
-  taintsForInst(const llvm::Instruction *Inst,
-                SolverResults<const llvm::Instruction *, const llvm::Value *,
-                              IDEFeatureTaintEdgeFact> SR) {
+  [[nodiscard]] inline TaintSetT taintsForInst(
+      const llvm::Instruction *Inst,
+      GenericSolverResults<const llvm::Instruction *, const llvm::Value *,
+                           IDEFeatureTaintEdgeFact> SR) {
 
     if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(Inst)) {
       if (Ret->getNumOperands() == 0) {
@@ -205,10 +206,11 @@ protected:
     return AggregatedTaints;
   }
 
-  void printDump(const LLVMProjectIRDB &IRDB,
-                 SolverResults<const llvm::Instruction *, const llvm::Value *,
-                               IDEFeatureTaintEdgeFact>
-                     SR) {
+  void
+  printDump(const LLVMProjectIRDB &IRDB,
+            GenericSolverResults<const llvm::Instruction *, const llvm::Value *,
+                                 IDEFeatureTaintEdgeFact>
+                SR) {
     const llvm::Function *CurrFun = nullptr;
     for (const auto *Inst : IRDB.getAllInstructions()) {
       if (CurrFun != Inst->getFunction()) {
