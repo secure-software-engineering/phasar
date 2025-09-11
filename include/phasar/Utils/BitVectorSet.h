@@ -7,22 +7,25 @@
  *     Philipp Schubert and Richard Leer
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_BITVECTORSET_H_
-#define PHASAR_UTILS_BITVECTORSET_H_
+#ifndef PHASAR_UTILS_BITVECTORSET_H
+#define PHASAR_UTILS_BITVECTORSET_H
+
+#include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/Fn.h"
 
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include "boost/bimap.hpp"
-#include "boost/bimap/unordered_set_of.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <initializer_list>
+#include <iterator>
 
 namespace psr {
 namespace internal {
@@ -61,122 +64,68 @@ inline llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
 }
 } // namespace internal
 
-/**
- * BitVectorSet implements a set that requires minimal space. Elements are
- * kept in a static map and the set itself only stores a vector of bits which
- * indicate whether elements are contained in the set.
- *
- * @brief Implements a set that requires minimal space.
- */
+/// BitVectorSet implements a set that requires minimal space. Elements are
+/// kept in a static map and the set itself only stores a vector of bits which
+/// indicate whether elements are contained in the set.
+///
+/// \brief Implements a set that requires minimal space.
+/// \attention This data-structure is NOT thread-safe, since it relies on static
+/// storage!
+///
 template <typename T, typename BitVectorTy = llvm::BitVector>
 class BitVectorSet {
-public:
-  // Using boost::hash<T> causes ambiguity for hash_value():
-  //  -<llvm/ADT/Hashing.h>
-  //  -<boost/functional/hash/extensions.hpp>
-  //  -<boost/graph/adjacency_list.hpp>
-  using bimap_t = boost::bimap<boost::bimaps::unordered_set_of<T, std::hash<T>>,
-                               boost::bimaps::unordered_set_of<size_t>>;
 
-private:
-  inline static bimap_t Position; // NOLINT
-  BitVectorTy Bits;
+  static ByConstRef<T> iterTransform(uint32_t Idx) {
+    assert(Position.inbounds(Idx));
+    return Position[Idx];
+  }
 
-  template <typename D> class BitVectorSetIterator {
-    BitVectorTy Bits;
+  // using IteratorTy =
+  //     llvm::mapped_iterator<typename BitVectorTy::const_set_bits_iterator,
+  //                           fn_t<iterTransform>>;
 
+  // Unfortunately cannot use llvm::mapped_iterator, since the
+  // const_set_bits_iterator does not properly implement the iterator interface
+  // (typename iterator_category is missing)
+  class IteratorTy {
   public:
+    using value_type = T;
+    using reference = ByConstRef<T>;
+    using pointer = const T *;
+    using difference_type = ptrdiff_t;
     using iterator_category = std::forward_iterator_tag;
-    using value_type = D;
-    using difference_type = std::ptrdiff_t;
-    using pointer = D *;
-    using reference = D &;
-    BitVectorSetIterator(D Ptr = nullptr) : PosPtr(Ptr) {}
 
-    BitVectorSetIterator<D> &operator=(D *Ptr) {
-      PosPtr = Ptr;
+    constexpr IteratorTy(typename BitVectorTy::const_set_bits_iterator It,
+                         fn_t<iterTransform> Txn = {}) noexcept
+        : It(std::move(It)), Txn(Txn) {}
+
+    IteratorTy &operator++() {
+      ++It;
       return *this;
     }
-
-    void setBits(const BitVectorTy &OtherBits) { Bits = OtherBits; }
-
-    bool operator==(const BitVectorSetIterator<D> &OtherIterator) const {
-      return PosPtr == OtherIterator.getPtr();
-    }
-
-    bool operator!=(const BitVectorSetIterator<D> &OtherIterator) const {
-      return !(*this == OtherIterator);
-    }
-
-    BitVectorSetIterator<D> &operator+=(const difference_type &Movement) {
-      for (difference_type I = 0; I < Movement; I++) {
-        PosPtr++;
-      }
-      return *this;
-    }
-
-    BitVectorSetIterator<D> &operator++() {
-      do {
-        int NextIdx = Bits.find_next(PosPtr->first);
-
-        if (NextIdx <= static_cast<int>(PosPtr->first)) {
-          PosPtr = Position.right.find(Bits.size());
-          break;
-        }
-
-        PosPtr = Position.right.find(NextIdx);
-
-        assert(PosPtr->first < Bits.size() &&
-               "pos_ptr->first index into BitVector out of range");
-      } while (!Bits[PosPtr->first]);
-
-      return *this;
-    }
-
-    BitVectorSetIterator<D> operator++(int) {
-      auto Temp(*this);
+    IteratorTy operator++(int) {
+      auto Cpy = *this;
       ++*this;
-      return Temp;
+      return Cpy;
     }
 
-    BitVectorSetIterator<D> operator+(const difference_type &Movement) {
-      auto OldPtr = PosPtr;
-      for (difference_type I = 0; I < Movement; I++) {
-        PosPtr++;
-      }
-      auto Temp(*this);
-      PosPtr = OldPtr;
-      return Temp;
+    [[nodiscard]] reference operator*() const { return Txn(*It); }
+
+    [[nodiscard]] bool operator==(const IteratorTy &Other) const {
+      return It == Other.It;
     }
-
-    difference_type operator-(const BitVectorSetIterator<D> &OtherIterator) {
-      return std::distance(OtherIterator.getPtr(), this->getPtr());
+    [[nodiscard]] bool operator!=(const IteratorTy &Other) const {
+      return !(*this == Other);
     }
-
-    // T& operator*(){return pos_ptr->second;}
-
-    const T &operator*() const { return PosPtr->second; }
-
-    D *operator->() { return PosPtr; }
-
-    [[nodiscard]] D getPtr() const { return PosPtr; }
-
-    // const D* getConstPtr()const{return pos_ptr;}
-
-    // T getPos() {return pos_ptr->first;}
-
-    // T getVal() {return pos_ptr->second;}
-
-    [[nodiscard]] const BitVectorTy &getBits() const { return Bits; }
 
   private:
-    D PosPtr;
+    typename BitVectorTy::const_set_bits_iterator It;
+    [[no_unique_address]] fn_t<iterTransform> Txn;
   };
 
 public:
-  using iterator = BitVectorSetIterator<typename bimap_t::right_iterator>;
-  using const_iterator =
-      BitVectorSetIterator<typename bimap_t::right_const_iterator>;
+  using const_iterator = IteratorTy;
+  using iterator = const_iterator;
   using value_type = T;
 
   BitVectorSet() = default;
@@ -187,11 +136,12 @@ public:
     insert(IList.begin(), IList.end());
   }
 
-  template <typename InputIt> BitVectorSet(InputIt First, InputIt Last) {
+  template <typename InputIt>
+  explicit BitVectorSet(InputIt First, InputIt Last) {
     insert(First, Last);
   }
 
-  static BitVectorSet fromBits(BitVectorTy Bits) {
+  [[nodiscard]] static BitVectorSet fromBits(BitVectorTy Bits) {
     BitVectorSet Ret;
     Ret.Bits = std::move(Bits);
     return Ret;
@@ -225,22 +175,13 @@ public:
   }
 
   void insert(const T &Data) {
-    auto Search = Position.left.find(Data);
-    // Data already known
-    if (Search != Position.left.end()) {
-      if (Bits.size() <= Search->second) {
-        Bits.resize(Search->second + 1);
-      }
-      Bits.set(Search->second);
-    } else {
-      // Data unknown
-      size_t Idx = Position.left.size();
-      Position.left.insert(std::make_pair(Data, Position.left.size()));
-      if (Bits.size() <= Position.left.size()) {
-        Bits.resize(Position.left.size());
-      }
-      Bits.set(Idx);
+    uint32_t Idx = Position.getOrInsert(Data);
+
+    if (Idx >= Bits.size()) {
+      Bits.resize(Idx + 1);
     }
+
+    Bits.set(Idx);
   }
 
   void insert(const BitVectorSet<T> &Other) { Bits |= Other.Bits; }
@@ -253,10 +194,9 @@ public:
   }
 
   void erase(const T &Data) noexcept {
-    auto Search = Position.left.find(Data);
-    if (Search != Position.left.end()) {
-      if (Bits.size() > Search->second) {
-        Bits.reset(Search->second);
+    if (auto Idx = Position.getOrNull(Data)) {
+      if (*Idx < Bits.size()) {
+        Bits.reset(*Idx);
       }
     }
   }
@@ -281,12 +221,10 @@ public:
   [[nodiscard]] bool find(const T &Data) const noexcept { return count(Data); }
 
   [[nodiscard]] size_t count(const T &Data) const noexcept {
-    auto Search = Position.left.find(Data);
-    if (Search != Position.left.end()) {
-      if (Bits.size() > Search->second) {
-        return Bits[Search->second];
-      }
+    if (auto Idx = Position.getOrNull(Data)) {
+      return (*Idx < Bits.size() && Bits.test(*Idx)) ? 1 : 0;
     }
+
     return 0;
   }
 
@@ -347,56 +285,28 @@ public:
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const BitVectorSet &B) {
     OS << '<';
-    size_t Idx = 0;
-    for (auto &Position : B.Position.left) {
-      if (Position.second < B.Bits.size() && B.Bits[Position.second]) {
-        ++Idx;
-        OS << Position.first;
-        if (Idx < B.size()) {
-          OS << ", ";
-        }
-      }
-    }
-    OS << '>';
-    return OS;
+    llvm::interleaveComma(B, OS);
+    return OS << '>';
   }
 
-  [[nodiscard]] iterator begin() {
-    int Index = Bits.find_first();
-    if (Index == -1) {
-      Index = Bits.size();
-    }
-    iterator BeginIter(Position.right.find(Index));
-    BeginIter.setBits(Bits);
-    return BeginIter;
+  [[nodiscard]] const_iterator begin() const noexcept {
+    return {Bits.set_bits_begin(), {}};
+  }
+  [[nodiscard]] const_iterator end() const noexcept {
+    return {Bits.set_bits_end(), {}};
   }
 
-  [[nodiscard]] iterator end() {
-    iterator EndIter(Position.right.find(Bits.size()));
-    EndIter.setBits(Bits);
-    return EndIter;
+  [[nodiscard]] iterator begin() noexcept {
+    return {Bits.set_bits_begin(), {}};
   }
+  [[nodiscard]] iterator end() noexcept { return {Bits.set_bits_end(), {}}; }
 
-  [[nodiscard]] const_iterator begin() const {
-    int Index = Bits.find_first();
-    if (Index == -1) {
-      Index = Bits.size();
-    }
-    const_iterator BeginIter(Position.right.find(Index));
-    BeginIter.setBits(Bits);
-    return BeginIter;
-  }
+  static void clearPosition() noexcept { Position.clear(); }
 
-  [[nodiscard]] const_iterator end() const {
-    const_iterator EndIter(Position.right.find(Bits.size()));
-    EndIter.setBits(Bits);
-    return EndIter;
-  }
+private:
+  inline static Compressor<T> Position;
 
-  static void clearPosition() {
-    Position.left.clear();
-    Position.right.clear();
-  }
+  BitVectorTy Bits;
 };
 
 // Overloads with the other intersectWith functions from Utilities.h
