@@ -118,8 +118,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a>&gt;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keyword">constexpr</span> std::invoke_result_t&lt;<span class="keyword">decltype</span>(F), <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a>...&gt;</div>
 <div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="structpsr_1_1fn__t.html#ab61623bb05269954579940046b1cc574">   27</a></span>  <span class="keyword">operator</span>()(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a> &amp;&amp;...Args) <span class="keyword">noexcept</span>(</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      std::is_nothrow_invocable_v&lt;<span class="keyword">decltype</span>(F), <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a>...&gt;) {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="structpsr_1_1fn__t.html#a580c1724afc1bc5749610c5416275f1c">   27</a></span>  <span class="keyword">operator</span>()(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a> &amp;&amp;...Args) <span class="keyword">const</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      <span class="keyword">noexcept</span>(std::is_nothrow_invocable_v&lt;<span class="keyword">decltype</span>(F), <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a>...&gt;) {</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keywordflow">return</span> std::invoke(F, <a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>)...);</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  }</div>
 </div>
@@ -145,7 +145,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 8 2025 15:16:05 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 11 2025 16:05:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -93,7 +93,7 @@ $(document).ready(function() { init_codefold(0); });
 <a href="IterativeIDESolverResults_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVERRESULTS_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVERRESULTS_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="Compressor_8h.html">phasar/DataFlow/IfdsIde/Solver/Compressor.h</a>&quot;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="DataFlow_2IfdsIde_2Solver_2Compressor_8h.html">phasar/DataFlow/IfdsIde/Solver/Compressor.h</a>&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;<a class="code" href="BinaryDomain_8h.html">phasar/Domain/BinaryDomain.h</a>&quot;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="ByRef_8h.html">phasar/Utils/ByRef.h</a>&quot;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="Table_8h.html">phasar/Utils/Table.h</a>&quot;</span></div>
@@ -148,7 +148,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_ITERATIVEIDESOLVERRESULTS_H</span></div>
 <div class="ttc" id="aBinaryDomain_8h_html"><div class="ttname"><a href="BinaryDomain_8h.html">BinaryDomain.h</a></div></div>
 <div class="ttc" id="aByRef_8h_html"><div class="ttname"><a href="ByRef_8h.html">ByRef.h</a></div></div>
-<div class="ttc" id="aCompressor_8h_html"><div class="ttname"><a href="Compressor_8h.html">Compressor.h</a></div></div>
+<div class="ttc" id="aDataFlow_2IfdsIde_2Solver_2Compressor_8h_html"><div class="ttname"><a href="DataFlow_2IfdsIde_2Solver_2Compressor_8h.html">Compressor.h</a></div></div>
 <div class="ttc" id="aTableWrappers_8h_html"><div class="ttname"><a href="TableWrappers_8h.html">TableWrappers.h</a></div></div>
 <div class="ttc" id="aTable_8h_html"><div class="ttname"><a href="Table_8h.html">Table.h</a></div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
@@ -156,12 +156,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_1_1detail_html_a3bab5f69ef503f777c83fd7cdb600a1c"><div class="ttname"><a href="namespacepsr_1_1detail.html#a3bab5f69ef503f777c83fd7cdb600a1c">psr::detail::IterativeIDESolverResults_P</a></div><div class="ttdeci">IterativeIDESolverResults&lt; typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t, typename AnalysisDomainTy::l_t &gt; IterativeIDESolverResults_P</div><div class="ttdef"><b>Definition</b> <a href="IterativeIDESolverResults_8h_source.html#l00050">IterativeIDESolverResults.h:53</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
-<div class="ttc" id="astructpsr_1_1NodeCompressorTraits_html_a1cb36d480e233a901fdf905f657007a8"><div class="ttname"><a href="structpsr_1_1NodeCompressorTraits.html#a1cb36d480e233a901fdf905f657007a8">psr::NodeCompressorTraits::type</a></div><div class="ttdeci">Compressor&lt; T &gt; type</div><div class="ttdef"><b>Definition</b> <a href="Compressor_8h_source.html#l00186">Compressor.h:186</a></div></div>
-<div class="ttc" id="astructpsr_1_1ValCompressorTraits_html_a0009ea6721d1fc7c970779c62b20b9fe"><div class="ttname"><a href="structpsr_1_1ValCompressorTraits.html#a0009ea6721d1fc7c970779c62b20b9fe">psr::ValCompressorTraits::type</a></div><div class="ttdeci">Compressor&lt; T &gt; type</div><div class="ttdef"><b>Definition</b> <a href="Compressor_8h_source.html#l00195">Compressor.h:195</a></div></div>
+<div class="ttc" id="astructpsr_1_1NodeCompressorTraits_html_a1cb36d480e233a901fdf905f657007a8"><div class="ttname"><a href="structpsr_1_1NodeCompressorTraits.html#a1cb36d480e233a901fdf905f657007a8">psr::NodeCompressorTraits::type</a></div><div class="ttdeci">Compressor&lt; T &gt; type</div><div class="ttdef"><b>Definition</b> <a href="DataFlow_2IfdsIde_2Solver_2Compressor_8h_source.html#l00040">Compressor.h:40</a></div></div>
+<div class="ttc" id="astructpsr_1_1ValCompressorTraits_html_a0009ea6721d1fc7c970779c62b20b9fe"><div class="ttname"><a href="structpsr_1_1ValCompressorTraits.html#a0009ea6721d1fc7c970779c62b20b9fe">psr::ValCompressorTraits::type</a></div><div class="ttdeci">Compressor&lt; T &gt; type</div><div class="ttdef"><b>Definition</b> <a href="DataFlow_2IfdsIde_2Solver_2Compressor_8h_source.html#l00049">Compressor.h:49</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 8 2025 15:16:04 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 11 2025 16:05:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

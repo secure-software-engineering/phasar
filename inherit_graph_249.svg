@@ -11,12 +11,12 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="structpsr_1_1IterativeIDESolverBase_1_1InterPropagationJobRefDSI.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="structpsr_1_1IterativeIDESolverBase_1_1InterPropagationJobRef.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="183,-52 0,-52 0,0 183,0 183,-52"/>
 <text text-anchor="start" x="8" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IterativeIDESolverBase</text>
 <text text-anchor="start" x="8" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; StaticSolverConfigTy,</text>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00"> EdgeFunPtrTy &gt;::InterPropagation</text>
-<text text-anchor="middle" x="91.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">JobRefDSI</text>
+<text text-anchor="middle" x="91.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">JobRef</text>
 </a>
 </g>
 </g>

@@ -14,7 +14,7 @@
 <g id="a_Node000000"><a xlink:href="structpsr_1_1NonTopBotValue.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="117,-30 0,-30 0,0 117,0 117,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">psr::NonTopBotValue</text>
-<text text-anchor="middle" x="58.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; l_t &gt;</text>
+<text text-anchor="middle" x="58.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; L, typename &gt;</text>
 </a>
 </g>
 </g>

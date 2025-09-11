@@ -11,12 +11,12 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="classtypename_01std_1_1allocator__traits_3_01std_1_1allocator_3_01psr_1_1EquivalenceClassMapNG_3f4a5f42ee3fed040fca98c18abc58fe2.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="classtypename_01std_1_1allocator__traits_3_01std_1_1allocator_3_01psr_1_1EquivalenceClassMapNG_39b90bac1c4e8950d0b5e50f7317a39bc.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="170,-52 0,-52 0,0 170,0 170,-52"/>
 <text text-anchor="start" x="8" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00">template rebind_alloc</text>
 <text text-anchor="start" x="8" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; psr::EquivalenceClassMapNG</text>
-<text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; uint64_t, EdgeFunction&lt;</text>
-<text text-anchor="middle" x="85" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00"> l_t &gt; &gt; &gt;</text>
+<text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; std::pair&lt; uint64_t, uint64</text>
+<text text-anchor="middle" x="85" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">_t &gt;, EdgeFunction&lt; l_t &gt; &gt; &gt;</text>
 </a>
 </g>
 </g>
