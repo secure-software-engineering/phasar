@@ -9,10 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
@@ -21,17 +18,17 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Metadata.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <algorithm>
 #include <utility>
 
 namespace psr::detail {
@@ -284,59 +281,23 @@ auto IDETypeStateAnalysisBase::getLocalAliasesAndAllocas(
   return AliasAndAllocas;
 }
 
-bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::Type *Ty) {
-  if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty);
-      StructTy && StructTy->hasName()) {
-    return isTypeNameOfInterest(StructTy->getName());
+bool IDETypeStateAnalysisBase::hasMatchingTypeName(const llvm::DIType *DITy) {
+  if (llvm::isa<llvm::DICompositeType>(DITy) && !DITy->getName().empty()) {
+    return isTypeNameOfInterest(DITy->getName());
   }
-  // primitive type
-  std::string Str;
-  llvm::raw_string_ostream S(Str);
-  S << *Ty;
-  S.flush();
-  return isTypeNameOfInterest(Str);
+
+  return true; // Conservatively return true
 }
 
 bool IDETypeStateAnalysisBase::hasMatchingType(d_t V) {
-  // General case
-  if (V->getType()->isPointerTy() && !V->getType()->isOpaquePointerTy()) {
-    if (hasMatchingTypeName(V->getType()->getNonOpaquePointerElementType())) {
-      return true;
+  if (const auto *VarTy = getVarTypeFromIR(V)) {
+    if (const auto *BaseTy = stripPointerTypes(VarTy)) {
+      return hasMatchingTypeName(BaseTy);
     }
-    // fallthrough
-  }
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
-    if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (Alloca->getAllocatedType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Alloca->getAllocatedType()->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
-  }
-  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
-    if (Load->getType()->isPointerTy()) {
-      if (Load->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(
-              Load->getType()->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
-  }
-  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
-    if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (Store->getValueOperand()->getType()->isOpaquePointerTy() ||
-          hasMatchingTypeName(Store->getValueOperand()
-                                  ->getType()
-                                  ->getNonOpaquePointerElementType())) {
-        return true;
-      }
-    }
-    return false;
-  }
-  return false;
-}
 
+    return isTypeNameOfInterest(VarTy->getName());
+  }
+
+  return true;
+}
 } // namespace psr::detail

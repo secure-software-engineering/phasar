@@ -235,6 +235,34 @@ std::string psr::llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
   return IRBuffer;
 }
 
+std::string psr::llvmTypeToString(const llvm::DIType *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+
+  std::string Ret;
+
+  if (Shorten) {
+    Ret = Ty->getName().str();
+    if (!Ret.empty()) {
+      // Try to get a fully-qualified name
+
+      const auto *Scope = Ty->getScope();
+      while (llvm::isa_and_nonnull<llvm::DINamespace, llvm::DISubprogram,
+                                   llvm::DIType>(Scope)) {
+        // XXX: Optimize this
+        Ret = Scope->getName().str().append("::").append(Ret);
+        Scope = Scope->getScope();
+      }
+      return Ret;
+    }
+  }
+
+  llvm::raw_string_ostream RSO(Ret);
+  Ty->print(RSO);
+  return Ret;
+}
+
 void psr::dumpIRValue(const llvm::Value *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
@@ -616,4 +644,13 @@ bool psr::isVaListAlloca(const llvm::AllocaInst &Alloc) {
   }
 
   return false;
+}
+
+const llvm::DIType *psr::stripPointerTypes(const llvm::DIType *DITy) {
+  while (const auto *DerivedTy =
+             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+    // get rid of the pointer
+    DITy = DerivedTy->getBaseType();
+  }
+  return DITy;
 }
