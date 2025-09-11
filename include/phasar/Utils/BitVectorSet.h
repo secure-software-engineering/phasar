@@ -177,7 +177,7 @@ public:
   void insert(const T &Data) {
     uint32_t Idx = Position.getOrInsert(Data);
 
-    if (Bits.size() <= Idx) {
+    if (Idx >= Bits.size()) {
       Bits.resize(Idx + 1);
     }
 
@@ -195,7 +195,7 @@ public:
 
   void erase(const T &Data) noexcept {
     if (auto Idx = Position.getOrNull(Data)) {
-      if (Bits.size() > *Idx) {
+      if (*Idx < Bits.size()) {
         Bits.reset(*Idx);
       }
     }
@@ -222,7 +222,7 @@ public:
 
   [[nodiscard]] size_t count(const T &Data) const noexcept {
     if (auto Idx = Position.getOrNull(Data)) {
-      return (Bits.size() > *Idx && Bits.test(*Idx)) ? 1 : 0;
+      return (*Idx < Bits.size() && Bits.test(*Idx)) ? 1 : 0;
     }
 
     return 0;
@@ -285,11 +285,7 @@ public:
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const BitVectorSet &B) {
     OS << '<';
-
-    llvm::interleave(
-        B.Bits.set_bits_begin(), B.Bits.set_bits_end(),
-        [&](uint32_t Idx) { OS << Position[Idx]; }, [&] { OS << ", "; });
-
+    llvm::interleaveComma(B, OS);
     return OS << '>';
   }
 
