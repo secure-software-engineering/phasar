@@ -154,16 +154,14 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// Gets a const range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static constexpr llvm::ArrayRef<value_type>
-  nodes(const graph_type &G) noexcept {
+  static constexpr const auto &nodes(const graph_type &G) noexcept {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
   /// Gets a mutable range of all nodes in graph G
   template <typename TT = value_type,
             typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static constexpr llvm::MutableArrayRef<value_type>
-  nodes(graph_type &G) noexcept {
+  static constexpr auto &nodes(graph_type &G) noexcept {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }

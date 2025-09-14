@@ -93,6 +93,9 @@ public:
     Vec.push_back(std::move(Val));
   }
 
+  void pop_back() { Vec.pop_back(); }
+  [[nodiscard]] ValueT pop_back_val() { return Vec.pop_back_val(); }
+
   [[nodiscard]] bool operator==(const TypedVector &Other) const noexcept {
     return Vec == Other.Vec;
   }
