@@ -21,7 +21,7 @@
 #include "llvm/ADT/STLFunctionalExtras.h"
 
 namespace psr {
-///\brief A Resolver that uses a variant of the Variable Type Analysis to
+/// \brief A Resolver that uses a variant of the Variable Type Analysis to
 /// resolver indirect calls.
 ///
 /// Uses debug-information to achieve better results with C++ virtual calls.

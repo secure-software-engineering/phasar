@@ -15,6 +15,7 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -34,6 +35,7 @@
 #include "phasar/Utils/StableVector.h"
 #include "phasar/Utils/Table.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
 
 #endif // PHASAR_UTILS_H

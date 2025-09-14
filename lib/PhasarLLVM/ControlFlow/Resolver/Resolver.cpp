@@ -162,22 +162,13 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   // check potential receiver type
   const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
-    // llvm::errs() << "No receiver type found for call at "
-    //              << llvmIRToString(Inst) << '\n';
     return false;
   }
 
   if (!VTP.hasVFTable(RecType)) {
-    // llvm::errs() << "Receiver type has no vtable: " <<
-    // llvmTypeToString(RecType)
-    //              << " for call at " << llvmIRToString(Inst) << '\n';
     return false;
   }
   auto Idx = getVFTIndex(CallSite);
-  // llvm::errs() << "Retrieved Vtable index is: " << Idx << " for receiver-type
-  // "
-  //              << llvmTypeToString(RecType) << " for call at "
-  //              << llvmIRToString(Inst) << '\n';
   return Idx >= 0;
 }
 

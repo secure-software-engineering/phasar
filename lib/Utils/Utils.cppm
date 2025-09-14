@@ -1,13 +1,16 @@
 module;
 
 #include "phasar/Utils/AdjacencyList.h"
+#include "phasar/Utils/AlignNum.h"
 #include "phasar/Utils/AnalysisPrinterBase.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/Average.h"
+#include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/BoxedPointer.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/ChronoUtils.h"
+#include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/DOTGraph.h"
 #include "phasar/Utils/DebugOutput.h"
@@ -40,18 +43,22 @@ module;
 #include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/Timer.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
 
 export module phasar.utils;
 
 export namespace psr {
 using psr::AdjacencyList;
+using psr::AlignNum;
+using psr::AlignStr;
 using psr::AnalysisPrinterBase;
 using psr::AnalysisProperties;
 using psr::GraphTraits;
 using psr::to_string;
 using psr::operator<<;
 using psr::AnalysisPropertiesMixin;
+using psr::BitSet;
 using psr::BitVectorSet;
 using psr::BoxedConstPtr;
 using psr::BoxedPtr;
@@ -146,6 +153,7 @@ using psr::adl_to_string;
 using psr::AreEqualityComparable;
 using psr::assertAllNotNull;
 using psr::assertNotNull;
+using psr::Compressor;
 using psr::computePowerSet;
 using psr::computeSCCDependencies;
 using psr::computeSCCIterative;
@@ -201,13 +209,16 @@ using psr::SCCHolder;
 using psr::SCCId;
 using psr::SCCOrder;
 using psr::scope_exit;
+using psr::SimpleTimer;
 using psr::SmallDenseTable1d;
 using psr::StableVector;
 using psr::StringIDLess;
 using psr::Table;
 using psr::Timer;
 using psr::TrueFn;
+using psr::TypedVector;
 using psr::UnorderedSet;
 using psr::UnorderedTable1d;
 using psr::variant_idx;
+
 } // namespace psr

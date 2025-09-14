@@ -20,6 +20,7 @@ export namespace psr {
 using psr::buildLLVMBasedCallGraph;
 using psr::CFGTraits;
 using psr::CHAResolver;
+using psr::getDefaultEntryPoints;
 using psr::getEntryFunctions;
 using psr::getEntryFunctionsMut;
 using psr::getNonPureVirtualVFTEntry;

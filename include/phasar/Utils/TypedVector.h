@@ -23,6 +23,15 @@
 #include <utility>
 
 namespace psr {
+
+/// Wraps a llvm::SmallVector, allowing index-based access by IdT, instead of
+/// size_t.
+///
+/// \tparam IdT The index-type that should be used for operator[]. Must be
+/// losslessly convertible from and to size_t.
+/// \tparam ValueT The usual value_type of SmallVector.
+/// \tparam SmallSize The size of the inline-storange of SmallVector (default:
+/// 0)
 template <typename IdT, typename ValueT, unsigned SmallSize = 0>
 class TypedVector {
 public:

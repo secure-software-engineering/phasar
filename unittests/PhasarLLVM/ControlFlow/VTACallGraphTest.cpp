@@ -22,8 +22,10 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
@@ -71,13 +73,15 @@ psr::LLVMBasedCallGraph computeVTACallGraph(
   return psr::buildLLVMBasedCallGraph(IRDB, Res, getEntryPoints(IRDB));
 }
 
-//////////////////////////////
+using psr::unittest::LineColFunOp;
+using psr::unittest::TestingSrcLocation;
+
 class VTACallGraphTest : public ::testing::Test {
 protected:
   static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("");
 
   struct GroundTruthEntry {
-    size_t CSId;
+    TestingSrcLocation CSId;
     std::set<llvm::StringRef> Callees;
   };
 
@@ -97,7 +101,8 @@ protected:
     auto CG = computeVTACallGraph(IRDB, VTP, &AS, BaseCG);
 
     for (const auto &Entry : GT) {
-      const auto *CS = IRDB.getInstruction(Entry.CSId);
+      const auto *CS = llvm::cast<llvm::Instruction>(
+          psr::unittest::testingLocInIR(Entry.CSId, IRDB));
       ASSERT_NE(nullptr, CS);
       ASSERT_TRUE(llvm::isa<llvm::CallBase>(CS))
           << "CS " << psr::llvmIRToString(CS) << " is no call-site!";
@@ -122,17 +127,22 @@ protected:
 };
 
 TEST_F(VTACallGraphTest, VirtualCallSite_InterProcCallSite) {
-  doAnalysisAndCompareResults("virtual_callsites/interproc_callsite_cpp_dbg.ll",
-                              {
-                                  {17, {"_ZN7Derived3barEv"}},
-                              });
+  doAnalysisAndCompareResults(
+      "virtual_callsites/interproc_callsite_cpp_dbg.ll",
+      {
+          {LineColFunOp{11, 40, "_Z12callFunctionR4Base",
+                        llvm::Instruction::Call},
+           {"_ZN7Derived3barEv"}},
+      });
 }
 
 TEST_F(VTACallGraphTest, UninitializedVariables_VirtualCall) {
-  doAnalysisAndCompareResults("uninitialized_variables/virtual_call_cpp_dbg.ll",
-                              {
-                                  {34, {"_Z3barRi", "_Z3fooRi"}},
-                              });
+  doAnalysisAndCompareResults(
+      "uninitialized_variables/virtual_call_cpp_dbg.ll",
+      {
+          {LineColFunOp{16, 11, "main", llvm::Instruction::Call},
+           {"_Z3barRi", "_Z3fooRi"}},
+      });
 }
 
 TEST_F(VTACallGraphTest, PathTracing_Inter12) {
@@ -140,67 +150,85 @@ TEST_F(VTACallGraphTest, PathTracing_Inter12) {
   doAnalysisAndCompareResults(
       "path_tracing/inter_12_cpp_dbg.ll",
       {
-          {30, {"_ZN3TwoD0Ev", "_ZN5ThreeD0Ev"}},
-          {39, {"_ZN5Three11assignValueEi", "_ZN3Two11assignValueEi"}},
+          {LineColFunOp{16, 3, "main", llvm::Instruction::Call},
+           {"_ZN3TwoD0Ev", "_ZN5ThreeD0Ev"}},
+          {LineColFunOp{19, 13, "main", llvm::Instruction::Call},
+           {"_ZN5Three11assignValueEi", "_ZN3Two11assignValueEi"}},
       });
 }
 
 TEST_F(VTACallGraphTest, CallGraphs_FunctionPointer1) {
-  doAnalysisAndCompareResults("call_graphs/function_pointer_1_c.ll",
-                              {
-                                  {5, {"bar"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/function_pointer_1_c_dbg.ll",
+      {
+          {LineColFunOp{9, 27, "main", llvm::Instruction::Call}, {"bar"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_FunctionPointer2) {
-  doAnalysisAndCompareResults("call_graphs/function_pointer_2_cpp.ll",
-                              {
-                                  {8, {"_Z3barv"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/function_pointer_2_cpp_dbg.ll",
+      {
+          {LineColFunOp{8, 16, "main", llvm::Instruction::Call}, {"_Z3barv"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_FunctionPointer3) {
   // Note: Although bar is assigned (and part of the TAG), is does not qualify
   // as psr::isConsistentCall()
-  doAnalysisAndCompareResults("call_graphs/function_pointer_3_cpp.ll",
-                              {
-                                  {11, {/*"_Z3bari",*/ "_Z3foov"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/function_pointer_3_cpp_dbg.ll",
+      {
+          {LineColFunOp{10, 16, "main", llvm::Instruction::Call},
+           {/*"_Z3bari",*/ "_Z3foov"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall2) {
-  doAnalysisAndCompareResults("call_graphs/virtual_call_2_cpp_dbg.ll",
-                              {
-                                  {20, {"_ZN1B3fooEv"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/virtual_call_2_cpp_dbg.ll",
+      {
+          {LineColFunOp{15, 8, "main", llvm::Instruction::Invoke},
+           {"_ZN1B3fooEv"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall3) {
   // Use the dbg version, because VTA relies on !heapallocsite metadata
-  doAnalysisAndCompareResults("call_graphs/virtual_call_3_cpp_dbg.ll",
-                              {
-                                  {19, {"_ZN5AImpl3fooEv"}},
-                                  {26, {"_ZN5AImplD0Ev"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/virtual_call_3_cpp_dbg.ll",
+      {
+          {LineColFunOp{14, 0, "main", llvm::Instruction::Call},
+           {"_ZN5AImpl3fooEv"}},
+          {LineColFunOp{15, 3, "main", llvm::Instruction::Call},
+           {"_ZN5AImplD0Ev"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall4) {
-  doAnalysisAndCompareResults("call_graphs/virtual_call_4_cpp_dbg.ll",
-                              {
-                                  {20, {"_ZN1B3fooEv"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/virtual_call_4_cpp_dbg.ll",
+      {
+          {LineColFunOp{15, 0, "main", llvm::Instruction::Invoke},
+           {"_ZN1B3fooEv"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall5) {
   // Use the dbg version, because VTA relies on !heapallocsite metadata
-  doAnalysisAndCompareResults("call_graphs/virtual_call_5_cpp_dbg.ll",
-                              {
-                                  {21, {"_ZN1B5VfuncEv"}},
-                                  {28, {"_ZN1BD0Ev"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/virtual_call_5_cpp_dbg.ll",
+      {
+          {LineColFunOp{20, 6, "main", llvm::Instruction::Call},
+           {"_ZN1B5VfuncEv"}},
+          {LineColFunOp{22, 3, "main", llvm::Instruction::Call}, {"_ZN1BD0Ev"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall7) {
   // Use the dbg version, because VTA relies on !heapallocsite metadata
-  doAnalysisAndCompareResults("call_graphs/virtual_call_7_cpp_dbg.ll",
-                              {
-                                  {24, {"_ZN1A5VfuncEv"}},
-                                  {29, {"_ZN1B5VfuncEv"}},
-                                  {36, {"_ZN1AD0Ev"}},
-                              });
+  doAnalysisAndCompareResults(
+      "call_graphs/virtual_call_7_cpp_dbg.ll",
+      {
+          {LineColFunOp{19, 6, "main", llvm::Instruction::Call},
+           {"_ZN1A5VfuncEv"}},
+          {LineColFunOp{20, 6, "main", llvm::Instruction::Call},
+           {"_ZN1B5VfuncEv"}},
+          {LineColFunOp{22, 3, "main", llvm::Instruction::Call}, {"_ZN1AD0Ev"}},
+      });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall8) {
 
@@ -209,8 +237,10 @@ TEST_F(VTACallGraphTest, CallGraphs_VirtualCall8) {
   doAnalysisAndCompareResults(
       "call_graphs/virtual_call_8_cpp_dbg.ll",
       {
-          {22, {"_ZZ4mainEN1B3fooEv", "_ZZ4mainEN1C3fooEv"}},
-          {27, {"_ZZ4mainEN1B3fooEv", "_ZZ4mainEN1C3fooEv"}},
+          {LineColFunOp{32, 6, "main", llvm::Instruction::Call},
+           {"_ZZ4mainEN1B3fooEv", "_ZZ4mainEN1C3fooEv"}},
+          {LineColFunOp{33, 6, "main", llvm::Instruction::Call},
+           {"_ZZ4mainEN1B3fooEv", "_ZZ4mainEN1C3fooEv"}},
       });
 }
 TEST_F(VTACallGraphTest, CallGraphs_VirtualCall9) {
@@ -219,8 +249,10 @@ TEST_F(VTACallGraphTest, CallGraphs_VirtualCall9) {
   doAnalysisAndCompareResults(
       "call_graphs/virtual_call_9_cpp_dbg.ll",
       {
-          {72, {"_ZN1B3fooEv", "_ZN1C3fooEv", "_ZN1D3fooEv"}},
-          {79, {"_ZN1BD0Ev", "_ZN1CD0Ev", "_ZN1DD0Ev"}},
+          {LineColFunOp{57, 6, "main", llvm::Instruction::Call},
+           {"_ZN1B3fooEv", "_ZN1C3fooEv", "_ZN1D3fooEv"}},
+          {LineColFunOp{58, 3, "main", llvm::Instruction::Call},
+           {"_ZN1BD0Ev", "_ZN1CD0Ev", "_ZN1DD0Ev"}},
       });
 }
 // TODO: More tests!

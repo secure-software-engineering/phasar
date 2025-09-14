@@ -22,6 +22,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/AlignNum.h"
+#include "phasar/Utils/Timer.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
@@ -88,6 +89,12 @@ static cl::opt<std::string> IRFile(cl::Positional, cl::Required,
                                    cl::desc("The LLVM IR file to analyze"),
                                    cl::cat(CGCat));
 
+struct DiagTimer : psr::SimpleTimer { // NOLINT
+  DiagTimer(llvm::StringRef Msg) noexcept : Message(Msg) {}
+  ~DiagTimer() { llvm::errs() << Message << " (" << elapsed() << ")\n"; }
+
+  llvm::StringRef Message;
+};
 static void computeCGStats(const psr::LLVMBasedCallGraph &CG,
                            llvm::raw_ostream &OS);
 
@@ -95,10 +102,13 @@ int main(int Argc, char *Argv[]) {
   cl::HideUnrelatedOptions(CGCat);
   cl::ParseCommandLineOptions(Argc, Argv);
 
+  psr::SimpleTimer LoadingTm;
   auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRFile);
   auto VTP = psr::LLVMVFTableProvider(IRDB);
   auto TH = psr::DIBasedTypeHierarchy(IRDB);
   auto EntryPoints = psr::getDefaultEntryPoints(IRDB);
+  llvm::errs() << "Loaded IR and computed helpers (" << LoadingTm.elapsed()
+               << ")\n";
 
   if (BuildBaseCG && CGType != psr::CallGraphAnalysisType::VTA) {
     llvm::WithColor::warning() << "The option --build-base-cg only works for "
@@ -107,6 +117,8 @@ int main(int Argc, char *Argv[]) {
   }
 
   auto CG = [&] {
+    DiagTimer Tm{"Created resolver"};
+
     switch (CGType) {
     case psr::CallGraphAnalysisType::NORESOLVE:
     case psr::CallGraphAnalysisType::CHA:
@@ -151,7 +163,10 @@ int main(int Argc, char *Argv[]) {
     return *OS;
   };
 
-  auto ICF = psr::LLVMBasedICFG(std::move(CG), &IRDB);
+  auto ICF = [&] {
+    DiagTimer Tm{"Built call-graph"};
+    return psr::LLVMBasedICFG(std::move(CG), &IRDB);
+  }();
 
   if (EmitCGAsDot) {
     ICF.print(GetOS());
