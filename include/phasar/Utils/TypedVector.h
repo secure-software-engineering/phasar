@@ -38,7 +38,7 @@ public:
   TypedVector() noexcept = default;
   TypedVector(std::initializer_list<ValueT> IList) : Vec(IList) {}
   TypedVector(size_t Size) : Vec(Size) {}
-  TypedVector(size_t Size, ValueT Default) : Vec(Size, Default) {};
+  TypedVector(size_t Size, ByConstRef<ValueT> Default) : Vec(Size, Default) {};
 
   template <typename Iter>
   explicit TypedVector(Iter From, Iter To)
@@ -61,7 +61,7 @@ public:
     return size_t(Id) < size();
   }
 
-  [[nodiscard]] ByConstRef<ValueT> operator[](IdT Id) const & {
+  [[nodiscard]] const ValueT &operator[](IdT Id) const & {
     assert(inbounds(Id));
     return Vec[size_t(Id)];
   }
