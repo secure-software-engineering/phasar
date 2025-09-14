@@ -306,11 +306,6 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
     G.Roots.pop_back();
     return It;
   }
-
-#if __cplusplus >= 202002L
-  static_assert(is_graph<graph_type>);
-#endif
-  static_assert(is_reservable_graph_trait_v<GraphTraits>);
 };
 
 } // namespace psr

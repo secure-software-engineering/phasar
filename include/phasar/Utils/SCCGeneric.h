@@ -28,7 +28,8 @@
 namespace psr {
 
 namespace detail {
-// Unfortunately, `enum class` cannot be templated...
+// Unfortunately, `enum class` cannot be templated, but we want type-safety for
+// SCC-IDs...
 struct SCCIdBase {
   uint32_t Value{};
 
@@ -94,6 +95,60 @@ template <typename GraphNodeId> struct SCCHolder {
   /// Number of SCCs
   [[nodiscard]] size_t size() const noexcept { return NodesInSCC.size(); }
   [[nodiscard]] bool empty() const noexcept { return NodesInSCC.empty(); }
+
+  /// \brief Prints the given Graph as dot, highlighting the SCCs in the graph.
+  ///
+  /// \param Graph The graph to print
+  /// \param OS The output-stream, where to print into
+  /// \param Name The name of the graph
+  /// \param NodeToString If the graph has node-labels, convert a node-label to
+  /// string
+  template <typename G, typename NodeTransform = DefaultNodeTransform,
+            std::enable_if_t<
+                std::is_same_v<typename GraphTraits<G>::vertex_t, GraphNodeId>,
+                int> = 0>
+#if __cplusplus >= 202002L
+    requires is_const_graph<G>
+#endif
+  void print(const G &Graph, llvm::raw_ostream &OS, llvm::StringRef Name = "",
+             NodeTransform NodeToString = {}) const {
+    OS << "digraph \"";
+    OS.write_escaped(Name) << "\" {\n";
+    psr::scope_exit CloseBrace = [&] { OS << "}\n"; };
+
+    using GTraits = psr::GraphTraits<G>;
+
+    for (const auto &[SCCId, SCC] : NodesInSCC.enumerate()) {
+      OS << "  subgraph cluster_" << +SCCId
+         << "{\n    node [style=filled]; color=blue; label=\"SCC " << +SCCId
+         << "\";\n";
+      psr::scope_exit CloseSCC = [&] { OS << "  }\n"; };
+
+      for (auto Nod : SCC) {
+        OS << "    " << size_t(Nod);
+        if constexpr (!std::is_empty_v<typename GTraits::value_type>) {
+          OS << "[label=\"";
+          OS.write_escaped(
+              std::invoke(NodeToString, GTraits::node(Graph, Nod)));
+          OS << "\"]";
+        }
+        OS << ";\n";
+      }
+    }
+
+    for (auto FromVtx : GTraits::vertices(Graph)) {
+      for (const auto &Succ : GTraits::outEdges(Graph, FromVtx)) {
+        OS << "  " << size_t(FromVtx) << "->";
+        if constexpr (is_llvm_printable_v<decltype(Succ)>) {
+          // to print the edge-weight as well, if possible
+          OS << Succ;
+        } else {
+          OS << size_t(GTraits::target(Succ));
+        }
+        OS << ";\n";
+      }
+    }
+  }
 };
 
 /// \brief Holds a graph where the SCCs are collapsed to a single node.
@@ -191,7 +246,7 @@ template <typename GraphNodeId> struct SCCDataIt : SCCData<GraphNodeId> {
   using SCCData<GraphNodeId>::SCCData;
 };
 
-constexpr void setMin(uint32_t &InOut, uint32_t Other) noexcept {
+template <typename T> constexpr void setMin(T &InOut, T Other) noexcept {
   if (Other < InOut) {
     InOut = Other;
   }
@@ -378,7 +433,7 @@ computeSCCIterative(const G &Graph) {
           InStack.insert(W);
         } else if (InStack.contains(W)) {
           // w is in the current DFS path; update lowlink.
-          Lowlink[U] = std::min(Lowlink[U], Dfn[W]);
+          detail::setMin(Lowlink[U], Dfn[W]);
         }
       } else {
         // Done exploring u.
@@ -391,7 +446,7 @@ computeSCCIterative(const G &Graph) {
             S.pop_back();
             InStack.erase(W);
             // Assign w the current SCC id.
-            Holder.SCCOfNode[W] = static_cast<SCCId>(Holder.size());
+            Holder.SCCOfNode[W] = SCCId(Holder.size());
             Comp.push_back(W);
           } while (W != U);
         }
@@ -399,7 +454,7 @@ computeSCCIterative(const G &Graph) {
         if (!DfsStack.empty()) {
           // After returning, update the parent's lowlink.
           VertexTy Parent = DfsStack.back().V;
-          Lowlink[Parent] = std::min(Lowlink[Parent], Lowlink[U]);
+          detail::setMin(Lowlink[Parent], Lowlink[U]);
         }
       }
     }

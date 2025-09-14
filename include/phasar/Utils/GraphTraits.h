@@ -232,6 +232,13 @@ struct DefaultNodeTransform {
   }
 };
 
+/// \brief Prints the given graph G as dot.
+///
+/// \param G The graph to print
+/// \param OS The output-stream, where to print into
+/// \param Name The name of the graph
+/// \param NodeToString If the graph has node-labels, convert a node-label to
+/// string
 template <typename GraphTy, typename NodeTransform = DefaultNodeTransform>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
                 llvm::StringRef Name = "", NodeTransform NodeToString = {})
@@ -241,10 +248,9 @@ void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
 {
   using traits_t = GraphTraits<GraphTy>;
 
-  OS << "digraph " << Name << " {\n";
+  OS << "digraph \"";
+  OS.write_escaped(Name) << "\" {\n";
   psr::scope_exit CloseBrace = [&OS] { OS << "}\n"; };
-
-  auto Sz = traits_t::size(G);
 
   for (auto Vtx : traits_t::vertices(G)) {
     OS << size_t(Vtx);

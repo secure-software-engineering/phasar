@@ -49,7 +49,7 @@ public:
   }
 
   std::pair<IdT, bool> insert(T Elem) {
-    auto [It, Inserted] = ToInt.try_emplace(Elem, Id(ToInt.size()));
+    auto [It, Inserted] = ToInt.try_emplace(Elem, IdT(ToInt.size()));
     if (Inserted) {
       FromInt.push_back(Elem);
     }
