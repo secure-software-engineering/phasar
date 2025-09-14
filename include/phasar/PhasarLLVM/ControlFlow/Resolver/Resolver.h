@@ -124,21 +124,29 @@ public:
   [[nodiscard]] llvm::ArrayRef<const llvm::Function *>
   getAddressTakenFunctions();
 
-  struct DefaultBaseResolverProvider {
-    MaybeUniquePtr<Resolver> operator()(const LLVMProjectIRDB *IRDB,
-                                        const LLVMVFTableProvider *VTP,
-                                        const DIBasedTypeHierarchy *TH,
-                                        LLVMAliasInfoRef PT);
-  };
+  using BaseResolverProvider = llvm::function_ref<MaybeUniquePtr<Resolver>(
+      const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+      const DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT)>;
 
+  /// Factory function to create a Resolver that can be used to implement the
+  /// given call-graph analysis type.
+  ///
+  /// \param Ty Determines the Resolver subclass to instantiate
+  /// \param IRDB The IR code where the Resolver should be based on. Must not be
+  /// nullptr.
+  /// \param VTP A virtual-table-provides that is used to extract C++-VTables
+  /// from the IR. Must not be nullptr.
+  /// \param TH The type-hierarchy implementation to use. Must be non-null, if
+  /// the selected call-graph analysis requires type-hierarchy information;
+  /// currently, this holds for the CHA and RTA algorithms.
+  /// \param PT The points-to implementation to use. Will be constructed
+  /// on-the-fly if nullptr, but required; currently, this holds for the OTF and
+  /// VTA algorithms.
   static std::unique_ptr<Resolver>
   create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
          const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
          LLVMAliasInfoRef PT = nullptr,
-         llvm::function_ref<MaybeUniquePtr<Resolver>(
-             const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-             const DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT)>
-             GetBaseRes = DefaultBaseResolverProvider{});
+         BaseResolverProvider GetBaseRes = nullptr);
 
 protected:
   virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,

@@ -48,11 +48,11 @@ VTAResolver::VTAResolver(
     llvm::function_ref<void(const LLVMProjectIRDB &,
                             llvm::function_ref<void(const llvm::Function *)>)>
         ReachableFunctions)
-    : Resolver(IRDB, VTP), BaseCG(std::move(BaseRes)) {
-  assert(this->BaseCG != nullptr);
+    : Resolver(IRDB, VTP), BaseResolver(std::move(BaseRes)) {
+  assert(this->BaseResolver != nullptr);
 
-  auto TAG = vta::computeTypeAssignmentGraph(*IRDB, *VTP, AS, *this->BaseCG,
-                                             ReachableFunctions);
+  auto TAG = vta::computeTypeAssignmentGraph(
+      *IRDB, *VTP, AS, *this->BaseResolver, ReachableFunctions);
 
   SCCs = computeSCCs(TAG);
   auto Deps = computeSCCDependencies(TAG, SCCs);
@@ -65,15 +65,38 @@ VTAResolver::VTAResolver(
   Nodes = std::move(TAG.Nodes);
 }
 
+VTAResolver::VTAResolver(const LLVMProjectIRDB *IRDB,
+                         const LLVMVFTableProvider *VTP, LLVMAliasInfoRef AS,
+                         MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG)
+    : VTAResolver(
+          IRDB, VTP,
+          [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
+               vta::AliasHandlerTy WithAlias) {
+            auto ASet = AS.getAliasSet(Ptr, At);
+            llvm::for_each(*ASet, WithAlias);
+          },
+          std::move(BaseCG)) {}
+
+VTAResolver::VTAResolver(
+    const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+    LLVMAliasInfoRef AS, MaybeUniquePtr<Resolver> BaseRes,
+    llvm::function_ref<void(const LLVMProjectIRDB &,
+                            llvm::function_ref<void(const llvm::Function *)>)>
+        ReachableFunctions)
+    : VTAResolver(
+          IRDB, VTP,
+          [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
+               vta::AliasHandlerTy WithAlias) {
+            auto ASet = AS.getAliasSet(Ptr, At);
+            llvm::for_each(*ASet, WithAlias);
+          },
+          std::move(BaseRes), ReachableFunctions) {}
+
 std::string VTAResolver::str() const { return "VTA"; }
 
 void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
                                      const llvm::CallBase *CallSite) {
 
-  // llvm::errs() << "[resolveVirtualCall] At " << llvmIRToString(CallSite)
-  //              << '\n';
-
-  // TODO: Use getVFTIndexAndVT(), once #785 is merged
   auto RetrievedVtableIndex = getVFTIndex(CallSite);
   if (!RetrievedVtableIndex.has_value()) {
     // An error occured
@@ -84,10 +107,10 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
     return;
   }
 
-  auto *VT = CallSite->getCalledOperand()->stripPointerCastsAndAliases();
+  auto *CalledOp = CallSite->getCalledOperand()->stripPointerCastsAndAliases();
   auto VtableIndex = RetrievedVtableIndex.value();
 
-  auto BaseCallees = BaseCG->resolveIndirectCall(CallSite);
+  auto BaseCallees = BaseResolver->resolveIndirectCall(CallSite);
 
   auto ReceiverIdx = CallSite->hasStructRetAttr();
   if (CallSite->arg_size() > ReceiverIdx) {
@@ -103,10 +126,6 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
                   DITy, VtableIndex, CallSite, ReceiverType)) {
             if (psr::isConsistentCall(CallSite, Fun) &&
                 (BaseCallees.empty() || BaseCallees.contains(Fun))) {
-              // llvm::errs() << "  Add possible target " << Fun->getName()
-              //              << " through vtable lookup at index " <<
-              //              VtableIndex
-              //              << " on type " << llvmTypeToString(DITy) << '\n';
               PossibleTargets.insert(Fun);
             }
           }
@@ -115,7 +134,7 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
     }
   }
 
-  auto TNId = Nodes.getOrNull({vta::Variable{VT}});
+  auto TNId = Nodes.getOrNull({vta::Variable{CalledOp}});
   if (TNId) {
     auto SCC = SCCs.SCCOfNode[*TNId];
     const auto &Types = TA.TypesPerSCC[SCC];
@@ -123,8 +142,6 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
       if (const auto *Fun = Ty.dyn_cast<const llvm::Function *>()) {
         if (psr::isConsistentCall(CallSite, Fun) &&
             (BaseCallees.empty() || BaseCallees.contains(Fun))) {
-          // llvm::errs() << "  Add possible target " << Fun->getName()
-          //              << " through direct function pointer\n";
           PossibleTargets.insert(Fun);
         }
       }
@@ -138,10 +155,7 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
 
 void VTAResolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
                                          const llvm::CallBase *CallSite) {
-  // llvm::errs() << "[resolveFunctionPointer] At " << llvmIRToString(CallSite)
-  //              << '\n';
-
-  auto BaseCallees = BaseCG->resolveIndirectCall(CallSite);
+  auto BaseCallees = BaseResolver->resolveIndirectCall(CallSite);
 
   auto TNId = Nodes.getOrNull({vta::Variable{
       CallSite->getCalledOperand()->stripPointerCastsAndAliases()}});
@@ -152,8 +166,6 @@ void VTAResolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
       if (const auto *Fun = Ty.dyn_cast<const llvm::Function *>()) {
         if (psr::isConsistentCall(CallSite, Fun) &&
             (BaseCallees.empty() || BaseCallees.contains(Fun))) {
-          // llvm::errs() << "  Add possible target " << Fun->getName()
-          //              << " through direct function pointer\n";
           PossibleTargets.insert(Fun);
         }
       }

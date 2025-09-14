@@ -18,7 +18,6 @@
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/SCCGeneric.h"
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/STLFunctionalExtras.h"
 
 namespace psr {
@@ -40,7 +39,7 @@ public:
 
   /// Constructs a VTAResolver with a given pre-computed call-graph and
   /// call-back based alias-information (to-be-replaced by AliasIterator once
-  /// available)
+  /// available #783)
   ///
   /// Builds the type-assignment graph and propagates allocated types though
   /// it's SCCs.
@@ -55,19 +54,11 @@ public:
   /// it's SCCs.
   explicit VTAResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP, LLVMAliasInfoRef AS,
-                       MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG)
-      : VTAResolver(
-            IRDB, VTP,
-            [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
-                 vta::AliasHandlerTy WithAlias) {
-              auto ASet = AS.getAliasSet(Ptr, At);
-              llvm::for_each(*ASet, WithAlias);
-            },
-            std::move(BaseCG)) {}
+                       MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG);
 
   /// Constructs a VTAResolver with a given base-resolver (no base-call-graph)
   /// and call-back based alias-information (to-be-replaced by AliasIterator
-  /// once available).
+  /// once available #783).
   /// Uses the optional parameter ReachableFunctions to consider only a subset
   /// of all functions for building the type-assignment graph
   ///
@@ -92,15 +83,7 @@ public:
       LLVMAliasInfoRef AS, MaybeUniquePtr<Resolver> BaseRes,
       llvm::function_ref<void(const LLVMProjectIRDB &,
                               llvm::function_ref<void(const llvm::Function *)>)>
-          ReachableFunctions = DefaultReachableFunctions{})
-      : VTAResolver(
-            IRDB, VTP,
-            [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
-                 vta::AliasHandlerTy WithAlias) {
-              auto ASet = AS.getAliasSet(Ptr, At);
-              llvm::for_each(*ASet, WithAlias);
-            },
-            std::move(BaseRes), ReachableFunctions) {}
+          ReachableFunctions = DefaultReachableFunctions{});
 
   [[nodiscard]] std::string str() const override;
 
@@ -116,7 +99,7 @@ private:
   void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
                               const llvm::CallBase *CallSite) override;
 
-  MaybeUniquePtr<Resolver> BaseCG{};
+  MaybeUniquePtr<Resolver> BaseResolver{};
   vta::TypeAssignment TA{};
   SCCHolder<vta::TAGNodeId> SCCs{};
   Compressor<vta::TAGNode, vta::TAGNodeId> Nodes;

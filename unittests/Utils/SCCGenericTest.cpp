@@ -81,7 +81,7 @@ static void computeSCCsAndCompare(ExampleGraph &Graph,
                                   llvm::ArrayRef<std::set<int>> ExpectedSCCs) {
 
   auto OutputRec = computeSCCs(Graph);
-  auto OutputIt = computeSCCIterative(Graph);
+  auto OutputIt = computeSCCsIterative(Graph);
   ASSERT_EQ(OutputIt.SCCOfNode.size(), Graph.Adj.size())
       << "Iterative Approach did not reach all nodes\n";
   ASSERT_EQ(OutputRec.SCCOfNode.size(), Graph.Adj.size())

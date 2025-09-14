@@ -159,7 +159,7 @@ using ReachableFunsHandlerTy = llvm::function_ref<void(const llvm::Function *)>;
 using ReachableFunsTy =
     llvm::function_ref<void(const LLVMProjectIRDB &, ReachableFunsHandlerTy)>;
 
-// TODO: Use AliasIterator here, once available
+// TODO: Use AliasIterator here, once available #783
 [[nodiscard]] TypeAssignmentGraph computeTypeAssignmentGraph(
     const LLVMProjectIRDB &IRDB, const psr::LLVMVFTableProvider &VTP,
     AliasInfoTy AS, Resolver &BaseRes, ReachableFunsTy ReachableFunctions);

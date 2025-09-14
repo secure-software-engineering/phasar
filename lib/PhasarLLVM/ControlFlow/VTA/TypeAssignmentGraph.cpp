@@ -87,7 +87,7 @@ getPointerIndicesOfType(llvm::DICompositeType *Ty, const llvm::DataLayout &DL) {
 
   auto PointerSize = DL.getPointerSizeInBits();
 
-  // TODO: Does every type provide a meaningful getSizeInBits?
+  // XXX: Does every type provide a meaningful getSizeInBits?
   auto MaxNumPointers = Ty->getSizeInBits() / PointerSize;
   if (!MaxNumPointers) {
     return Ret;
@@ -230,7 +230,7 @@ static void initializeWithFun(const llvm::Function *Fun,
 
   for (const auto &I : llvm::instructions(Fun)) {
     if (!I.getType()->isPointerTy()) {
-      // TODO: What about SSA structs that contain pointers?
+      // XXX: What about SSA structs that contain pointers?
       continue;
     }
 
@@ -304,7 +304,6 @@ static void handleGEP(const llvm::GetElementPtrInst *GEP,
 
     return;
   }
-  // TODO: Is this correct? -- also check load
 
   auto From = getGEPNode(GEP, TAG, DL);
   if (From) {
@@ -339,7 +338,7 @@ static bool handleEntryForStore(const llvm::StoreInst *Store,
   }
 
   AI(Store->getPointerOperand(), Store, [&](const llvm::Value *Dest) {
-    // TODO: Fuse store and GEP!
+    // XXX: Fuse store and GEP!
 
     auto DestNodeId = TAG.get({Variable{Dest}});
     if (!DestNodeId) {
@@ -380,7 +379,7 @@ static void handleStore(const llvm::StoreInst *Store, TypeAssignmentGraph &TAG,
   }
 
   AI(Store->getPointerOperand(), Store, [&](const llvm::Value *Dest) {
-    // TODO: Fuse store and GEP!
+    // XXX: Fuse store and GEP!
 
     auto DestNodeId = TAG.get({Variable{Dest}});
     if (!DestNodeId) {
@@ -467,7 +466,7 @@ static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
 
   auto CSNod = TAG.get({Variable{Call}});
 
-  // TODO: Handle struct returns that contain pointers
+  // XXX: Handle struct returns that contain pointers
   if (!HasArgNode && !CSNod) {
     return;
   }
@@ -587,7 +586,7 @@ static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
     handleReturn(Ret, TAG);
     return;
   }
-  // TODO: Handle more cases
+  // XXX: Handle more cases
 }
 
 static void buildTAGWithFun(const llvm::Function *Fun, TypeAssignmentGraph &TAG,
