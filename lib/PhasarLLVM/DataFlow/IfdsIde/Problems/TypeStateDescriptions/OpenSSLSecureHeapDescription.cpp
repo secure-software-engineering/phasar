@@ -107,7 +107,7 @@ OpenSSLSecureHeapState OpenSSLSecureHeapDescription::getNextState(
 }
 
 std::string OpenSSLSecureHeapDescription::getTypeNameOfInterest() const {
-  return "i8";
+  return {};
 }
 
 set<int>
