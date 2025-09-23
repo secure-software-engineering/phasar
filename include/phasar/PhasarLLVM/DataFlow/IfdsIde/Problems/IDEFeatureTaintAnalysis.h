@@ -374,4 +374,13 @@ private:
 
 } // namespace psr
 
+namespace std {
+template <> struct hash<psr::IDEFeatureTaintEdgeFact> {
+  size_t
+  operator()(const psr::IDEFeatureTaintEdgeFact &EdgeFact) const noexcept {
+    return hash_value(EdgeFact);
+  }
+};
+} // namespace std
+
 #endif // PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEFEATURETAINTANALYSIS_H

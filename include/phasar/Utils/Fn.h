@@ -24,8 +24,8 @@ namespace psr {
 template <auto F> struct fn_t { // NOLINT(readability-identifier-naming)
   template <typename... ArgsT>
   constexpr std::invoke_result_t<decltype(F), ArgsT...>
-  operator()(ArgsT &&...Args) noexcept(
-      std::is_nothrow_invocable_v<decltype(F), ArgsT...>) {
+  operator()(ArgsT &&...Args) const
+      noexcept(std::is_nothrow_invocable_v<decltype(F), ArgsT...>) {
     return std::invoke(F, PSR_FWD(Args)...);
   }
 };

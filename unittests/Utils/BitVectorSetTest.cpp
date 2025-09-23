@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include <iterator>
 #include <set>
 #include <unordered_set>
 #include <utility>
@@ -345,8 +346,8 @@ TEST(BitVectorSet, iterator_movement) {
   auto IteratorA = A.begin();
   auto IteratorB = B.begin();
 
-  IteratorA += 4;
-  IteratorB += 2;
+  std::advance(IteratorA, 4);
+  std::advance(IteratorB, 2);
   EXPECT_EQ(*IteratorA, *IteratorB);
   EXPECT_EQ(A.count(*IteratorA), 1U);
   IteratorB++;
@@ -382,7 +383,6 @@ TEST(BitVectorSet, rangeFor) {
   const BitVectorSet<int> D({5, 6, 7, 8, 42, 13});
   std::set<int> DS;
   std::set<int> DSGT = {5, 6, 7, 8, 42, 13};
-  auto I = D.begin();
   for (auto I : D) {
     DS.insert(I);
   }

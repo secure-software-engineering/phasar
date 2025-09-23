@@ -15,7 +15,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include <map>
 #include <set>
 #include <string>
 

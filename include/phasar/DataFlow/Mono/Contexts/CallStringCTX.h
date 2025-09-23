@@ -3,9 +3,8 @@
 
 #include "phasar/Utils/Printer.h"
 
+#include "llvm/ADT/Hashing.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include "boost/functional/hash.hpp"
 
 #include <deque>
 #include <functional>
@@ -94,11 +93,9 @@ namespace std {
 
 template <typename N, unsigned K> struct hash<psr::CallStringCTX<N, K>> {
   size_t operator()(const psr::CallStringCTX<N, K> &CS) const noexcept {
-    boost::hash<std::deque<N>> HashDeque;
-    std::hash<unsigned> HashUnsigned;
-    size_t U = HashUnsigned(K);
-    size_t H = HashDeque(CS.CallString);
-    return U ^ (H << 1);
+    auto H =
+        llvm::hash_combine_range(CS.CallString.begin(), CS.CallString.end());
+    return llvm::hash_combine(K, H);
   }
 };
 

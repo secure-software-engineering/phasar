@@ -12,10 +12,9 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DerivedTypes.h"
-
-#include "boost/algorithm/string/find.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -43,21 +42,19 @@ bool isConstructor(llvm::StringRef MangledName) {
   // see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling
 
   // This version will not work in some edge cases
-  auto Constructor = boost::algorithm::find_last(MangledName, "C2E");
 
-  if (Constructor.begin() != Constructor.end()) {
+  auto Constructor = MangledName.rfind("C2E");
+  if (Constructor != llvm::StringRef::npos) {
     return true;
   }
 
-  Constructor = boost::algorithm::find_last(MangledName, "C1E");
-
-  if (Constructor.begin() != Constructor.end()) {
+  Constructor = MangledName.rfind("C1E");
+  if (Constructor != llvm::StringRef::npos) {
     return true;
   }
 
-  Constructor = boost::algorithm::find_last(MangledName, "C2E");
-
-  if (Constructor.begin() != Constructor.end()) {
+  Constructor = MangledName.rfind("C3E");
+  if (Constructor != llvm::StringRef::npos) {
     return true;
   }
 

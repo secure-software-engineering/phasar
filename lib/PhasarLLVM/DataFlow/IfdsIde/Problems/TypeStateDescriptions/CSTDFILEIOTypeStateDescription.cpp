@@ -9,8 +9,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-
 #include "llvm/ADT/StringMap.h"
 #include "llvm/Support/ErrorHandling.h"
 
@@ -127,7 +125,7 @@ CSTDFILEIOTypeStateDescription::getNextState(llvm::StringRef Tok,
 }
 
 std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
-  return "struct._IO_FILE";
+  return "_IO_FILE";
 }
 
 std::set<int>
