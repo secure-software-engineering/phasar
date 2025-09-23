@@ -28,9 +28,9 @@ OTFResolver::OTFResolver(const LLVMProjectIRDB *IRDB,
                          const LLVMVFTableProvider *VTP, LLVMAliasInfoRef PT)
     : AliasBasedResolver(IRDB, VTP, PT), PT(PT) {}
 
-std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-OTFResolver::getActualFormalPointerPairs(const llvm::CallBase *CallSite,
-                                         const llvm::Function *CalleeTarget) {
+static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
+getActualFormalPointerPairs(const llvm::CallBase *CallSite,
+                            const llvm::Function *CalleeTarget) {
   std::vector<std::pair<const llvm::Value *, const llvm::Value *>> Pairs;
   Pairs.reserve(CallSite->arg_size());
   // ordinary case

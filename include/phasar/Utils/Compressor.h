@@ -64,6 +64,11 @@ public:
   auto begin() const noexcept { return FromInt.begin(); }
   auto end() const noexcept { return FromInt.end(); }
 
+  void clear() noexcept {
+    ToInt.clear();
+    FromInt.clear();
+  }
+
 private:
   llvm::DenseMap<T, IdT> ToInt;
   llvm::SmallVector<T, 0> FromInt;
@@ -133,6 +138,11 @@ public:
 
   auto begin() const noexcept { return FromInt.begin(); }
   auto end() const noexcept { return FromInt.end(); }
+
+  void clear() noexcept {
+    ToInt.clear();
+    FromInt.clear();
+  }
 
 private:
   struct DSI : llvm::DenseMapInfo<const T *> {

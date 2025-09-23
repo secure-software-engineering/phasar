@@ -14,7 +14,6 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
@@ -25,8 +24,8 @@
 
 #include <memory>
 
-using namespace std;
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLEVPKDFTest : public ::testing::Test {
@@ -40,9 +39,11 @@ protected:
   OpenSSLEVPKDFDescription OpenSSLEVPKDFDesc{};
   std::optional<IDETypeStateAnalysis<OpenSSLEVPKDFCTXDescription>> TSProblem;
   std::optional<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>> TSKDFProblem;
-  unique_ptr<IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFCTXDescription>>>
+  std::unique_ptr<
+      IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFCTXDescription>>>
       Llvmtssolver;
-  unique_ptr<IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFDescription>>>
+  std::unique_ptr<
+      IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFDescription>>>
       KdfSolver;
 
   // enum OpenSSLEVPKDFCTXState {
@@ -54,8 +55,6 @@ protected:
   //   ERROR = 4,
   //   BOT = 0
   // };
-  IDETSAnalysisOpenSSLEVPKDFTest() = default;
-  ~IDETSAnalysisOpenSSLEVPKDFTest() override = default;
 
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(PathToLlFiles + IRFile, EntryPoints);
@@ -64,7 +63,7 @@ protected:
         createAnalysisProblem<IDETypeStateAnalysis<OpenSSLEVPKDFDescription>>(
             *HA, &OpenSSLEVPKDFDesc, EntryPoints);
 
-    KdfSolver = make_unique<
+    KdfSolver = std::make_unique<
         IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFDescription>>>(
         *TSKDFProblem, &HA->getICFG());
 
@@ -74,16 +73,12 @@ protected:
         IDETypeStateAnalysis<OpenSSLEVPKDFCTXDescription>>(
         *HA, &*OpenSSLEVPKeyDerivationDesc, EntryPoints);
 
-    Llvmtssolver = make_unique<
+    Llvmtssolver = std::make_unique<
         IDESolver<IDETypeStateAnalysisDomain<OpenSSLEVPKDFCTXDescription>>>(
         *TSProblem, &HA->getICFG());
     KdfSolver->solve();
     Llvmtssolver->solve();
   }
-
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
-
-  void TearDown() override {}
 
   /**
    * We map instruction id to value for the ground truth. ID has to be

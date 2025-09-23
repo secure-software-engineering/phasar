@@ -103,6 +103,12 @@ std::string llvmIRToShortString(const llvm::Value *V);
  */
 [[nodiscard]] std::string llvmTypeToString(const llvm::Type *Ty,
                                            bool Shorten = false);
+
+/**
+ * @brief Returns a string-representation of a LLVM Debug-Info type.
+ *
+ * @param Shorten Tries to shorten the output
+ */
 [[nodiscard]] std::string llvmTypeToString(const llvm::DIType *Ty,
                                            bool Shorten = false);
 
@@ -285,6 +291,8 @@ public:
 getVaListTagOrNull(const llvm::Function &Fun);
 
 [[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
+
+[[nodiscard]] const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy);
 } // namespace psr
 
 #endif

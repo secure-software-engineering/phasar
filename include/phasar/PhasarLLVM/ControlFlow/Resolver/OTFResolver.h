@@ -35,10 +35,6 @@ public:
   void handlePossibleTargets(const llvm::CallBase *CallSite,
                              FunctionSetTy &CalleeTargets) override;
 
-  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-  getActualFormalPointerPairs(const llvm::CallBase *CallSite,
-                              const llvm::Function *CalleeTarget);
-
   [[nodiscard]] std::string str() const override;
 
   [[nodiscard]] bool

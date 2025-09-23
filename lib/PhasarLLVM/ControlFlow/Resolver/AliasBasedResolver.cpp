@@ -36,7 +36,7 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
     return;
   }
 
-  auto VtableIndex = RetrievedVtableIndex->second;
+  auto [VtablePtr, VtableIndex] = RetrievedVtableIndex.value();
 
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
@@ -49,7 +49,7 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
   }
 
   AAInfo.forallAliasesOf(
-      RetrievedVtableIndex->first, CallSite, [&](const auto *P) {
+      VtablePtr, CallSite, [&, VtableIndex = VtableIndex](const auto *P) {
         if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
           if (PGV->hasName() &&
               PGV->getName().startswith(DIBasedTypeHierarchy::VTablePrefix) &&
@@ -89,18 +89,18 @@ void AliasBasedResolver::resolveFunctionPointer(
     return;
   }
 
-  llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
-  llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
-  llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
-      VisitedConstantAggregates;
-
   FunctionSetTy BaseCallees;
   if (FallbackResolverAndIsSound.getInt()) {
     assert(FallbackResolverAndIsSound.getPointer() != nullptr &&
            "This must be ensured in the ctor");
-    FallbackResolverAndIsSound.getPointer()->resolveVirtualCall(BaseCallees,
-                                                                CallSite);
+    FallbackResolverAndIsSound.getPointer()->resolveFunctionPointer(BaseCallees,
+                                                                    CallSite);
   }
+
+  llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
+  llvm::SmallVector<const llvm::ConstantAggregate *> ConstantAggregateWL;
+  llvm::SmallPtrSet<const llvm::ConstantAggregate *, 4>
+      VisitedConstantAggregates;
 
   AAInfo.forallAliasesOf(
       CallSite->getCalledOperand(), CallSite, [&](const auto *P) {
@@ -197,7 +197,7 @@ void AliasBasedResolver::resolveFunctionPointer(
     if (!BaseCallees.empty()) {
       PossibleTargets = std::move(BaseCallees);
     } else if (auto *Fallback = FallbackResolverAndIsSound.getPointer()) {
-      Fallback->resolveVirtualCall(PossibleTargets, CallSite);
+      Fallback->resolveFunctionPointer(PossibleTargets, CallSite);
     }
   }
 }
