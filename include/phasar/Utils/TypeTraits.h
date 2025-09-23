@@ -33,6 +33,9 @@ template <typename T> struct type_identity {
 template <typename T> using type_identity = std::type_identity<T>;
 #endif
 
+/// \file TODO: We should stick to one naming convention here and not mix
+/// CamelCase with lower_case!
+
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
 

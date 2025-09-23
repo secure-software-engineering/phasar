@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_VTARESOLVER_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_VTARESOLVER_H
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/VTA/TypePropagator.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
@@ -21,6 +21,9 @@
 #include "llvm/ADT/STLFunctionalExtras.h"
 
 namespace psr {
+
+class LLVMProjectIRDB;
+
 /// \brief A Resolver that uses a variant of the Variable Type Analysis to
 /// resolver indirect calls.
 ///

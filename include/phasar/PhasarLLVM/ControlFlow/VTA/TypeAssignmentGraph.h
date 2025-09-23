@@ -23,9 +23,6 @@
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/PointerUnion.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/DebugInfoMetadata.h"
-#include "llvm/IR/Value.h"
-#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <optional>
@@ -36,6 +33,12 @@ class Resolver;
 class LLVMProjectIRDB;
 class LLVMVFTableProvider;
 } // namespace psr
+
+namespace llvm {
+class DIType;
+class Value;
+class Function;
+} // namespace llvm
 
 namespace psr::vta {
 

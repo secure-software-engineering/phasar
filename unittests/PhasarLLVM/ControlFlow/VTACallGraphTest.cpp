@@ -42,7 +42,7 @@ namespace {
 
 std::vector<std::string> getEntryPoints(const psr::LLVMProjectIRDB &IRDB) {
   std::vector<std::string> EntryPoints;
-  ///////////////////////////////////
+
   if (IRDB.getFunctionDefinition("main")) {
     EntryPoints.emplace_back("main");
   } else {
@@ -54,14 +54,12 @@ std::vector<std::string> getEntryPoints(const psr::LLVMProjectIRDB &IRDB) {
   }
   return EntryPoints;
 }
-/////////////////////////////
+
 psr::LLVMBasedCallGraph createBaseCG(psr::LLVMProjectIRDB &IRDB,
                                      const psr::LLVMVFTableProvider &VTP,
                                      const psr::DIBasedTypeHierarchy &TH,
                                      psr::LLVMAliasInfoRef /*PT*/) {
   psr::RTAResolver Res(&IRDB, &VTP, &TH);
-
-  ///////////////////////////////////
   return psr::buildLLVMBasedCallGraph(IRDB, Res, getEntryPoints(IRDB),
                                       psr::Soundness::Soundy);
 }

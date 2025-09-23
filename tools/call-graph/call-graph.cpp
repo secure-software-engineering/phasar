@@ -86,7 +86,7 @@ static cl::opt<bool>
               cl::cat(CGCat));
 
 static cl::opt<std::string> IRFile(cl::Positional, cl::Required,
-                                   cl::desc("The LLVM IR file to analyze"),
+                                   cl::desc("<The LLVM IR file to analyze>"),
                                    cl::cat(CGCat));
 
 struct DiagTimer : psr::SimpleTimer { // NOLINT

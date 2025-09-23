@@ -17,12 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/STLFunctionalExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DerivedTypes.h"
 
@@ -134,7 +132,7 @@ public:
   /// \param Ty Determines the Resolver subclass to instantiate
   /// \param IRDB The IR code where the Resolver should be based on. Must not be
   /// nullptr.
-  /// \param VTP A virtual-table-provides that is used to extract C++-VTables
+  /// \param VTP A virtual-table-provider that is used to extract C++-VTables
   /// from the IR. Must not be nullptr.
   /// \param TH The type-hierarchy implementation to use. Must be non-null, if
   /// the selected call-graph analysis requires type-hierarchy information;

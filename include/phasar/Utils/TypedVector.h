@@ -30,7 +30,7 @@ namespace psr {
 /// \tparam IdT The index-type that should be used for operator[]. Must be
 /// losslessly convertible from and to size_t.
 /// \tparam ValueT The usual value_type of SmallVector.
-/// \tparam SmallSize The size of the inline-storange of SmallVector (default:
+/// \tparam SmallSize The size of the inline-storage of SmallVector (default:
 /// 0)
 template <typename IdT, typename ValueT, unsigned SmallSize = 0>
 class TypedVector {
@@ -56,6 +56,7 @@ public:
   [[nodiscard]] bool empty() const noexcept { return Vec.empty(); }
   [[nodiscard]] bool any() const noexcept { return !Vec.empty(); }
   [[nodiscard]] size_t size() const noexcept { return Vec.size(); }
+  [[nodiscard]] size_t capacity() const noexcept { return Vec.capacity(); }
 
   [[nodiscard]] bool inbounds(IdT Id) const noexcept {
     return size_t(Id) < size();

@@ -12,10 +12,10 @@
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
-#include "llvm/ADT/SmallVector.h"
 
 #include <cstdint>
 #include <deque>
@@ -71,12 +71,12 @@ public:
   }
 
   [[nodiscard]] bool inbounds(IdT Idx) const noexcept {
-    return size_t(Idx) < FromInt.size();
+    return FromInt.inbounds(Idx);
   }
 
   [[nodiscard]] T operator[](IdT Idx) const noexcept {
     assert(inbounds(Idx));
-    return FromInt[size_t(Idx)];
+    return FromInt[Idx];
   }
 
   [[nodiscard]] size_t size() const noexcept { return FromInt.size(); }
@@ -88,6 +88,8 @@ public:
   [[nodiscard]] auto begin() const noexcept { return FromInt.begin(); }
   [[nodiscard]] auto end() const noexcept { return FromInt.end(); }
 
+  [[nodiscard]] auto enumerate() const noexcept { return FromInt.enumerate(); }
+
   void clear() noexcept {
     ToInt.clear();
     FromInt.clear();
@@ -95,14 +97,13 @@ public:
 
 private:
   llvm::DenseMap<T, IdT> ToInt;
-  llvm::SmallVector<T, 0> FromInt;
+  TypedVector<IdT, T, 0> FromInt;
 };
 
 /// \brief A utility class that assigns a sequential Id to every inserted
 /// object.
 ///
-/// This specialization handles types that cannot be efficiently passed by
-/// value
+/// This specialization handles types that cannot be efficiently passed by value
 template <typename T, typename IdT>
 class Compressor<T, IdT, std::enable_if_t<!CanEfficientlyPassByValue<T>>> {
 public:
@@ -189,6 +190,14 @@ public:
 
   auto begin() const noexcept { return FromInt.begin(); }
   auto end() const noexcept { return FromInt.end(); }
+
+  [[nodiscard]] auto enumerate() const noexcept {
+    return llvm::map_range(llvm::enumerate(FromInt),
+                           [](const auto &IndexAndVal) {
+                             return std::pair<IdT, const T &>{
+                                 IdT(IndexAndVal.index()), IndexAndVal.value()};
+                           });
+  }
 
   void clear() noexcept {
     ToInt.clear();
