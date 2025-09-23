@@ -78,6 +78,9 @@ std::optional<std::pair<const llvm::Value *, uint64_t>>
 psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
+
+  // The pattern is always load [-> gep] -> load
+
   const auto *Load =
       llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
   if (Load == nullptr) {
@@ -86,12 +89,21 @@ psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
 
   const auto *GEP =
       llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
-  if (GEP == nullptr) {
+
+  const auto *GepPtrOp =
+      GEP ? GEP->getPointerOperand() : Load->getPointerOperand();
+
+  if (!llvm::isa<llvm::LoadInst>(GepPtrOp)) {
     return std::nullopt;
   }
 
+  // With opaque pointers the Gep is optional
+  if (GEP == nullptr) {
+    return {{GepPtrOp, 0}};
+  }
+
   if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
-    return {{GEP->getPointerOperand(), CI->getZExtValue()}};
+    return {{GepPtrOp, CI->getZExtValue()}};
   }
 
   return std::nullopt;
