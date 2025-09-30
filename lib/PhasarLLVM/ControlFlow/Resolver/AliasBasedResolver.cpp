@@ -11,15 +11,36 @@
 
 using namespace psr;
 
+static unsigned makeBaseResFlags(Resolver *BaseResolver,
+                                 bool UseBaseResolverAsFallback,
+                                 bool FilterTargetsOnBase) noexcept {
+  if (!BaseResolver) {
+    return 0;
+  }
+
+  return int(UseBaseResolverAsFallback) & (int(FilterTargetsOnBase) << 1);
+}
+
+static bool useBaseResolverAsFallback(
+    llvm::PointerIntPair<Resolver *, 2> FallbackResolverAndFlags) noexcept {
+  return FallbackResolverAndFlags.getInt() & 1;
+}
+static bool filterTargetsOnBase(
+    llvm::PointerIntPair<Resolver *, 2> FallbackResolverAndFlags) noexcept {
+  return (FallbackResolverAndFlags.getInt() >> 1) & 1;
+}
+
 AliasBasedResolver::AliasBasedResolver(const LLVMProjectIRDB *IRDB,
                                        const LLVMVFTableProvider *VTP,
                                        LLVMAliasIteratorRef AAInfo,
-                                       Resolver *FallbackResolver,
-                                       bool IsSoundFallbackResolver)
+                                       Resolver *BaseResolver,
+                                       bool UseBaseResolverAsFallback,
+                                       bool FilterTargetsOnBase)
     : Resolver(IRDB, VTP), AAInfo(AAInfo),
-      FallbackResolverAndIsSound(FallbackResolver,
-                                 IsSoundFallbackResolver &&
-                                     FallbackResolver != nullptr) {}
+      FallbackResolverAndFlags(BaseResolver,
+                               makeBaseResFlags(BaseResolver,
+                                                UseBaseResolverAsFallback,
+                                                FilterTargetsOnBase)) {}
 
 void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
                                             const llvm::CallBase *CallSite) {
@@ -41,16 +62,17 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
   PHASAR_LOG_LEVEL(DEBUG, "Virtual function table entry is: " << VtableIndex);
 
   FunctionSetTy BaseCallees;
-  if (FallbackResolverAndIsSound.getInt()) {
-    assert(FallbackResolverAndIsSound.getPointer() != nullptr &&
+  if (filterTargetsOnBase(FallbackResolverAndFlags)) {
+    assert(FallbackResolverAndFlags.getPointer() != nullptr &&
            "This must be ensured in the ctor");
-    FallbackResolverAndIsSound.getPointer()->resolveVirtualCall(BaseCallees,
-                                                                CallSite);
+    FallbackResolverAndFlags.getPointer()->resolveVirtualCall(BaseCallees,
+                                                              CallSite);
   }
 
   AAInfo.forallAliasesOf(
       VtablePtr, CallSite, [&, VtableIndex = VtableIndex](const auto *P) {
-        if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
+        if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(
+                P->stripInBoundsConstantOffsets())) {
           if (PGV->hasName() &&
               PGV->getName().startswith(DIBasedTypeHierarchy::VTablePrefix) &&
               PGV->hasInitializer()) {
@@ -74,11 +96,13 @@ void AliasBasedResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
         }
       });
 
-  if (PossibleTargets.empty()) {
+  if (PossibleTargets.empty() &&
+      useBaseResolverAsFallback(FallbackResolverAndFlags)) {
     if (!BaseCallees.empty()) {
       PossibleTargets = std::move(BaseCallees);
-    } else if (auto *Fallback = FallbackResolverAndIsSound.getPointer()) {
-      Fallback->resolveVirtualCall(PossibleTargets, CallSite);
+    } else {
+      FallbackResolverAndFlags.getPointer()->resolveVirtualCall(PossibleTargets,
+                                                                CallSite);
     }
   }
 }
@@ -90,11 +114,11 @@ void AliasBasedResolver::resolveFunctionPointer(
   }
 
   FunctionSetTy BaseCallees;
-  if (FallbackResolverAndIsSound.getInt()) {
-    assert(FallbackResolverAndIsSound.getPointer() != nullptr &&
+  if (filterTargetsOnBase(FallbackResolverAndFlags)) {
+    assert(FallbackResolverAndFlags.getPointer() != nullptr &&
            "This must be ensured in the ctor");
-    FallbackResolverAndIsSound.getPointer()->resolveFunctionPointer(BaseCallees,
-                                                                    CallSite);
+    FallbackResolverAndFlags.getPointer()->resolveFunctionPointer(BaseCallees,
+                                                                  CallSite);
   }
 
   llvm::SmallVector<const llvm::GlobalVariable *, 2> GlobalVariableWL;
@@ -193,11 +217,13 @@ void AliasBasedResolver::resolveFunctionPointer(
         }
       });
 
-  if (PossibleTargets.empty()) {
+  if (PossibleTargets.empty() &&
+      useBaseResolverAsFallback(FallbackResolverAndFlags)) {
     if (!BaseCallees.empty()) {
       PossibleTargets = std::move(BaseCallees);
-    } else if (auto *Fallback = FallbackResolverAndIsSound.getPointer()) {
-      Fallback->resolveFunctionPointer(PossibleTargets, CallSite);
+    } else {
+      FallbackResolverAndFlags.getPointer()->resolveFunctionPointer(
+          PossibleTargets, CallSite);
     }
   }
 }

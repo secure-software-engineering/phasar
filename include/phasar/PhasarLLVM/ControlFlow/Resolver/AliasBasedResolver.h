@@ -32,8 +32,9 @@ public:
   explicit AliasBasedResolver(const LLVMProjectIRDB *IRDB,
                               const LLVMVFTableProvider *VTP,
                               LLVMAliasIteratorRef AAInfo,
-                              Resolver *FallbackResolver = nullptr,
-                              bool IsSoundFallbackResolver = true);
+                              Resolver *BaseResolver = nullptr,
+                              bool UseBaseResolverAsFallback = true,
+                              bool FilterTargetsOnBase = true);
 
 protected:
   void resolveVirtualCall(FunctionSetTy &PossibleTargets,
@@ -51,7 +52,7 @@ protected:
 
 private:
   LLVMAliasIteratorRef AAInfo;
-  llvm::PointerIntPair<Resolver *, 1, bool> FallbackResolverAndIsSound{};
+  llvm::PointerIntPair<Resolver *, 2> FallbackResolverAndFlags{};
 };
 } // namespace psr
 

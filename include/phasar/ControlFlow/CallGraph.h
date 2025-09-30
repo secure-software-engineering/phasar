@@ -32,6 +32,8 @@ template <typename N, typename F> struct CGTraits<CallGraph<N, F>> {
   using f_t = F;
 };
 
+template <typename N, typename F> class CallGraphBuilder;
+
 /// An explicit graph-representation of a call-graph. Only represents the data,
 /// not the call-graph analysis that creates it.
 ///
@@ -48,6 +50,8 @@ public:
   using typename base_t::n_t;
   using FunctionVertexTy = llvm::SmallVector<n_t>;
   using InstructionVertexTy = llvm::SmallVector<f_t>;
+
+  using Builder = CallGraphBuilder<N, F>;
 
   /// Creates a new, empty call-graph
   CallGraph() noexcept = default;
