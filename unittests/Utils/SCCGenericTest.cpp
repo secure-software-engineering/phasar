@@ -18,6 +18,8 @@
 
 #include "gtest/gtest.h"
 
+#include <type_traits>
+
 namespace {
 using namespace psr;
 
@@ -73,12 +75,15 @@ static void compareSCCs(const SCCHolder<NodeId> &ComputedSCCs,
 }
 
 static void validateTopologicalOrder(const ExampleGraph &Graph,
-                                     const SCCHolder<NodeId> &ComputedSCCs) {
+                                     const SCCHolder<NodeId> &ComputedSCCs,
+                                     std::string_view ComputedName) {
   // Note: Pearce's algorithm produces SCCs in reverse-topological order
   for (auto [Vtx, SCC] : ComputedSCCs.SCCOfNode.enumerate()) {
     for (auto Succ : Graph.Adj[Vtx]) {
       auto SuccSCC = ComputedSCCs.SCCOfNode[Succ];
-      EXPECT_LE(+SuccSCC, +SCC);
+      EXPECT_LE(+SuccSCC, +SCC)
+          << "Invalid topological order in " << ComputedName << ": SCC #"
+          << +SCC << " must come before #" << +SuccSCC;
     }
   }
 }
@@ -86,21 +91,30 @@ static void validateTopologicalOrder(const ExampleGraph &Graph,
 static void computeSCCsAndCompare(ExampleGraph &Graph,
                                   llvm::ArrayRef<std::set<int>> ExpectedSCCs) {
 
-  auto ComputedSCCs = computeSCCs(Graph);
-  ASSERT_EQ(ComputedSCCs.SCCOfNode.size(), Graph.Adj.size())
-      << "Pearce's Approach did not reach all nodes\n";
+  auto ComputedSCCsIt = computeSCCs(Graph);
+  auto ComputedSCCsRec = computeSCCs(Graph, std::false_type{});
+  ASSERT_EQ(ComputedSCCsIt.SCCOfNode.size(), Graph.Adj.size())
+      << "Iterative Pearce's Approach did not reach all nodes\n";
+  ASSERT_EQ(ComputedSCCsIt.SCCOfNode.size(), Graph.Adj.size())
+      << "Recursive Pearce's Approach did not reach all nodes\n";
 
 #if __cplusplus >= 202002L
-  [[maybe_unused]] auto SCCDeps = computeSCCDependencies(Graph, ComputedSCCs);
+  [[maybe_unused]] auto SCCDeps = computeSCCDependencies(Graph, ComputedSCCsIt);
   static_assert(is_const_graph<decltype(SCCDeps)>);
 #endif
 
   auto GroundTruth = makeGTSCCs(ExpectedSCCs);
-  compareSCCs(ComputedSCCs, GroundTruth, "Pearce");
-  validateTopologicalOrder(Graph, ComputedSCCs);
-
+  compareSCCs(ComputedSCCsIt, GroundTruth, "Pearce Iterative");
+  validateTopologicalOrder(Graph, ComputedSCCsIt, "Pearce Iterative");
   if (::testing::Test::HasFailure()) {
-    ComputedSCCs.print(Graph, llvm::outs(), "ExampleGraph");
+    ComputedSCCsIt.print(Graph, llvm::outs(), "ExampleGraph");
+    return;
+  }
+
+  compareSCCs(ComputedSCCsRec, GroundTruth, "Pearce Recursive");
+  validateTopologicalOrder(Graph, ComputedSCCsRec, "Pearce Recursive");
+  if (::testing::Test::HasFailure()) {
+    ComputedSCCsRec.print(Graph, llvm::outs(), "ExampleGraph");
   }
 }
 

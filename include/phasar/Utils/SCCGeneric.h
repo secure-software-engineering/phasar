@@ -488,17 +488,6 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
       break;
     }
   }
-
-  if (!Data.Stack.empty()) {
-    auto NewSCC = SCCId(Holder.NodesInSCC.size());
-    auto &Nodes = Holder.NodesInSCC.emplace_back();
-    Nodes.reserve(Data.Stack.size());
-    for (auto Vtx : Data.Stack) {
-      Nodes.push_back(Vtx);
-      Holder.SCCOfNode[Vtx] = NewSCC;
-    }
-    Data.Stack.clear();
-  }
 }
 
 } // namespace detail
@@ -525,17 +514,26 @@ computeSCCs(const G &Graph, std::bool_constant<Iterative> /*Iterative*/ = {}) {
 
   Ret.SCCOfNode.resize(N);
 
-  {
-    detail::Pearce4Data<Vertex> Data(N);
+  detail::Pearce4Data<Vertex> Data(N);
 
-    // for all v ∈ V do if rindex[v]==0 then visit(v)
-    for (auto V : GTraits::vertices(Graph)) {
-      if (Data.RIndex[V] == 0) {
-        if constexpr (Iterative) {
-          detail::pearce4VisitIt(Graph, V, Data, Ret);
-        } else {
-          detail::pearce4VisitRec(Graph, V, Data, Ret);
+  // for all v ∈ V do if rindex[v]==0 then visit(v)
+  for (auto V : GTraits::vertices(Graph)) {
+    if (Data.RIndex[V] == 0) {
+      if constexpr (Iterative) {
+        detail::pearce4VisitIt(Graph, V, Data, Ret);
+      } else {
+        detail::pearce4VisitRec(Graph, V, Data, Ret);
+      }
+
+      if (!Data.Stack.empty()) {
+        auto NewSCC = SCCId<Vertex>(Ret.NodesInSCC.size());
+        auto &Nodes = Ret.NodesInSCC.emplace_back();
+        Nodes.reserve(Data.Stack.size());
+        for (auto Vtx : Data.Stack) {
+          Nodes.push_back(Vtx);
+          Ret.SCCOfNode[Vtx] = NewSCC;
         }
+        Data.Stack.clear();
       }
     }
   }
