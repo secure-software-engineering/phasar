@@ -54,14 +54,15 @@ VTAResolver::VTAResolver(
   auto TAG = vta::computeTypeAssignmentGraph(
       *IRDB, *VTP, AS, *this->BaseResolver, ReachableFunctions);
 
-  SCCs = computeSCCs(TAG);
+  auto [SCCs, Order] = computeSCCsAndTopologicalOrder(TAG);
   auto Deps = computeSCCDependencies(TAG, SCCs);
-  auto Order = computeSCCOrder(SCCs, Deps);
+
   TA = vta::propagateTypes(TAG, SCCs, Deps, Order);
 
   // TAG.print(llvm::errs());
   // TA.print(llvm::errs(), TAG, SCCs);
 
+  this->SCCs = std::move(SCCs);
   Nodes = std::move(TAG.Nodes);
 }
 

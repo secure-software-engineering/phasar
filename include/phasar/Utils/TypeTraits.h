@@ -211,12 +211,6 @@ struct has_llvm_dense_map_info<
                                                            std::declval<T>()))>>
     : std::true_type {};
 
-template <typename T, typename = void>
-struct is_incrementable : std::false_type {};
-template <typename T>
-struct is_incrementable<T, std::void_t<decltype(++std::declval<T &>())>>
-    : std::true_type {};
-
 template <typename From, typename To, typename = void>
 struct is_explicitly_convertible_to : std::false_type {};
 template <typename From, typename To>
@@ -303,9 +297,6 @@ template <typename T>
 constexpr bool has_llvm_dense_map_info =
     detail::has_llvm_dense_map_info<T>::value;
 template <typename T> using type_identity_t = typename type_identity<T>::type;
-
-template <typename T>
-PSR_CONCEPT is_incrementable = detail::is_incrementable<T>::value;
 
 template <typename From, typename To>
 PSR_CONCEPT is_explicitly_convertible_to =

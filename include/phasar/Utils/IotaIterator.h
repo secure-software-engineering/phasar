@@ -12,6 +12,7 @@
 
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/iterator.h"
 #include "llvm/ADT/iterator_range.h"
 
 #include <cstddef>
@@ -19,37 +20,47 @@
 #include <type_traits>
 
 namespace psr {
-/// An iterator that iterates over the same value a specified number of times
-template <typename T> class IotaIterator {
+/// An iterator that iterates over a numeric range, where the start value is
+/// always incremented by one.
+template <typename T>
+class IotaIterator
+    : public llvm::iterator_facade_base<IotaIterator<T>,
+                                        std::random_access_iterator_tag, T,
+                                        ptrdiff_t, const T *, T> {
+  using base_t = llvm::iterator_facade_base<IotaIterator<T>,
+                                            std::random_access_iterator_tag, T,
+                                            ptrdiff_t, const T *, T>;
+
 public:
-  using value_type = T;
-  using reference = T;
-  using pointer = const T *;
-  using difference_type = ptrdiff_t;
-  using iterator_category = std::forward_iterator_tag;
+  using typename base_t::difference_type;
+  using typename base_t::iterator_category;
+  using typename base_t::pointer;
+  using typename base_t::reference;
+  using typename base_t::value_type;
 
   constexpr reference operator*() const noexcept { return Elem; }
   constexpr pointer operator->() const noexcept { return &Elem; }
 
-  constexpr IotaIterator &operator++() noexcept {
-    if constexpr (is_incrementable<T>) {
-      ++Elem;
-    } else {
-      Elem = T(size_t(Elem) + 1);
-    }
+  constexpr IotaIterator &operator+=(difference_type N) noexcept {
+    Elem = T(difference_type(Elem) + N);
     return *this;
   }
-  constexpr IotaIterator operator++(int) noexcept {
-    auto Ret = *this;
-    ++*this;
-    return Ret;
+  constexpr IotaIterator &operator-=(difference_type N) noexcept {
+    Elem = T(difference_type(Elem) - N);
+    return *this;
   }
-
+  constexpr bool operator<(const IotaIterator &Other) const noexcept {
+    return difference_type(Other.Elem) < difference_type(Elem);
+  }
   constexpr bool operator==(const IotaIterator &Other) const noexcept {
     return Other.Elem == Elem;
   }
   constexpr bool operator!=(const IotaIterator &Other) const noexcept {
     return !(*this == Other);
+  }
+  constexpr difference_type
+  operator-(const IotaIterator &Other) const noexcept {
+    return difference_type(Elem) - difference_type(Other.Elem);
   }
 
   constexpr explicit IotaIterator(T Elem) noexcept : Elem(Elem) {}
