@@ -11,35 +11,26 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-#include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/Demangle/Demangle.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Support/Casting.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-#include "nlohmann/json.hpp"
 
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <variant>
 
-using namespace std;
 using namespace psr;
-using json = nlohmann::json;
+using namespace psr::unittest;
 
 using CallBackPairTy = std::pair<IDEExtendedTaintAnalysis<>::config_callback_t,
                                  IDEExtendedTaintAnalysis<>::config_callback_t>;
@@ -51,14 +42,14 @@ protected:
   static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("xtaint/");
   const std::vector<std::string> EntryPoints = {"main"};
 
-  IDETaintAnalysisTest() = default;
-  ~IDETaintAnalysisTest() override = default;
+  using TaintSetT = std::set<TestingSrcLocation>;
 
   void doAnalysis(
-      const llvm::Twine &IRFile, const map<int, set<string>> &GroundTruth,
+      const llvm::Twine &IRFilePath,
+      const std::map<TestingSrcLocation, TaintSetT> &GroundTruth,
       std::variant<std::monostate, TaintConfigData *, CallBackPairTy> Config,
       bool DumpResults = true) {
-    HelperAnalyses HA(IRFile, EntryPoints);
+    HelperAnalyses HA(PathToLLFiles + IRFilePath, EntryPoints);
 
     auto TC =
         std::visit(Overloaded{[&](std::monostate) {
@@ -93,34 +84,26 @@ protected:
     compareResults(TaintProblem, Solver, GroundTruth);
   }
 
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
+  void
+  compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
+                 IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
+                 const std::map<TestingSrcLocation, TaintSetT> &GroundTruth) {
+    auto GroundTruthEntries = convertTestingLocationSetMapInIR(
+        GroundTruth, *TaintProblem.getProjectIRDB());
 
-  void TearDown() override {}
+    std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+        FoundLeaks;
 
-  void compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
-                      IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
-                      const map<int, set<string>> &GroundTruth) {
-
-    map<int, set<string>> FoundLeaks;
-    for (const auto &Leak :
+    for (const auto &[LeakInst, LeakVals] :
          TaintProblem.getAllLeaks(Solver.getSolverResults())) {
-      llvm::errs() << "Leak: " << PrettyPrinter{Leak} << '\n';
-      int SinkId = stoi(getMetaDataID(Leak.first));
-      set<string> LeakedValueIds;
-      for (const auto &LV : Leak.second) {
-        LeakedValueIds.insert(getMetaDataID(LV));
-      }
-      FoundLeaks.emplace(SinkId, LeakedValueIds);
+      FoundLeaks[LeakInst].insert(LeakVals.begin(), LeakVals.end());
     }
-    EXPECT_EQ(FoundLeaks, GroundTruth);
+
+    EXPECT_EQ(FoundLeaks, GroundTruthEntries);
   }
 }; // Test Fixture
 
 TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
-  map<int, set<string>> Gt;
-
-  Gt[7] = {"6"};
-
   TaintConfigData Config;
 
   FunctionData FuncDataMain;
@@ -134,192 +117,184 @@ TEST_F(IDETaintAnalysisTest, XTaint01_Json) {
   Config.Functions.push_back(std::move(FuncDataMain));
   Config.Functions.push_back(std::move(FuncDataPrint));
 
-  doAnalysis({PathToLLFiles + "xtaint01_json_cpp_dbg.ll"}, Gt, &Config);
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {{
+      LineColFun{8, 3, "main"},
+      {LineColFunOp{8, 9, "main", llvm::Instruction::Load}},
+  }};
+
+  doAnalysis("xtaint01_json_cpp_dbg.ll", GroundTruth, &Config);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint01) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{8, 3, "main"},
+       {LineColFunOp{8, 9, "main", llvm::Instruction::Load}}}};
 
-  Gt[13] = {"12"};
-
-  doAnalysis({PathToLLFiles + "xtaint01_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint01_cpp_dbg.ll", GroundTruth, std::monostate{});
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint02) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{9, 3, "main"},
+       {LineColFunOp{9, 9, "main", llvm::Instruction::Load}}}};
 
-  Gt[18] = {"17"};
-
-  doAnalysis({PathToLLFiles + "xtaint02_cpp.ll"}, Gt, std::monostate{}, true);
+  doAnalysis("xtaint02_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
+
 TEST_F(IDETaintAnalysisTest, XTaint03) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{10, 3, "main"},
+       {LineColFunOp{10, 9, "main", llvm::Instruction::Load}}}};
 
-  Gt[21] = {"20"};
-
-  doAnalysis({PathToLLFiles + "xtaint03_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint03_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint04) {
-  map<int, set<string>> Gt;
+  auto Call = LineColFun{6, 3, "_Z3barPi"};
 
-  Gt[16] = {"15"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {Call, {OperandOf{0, Call}}}};
 
-  doAnalysis({PathToLLFiles + "xtaint04_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint04_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 // XTaint05 is similar to 06, but even harder
 
 TEST_F(IDETaintAnalysisTest, XTaint06) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // no leaks expected
-
-  doAnalysis({PathToLLFiles + "xtaint06_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint06_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
-/// In the new TaintConfig specifying source/sink/sanitizer properties for extra
-/// parameters of C-style variadic functions is not (yet?) supported. So, the
-/// tests XTaint07 and XTaint08 are disabled.
+/// In the new TaintConfig specifying source/sink/sanitizer properties for
+/// extra parameters of C-style variadic functions is not (yet?) supported.
+/// So, the tests XTaint07 and XTaint08 are disabled.
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint07) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{10, 0, "main"},
+       {LineColFunOp{10, 18, "main", llvm::Instruction::Load}}}};
 
-  Gt[21] = {"20"};
-
-  doAnalysis({PathToLLFiles + "xtaint07_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint07_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint08) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{20, 3, "main"},
+       {LineColFunOp{20, 18, "main", llvm::Instruction::Load}}}};
 
-  Gt[24] = {"23"};
-
-  doAnalysis({PathToLLFiles + "xtaint08_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint08_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09_1) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{14, 3, "main"}, {LineColFun{14, 8, "main"}}}};
 
-  Gt[25] = {"24"};
-
-  doAnalysis({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint09_1_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {
-  map<int, set<string>> Gt;
+  auto SinkCall = LineColFun{16, 3, "main"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {SinkCall, {OperandOf{0, SinkCall}}}};
 
-  Gt[24] = {"23"};
-
-  doAnalysis({PathToLLFiles + "xtaint09_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint09_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint10) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // undefined behaviour: sometimes this test fails, but most of the time
-  // it passes. It only fails when executed together with other tests. It
-  // never failed (so far) for ./IDEExtendedTaintAnalysisTest
-  // --Gtest_filter=*XTaint10
-  // UPDATE: With the fixed k-limiting, this test
-  // almost always fails due to aliasing issues, so disable it.
-  // TODO: Also update the Gt
-  Gt[33] = {"32"};
-
-  doAnalysis({PathToLLFiles + "xtaint10_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint10_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint11) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // no leaks expected; actually finds "27" at 28
-
-  doAnalysis({PathToLLFiles + "xtaint11_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint11_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint12) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{19, 3, "main"}, {LineColFun{19, 8, "main"}}}};
 
-  // We sanitize an alias - since we don't have must-alias relations, we cannot
-  // kill aliases at all
-  Gt[28] = {"27"};
-
-  doAnalysis({PathToLLFiles + "xtaint12_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint12_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint13) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}}};
 
-  Gt[30] = {"29"};
-
-  doAnalysis({PathToLLFiles + "xtaint13_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint13_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint14) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{24, 3, "main"}, {LineColFun{24, 8, "main"}}}};
 
-  Gt[33] = {"32"};
-
-  doAnalysis({PathToLLFiles + "xtaint14_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint14_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 /// The TaintConfig fails to get all call-sites of Source::get, because it has
 /// no CallGraph information
 TEST_F(IDETaintAnalysisTest, DISABLED_XTaint15) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  Gt[47] = {"46"};
-
-  doAnalysis({PathToLLFiles + "xtaint15_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint15_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint16) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}}};
 
-  Gt[24] = {"23"};
-
-  doAnalysis({PathToLLFiles + "xtaint16_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint16_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint17) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}}};
 
-  Gt[27] = {"26"};
-
-  doAnalysis({PathToLLFiles + "xtaint17_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint17_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint18) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // Gt[26] = {"25"};
-
-  doAnalysis({PathToLLFiles + "xtaint18_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint18_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 PHASAR_SKIP_TEST(TEST_F(IDETaintAnalysisTest, XTaint19) {
   // Is now the same as XTaint17
   GTEST_SKIP();
-  map<int, set<string>> Gt;
 
-  Gt[22] = {"21"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}}};
 
-  doAnalysis({PathToLLFiles + "xtaint19_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint19_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 })
 
 TEST_F(IDETaintAnalysisTest, XTaint20) {
-  map<int, set<string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{12, 3, "main"}, {LineColFun{6, 7, "main"}}},
+      {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
+  };
 
-  Gt[22] = {"14"};
-  Gt[24] = {"23"};
-
-  doAnalysis({PathToLLFiles + "xtaint20_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis("xtaint20_cpp_dbg.ll", GroundTruth, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint21) {
-  map<int, set<string>> Gt;
-
-  Gt[10] = {"2"};
-  Gt[12] = {"11"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{11, 7, "main"}}},
+      {LineColFun{18, 3, "main"}, {LineColFun{18, 8, "main"}}},
+  };
 
   IDEExtendedTaintAnalysis<>::config_callback_t SourceCB =
       [](const llvm::Instruction *Inst) {
@@ -343,7 +318,7 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
         return Ret;
       };
 
-  doAnalysis({PathToLLFiles + "xtaint21_cpp.ll"}, Gt,
+  doAnalysis("xtaint21_cpp_dbg.ll", GroundTruth,
              CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }
 

@@ -20,21 +20,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
-
-namespace llvm {
-class CallBase;
-class Function;
-class Type;
-class Value;
-} // namespace llvm
-
 namespace psr {
-
-class DIBasedTypeHierarchy;
 
 /// \brief A resolver that uses alias information to resolve indirect and
 /// virtual calls
@@ -54,18 +40,11 @@ public:
   void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
                               const llvm::CallBase *CallSite) override;
 
-  static std::set<const llvm::Type *>
-  getReachableTypes(const LLVMAliasInfo::AliasSetTy &Values);
-
-  static std::vector<std::pair<const llvm::Value *, const llvm::Value *>>
-  getActualFormalPointerPairs(const llvm::CallBase *CallSite,
-                              const llvm::Function *CalleeTarget);
-
   [[nodiscard]] std::string str() const override;
 
   [[nodiscard]] bool
   mutatesHelperAnalysisInformation() const noexcept override {
-    return true;
+    return !PT.isInterProcedural();
   }
 
 protected:
