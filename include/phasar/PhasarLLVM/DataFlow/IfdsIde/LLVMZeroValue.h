@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMZEROVALUE_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMZEROVALUE_H
 
+#include "phasar/Utils/Fn.h"
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/GlobalVariable.h"
 
@@ -36,10 +38,7 @@ private:
   LLVMZeroValue(llvm::Module &Mod);
 
   static constexpr llvm::StringLiteral LLVMZeroValueInternalName = "zero_value";
-  static bool isZeroValueHelper(const llvm::Value *V) noexcept {
-    // Need this helper function to make gcc happy;
-    // Gcc thinks that LLVMZeroValue is incomplete within the below lambda, so
-    // it cannot compare a LLVMZeroValue* with a Value*
+  static bool isZeroValueImpl(const llvm::Value *V) noexcept {
     return V == getInstance();
   }
 
@@ -54,13 +53,18 @@ public:
     return LLVMZeroValueInternalName;
   }
 
-  // Do not specify a destructor (at all)!
-  static const LLVMZeroValue *getInstance();
+  /// Gets the singleton instance of the special zero value (aka. Λ).
+  [[nodiscard]] static const LLVMZeroValue *getInstance();
 
+  /// Checks, whether the given llvm::Value * is the special zero-value (aka.
+  /// Λ).
+  ///
+  /// You can use this as follows:
+  /// \code
+  /// return strongUpdateStore(Store, LLVMZeroValue::isLLVMZeroValue);
+  /// \endcode
   // NOLINTNEXTLINE(readability-identifier-naming)
-  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) noexcept {
-    return isZeroValueHelper(V);
-  };
+  static constexpr auto isLLVMZeroValue = fn<isZeroValueImpl>;
 };
 } // namespace psr
 
