@@ -290,9 +290,7 @@ struct GraphTraits<AdjacencyList<T, EdgeTy>> {
     return It;
   }
 
-#if __cplusplus >= 202002L
   static_assert(is_graph<AdjacencyList<T>>);
-#endif
   static_assert(is_reservable_graph_trait_v<GraphTraits<AdjacencyList<T>>>);
 };
 

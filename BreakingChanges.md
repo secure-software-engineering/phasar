@@ -2,7 +2,7 @@
 
 ## development HEAD
 
-*None*
+- Requiring C++20 instead of C++17
 
 ## v2503
 

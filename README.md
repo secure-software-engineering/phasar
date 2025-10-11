@@ -2,10 +2,10 @@
 
 # PhASAR: A LLVM-based Static Analysis Framework
 
-[![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
+[![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B20-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
+[![Latest Release](https://img.shields.io/github/v/release/secure-software-engineering/phasar?sort=date&style=flat)](https://github.com/secure-software-engineering/phasar/releases)
 
-Version 2503
 
 ## What is PhASAR?
 
@@ -25,7 +25,7 @@ this README first.
 as well. -->
 Please also have a look on PhASAR's project directory and notice the project directory [examples](./examples/) as well as the custom tool `tools/example-tool/myphasartool.cpp`.
 
-**NEW:** You can find PhASAR's API reference [here](https://secure-software-engineering.github.io/phasar/).
+You can find PhASAR's API reference [here](https://secure-software-engineering.github.io/phasar/).
 
 
 ## Secure Software Engineering Group
@@ -43,12 +43,9 @@ Currently, PhASAR is maintained by
 
 ## Required Version of the C++ Standard
 
-PhASAR requires at least C++-17.
+**NEW**: PhASAR requires at least C++-20.
 
-However, building in C++20 mode is supported. You may enable this setting the cmake variable `CMAKE_CXX_STANDARD` to `20`.
-Although phasar currently does not make use of C++-20 features (except for some `concept`s behind an #ifdef border), your client application that just *uses* phasar as a library may want to use C++20 earlier.
-
-**NEW**: PhASAR supports C++20 modules as an experimental feature.
+PhASAR supports C++20 modules as an experimental feature.
 
 ## Currently Supported Version of LLVM
 

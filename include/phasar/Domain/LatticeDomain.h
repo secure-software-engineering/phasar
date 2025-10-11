@@ -177,52 +177,6 @@ inline bool operator==(Top /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
   return Rhs.isTop();
 }
 
-#if __cplusplus < 202002L
-
-// With C++20 inequality is defaulted if equality is provided
-
-template <typename L>
-inline bool operator!=(const LatticeDomain<L> &Lhs,
-                       const LatticeDomain<L> &Rhs) {
-  return !(Lhs == Rhs);
-}
-
-template <
-    typename L, typename LL,
-    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
-inline bool operator!=(const LL &Lhs, const LatticeDomain<L> Rhs) {
-  return !(Lhs == Rhs);
-}
-
-template <
-    typename L, typename LL,
-    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
-inline bool operator!=(const LatticeDomain<L> Lhs, const LL &Rhs) {
-  return !(Rhs == Lhs);
-}
-
-template <typename L>
-inline bool operator!=(const LatticeDomain<L> &Lhs, Bottom /*Rhs*/) noexcept {
-  return !(Lhs == Bottom{});
-}
-
-template <typename L>
-inline bool operator!=(const LatticeDomain<L> &Lhs, Top /*Rhs*/) noexcept {
-  return !(Lhs == Top{});
-}
-
-template <typename L>
-inline bool operator!=(Bottom /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
-  return !(Bottom{} == Rhs);
-}
-
-template <typename L>
-inline bool operator!=(Top /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
-  return !(Top{} == Rhs);
-}
-
-#endif
-
 template <typename L>
 inline bool operator<(const LatticeDomain<L> &Lhs,
                       const LatticeDomain<L> &Rhs) {

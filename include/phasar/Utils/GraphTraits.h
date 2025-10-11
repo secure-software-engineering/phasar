@@ -16,9 +16,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
-#if __cplusplus >= 202002L
 #include <concepts>
-#endif
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -31,8 +29,6 @@ namespace psr {
 /// "graph". All the functionality should be reflected by the GraphTraits class.
 /// Once moving to C++20, we have nice type-checking using concepts
 template <typename Graph> struct GraphTraits;
-
-#if __cplusplus >= 202002L
 
 template <typename Edge>
 concept is_graph_edge = requires(const Edge e1, Edge e2) {
@@ -55,36 +51,36 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
   { GraphTrait::Invalid } -> std::convertible_to<typename GraphTrait::vertex_t>;
   {
     GraphTrait::addNode(graph, val)
-    } -> std::convertible_to<typename GraphTrait::vertex_t>;
-  {GraphTrait::addEdge(graph, vtx, edge)};
+  } -> std::convertible_to<typename GraphTrait::vertex_t>;
+  { GraphTrait::addEdge(graph, vtx, edge) };
   {
     GraphTrait::outEdges(cgraph, vtx)
-    } -> psr::is_iterable_over_v<typename GraphTrait::edge_t>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::edge_t>;
   { GraphTrait::outDegree(cgraph, vtx) } -> std::convertible_to<size_t>;
-  {GraphTrait::dedupOutEdges(graph, vtx)};
+  { GraphTrait::dedupOutEdges(graph, vtx) };
   {
     GraphTrait::nodes(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
   {
     GraphTrait::vertices(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
   {
     GraphTrait::node(cgraph, vtx)
-    } -> std::convertible_to<typename GraphTrait::value_type>;
+  } -> std::convertible_to<typename GraphTrait::value_type>;
   { GraphTrait::size(cgraph) } -> std::convertible_to<size_t>;
-  {GraphTrait::addRoot(graph, vtx)};
+  { GraphTrait::addRoot(graph, vtx) };
   {
     GraphTrait::roots(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
   { GraphTrait::pop(graph, vtx) } -> std::same_as<bool>;
   { GraphTrait::roots_size(cgraph) } -> std::convertible_to<size_t>;
   {
     GraphTrait::target(edge)
-    } -> std::convertible_to<typename GraphTrait::vertex_t>;
+  } -> std::convertible_to<typename GraphTrait::vertex_t>;
   {
     GraphTrait::withEdgeTarget(edge, vtx)
-    } -> std::convertible_to<typename GraphTrait::edge_t>;
-  {GraphTrait::weight(edge)};
+  } -> std::convertible_to<typename GraphTrait::edge_t>;
+  { GraphTrait::weight(edge) };
 };
 
 template <typename Graph>
@@ -94,70 +90,25 @@ concept is_graph = requires(Graph g) {
 };
 
 template <typename GraphTrait>
-concept is_reservable_graph_trait_v = is_graph_trait<GraphTrait> &&
-    requires(typename GraphTrait::graph_type &g) {
-  {GraphTrait::reserve(g, size_t(0))};
-};
+concept is_reservable_graph_trait_v =
+    is_graph_trait<GraphTrait> && requires(typename GraphTrait::graph_type &g) {
+      { GraphTrait::reserve(g, size_t(0)) };
+    };
 
 template <typename GraphTrait>
-concept is_removable_graph_trait_v = is_graph_trait<GraphTrait> &&
+concept is_removable_graph_trait_v =
+    is_graph_trait<GraphTrait> &&
     requires(typename GraphTrait::graph_type &g,
              typename GraphTrait::vertex_t vtx,
              typename GraphTrait::edge_iterator edge_it,
              typename GraphTrait::roots_iterator root_it) {
-  typename GraphTrait::edge_iterator;
-  typename GraphTrait::roots_iterator;
-  {GraphTrait::removeEdge(g, vtx, edge_it)};
-  {GraphTrait::removeRoot(g, root_it)};
-};
+      typename GraphTrait::edge_iterator;
+      typename GraphTrait::roots_iterator;
+      { GraphTrait::removeEdge(g, vtx, edge_it) };
+      { GraphTrait::removeRoot(g, root_it) };
+    };
 
-#else
-namespace detail {
-template <typename GraphTrait, typename = void>
-// NOLINTNEXTLINE(readability-identifier-naming)
-struct is_reservable_graph_trait : std::false_type {};
-template <typename GraphTrait>
-struct is_reservable_graph_trait<
-    GraphTrait,
-    std::void_t<decltype(GraphTrait::reserve(
-        std::declval<typename GraphTrait::graph_type &>(), size_t()))>>
-    : std::true_type {};
-
-template <typename GraphTrait, typename = void>
-// NOLINTNEXTLINE(readability-identifier-naming)
-struct is_removable_graph_trait : std::false_type {};
-template <typename GraphTrait>
-struct is_removable_graph_trait<
-    GraphTrait,
-    std::void_t<typename GraphTrait::edge_iterator,
-                typename GraphTrait::roots_iterator,
-                decltype(GraphTrait::removeEdge(
-                    std::declval<typename GraphTrait::graph_type &>(),
-                    std::declval<typename GraphTrait::vertex_t>(),
-                    std::declval<typename GraphTrait::edge_iterator>())),
-                decltype(GraphTrait::removeRoot(
-                    std::declval<typename GraphTrait::graph_type &>(),
-                    std::declval<typename GraphTrait::roots_iterator>()))>>
-    : std::true_type {};
-} // namespace detail
-
-template <typename GraphTrait>
-// NOLINTNEXTLINE(readability-identifier-naming)
-static constexpr bool is_reservable_graph_trait_v =
-    detail::is_reservable_graph_trait<GraphTrait>::value;
-
-template <typename GraphTrait>
-// NOLINTNEXTLINE(readability-identifier-naming)
-static constexpr bool is_removable_graph_trait_v =
-    detail::is_removable_graph_trait<GraphTrait>::value;
-#endif
-
-template <typename GraphTy>
-std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
-#if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
-#endif
-{
+template <is_graph GraphTy> std::decay_t<GraphTy> reverseGraph(GraphTy &&G) {
   std::decay_t<GraphTy> Ret;
   using traits_t = GraphTraits<std::decay_t<GraphTy>>;
   if constexpr (is_reservable_graph_trait_v<traits_t>) {
@@ -189,13 +140,9 @@ struct DefaultNodeTransform {
   }
 };
 
-template <typename GraphTy, typename NodeTransform = DefaultNodeTransform>
+template <is_graph GraphTy, typename NodeTransform = DefaultNodeTransform>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
-                llvm::StringRef Name = "", NodeTransform NodeToString = {})
-#if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
-#endif
-{
+                llvm::StringRef Name = "", NodeTransform NodeToString = {}) {
   using traits_t = GraphTraits<GraphTy>;
 
   OS << "digraph " << Name << " {\n";

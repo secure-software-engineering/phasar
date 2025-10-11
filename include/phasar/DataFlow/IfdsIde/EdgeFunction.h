@@ -35,39 +35,15 @@ namespace psr {
 template <typename L> class EdgeFunction;
 template <typename EF> class EdgeFunctionRef;
 
-#if __cplusplus < 202002L
-
-namespace detail {
-template <typename T, typename = void>
-struct IsEdgeFunction : std::false_type {};
 template <typename T>
-struct IsEdgeFunction<
-    T, std::void_t<
-           typename T::l_t,
-           decltype(std::declval<const T &>().computeTarget(
-               std::declval<typename T::l_t>())),
-           decltype(T::compose(std::declval<EdgeFunctionRef<T>>(),
-                               std::declval<EdgeFunction<typename T::l_t>>())),
-           decltype(T::join(std::declval<EdgeFunctionRef<T>>(),
-                            std::declval<EdgeFunction<typename T::l_t>>()))>>
-    : std::true_type {};
-
-} // namespace detail
-template <typename T>
-static constexpr bool IsEdgeFunction = detail::IsEdgeFunction<T>::value;
-
-#else
-// clang-format off
-template <typename T>
-concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_t>& TEEF, EdgeFunctionRef<T> CEF, typename T::l_t Src) {
-  typename T::l_t;
-  {EF.computeTarget(Src)}   -> std::convertible_to<typename T::l_t>;
-  {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
-  {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
-};
-// clang-format on
-
-#endif
+concept IsEdgeFunction =
+    requires(const T &EF, const EdgeFunction<typename T::l_t> &TEEF,
+             EdgeFunctionRef<T> CEF, typename T::l_t Src) {
+      typename T::l_t;
+      { EF.computeTarget(Src) } -> std::convertible_to<typename T::l_t>;
+      { T::compose(CEF, TEEF) } -> std::same_as<EdgeFunction<typename T::l_t>>;
+      { T::join(CEF, TEEF) } -> std::same_as<EdgeFunction<typename T::l_t>>;
+    };
 
 enum class EdgeFunctionAllocationPolicy {
   SmallObjectOptimized,

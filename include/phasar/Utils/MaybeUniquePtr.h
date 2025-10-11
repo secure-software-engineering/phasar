@@ -122,10 +122,7 @@ public:
   MaybeUniquePtr(const MaybeUniquePtr &) = delete;
   MaybeUniquePtr &operator=(const MaybeUniquePtr &) = delete;
 
-#if __cplusplus >= 202002L
-  constexpr
-#endif
-      ~MaybeUniquePtr() {
+  constexpr ~MaybeUniquePtr() {
     if (owns()) {
       delete Data.getPointer();
       Data = {};
