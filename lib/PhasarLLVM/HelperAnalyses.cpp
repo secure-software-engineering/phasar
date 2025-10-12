@@ -3,6 +3,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 
 #include <memory>
@@ -10,10 +11,10 @@
 
 namespace psr {
 HelperAnalyses::HelperAnalyses(std::string IRFile,
-                               std::optional<nlohmann::json> PrecomputedPTS,
+                               std::optional<LLVMAliasSetData> PrecomputedPTS,
                                AliasAnalysisType PTATy, bool AllowLazyPTS,
                                std::vector<std::string> EntryPoints,
-                               std::optional<nlohmann::json> PrecomputedCG,
+                               std::optional<CallGraphData> PrecomputedCG,
                                CallGraphAnalysisType CGTy,
                                Soundness SoundnessLevel,
                                bool AutoGlobalSupport) noexcept

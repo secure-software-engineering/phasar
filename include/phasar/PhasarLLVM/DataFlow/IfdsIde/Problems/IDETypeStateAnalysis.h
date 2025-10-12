@@ -19,6 +19,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
@@ -41,7 +42,7 @@ namespace detail {
 class IDETypeStateAnalysisBaseCommon : public LLVMAnalysisDomainDefault {
 public:
   using container_type = std::set<d_t>;
-  using FlowFunctionPtrType = FlowFunctionPtrType<d_t, container_type>;
+  using FlowFunctionPtrType = psr::FlowFunctionPtrType<d_t, container_type>;
 };
 
 class IDETypeStateAnalysisBase
@@ -217,7 +218,7 @@ private:
   };
 
   struct TSEdgeFunction {
-    using l_t = l_t;
+    using l_t = IDETypeStateAnalysis::l_t;
     const TypeStateDescriptionTy *TSD{};
     // XXX: Do we really need a string here? Can't we just use an integer or sth
     // else that is cheap?
