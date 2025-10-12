@@ -119,17 +119,18 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:af735982cdd7996745e254d6c7d27b098" id="r_af735982cdd7996745e254d6c7d27b098"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMZeroValue.html">LLVMZeroValue</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMZeroValue.html#af735982cdd7996745e254d6c7d27b098">getInstance</a> ()</td></tr>
+<tr class="memdesc:af735982cdd7996745e254d6c7d27b098"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the singleton instance of the special zero value (aka. Λ).  <br /></td></tr>
 <tr class="separator:af735982cdd7996745e254d6c7d27b098"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a632f1885195c87077f7b4ddbf41bdcaa" id="r_a632f1885195c87077f7b4ddbf41bdcaa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMZeroValue.html#a632f1885195c87077f7b4ddbf41bdcaa">isLLVMZeroValue</a></td></tr>
+<tr class="memitem:a632f1885195c87077f7b4ddbf41bdcaa" id="r_a632f1885195c87077f7b4ddbf41bdcaa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMZeroValue.html#a632f1885195c87077f7b4ddbf41bdcaa">isLLVMZeroValue</a> = fn&lt;isZeroValueImpl&gt;</td></tr>
 <tr class="separator:a632f1885195c87077f7b4ddbf41bdcaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class may be used to represent the special zero value (aka. Λ) for IFDS and IDE problems. The <a class="el" href="classpsr_1_1LLVMZeroValue.html" title="This class may be used to represent the special zero value (aka. Λ) for IFDS and IDE problems....">LLVMZeroValue</a> is implemented as a singleton. </p>
 
-<p class="definition">Definition at line <a class="el" href="LLVMZeroValue_8h_source.html#l00034">34</a> of file <a class="el" href="LLVMZeroValue_8h_source.html">LLVMZeroValue.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMZeroValue_8h_source.html#l00036">36</a> of file <a class="el" href="LLVMZeroValue_8h_source.html">LLVMZeroValue.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2e9e12aac16ffe52004bed5ca1c1a4c2" name="a2e9e12aac16ffe52004bed5ca1c1a4c2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2e9e12aac16ffe52004bed5ca1c1a4c2">&#9670;&#160;</a></span>LLVMZeroValue() <span class="overload">[1/2]</span></h2>
@@ -232,7 +233,9 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00387">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::createZeroValue()</a>.</p>
+<p>Gets the singleton instance of the special zero value (aka. Λ). </p>
+
+<p class="reference">Referenced by <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00388">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::createZeroValue()</a>.</p>
 
 </div>
 </div>
@@ -259,7 +262,7 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMZeroValue_8h_source.html#l00047">47</a> of file <a class="el" href="LLVMZeroValue_8h_source.html">LLVMZeroValue.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMZeroValue_8h_source.html#l00052">52</a> of file <a class="el" href="LLVMZeroValue_8h_source.html">LLVMZeroValue.h</a>.</p>
 
 </div>
 </div>
@@ -326,7 +329,7 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> psr::LLVMZeroValue::isLLVMZeroValue</td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> psr::LLVMZeroValue::isLLVMZeroValue = fn&lt;isZeroValueImpl&gt;</td>
         </tr>
       </table>
   </td>
@@ -335,14 +338,15 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= [](<span class="keyword">const</span> llvm::Value *V) <span class="keyword">noexcept</span> {</div>
-<div class="line">    <span class="keywordflow">return</span> V == <a class="code hl_function" href="classpsr_1_1LLVMZeroValue.html#af735982cdd7996745e254d6c7d27b098">getInstance</a>();</div>
-<div class="line">  }</div>
-<div class="ttc" id="aclasspsr_1_1LLVMZeroValue_html_af735982cdd7996745e254d6c7d27b098"><div class="ttname"><a href="classpsr_1_1LLVMZeroValue.html#af735982cdd7996745e254d6c7d27b098">psr::LLVMZeroValue::getInstance</a></div><div class="ttdeci">static const LLVMZeroValue * getInstance()</div></div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="LLVMZeroValue_8h_source.html#l00055">55</a> of file <a class="el" href="LLVMZeroValue_8h_source.html">LLVMZeroValue.h</a>.</p>
+<p>Checks, whether the given llvm::Value * is the special zero-value (aka. Λ).</p>
+<p>You can use this as follows: </p><div class="fragment"><div class="line"><span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr.html#aa47f33065366dcf82bacaa607711dc66">strongUpdateStore</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Store</a>, <a class="code hl_variable" href="classpsr_1_1LLVMZeroValue.html#a632f1885195c87077f7b4ddbf41bdcaa">LLVMZeroValue::isLLVMZeroValue</a>);</div>
+<div class="ttc" id="aclasspsr_1_1LLVMZeroValue_html_a632f1885195c87077f7b4ddbf41bdcaa"><div class="ttname"><a href="classpsr_1_1LLVMZeroValue.html#a632f1885195c87077f7b4ddbf41bdcaa">psr::LLVMZeroValue::isLLVMZeroValue</a></div><div class="ttdeci">static constexpr auto isLLVMZeroValue</div><div class="ttdef"><b>Definition</b> <a href="LLVMZeroValue_8h_source.html#l00067">LLVMZeroValue.h:67</a></div></div>
+<div class="ttc" id="anamespacepsr_html_aa47f33065366dcf82bacaa607711dc66"><div class="ttname"><a href="namespacepsr.html#aa47f33065366dcf82bacaa607711dc66">psr::strongUpdateStore</a></div><div class="ttdeci">FlowFunctionPtrType&lt; const llvm::Value *, Container &gt; strongUpdateStore(const llvm::StoreInst *Store, Fn &amp;&amp;GeneratePointerOpIf)</div><div class="ttdef"><b>Definition</b> <a href="LLVMFlowFunctions_8h_source.html#l00343">LLVMFlowFunctions.h:343</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
+</div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="LLVMZeroValue_8h_source.html#l00067">67</a> of file <a class="el" href="LLVMZeroValue_8h_source.html">LLVMZeroValue.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00397">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::getNormalEdgeFunction()</a>, and <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00391">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::isZeroValue()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00398">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::getNormalEdgeFunction()</a>, and <a class="el" href="IDETypeStateAnalysis_8h_source.html#l00392">psr::IDETypeStateAnalysis&lt; TypeStateDescriptionTy &gt;::isZeroValue()</a>.</p>
 
 </div>
 </div>
@@ -352,7 +356,7 @@ Static Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 11 2025 16:05:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 12 2025 08:20:40 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
