@@ -37,6 +37,10 @@ private:
 
 class IDENoAliasImpl : public DefaultNoAliasIFDSProblem {
 public:
+  using typename DefaultNoAliasIFDSProblem::d_t;
+  using typename DefaultNoAliasIFDSProblem::l_t;
+  using typename DefaultNoAliasIFDSProblem::n_t;
+
   IDENoAliasImpl(LLVMProjectIRDB *IRDB)
       : DefaultNoAliasIFDSProblem(IRDB, {}, {}) {};
 
