@@ -365,3 +365,14 @@ macro(subdirlist result curdir)
 
   set(${result} ${dirlist})
 endmacro(subdirlist)
+
+# TODO: remove this. It makes no sense, since the tests only exist after compiling.
+function(run_test_for_prowraw test_name)
+  message("Run test to generate .prowraw coverage data for test ${test_name}")
+
+  get_filename_component(test ${test_name} NAME_WE)
+
+  message("${CMAKE_CURRENT_SOURCE_DIR}")
+  execute_process(COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/./${test_name}")
+
+endfunction()
