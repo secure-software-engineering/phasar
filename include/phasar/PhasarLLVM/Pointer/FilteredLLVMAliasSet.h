@@ -62,9 +62,8 @@ public:
 
   ~FilteredLLVMAliasSet();
 
-  template <typename... ArgsT,
-            typename = std::enable_if_t<
-                std::is_constructible_v<LLVMAliasSet, ArgsT...>>>
+  template <typename... ArgsT>
+    requires std::is_constructible_v<LLVMAliasSet, ArgsT...>
   explicit FilteredLLVMAliasSet(ArgsT &&...Args)
       : FilteredLLVMAliasSet(
             std::make_unique<LLVMAliasSet>(std::forward<ArgsT>(Args)...)) {}

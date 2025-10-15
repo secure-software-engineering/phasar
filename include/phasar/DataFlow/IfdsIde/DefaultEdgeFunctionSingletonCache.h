@@ -100,9 +100,8 @@ public:
 };
 
 template <typename EdgeFunctionTy>
-class DefaultEdgeFunctionSingletonCache<
-    EdgeFunctionTy,
-    std::enable_if_t<EdgeFunctionBase::IsSOOCandidate<EdgeFunctionTy>>> {
+  requires EdgeFunctionBase::IsSOOCandidate<EdgeFunctionTy>
+class DefaultEdgeFunctionSingletonCache<EdgeFunctionTy> {
 public:
   [[nodiscard]] const void *
   lookup(const EdgeFunctionTy & /*EF*/) const noexcept override {

@@ -70,11 +70,10 @@ public:
 
   AliasInfoRef() noexcept = default;
   AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
-  template <typename ConcreteAA,
-            typename = std::enable_if_t<
-                !std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
-                std::is_same_v<v_t, typename ConcreteAA::v_t> &&
-                std::is_same_v<n_t, typename ConcreteAA::n_t>>>
+  template <typename ConcreteAA>
+    requires(!std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
+             std::is_same_v<v_t, typename ConcreteAA::v_t> &&
+             std::is_same_v<n_t, typename ConcreteAA::n_t>)
   AliasInfoRef(ConcreteAA *AA) noexcept
       : AA(AA), VT((std::is_empty_v<ConcreteAA> || AA) ? &VTableFor<ConcreteAA>
                                                        : nullptr) {}

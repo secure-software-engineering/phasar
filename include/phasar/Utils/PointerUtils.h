@@ -12,18 +12,18 @@ namespace psr {
 /// in generic code. This overload set is extendable.
 
 template <typename T>
-constexpr std::enable_if_t<!std::is_pointer_v<T>, T *>
-getPointerFrom(T &Ref) noexcept {
+  requires(!std::is_pointer_v<T>)
+constexpr T *getPointerFrom(T &Ref) noexcept {
   return std::addressof(Ref);
 }
 template <typename T>
-constexpr std::enable_if_t<!std::is_pointer_v<T>, const T *>
-getPointerFrom(const T &Ref) noexcept {
+  requires(!std::is_pointer_v<T>)
+constexpr const T *getPointerFrom(const T &Ref) noexcept {
   return std::addressof(Ref);
 }
 template <typename T>
-constexpr std::enable_if_t<!std::is_pointer_v<T>, T *>
-getPointerFrom(T &&Ref) noexcept = delete;
+  requires(!std::is_pointer_v<T>)
+constexpr T *getPointerFrom(T &&Ref) noexcept = delete;
 
 template <typename T> T *getPointerFrom(T *Ptr) noexcept { return Ptr; }
 template <typename T>

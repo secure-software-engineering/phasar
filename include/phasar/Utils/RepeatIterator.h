@@ -55,8 +55,7 @@ public:
     return !(*this == Other);
   }
 
-  template <typename TT,
-            typename = std::enable_if_t<std::is_same_v<T, std::decay_t<TT>>>>
+  template <same_as_decay<T> TT>
   explicit RepeatIterator(TT &&Elem) : Elem(std::forward<TT>(Elem)) {}
   explicit RepeatIterator(size_t Index, std::true_type /*AsEndIterator*/)
       : Index(Index), Elem(std::nullopt) {}

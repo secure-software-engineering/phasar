@@ -20,8 +20,8 @@ namespace psr {
 /// is small and trivially default constructible, creates a temporary instead.
 /// Useful for getters that return ByConstRef<T> but need to handle the
 /// non-existing-T case
-template <typename T,
-          typename = std::enable_if_t<std::is_default_constructible_v<T>>>
+template <typename T>
+  requires std::is_default_constructible_v<T>
 [[nodiscard]] ByConstRef<T>
 getDefaultValue() noexcept(std::is_nothrow_default_constructible_v<T>) {
   auto DefaultConstruct = [] {
@@ -42,14 +42,12 @@ getDefaultValue() noexcept(std::is_nothrow_default_constructible_v<T>) {
 
 namespace detail {
 struct DefaultCast {
-  template <typename To,
-            typename = std::enable_if_t<CanEfficientlyPassByValue<To>>>
-  operator To() && {
+  template <CanEfficientlyPassByValue To> operator To() && {
     return psr::getDefaultValue<To>();
   }
 
-  template <typename To,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<To>>>
+  template <typename To>
+    requires(!CanEfficientlyPassByValue<To>)
   operator const To &() && {
     return psr::getDefaultValue<To>();
   }

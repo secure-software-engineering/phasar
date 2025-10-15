@@ -25,6 +25,9 @@
 
 namespace psr {
 
+// TODO: concept-ify AdjacencyList: Wait for #794 to be merged, as it adds major
+// changes here
+
 template <typename T, typename EdgeTy = unsigned> struct AdjacencyList {
   llvm::SmallVector<T, 0> Nodes{};
   llvm::SmallVector<llvm::SmallVector<EdgeTy, 2>, 0> Adj{};

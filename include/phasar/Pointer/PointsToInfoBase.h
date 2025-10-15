@@ -82,10 +82,10 @@ public:
     return self().mayPointsToImpl(Pointer, Obj, AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsTo(ByConstRef<v_t> Pointer, ByConstRef<o_t> Obj,
-                                 ByConstRef<n_t> AtInstruction) const {
+                                 ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().mayPointsToImpl(Pointer, Obj, AtInstruction);
   }
 
@@ -94,10 +94,10 @@ public:
     return self().getPointsToSetImpl(Pointer, AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] PointsToSetPtrTy
-  getPointsToSet(ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) const {
+  getPointsToSet(ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().getPointsToSetImpl(Pointer, AtInstruction);
   }
 
@@ -109,20 +109,20 @@ private:
     return getPointerFrom(Pts)->count(Obj);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsToImpl(ByConstRef<v_t> Pointer,
                                      ByConstRef<o_t> Obj,
-                                     ByConstRef<n_t> AtInstruction) const {
+                                     ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().mayPointsTo(self().asAbstractObject(Pointer), Obj,
                               AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] PointsToSetPtrTy
   getPointsToSetImpl(ByConstRef<v_t> Pointer,
-                     ByConstRef<n_t> AtInstruction) const {
+                     ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().getPointsToSetImpl(asAbstractObject(Pointer), AtInstruction);
   }
 };

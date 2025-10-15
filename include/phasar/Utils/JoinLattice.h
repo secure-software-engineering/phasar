@@ -19,6 +19,7 @@
 
 #include "phasar/Utils/Macros.h"
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -30,22 +31,14 @@ template <typename L> struct JoinLatticeTraits {
   // static L join(L LHS, L RHS);
 };
 
-namespace detail {
-template <typename L, typename = void>
-struct HasJoinLatticeTraitsHelper : std::false_type {};
 template <typename L>
-struct HasJoinLatticeTraitsHelper<
-    L, std::enable_if_t<
-           std::is_convertible_v<decltype(JoinLatticeTraits<L>::top()), L> &&
-           std::is_convertible_v<decltype(JoinLatticeTraits<L>::bottom()), L> &&
-           std::is_convertible_v<decltype(JoinLatticeTraits<L>::join(
-                                     std::declval<L>(), std::declval<L>())),
-                                 L>>> : std::true_type {};
-} // namespace detail
-template <typename L>
-PSR_CONCEPT HasJoinLatticeTraits = detail::HasJoinLatticeTraitsHelper<L>::value;
+concept HasJoinLatticeTraits = requires(const L &Val) {
+  { JoinLatticeTraits<L>::top() } -> std::convertible_to<L>;
+  { JoinLatticeTraits<L>::bottom() } -> std::convertible_to<L>;
+  { JoinLatticeTraits<L>::join(Val, Val) } -> std::convertible_to<L>;
+};
 
-template <typename AnalysisDomainTy, typename = void> class JoinLattice {
+template <typename AnalysisDomainTy> class JoinLattice {
 public:
   using l_t = typename AnalysisDomainTy::l_t;
 
@@ -56,9 +49,8 @@ public:
 };
 
 template <typename AnalysisDomainTy>
-class JoinLattice<
-    AnalysisDomainTy,
-    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
+  requires HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>
+class JoinLattice<AnalysisDomainTy> {
 public:
   using l_t = typename AnalysisDomainTy::l_t;
 
@@ -70,7 +62,7 @@ public:
   };
 };
 
-template <typename L, typename = void> struct NonTopBotValue {
+template <typename L> struct NonTopBotValue {
   using type = L;
 
   static L unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {

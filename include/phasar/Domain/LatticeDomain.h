@@ -222,11 +222,9 @@ template <typename L> struct JoinLatticeTraits<LatticeDomain<L>> {
 /// If we know that a stored L value is never Top or Bottom, we don't need to
 /// store the discriminator of the std::variant.
 template <typename L>
-struct NonTopBotValue<
-    LatticeDomain<L>,
-    std::enable_if_t<
-        std::is_nothrow_constructible_v<LatticeDomain<L>, const L &> ||
-        !std::is_nothrow_copy_constructible_v<LatticeDomain<L>>>> {
+  requires(std::is_nothrow_constructible_v<LatticeDomain<L>, const L &> ||
+           !std::is_nothrow_copy_constructible_v<LatticeDomain<L>>)
+struct NonTopBotValue<LatticeDomain<L>> {
   using type = L;
 
   static L unwrap(LatticeDomain<L> Value) noexcept(

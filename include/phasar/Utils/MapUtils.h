@@ -21,8 +21,8 @@
 
 namespace psr {
 
-template <typename MapT, typename KeyT,
-          typename = std::enable_if_t<std::is_lvalue_reference_v<MapT>>>
+template <typename MapT, typename KeyT>
+  requires std::is_lvalue_reference_v<MapT>
 static auto getOrDefault(MapT &&Map, KeyT &&Key) -> ByConstRef<
     llvm::remove_cvref_t<decltype(Map.find(PSR_FWD(Key))->second)>> {
   auto It = Map.find(PSR_FWD(Key));
@@ -33,11 +33,9 @@ static auto getOrDefault(MapT &&Map, KeyT &&Key) -> ByConstRef<
   return It->second;
 }
 
-template <
-    typename MapT, typename KeyT,
-    typename = std::enable_if_t<std::is_lvalue_reference_v<MapT>>,
-    std::enable_if_t<
-        !psr::CanEfficientlyPassByValue<llvm::remove_cvref_t<KeyT>>, int> = 0>
+template <typename MapT, typename KeyT>
+  requires(std::is_lvalue_reference_v<MapT> &&
+           !psr::CanEfficientlyPassByValue<llvm::remove_cvref_t<KeyT>>)
 static auto getOrNull(MapT &&Map, KeyT &&Key)
     -> decltype(&Map.find(PSR_FWD(Key))->second) {
   auto It = Map.find(PSR_FWD(Key));
@@ -49,11 +47,9 @@ static auto getOrNull(MapT &&Map, KeyT &&Key)
   return Ret;
 }
 
-template <
-    typename MapT, typename KeyT,
-    typename = std::enable_if_t<std::is_lvalue_reference_v<MapT>>,
-    std::enable_if_t<psr::CanEfficientlyPassByValue<llvm::remove_cvref_t<KeyT>>,
-                     int> = 0>
+template <typename MapT, typename KeyT>
+  requires(std::is_lvalue_reference_v<MapT> &&
+           psr::CanEfficientlyPassByValue<llvm::remove_cvref_t<KeyT>>)
 static auto getOrNull(MapT &&Map, KeyT Key)
     -> decltype(&Map.find(Key)->second) {
   auto It = Map.find(Key);

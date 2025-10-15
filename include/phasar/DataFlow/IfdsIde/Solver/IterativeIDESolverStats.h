@@ -52,10 +52,8 @@ template <typename StaticSolverConfigTy, typename = void>
 struct SolverStatsSelector {};
 
 template <typename StaticSolverConfigTy>
-struct SolverStatsSelector<
-    StaticSolverConfigTy,
-    std::enable_if_t<StaticSolverConfigTy::EnableStatistics>>
-    : IterativeIDESolverStats {};
+  requires StaticSolverConfigTy::EnableStatistics
+struct SolverStatsSelector<StaticSolverConfigTy> : IterativeIDESolverStats {};
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_ITERATIVEIDESOLVERSTATS_H

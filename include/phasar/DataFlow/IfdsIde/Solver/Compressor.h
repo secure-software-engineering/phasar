@@ -45,13 +45,14 @@ template <typename T> struct NodeCompressorTraits {
   }
 };
 
-template <typename T, typename = void> struct ValCompressorTraits {
+template <typename T> struct ValCompressorTraits {
   using type = Compressor<T>;
   using id_type = uint32_t;
 };
 
 template <typename T>
-struct ValCompressorTraits<T, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
+  requires CanEfficientlyPassByValue<T>
+struct ValCompressorTraits<T> {
   using type = NoneCompressor;
   using id_type = T;
 };

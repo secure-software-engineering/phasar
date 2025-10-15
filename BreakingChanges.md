@@ -3,6 +3,7 @@
 ## development HEAD
 
 - Requiring C++20 instead of C++17
+  - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
 
 ## v2503
 

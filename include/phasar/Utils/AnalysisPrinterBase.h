@@ -25,9 +25,10 @@ public:
     doOnResult(Instr, PSR_FWD(DfFact), PSR_FWD(LatticeElement), AnalysisType);
   }
 
-  template <typename D = d_t, typename L = l_t>
-  std::enable_if_t<std::is_same_v<L, psr::BinaryDomain>>
-  onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
+  template <typename D = d_t>
+  void onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType)
+    requires std::is_same_v<l_t, psr::BinaryDomain>
+  {
     doOnResult(Instr, PSR_FWD(DfFact), psr::BinaryDomain::BOTTOM, AnalysisType);
   }
 

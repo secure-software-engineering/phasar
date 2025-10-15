@@ -91,11 +91,10 @@ template <typename ProblemTy, typename Enable = void>
 struct DefaultIDESolverConfig : IDESolverConfig {};
 
 template <typename ProblemTy>
-struct DefaultIDESolverConfig<
-    ProblemTy,
-    std::enable_if_t<std::is_base_of_v<
-        IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain>,
-        ProblemTy>>> : IFDSSolverConfig {};
+  requires std::is_base_of_v<
+      IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain>,
+      ProblemTy>
+struct DefaultIDESolverConfig<ProblemTy> : IFDSSolverConfig {};
 
 } // namespace psr
 

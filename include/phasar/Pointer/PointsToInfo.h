@@ -21,8 +21,8 @@
 
 namespace psr {
 
-template <typename PTATraits, typename = void> class PointsToInfoRef;
-template <typename PTATraits, typename = void> class PointsToInfo;
+template <typename PTATraits> class PointsToInfoRef;
+template <typename PTATraits> class PointsToInfo;
 
 template <typename PTATraits>
 struct PointsToTraits<PointsToInfoRef<PTATraits>> : PTATraits {};
@@ -36,9 +36,8 @@ struct PointsToTraits<PointsToInfo<PTATraits>> : PTATraits {};
 /// This is a *non-owning* reference similar to std::string_view and
 /// llvm::ArrayRef. Pass values of this type by value.
 ///
-template <typename PTATraits>
-class PointsToInfoRef<PTATraits,
-                      std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
+template <is_PointsToTraits_v PTATraits>
+class PointsToInfoRef<PTATraits>
     : public PointsToInfoBase<PointsToInfoRef<PTATraits>> {
   friend class PointsToInfo<PTATraits>;
   friend PointsToInfoBase<PointsToInfoRef<PTATraits>>;
@@ -55,11 +54,8 @@ public:
   PointsToInfoRef() noexcept = default;
   PointsToInfoRef(std::nullptr_t) noexcept : PointsToInfoRef() {}
 
-  template <typename ConcretePTA,
-            typename = std::enable_if_t<
-                !std::is_base_of_v<PointsToInfoRef, ConcretePTA> &&
-                is_equivalent_PointsToTraits_v<PTATraits,
-                                               PointsToTraits<ConcretePTA>>>>
+  template <is_equivalent_PointsToTraits_v<PTATraits> ConcretePTA>
+    requires(!std::is_base_of_v<PointsToInfoRef, ConcretePTA>)
   PointsToInfoRef(const ConcretePTA *PT) noexcept
       : PT(PT), VT(&VTableFor<ConcretePTA>) {
     if constexpr (!std::is_empty_v<ConcretePTA>) {
@@ -90,9 +86,10 @@ private:
     void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
-  template <typename V = v_t, typename = void> struct VTable : VTableBase {};
+  template <typename V = v_t> struct VTable : VTableBase {};
   template <typename V>
-  struct VTable<V, std::enable_if_t<!std::is_same_v<o_t, V>>> : VTableBase {
+    requires(!std::is_same_v<o_t, V>)
+  struct VTable<V> : VTableBase {
     bool (*MayPointsToV)(const void *, ByConstRef<v_t>, ByConstRef<o_t>,
                          ByConstRef<n_t>);
     PointsToSetPtrTy (*GetPointsToSetV)(const void *, ByConstRef<v_t>,
@@ -166,11 +163,11 @@ private:
     return VT->MayPointsTo(PT, Pointer, Obj, AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsToImpl(ByConstRef<v_t> Pointer,
                                      ByConstRef<o_t> Obj,
-                                     ByConstRef<n_t> AtInstruction) const {
+                                     ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     assert(VT);
     return VT->MayPointsToV(PT, Pointer, Obj, AtInstruction);
   }
@@ -182,11 +179,11 @@ private:
     return VT->GetPointsToSet(PT, Pointer, AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] PointsToSetPtrTy
   getPointsToSetImpl(ByConstRef<v_t> Pointer,
-                     ByConstRef<n_t> AtInstruction) const {
+                     ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     assert(VT);
     return VT->GetPointsToSetV(PT, Pointer, AtInstruction);
   }
@@ -201,10 +198,9 @@ private:
 ///
 /// Implicitly convertible to PointsToInfoRef.
 ///
-template <typename PTATraits>
-class [[clang::trivial_abi]] PointsToInfo<
-    PTATraits, std::enable_if_t<is_PointsToTraits_v<PTATraits>>>
-    final : public PointsToInfoRef<PTATraits> {
+template <is_PointsToTraits_v PTATraits>
+class [[clang::trivial_abi]] PointsToInfo<PTATraits> final
+    : public PointsToInfoRef<PTATraits> {
   using base_t = PointsToInfoRef<PTATraits>;
 
 public:
