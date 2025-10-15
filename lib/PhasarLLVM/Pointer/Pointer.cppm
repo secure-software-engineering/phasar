@@ -1,4 +1,3 @@
-#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 module;
 
 #include "phasar/Config/phasar-config.h"
@@ -7,6 +6,7 @@ module;
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 
 #ifdef PHASAR_USE_SVF
