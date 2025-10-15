@@ -21,6 +21,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/Domain/BinaryDomain.h"
 
+#include <concepts>
 #include <set>
 #include <type_traits>
 #include <unordered_map>
@@ -45,15 +46,11 @@ public:
   using n_t = typename AnalysisDomainTy::n_t;
   using i_t = typename AnalysisDomainTy::i_t;
 
-  template <typename IfdsDomainTy, typename I,
-            typename = std::enable_if_t<
-                std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
+  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy, typename I>
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
              const I *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
-  template <typename IfdsDomainTy, typename I,
-            typename = std::enable_if_t<
-                std::is_base_of_v<IfdsDomainTy, AnalysisDomainTy>>>
+  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy, typename I>
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
              const I *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
@@ -85,11 +82,10 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
-      std::set<d_t>>
-  ifdsResultsAtInLLVMSSA(NTy Inst) {
+  [[nodiscard]]
+  std::set<d_t> ifdsResultsAtInLLVMSSA(n_t Inst)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     auto getResultMap // NOLINT
         = [this, Inst]() {
             if (Inst->getType()->isVoidTy()) {

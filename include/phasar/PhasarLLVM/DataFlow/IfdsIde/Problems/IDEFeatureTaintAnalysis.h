@@ -241,9 +241,9 @@ public:
             createGenerateTaints(std::forward<EdgeFactGenerator>(EFGen))),
         Printer(createEdgeFactPrinter<EdgeFactGenerator>()) {}
 
-  template <typename EdgeFactGenerator,
-            typename = std::enable_if_t<!std::is_same_v<
-                FeatureTaintGenerator, std::decay_t<EdgeFactGenerator>>>>
+  template <typename EdgeFactGenerator>
+    requires(
+        !std::is_same_v<FeatureTaintGenerator, std::decay_t<EdgeFactGenerator>>)
   FeatureTaintGenerator(EdgeFactGenerator &&EFGen)
       : FeatureTaintGenerator(
             [EFGen](InstOrGlobal IG) {

@@ -13,8 +13,8 @@ namespace psr {
 struct NoneCompressor final {
   constexpr NoneCompressor() noexcept = default;
 
-  template <typename T,
-            typename = std::enable_if_t<!std::is_same_v<NoneCompressor, T>>>
+  template <typename T>
+    requires(!std::is_same_v<NoneCompressor, T>)
   constexpr NoneCompressor(const T & /*unused*/) noexcept {}
 
   template <typename T>

@@ -236,13 +236,15 @@ public:
     OS << '\n';
   }
 
-  template <bool B = EnableStatistics, typename = std::enable_if_t<B>>
-  [[nodiscard]] IterativeIDESolverStats getStats() const noexcept {
+  [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
+    requires EnableStatistics
+  {
     return *this;
   }
 
-  template <bool B = EnableStatistics, typename = std::enable_if_t<B>>
-  void dumpStats(llvm::raw_ostream &OS = llvm::outs()) const {
+  void dumpStats(llvm::raw_ostream &OS = llvm::outs()) const
+    requires EnableStatistics
+  {
     OS << getStats();
   }
 
@@ -442,11 +444,11 @@ private:
     }
   }
 
-  template <bool CV = ComputeValues>
-  std::enable_if_t<CV, bool>
-  storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                           uint32_t SourceFact, uint32_t LocalFact,
-                           uint32_t FunId, EdgeFunctionPtrType LocalEF) {
+  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
+                                uint32_t SourceFact, uint32_t LocalFact,
+                                uint32_t FunId, EdgeFunctionPtrType LocalEF)
+    requires ComputeValues
+  {
     auto &EF = JumpFns.getOrCreate(combineIds(SourceFact, LocalFact));
     if (!EF) {
       EF = std::move(LocalEF);
@@ -492,11 +494,12 @@ private:
     }
     return false;
   }
-  template <bool CV = ComputeValues>
-  std::enable_if_t<!CV, bool>
-  storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                           uint32_t SourceFact, uint32_t LocalFact,
-                           uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/) {
+
+  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
+                                uint32_t SourceFact, uint32_t LocalFact,
+                                uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/)
+    requires(!ComputeValues)
+  {
     if (JumpFns.insert(combineIds(SourceFact, LocalFact)).second) {
       WorkList.emplace(PropagationJob{{}, SuccId, SourceFact, LocalFact});
 
@@ -521,10 +524,10 @@ private:
     return false;
   }
 
-  template <bool EST = UseEndSummaryTab, bool CV = ComputeValues>
-  std::enable_if_t<EST && CV> storeSummary(SummaryEdges_JF1 &JumpFns,
-                                           uint32_t LocalFact,
-                                           EdgeFunctionPtrType LocalEF) {
+  void storeSummary(SummaryEdges_JF1 &JumpFns, uint32_t LocalFact,
+                    EdgeFunctionPtrType LocalEF)
+    requires(UseEndSummaryTab && ComputeValues)
+  {
     auto &EF = JumpFns[LocalFact];
     if (!EF) {
       EF = std::move(LocalEF);
@@ -550,10 +553,10 @@ private:
     }
   }
 
-  template <bool EST = UseEndSummaryTab, bool CV = ComputeValues>
-  std::enable_if_t<EST && !CV> storeSummary(SummaryEdges_JF1 &JumpFns,
-                                            uint32_t LocalFact,
-                                            EdgeFunctionPtrType /*LocalEF*/) {
+  void storeSummary(SummaryEdges_JF1 &JumpFns, uint32_t LocalFact,
+                    EdgeFunctionPtrType /*LocalEF*/)
+    requires(UseEndSummaryTab && !ComputeValues)
+  {
     if (JumpFns.insert({LocalFact, {}}).second) {
       if constexpr (EnableStatistics) {
         this->NumPathEdges++;
@@ -1039,8 +1042,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void submitInitialValues() {
+  void submitInitialValues()
+    requires ComputeValues
+  {
     auto Seeds = Problem.initialSeeds();
     for (const auto &[Inst, SeedMap] : Seeds.getSeeds()) {
       auto InstId = NodeCompressor.getOrInsert(Inst);
@@ -1052,8 +1056,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void propagateValue(uint32_t SPId, uint32_t FactId, l_t Val) {
+  void propagateValue(uint32_t SPId, uint32_t FactId, l_t Val)
+    requires ComputeValues
+  {
 
     /// TODO: Unbalanced return-sites
 
@@ -1130,8 +1135,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void computeValues(uint32_t SPId) {
+  void computeValues(uint32_t SPId)
+    requires ComputeValues
+  {
     auto SP = NodeCompressor[SPId];
     auto Fun = ICFG.getFunctionOf(SP);
 

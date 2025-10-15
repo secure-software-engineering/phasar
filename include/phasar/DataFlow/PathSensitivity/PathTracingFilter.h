@@ -44,7 +44,7 @@ struct is_pathtracingfilter_for<
     : std::true_type {};
 
 template <typename F, typename NodeRef>
-constexpr static bool is_pathtracingfilter_for_v =
+concept is_pathtracingfilter_for_v =
     is_pathtracingfilter_for<F, NodeRef>::value;
 } // namespace psr
 

@@ -68,10 +68,14 @@ template <typename Container> struct ElementType {
   using type = typename std::iterator_traits<IteratorTy>::value_type;
 };
 
+} // namespace detail
 template <typename T, typename U>
 concept same_as_decay =
     std::same_as<std::remove_cvref_t<T>, std::remove_cvref_t<U>>;
-} // namespace detail
+
+template <typename T, typename U>
+concept derived_from_decay =
+    std::derived_from<std::remove_cvref_t<T>, std::remove_cvref_t<U>>;
 
 template <typename T>
 concept is_iterable_v = requires(T &Val) {
@@ -84,7 +88,7 @@ concept is_iterable_v = requires(T &Val) {
 
 template <typename T, typename Over>
 concept is_iterable_over_v = is_iterable_v<T> && requires(T &Val) {
-  { *llvm::adl_begin(Val) } -> detail::same_as_decay<Over>;
+  { *llvm::adl_begin(Val) } -> same_as_decay<Over>;
 };
 
 template <typename T>
@@ -104,7 +108,7 @@ concept is_std_printable_v = is_printable_v<T, std::ostream>;
 
 template <typename T>
 concept has_str_v = requires(const T &Val) {
-  { Val.str() } -> detail::same_as_decay<std::string>;
+  { Val.str() } -> same_as_decay<std::string>;
 };
 
 template <typename T>

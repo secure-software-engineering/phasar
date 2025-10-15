@@ -44,6 +44,7 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -168,10 +169,9 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
-  resultAtInLLVMSSA(NTy Stmt, d_t Value) {
+  [[nodiscard]] l_t resultAtInLLVMSSA(n_t Stmt, d_t Value)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     return getSolverResults().resultAtInLLVMSSA(Stmt, Value);
   }
 
@@ -198,11 +198,11 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
-      std::unordered_map<d_t, l_t>>
-  resultsAtInLLVMSSA(NTy Stmt, bool StripZero = false) {
+  [[nodiscard]]
+  std::unordered_map<d_t, l_t> resultsAtInLLVMSSA(n_t Stmt,
+                                                  bool StripZero = false)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     return getSolverResults().resultsAtInLLVMSSA(Stmt, StripZero);
   }
 
