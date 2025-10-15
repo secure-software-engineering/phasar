@@ -969,17 +969,6 @@ public:
 
     [[nodiscard]] bool isConstant() const noexcept { return true; }
 
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                         const IIAAKillOrReplaceEF &EF) {
-      OS << "EF: (IIAAKillOrReplaceEF)<->";
-      if (EF.isKillAll()) {
-        OS << "(KillAll";
-      } else {
-        IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
-      }
-      return OS << ")";
-    }
-
     [[nodiscard]] bool isKillAll() const noexcept {
       if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
         return RSet->empty();
@@ -992,6 +981,20 @@ public:
       return hash_value(EF.Replacement);
     }
   };
+
+  // Note: Having this operator a friend of the IDEInstInteractionAnalysisT
+  // (instead of IIAAKillOrReplaceEF) is required for gcc; otherwise, it cannot
+  // call the protected function printEdgeFactImpl.
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAKillOrReplaceEF &EF) {
+    OS << "EF: (IIAAKillOrReplaceEF)<->";
+    if (EF.isKillAll()) {
+      OS << "(KillAll";
+    } else {
+      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
+    }
+    return OS << ")";
+  }
 
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
@@ -1018,18 +1021,21 @@ public:
       return Data == Other.Data;
     }
 
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                         const IIAAAddLabelsEF &EF) {
-      OS << "EF: (IIAAAddLabelsEF: ";
-      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
-      return OS << ")";
-    }
-
     // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
     friend llvm::hash_code hash_value(const IIAAAddLabelsEF &EF) {
       return hash_value(EF.Data);
     }
   };
+
+  // Note: Having this operator a friend of the IDEInstInteractionAnalysisT
+  // (instead of IIAAAddLabelsEF) is required for gcc; otherwise, it cannot
+  // call the protected function printEdgeFactImpl.
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAAddLabelsEF &EF) {
+    OS << "EF: (IIAAAddLabelsEF: ";
+    IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
+    return OS << ")";
+  }
 
   const auto &getData(const EdgeFunction<l_t> &EF) {
     if (const auto *AddLabels = llvm::dyn_cast<IIAAAddLabelsEF>(EF)) {
