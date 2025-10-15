@@ -575,65 +575,22 @@ endif()
 # How does nlohmann json execute the test files to get the profraw?!
 # -> Apparently coverall does all the work or something?
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  message("TEST1")
-  message("build type: ${CMAKE_BUILD_TYPE}")
-  message("unittests: ${PhasarUnitTests}")
-  message("TEST2")
-  add_custom_target(generate_coverage_data
-    COMMAND ninja
-
-    set(cov_cmd "llvm-profdata-20")
-    set(cov_mode "merge")
-    set(cov_arg "-sparse")
-    set(cov_out "-o \"$filename\".profdata")
-    execute_process(cov_cmd cov_mode cov_arg "default.profraw" cov_out)
-    # COMMAND llvm-profdata-20 merge -sparse default.profraw -o "$filename".profdata
-
-    COMMENT "Compile with coverage flags and collect coverage data"
-  )
-  # find_package(Doxygen REQUIRED)
-
-  # set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
-  # set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-  # configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-
-  # add_custom_target(doc_doxygen ALL
-  #   COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-  #   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  #   COMMENT "Generating API documentation with Doxygen"
-  #   VERBATIM
-  # )
-
-  # nlohmann json approach
-
-
 ###############################################################################
 # Coverage.
 ###############################################################################
 
-# add_custom_target(ci_test_coverage
-#     COMMAND CXX=g++ ${CMAKE_COMMAND}
-#         -DCMAKE_BUILD_TYPE=Debug -GNinja -DCMAKE_CXX_FLAGS="--coverage;-fprofile-arcs;-ftest-coverage"
-#         -DJSON_BuildTests=ON
-#         -S${PROJECT_SOURCE_DIR} -B${PROJECT_BINARY_DIR}/build_coverage
-#     COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/build_coverage
-#     COMMAND cd ${PROJECT_BINARY_DIR}/build_coverage && ${CMAKE_CTEST_COMMAND} --parallel ${N} --output-on-failure
-#
-#     COMMAND CXX=g++ ${CMAKE_COMMAND}
-#         -DCMAKE_BUILD_TYPE=Debug -GNinja -DCMAKE_CXX_FLAGS="-m32;--coverage;-fprofile-arcs;-ftest-coverage"
-#         -DJSON_BuildTests=ON -DJSON_32bitTest=ONLY
-#         -S${PROJECT_SOURCE_DIR} -B${PROJECT_BINARY_DIR}/build_coverage32
-#     COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/build_coverage32
-#     COMMAND cd ${PROJECT_BINARY_DIR}/build_coverage32 && ${CMAKE_CTEST_COMMAND} --parallel ${N} --output-on-failure
-#
-#     COMMAND ${LCOV_TOOL} --directory . --capture --output-file json.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1 --ignore-errors mismatch --ignore-errors unused
-#     COMMAND ${LCOV_TOOL} -e json.info ${SRC_FILES} --output-file json.info.filtered --rc branch_coverage=1 --ignore-errors unused
-#     COMMAND ${CMAKE_SOURCE_DIR}/tests/thirdparty/imapdl/filterbr.py json.info.filtered > json.info.filtered.noexcept
-#     COMMAND genhtml --title "JSON for Modern C++" --legend --demangle-cpp --output-directory html --show-details --branch-coverage json.info.filtered.noexcept
-#
-#     COMMENT "Compile and test with coverage"
-# )
+find_program(LCOV_TOOL NAMES lcov)
+find_program(GENHTML_TOOL NAMES genhtml)
 
-
-endif()
+add_custom_target(ci_test_coverage
+    COMMAND CXX=clang ${CMAKE_COMMAND}
+        -DCMAKE_BUILD_TYPE=Debug -GNinja -DCMAKE_CXX_FLAGS="--coverage;-fprofile-arcs;-ftest-coverage"
+        -DJSON_BuildTests=ON
+        -S${PROJECT_SOURCE_DIR} -B${PROJECT_BINARY_DIR}/build_coverage
+    COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/build_coverage
+    COMMAND cd ${PROJECT_BINARY_DIR}/build_coverage && ${CMAKE_CTEST_COMMAND} --parallel ${N} --output-on-failure
+    COMMAND ${LCOV_TOOL} --directory . --capture --output-file json.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1 --ignore-errors mismatch --ignore-errors unused
+    COMMAND ${LCOV_TOOL} -e json.info ${SRC_FILES} --output-file json.info.filtered --rc branch_coverage=1 --ignore-errors unused
+    COMMAND ${CMAKE_SOURCE_DIR}/external/json/tests/thirdparty/imapdl/filterbr.py json.info.filtered > json.info.filtered.noexcept
+    COMMAND genhtml --title "Coverage_data" --legend --demangle-cpp --output-directory html --show-details --branch-coverage json.info.filtered.noexcept
+)
