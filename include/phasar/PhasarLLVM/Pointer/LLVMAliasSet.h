@@ -63,7 +63,7 @@ public:
 
   /// Loads alias sets from JSON
   explicit LLVMAliasSet(LLVMProjectIRDB *IRDB,
-                        const nlohmann::json &SerializedPTS);
+                        const LLVMAliasSetData &SerializedPTS);
 
   [[nodiscard]] inline bool isInterProcedural() const noexcept {
     return false;

@@ -10,8 +10,10 @@
 #include "phasar/AnalysisStrategy/Strategies.h"
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/IO.h"
@@ -442,16 +444,16 @@ int main(int Argc, const char **Argv) {
   SolverConfig.setComputePersistedSummaries(PersistedSummariesOpt);
   SolverConfig.setEmitESG(EmitESGAsDotOpt);
 
-  std::optional<nlohmann::json> PrecomputedAliasSet;
+  std::optional<LLVMAliasSetData> PrecomputedAliasSet;
   if (!LoadPTAFromJsonOpt.empty()) {
     PHASAR_LOG_LEVEL(INFO, "Load AliasInfo from file: " << LoadCGFromJsonOpt);
-    PrecomputedAliasSet = readJsonFile(LoadPTAFromJsonOpt);
+    PrecomputedAliasSet = LLVMAliasSetData::deserializeJson(LoadPTAFromJsonOpt);
   }
 
-  std::optional<nlohmann::json> PrecomputedCallGraph;
+  std::optional<CallGraphData> PrecomputedCallGraph;
   if (!LoadCGFromJsonOpt.empty()) {
     PHASAR_LOG_LEVEL(INFO, "Load CallGraph from file: " << LoadCGFromJsonOpt);
-    PrecomputedCallGraph = readJsonFile(LoadCGFromJsonOpt);
+    PrecomputedCallGraph = CallGraphData::deserializeJson(LoadCGFromJsonOpt);
   }
 
   if (EntryOpt.empty()) {

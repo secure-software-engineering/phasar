@@ -33,6 +33,9 @@ class SparseLLVMBasedICFG
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFG>;
 
 public:
+  using typename LLVMBasedICFG::f_t;
+  using typename LLVMBasedICFG::n_t;
+
   /// Constructor that delegates all arguments to the ctor of LLVMBasedICFG
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
                                CallGraphAnalysisType CGType,
@@ -47,7 +50,7 @@ public:
                                LLVMAliasInfoRef PT);
 
   explicit SparseLLVMBasedICFG(LLVMProjectIRDB *IRDB,
-                               const nlohmann::json &SerializedCG,
+                               const CallGraphData &SerializedCG,
                                LLVMAliasInfoRef PT);
 
   ~SparseLLVMBasedICFG();

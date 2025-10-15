@@ -328,6 +328,8 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
          << AlignNum("Debug Intrinsics", Statistics.DebugIntrinsics)
          << AlignNum("Switches", Statistics.Switches)
          << AlignNum("GetElementPtrs", Statistics.GetElementPtrs)
+         << AlignNum("Loads", Statistics.LoadInstructions)
+         << AlignNum("Stores", Statistics.StoreInstructions)
          << AlignNum("Phi Nodes", Statistics.PhiNodes)
          << AlignNum("LandingPads", Statistics.LandingPads)
          << AlignNum("Basic Blocks", Statistics.BasicBlocks)

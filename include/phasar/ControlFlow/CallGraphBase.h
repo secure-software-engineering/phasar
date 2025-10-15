@@ -37,7 +37,7 @@ public:
   /// NOTE: This function is typically called in a hot part of the analysis and
   /// should therefore be very fast
   [[nodiscard]] decltype(auto) getCalleesOfCallAt(ByConstRef<n_t> Inst) const
-      noexcept(noexcept(self().getCalleesOfCallAtImpl(Inst))) {
+      noexcept(noexcept(this->self().getCalleesOfCallAtImpl(Inst))) {
     static_assert(
         is_iterable_over_v<decltype(self().getCalleesOfCallAtImpl(Inst)), f_t>);
     return self().getCalleesOfCallAtImpl(Inst);
@@ -47,7 +47,7 @@ public:
   /// call the given function induced by the used call-graph.
   [[nodiscard]] decltype(auto) getCallersOf(ByConstRef<f_t> Fun) const {
     static_assert(
-        is_iterable_over_v<decltype(self().getCallersOfImpl(Fun)), n_t>);
+        is_iterable_over_v<decltype(this->self().getCallersOfImpl(Fun)), n_t>);
     return self().getCallersOfImpl(Fun);
   }
 };

@@ -59,6 +59,10 @@ class DefaultNoAliasIDEProblem
 public:
   using IDETabulationProblem<AnalysisDomainTy>::IDETabulationProblem;
 
+  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
+  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
+
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
     return getNormalFlowFunctionImpl(Curr, Succ);
@@ -88,6 +92,12 @@ class DefaultNoAliasIFDSProblem
       protected detail::IDENoAliasDefaultFlowFunctionsImpl {
 public:
   using IFDSTabulationProblem::IFDSTabulationProblem;
+
+  using typename IFDSTabulationProblem::d_t;
+  using typename IFDSTabulationProblem::f_t;
+  using typename IFDSTabulationProblem::FlowFunctionPtrType;
+  using typename IFDSTabulationProblem::l_t;
+  using typename IFDSTabulationProblem::n_t;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {

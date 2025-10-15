@@ -3,6 +3,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
@@ -87,7 +88,8 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
   nlohmann::json PrintAsJsonSer = nlohmann::json::parse(SerString);
   checkSer(PrintAsJsonSer, Gt);
 
-  LLVMAliasSet PrintAsJsonDeser(&IRDB, PrintAsJsonSer);
+  LLVMAliasSet PrintAsJsonDeser(&IRDB,
+                                LLVMAliasSetData::loadJsonString(SerString));
   checkDeser(*IRDB.getModule(), PTS, PrintAsJsonDeser);
 }
 

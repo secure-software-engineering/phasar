@@ -52,6 +52,9 @@ public:
   LLVMBasedBackwardICFG(LLVMBasedICFG *ForwardICFG);
 
 private:
+  using typename ICFGBase::f_t;
+  using typename ICFGBase::n_t;
+
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
 

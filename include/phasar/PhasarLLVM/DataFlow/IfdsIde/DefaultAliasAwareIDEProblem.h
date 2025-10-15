@@ -65,6 +65,10 @@ class DefaultAliasAwareIDEProblem
       protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
   using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::d_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
 
   using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
 
@@ -110,6 +114,11 @@ class DefaultAliasAwareIFDSProblem
     : public IFDSTabulationProblem<LLVMAnalysisDomainDefault>,
       protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
+  using typename IFDSTabulationProblem::d_t;
+  using typename IFDSTabulationProblem::f_t;
+  using typename IFDSTabulationProblem::FlowFunctionPtrType;
+  using typename IFDSTabulationProblem::n_t;
+
   /// Constructs an IFDSTabulationProblem with the usual arguments + alias
   /// information.
   ///
