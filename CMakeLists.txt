@@ -566,31 +566,49 @@ if(PHASAR_BUILD_DOC)
   )
 endif()
 
-# Generate code coverage
-# TODO: code coverage will automatically be enabled when in debug mode.
-# Consider creating a seperate variable for coverage generation.
-# IIrc debug mode is needed though for coverage generation, double check this.
-
-# TODO: code below won't work probably.
-# How does nlohmann json execute the test files to get the profraw?!
-# -> Apparently coverall does all the work or something?
-
-###############################################################################
-# Coverage.
-###############################################################################
-
 find_program(LCOV_TOOL NAMES lcov)
 find_program(GENHTML_TOOL NAMES genhtml)
 
+execute_process(COMMAND ${LCOV_TOOL} --version
+                      OUTPUT_VARIABLE LLVM_COV_VERSION_CALL_OUTPUT)
+message(STATUS "${LLVM_COV_VERSION_CALL_OUTPUT}")
+execute_process(COMMAND ${GENHTML_TOOL} --version
+                      OUTPUT_VARIABLE GENHTML_VERSION_CALL_OUTPUT)
+message(STATUS "${GENHTML_VERSION_CALL_OUTPUT}")
+
+# TODO: add install lcov to bootstrap or something
+#       Do NOT do: sudo apt-get install -y lcov
+#       Apparently this version is insanely old and we need a newer version/the newest version
+#       Installing lcov via the github page + make install has four billion dependencies, so
+#       we need to install those too:
+#       These perl packages include:
+#
+#         - Capture::Tiny
+#         - DateTime
+#         - Devel::Cover
+#         - Digest::MD5
+#         - File::Spec
+#         - at least one flavor of JSON module.
+#           In order of performance/preference:
+#              - JSON::XS
+#              - Cpanel::JSON::XS
+#              - JSON::PP
+#              - JSON
+#         - Memory::Process
+#         - Module::Load::Conditional
+#         - Scalar::Util
+#         - Time::HiRes
+#         - TimeDate
+
 add_custom_target(ci_test_coverage
-    COMMAND CXX=clang ${CMAKE_COMMAND}
+    COMMAND CXX=clang++ ${CMAKE_COMMAND}
         -DCMAKE_BUILD_TYPE=Debug -GNinja -DCMAKE_CXX_FLAGS="--coverage;-fprofile-arcs;-ftest-coverage"
-        -DJSON_BuildTests=ON
         -S${PROJECT_SOURCE_DIR} -B${PROJECT_BINARY_DIR}/build_coverage
     COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/build_coverage
     COMMAND cd ${PROJECT_BINARY_DIR}/build_coverage && ${CMAKE_CTEST_COMMAND} --parallel ${N} --output-on-failure
-    COMMAND ${LCOV_TOOL} --directory . --capture --output-file json.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1 --ignore-errors mismatch --ignore-errors unused
-    COMMAND ${LCOV_TOOL} -e json.info ${SRC_FILES} --output-file json.info.filtered --rc branch_coverage=1 --ignore-errors unused
-    COMMAND ${CMAKE_SOURCE_DIR}/external/json/tests/thirdparty/imapdl/filterbr.py json.info.filtered > json.info.filtered.noexcept
-    COMMAND genhtml --title "Coverage_data" --legend --demangle-cpp --output-directory html --show-details --branch-coverage json.info.filtered.noexcept
+    COMMAND ${LCOV_TOOL} --directory . --capture --output-file cov.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1 --ignore-errors empty --ignore-errors mismatch --ignore-errors unused
+    # COMMAND ${LCOV_TOOL} --directory . --capture --output-file cov.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1
+    COMMAND ${LCOV_TOOL} -e cov.info ${SRC_FILES} --output-file cov.info.filtered --rc branch_coverage=1 --ignore-errors unused
+    COMMAND ${CMAKE_SOURCE_DIR}/external/json/tests/thirdparty/imapdl/filterbr.py cov.info.filtered > cov.info.filtered.noexcept
+    COMMAND genhtml --title "Coverage_data" --legend --demangle-cpp --output-directory html --show-details --branch-coverage cov.info.filtered.noexcept
 )
