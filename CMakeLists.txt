@@ -72,7 +72,7 @@ set(RELEASE_CONFIGURATIONS RELWITHDEBINFO RELEASE CACHE INTERNAL "" FORCE)
 # https://reviews.llvm.org/D157613
 
 string(APPEND CMAKE_CXX_FLAGS " -MP -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer -fprofile-instr-generate -fcoverage-mapping -fprofile-arcs -ftest-coverage")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer --coverage -fprofile-arcs -ftest-coverage")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-omit-frame-pointer")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE "")
 
@@ -270,10 +270,61 @@ find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
 set(CMAKE_CXX_CLANG_TIDY "")
 
 # Nlohmann JSON
-
 include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
+
+# StableCoder cmake-scripts
+# TODO: ask fabian if not release or just equal debug is better
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(CODE_COVERAGE ON)
+  include(external/cmake-scripts/code-coverage.cmake)
+  add_code_coverage_all_targets()
+  # Attempt #1
+  # Just the above. Didn't produce any code coverage report.
+
+  # Attempt #2
+  # target_code_coverage(${CMAKE_CTEST_COMMAND})
+  #
+  # CMake Error: /home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-BetterCoverage/build/ccov-data/objects/*: no such file or directory (ignoring)
+  # ninja: build stopped: subcommand failed.
+
+  # Attempt #3
+  # https://stackoverflow.com/questions/60211516/programmatically-get-all-targets-in-a-cmake-project
+  #
+  # CMake Error: /home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-BetterCoverage/build/ccov-data/objects/*: no such file or directory (ignoring)
+  # ninja: build stopped: subcommand failed.
+  # set(all_sub_dirs)
+  # file(GLOB_RECURSE dirs RELATIVE ${PROJECT_SOURCE_DIR} LIST_DIRECTORIES ON ${PROJECT_SOURCE_DIR}/*)
+  # foreach(dir ${dirs})
+  #   if(IS_DIRECTORY ${dir})
+  #       list(APPEND ${all_sub_dirs} ${dir})
+  #   endif()
+  # endforeach()
+#
+  # #
+  # # Get all targets defined at the specified directory (level).
+  # #   _result     : The variable in which to store the resulting list of targets.
+  # #   _dir        : The directory to query for targets.
+  # #
+  # macro(get_targets_by_directory _result _dir)
+  #     get_property(_target DIRECTORY ${_dir} PROPERTY BUILDSYSTEM_TARGETS)
+  #     set(_result ${_target})
+  # endmacro()
+#
+  # #
+  # # Get all targets defined below the specified root directory.
+  # #   _result     : The variable in which to store the resulting list of targets.
+  # #   _root_dir   : The root project root directory
+  # #
+  # foreach(_dir ${all_sub_dirs})
+  #   get_targets_by_directory(_target ${_dir})
+  #   if(_target)
+  #     target_code_coverage(${_target})
+  #   endif()
+  # endforeach()
+
+endif()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -600,15 +651,18 @@ message(STATUS "${GENHTML_VERSION_CALL_OUTPUT}")
 #         - Time::HiRes
 #         - TimeDate
 
+# number of parallel jobs for CTest
+set(N 10)
+
 add_custom_target(ci_test_coverage
-    COMMAND CXX=clang++ ${CMAKE_COMMAND}
+    COMMAND CXX=g++ ${CMAKE_COMMAND}
         -DCMAKE_BUILD_TYPE=Debug -GNinja -DCMAKE_CXX_FLAGS="--coverage;-fprofile-arcs;-ftest-coverage"
-        -S${PROJECT_SOURCE_DIR} -B${PROJECT_BINARY_DIR}/build_coverage
-    COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/build_coverage
-    COMMAND cd ${PROJECT_BINARY_DIR}/build_coverage && ${CMAKE_CTEST_COMMAND} --parallel ${N} --output-on-failure
-    COMMAND ${LCOV_TOOL} --directory . --capture --output-file cov.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1 --ignore-errors empty --ignore-errors mismatch --ignore-errors unused
+        -S${PROJECT_SOURCE_DIR} -B${PROJECT_BINARY_DIR}/coverage
+    COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR}/coverage
+    COMMAND cd ${PROJECT_BINARY_DIR}/coverage && ${CMAKE_CTEST_COMMAND} --parallel ${N} --output-on-failure
+    COMMAND ${LCOV_TOOL} --directory . --capture --output-file cov.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1 --ignore-errors version --ignore-errors empty,empty --ignore-errors mismatch --ignore-errors unused
     # COMMAND ${LCOV_TOOL} --directory . --capture --output-file cov.info --rc branch_coverage=1 --rc geninfo_unexecuted_blocks=1
-    COMMAND ${LCOV_TOOL} -e cov.info ${SRC_FILES} --output-file cov.info.filtered --rc branch_coverage=1 --ignore-errors unused
+    COMMAND ${LCOV_TOOL} -e cov.info ${SRC_FILES} --output-file cov.info.filtered --rc branch_coverage=1 --ignore-errors version --ignore-errors empty,empty --ignore-errors mismatch --ignore-errors unused
     COMMAND ${CMAKE_SOURCE_DIR}/external/json/tests/thirdparty/imapdl/filterbr.py cov.info.filtered > cov.info.filtered.noexcept
     COMMAND genhtml --title "Coverage_data" --legend --demangle-cpp --output-directory html --show-details --branch-coverage cov.info.filtered.noexcept
 )
