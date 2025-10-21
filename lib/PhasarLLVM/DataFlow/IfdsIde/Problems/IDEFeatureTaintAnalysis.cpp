@@ -93,7 +93,7 @@ static bool canKillPointerOp(const llvm::Value *PointerOp,
 
   if (llvm::isa<llvm::Instruction>(Src) ||
       llvm::isa<llvm::Instruction>(PointerOp)) {
-    return PointerOpMayAliases.count(Src);
+    return PointerOpMayAliases.size() == 1 && PointerOpMayAliases.count(Src);
   }
 
   return false;
@@ -506,8 +506,22 @@ IDEFeatureTaintEdgeFact unionTaints(const EdgeFunction<l_t> &FirstEF,
   return FirstSmallFacts;
 }
 
-EdgeFunction<l_t> iiaDefaultJoinOrNull(const EdgeFunction<l_t> &This,
-                                       const EdgeFunction<l_t> &OtherFunction) {
+template <typename GenerateEFTy, typename AddCacheT>
+static EdgeFunction<l_t> transformGen2AddEF(const EdgeFunction<l_t> &EF,
+                                            AddCacheT &AddEFCache) {
+  if (const auto *GenEF = EF.dyn_cast<GenerateSmallEF>()) {
+    return AddSmallFactsEF{GenEF->Facts};
+  }
+  if (const auto *GenEF = EF.dyn_cast<GenerateEFTy>()) {
+    return AddEFCache.createEdgeFunction(GenEF->Facts);
+  }
+
+  return EF;
+}
+
+static EdgeFunction<l_t>
+iiaDefaultJoinOrNull(const EdgeFunction<l_t> &This,
+                     const EdgeFunction<l_t> &OtherFunction) {
   if (llvm::isa<AllBottom<l_t>>(OtherFunction) ||
       llvm::isa<AllTop<l_t>>(This)) {
     return OtherFunction;
@@ -551,11 +565,11 @@ IDEFeatureTaintAnalysis::combine(const EdgeFunction<l_t> &FirstEF,
 
   /// XXX: Here, we underapproximate joins with EdgeIdentity
   if (llvm::isa<EdgeIdentity<l_t>>(FirstEF)) {
-    return OtherEF;
+    return transformGen2AddEF<GenerateEF>(OtherEF, AddEFCache);
   }
   if (llvm::isa<EdgeIdentity<l_t>>(OtherEF) &&
       !llvm::isa<AllTop<l_t>>(FirstEF)) {
-    return FirstEF;
+    return transformGen2AddEF<GenerateEF>(FirstEF, AddEFCache);
   }
 
   if (auto Default = iiaDefaultJoinOrNull(FirstEF, OtherEF)) {
