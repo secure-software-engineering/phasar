@@ -22,11 +22,15 @@ set(Sources
   call_07.cpp
   global_01.cpp
   global_02.cpp
+  global_05.cpp
   heap_01.cpp
   KillTest_01.cpp
   KillTest_02.cpp
   return_01.cpp
   rvo_01.cpp
+  rvo_02.cpp
+  rvo_03.cpp
+  rvo_04.cpp
   struct_01.cpp
   struct_02.cpp
 )
@@ -37,9 +41,9 @@ set(SourcesOpt
 )
 
 foreach(TEST_SRC ${Sources})
-  generate_ll_file(FILE ${TEST_SRC})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
 
 foreach(TEST_SRC ${SourcesOpt})
-  generate_ll_file(FILE ${TEST_SRC} O1)
+  generate_ll_file(FILE ${TEST_SRC} DEBUG O1)
 endforeach(TEST_SRC)

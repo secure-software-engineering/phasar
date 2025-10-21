@@ -3,8 +3,17 @@ if(SQLite3_FOUND)
 
   add_phasar_library(phasar_db
     ${DB_SRC}
-    LINKS phasar_passes phasar_utils
-    LLVM_LINK_COMPONENTS Support
-    LINK_PRIVATE SQLite::SQLite3
+
+    LINKS phasar_passes
+      phasar_utils
+
+    LLVM_LINK_COMPONENTS
+      Support
+
+    LINK_PRIVATE
+      SQLite::SQLite3
+
+    MODULE_FILES
+      DB.cppm
   )
 endif()

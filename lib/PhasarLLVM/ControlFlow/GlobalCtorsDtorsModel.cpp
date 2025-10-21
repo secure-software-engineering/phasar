@@ -15,6 +15,8 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 
 #include <functional>
@@ -61,6 +63,33 @@ collectGlobalDtors(const llvm::Module &Mod) {
   return Ret;
 }
 
+static llvm::SmallVector<llvm::FunctionCallee>
+collectRegisteredDtorsAtExit(const llvm::Module &Mod) {
+  llvm::SmallVector<llvm::FunctionCallee> Ret;
+
+  auto *AtExitFn = Mod.getFunction("atexit");
+  if (!AtExitFn) {
+    return Ret;
+  }
+
+  for (auto *User : AtExitFn->users()) {
+    auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
+    if (!Call) {
+      continue;
+    }
+
+    auto *DtorOp = llvm::dyn_cast_or_null<llvm::Function>(
+        Call->getArgOperand(0)->stripPointerCastsAndAliases());
+    if (!DtorOp) {
+      continue;
+    }
+
+    Ret.push_back(DtorOp);
+  }
+
+  return Ret;
+}
+
 static llvm::SmallVector<std::pair<llvm::FunctionCallee, llvm::Value *>, 4>
 collectRegisteredDtorsForModule(const llvm::Module &Mod) {
   // NOLINTNEXTLINE
@@ -72,16 +101,6 @@ collectRegisteredDtorsForModule(const llvm::Module &Mod) {
     return RegisteredDtors;
   }
 
-  auto getConstantBitcastArgument = // NOLINT
-      [](llvm::Value *V) -> llvm::Value * {
-    auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(V);
-    if (!CE) {
-      return V;
-    }
-
-    return CE->getOperand(0);
-  };
-
   for (auto *User : CxaAtExitFn->users()) {
     auto *Call = llvm::dyn_cast<llvm::CallBase>(User);
     if (!Call) {
@@ -89,8 +108,8 @@ collectRegisteredDtorsForModule(const llvm::Module &Mod) {
     }
 
     auto *DtorOp = llvm::dyn_cast_or_null<llvm::Function>(
-        getConstantBitcastArgument(Call->getArgOperand(0)));
-    auto *DtorArgOp = getConstantBitcastArgument(Call->getArgOperand(1));
+        Call->getArgOperand(0)->stripPointerCastsAndAliases());
+    auto *DtorArgOp = Call->getArgOperand(1)->stripPointerCastsAndAliases();
 
     if (!DtorOp || !DtorArgOp) {
       continue;
@@ -122,8 +141,9 @@ static std::string getReducedModuleName(const llvm::Module &M) {
 
 static llvm::Function *createDtorCallerForModule(
     llvm::Module &Mod,
-    const llvm::SmallVectorImpl<std::pair<llvm::FunctionCallee, llvm::Value *>>
-        &RegisteredDtors) {
+    llvm::ArrayRef<std::pair<llvm::FunctionCallee, llvm::Value *>>
+        RegisteredDtors,
+    llvm::ArrayRef<llvm::FunctionCallee> RegisteredDtorsAtExit) {
 
   auto *PhasarDtorCaller = llvm::cast<llvm::Function>(
       Mod.getOrInsertFunction((GlobalCtorsDtorsModel::DtorsCallerName +
@@ -137,12 +157,14 @@ static llvm::Function *createDtorCallerForModule(
 
   llvm::IRBuilder<> IRB(BB);
 
-  for (auto It = RegisteredDtors.rbegin(), End = RegisteredDtors.rend();
-       It != End; ++It) {
-    auto FunCallee = It->first;
+  for (auto FunCallee : llvm::reverse(RegisteredDtorsAtExit)) {
+    IRB.CreateCall(FunCallee, {});
+  }
+
+  for (auto [FunCallee, Arg] : llvm::reverse(RegisteredDtors)) {
     assert(FunCallee.getFunctionType()->getNumParams() == 1);
     auto *ExpectedArgType = FunCallee.getFunctionType()->getParamType(0);
-    auto *Arg = It->second;
+
     if (Arg->getType() != ExpectedArgType) {
       if (!Arg->getType()->canLosslesslyBitCastTo(ExpectedArgType)) {
         PHASAR_LOG_LEVEL(
@@ -171,8 +193,9 @@ static llvm::Function *createDtorCallerForModule(
                        "Collect Registered Dtors for Module " << Mod.getName());
 
   auto RegisteredDtors = collectRegisteredDtorsForModule(Mod);
+  auto RegisteredDtorsAtExit = collectRegisteredDtorsAtExit(Mod);
 
-  if (RegisteredDtors.empty()) {
+  if (RegisteredDtors.empty() && RegisteredDtorsAtExit.empty()) {
     return nullptr;
   }
 
@@ -180,7 +203,8 @@ static llvm::Function *createDtorCallerForModule(
                        "> Found " << RegisteredDtors.size()
                                   << " Registered Dtors");
 
-  auto *RegisteredDtorCaller = createDtorCallerForModule(Mod, RegisteredDtors);
+  auto *RegisteredDtorCaller =
+      createDtorCallerForModule(Mod, RegisteredDtors, RegisteredDtorsAtExit);
   // auto It =
   GlobalDtors.emplace(0, RegisteredDtorCaller);
   // GlobalDtorFn.try_emplace(RegisteredDtorCaller, it);

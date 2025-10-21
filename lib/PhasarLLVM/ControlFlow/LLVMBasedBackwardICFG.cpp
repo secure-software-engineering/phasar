@@ -68,10 +68,6 @@ void LLVMBasedBackwardICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
   ForwardICFG->printAsJson(OS);
 }
 
-nlohmann::json LLVMBasedBackwardICFG::getAsJsonImpl() const {
-  return ForwardICFG->getAsJson();
-}
-
 auto LLVMBasedBackwardICFG::getCallGraphImpl() const noexcept
     -> const CallGraph<n_t, f_t> & {
   return ForwardICFG->getCallGraph();

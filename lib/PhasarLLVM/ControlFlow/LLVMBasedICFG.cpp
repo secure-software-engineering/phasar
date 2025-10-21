@@ -20,7 +20,6 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Soundness.h"
@@ -28,6 +27,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <utility>
@@ -48,7 +48,7 @@ void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              CallGraphAnalysisType CGType,
                              llvm::ArrayRef<std::string> EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMAliasInfoRef PT,
+                             DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
@@ -156,12 +156,6 @@ void LLVMBasedICFG::printImpl(llvm::raw_ostream &OS) const {
 void LLVMBasedICFG::printAsJsonImpl(llvm::raw_ostream &OS) const {
   CG.printAsJson(
       OS, [](f_t F) { return F->getName().str(); },
-      [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
-}
-
-nlohmann::json LLVMBasedICFG::getAsJsonImpl() const {
-  return CG.getAsJson(
-      [](f_t F) { return F->getName().str(); },
       [this](n_t Inst) { return IRDB->getInstructionId(Inst); });
 }
 

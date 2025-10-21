@@ -11,13 +11,12 @@
 #define PHASAR_PHASARLLVM_HELPERANALYSES_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
-
-#include "nlohmann/json.hpp"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 
 #include <memory>
 #include <optional>
-#include <set>
 #include <vector>
 
 namespace llvm {
@@ -26,7 +25,7 @@ class Module;
 
 namespace psr {
 class LLVMProjectIRDB;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMBasedCFG;
 class LLVMAliasSet;
@@ -34,10 +33,10 @@ class LLVMAliasSet;
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   explicit HelperAnalyses(std::string IRFile,
-                          std::optional<nlohmann::json> PrecomputedPTS,
+                          std::optional<LLVMAliasSetData> PrecomputedPTS,
                           AliasAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
-                          std::optional<nlohmann::json> PrecomputedCG,
+                          std::optional<CallGraphData> PrecomputedCG,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport) noexcept;
 
@@ -60,14 +59,14 @@ public:
 
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
   [[nodiscard]] LLVMAliasSet &getAliasInfo();
-  [[nodiscard]] LLVMTypeHierarchy &getTypeHierarchy();
+  [[nodiscard]] DIBasedTypeHierarchy &getTypeHierarchy();
   [[nodiscard]] LLVMBasedICFG &getICFG();
   [[nodiscard]] LLVMBasedCFG &getCFG();
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
   std::unique_ptr<LLVMAliasSet> PT;
-  std::unique_ptr<LLVMTypeHierarchy> TH;
+  std::unique_ptr<DIBasedTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
   std::unique_ptr<LLVMBasedCFG> CFG;
 
@@ -75,12 +74,12 @@ private:
   std::string IRFile;
 
   // PTS
-  std::optional<nlohmann::json> PrecomputedPTS;
+  std::optional<LLVMAliasSetData> PrecomputedPTS;
   AliasAnalysisType PTATy{};
   bool AllowLazyPTS{};
 
   // ICF
-  std::optional<nlohmann::json> PrecomputedCG;
+  std::optional<CallGraphData> PrecomputedCG;
   std::vector<std::string> EntryPoints;
   CallGraphAnalysisType CGTy{};
   Soundness SoundnessLevel{};

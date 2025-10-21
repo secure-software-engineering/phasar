@@ -19,7 +19,7 @@ namespace psr {
 class LLVMProjectIRDB;
 class LLVMAliasSet;
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 
 template <typename ProblemTy, typename... ArgTys>
 ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
@@ -46,13 +46,13 @@ ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
                      std::forward<ArgTys>(Args)...);
   } else if constexpr (std::is_constructible_v<
                            ProblemTy, const LLVMProjectIRDB *,
-                           const LLVMTypeHierarchy *, const LLVMBasedCFG *,
+                           const DIBasedTypeHierarchy *, const LLVMBasedCFG *,
                            LLVMAliasSet *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(), &HA.getCFG(),
                      &HA.getAliasInfo(), std::forward<ArgTys>(Args)...);
   } else if constexpr (std::is_constructible_v<
                            ProblemTy, const LLVMProjectIRDB *,
-                           const LLVMTypeHierarchy *, const LLVMBasedICFG *,
+                           const DIBasedTypeHierarchy *, const LLVMBasedICFG *,
                            LLVMAliasSet *, ArgTys...>) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
                      &HA.getICFG(), &HA.getAliasInfo(),

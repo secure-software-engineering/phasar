@@ -6,7 +6,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Soundness.h"
@@ -106,32 +106,24 @@ static bool fillPossibleTargets(
     Resolver::FunctionSetTy &PossibleTargets, Resolver &Res,
     const llvm::CallBase *CS,
     llvm::DenseMap<const llvm::Instruction *, unsigned int> &IndirectCalls) {
-  if (const auto *StaticCallee = CS->getCalledFunction()) {
+  if (const auto *StaticCallee = llvm::dyn_cast<llvm::Function>(
+          CS->getCalledOperand()->stripPointerCastsAndAliases())) {
     PossibleTargets.insert(StaticCallee);
 
     PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                         "Found static call-site: "
-                             << "  " << llvmIRToString(CS));
+                         "Found static call-site: " << "  "
+                                                    << llvmIRToString(CS));
     return true;
   }
 
-  // still try to resolve the called function statically
-  const llvm::Value *SV = CS->getCalledOperand()->stripPointerCastsAndAliases();
-  if (const auto *ValueFunction = llvm::dyn_cast<llvm::Function>(SV)) {
-    PossibleTargets.insert(ValueFunction);
-    PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                         "Found static call-site: " << llvmIRToString(CS));
-    return true;
-  }
-
-  if (llvm::isa<llvm::InlineAsm>(SV)) {
+  if (llvm::isa<llvm::InlineAsm>(CS->getCalledOperand())) {
     return true;
   }
 
   // the function call must be resolved dynamically
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
-                       "Found dynamic call-site: "
-                           << "  " << llvmIRToString(CS));
+                       "Found dynamic call-site: " << "  "
+                                                   << llvmIRToString(CS));
 
   PossibleTargets = Res.resolveIndirectCall(CS);
 
@@ -161,12 +153,8 @@ bool Builder::processFunction(const llvm::Function *F) {
   for (const auto &I : llvm::instructions(F)) {
     const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I);
     if (!CS) {
-      Res->otherInst(&I);
       continue;
     }
-
-    Res->preCall(&I);
-    scope_exit PostCall = [&] { Res->postCall(&I); };
 
     FixpointReached &=
         fillPossibleTargets(PossibleTargets, *Res, CS, IndirectCalls);
@@ -210,9 +198,6 @@ bool Builder::constructDynamicCall(const llvm::Instruction *CS) {
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG",
                        "Looking into dynamic call-site: ");
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedICFG", "  " << llvmIRToString(CS));
-
-  Res->preCall(CallSite);
-  scope_exit PostCall = [&] { Res->postCall(CallSite); };
 
   // call the resolve routine
 
@@ -273,9 +258,9 @@ auto psr::buildLLVMBasedCallGraph(
 
 auto psr::buildLLVMBasedCallGraph(
     LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    llvm::ArrayRef<const llvm::Function *> EntryPoints, LLVMTypeHierarchy &TH,
-    LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT, Soundness S)
-    -> LLVMBasedCallGraph {
+    llvm::ArrayRef<const llvm::Function *> EntryPoints,
+    DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
+    Soundness S) -> LLVMBasedCallGraph {
 
   LLVMAliasInfo PTOwn;
   if (!PT && CGType == CallGraphAnalysisType::OTF) {
@@ -283,14 +268,14 @@ auto psr::buildLLVMBasedCallGraph(
     PT = PTOwn.asRef();
   }
 
-  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH);
+  auto Res = Resolver::create(CGType, &IRDB, &VTP, &TH, PT);
   return buildLLVMBasedCallGraph(IRDB, *Res, EntryPoints, S);
 }
 
 auto psr::buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB,
                                   CallGraphAnalysisType CGType,
                                   llvm::ArrayRef<std::string> EntryPoints,
-                                  LLVMTypeHierarchy &TH,
+                                  DIBasedTypeHierarchy &TH,
                                   LLVMVFTableProvider &VTP, LLVMAliasInfoRef PT,
                                   Soundness S) -> LLVMBasedCallGraph {
   auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);

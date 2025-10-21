@@ -7,7 +7,7 @@
 #include "phasar/PhasarLLVM/DataFlow/PathSensitivity/DefaultPathSensitivityManager.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/Utilities.h"
@@ -66,7 +66,7 @@ protected:
   void doLambdaAnalysis(const std::string &LlvmFilePath,
                         llvm::ArrayRef<std::vector<unsigned>> GroundTruth) {
     LLVMProjectIRDB IRDB(PathToLlFiles + LlvmFilePath);
-    psr::LLVMTypeHierarchy TH(IRDB);
+    psr::DIBasedTypeHierarchy TH(IRDB);
     psr::LLVMAliasSet PT(&IRDB);
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                             &TH, &PT, psr::Soundness::Soundy,

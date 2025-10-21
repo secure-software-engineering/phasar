@@ -17,7 +17,6 @@
 
 #include <cstddef>
 #include <iterator>
-#include <limits>
 #include <type_traits>
 
 namespace psr {

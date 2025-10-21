@@ -50,7 +50,7 @@ namespace psr {
 /// This solver implements the optimizations and the $JF_N$ layout from the
 /// paper "Scaling Interprocedural Static Data-Flow Analysis to Large C/C++
 /// Applications: An Experience Report"
-/// (https://doi.org/10.4230/LIPIcs.ECOOP.2024.36) by Schiebel, Sattler,
+/// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
 template <typename ProblemTy,
           typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>>
@@ -474,7 +474,7 @@ private:
       return true;
     }
 
-    auto NewEF = EF.joinWith(std::move(LocalEF));
+    auto NewEF = Problem.combine(EF, std::move(LocalEF));
     assert(NewEF != nullptr);
 
     if (NewEF != EF) {
@@ -540,7 +540,7 @@ private:
       return;
     }
 
-    auto NewEF = EF.joinWith(std::move(LocalEF));
+    auto NewEF = Problem.combine(EF, std::move(LocalEF));
     assert(NewEF != nullptr);
 
     if (NewEF != EF) {
@@ -622,10 +622,11 @@ private:
         auto FactId = FactCompressor.getOrInsert(Fact);
         auto EF = [&] {
           if constexpr (ComputeValues) {
-            return SourceEF.composeWith(FECache.getNormalEdgeFunction(
+            auto NEF = FECache.getNormalEdgeFunction(
                 Problem, AtInstruction, CSFact, Succ, Fact,
                 combineIds(AtInstructionId, SuccId),
-                combineIds(PropagatedFactId, FactId)));
+                combineIds(PropagatedFactId, FactId));
+            return Problem.extend(SourceEF, std::move(NEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -694,10 +695,11 @@ private:
 
         auto EF = [&] {
           if constexpr (ComputeValues) {
-            return SourceEF.composeWith(FECache.getCallToRetEdgeFunction(
+            auto CEF = FECache.getCallToRetEdgeFunction(
                 Problem, AtInstruction, CSFact, RetSite, Fact, Callees /*Vec*/,
                 combineIds(AtInstructionId, RetSiteId),
-                combineIds(PropagatedFactId, FactId)));
+                combineIds(PropagatedFactId, FactId));
+            return Problem.extend(SourceEF, std::move(CEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -835,10 +837,11 @@ private:
 
         auto CallEF = [&] {
           if constexpr (ComputeValues) {
-            return SourceEF.composeWith(FECache.getCallEdgeFunction(
+            auto CEF = FECache.getCallEdgeFunction(
                 Problem, AtInstruction, CSFact, Callee, Fact,
                 combineIds(AtInstructionId, CalleeId),
-                combineIds(CSFactId, FactId)));
+                combineIds(CSFactId, FactId));
+            return Problem.extend(SourceEF, std::move(CEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -900,7 +903,7 @@ private:
                 Problem, AtInstruction, CSFact, RetSite, Fact,
                 combineIds(AtInstructionId, RetSiteId),
                 combineIds(CSFactId, FactId));
-            return EF ? SourceEF.composeWith(std::move(EF)) : SourceEF;
+            return EF ? Problem.extend(SourceEF, std::move(EF)) : SourceEF;
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -939,8 +942,8 @@ private:
                   Problem, CallSite, Callee, ExitInst, SummaryFact, RetSite,
                   RetFact, ExitId, combineIds(CSId, RSId),
                   combineIds(SummaryFactId, RetFactId));
-              return CallEF.composeWith(Summary.second)
-                  .composeWith(std::move(RetEF));
+              return Problem.extend(Problem.extend(CallEF, Summary.second),
+                                    std::move(RetEF));
             } else {
               return EdgeFunctionPtrType{};
             }
@@ -954,16 +957,15 @@ private:
   }
 
   void processInterJobs() {
-
-    llvm::errs() << "processInterJobs: " << CallWL.size()
-                 << " relevant calls\n";
+    PHASAR_LOG_LEVEL(INFO, "processInterJobs: " << CallWL.size()
+                                                << " relevant calls");
 
     /// Here, no other job is running concurrently, so we save and reset the
     /// CallWL, such that we can start concurrent jobs in the loop below
     std::vector<uint64_t> RelevantCalls(CallWL.begin(), CallWL.end());
 
     scope_exit FinishedInterCalls = [] {
-      llvm::errs() << "> end inter calls\n";
+      PHASAR_LOG_LEVEL(INFO, "> end inter calls");
     };
 
     if constexpr (EnableStatistics) {
@@ -1250,14 +1252,14 @@ private:
   }
 
   void runGC() {
-    llvm::errs() << "runGC() with " << CandidateFunctionsForGC.count()
-                 << " candidates\n";
+    PHASAR_LOG_LEVEL(INFO, "runGC() with " << CandidateFunctionsForGC.count()
+                                           << " candidates");
 
     size_t NumCollectedFuns = 0;
 
     scope_exit FinishGC = [&NumCollectedFuns] {
-      llvm::errs() << "> Finished GC run (collected " << NumCollectedFuns
-                   << " functions)\n";
+      PHASAR_LOG_LEVEL(INFO, "> Finished GC run (collected " << NumCollectedFuns
+                                                             << " functions)");
     };
 
     auto FinalCandidates = getCollectableFunctions();

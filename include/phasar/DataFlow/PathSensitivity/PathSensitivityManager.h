@@ -28,6 +28,8 @@
 
 namespace psr {
 
+/// \brief A utility class that allows path-reconstruction for IFDS/IDE solver
+/// results.
 template <typename AnalysisDomainTy>
 class PathSensitivityManager
     : public PathSensitivityManagerBase<typename AnalysisDomainTy::n_t>,

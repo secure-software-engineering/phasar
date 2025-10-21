@@ -22,19 +22,22 @@
 #include <vector>
 
 namespace llvm {
-class CallBase;
-class StructType;
+class DICompositeType;
 } // namespace llvm
 
 namespace psr {
+
+/// \brief A resolver that performs Rapid Type Analysis to resolve calls
+/// to C++ virtual functions. Requires debug information.
 class RTAResolver : public CHAResolver {
 public:
   RTAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-              const LLVMTypeHierarchy *TH);
+              const DIBasedTypeHierarchy *TH);
 
   ~RTAResolver() override = default;
 
-  FunctionSetTy resolveVirtualCall(const llvm::CallBase *CallSite) override;
+  void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                          const llvm::CallBase *CallSite) override;
 
   [[nodiscard]] std::string str() const override;
 
@@ -44,9 +47,9 @@ public:
   }
 
 private:
-  void resolveAllocatedStructTypes();
+  void resolveAllocatedCompositeTypes();
 
-  std::vector<const llvm::StructType *> AllocatedStructTypes;
+  std::vector<const llvm::DICompositeType *> AllocatedCompositeTypes;
 };
 } // namespace psr
 

@@ -35,6 +35,9 @@ struct HasNoConfigurationType;
 template <typename T, typename F> class TypeHierarchy;
 template <typename N, typename F> class CFG;
 
+/// \brief The analysis problem interface for intraprocedural monotone problems
+/// (solvable by the IntraMonoSolver). Create a subclass from this and override
+/// all pure-virtual functions to create your own mono analysis.
 template <typename AnalysisDomainTy> class IntraMonoProblem {
 public:
   using n_t = typename AnalysisDomainTy::n_t;
@@ -58,10 +61,16 @@ protected:
   [[maybe_unused]] Soundness S = Soundness::Soundy;
 
 public:
-  // denote that a problem does not require a configuration (type/file)
-  // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
+  /// An intraprocedural monotone problem generated from an intermediate
+  /// representation, a type hierarchy of said representation, a control flow
+  /// graph, points-to information and optionally a vector of entry points.
+  /// @param[in] IRDB A project IR database.
+  /// @param[in] TH A type hierarchy based on the given IRDB.
+  /// @param[in] CF A control flow graph based on the given IRDB.
+  /// @param[in] PT Points-to information based on the given IRDB.
+  /// @param[in] EntryPoints A vector of entry points. Provide at least one.
   IntraMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
                    const TypeHierarchy<t_t, f_t> *TH, const CFGBase<c_t> *CF,
                    AliasInfoRef<v_t, n_t> PT,

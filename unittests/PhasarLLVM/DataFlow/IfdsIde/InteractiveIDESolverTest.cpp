@@ -4,13 +4,9 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
-
-#include <memory>
-#include <tuple>
 
 using namespace psr;
 

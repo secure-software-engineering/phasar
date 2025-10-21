@@ -51,6 +51,8 @@ struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
 };
 namespace XTaint {
 
+/// \brief An IDE-based taint analysis that uses k-limited field-access paths to
+/// achieve field sensitivity
 class IDEExtendedTaintAnalysis
     : public IDETabulationProblem<IDEExtendedTaintAnalysisDomain>,
       public AnalysisBase {
@@ -151,8 +153,6 @@ private:
       }
     }
   }
-
-  static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
 
   void populateWithMayAliases(SourceConfigTy &Facts);
 

@@ -26,30 +26,31 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Soundness.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <memory>
-
 namespace psr {
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMProjectIRDB;
 class Resolver;
 
 class LLVMBasedICFG;
 template <> struct CFGTraits<LLVMBasedICFG> : CFGTraits<LLVMBasedCFG> {};
 
+/// \brief A class that implements a inter-procedural control flow graph.
+/// Conforms to the ICFGBase CRTP interface.
 class LLVMBasedICFG : public LLVMBasedCFG, public ICFGBase<LLVMBasedICFG> {
   friend ICFGBase;
 
 public:
+  using typename ICFGBase::f_t;
+  using typename ICFGBase::n_t;
+
   // For backward compatibility
   static constexpr llvm::StringLiteral GlobalCRuntimeModelName =
       GlobalCtorsDtorsModel::ModelName;
@@ -73,7 +74,7 @@ public:
   /// IRDB. True by default
   explicit LLVMBasedICFG(LLVMProjectIRDB *IRDB, CallGraphAnalysisType CGType,
                          llvm::ArrayRef<std::string> EntryPoints = {},
-                         LLVMTypeHierarchy *TH = nullptr,
+                         DIBasedTypeHierarchy *TH = nullptr,
                          LLVMAliasInfoRef PT = nullptr,
                          Soundness S = Soundness::Soundy,
                          bool IncludeGlobals = true);
@@ -93,7 +94,7 @@ public:
   explicit LLVMBasedICFG(const LLVMProjectIRDB *IRDB,
                          const CallGraphData &SerializedCG);
 
-  // Deleter of LLVMTypeHierarchy may be unknown here...
+  // Deleter of DIBasedTypeHierarchy may be unknown here...
   ~LLVMBasedICFG();
 
   LLVMBasedICFG(const LLVMBasedICFG &) = delete;
@@ -137,9 +138,6 @@ public:
 
   using ICFGBase::printAsJson;
 
-  using CFGBase::getAsJson;
-  using ICFGBase::getAsJson;
-
 private:
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
@@ -152,7 +150,6 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   void printAsJsonImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const LLVMBasedCallGraph &getCallGraphImpl() const noexcept {
     return CG;
   }
@@ -162,7 +159,7 @@ private:
   }
 
   [[nodiscard]] llvm::Function *buildCRuntimeGlobalCtorsDtorsModel(
-      llvm::Module &M, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
+      LLVMProjectIRDB &IRDB, llvm::ArrayRef<llvm::Function *> UserEntryPoints);
 
   void initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                   llvm::ArrayRef<std::string> EntryPoints, Soundness S,

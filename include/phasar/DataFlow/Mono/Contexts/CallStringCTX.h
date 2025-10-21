@@ -3,9 +3,8 @@
 
 #include "phasar/Utils/Printer.h"
 
+#include "llvm/ADT/Hashing.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include "boost/functional/hash.hpp"
 
 #include <deque>
 #include <functional>
@@ -13,6 +12,10 @@
 
 namespace psr {
 
+/// Stores a call-string context that can be used in interprocedural monotone
+/// analysis to achieve (limited) context sensitivity.
+/// @tparam N Type of the call-string elements.
+/// @tparam K Maximal length the call string can have.
 template <typename N, unsigned K> class CallStringCTX {
 protected:
   std::deque<N> CallString;
@@ -65,7 +68,7 @@ public:
 
   friend bool operator<(const CallStringCTX<N, K> &Lhs,
                         const CallStringCTX<N, K> &Rhs) {
-    return Lhs.cs < Rhs.cs;
+    return Lhs.CallString < Rhs.CallString;
   }
 
   llvm::raw_ostream &print(llvm::raw_ostream &OS) const {
@@ -90,11 +93,9 @@ namespace std {
 
 template <typename N, unsigned K> struct hash<psr::CallStringCTX<N, K>> {
   size_t operator()(const psr::CallStringCTX<N, K> &CS) const noexcept {
-    boost::hash<std::deque<N>> HashDeque;
-    std::hash<unsigned> HashUnsigned;
-    size_t U = HashUnsigned(K);
-    size_t H = HashDeque(CS.CallString);
-    return U ^ (H << 1);
+    auto H =
+        llvm::hash_combine_range(CS.CallString.begin(), CS.CallString.end());
+    return llvm::hash_combine(K, H);
   }
 };
 

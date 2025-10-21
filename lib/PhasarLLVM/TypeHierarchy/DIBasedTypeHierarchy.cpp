@@ -23,9 +23,7 @@
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
-#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -196,11 +194,12 @@ DIBasedTypeHierarchy::DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB) {
         if (!llvm::is_contained(DwarfTags, Composite->getTag())) {
           continue;
         }
-        if (TypeToVertex.try_emplace(Composite, VertexTypes.size()).second) {
-          VertexTypes.push_back(Composite);
-          NameToType.try_emplace(getCompositeTypeName(Composite), Composite);
+        auto Name = getCompositeTypeName(Composite);
+        if (!Name.empty() &&
+            TypeToVertex.try_emplace(Composite, VertexTypes.size()).second) {
 
-          assert(!getCompositeTypeName(Composite).empty());
+          VertexTypes.push_back(Composite);
+          NameToType.try_emplace(Name, Composite);
         }
       }
     }
@@ -312,6 +311,25 @@ auto DIBasedTypeHierarchy::subTypesOf(ClassType Ty) const noexcept
   return subTypesOf(It->second);
 }
 
+bool DIBasedTypeHierarchy::isVTable(llvm::StringRef VarName) {
+  if (VarName.startswith(VTablePrefix)) {
+    return true;
+  }
+  // In LLVM 17 demangle() takes a StringRef
+  auto Demang = llvm::demangle(VarName.str());
+  return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
+}
+
+std::string DIBasedTypeHierarchy::removeVTablePrefix(llvm::StringRef VarName) {
+  if (VarName.startswith(VTablePrefixDemang)) {
+    return VarName.drop_front(VTablePrefixDemang.size()).str();
+  }
+  if (VarName.startswith(VTablePrefix)) {
+    return VarName.drop_front(VTablePrefix.size()).str();
+  }
+  return VarName.str();
+}
+
 void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
   {
     OS << "Type Hierarchy:\n";
@@ -339,12 +357,6 @@ void DIBasedTypeHierarchy::print(llvm::raw_ostream &OS) const {
       ++TyIdx;
     }
   }
-}
-
-[[nodiscard]] [[deprecated("Please use printAsJson() instead")]] nlohmann::json
-DIBasedTypeHierarchy::getAsJson() const {
-  /// TODO: implement
-  llvm::report_fatal_error("Not implemented");
 }
 
 DIBasedTypeHierarchyData DIBasedTypeHierarchy::getTypeHierarchyData() const {

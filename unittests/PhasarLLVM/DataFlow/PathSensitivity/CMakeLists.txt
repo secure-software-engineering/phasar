@@ -4,7 +4,7 @@ if(PHASAR_USE_Z3)
     target_link_libraries(PathTracingTest
         LINK_PUBLIC
         phasar_llvm_pathsensitivity
-        z3
+        ${Z3_LIBRARIES}
     )
 endif()
 

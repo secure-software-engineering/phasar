@@ -27,6 +27,8 @@ set(NoMem2regSources
 	virtual_call_7.cpp
 	virtual_call_8.cpp
 	virtual_call_9.cpp
+	virtual_call_10.cpp
+	virtual_call_11.cpp
 	global_ctor_dtor_1.cpp
 	global_ctor_dtor_2.cpp
 	global_ctor_dtor_3.cpp
@@ -35,4 +37,8 @@ set(NoMem2regSources
 
 foreach(TEST_SRC ${NoMem2regSources})
   generate_ll_file(FILE ${TEST_SRC})
+endforeach(TEST_SRC)
+
+foreach(TEST_SRC ${NoMem2regSources})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)

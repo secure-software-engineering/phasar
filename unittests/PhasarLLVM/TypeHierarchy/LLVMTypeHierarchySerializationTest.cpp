@@ -15,6 +15,9 @@
 
 using namespace psr;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
+
 /* ============== TEST FIXTURE ============== */
 class LLVMTypeHierarchySerialization
     : public ::testing::TestWithParam<std::string_view> {
@@ -64,6 +67,8 @@ TEST_P(LLVMTypeHierarchySerialization, OrigAndDeserEqual) {
 
   compareResults(TypeHierarchy, DeserializedTypeHierarchy);
 }
+
+#pragma GCC diagnostic pop
 
 static constexpr std::string_view TypeHierarchyTestFiles[] = {
     "type_hierarchy_1_cpp_dbg.ll",    "type_hierarchy_2_cpp_dbg.ll",

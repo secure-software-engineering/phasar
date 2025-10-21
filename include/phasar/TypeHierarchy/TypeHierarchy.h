@@ -14,8 +14,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json_fwd.hpp"
-
 #include <set>
 
 namespace psr {
@@ -40,16 +38,12 @@ public:
 
   virtual void print(llvm::raw_ostream &OS = llvm::outs()) const = 0;
 
-  [[nodiscard,
-    deprecated("Please use printAsJson() instead")]] virtual nlohmann::json
-  getAsJson() const = 0;
-
   virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
 };
 
 template <typename T, typename F>
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const TypeHierarchy<T, F> &TH) {
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                     const TypeHierarchy<T, F> &TH) {
   TH.print(OS);
   return OS;
 }

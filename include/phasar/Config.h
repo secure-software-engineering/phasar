@@ -11,6 +11,6 @@
 #define PHASAR_CONFIG_H
 
 #include "phasar/Config/Configuration.h"
-#include "phasar/Config/Version.h"
+#include "phasar/Config/phasar-config.h"
 
 #endif // PHASAR_CONFIG_H

@@ -15,25 +15,21 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
-#include "phasar/Utils/ByRef.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Value.h"
 
-#include <memory>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -41,15 +37,12 @@
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-
 namespace detail {
 
 class IDETypeStateAnalysisBaseCommon : public LLVMAnalysisDomainDefault {
 public:
   using container_type = std::set<d_t>;
-  using FlowFunctionPtrType = FlowFunctionPtrType<d_t, container_type>;
+  using FlowFunctionPtrType = psr::FlowFunctionPtrType<d_t, container_type>;
 };
 
 class IDETypeStateAnalysisBase
@@ -59,6 +52,14 @@ class IDETypeStateAnalysisBase
           IDETypeStateAnalysisBaseCommon::container_type> {
 public:
   virtual ~IDETypeStateAnalysisBase() = default;
+
+  IDETypeStateAnalysisBase(IDETypeStateAnalysisBase &&) noexcept = default;
+  IDETypeStateAnalysisBase &
+  operator=(IDETypeStateAnalysisBase &&) noexcept = default;
+
+  IDETypeStateAnalysisBase(const IDETypeStateAnalysisBase &) = delete;
+  IDETypeStateAnalysisBase &
+  operator=(const IDETypeStateAnalysisBase &) noexcept = delete;
 
 protected:
   IDETypeStateAnalysisBase(LLVMAliasInfoRef PT) noexcept : PT(PT) {}
@@ -121,7 +122,7 @@ protected:
   container_type getLocalAliasesAndAllocas(d_t V, llvm::StringRef Fname);
 
   /**
-   * @brief Checks if the type machtes the type of interest.
+   * @brief Checks if the type matches the type of interest.
    */
   bool hasMatchingType(d_t V);
 
@@ -130,7 +131,7 @@ private:
     return generateFlow(FactToGenerate, LLVMZeroValue::getInstance());
   }
 
-  bool hasMatchingTypeName(const llvm::Type *Ty);
+  bool hasMatchingTypeName(const llvm::DIType *DITy);
 
   std::map<const llvm::Value *, LLVMAliasInfo::AliasSetTy> AliasCache;
   LLVMAliasInfoRef PT{};
@@ -201,8 +202,7 @@ private:
     }
 
     [[no_unique_address]] std::conditional_t<HasJoinLatticeTraits<l_t>,
-                                             EmptyType, l_t>
-        BotElement{};
+                                             EmptyType, l_t> BotElement{};
 
     static EdgeFunction<l_t> join(EdgeFunctionRef<TSEdgeFunctionComposer> This,
                                   const EdgeFunction<l_t> &OtherFunction) {
@@ -218,7 +218,7 @@ private:
   };
 
   struct TSEdgeFunction {
-    using l_t = l_t;
+    using l_t = IDETypeStateAnalysis::l_t;
     const TypeStateDescriptionTy *TSD{};
     // XXX: Do we really need a string here? Can't we just use an integer or sth
     // else that is cheap?
@@ -282,11 +282,7 @@ private:
     template <typename LL = l_t,
               typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
     TSConstant(l_t Value, EmptyType /*unused*/ = {}) noexcept
-        : ConstantEdgeFunction<l_t>{Value} {
-      if constexpr (!HasJoinLatticeTraits<l_t>) {
-        this->TSD = TSD;
-      }
-    }
+        : ConstantEdgeFunction<l_t>{Value} {}
 
     /// XXX: Cannot default compose() and join(), because l_t does not implement
     /// JoinLatticeTraits (because bottom value is not constant)
@@ -353,8 +349,6 @@ public:
     assert(TSD != nullptr);
     assert(PT);
   }
-
-  ~IDETypeStateAnalysis() override = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 
@@ -519,32 +513,19 @@ public:
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
-    LLVMBasedCFG CFG;
+
     for (const auto &F : this->IRDB->getAllFunctions()) {
       for (const auto &BB : *F) {
         for (const auto &I : BB) {
           auto Results = SR.resultsAt(&I, true);
 
-          if (CFG.isExitInst(&I)) {
-            for (auto Res : Results) {
-              if (const auto *Alloca =
-                      llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
-                if (Res.second == TSD->error()) {
-                  // ERROR STATE DETECTED
-                  this->Printer->onResult(&I, Res.first, TSD->error(),
-                                          TSD->analysisType());
-                }
-              }
-            }
-          } else {
-            for (auto Res : Results) {
-              if (const auto *Alloca =
-                      llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
-                if (Res.second == TSD->error()) {
-                  // ERROR STATE DETECTED
-                  this->Printer->onResult(&I, Res.first, TSD->error(),
-                                          TSD->analysisType());
-                }
+          for (auto Res : Results) {
+            if (const auto *Alloca =
+                    llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
+              if (Res.second == TSD->error()) {
+                // ERROR STATE DETECTED
+                this->onResult(&I, Res.first, TSD->error(),
+                               TSD->analysisType());
               }
             }
           }
@@ -552,7 +533,7 @@ public:
       }
     }
 
-    this->Printer->onFinalize();
+    this->Printer->onFinalize(OS);
   }
 
   [[nodiscard]] bool

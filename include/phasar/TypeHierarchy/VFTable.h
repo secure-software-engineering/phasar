@@ -12,8 +12,6 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <vector>
 
 namespace llvm {
@@ -22,6 +20,7 @@ class raw_ostream;
 
 namespace psr {
 
+/// \brief A generic class to represent a virtual function table
 template <typename F> class VFTable {
 public:
   virtual ~VFTable() = default;
@@ -38,16 +37,12 @@ public:
 
   virtual void print(llvm::raw_ostream &OS) const = 0;
 
-  [[nodiscard,
-    deprecated("Please use printAsJson() instead")]] virtual nlohmann::json
-  getAsJson() const = 0;
-
   virtual void printAsJson(llvm::raw_ostream &OS) const = 0;
 };
 
 template <typename T, typename F>
-static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                            const VFTable<F> &Table) {
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                     const VFTable<F> &Table) {
   Table.print(OS);
   return OS;
 }

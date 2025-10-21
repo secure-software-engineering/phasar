@@ -25,6 +25,8 @@ template <typename N, typename F> class CallGraph;
 template <>
 struct CFGTraits<LLVMBasedBackwardICFG> : CFGTraits<LLVMBasedBackwardCFG> {};
 
+/// \brief  A class that represents a backwards interprocedural control flow
+/// graph. Conforms to the ICFGBase CRTP interface.
 class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
                               public ICFGBase<LLVMBasedBackwardICFG> {
   friend ICFGBase;
@@ -35,7 +37,7 @@ class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
 
   public:
     LLVMBackwardRet(llvm::LLVMContext &Ctx)
-        : Instance(llvm::ReturnInst::Create(Ctx)){};
+        : Instance(llvm::ReturnInst::Create(Ctx)) {};
     [[nodiscard]] const llvm::ReturnInst *getInstance() const noexcept {
       return Instance;
     }
@@ -46,13 +48,13 @@ class LLVMBasedBackwardICFG : public LLVMBasedBackwardCFG,
 
   using ICFGBase::printAsJson;
 
-  using CFGBase::getAsJson;
-  using ICFGBase::getAsJson;
-
 public:
   LLVMBasedBackwardICFG(LLVMBasedICFG *ForwardICFG);
 
 private:
+  using typename ICFGBase::f_t;
+  using typename ICFGBase::n_t;
+
   [[nodiscard]] FunctionRange getAllFunctionsImpl() const;
   [[nodiscard]] f_t getFunctionImpl(llvm::StringRef Fun) const;
 
@@ -67,7 +69,6 @@ private:
   getReturnSitesOfCallAtImpl(n_t Inst) const;
   void printImpl(llvm::raw_ostream &OS) const;
   void printAsJsonImpl(llvm::raw_ostream &OS) const;
-  [[nodiscard, deprecated]] nlohmann::json getAsJsonImpl() const;
   [[nodiscard]] const CallGraph<n_t, f_t> &getCallGraphImpl() const noexcept;
   [[nodiscard]] size_t getNumCallSitesImpl() const noexcept;
 

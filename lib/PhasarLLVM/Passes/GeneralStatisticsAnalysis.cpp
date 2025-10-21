@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h"
 
+#include "phasar/PhasarLLVM/Utils/AllocatedTypes.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NlohmannLogging.h"
@@ -23,7 +24,6 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Format.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -40,31 +40,6 @@ static bool isAddressTaken(const llvm::Function &Fun) noexcept {
     }
   }
   return false;
-}
-
-template <typename Set>
-static void collectAllocatedTypes(const llvm::CallBase *CallSite, Set &Into) {
-  for (const auto *User : CallSite->users()) {
-    if (const auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User);
-        Cast && Cast->getDestTy()->isPointerTy() &&
-        !Cast->getDestTy()->isOpaquePointerTy()) {
-      const auto *ElemTy = Cast->getDestTy()->getNonOpaquePointerElementType();
-      if (ElemTy->isStructTy()) {
-        // finally check for ctor call
-        for (const auto *User : Cast->users()) {
-          if (llvm::isa<llvm::CallBase>(User)) {
-            // potential call to the structures ctor
-            const auto *CTor = llvm::cast<llvm::CallBase>(User);
-            if (CTor->getCalledFunction() &&
-                CTor->getCalledFunction()->getArg(0)->getType() ==
-                    Cast->getDestTy()) {
-              Into.insert(ElemTy);
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
@@ -132,7 +107,6 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         // check for alloca instruction for possible types
         if (const llvm::AllocaInst *Alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-          Stats.AllocatedTypes.insert(Alloc->getAllocatedType());
           // do not add allocas from llvm internal functions
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;
@@ -187,9 +161,6 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
               // do not add allocas from llvm internal functions
               Stats.AllocaInstructions.insert(&I);
               ++Stats.AllocationSites;
-              // check if an instance of a user-defined type is allocated on the
-              // heap
-              collectAllocatedTypes(CallSite, Stats.AllocatedTypes);
             }
           } else {
             ++Stats.IndCalls;
@@ -198,6 +169,9 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
       }
     }
   }
+
+  Stats.AllocatedTypes = collectAllocatedTypes(M);
+
   // check for global pointers
   for (const auto &Global : M.globals()) {
     ++Stats.Globals;
@@ -252,43 +226,6 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
   return Stats;
 }
 
-size_t GeneralStatistics::getAllocationsites() const { return AllocationSites; }
-
-size_t GeneralStatistics::getFunctioncalls() const { return CallSites; }
-
-size_t GeneralStatistics::getInstructions() const { return Instructions; }
-
-size_t GeneralStatistics::getGlobalPointers() const { return Globals; }
-
-size_t GeneralStatistics::getBasicBlocks() const { return BasicBlocks; }
-
-size_t GeneralStatistics::getFunctions() const { return Functions; }
-
-size_t GeneralStatistics::getGlobals() const { return Globals; }
-
-size_t GeneralStatistics::getGlobalConsts() const { return GlobalConsts; }
-
-size_t GeneralStatistics::getMemoryIntrinsics() const { return MemIntrinsics; }
-
-size_t GeneralStatistics::getStoreInstructions() const {
-  return StoreInstructions;
-}
-
-const std::set<const llvm::Type *> &
-GeneralStatistics::getAllocatedTypes() const {
-  return AllocatedTypes;
-}
-
-const std::set<const llvm::Instruction *> &
-GeneralStatistics::getAllocaInstructions() const {
-  return AllocaInstructions;
-}
-
-const std::set<const llvm::Instruction *> &
-GeneralStatistics::getRetResInstructions() const {
-  return RetResInstructions;
-}
-
 void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   nlohmann::json Json;
 
@@ -333,14 +270,6 @@ void GeneralStatistics::printAsJson(llvm::raw_ostream &OS) const {
   OS << Json << '\n';
 }
 
-nlohmann::json GeneralStatistics::getAsJson() const {
-  std::string GeneralStatisticsAsString;
-  llvm::raw_string_ostream Stream(GeneralStatisticsAsString);
-  printAsJson(Stream);
-
-  return nlohmann::json::parse(GeneralStatisticsAsString);
-}
-
 } // namespace psr
 
 namespace {
@@ -369,7 +298,7 @@ template <typename T> struct AlignNum {
   }
 };
 template <typename T> AlignNum(llvm::StringRef, T) -> AlignNum<T>;
-AlignNum(llvm::StringRef, size_t, size_t)->AlignNum<double>;
+AlignNum(llvm::StringRef, size_t, size_t) -> AlignNum<double>;
 } // namespace
 
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
@@ -399,6 +328,8 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
          << AlignNum("Debug Intrinsics", Statistics.DebugIntrinsics)
          << AlignNum("Switches", Statistics.Switches)
          << AlignNum("GetElementPtrs", Statistics.GetElementPtrs)
+         << AlignNum("Loads", Statistics.LoadInstructions)
+         << AlignNum("Stores", Statistics.StoreInstructions)
          << AlignNum("Phi Nodes", Statistics.PhiNodes)
          << AlignNum("LandingPads", Statistics.LandingPads)
          << AlignNum("Basic Blocks", Statistics.BasicBlocks)
