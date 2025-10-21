@@ -17,7 +17,9 @@
 #include "phasar/DataFlow/PathSensitivity/PathTracingFilter.h"
 #include "phasar/Utils/DFAMinimizer.h"
 #include "phasar/Utils/GraphTraits.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/RepeatIterator.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
@@ -27,6 +29,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <cstdint>
 #include <cstdlib>
 #include <system_error>
 #include <type_traits>
@@ -186,17 +189,17 @@ public:
   // --- NEW
 
   template <
-      typename FactsRangeTy, typename ConfigTy,
+      typename InstFactsRangeTy, typename ConfigTy,
       typename Filter = DefaultPathTracingFilter,
       typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
   [[nodiscard]] GraphType
-  pathsGraphToAll(n_t Inst, FactsRangeTy FactsRange,
+  pathsGraphToAll(InstFactsRangeTy &&FactsRange,
                   const PathSensitivityConfigBase<ConfigTy> &Config,
                   const Filter &PFilter = {}) const {
     graph_type Dag;
     PathsToContext Ctx;
 
-    for (const d_t &Fact : FactsRange) {
+    for (const auto &[Inst, Fact] : PSR_FWD(FactsRange)) {
       auto Nod = ESG.getNodeOrNull(Inst, std::move(Fact));
 
       if (LLVM_UNLIKELY(!Nod)) {
@@ -268,6 +271,19 @@ public:
     }
 
     return Dag;
+  }
+
+  template <
+      typename FactsRangeTy, typename ConfigTy,
+      typename Filter = DefaultPathTracingFilter,
+      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  [[nodiscard]] GraphType
+  pathsGraphToAll(n_t Inst, FactsRangeTy &&FactsRange,
+                  const PathSensitivityConfigBase<ConfigTy> &Config,
+                  const Filter &PFilter = {}) const {
+    return pathsGraphToAll(
+        llvm::zip(psr::repeat(Inst, SIZE_MAX), PSR_FWD(FactsRange)), Config,
+        PFilter);
   }
 
   template <
