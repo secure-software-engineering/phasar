@@ -304,52 +304,9 @@ add_json_schema_validator()
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CODE_COVERAGE ON)
   include(external/cmake-scripts/code-coverage.cmake)
-  # See https://github.com/StableCoder/cmake-scripts/issues/26
-  add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER})
-  # Attempt #1
-  # Just the above. Didn't produce any code coverage report.
 
-  # Attempt #2
-  # target_code_coverage(${CMAKE_CTEST_COMMAND})
-  #
-  # CMake Error: /home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-BetterCoverage/build/ccov-data/objects/*: no such file or directory (ignoring)
-  # ninja: build stopped: subcommand failed.
-
-  # Attempt #3
-  # https://stackoverflow.com/questions/60211516/programmatically-get-all-targets-in-a-cmake-project
-  #
-  # CMake Error: /home/max/Desktop/dev/Arbeit/phasar-clones/phasar-f-BetterCoverage/build/ccov-data/objects/*: no such file or directory (ignoring)
-  # ninja: build stopped: subcommand failed.
-  # set(all_sub_dirs)
-  # file(GLOB_RECURSE dirs RELATIVE ${PROJECT_SOURCE_DIR} LIST_DIRECTORIES ON ${PROJECT_SOURCE_DIR}/*)
-  # foreach(dir ${dirs})
-  #   if(IS_DIRECTORY ${dir})
-  #       list(APPEND ${all_sub_dirs} ${dir})
-  #   endif()
-  # endforeach()
-#
-  # #
-  # # Get all targets defined at the specified directory (level).
-  # #   _result     : The variable in which to store the resulting list of targets.
-  # #   _dir        : The directory to query for targets.
-  # #
-  # macro(get_targets_by_directory _result _dir)
-  #     get_property(_target DIRECTORY ${_dir} PROPERTY BUILDSYSTEM_TARGETS)
-  #     set(_result ${_target})
-  # endmacro()
-#
-  # #
-  # # Get all targets defined below the specified root directory.
-  # #   _result     : The variable in which to store the resulting list of targets.
-  # #   _root_dir   : The root project root directory
-  # #
-  # foreach(_dir ${all_sub_dirs})
-  #   get_targets_by_directory(_target ${_dir})
-  #   if(_target)
-  #     target_code_coverage(${_target})
-  #   endif()
-  # endforeach()
-
+  set(COV_FILEPATH_FILTER "(usr/local/*|external/)")
+  add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER} LLVM_EXCLUDE ${COV_FILEPATH_FILTER} LCOV_EXCLUDE ${COV_FILEPATH_FILTER})
 endif()
 
 # Googletest

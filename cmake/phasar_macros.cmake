@@ -36,10 +36,7 @@ function(add_phasar_unittest test_name)
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
 
-  # set(COV_FILEPATH_FILTER "^.*usr/local/.*$$")
-  set(COV_FILEPATH_FILTER usr/local/*)
-
-  target_code_coverage(${test} AUTO ALL EXCLUDE ${COV_FILEPATH_FILTER} LLVM_EXCLUDE ${COV_FILEPATH_FILTER} LCOV_EXCLUDE ${COV_FILEPATH_FILTER})
+  target_code_coverage(${test} AUTO ALL)
 endfunction()
 
 function(validate_binary_version result item)
