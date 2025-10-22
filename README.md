@@ -4,8 +4,7 @@
 
 [![C++ Standard](https://img.shields.io/badge/C++_Standard-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
-
-Version 2503
+[![GitHub Release](https://img.shields.io/github/v/release/secure-software-engineering/phasar?label=version)](https://github.com/secure-software-engineering/phasar/releases)
 
 ## What is PhASAR?
 
