@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['hash_5fvalue_0',['hash_value',['../classpsr_1_1EdgeFunction.html#a2eeb4d78b0214ae7a471516a759ee355',1,'psr::EdgeFunction::hash_value'],['../structpsr_1_1LatticeDomain.html#aad53fb7885efc33a5fafc077c3c304a1',1,'psr::LatticeDomain::hash_value'],['../structpsr_1_1IDEFeatureTaintEdgeFact.html#a3711c29625c480286a14f6eba6759ac1',1,'psr::IDEFeatureTaintEdgeFact::hash_value'],['../structpsr_1_1IDEInstInteractionAnalysisT_1_1IIAAKillOrReplaceEF.html#aada55408bde444a47ffd3ab6a38ead44',1,'psr::IDEInstInteractionAnalysisT::IIAAKillOrReplaceEF::hash_value'],['../structpsr_1_1IDEInstInteractionAnalysisT_1_1IIAAAddLabelsEF.html#a0a1c96d0fc672d014d72a05d55b4b4bf',1,'psr::IDEInstInteractionAnalysisT::IIAAAddLabelsEF::hash_value'],['../classpsr_1_1BitVectorSet.html#a9e5e9b08463348750226a248f256be37',1,'psr::BitVectorSet::hash_value'],['../classpsr_1_1BoxedPtr.html#a7ba5d46bae26e644c70cd284f916ce8b',1,'psr::BoxedPtr::hash_value'],['../classpsr_1_1BoxedConstPtr.html#ad0732498f69d63851f46463e0dffa702',1,'psr::BoxedConstPtr::hash_value']]]
+  ['idesolver_0',['IDESolver',['../classpsr_1_1EdgeFunctionStats.html#af0c047808186eca2e21a36752afee83f',1,'psr::EdgeFunctionStats']]],
+  ['intermonofullconstantpropagation_1',['InterMonoFullConstantPropagation',['../classpsr_1_1IntraMonoFullConstantPropagation.html#a92a44444f4a8c45fbd193b84bcc9e00a',1,'psr::IntraMonoFullConstantPropagation']]],
+  ['isinreachableallocationsitesty_2',['isInReachableAllocationSitesTy',['../classpsr_1_1LLVMAliasSet.html#a0524f7a1a7a1043d6c2b9fa05c4594a9',1,'psr::LLVMAliasSet']]]
 ];

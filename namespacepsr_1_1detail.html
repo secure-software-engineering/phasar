@@ -143,6 +143,14 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_str&lt; T, decltype(std::declval&lt; T &gt;().str())&gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAlias</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAlias&lt; T, decltype(std::declval&lt; T &gt;().alias(std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAsAbstractObject</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAsAbstractObject&lt; T, decltype(std::declval&lt; const T &amp; &gt;().asAbstractObject(std::declval&lt; typename T::v_t &gt;()))&gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasBinaryValueDomain</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasBinaryValueDomain&lt; AnalysisDomainTy, typename AnalysisDomainTy::l_t &gt;</b></td></tr>
@@ -150,6 +158,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasDepth</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasDepth&lt; T, decltype(std::declval&lt; const T &amp; &gt;().depth())&gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetAliasSet</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetAliasSet&lt; T, std::void_t&lt; decltype(std::declval&lt; T &gt;().getAliasSet(std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt; &gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetPointsToSet</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetPointsToSet&lt; T, decltype(std::declval&lt; const T &amp; &gt;().getPointsToSet(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>Hasher</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -160,6 +176,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasJoinLatticeTraitsHelper</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasJoinLatticeTraitsHelper&lt; L, std::enable_if_t&lt; std::is_convertible_v&lt; decltype(JoinLatticeTraits&lt; L &gt;::top()), L &gt; &amp;&amp;std::is_convertible_v&lt; decltype(JoinLatticeTraits&lt; L &gt;::bottom()), L &gt; &amp;&amp;std::is_convertible_v&lt; decltype(JoinLatticeTraits&lt; L &gt;::join(std::declval&lt; L &gt;(), std::declval&lt; L &gt;())), L &gt; &gt; &gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasMayPointsTo</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasMayPointsTo&lt; T, decltype(std::declval&lt; const T &amp; &gt;().mayPointsTo(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasReachableAllocationSites</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasReachableAllocationSites&lt; T, std::void_t&lt; decltype(std::declval&lt; T &amp; &gt;().getReachableAllocationSites(std::declval&lt; typename T::v_t &gt;(), true, std::declval&lt; typename T::n_t &gt;())), decltype(std::declval&lt; T &amp; &gt;().isInReachableAllocationSites(std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::v_t &gt;(), true, std::declval&lt; typename T::n_t &gt;()))&gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IDEAliasAwareDefaultFlowFunctionsImpl</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -221,6 +245,12 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasInfo&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &gt;().print(llvm::outs())), decltype(std::declval&lt; const T &gt;().printAsJson(llvm::outs())), decltype(std::declval&lt; T &gt;().mergeWith(std::declval&lt; T &gt;())), decltype(std::declval&lt; T &gt;().introduceAlias(std::declval&lt; typename AliasInfoTraits&lt; T &gt;::v_t &gt;(), std::declval&lt; typename AliasInfoTraits&lt; T &gt;::v_t &gt;(), std::declval&lt; typename AliasInfoTraits&lt; T &gt;::n_t &gt;(), AliasResult{}))&gt;, std::enable_if_t&lt; std::is_same_v&lt; std::tuple&lt; bool, AliasAnalysisType, AliasResult, typename AliasInfoTraits&lt; T &gt;::AliasSetPtrTy, typename AliasInfoTraits&lt; T &gt;::AllocationSiteSetPtrTy, bool, AnalysisProperties, bool, bool, bool &gt;, decltype(testAliasInfo(std::declval&lt; T &amp; &gt;(), std::declval&lt; const T &amp; &gt;()))&gt; &gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasIterator</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasIteratorFor</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasIteratorFor&lt; T, V, N, std::void_t&lt; decltype(std::declval&lt; T &gt;().forallAliasesOf(std::declval&lt; V &gt;(), std::declval&lt; N &gt;(), std::declval&lt; llvm::function_ref&lt; void(V)&gt; &gt;()))&gt; &gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEdgeFunction</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEdgeFunction&lt; T, std::void_t&lt; typename T::l_t, decltype(std::declval&lt; const T &amp; &gt;().computeTarget(std::declval&lt; typename T::l_t &gt;())), decltype(T::compose(std::declval&lt; EdgeFunctionRef&lt; T &gt; &gt;(), std::declval&lt; EdgeFunction&lt; typename T::l_t &gt; &gt;())), decltype(T::join(std::declval&lt; EdgeFunctionRef&lt; T &gt; &gt;(), std::declval&lt; EdgeFunction&lt; typename T::l_t &gt; &gt;()))&gt; &gt;</b></td></tr>
@@ -228,6 +258,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEqualityComparable</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEqualityComparable&lt; T, decltype(std::declval&lt; T &gt;()==std::declval&lt; T &gt;())&gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsPointsToIterator</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsPointsToIterator&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &amp; &gt;().forallPointeesOf(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;(), std::declval&lt; llvm::function_ref&lt; void(typename T::o_t)&gt; &gt;()))&gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IterativeIDESolverResults</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -719,7 +753,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 12 2025 08:20:40 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 23 2025 15:59:49 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

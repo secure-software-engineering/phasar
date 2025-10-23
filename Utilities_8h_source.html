@@ -408,47 +408,49 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>}</div>
 </div>
 <div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span> </div>
-<div class="foldopen" id="foldopen00291" data-start="{" data-end="}">
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno"><a class="line" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">  291</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> T &amp;<a class="code hl_function" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">assertNotNull</a>(T &amp;Value) {</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>  <span class="keywordflow">return</span> Value;</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>}</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> std::enable_if_t&lt;!std::is_pointer_v&lt;T&gt;, T &amp;&gt;</div>
+<div class="foldopen" id="foldopen00293" data-start="{" data-end="}">
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno"><a class="line" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">  293</a></span><a class="code hl_function" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">assertNotNull</a>(T &amp;Value) {</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  <span class="keywordflow">return</span> Value;</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>}</div>
 </div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span> </div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> <span class="keyword">const</span> T &amp;</div>
-<div class="foldopen" id="foldopen00297" data-start="{" data-end="}">
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9a07d4208b76fa4e5ed4bc02302f9d49">  297</a></span><a class="code hl_function" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">assertNotNull</a>(<span class="keyword">const</span> std::optional&lt;T&gt; &amp;Value) {</div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(Value.has_value());</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>  <span class="keywordflow">return</span> *Value;</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>}</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> <span class="keyword">const</span> T &amp;</div>
+<div class="foldopen" id="foldopen00299" data-start="{" data-end="}">
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9a07d4208b76fa4e5ed4bc02302f9d49">  299</a></span><a class="code hl_function" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">assertNotNull</a>(<span class="keyword">const</span> std::optional&lt;T&gt; &amp;Value) {</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(Value.has_value());</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>  <span class="keywordflow">return</span> *Value;</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>}</div>
 </div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="foldopen" id="foldopen00302" data-start="{" data-end="}">
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno"><a class="line" href="namespacepsr.html#a5590712227d732e6101e5addea82221b">  302</a></span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> T &amp;<a class="code hl_function" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">assertNotNull</a>(std::optional&lt;T&gt; &amp;Value) {</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(Value.has_value());</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>  <span class="keywordflow">return</span> *Value;</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>}</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00304" data-start="{" data-end="}">
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno"><a class="line" href="namespacepsr.html#a5590712227d732e6101e5addea82221b">  304</a></span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> T &amp;<a class="code hl_function" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">assertNotNull</a>(std::optional&lt;T&gt; &amp;Value) {</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(Value.has_value());</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>  <span class="keywordflow">return</span> *Value;</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>}</div>
 </div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
-<div class="foldopen" id="foldopen00307" data-start="{" data-end="}">
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno"><a class="line" href="namespacepsr.html#a87f3a977e614435990c5bfca338e31cd">  307</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> T &amp;<a class="code hl_function" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">assertNotNull</a>(T *Value) {</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(Value != <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>  <span class="keywordflow">return</span> *Value;</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>}</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span> </div>
+<div class="foldopen" id="foldopen00309" data-start="{" data-end="}">
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno"><a class="line" href="namespacepsr.html#a87f3a977e614435990c5bfca338e31cd">  309</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> T &amp;<a class="code hl_function" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">assertNotNull</a>(T *Value) {</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(Value != <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>  <span class="keywordflow">return</span> *Value;</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>}</div>
 </div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span> </div>
-<div class="foldopen" id="foldopen00312" data-start="{" data-end="}">
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno"><a class="line" href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">  312</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">void</span> <a class="code hl_function" href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">assertAllNotNull</a>([[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">maybe_unused</a>]] <span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a>) {</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>  <a class="code hl_function" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">assertNotNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a>);</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Elem : <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a>) {</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    <a class="code hl_function" href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">assertNotNull</a>(Elem);</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>  }</div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>}</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span> </div>
+<div class="foldopen" id="foldopen00314" data-start="{" data-end="}">
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno"><a class="line" href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">  314</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keywordtype">void</span> <a class="code hl_function" href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">assertAllNotNull</a>([[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">maybe_unused</a>]] <span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a>) {</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>  <a class="code hl_function" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">assertNotNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a>);</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;Elem : <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a>) {</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    <a class="code hl_function" href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">assertNotNull</a>(Elem);</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  }</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>}</div>
 </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span> </div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span> </div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aTypeTraits_8h_html"><div class="ttname"><a href="TypeTraits_8h.html">TypeTraits.h</a></div></div>
 <div class="ttc" id="aclasspsr_1_1Ts_html"><div class="ttname"><a href="classpsr_1_1Ts.html">psr::Ts</a></div></div>
 <div class="ttc" id="aclasspsr_1_1scope__exit_html"><div class="ttname"><a href="classpsr_1_1scope__exit.html">psr::scope_exit</a></div><div class="ttdoc">See https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00151">Utilities.h:151</a></div></div>
@@ -464,13 +466,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_a225dec617f5eb04e83e3dc42ff3e6c78"><div class="ttname"><a href="namespacepsr.html#a225dec617f5eb04e83e3dc42ff3e6c78">psr::computePowerSet</a></div><div class="ttdeci">std::set&lt; std::set&lt; T &gt; &gt; computePowerSet(const std::set&lt; T &gt; &amp;S)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00039">Utilities.h:39</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a25925bd87e39b958fc320ad7f393f816"><div class="ttname"><a href="namespacepsr.html#a25925bd87e39b958fc320ad7f393f816">psr::forward_like</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr auto &amp;&amp; forward_like(U &amp;&amp;X) noexcept</div><div class="ttdoc">See https://en.cppreference.com/w/cpp/utility/forward_like</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00255">Utilities.h:255</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a2c61efa94d267ce2616d0bcd39c3cbbb"><div class="ttname"><a href="namespacepsr.html#a2c61efa94d267ce2616d0bcd39c3cbbb">psr::isConstructor</a></div><div class="ttdeci">bool isConstructor(llvm::StringRef MangledName)</div></div>
+<div class="ttc" id="anamespacepsr_html_a3480666db5fbbc337d978074737c3e1c"><div class="ttname"><a href="namespacepsr.html#a3480666db5fbbc337d978074737c3e1c">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE std::enable_if_t&lt;!std::is_pointer_v&lt; T &gt;, T &amp; &gt; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00293">Utilities.h:293</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a34e5dcf1e593b6451eb710556fb00547"><div class="ttname"><a href="namespacepsr.html#a34e5dcf1e593b6451eb710556fb00547">psr::createTimeStamp</a></div><div class="ttdeci">std::string createTimeStamp()</div></div>
 <div class="ttc" id="anamespacepsr_html_a9937fb579a62de5e3b098a8b23d1f190"><div class="ttname"><a href="namespacepsr.html#a9937fb579a62de5e3b098a8b23d1f190">psr::isMangled</a></div><div class="ttdeci">bool isMangled(llvm::StringRef Name)</div></div>
 <div class="ttc" id="anamespacepsr_html_aa48c3584b09e5f8e54db678a306e0ccc"><div class="ttname"><a href="namespacepsr.html#aa48c3584b09e5f8e54db678a306e0ccc">psr::intersectWith</a></div><div class="ttdeci">void intersectWith(BitVectorSet&lt; T &gt; &amp;Dest, const BitVectorSet&lt; T &gt; &amp;Src)</div><div class="ttdef"><b>Definition</b> <a href="BitVectorSet_8h_source.html#l00314">BitVectorSet.h:314</a></div></div>
 <div class="ttc" id="anamespacepsr_html_aaf51d0e816794e17404d95f3c3f773ea"><div class="ttname"><a href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">psr::operator&lt;&lt;</a></div><div class="ttdeci">llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, AnalysisStrategy S)</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab92f6183ac44941cf08b0e602540c474"><div class="ttname"><a href="namespacepsr.html#ab92f6183ac44941cf08b0e602540c474">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE T &amp; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00291">Utilities.h:291</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ac0063fdc8ef7f84d987423561581b7a6"><div class="ttname"><a href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">psr::assertAllNotNull</a></div><div class="ttdeci">void assertAllNotNull(const T &amp;Range)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00312">Utilities.h:312</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ac0063fdc8ef7f84d987423561581b7a6"><div class="ttname"><a href="namespacepsr.html#ac0063fdc8ef7f84d987423561581b7a6">psr::assertAllNotNull</a></div><div class="ttdeci">void assertAllNotNull(const T &amp;Range)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00314">Utilities.h:314</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ae39c29b0123753fa6c186049ff4dad48"><div class="ttname"><a href="namespacepsr.html#ae39c29b0123753fa6c186049ff4dad48">psr::remove_by_index</a></div><div class="ttdeci">It remove_by_index(It First, EndIt Last, IdxIt FirstIndex, IdxEndIt LastIndex)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00185">Utilities.h:185</a></div></div>
 <div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdoc">STL namespace.</div></div>
 <div class="ttc" id="astructpsr_1_1Overloaded_html"><div class="ttname"><a href="structpsr_1_1Overloaded.html">psr::Overloaded</a></div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00172">Utilities.h:172</a></div></div>
@@ -480,7 +482,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 12 2025 08:20:40 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 23 2025 15:59:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

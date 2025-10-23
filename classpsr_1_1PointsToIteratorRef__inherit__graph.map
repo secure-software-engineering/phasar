@@ -1,0 +1,7 @@
+<map id="psr::PointsToIteratorRef&lt; V, O, N &gt;" name="psr::PointsToIteratorRef&lt; V, O, N &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,180,119"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1PointsToIterator.html" title="Owning version of PointsToIteratorRef." alt="" coords="17,167,169,207"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,133,95,166,90,166,90,133"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1TypeErasureUtils.html" title=" " alt="" coords="13,5,172,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,44,95,79,90,79,90,44"/>
+</map>

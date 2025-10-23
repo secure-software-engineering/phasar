@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1DefaultDominatorTreeAnalysis.html" title=" " alt="" coords="5,5,200,45"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1DefaultAATraits.html" title=" " alt="" coords="5,37,156,77"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1AliasInfoTraits_3_01AliasInfo_3_01V_00_01N_01_4_01_4.html" title=" " alt="" coords="215,5,381,45"/>
+<area shape="poly" id="edge214_Node000000_Node000001" title=" " alt="" coords="169,42,214,35,215,40,170,47"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1AliasInfoTraits_3_01AliasInfoRef_3_01V_00_01N_01_4_01_4.html" title=" " alt="" coords="204,69,392,109"/>
+<area shape="poly" id="edge215_Node000000_Node000002" title=" " alt="" coords="170,68,204,73,203,78,170,73"/>
 </map>

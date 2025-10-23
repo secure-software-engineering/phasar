@@ -86,14 +86,20 @@ $(function() {
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">SVFPointsToSet.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;phasar/Config/phasar-config.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="LLVMAliasInfo_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="LLVMPointsToInfo_8h_source.html">phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="AliasAnalysisType_8h_source.html">phasar/Pointer/AliasAnalysisType.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="PointsToInfo_8h_source.html">phasar/Pointer/PointsToInfo.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="PointsToIterator_8h_source.html">phasar/Pointer/PointsToIterator.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/DenseSet.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Value.h&quot;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 </div>
 <p><a href="SVFPointsToSet_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -113,6 +119,17 @@ Typedefs</h2></td></tr>
 <tr class="separator:a3984ab6ef97f14adbd41a728202ea430"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0635128f9f8dddd238e27749c907ab55" id="r_a0635128f9f8dddd238e27749c907ab55"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0635128f9f8dddd238e27749c907ab55">psr::SVFBasedPointsToInfoRef</a> = <a class="el" href="classpsr_1_1PointsToInfoRef.html">PointsToInfoRef</a>&lt; <a class="el" href="structpsr_1_1SVFPointsToInfoTraits.html">SVFPointsToInfoTraits</a> &gt;</td></tr>
 <tr class="separator:a0635128f9f8dddd238e27749c907ab55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3435b96e6e047d8211b81bfddaaa758" id="r_ac3435b96e6e047d8211b81bfddaaa758"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac3435b96e6e047d8211b81bfddaaa758">psr::SVFBasedPointsToIterator</a> = <a class="el" href="classpsr_1_1PointsToIterator.html">PointsToIterator</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *, uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction * &gt;</td></tr>
+<tr class="separator:ac3435b96e6e047d8211b81bfddaaa758"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a29ecd312949be1fe4a872d25310838" id="r_a1a29ecd312949be1fe4a872d25310838"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a1a29ecd312949be1fe4a872d25310838">psr::SVFBasedPointsToIteratorRef</a> = <a class="el" href="classpsr_1_1PointsToIteratorRef.html">PointsToIteratorRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *, uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction * &gt;</td></tr>
+<tr class="separator:a1a29ecd312949be1fe4a872d25310838"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a65d16a75650e2de484041c0138ab8d7c" id="r_a65d16a75650e2de484041c0138ab8d7c"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a65d16a75650e2de484041c0138ab8d7c">psr::SVFPointsToAnalysisType</a> { <a class="el" href="namespacepsr.html#a65d16a75650e2de484041c0138ab8d7cadc907b4fb49bcda4f6360644735c97ec">psr::DDA</a> = int(AliasAnalysisType::SVFDDA)
+, <a class="el" href="namespacepsr.html#a65d16a75650e2de484041c0138ab8d7ca296c58c4afa6e6c1d159f7d0d6cc864c">psr::VFS</a> = int(AliasAnalysisType::SVFVFS)
+ }</td></tr>
+<tr class="separator:a65d16a75650e2de484041c0138ab8d7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -120,11 +137,17 @@ Functions</h2></td></tr>
 <tr class="separator:ac83fdc5ea93ce21812d8d97cb6152d89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c11bdd1aad587b70afb1f3bfcf5b25a" id="r_a9c11bdd1aad587b70afb1f3bfcf5b25a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a3984ab6ef97f14adbd41a728202ea430">SVFBasedPointsToInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a9c11bdd1aad587b70afb1f3bfcf5b25a">psr::createSVFDDAPointsToInfo</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB)</td></tr>
 <tr class="separator:a9c11bdd1aad587b70afb1f3bfcf5b25a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a916391658e8baf41a873d4db07e8e998" id="r_a916391658e8baf41a873d4db07e8e998"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a3984ab6ef97f14adbd41a728202ea430">SVFBasedPointsToInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a916391658e8baf41a873d4db07e8e998">psr::createSVFPointsToInfo</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="namespacepsr.html#a65d16a75650e2de484041c0138ab8d7c">SVFPointsToAnalysisType</a> PTATy)</td></tr>
+<tr class="separator:a916391658e8baf41a873d4db07e8e998"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50b125a288f8496002dc981b2ef827de" id="r_a50b125a288f8496002dc981b2ef827de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a0c600cd5295264b6c51437bdd2eba6cd">LLVMPointsToIterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a50b125a288f8496002dc981b2ef827de">psr::createLLVMSVFPointsToIterator</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="namespacepsr.html#a65d16a75650e2de484041c0138ab8d7c">SVFPointsToAnalysisType</a> PTATy)</td></tr>
+<tr class="separator:a50b125a288f8496002dc981b2ef827de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37025018b04ccec91d0ddf6e9eb05f91" id="r_a37025018b04ccec91d0ddf6e9eb05f91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a0b8e9db08e6db2e457ca2e603bf021e2">LLVMAliasInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a37025018b04ccec91d0ddf6e9eb05f91">psr::createLLVMSVFDDAAliasInfo</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB)</td></tr>
+<tr class="separator:a37025018b04ccec91d0ddf6e9eb05f91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 12 2025 08:20:40 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 23 2025 15:59:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

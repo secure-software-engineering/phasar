@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structllvm_1_1simplify__type_3_01psr_1_1IDEIIAFlowFact_01_4.html" title=" " alt="" coords="5,5,181,45"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,141,56"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1PhasarPass.html" title="PhasarPass is an implementation of llvm passes for the PhASAR framework." alt="" coords="211,5,334,31"/>
+<area shape="poly" id="edge18_Node000000_Node000001" title=" " alt="" coords="155,30,211,23,211,28,156,36"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1PhasarPrinterPass.html" title=" " alt="" coords="189,55,356,80"/>
+<area shape="poly" id="edge19_Node000000_Node000002" title=" " alt="" coords="156,51,190,55,189,60,155,56"/>
 </map>

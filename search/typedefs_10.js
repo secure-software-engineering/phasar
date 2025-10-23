@@ -8,11 +8,13 @@ var searchData=
   ['size_5ftype_5',['size_type',['../structpsr_1_1EquivalenceClassMap.html#aa9f1f3046bbd9c1fb6c5e4ee945df2c9',1,'psr::EquivalenceClassMap::size_type'],['../classpsr_1_1StableVector.html#a27f41d70407ef43f486819efaeac8b87',1,'psr::StableVector::size_type']]],
   ['sourceconfigty_6',['SourceConfigTy',['../classpsr_1_1XTaint_1_1AnalysisBase.html#af51bd0247e7543112afec1e492c93457',1,'psr::XTaint::AnalysisBase']]],
   ['sparsellvmbasedcfgprovider_7',['SparseLLVMBasedCFGProvider',['../namespacepsr.html#a1083e6b43d8232e22f6145f425524a21',1,'psr']]],
-  ['state_8',['state',['../classpsr_1_1OpenSSLEVPKDFDescription.html#a766d4a807e9f86c08ee916a184aae828',1,'psr::OpenSSLEVPKDFDescription::State'],['../structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7',1,'psr::TypeStateDescription::State']]],
+  ['state_8',['state',['../structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7',1,'psr::TypeStateDescription::State'],['../classpsr_1_1OpenSSLEVPKDFDescription.html#a766d4a807e9f86c08ee916a184aae828',1,'psr::OpenSSLEVPKDFDescription::State']]],
   ['storaget_9',['StorageT',['../structpsr_1_1EquivalenceClassMap.html#abead70bb51409150f366f2b1711a0af1',1,'psr::EquivalenceClassMap']]],
   ['summaries_5ft_10',['summaries_t',['../classpsr_1_1IterativeIDESolverBase.html#ab0c769f22e0892b76d059551668d55aa',1,'psr::IterativeIDESolverBase']]],
   ['summaryedges_11',['SummaryEdges',['../classpsr_1_1IterativeIDESolverBase.html#a567ebd2b4aeb2efc8cfc90f9a870dcdc',1,'psr::IterativeIDESolverBase']]],
   ['summaryedges_5fjf1_12',['SummaryEdges_JF1',['../classpsr_1_1IterativeIDESolverBase.html#a0300d1d09eb6b0acaeb560246da6a5f6',1,'psr::IterativeIDESolverBase']]],
   ['svfbasedpointstoinfo_13',['SVFBasedPointsToInfo',['../namespacepsr.html#a3984ab6ef97f14adbd41a728202ea430',1,'psr']]],
-  ['svfbasedpointstoinforef_14',['SVFBasedPointsToInfoRef',['../namespacepsr.html#a0635128f9f8dddd238e27749c907ab55',1,'psr']]]
+  ['svfbasedpointstoinforef_14',['SVFBasedPointsToInfoRef',['../namespacepsr.html#a0635128f9f8dddd238e27749c907ab55',1,'psr']]],
+  ['svfbasedpointstoiterator_15',['SVFBasedPointsToIterator',['../namespacepsr.html#ac3435b96e6e047d8211b81bfddaaa758',1,'psr']]],
+  ['svfbasedpointstoiteratorref_16',['SVFBasedPointsToIteratorRef',['../namespacepsr.html#a1a29ecd312949be1fe4a872d25310838',1,'psr']]]
 ];

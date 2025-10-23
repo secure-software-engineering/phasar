@@ -15,9 +15,10 @@ var searchData=
   ['analysistype_12',['AnalysisType',['../structpsr_1_1Warning.html#a844bf08301650aa1730f49413a4d0532',1,'psr::Warning']]],
   ['analyzedfunctions_13',['AnalyzedFunctions',['../structpsr_1_1LLVMAliasSetData.html#a7735df96e98fba0a3b66e37de4d4f518',1,'psr::LLVMAliasSetData']]],
   ['areequalitycomparable_14',['AreEqualityComparable',['../namespacepsr.html#a90f6ff5351ddeb07914228b06d5a94ae',1,'psr']]],
-  ['atinstruction_15',['AtInstruction',['../structpsr_1_1IterIDEPropagationJob.html#a962859cfd631b96f259d18957df033c0',1,'psr::IterIDEPropagationJob']]],
-  ['autoaddzero_16',['AutoAddZero',['../structpsr_1_1IDESolverConfigBase.html#a602a8c06b4a04dd0f7706fdbf4d95dfe',1,'psr::IDESolverConfigBase']]],
-  ['autoglobalsupport_17',['AutoGlobalSupport',['../structpsr_1_1HelperAnalysisConfig.html#ad714db8e28290ae2b021f51cc7ac555a',1,'psr::HelperAnalysisConfig']]],
-  ['avgefperedge_18',['AvgEFPerEdge',['../structpsr_1_1EdgeFunctionCacheStats.html#a915ad21870e95469b8e8092893b3ba12',1,'psr::EdgeFunctionCacheStats']]],
-  ['avgesgedgesperinst_19',['AvgESGEdgesPerInst',['../structpsr_1_1IterativeIDESolverStats.html#aae96514713897e4d96bab87a747de1f6',1,'psr::IterativeIDESolverStats']]]
+  ['asabstractobject_15',['AsAbstractObject',['../structpsr_1_1PointsToIteratorRef_1_1VTable.html#a3086485f12721b11abd1c7c2aaff26de',1,'psr::PointsToIteratorRef::VTable']]],
+  ['atinstruction_16',['AtInstruction',['../structpsr_1_1IterIDEPropagationJob.html#a962859cfd631b96f259d18957df033c0',1,'psr::IterIDEPropagationJob']]],
+  ['autoaddzero_17',['AutoAddZero',['../structpsr_1_1IDESolverConfigBase.html#a602a8c06b4a04dd0f7706fdbf4d95dfe',1,'psr::IDESolverConfigBase']]],
+  ['autoglobalsupport_18',['AutoGlobalSupport',['../structpsr_1_1HelperAnalysisConfig.html#ad714db8e28290ae2b021f51cc7ac555a',1,'psr::HelperAnalysisConfig']]],
+  ['avgefperedge_19',['AvgEFPerEdge',['../structpsr_1_1EdgeFunctionCacheStats.html#a915ad21870e95469b8e8092893b3ba12',1,'psr::EdgeFunctionCacheStats']]],
+  ['avgesgedgesperinst_20',['AvgESGEdgesPerInst',['../structpsr_1_1IterativeIDESolverStats.html#aae96514713897e4d96bab87a747de1f6',1,'psr::IterativeIDESolverStats']]]
 ];

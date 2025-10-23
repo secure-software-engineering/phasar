@@ -1,5 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structllvm_1_1cast__convert__val_3_01To_00_01const_01psr_1_1EdgeFunction_3_01L_01_4_00_01const_0af8144d4ec69ce1448f16c6427b6b4f9.html" title=" " alt="" coords="5,5,185,89"/>
-<area shape="rect" id="Node000001" href="$structllvm_1_1cast__convert__val_3_01To_00_01psr_1_1EdgeFunction_3_01L_01_4_00_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html" title=" " alt="" coords="233,20,468,75"/>
-<area shape="poly" id="edge14_Node000000_Node000001" title=" " alt="" coords="199,45,233,45,233,50,199,50"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,55,180,80"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1ExampleModulePass.html" title=" " alt="" coords="244,5,428,31"/>
+<area shape="poly" id="edge11_Node000000_Node000001" title=" " alt="" coords="169,49,272,28,273,33,170,55"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1GeneralStatisticsAnalysis.html" title="Computes general statistics for a Module." alt="" coords="228,55,444,80"/>
+<area shape="poly" id="edge12_Node000000_Node000002" title=" " alt="" coords="194,65,228,65,228,70,194,70"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1ValueAnnotationPass.html" title="Annotates every Instruction with a unique ID." alt="" coords="243,104,429,129"/>
+<area shape="poly" id="edge13_Node000000_Node000003" title=" " alt="" coords="170,80,273,101,272,107,169,85"/>
 </map>

@@ -1,0 +1,7 @@
+<map id="psr::AliasIteratorRef&lt; V, N &gt;" name="psr::AliasIteratorRef&lt; V, N &gt;">
+<area shape="rect" id="Node000001" title="A type&#45;erased reference to any object implementing the IsAliasIterator interface. Use this,..." alt="" coords="28,80,180,120"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1AliasIteratorRef.html" title=" " alt="" coords="5,197,203,252"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="107,134,107,197,101,197,101,134"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1TypeErasureUtils.html" title=" " alt="" coords="25,5,183,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,44,107,80,101,80,101,44"/>
+</map>

@@ -9,7 +9,8 @@ var searchData=
   ['timer_2eh_6',['Timer.h',['../Timer_8h.html',1,'']]],
   ['transferedgefunction_2eh_7',['TransferEdgeFunction.h',['../TransferEdgeFunction_8h.html',1,'']]],
   ['typecastedgefunction_2eh_8',['TypecastEdgeFunction.h',['../TypecastEdgeFunction_8h.html',1,'']]],
-  ['typehierarchy_2eh_9',['typehierarchy.h',['../PhasarLLVM_2TypeHierarchy_8h.html',1,'(Global Namespace)'],['../TypeHierarchy_8h.html',1,'(Global Namespace)'],['../TypeHierarchy_2TypeHierarchy_8h.html',1,'(Global Namespace)']]],
-  ['typestatedescription_2eh_10',['TypeStateDescription.h',['../TypeStateDescription_8h.html',1,'']]],
-  ['typetraits_2eh_11',['TypeTraits.h',['../TypeTraits_8h.html',1,'']]]
+  ['typeerasureutils_2eh_9',['TypeErasureUtils.h',['../TypeErasureUtils_8h.html',1,'']]],
+  ['typehierarchy_2eh_10',['typehierarchy.h',['../PhasarLLVM_2TypeHierarchy_8h.html',1,'(Global Namespace)'],['../TypeHierarchy_8h.html',1,'(Global Namespace)'],['../TypeHierarchy_2TypeHierarchy_8h.html',1,'(Global Namespace)']]],
+  ['typestatedescription_2eh_11',['TypeStateDescription.h',['../TypeStateDescription_8h.html',1,'']]],
+  ['typetraits_2eh_12',['TypeTraits.h',['../TypeTraits_8h.html',1,'']]]
 ];

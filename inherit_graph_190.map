@@ -1,33 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="5,727,208,767"/>
-<area shape="rect" id="Node000001" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="291,5,575,89"/>
-<area shape="poly" id="edge266_Node000000_Node000001" title=" " alt="" coords="109,713,125,579,154,396,173,302,197,217,223,147,238,120,254,99,290,72,293,77,258,103,243,123,228,149,202,219,179,304,159,397,130,580,114,713"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="291,113,575,197"/>
-<area shape="poly" id="edge267_Node000000_Node000002" title=" " alt="" coords="104,713,107,615,114,551,126,480,144,407,171,336,207,268,254,208,290,182,293,186,258,212,212,271,176,338,149,409,131,481,119,552,113,616,110,714"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="294,222,573,291"/>
-<area shape="poly" id="edge268_Node000000_Node000003" title=" " alt="" coords="106,713,114,630,123,577,136,519,155,460,180,402,213,349,254,301,292,276,295,281,258,305,217,352,185,405,160,462,141,521,128,578,119,631,112,714"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="301,315,566,385"/>
-<area shape="poly" id="edge269_Node000000_Node000004" title=" " alt="" coords="110,713,123,646,149,560,168,515,191,471,220,430,254,395,276,379,299,368,301,373,278,384,258,399,224,434,196,474,173,517,154,562,128,647,115,714"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="306,409,561,493"/>
-<area shape="poly" id="edge270_Node000000_Node000005" title=" " alt="" coords="117,713,137,667,166,610,205,553,229,527,254,504,278,488,305,476,307,481,281,493,258,508,232,531,209,556,171,613,141,669,122,715"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="327,518,539,587"/>
-<area shape="poly" id="edge271_Node000000_Node000006" title=" " alt="" coords="129,715,182,655,216,624,255,597,290,581,326,568,328,573,291,585,257,602,220,628,185,658,133,718"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="301,611,566,681"/>
-<area shape="poly" id="edge272_Node000000_Node000007" title=" " alt="" coords="171,720,255,690,300,677,301,682,257,695,172,725"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="320,705,547,789"/>
-<area shape="poly" id="edge273_Node000000_Node000008" title=" " alt="" coords="222,745,320,745,320,750,222,750"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="301,814,566,883"/>
-<area shape="poly" id="edge274_Node000000_Node000009" title=" " alt="" coords="174,770,257,798,301,811,300,817,255,803,172,775"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="326,907,541,977"/>
-<area shape="poly" id="edge275_Node000000_Node000010" title=" " alt="" coords="133,776,185,836,220,867,257,893,291,909,326,921,325,926,289,914,255,898,216,871,182,840,129,780"/>
-<area shape="rect" id="Node000011" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="291,1001,575,1085"/>
-<area shape="poly" id="edge276_Node000000_Node000011" title=" " alt="" coords="122,779,141,826,171,882,209,938,232,964,258,987,292,1008,290,1012,254,991,229,968,205,942,166,884,137,828,117,781"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="306,1109,561,1193"/>
-<area shape="poly" id="edge277_Node000000_Node000012" title=" " alt="" coords="115,781,129,847,155,931,174,976,197,1019,225,1059,258,1095,281,1112,307,1125,305,1129,278,1116,254,1099,221,1063,192,1022,169,978,150,933,124,848,110,782"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="328,1218,539,1287"/>
-<area shape="poly" id="edge278_Node000000_Node000013" title=" " alt="" coords="111,781,118,866,127,921,140,980,159,1040,184,1100,217,1155,258,1203,291,1225,329,1240,327,1245,288,1230,254,1207,212,1158,179,1102,154,1042,135,981,122,922,113,867,106,782"/>
-<area shape="rect" id="Node000014" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="256,1311,611,1381"/>
-<area shape="poly" id="edge279_Node000000_Node000014" title=" " alt="" coords="115,781,134,897,164,1052,184,1130,207,1201,231,1259,258,1298,272,1309,268,1313,254,1301,227,1261,202,1203,179,1132,159,1053,128,898,110,781"/>
-<area shape="rect" id="Node000015" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="312,1405,555,1489"/>
-<area shape="poly" id="edge280_Node000000_Node000015" title=" " alt="" coords="114,781,130,914,159,1097,179,1190,202,1275,228,1344,243,1371,258,1391,283,1411,313,1426,311,1431,280,1416,254,1395,238,1373,224,1346,197,1276,174,1191,154,1098,125,915,109,782"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="5,5,271,75"/>
 </map>
