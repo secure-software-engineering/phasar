@@ -11,6 +11,7 @@
 #define PHASAR_POINTER_POINTSTOINFO_H
 
 #include "phasar/Pointer/PointsToInfoBase.h"
+#include "phasar/Pointer/PointsToIterator.h"
 #include "phasar/Utils/ByRef.h"
 
 #include <cassert>
@@ -52,15 +53,15 @@ public:
   using typename base_t::PointsToSetTy;
   using typename base_t::v_t;
 
-  PointsToInfoRef() noexcept = default;
-  PointsToInfoRef(std::nullptr_t) noexcept : PointsToInfoRef() {}
+  constexpr PointsToInfoRef() noexcept = default;
+  constexpr PointsToInfoRef(std::nullptr_t) noexcept : PointsToInfoRef() {}
 
   template <typename ConcretePTA,
             typename = std::enable_if_t<
                 !std::is_base_of_v<PointsToInfoRef, ConcretePTA> &&
                 is_equivalent_PointsToTraits_v<PTATraits,
                                                PointsToTraits<ConcretePTA>>>>
-  PointsToInfoRef(const ConcretePTA *PT) noexcept
+  constexpr PointsToInfoRef(const ConcretePTA *PT) noexcept
       : PT(PT), VT(&VTableFor<ConcretePTA>) {
     if constexpr (!std::is_empty_v<ConcretePTA>) {
       assert(PT != nullptr);
@@ -75,19 +76,22 @@ public:
   PointsToInfoRef &operator=(const PointsToInfoRef &) noexcept = default;
   ~PointsToInfoRef() noexcept = default;
 
-  explicit operator bool() const noexcept { return VT != nullptr; }
+  constexpr explicit operator bool() const noexcept { return VT != nullptr; }
+
+  constexpr operator PointsToIteratorRef<v_t, o_t, n_t>() const & noexcept {
+    return PointsToIteratorRef<v_t, o_t, n_t>(PT, VT);
+  }
+
+  constexpr operator PointsToIteratorRef<v_t, o_t, n_t>() && noexcept = delete;
 
 private:
-  struct VTableBase {
-    o_t (*AsAbstractObject)(const void *, ByConstRef<v_t>) noexcept;
+  struct VTableBase : public PointsToIteratorRef<v_t, o_t, n_t>::VTable {
+
     std::optional<v_t> (*AsPointerOrNull)(const void *,
                                           ByConstRef<o_t>) noexcept;
-    bool (*MayPointsTo)(const void *, ByConstRef<o_t>, ByConstRef<o_t>,
-                        ByConstRef<n_t>);
+
     PointsToSetPtrTy (*GetPointsToSet)(const void *, ByConstRef<o_t>,
                                        ByConstRef<n_t>);
-
-    void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
   template <typename V = v_t, typename = void> struct VTable : VTableBase {};
@@ -102,25 +106,41 @@ private:
   template <typename ConcretePTA>
   constexpr static VTable<> makeVTableFor() noexcept {
     constexpr VTableBase Base = {
-        [](const void *PT, ByConstRef<v_t> Pointer) noexcept {
-          return static_cast<const ConcretePTA *>(PT)->asAbstractObject(
-              Pointer);
+        {
+            [](const void *PT, ByConstRef<v_t> Pointer) noexcept {
+              return static_cast<const ConcretePTA *>(PT)->asAbstractObject(
+                  Pointer);
+            },
+            [](const void *PT, ByConstRef<o_t> Pointer, ByConstRef<n_t> At,
+               llvm::function_ref<void(o_t)> WithPointee) {
+              const auto *CPT = static_cast<const ConcretePTA *>(PT);
+              if constexpr (detail::IsPointsToIterator<ConcretePTA>::value) {
+                return (void)CPT->forallPointeesOf(Pointer, At, WithPointee);
+              } else {
+                auto PointsToSet = CPT->getPointsToSet(Pointer, At);
+                // The PointsToSet can be a set or a pointer to a set
+                auto PointsToSetPtr = getPointerFrom(PointsToSet);
+                for (auto &&Pointee : *PointsToSetPtr) {
+                  WithPointee(PSR_FWD(Pointee));
+                }
+              }
+            },
+            [](const void *PT, ByConstRef<o_t> Pointer, ByConstRef<o_t> Obj,
+               ByConstRef<n_t> AtInstruction) {
+              return static_cast<const ConcretePTA *>(PT)->mayPointsTo(
+                  Pointer, Obj, AtInstruction);
+            },
+            [](const void *PT) noexcept {
+              delete static_cast<const ConcretePTA *>(PT);
+            },
         },
         [](const void *PT, ByConstRef<o_t> Obj) noexcept {
           return static_cast<const ConcretePTA *>(PT)->asPointerOrNull(Obj);
-        },
-        [](const void *PT, ByConstRef<o_t> Pointer, ByConstRef<o_t> Obj,
-           ByConstRef<n_t> AtInstruction) {
-          return static_cast<const ConcretePTA *>(PT)->mayPointsTo(
-              Pointer, Obj, AtInstruction);
         },
         [](const void *PT, ByConstRef<o_t> Pointer,
            ByConstRef<n_t> AtInstruction) {
           return static_cast<const ConcretePTA *>(PT)->getPointsToSet(
               Pointer, AtInstruction);
-        },
-        [](const void *PT) noexcept {
-          delete static_cast<const ConcretePTA *>(PT);
         },
     };
     if constexpr (std::is_same_v<o_t, v_t>) {
@@ -214,34 +234,34 @@ public:
   using typename base_t::PointsToSetTy;
   using typename base_t::v_t;
 
-  PointsToInfo() noexcept = default;
-  PointsToInfo(std::nullptr_t) noexcept {};
+  constexpr PointsToInfo() noexcept = default;
+  constexpr PointsToInfo(std::nullptr_t) noexcept {};
 
   PointsToInfo(const PointsToInfo &) = delete;
   PointsToInfo &operator=(const PointsToInfo &) = delete;
 
-  PointsToInfo(PointsToInfo &&Other) noexcept { swap(Other); }
-  PointsToInfo &operator=(PointsToInfo &&Other) noexcept {
+  constexpr PointsToInfo(PointsToInfo &&Other) noexcept { swap(Other); }
+  constexpr PointsToInfo &operator=(PointsToInfo &&Other) noexcept {
     PointsToInfo(std::move(Other)).swap(*this);
     return *this;
   }
 
-  void swap(PointsToInfo &Other) noexcept {
+  constexpr void swap(PointsToInfo &Other) noexcept {
     std::swap(this->PT, Other.PT);
     std::swap(this->VT, Other.VT);
   }
-  friend void swap(PointsToInfo &LHS, PointsToInfo &RHS) noexcept {
+  constexpr friend void swap(PointsToInfo &LHS, PointsToInfo &RHS) noexcept {
     LHS.swap(RHS);
   }
 
   template <typename ConcretePTA, typename... ArgTys>
-  explicit PointsToInfo(std::in_place_type_t<ConcretePTA> /*unused*/,
-                        ArgTys &&...Args)
+  constexpr explicit PointsToInfo(std::in_place_type_t<ConcretePTA> /*unused*/,
+                                  ArgTys &&...Args)
       : PointsToInfoRef<PTATraits>(
             new ConcretePTA(std::forward<ArgTys>(Args)...)) {}
 
   template <typename ConcretePTA>
-  PointsToInfo(std::unique_ptr<ConcretePTA> PTA)
+  constexpr PointsToInfo(std::unique_ptr<ConcretePTA> PTA)
       : PointsToInfoRef<PTATraits>(PTA.release()) {}
 
   ~PointsToInfo() noexcept {

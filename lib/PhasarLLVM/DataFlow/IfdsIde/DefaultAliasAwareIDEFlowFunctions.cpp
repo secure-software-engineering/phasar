@@ -16,10 +16,7 @@ auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getNormalFlowFunctionImpl(
     n_t Curr, n_t Succ) -> FlowFunctionPtrType {
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    container_type Gen;
-
-    auto AliasSet = AS.getAliasSet(Store->getPointerOperand(), Store);
-    Gen.insert(AliasSet->begin(), AliasSet->end());
+    auto Gen = AS.asSet<container_type>(Store->getPointerOperand(), Store);
     Gen.insert(Store->getValueOperand());
 
     return FFTemplates::lambdaFlow(
@@ -39,31 +36,29 @@ auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getNormalFlowFunctionImpl(
       Curr, Succ);
 }
 
-static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
+static void populateWithMayAliases(LLVMAliasIteratorRef AS,
+                                   container_type &Facts,
                                    const llvm::Instruction *Context) {
   container_type Tmp = Facts;
-  for (const auto *Fact : Facts) {
-    auto Aliases = AS.getAliasSet(Fact, Context);
-    for (const auto *Alias : *Aliases) {
+  for (const auto *Fact : Tmp) {
+    AS.forallAliasesOf(Fact, Context, [&Facts, Context](const auto *Alias) {
       if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(Alias)) {
         if (Inst->getParent() == Context->getParent() &&
             Context->comesBefore(Inst)) {
           // We will see that inst later
-          continue;
+          return;
         }
       }
 
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
         // Handle at least one level of indirection...
         const auto *PointerOp = Load->getPointerOperand()->stripPointerCasts();
-        Tmp.insert(PointerOp);
+        Facts.insert(PointerOp);
       }
 
-      Tmp.insert(Alias);
-    }
+      Facts.insert(Alias);
+    });
   }
-
-  Facts = std::move(Tmp);
 }
 
 auto detail::IDEAliasAwareDefaultFlowFunctionsImpl::getRetFlowFunctionImpl(

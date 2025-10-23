@@ -73,6 +73,7 @@ jobs:
         shell: bash
         run: |
           cmake -DCMAKE_INSTALL_PREFIX=./INSTALL -P ./build/cmake_install.cmake
+          PHASAR_ROOT_DIR=$(pwd)
           cd ./examples/how-to
-          cmake -S . -B build -Dphasar_ROOT=../../INSTALL
+          cmake -S . -B build -Dphasar_ROOT="$PHASAR_ROOT_DIR/INSTALL"
           cmake --build ./build --target run_sample_programs
