@@ -36,7 +36,9 @@ function(add_phasar_unittest test_name)
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
 
-  target_code_coverage(${test} AUTO ALL)
+  if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_code_coverage(${test} AUTO ALL)
+  endif()
 endfunction()
 
 function(validate_binary_version result item)
@@ -353,6 +355,10 @@ function(add_phasar_library name)
   endif()
 
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
+
+  if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_code_coverage(${name} AUTO ALL)
+  endif()
 endfunction(add_phasar_library)
 
 macro(subdirlist result curdir)

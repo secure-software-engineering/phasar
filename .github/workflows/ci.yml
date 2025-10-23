@@ -77,8 +77,7 @@ jobs:
           cmake -S . -B build -Dphasar_ROOT=../../INSTALL
           cmake --build ./build --target run_sample_programs
 
-      - name: Check Test Coverage and generate HTML report
-        uses: threeal/gcovr-action@v1.1.0
-        with:
-          gcov-executable: llvm-cov gcov
-          html-out: coverage.html
+      - name: Check test coverage and generate HTML report
+        shell: bash
+        run: |
+          cmake --build ./build --target ccov-all
