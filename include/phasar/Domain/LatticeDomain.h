@@ -140,9 +140,8 @@ inline bool operator==(const LatticeDomain<L> &Lhs,
   return true;
 }
 
-template <
-    typename L, typename LL,
-    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+template <typename L, typename LL>
+  requires AreEqualityComparable<LL, L>
 inline bool operator==(const LL &Lhs, const LatticeDomain<L> &Rhs) {
   if (auto RVal = Rhs.getValueOrNull()) {
     return Lhs == *RVal;
@@ -150,9 +149,8 @@ inline bool operator==(const LL &Lhs, const LatticeDomain<L> &Rhs) {
   return false;
 }
 
-template <
-    typename L, typename LL,
-    typename = std::void_t<decltype(std::declval<LL>() == std::declval<L>())>>
+template <typename L, typename LL>
+  requires AreEqualityComparable<LL, L>
 inline bool operator==(const LatticeDomain<L> &Lhs, const LL &Rhs) {
   return Rhs == Lhs;
 }

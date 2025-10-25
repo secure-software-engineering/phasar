@@ -29,17 +29,14 @@ template <typename T> struct PointsToTraits {
   //                           (not necessarily PointsToSetTy const *)
 };
 
-template <typename T, typename Enable = void>
-struct is_PointsToTraits : std::false_type {}; // NOLINT
 template <typename T>
-struct is_PointsToTraits<
-    T, std::void_t<typename T::v_t, typename T::n_t, typename T::o_t,
-                   typename T::PointsToSetTy, typename T::PointsToSetPtrTy>>
-    : std::true_type {};
-
-template <typename T>
-PSR_CONCEPT is_PointsToTraits_v = // NOLINT
-    is_PointsToTraits<T>::value;
+PSR_CONCEPT is_PointsToTraits_v = requires { // NOLINT
+  typename T::v_t;
+  typename T::n_t;
+  typename T::o_t;
+  typename T::PointsToSetTy;
+  typename T::PointsToSetPtrTy;
+};
 
 // clang-format off
 template <typename T1, typename T2>

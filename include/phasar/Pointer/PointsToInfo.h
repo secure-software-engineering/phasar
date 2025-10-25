@@ -111,7 +111,7 @@ private:
             [](const void *PT, ByConstRef<o_t> Pointer, ByConstRef<n_t> At,
                llvm::function_ref<void(o_t)> WithPointee) {
               const auto *CPT = static_cast<const ConcretePTA *>(PT);
-              if constexpr (detail::IsPointsToIterator<ConcretePTA>::value) {
+              if constexpr (IsPointsToIterator<ConcretePTA>) {
                 return (void)CPT->forallPointeesOf(Pointer, At, WithPointee);
               } else {
                 auto PointsToSet = CPT->getPointsToSet(Pointer, At);

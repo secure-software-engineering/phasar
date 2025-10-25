@@ -43,6 +43,8 @@ public:
 };
 
 static_assert(std::is_convertible_v<FilteredLLVMAliasSet *, LLVMAliasInfoRef>);
+static_assert(
+    std::is_convertible_v<FilteredLLVMAliasSet *, LLVMAliasIteratorRef>);
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_POINTER_FILTEREDLLVMALIASSET_H
