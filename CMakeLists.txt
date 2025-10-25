@@ -303,12 +303,10 @@ add_json_schema_validator()
 
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CODE_COVERAGE ON)
-  find_program(LLVM_COV_PATH llvm-cov-15)
-  find_program(LLVM_PROFDATA_PATH llvm-profdata-15)
-  find_program(LCOV_PATH lcov-15)
-  find_program(GENHTML_PATH genhtml-15)
-
-
+  find_program(LLVM_COV_PATH llvm-cov-19)
+  find_program(LLVM_PROFDATA_PATH llvm-profdata-19)
+  find_program(LCOV_PATH lcov-19)
+  find_program(GENHTML_PATH genhtml-19)
 
   include(external/cmake-scripts/code-coverage.cmake)
 
