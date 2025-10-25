@@ -2,6 +2,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/SVF/SVFPointsToSet.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
 
@@ -84,6 +85,51 @@ TEST(SVFAliasSetTest, PointsTo_02) {
   ASSERT_EQ(1, AllocObjs.size());
   auto AllocObj = *AllocObjs.begin();
   EXPECT_TRUE(PT.mayPointsTo(V, AllocObj, V->getNextNode()));
+}
+
+TEST(SVFAliasSetTest, PointsTo_03) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "pointers/basic_01_cpp_dbg.ll");
+
+  auto PT = createLLVMSVFPointsToIterator(IRDB, SVFPointsToAnalysisType::VFS);
+
+  const auto *V = IRDB.getInstruction(5);
+  ASSERT_TRUE(V && V->getType()->isPointerTy());
+
+  const auto *Alloc = IRDB.getInstruction(0);
+
+  auto PSet = PT.asSet(V, V->getNextNode());
+  ASSERT_EQ(1, PSet.size());
+  EXPECT_EQ(Alloc, *PSet.begin());
+
+  auto AllocObjs = PT.asSet(Alloc, Alloc->getNextNode());
+  ASSERT_EQ(1, AllocObjs.size());
+  const auto *AllocObj = *AllocObjs.begin();
+  EXPECT_TRUE(PT.mayPointsTo(V, AllocObj, V->getNextNode()));
+}
+
+TEST(SVFAliasSetTest, PointsTo_04) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "pointers/call_01_cpp_dbg.ll");
+
+  auto PT = createLLVMSVFDDAAliasInfo(IRDB);
+
+  const auto *V = IRDB.getInstruction(3);
+  ASSERT_TRUE(V && V->getType()->isPointerTy());
+
+  decltype(PT)::AliasSetTy GroundTruth = {
+      fromMetaDataId(IRDB, "_Z10setIntegerPi.0"), // x
+      IRDB.getValueFromId(3),                     // itself
+      IRDB.getValueFromId(7),                     // i = alloca
+      IRDB.getValueFromId(13),                    // load p before call
+      IRDB.getValueFromId(15),                    // load p after call
+  };
+
+  auto PSet = PT.getAliasSet(V, V->getNextNode());
+  PT.print();
+  PT.printAsJson(llvm::outs());
+
+  EXPECT_EQ(*PSet, GroundTruth);
 }
 
 int main(int Argc, char **Argv) {

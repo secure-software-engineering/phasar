@@ -11,15 +11,14 @@
 #define PHASAR_PHASARLLVM_HELPERANALYSES_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 
 #include "llvm/ADT/Twine.h"
 
-#include "nlohmann/json.hpp"
-
 #include <memory>
 #include <optional>
-#include <set>
 #include <vector>
 
 namespace llvm {
@@ -36,10 +35,10 @@ class LLVMAliasSet;
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   explicit HelperAnalyses(std::string IRFile,
-                          std::optional<nlohmann::json> PrecomputedPTS,
+                          std::optional<LLVMAliasSetData> PrecomputedPTS,
                           AliasAnalysisType PTATy, bool AllowLazyPTS,
                           std::vector<std::string> EntryPoints,
-                          std::optional<nlohmann::json> PrecomputedCG,
+                          std::optional<CallGraphData> PrecomputedCG,
                           CallGraphAnalysisType CGTy, Soundness SoundnessLevel,
                           bool AutoGlobalSupport) noexcept;
 
@@ -77,12 +76,12 @@ private:
   std::string IRFile;
 
   // PTS
-  std::optional<nlohmann::json> PrecomputedPTS;
+  std::optional<LLVMAliasSetData> PrecomputedPTS;
   AliasAnalysisType PTATy{};
   bool AllowLazyPTS{};
 
   // ICF
-  std::optional<nlohmann::json> PrecomputedCG;
+  std::optional<CallGraphData> PrecomputedCG;
   std::vector<std::string> EntryPoints;
   CallGraphAnalysisType CGTy{};
   Soundness SoundnessLevel{};

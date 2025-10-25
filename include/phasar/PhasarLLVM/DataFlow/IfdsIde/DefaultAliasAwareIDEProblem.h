@@ -36,14 +36,13 @@ public:
 
   using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
 
-  [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
+  [[nodiscard]] constexpr LLVMAliasIteratorRef getAliasInfo() const noexcept {
     return AS;
   }
 
-  constexpr IDEAliasAwareDefaultFlowFunctionsImpl(LLVMAliasInfoRef AS) noexcept
-      : AS(AS) {
-    assert(AS && "You must provide an alias information handle!");
-  }
+  constexpr IDEAliasAwareDefaultFlowFunctionsImpl(
+      LLVMAliasIteratorRef AS) noexcept
+      : AS(AS) {}
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
                                                               n_t /*Succ*/);
@@ -54,8 +53,8 @@ public:
   using IDENoAliasDefaultFlowFunctionsImpl::getCallFlowFunctionImpl;
   using IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl;
 
-protected:
-  LLVMAliasInfoRef AS;
+private:
+  LLVMAliasIteratorRef AS;
 };
 } // namespace detail
 
@@ -65,6 +64,10 @@ class DefaultAliasAwareIDEProblem
       protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
   using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::d_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
 
   using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
 
@@ -74,7 +77,7 @@ public:
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultAliasAwareIDEProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasIteratorRef AS,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
@@ -110,13 +113,18 @@ class DefaultAliasAwareIFDSProblem
     : public IFDSTabulationProblem<LLVMAnalysisDomainDefault>,
       protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
 public:
+  using typename IFDSTabulationProblem::d_t;
+  using typename IFDSTabulationProblem::f_t;
+  using typename IFDSTabulationProblem::FlowFunctionPtrType;
+  using typename IFDSTabulationProblem::n_t;
+
   /// Constructs an IFDSTabulationProblem with the usual arguments + alias
   /// information.
   ///
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultAliasAwareIFDSProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasIteratorRef AS,
       std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),

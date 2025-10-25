@@ -73,7 +73,7 @@ public:
 template <typename FF> struct IsFlowFunction {
   template <typename D, typename Container>
   static std::true_type test(const FlowFunction<D, Container> &);
-  static std::false_type test(...) {}
+  static std::false_type test(...);
 
   static constexpr bool value = // NOLINT
       std::is_same_v<std::true_type,

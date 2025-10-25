@@ -11,17 +11,17 @@
 #define PHASAR_PHASARLLVM_HELPERANALYSISCONFIG_H
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphData.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Utils/Soundness.h"
-
-#include "nlohmann/json.hpp"
 
 #include <optional>
 
 namespace psr {
 struct HelperAnalysisConfig {
-  std::optional<nlohmann::json> PrecomputedPTS = std::nullopt;
-  std::optional<nlohmann::json> PrecomputedCG = std::nullopt;
+  std::optional<LLVMAliasSetData> PrecomputedPTS = std::nullopt;
+  std::optional<CallGraphData> PrecomputedCG = std::nullopt;
   AliasAnalysisType PTATy = AliasAnalysisType::CFLAnders;
   CallGraphAnalysisType CGTy = CallGraphAnalysisType::OTF;
   Soundness SoundnessLevel = Soundness::Soundy;
@@ -31,7 +31,7 @@ struct HelperAnalysisConfig {
   /// existing llvm::Module
   bool PreprocessExistingModule = true;
 
-  HelperAnalysisConfig &&withCGType(CallGraphAnalysisType CGTy) &&noexcept {
+  HelperAnalysisConfig &&withCGType(CallGraphAnalysisType CGTy) && noexcept {
     this->CGTy = CGTy;
     return std::move(*this);
   }

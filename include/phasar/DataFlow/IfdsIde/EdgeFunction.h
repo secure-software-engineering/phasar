@@ -442,19 +442,30 @@ public:
             typename = std::enable_if_t<
                 !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
                 IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
-                                       const EdgeFunction &RHS) noexcept {
-    if (!RHS.template isa<ConcreteEF>()) {
+  [[nodiscard]] bool equals(EdgeFunctionRef<ConcreteEF> Other) const noexcept {
+    // NOTE: Workaround issue in g++ that does not allow transitive friends: If
+    // putting this code in the operator== below, we cannot access
+    // Other.Instance, although it is friended...
+    if (!isa<ConcreteEF>()) {
       return false;
     }
-    if (LHS.Instance == RHS.EF) {
+    if (Other.Instance == EF) {
       return true;
     }
     if constexpr (IsEqualityComparable<ConcreteEF>) {
-      return *LHS == *getPtr<ConcreteEF>(RHS.EF);
+      return *Other == *getPtr<ConcreteEF>(EF);
     } else {
       return true;
     }
+  }
+
+  template <typename ConcreteEF,
+            typename = std::enable_if_t<
+                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
+                IsEdgeFunction<ConcreteEF>>>
+  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
+                                       const EdgeFunction &RHS) noexcept {
+    return RHS.equals(LHS);
   }
 
   template <typename ConcreteEF,

@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultReachableAllocationSitesIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -25,18 +26,23 @@ namespace {
 class IDEAliasImpl : public DefaultAliasAwareIFDSProblem {
 public:
   IDEAliasImpl(LLVMProjectIRDB *IRDB)
-      : DefaultAliasAwareIFDSProblem(IRDB, &PT, {}, {}), PT(IRDB) {};
+      : DefaultAliasAwareIFDSProblem(IRDB, &PT, {}, {}), AS(IRDB) {};
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
   };
 
 private:
-  FilteredLLVMAliasSet PT;
+  LLVMAliasSet AS;
+  FilteredLLVMAliasSet PT{&AS};
 };
 
 class IDENoAliasImpl : public DefaultNoAliasIFDSProblem {
 public:
+  using typename DefaultNoAliasIFDSProblem::d_t;
+  using typename DefaultNoAliasIFDSProblem::l_t;
+  using typename DefaultNoAliasIFDSProblem::n_t;
+
   IDENoAliasImpl(LLVMProjectIRDB *IRDB)
       : DefaultNoAliasIFDSProblem(IRDB, {}, {}) {};
 
@@ -50,14 +56,15 @@ class IDEReachableAllocationSitesImpl
 public:
   IDEReachableAllocationSitesImpl(LLVMProjectIRDB *IRDB)
       : DefaultReachableAllocationSitesIFDSProblem(IRDB, &PT, {}, {}),
-        PT(IRDB) {};
+        AS(IRDB) {};
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return {};
   };
 
 private:
-  FilteredLLVMAliasSet PT;
+  LLVMAliasSet AS;
+  FilteredLLVMAliasSet PT{&AS};
 };
 
 std::set<const llvm::Value *>

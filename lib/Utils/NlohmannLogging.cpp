@@ -43,7 +43,7 @@ private:
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const nlohmann::json &J) {
   // do the actual serialization
-  nlohmann::detail::serializer<nlohmann::json> S(LLVMOutputAdapter(OS), ' ');
+  nlohmann::detail::serializer<nlohmann::json> S{LLVMOutputAdapter(OS), ' '};
   S.dump(J, true, false, 4);
   return OS;
 }

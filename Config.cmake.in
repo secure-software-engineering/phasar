@@ -54,17 +54,30 @@ include("${CMAKE_CURRENT_LIST_DIR}/PhasarExports.cmake")
 
 foreach(component ${phasar_FIND_COMPONENTS})
   if(NOT ${component} IN_LIST PHASAR_COMPONENTS)
-    set(phasar_FOUND false)
+    set(phasar_FOUND FALSE)
     set(phasar_NOT_FOUND_MESSAGE "Unsupported component: ${component}. Valid components are: ${PHASAR_COMPONENTS}")
   endif()
 
   list(APPEND PHASAR_NEEDED_LIBS phasar::${component})
 endforeach()
 
-if (NOT DEFINED phasar_FOUND OR phasar_FOUND EQUAL TRUE)
+if (NOT DEFINED phasar_FOUND)
+  set(phasar_FOUND TRUE)
+endif()
+
+include(FindPackageHandleStandardArgs)
+
+if (phasar_FOUND)
   if (NOT phasar_FIND_COMPONENTS)
     list(APPEND PHASAR_NEEDED_LIBS phasar::phasar)
     # Default target
     add_library(phasar ALIAS phasar::phasar)
   endif()
+
+  find_package_message(phasar
+    "Found phasar: ${PHASAR_LIBRARY_DIR} (found version \"${PHASAR_VERSION}\")"
+    "[${PHASAR_LIBRARY_DIR}][${PHASAR_INCLUDE_DIR}]"
+  )
+else()
+  message(STATUS "Could NOT find phasar")
 endif()

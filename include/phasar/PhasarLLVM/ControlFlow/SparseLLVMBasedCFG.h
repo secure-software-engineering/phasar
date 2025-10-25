@@ -30,6 +30,8 @@ class SparseLLVMBasedCFG : public LLVMBasedCFG,
   friend struct SVFGCache;
   friend SparseCFGBase<SparseLLVMBasedCFG>;
 
+  using typename LLVMBasedCFG::n_t;
+
 public:
   using vgraph_t =
       llvm::SmallDenseMap<const llvm::Instruction *, const llvm::Instruction *>;

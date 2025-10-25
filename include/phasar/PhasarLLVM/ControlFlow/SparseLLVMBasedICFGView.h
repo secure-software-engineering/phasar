@@ -45,6 +45,9 @@ class SparseLLVMBasedICFGView
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFGView>;
 
 public:
+  using typename LLVMBasedCFG::f_t;
+  using typename LLVMBasedCFG::n_t;
+
   explicit SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF,
                                    LLVMAliasInfoRef PT);
 

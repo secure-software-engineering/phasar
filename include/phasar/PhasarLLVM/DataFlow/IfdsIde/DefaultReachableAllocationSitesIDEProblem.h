@@ -12,6 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -34,15 +35,14 @@ public:
 
   using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
 
-  [[nodiscard]] constexpr LLVMAliasInfoRef getAliasInfo() const noexcept {
+  [[nodiscard]] constexpr LLVMPointsToIteratorRef
+  getPointsToInfo() const noexcept {
     return AS;
   }
 
   constexpr IDEReachableAllocationSitesDefaultFlowFunctionsImpl(
-      LLVMAliasInfoRef AS) noexcept
-      : AS(AS) {
-    assert(AS && "You must provide an alias information handle!");
-  }
+      LLVMPointsToIteratorRef AS) noexcept
+      : AS(AS) {}
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
                                                               n_t /*Succ*/);
@@ -56,7 +56,7 @@ public:
   using IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl;
 
 protected:
-  LLVMAliasInfoRef AS;
+  LLVMPointsToIteratorRef AS;
 };
 } // namespace detail
 
@@ -66,6 +66,10 @@ class DefaultReachableAllocationSitesIDEProblem
       protected detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl {
 public:
   using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::d_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
+  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
 
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
@@ -73,7 +77,7 @@ public:
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultReachableAllocationSitesIDEProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMPointsToIteratorRef AS,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
@@ -109,13 +113,19 @@ class DefaultReachableAllocationSitesIFDSProblem
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
       protected detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl {
 public:
+  using typename IFDSTabulationProblem::d_t;
+  using typename IFDSTabulationProblem::db_t;
+  using typename IFDSTabulationProblem::f_t;
+  using typename IFDSTabulationProblem::FlowFunctionPtrType;
+  using typename IFDSTabulationProblem::n_t;
+
   /// Constructs an IFDSTabulationProblem with the usual arguments + alias
   /// information.
   ///
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultReachableAllocationSitesIFDSProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
+      const ProjectIRDBBase<db_t> *IRDB, LLVMPointsToIteratorRef AS,
       std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),

@@ -10,6 +10,7 @@
 #include "phasar/AnalysisStrategy/Strategies.h"
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace psr {
@@ -24,6 +25,7 @@ std::string toString(const AnalysisStrategy &S) {
   case AnalysisStrategy::None:
     return "None";
   }
+  llvm_unreachable("All alternatives should be handled by the switch above");
 }
 
 AnalysisStrategy toAnalysisStrategy(llvm::StringRef S) {
