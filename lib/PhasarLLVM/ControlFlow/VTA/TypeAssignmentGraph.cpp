@@ -312,7 +312,8 @@ static void handleGEP(const llvm::GetElementPtrInst *GEP,
 }
 
 static bool handleEntryForStore(const llvm::StoreInst *Store,
-                                TypeAssignmentGraph &TAG, AliasInfoTy AI,
+                                TypeAssignmentGraph &TAG,
+                                LLVMAliasIteratorRef AI,
                                 const llvm::DataLayout &DL) {
   const auto *Base = llvm::dyn_cast<llvm::Function>(
       Store->getValueOperand()->stripPointerCastsAndAliases());
@@ -337,21 +338,22 @@ static bool handleEntryForStore(const llvm::StoreInst *Store,
     }
   }
 
-  AI(Store->getPointerOperand(), Store, [&](const llvm::Value *Dest) {
-    // XXX: Fuse store and GEP!
+  AI.forallAliasesOf(Store->getPointerOperand(), Store,
+                     [&](const llvm::Value *Dest) {
+                       // XXX: Fuse store and GEP!
 
-    auto DestNodeId = TAG.get({Variable{Dest}});
-    if (!DestNodeId) {
-      return;
-    }
+                       auto DestNodeId = TAG.get({Variable{Dest}});
+                       if (!DestNodeId) {
+                         return;
+                       }
 
-    TAG.TypeEntryPoints[*DestNodeId].insert(Base);
-  });
+                       TAG.TypeEntryPoints[*DestNodeId].insert(Base);
+                     });
   return true;
 }
 
 static void handleStore(const llvm::StoreInst *Store, TypeAssignmentGraph &TAG,
-                        AliasInfoTy AI, const llvm::DataLayout &DL) {
+                        LLVMAliasIteratorRef AI, const llvm::DataLayout &DL) {
 
   if (handleEntryForStore(Store, TAG, AI, DL)) {
     return;
@@ -378,16 +380,17 @@ static void handleStore(const llvm::StoreInst *Store, TypeAssignmentGraph &TAG,
     }
   }
 
-  AI(Store->getPointerOperand(), Store, [&](const llvm::Value *Dest) {
-    // XXX: Fuse store and GEP!
+  AI.forallAliasesOf(Store->getPointerOperand(), Store,
+                     [&](const llvm::Value *Dest) {
+                       // XXX: Fuse store and GEP!
 
-    auto DestNodeId = TAG.get({Variable{Dest}});
-    if (!DestNodeId) {
-      return;
-    }
+                       auto DestNodeId = TAG.get({Variable{Dest}});
+                       if (!DestNodeId) {
+                         return;
+                       }
 
-    TAG.addEdge(*From, *DestNodeId);
-  });
+                       TAG.addEdge(*From, *DestNodeId);
+                     });
 }
 
 static void handleLoad(const llvm::LoadInst *Load, TypeAssignmentGraph &TAG,
@@ -543,7 +546,7 @@ static void handleReturn(const llvm::ReturnInst *Ret,
 }
 
 static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
-                     Resolver &BaseRes, AliasInfoTy AI,
+                     Resolver &BaseRes, LLVMAliasIteratorRef AI,
                      const llvm::DataLayout &DL,
                      const psr::LLVMVFTableProvider &VTP) {
   if (llvm::isa<llvm::DbgInfoIntrinsic>(&I)) {
@@ -590,7 +593,7 @@ static void dispatch(const llvm::Instruction &I, TypeAssignmentGraph &TAG,
 }
 
 static void buildTAGWithFun(const llvm::Function *Fun, TypeAssignmentGraph &TAG,
-                            Resolver &BaseRes, AliasInfoTy AI,
+                            Resolver &BaseRes, LLVMAliasIteratorRef AI,
                             const llvm::DataLayout &DL,
                             const psr::LLVMVFTableProvider &VTP) {
   for (const auto &I : llvm::instructions(Fun)) {
@@ -599,7 +602,8 @@ static void buildTAGWithFun(const llvm::Function *Fun, TypeAssignmentGraph &TAG,
 }
 
 static auto computeTypeAssignmentGraphImpl(const LLVMProjectIRDB &IRDB,
-                                           Resolver &BaseRes, AliasInfoTy AI,
+                                           Resolver &BaseRes,
+                                           LLVMAliasIteratorRef AI,
                                            const psr::LLVMVFTableProvider &VTP,
                                            ReachableFunsTy ReachableFunctions)
     -> TypeAssignmentGraph {
@@ -626,7 +630,7 @@ static auto computeTypeAssignmentGraphImpl(const LLVMProjectIRDB &IRDB,
 
 auto vta::computeTypeAssignmentGraph(const LLVMProjectIRDB &IRDB,
                                      const psr::LLVMVFTableProvider &VTP,
-                                     AliasInfoTy AS, Resolver &BaseRes,
+                                     LLVMAliasIteratorRef AS, Resolver &BaseRes,
                                      ReachableFunsTy ReachableFunctions)
     -> TypeAssignmentGraph {
 

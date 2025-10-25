@@ -154,18 +154,15 @@ struct TypeAssignmentGraph {
   void print(llvm::raw_ostream &OS);
 };
 
-using AliasHandlerTy = llvm::function_ref<void(const llvm::Value *)>;
-using AliasInfoTy = llvm::function_ref<void(
-    const llvm::Value *, const llvm::Instruction *, AliasHandlerTy)>;
-
 using ReachableFunsHandlerTy = llvm::function_ref<void(const llvm::Function *)>;
 using ReachableFunsTy =
     llvm::function_ref<void(const LLVMProjectIRDB &, ReachableFunsHandlerTy)>;
 
-// TODO: Use AliasIterator here, once available #783
-[[nodiscard]] TypeAssignmentGraph computeTypeAssignmentGraph(
-    const LLVMProjectIRDB &IRDB, const psr::LLVMVFTableProvider &VTP,
-    AliasInfoTy AS, Resolver &BaseRes, ReachableFunsTy ReachableFunctions);
+[[nodiscard]] TypeAssignmentGraph
+computeTypeAssignmentGraph(const LLVMProjectIRDB &IRDB,
+                           const psr::LLVMVFTableProvider &VTP,
+                           LLVMAliasIteratorRef AS, Resolver &BaseRes,
+                           ReachableFunsTy ReachableFunctions);
 
 void printNode(llvm::raw_ostream &OS, TAGNode TN);
 }; // namespace psr::vta

@@ -23,7 +23,7 @@ void VTAResolver::DefaultReachableFunctions::operator()(
 
 static VTAResolver createWithBaseCGResolver(
     const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-    MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG, vta::AliasInfoTy AS) {
+    MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG, LLVMAliasIteratorRef AS) {
   auto ReachableFunctions =
       [BaseCG = BaseCG.get()](
           const LLVMProjectIRDB &,
@@ -37,14 +37,15 @@ static VTAResolver createWithBaseCGResolver(
 }
 
 VTAResolver::VTAResolver(const LLVMProjectIRDB *IRDB,
-                         const LLVMVFTableProvider *VTP, vta::AliasInfoTy AS,
+                         const LLVMVFTableProvider *VTP,
+                         LLVMAliasIteratorRef AS,
                          MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG)
     : psr::VTAResolver(
           createWithBaseCGResolver(IRDB, VTP, std::move(BaseCG), AS)) {}
 
 VTAResolver::VTAResolver(
     const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-    vta::AliasInfoTy AS, MaybeUniquePtr<Resolver> BaseRes,
+    LLVMAliasIteratorRef AS, MaybeUniquePtr<Resolver> BaseRes,
     llvm::function_ref<void(const LLVMProjectIRDB &,
                             llvm::function_ref<void(const llvm::Function *)>)>
         ReachableFunctions)
@@ -65,33 +66,6 @@ VTAResolver::VTAResolver(
   this->SCCs = std::move(SCCs);
   Nodes = std::move(TAG.Nodes);
 }
-
-VTAResolver::VTAResolver(const LLVMProjectIRDB *IRDB,
-                         const LLVMVFTableProvider *VTP, LLVMAliasInfoRef AS,
-                         MaybeUniquePtr<const LLVMBasedCallGraph> BaseCG)
-    : VTAResolver(
-          IRDB, VTP,
-          [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
-               vta::AliasHandlerTy WithAlias) {
-            auto ASet = AS.getAliasSet(Ptr, At);
-            llvm::for_each(*ASet, WithAlias);
-          },
-          std::move(BaseCG)) {}
-
-VTAResolver::VTAResolver(
-    const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
-    LLVMAliasInfoRef AS, MaybeUniquePtr<Resolver> BaseRes,
-    llvm::function_ref<void(const LLVMProjectIRDB &,
-                            llvm::function_ref<void(const llvm::Function *)>)>
-        ReachableFunctions)
-    : VTAResolver(
-          IRDB, VTP,
-          [AS](const llvm::Value *Ptr, const llvm::Instruction *At,
-               vta::AliasHandlerTy WithAlias) {
-            auto ASet = AS.getAliasSet(Ptr, At);
-            llvm::for_each(*ASet, WithAlias);
-          },
-          std::move(BaseRes), ReachableFunctions) {}
 
 std::string VTAResolver::str() const { return "VTA"; }
 
