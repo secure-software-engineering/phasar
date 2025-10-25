@@ -95,7 +95,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
       llvm_unreachable("Adj nonempty and Ys empty is unexpected");
     }
     auto Y = Ys[0];
-    for (const auto &Constr : llvm::makeArrayRef(Ys).drop_front()) {
+    for (const auto &Constr : llvm::ArrayRef(Ys).drop_front()) {
       Y = Y || Constr;
     }
     return Ctx.NodeConstraints[Vtx] = (X && Y).simplify();
