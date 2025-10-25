@@ -288,7 +288,9 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-template <typename T> LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
+template <typename T>
+LLVM_ATTRIBUTE_ALWAYS_INLINE std::enable_if_t<!std::is_pointer_v<T>, T &>
+assertNotNull(T &Value) {
   return Value;
 }
 

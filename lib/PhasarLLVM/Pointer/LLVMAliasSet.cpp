@@ -253,8 +253,9 @@ void LLVMAliasSet::mergeAliasSets(BoxedPtr<AliasSetTy> PTS1,
   Owner.release(ToDelete);
 }
 
-bool LLVMAliasSet::interIsReachableAllocationSiteTy(
-    [[maybe_unused]] const llvm::Value *V, const llvm::Value *P) const {
+[[nodiscard]] static bool
+interIsReachableAllocationSiteTy([[maybe_unused]] const llvm::Value *V,
+                                 const llvm::Value *P) {
   // consider the full inter-procedural points-to/alias information
 
   if (llvm::isa<llvm::AllocaInst>(P)) {
@@ -270,9 +271,9 @@ bool LLVMAliasSet::interIsReachableAllocationSiteTy(
   return false;
 }
 
-bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
+[[nodiscard]] static bool intraIsReachableAllocationSiteTy(
     [[maybe_unused]] const llvm::Value *V, const llvm::Value *P,
-    const llvm::Function *VFun, const llvm::GlobalObject *VG) const {
+    const llvm::Function *VFun, const llvm::GlobalObject *VG) {
   // consider the function-local, i.e. intra-procedural, points-to/alias
   // information only
 
@@ -776,3 +777,21 @@ void LLVMAliasSet::drawAliasSetsDistribution(int Peak) const {
 }
 
 } // namespace psr
+
+bool psr::isInReachableAllocationSitesTy(const llvm::Value *V,
+                                         const llvm::Value *PotentialValue,
+                                         bool IntraProcOnly,
+                                         const llvm::Function *VFun,
+                                         const llvm::GlobalObject *VG) {
+  if (IntraProcOnly) {
+    if (!VFun) {
+      VFun = AliasInfoBaseUtils::retrieveFunction(V);
+    }
+    if (!VG) {
+      VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    }
+    return intraIsReachableAllocationSiteTy(V, PotentialValue, VFun, VG);
+  }
+
+  return interIsReachableAllocationSiteTy(V, PotentialValue);
+}
