@@ -78,6 +78,7 @@ jobs:
           cmake --build ./build --target run_sample_programs
 
       - name: Check test coverage and generate HTML report
+        if: matrix.build == 'Debug'
         shell: bash
         run: |
-          cmake --build ./build --target ccov-all -v
+          cmake --build ./build --target ccov-all
