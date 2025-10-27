@@ -301,12 +301,10 @@ add_json_schema_validator()
 #         - Time::HiRes
 #         - TimeDate
 
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CODE_COVERAGE ON)
-  find_program(LLVM_COV_PATH llvm-cov-19)
-  find_program(LLVM_PROFDATA_PATH llvm-profdata-19)
-  find_program(LCOV_PATH lcov-19)
-  find_program(GENHTML_PATH genhtml-19)
+  find_program(LLVM_COV_PATH llvm-cov-15)
+  find_program(LLVM_PROFDATA_PATH llvm-profdata-15)
 
   include(external/cmake-scripts/code-coverage.cmake)
 
