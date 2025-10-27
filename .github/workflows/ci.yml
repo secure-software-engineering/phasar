@@ -80,4 +80,4 @@ jobs:
       - name: Check test coverage and generate HTML report
         shell: bash
         run: |
-          cmake --build ./build --target ccov-all
+          cmake --build ./build --target ccov-all -v
