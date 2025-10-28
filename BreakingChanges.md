@@ -9,7 +9,8 @@
 - Removed `TypestateDescription::start()`. Instead apply `TypestateDescription::getNextState()` on `TypestateDescription::uninit()`.
 - Removed `LLVMProjectIRDB::getParsedIRModuleOrNull()`. Use `LLVMProjectIRDB::getParsedIRModuleOrErr()` instead.
 - Removed `DIBasedTypeHierarchy::isVTable()` and `DIBasedTypeHierarchy::removeVTablePrefix()`. Use the corresponding functions from `LLVMVFTableProvider` instead.
-
+- Removed the CMake variable `PHASAR_HAS_SQLITE` as we removed the dependency on sqlite3.
+- The CMake Option `BUILD_PHASAR_CLANG` is no longer `ON` by default.
 
 ## v2510
 

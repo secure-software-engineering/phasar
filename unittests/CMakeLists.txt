@@ -45,7 +45,6 @@ endfunction()
 
 include_directories(TestUtils)
 
-add_subdirectory(DB)
 add_subdirectory(PhasarLLVM)
 add_subdirectory(Utils)
 if(BUILD_PHASAR_CLANG)

@@ -53,7 +53,7 @@ set(PHASAR_LINK_LIBS
 if(BUILD_PHASAR_CLANG)
     list(APPEND PHASAR_LINK_LIBS phasar_clang)
 endif()
-if(SQLite3_FOUND)
+if(TARGET phasar_db)
     list(APPEND PHASAR_LINK_LIBS phasar_db)
 endif()
 if(PHASAR_USE_SVF)
