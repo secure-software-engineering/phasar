@@ -264,9 +264,6 @@ endif()
 # Threads
 find_package(Threads)
 
-# Boost
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
-
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
 

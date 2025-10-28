@@ -225,7 +225,6 @@ class PhasarRecipe(ConanFile):
             self.options.rm_safe("fPIC")
 
     def requirements(self):
-        self.requires("boost/[>1.72.0 <=1.86.0]")
         self.requires(f"clang/{self.options.llvm_version}@secure-software-engineering", transitive_libs=True, transitive_headers=True)
         self.requires("nlohmann_json/3.11.3", transitive_headers=True)
         self.requires("json-schema-validator/2.3.0", transitive_libs=True, transitive_headers=True)

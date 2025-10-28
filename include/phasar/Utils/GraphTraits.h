@@ -25,11 +25,11 @@
 
 namespace psr {
 
-/// We aim to get rid of boost, so introduce a new GraphTraits class to replace
-/// it.
-/// This GraphTraits type should be specialized for each type that implements a
-/// "graph". All the functionality should be reflected by the GraphTraits class.
-/// Once moving to C++20, we have nice type-checking using concepts
+/// We removed the dependency to boost, so introduce a new GraphTraits class to
+/// replace it. This GraphTraits type should be specialized for each type that
+/// implements a "graph". All the functionality should be reflected by the
+/// GraphTraits class. Once moving to C++20, we have nice type-checking using
+/// concepts
 template <typename Graph> struct GraphTraits;
 
 #if __cplusplus >= 202002L
@@ -55,36 +55,36 @@ concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
   { GraphTrait::Invalid } -> std::convertible_to<typename GraphTrait::vertex_t>;
   {
     GraphTrait::addNode(graph, val)
-    } -> std::convertible_to<typename GraphTrait::vertex_t>;
-  {GraphTrait::addEdge(graph, vtx, edge)};
+  } -> std::convertible_to<typename GraphTrait::vertex_t>;
+  { GraphTrait::addEdge(graph, vtx, edge) };
   {
     GraphTrait::outEdges(cgraph, vtx)
-    } -> psr::is_iterable_over_v<typename GraphTrait::edge_t>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::edge_t>;
   { GraphTrait::outDegree(cgraph, vtx) } -> std::convertible_to<size_t>;
-  {GraphTrait::dedupOutEdges(graph, vtx)};
+  { GraphTrait::dedupOutEdges(graph, vtx) };
   {
     GraphTrait::nodes(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
   {
     GraphTrait::vertices(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
   {
     GraphTrait::node(cgraph, vtx)
-    } -> std::convertible_to<typename GraphTrait::value_type>;
+  } -> std::convertible_to<typename GraphTrait::value_type>;
   { GraphTrait::size(cgraph) } -> std::convertible_to<size_t>;
-  {GraphTrait::addRoot(graph, vtx)};
+  { GraphTrait::addRoot(graph, vtx) };
   {
     GraphTrait::roots(cgraph)
-    } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
+  } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
   { GraphTrait::pop(graph, vtx) } -> std::same_as<bool>;
   { GraphTrait::roots_size(cgraph) } -> std::convertible_to<size_t>;
   {
     GraphTrait::target(edge)
-    } -> std::convertible_to<typename GraphTrait::vertex_t>;
+  } -> std::convertible_to<typename GraphTrait::vertex_t>;
   {
     GraphTrait::withEdgeTarget(edge, vtx)
-    } -> std::convertible_to<typename GraphTrait::edge_t>;
-  {GraphTrait::weight(edge)};
+  } -> std::convertible_to<typename GraphTrait::edge_t>;
+  { GraphTrait::weight(edge) };
 };
 
 template <typename Graph>
@@ -94,22 +94,23 @@ concept is_graph = requires(Graph g) {
 };
 
 template <typename GraphTrait>
-concept is_reservable_graph_trait_v = is_graph_trait<GraphTrait> &&
-    requires(typename GraphTrait::graph_type &g) {
-  {GraphTrait::reserve(g, size_t(0))};
-};
+concept is_reservable_graph_trait_v =
+    is_graph_trait<GraphTrait> && requires(typename GraphTrait::graph_type &g) {
+      { GraphTrait::reserve(g, size_t(0)) };
+    };
 
 template <typename GraphTrait>
-concept is_removable_graph_trait_v = is_graph_trait<GraphTrait> &&
+concept is_removable_graph_trait_v =
+    is_graph_trait<GraphTrait> &&
     requires(typename GraphTrait::graph_type &g,
              typename GraphTrait::vertex_t vtx,
              typename GraphTrait::edge_iterator edge_it,
              typename GraphTrait::roots_iterator root_it) {
-  typename GraphTrait::edge_iterator;
-  typename GraphTrait::roots_iterator;
-  {GraphTrait::removeEdge(g, vtx, edge_it)};
-  {GraphTrait::removeRoot(g, root_it)};
-};
+      typename GraphTrait::edge_iterator;
+      typename GraphTrait::roots_iterator;
+      { GraphTrait::removeEdge(g, vtx, edge_it) };
+      { GraphTrait::removeRoot(g, root_it) };
+    };
 
 #else
 namespace detail {
@@ -155,7 +156,7 @@ static constexpr bool is_removable_graph_trait_v =
 template <typename GraphTy>
 std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
 #if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
+  requires is_graph<GraphTy>
 #endif
 {
   std::decay_t<GraphTy> Ret;
@@ -193,7 +194,7 @@ template <typename GraphTy, typename NodeTransform = DefaultNodeTransform>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
                 llvm::StringRef Name = "", NodeTransform NodeToString = {})
 #if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
+  requires is_graph<GraphTy>
 #endif
 {
   using traits_t = GraphTraits<GraphTy>;

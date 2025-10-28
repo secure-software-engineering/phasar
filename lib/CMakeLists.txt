@@ -65,8 +65,6 @@ add_phasar_library(phasar ${PHASAR_DYNLIB_KIND}
         LibPhasar.cpp
     LINKS
         ${PHASAR_LINK_LIBS}
-    LINK_PRIVATE
-        ${Boost_LIBRARIES}
     LLVM_LINK_COMPONENTS
         Core
         Support
