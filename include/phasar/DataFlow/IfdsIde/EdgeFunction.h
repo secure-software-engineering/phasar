@@ -497,7 +497,7 @@ public:
   /// for all x,y in l_t it holds: computeTarget(x) == computeTarget(y).
   ///
   /// Allows for better optimizations in compose and join and should be
-  /// provided, whehever this knowledge is available.
+  /// provided, whenever this knowledge is available.
   [[nodiscard]] bool isConstant() const noexcept {
     assert(isValid() && "isConstant() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->isConstant(EF);
@@ -507,7 +507,7 @@ public:
     return VTAndHeapAlloc.getOpaqueValue();
   }
 
-  /// Performs a null-check. True, iff thie edge function is not null.
+  /// Performs a null-check. True, iff this edge function is not null.
   [[nodiscard]] explicit operator bool() const noexcept { return isValid(); }
 
   /// Performs a runtime-typecheck. True, if the concrete type of the held edge
