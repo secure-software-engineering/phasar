@@ -30,8 +30,8 @@ public:
   CHAResolver(const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
               const DIBasedTypeHierarchy *TH);
 
-  // Deleting an incomplete type (LLVMTypeHierarchy) is UB, so instantiate the
-  // dtor in CHAResolver.cpp
+  // Deleting an incomplete type (DIBasedTypeHierarchy) is UB, so instantiate
+  // the dtor in CHAResolver.cpp
   ~CHAResolver() override;
 
   void resolveVirtualCall(FunctionSetTy &PossibleTargets,

@@ -2,7 +2,14 @@
 
 ## development HEAD
 
-*None*
+- Removed `SpecialSummaries`.
+- Removed `Hexastore` and the corresponding database queries.
+- Removed `LLVMTypeHierarchy` (and `LLVMTypeHierarchyData`), which is superceeded by `DIBasedTypeHierarchy`.
+- Removed `Resolver::preCall()`, `Resolver::postCall()`, and `Resolver::otherInst()`.
+- Removed `TypestateDescription::start()`. Instead apply `TypestateDescription::getNextState()` on `TypestateDescription::uninit()`.
+- Removed `LLVMProjectIRDB::getParsedIRModuleOrNull()`. Use `LLVMProjectIRDB::getParsedIRModuleOrErr()` instead.
+- Removed `DIBasedTypeHierarchy::isVTable()` and `DIBasedTypeHierarchy::removeVTablePrefix()`. Use the corresponding functions from `LLVMVFTableProvider` instead.
+
 
 ## v2510
 

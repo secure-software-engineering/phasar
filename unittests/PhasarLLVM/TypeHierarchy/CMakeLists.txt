@@ -1,8 +1,6 @@
 set(PointerSources
   DIBasedTypeHierarchySerializationTest.cpp
 	DIBasedTypeHierarchyTest.cpp
-	LLVMTypeHierarchySerializationTest.cpp
-	LLVMTypeHierarchyTest.cpp
 )
 
 foreach(TEST_SRC ${PointerSources})

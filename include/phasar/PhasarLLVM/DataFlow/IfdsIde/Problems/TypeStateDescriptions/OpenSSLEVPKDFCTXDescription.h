@@ -100,7 +100,6 @@ public:
   [[nodiscard]] State bottom() const override;
   [[nodiscard]] State top() const override;
   [[nodiscard]] State uninit() const override;
-  [[nodiscard]] State start() const override;
   [[nodiscard]] State error() const override;
   [[nodiscard]] DataFlowAnalysisType analysisType() const override;
   /*

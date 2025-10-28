@@ -36,7 +36,6 @@ struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
 };
 
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class IDELinearConstantAnalysis
