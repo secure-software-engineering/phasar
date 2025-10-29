@@ -301,7 +301,11 @@ add_json_schema_validator()
 #         - Time::HiRes
 #         - TimeDate
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+message("\$\{CMAKE_BUILD_TYPE\} is:")
+message("${CMAKE_BUILD_TYPE}")
+message("CMAKE_BUILD_TYPE is:")
+message(CMAKE_BUILD_TYPE)
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(CODE_COVERAGE ON)
   find_program(LLVM_COV_PATH llvm-cov-15)
   find_program(LLVM_PROFDATA_PATH llvm-profdata-15)
