@@ -275,8 +275,8 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
       Gen.insert(Store->getValueOperand());
     }
 
-    return lambdaFlow(
-        [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+    auto Ret =
+        lambdaFlow([Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
           if (Store->getPointerOperand() == Source) {
             return {};
           }
@@ -286,6 +286,21 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
 
           return {Source};
         });
+    if (Config->isSink(Store->getPointerOperand())) {
+      // Handle sink variables:
+
+      return lambdaFlow([this, Store, Ret = std::move(Ret)](d_t Source) {
+        if (Store->getValueOperand() == Source) {
+          if (Leaks[Store].insert(Source).second) {
+            Printer->onResult(Store, Source,
+                              DataFlowAnalysisType::IFDSTaintAnalysis);
+          }
+        }
+
+        return Ret->computeTargets(Source);
+      });
+    }
+    return Ret;
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
@@ -309,6 +324,16 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
 
   if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(Curr)) {
     return transferFlow(Cast, Cast->getOperand(0));
+  }
+
+  if (llvm::isa<llvm::BinaryOperator>(Curr)) {
+    return lambdaFlow([Curr](d_t Source) -> container_type {
+      if (llvm::is_contained(Curr->operand_values(), Source)) {
+        return {Source, Curr};
+      }
+
+      return {Source};
+    });
   }
 
   // Otherwise we do not care and leave everything as it is
