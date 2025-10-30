@@ -303,9 +303,9 @@ add_json_schema_validator()
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(CODE_COVERAGE ON)
-  find_program(LLVM_COV_PATH llvm-cov-15)
+  find_program(LLVM_COV_PATH llvm-cov-19)
   message(STATUS "Found llvm-cov ${LLVM_COV_PATH}")
-  find_program(LLVM_PROFDATA_PATH llvm-profdata-15)
+  find_program(LLVM_PROFDATA_PATH llvm-profdata-19)
   message(STATUS "Found llvm-profdata ${LLVM_PROFDATA_PATH}")
 
   include(external/cmake-scripts/code-coverage.cmake)
