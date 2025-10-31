@@ -7,9 +7,11 @@ source ./utils/safeCommandsSet.sh
 readonly PHASAR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PHASAR_INSTALL_DIR="/usr/local/phasar"
 LLVM_INSTALL_DIR="/usr/local/llvm-15"
+LLVM_INSTALL_DIR_FOR_COV="/usr/local/llvm-19"
 
 NUM_THREADS=$(nproc)
 LLVM_RELEASE=llvmorg-15.0.7
+LLVM_RELEASE_FOR_COV=llvmorg-19.1.7
 DO_UNIT_TEST=true
 DO_INSTALL=false
 BUILD_TYPE=Release
@@ -165,6 +167,12 @@ fi
 tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
 ./utils/install-llvm.sh "${NUM_THREADS}" "${tmp_dir}" "${LLVM_INSTALL_DIR}" ${LLVM_RELEASE}
 rm -rf "${tmp_dir}"
+
+# installing LLVM 19 for coverage tools
+tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
+./utils/install-llvm.sh "${NUM_THREADS}" "${tmp_dir}" "${LLVM_INSTALL_DIR_FOR_COV}" ${LLVM_RELEASE_FOR_COV}
+rm -rf "${tmp_dir}"
+
 echo "dependencies successfully installed"
 
 # *Always* set the LLVM root to ensure the Phasar script uses the proper toolchain

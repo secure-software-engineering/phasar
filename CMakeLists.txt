@@ -301,8 +301,7 @@ add_json_schema_validator()
 #         - Time::HiRes
 #         - TimeDate
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(CODE_COVERAGE ON)
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE)
   find_program(LLVM_COV_PATH llvm-cov-19)
   message(STATUS "Found llvm-cov ${LLVM_COV_PATH}")
   find_program(LLVM_PROFDATA_PATH llvm-profdata-19)
