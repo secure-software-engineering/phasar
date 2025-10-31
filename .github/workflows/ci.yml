@@ -23,7 +23,7 @@ jobs:
             flags: -DPHASAR_ENABLE_SANITIZERS=ON -DCODE_COVERAGE=ON
           - build: Release
             cmake_build_type: Release
-            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON
           - build: DebugLibdeps
             cmake_build_type: Debug
             flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
