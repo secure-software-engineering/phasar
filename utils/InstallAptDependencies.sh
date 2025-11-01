@@ -28,7 +28,7 @@ additional_dependencies=("$@")
         "clang-$LLVM_IR_VERSION" # compiler for IR
         "libclang-rt-$LLVM_IR_VERSION-dev" # ASAN
         libsqlite3-dev libz3-dev libssl-dev "libclang-$LLVM_IR_VERSION-dev" "libclang-common-$LLVM_IR_VERSION-dev" # optional build deps
-        libboost-graph-dev zlib1g-dev libzstd-dev "llvm-$LLVM_IR_VERSION-dev" "llvm-$LLVM_COV_TOOLS_VERSION$" # build deps
+        libboost-graph-dev zlib1g-dev libzstd-dev "llvm-$LLVM_IR_VERSION-dev" "llvm-$LLVM_COV_TOOLS_VERSION" # build deps
     )
 
 
