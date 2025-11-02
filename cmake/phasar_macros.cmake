@@ -36,7 +36,7 @@ function(add_phasar_unittest test_name)
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
 
-  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE AND  NOT PHASAR_DEBUG_LIBDEPS)
+  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE AND NOT PHASAR_DEBUG_LIBDEPS)
     target_code_coverage(${test} AUTO ALL)
   endif()
 endfunction()
