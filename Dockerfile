@@ -18,7 +18,7 @@ RUN --mount=type=bind,source=.,target=/usr/src/phasar,rw \
   cmake -S . -B cmake-build/Release \
     -DCMAKE_BUILD_TYPE=Release \
     -DPHASAR_TARGET_ARCH="" \
-    -DPHASAR_ENABLE_SANITIZERS=ON \
+    -DPHASAR_ENABLE_SANITIZERS=OFF \
     -DBUILD_PHASAR_CLANG=ON \
     -DPHASAR_USE_Z3=ON \
     -DPHASAR_BUILD_UNITTESTS=$RUN_TESTS \
