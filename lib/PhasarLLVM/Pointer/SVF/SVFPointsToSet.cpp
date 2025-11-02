@@ -1,15 +1,21 @@
 #include "phasar/PhasarLLVM/Pointer/SVF/SVFPointsToSet.h"
 
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/Pointer/PointsToInfoBase.h"
+
+#include "llvm/IR/Instruction.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "DDA/ContextDDA.h"
 #include "DDA/DDAClient.h"
 #include "InitSVF.h"
 #include "MemoryModel/PointerAnalysis.h"
+#include "PhasarSVFUtils.h"
 #include "SVF-LLVM/LLVMModule.h"
 #include "SVF-LLVM/SVFIRBuilder.h"
 #include "WPA/Andersen.h"
 
+#include <memory>
 #include <utility>
 
 namespace {
@@ -49,6 +55,8 @@ public:
     SVF::LLVMModuleSet::releaseLLVMModuleSet();
   }
 
+  [[nodiscard]] constexpr SVF::SVFIR &getPAG() const noexcept { return *PAG; }
+
 private:
   SVFPointsToSet(SVF::SVFModule *Mod)
       : IRBuilder(Mod), PAG(IRBuilder.build()) {}
@@ -63,17 +71,13 @@ private:
   [[nodiscard]] o_t
   asAbstractObjectImpl(psr::ByConstRef<v_t> Pointer) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    auto *Nod = ModSet->getSVFValue(Pointer);
-
-    return PAG->getValueNode(Nod);
+    return psr::getNodeId(Pointer, *ModSet, *PAG);
   }
 
   [[nodiscard]] std::optional<v_t> asPointerOrNullImpl(o_t Obj) const noexcept {
-    if (const auto *Val = PAG->getObject(Obj)->getValue()) {
-      auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-      if (const auto *LLVMVal = ModSet->getLLVMValue(Val)) {
-        return LLVMVal;
-      }
+    if (const auto *LLVMVal = psr::objectNodeToLLVMOrNull(
+            Obj, *SVF::LLVMModuleSet::getLLVMModuleSet(), *PAG)) {
+      return LLVMVal;
     }
 
     return std::nullopt;
@@ -150,4 +154,87 @@ auto psr::createSVFDDAPointsToInfo(LLVMProjectIRDB &IRDB)
     -> SVFBasedPointsToInfo {
   return SVFBasedPointsToInfo(std::in_place_type<DDAPointsToSetImpl>,
                               psr::initSVFModule(IRDB));
+}
+
+auto psr::createSVFPointsToInfo(LLVMProjectIRDB &IRDB,
+                                SVFPointsToAnalysisType PTATy)
+    -> SVFBasedPointsToInfo {
+  switch (PTATy) {
+  case SVFPointsToAnalysisType::DDA:
+    return SVFBasedPointsToInfo(std::in_place_type<DDAPointsToSetImpl>,
+                                psr::initSVFModule(IRDB));
+  case SVFPointsToAnalysisType::VFS:
+    return SVFBasedPointsToInfo(std::in_place_type<VFSPointsToSetImpl>,
+                                psr::initSVFModule(IRDB));
+  }
+  llvm_unreachable("Should have handled all SVFPointsToAnalysisType variants "
+                   "in the switch above!");
+}
+
+namespace {
+
+template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
+  using n_t = const llvm::Instruction *;
+  using v_t = const llvm::Value *;
+  using o_t = const llvm::Value *;
+
+  SVFLLVMPointsToIterator(SVF::SVFModule *Mod) : PT(Mod) {}
+
+  [[nodiscard]] constexpr o_t asAbstractObject(v_t Pointer) const noexcept {
+    return Pointer;
+  }
+
+  [[nodiscard]] SVF::NodeID getNodeId(v_t Pointer) const noexcept {
+    auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
+    return psr::getNodeId(Pointer, *ModSet, PT.getPAG());
+  }
+  [[nodiscard]] SVF::NodeID getObjNodeId(o_t Obj) const noexcept {
+    auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
+    return psr::getObjNodeId(Obj, *ModSet, PT.getPAG());
+  }
+
+  void forallPointeesOf(o_t Pointer, n_t /*At*/,
+                        llvm::function_ref<void(o_t)> WithPointee) const {
+    SVF::PointerAnalysis &PTA = PT.getPTA();
+
+    auto Nod = getNodeId(Pointer);
+
+    const auto &Pts = PTA.getPts(Nod);
+
+    auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
+    SVF::SVFIR &PAG = PT.getPAG();
+    for (auto PointeeNod : Pts) {
+      if (const auto *PointeeVal =
+              psr::objectNodeToLLVMOrNull(PointeeNod, *ModSet, PAG)) {
+        WithPointee(PointeeVal);
+      }
+    }
+  }
+
+  [[nodiscard]] bool mayPointsTo(o_t Pointer, o_t Obj, n_t /*At*/) const {
+    SVF::PointerAnalysis &PTA = PT.getPTA();
+    auto PointerNod = getNodeId(Pointer);
+    auto ObjNod = getObjNodeId(Obj);
+
+    const auto &Pts = PTA.getPts(PointerNod);
+    return Pts.test(ObjNod);
+  }
+
+  SVFPointsToSetT PT;
+};
+} // namespace
+
+auto psr::createLLVMSVFPointsToIterator(LLVMProjectIRDB &IRDB,
+                                        SVFPointsToAnalysisType PTATy)
+    -> LLVMPointsToIterator {
+  auto *Mod = psr::initSVFModule(IRDB);
+
+  switch (PTATy) {
+  case SVFPointsToAnalysisType::DDA:
+    return {std::make_unique<SVFLLVMPointsToIterator<DDAPointsToSetImpl>>(Mod)};
+  case SVFPointsToAnalysisType::VFS:
+    return {std::make_unique<SVFLLVMPointsToIterator<VFSPointsToSetImpl>>(Mod)};
+  }
+  llvm_unreachable("Should have handled all SVFPointsToAnalysisType variants "
+                   "in the switch above!");
 }

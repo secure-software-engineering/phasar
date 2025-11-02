@@ -161,6 +161,9 @@ std::string psr::llvmIRToString(const llvm::Value *V) {
   if (!V) {
     return "<null>";
   }
+  if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
+    return "fun @" + F->getName().str();
+  }
 
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);

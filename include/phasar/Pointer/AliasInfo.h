@@ -10,11 +10,12 @@
 #ifndef PHASAR_POINTER_ALIASINFO_H
 #define PHASAR_POINTER_ALIASINFO_H
 
+#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/AliasInfoTraits.h"
+#include "phasar/Pointer/AliasIterator.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/ByRef.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
@@ -51,14 +52,16 @@ struct AliasInfoTraits<AliasInfo<V, N>> : DefaultAATraits<V, N> {};
 /// Example:
 /// \code
 /// LLVMAliasSet ASet(...);
-/// AliasInfoRef AA = &ASet;
+/// LLVMAliasInfoRef AA = &ASet;
 /// \endcode
 ///
 /// NOTE: AliasInfoRef::mergeWith() only works if supplied with a compatible
 /// other AliasInfo. Otherwise, it asserts out
 template <typename V, typename N>
-class AliasInfoRef : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
+class [[gsl::Pointer]] AliasInfoRef
+    : public AnalysisPropertiesMixin<AliasInfoRef<V, N>> {
   friend class AliasInfo<V, N>;
+
   using traits_t = AliasInfoTraits<AliasInfoRef<V, N>>;
 
 public:
@@ -68,14 +71,14 @@ public:
   using n_t = typename traits_t::n_t;
   using v_t = typename traits_t::v_t;
 
-  AliasInfoRef() noexcept = default;
-  AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
+  constexpr AliasInfoRef() noexcept = default;
+  constexpr AliasInfoRef(std::nullptr_t) noexcept : AliasInfoRef() {}
   template <typename ConcreteAA,
             typename = std::enable_if_t<
                 !std::is_base_of_v<AliasInfoRef, ConcreteAA> &&
                 std::is_same_v<v_t, typename ConcreteAA::v_t> &&
                 std::is_same_v<n_t, typename ConcreteAA::n_t>>>
-  AliasInfoRef(ConcreteAA *AA) noexcept
+  constexpr AliasInfoRef(ConcreteAA *AA) noexcept
       : AA(AA), VT((std::is_empty_v<ConcreteAA> || AA) ? &VTableFor<ConcreteAA>
                                                        : nullptr) {}
 
@@ -84,11 +87,17 @@ public:
   AliasInfoRef(AliasInfo<V, N> &&) = delete;
   AliasInfoRef &operator=(AliasInfo<V, N> &&) = delete;
 
-  AliasInfoRef(const AliasInfoRef &) noexcept = default;
-  AliasInfoRef &operator=(const AliasInfoRef &) noexcept = default;
+  constexpr AliasInfoRef(const AliasInfoRef &) noexcept = default;
+  constexpr AliasInfoRef &operator=(const AliasInfoRef &) noexcept = default;
   ~AliasInfoRef() noexcept = default;
 
   explicit operator bool() const noexcept { return VT != nullptr; }
+
+  constexpr operator AliasIteratorRef<V, N>() const & noexcept {
+    assert(VT != nullptr);
+    return AliasIteratorRef<V, N>(AA, VT->ForallAliasesOf);
+  }
+  constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 
   // -- Impl for IsAliasInfo:
 
@@ -182,10 +191,12 @@ public:
 
 private:
   struct VTable {
+    typename AliasIteratorRef<V, N>::ForallAliasesOfFn ForallAliasesOf;
+    AliasResult (*Alias)(void *AA, ByConstRef<v_t> Pointer1,
+                         ByConstRef<v_t> Pointer2,
+                         ByConstRef<n_t> AtInstruction);
     bool (*IsInterProcedural)(const void *) noexcept;
     AliasAnalysisType (*GetAliasAnalysisType)(const void *) noexcept;
-    AliasResult (*Alias)(void *, ByConstRef<v_t>, ByConstRef<v_t>,
-                         ByConstRef<n_t>);
     AliasSetPtrTy (*GetAliasSet)(void *, ByConstRef<v_t>, ByConstRef<n_t>);
     AllocationSiteSetPtrTy (*GetReachableAllocationSites)(void *,
                                                           ByConstRef<v_t>, bool,
@@ -205,16 +216,28 @@ private:
 
   template <typename ConcreteAA>
   static constexpr VTable VTableFor = {
-      [](const void *AA) noexcept {
-        return static_cast<const ConcreteAA *>(AA)->isInterProcedural();
-      },
-      [](const void *AA) noexcept {
-        return static_cast<const ConcreteAA *>(AA)->getAliasAnalysisType();
+      [](void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
+         llvm::function_ref<void(v_t)> WithAlias) {
+        if constexpr (IsAliasIterator<ConcreteAA>) {
+          return static_cast<ConcreteAA *>(AA)->forallAliasesOf(Of, At,
+                                                                WithAlias);
+        } else {
+          auto AliasSetPtr = static_cast<ConcreteAA *>(AA)->getAliasSet(Of, At);
+          for (auto &&Alias : *AliasSetPtr) {
+            WithAlias(PSR_FWD(Alias));
+          }
+        }
       },
       [](void *AA, ByConstRef<v_t> Pointer1, ByConstRef<v_t> Pointer2,
          ByConstRef<n_t> AtInstruction) {
         return static_cast<ConcreteAA *>(AA)->alias(Pointer1, Pointer2,
                                                     AtInstruction);
+      },
+      [](const void *AA) noexcept {
+        return static_cast<const ConcreteAA *>(AA)->isInterProcedural();
+      },
+      [](const void *AA) noexcept {
+        return static_cast<const ConcreteAA *>(AA)->getAliasAnalysisType();
       },
       [](void *AA, ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) {
         return static_cast<ConcreteAA *>(AA)->getAliasSet(Pointer,
@@ -252,7 +275,7 @@ private:
       [](const void *AA) noexcept {
         delete static_cast<const ConcreteAA *>(AA);
       },
-  };
+  }; // namespace psr
 
   // --
 
@@ -272,7 +295,8 @@ private:
 /// \endcode
 ///
 template <typename V, typename N>
-class [[clang::trivial_abi]] AliasInfo final : public AliasInfoRef<V, N> {
+class [[clang::trivial_abi, gsl::Owner]] AliasInfo final
+    : public AliasInfoRef<V, N> {
   using base_t = AliasInfoRef<V, N>;
 
 public:

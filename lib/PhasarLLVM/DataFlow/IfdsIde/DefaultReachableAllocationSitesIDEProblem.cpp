@@ -2,6 +2,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
@@ -21,10 +22,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
 
-    auto AliasSet =
-        AS.getReachableAllocationSites(Store->getPointerOperand(), true, Store);
-
-    container_type Gen(AliasSet->begin(), AliasSet->end());
+    auto Gen = AS.asSet<container_type>(Store->getPointerOperand(), Store);
 
     return FFTemplates::lambdaFlow(
         [Store, Gen{std::move(Gen)}, AS = AS](d_t Source) -> container_type {
@@ -32,8 +30,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
             return {};
           }
           if (Store->getValueOperand() == Source ||
-              AS.isInReachableAllocationSites(Store->getValueOperand(), Source,
-                                              true, Store)) {
+              AS.mayPointsTo(Store->getValueOperand(), Source, Store)) {
             auto Ret = Gen;
             Ret.insert(Source);
             return Ret;
@@ -47,8 +44,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
     return FFTemplates::lambdaFlow(
         [Load, AS = AS](d_t Source) -> container_type {
           if (Load->getPointerOperand() == Source ||
-              AS.isInReachableAllocationSites(Load->getPointerOperand(), Source,
-                                              true, Load)) {
+              AS.mayPointsTo(Load->getPointerOperand(), Source, Load)) {
             return {Source, Load};
           }
 
@@ -65,24 +61,26 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
         -> FlowFunctionPtrType {
   const auto *Call = llvm::cast<llvm::CallBase>(CallInst);
 
-  return mapFactsToCallee(
-      Call, CalleeFun, [Call, AS = AS](d_t Arg, d_t Source) -> bool {
-        if (Arg == Source) {
-          return true;
-        }
+  return mapFactsToCallee(Call, CalleeFun,
+                          [Call, AS = AS](d_t Arg, d_t Source) -> bool {
+                            if (Arg == Source) {
+                              return true;
+                            }
 
-        return Arg->getType()->isPointerTy() &&
-               Source->getType()->isPointerTy() &&
-               AS.isInReachableAllocationSites(Arg, Source, true, Call);
-      });
+                            return Arg->getType()->isPointerTy() &&
+                                   Source->getType()->isPointerTy() &&
+                                   AS.mayPointsTo(Arg, Source, Call);
+                          });
 }
 
-static void populateWithMayAliases(LLVMAliasInfoRef AS, container_type &Facts,
-                                   const llvm::Instruction *Context) {
+static void populateWithMayPointees(LLVMPointsToIteratorRef AS,
+                                    container_type &Facts,
+                                    const llvm::Instruction *Context) {
   container_type Tmp = Facts;
   for (const auto *Fact : Tmp) {
-    auto Aliases = AS.getReachableAllocationSites(Fact, true, Context);
-    Facts.insert(Aliases->begin(), Aliases->end());
+    AS.forallPointeesOf(Fact, Context, [&Facts](const auto *Pointee) {
+      Facts.insert(Pointee);
+    });
   }
 }
 
@@ -91,7 +89,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
                            n_t /*RetSite*/) -> FlowFunctionPtrType {
   const auto *Call = llvm::cast<llvm::CallBase>(CallSite);
   const auto PostProcessFacts = [AS = AS, Call](container_type &Facts) {
-    populateWithMayAliases(AS, Facts, Call);
+    populateWithMayPointees(AS, Facts, Call);
   };
 
   return mapFactsToCaller(
@@ -108,7 +106,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
         // Arguments are counted as allocation-sites, so we have generated them
         // as aliases
         return !llvm::isa<llvm::Argument>(Source) &&
-               AS.isInReachableAllocationSites(Param, Source, true, ExitInst);
+               AS.mayPointsTo(Param, Source, ExitInst);
       },
       [AS = AS, ExitInst](d_t Ret, d_t Source) {
         if (Ret == Source) {
@@ -117,7 +115,7 @@ auto detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl::
 
         return Ret->getType()->isPointerTy() &&
                Source->getType()->isPointerTy() &&
-               AS.isInReachableAllocationSites(Ret, Source, true, ExitInst);
+               AS.mayPointsTo(Ret, Source, ExitInst);
       },
       {}, true, true, PostProcessFacts);
 }

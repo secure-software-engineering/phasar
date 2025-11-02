@@ -1,5 +1,7 @@
 
-void setInteger(int *x) { *x = 42; }
+void setInteger(int *x) { //
+  *x = 42;
+}
 
 int main() {
   int i;

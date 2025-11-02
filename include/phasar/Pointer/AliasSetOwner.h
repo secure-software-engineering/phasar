@@ -102,7 +102,7 @@ public:
 #else
     Alloc->Deallocate(PTS);
 #endif
-    /// NOTE: Do not delete from AllPTS!
+    /// NOTE: Do not delete from AllPTS to keep the other pointers stable!
   }
 
   void reserve(size_t Capacity) { OwnedPTS.reserve(Capacity); }

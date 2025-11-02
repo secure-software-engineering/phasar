@@ -4,6 +4,20 @@
 
 *None*
 
+## v2510
+
+- Removed some old APIs from `PhasarConfig`
+- Removed the header `phasar/Config/Version.h`. Use the generated header `phasar/Config/phasar-config.h` instead.
+- Removed `getAsJson()` from various classes. Use `printAsJson(llvm::raw_ostream &)` instead.
+- Removed `CallGraphAnalysisType::DTA` and the `DTAResolver` (see below)
+- Removed the legacy flow functions `Identity`, `LambdaFlow`, etc. Use the static functions from `FlowFunctionTemplates` instead.
+- Removed getter-functions from `GeneralStatistics`. Use the corresponding public fields instead.
+- Removed `LLVMAliasGraph`. Use `LLVMAliasSet` instead.
+- Removed `TypeGraphs/*` as they are not used.
+- Removed the namespace-scoped function `initializeLogger()`. Use the static functions in the `Logger` class instead.
+- Removed `legacy::stripPointer(const llvm::Type *)` as it does not work anymore with opaque pointers.
+
+
 ## v2503
 
 - The `DTAResolver` and the cli option `--call-graph-analysis=dta` do not work anymore (due to opaque pointers) and will be removed for the next release. Please use the `OTF` or `RTA` resolver instead.

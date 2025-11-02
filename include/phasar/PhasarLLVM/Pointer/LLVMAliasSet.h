@@ -39,11 +39,15 @@ template <>
 struct AliasInfoTraits<LLVMAliasSet>
     : DefaultAATraits<const llvm::Value *, const llvm::Instruction *> {};
 
+/// Utility function to check whether PotentialValue may be in the reachable
+/// allocation-sites of V, if V and PotentialValue alias.
+[[nodiscard]] bool isInReachableAllocationSitesTy(
+    const llvm::Value *V, const llvm::Value *PotentialValue, bool IntraProcOnly,
+    const llvm::Function *VFun = nullptr,
+    const llvm::GlobalObject *VG = nullptr);
+
 class LLVMAliasSet : public AnalysisPropertiesMixin<LLVMAliasSet>,
                      public AliasInfoBaseUtils {
-  // For int*IsReachableAllocationSiteTy:
-  friend class FilteredLLVMAliasSet;
-
 public:
   using traits_t = AliasInfoTraits<LLVMAliasSet>;
   using n_t = traits_t::n_t;
@@ -120,6 +124,12 @@ public:
 
   [[nodiscard]] inline bool empty() const { return AnalyzedFunctions.empty(); }
 
+  friend bool isInReachableAllocationSitesTy(const llvm::Value *V,
+                                             const llvm::Value *PotentialValue,
+                                             bool IntraProcOnly,
+                                             const llvm::Function *VFun,
+                                             const llvm::GlobalObject *VG);
+
 private:
   void computeValuesAliasSet(const llvm::Value *V);
 
@@ -130,14 +140,6 @@ private:
   void mergeAliasSets(const llvm::Value *V1, const llvm::Value *V2);
 
   void mergeAliasSets(BoxedPtr<AliasSetTy> PTS1, BoxedPtr<AliasSetTy> PTS2);
-
-  bool interIsReachableAllocationSiteTy(const llvm::Value *V,
-                                        const llvm::Value *P) const;
-
-  bool intraIsReachableAllocationSiteTy(const llvm::Value *V,
-                                        const llvm::Value *P,
-                                        const llvm::Function *VFun,
-                                        const llvm::GlobalObject *VG) const;
 
   /// Utility function used by computeFunctionsAliasSet(...)
   void addPointer(FunctionAliasView AA, const llvm::DataLayout &DL,

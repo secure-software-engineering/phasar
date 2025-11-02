@@ -72,6 +72,7 @@ struct IsAliasInfo<
         decltype(testAliasInfo(std::declval<T &>(),
                                std::declval<const T &>()))>>> : std::true_type {
 };
+
 } // namespace detail
 
 template <typename T> PSR_CONCEPT IsAliasInfo = detail::IsAliasInfo<T>::value;
