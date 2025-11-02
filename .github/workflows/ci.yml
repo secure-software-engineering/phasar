@@ -16,22 +16,27 @@ jobs:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
         compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
-        build: [ Debug, Release, DebugLibdeps ]
+        build: [ Debug, Release, DebugLibdeps, DebugCov ]
         include:
           - build: Debug
             cmake_build_type: Debug
-            flags: -DPHASAR_ENABLE_SANITIZERS=ON -DCODE_COVERAGE=ON
+            flags: -DPHASAR_ENABLE_SANITIZERS=ON
           - build: Release
             cmake_build_type: Release
             flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON
           - build: DebugLibdeps
             cmake_build_type: Debug
             flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+          - build: DebugCov
+            cmake_build_type: Debug
+            flags: -DCODE_COVERAGE=ON
         exclude:
           - os: ubuntu-24.04-arm
             build: Debug
           - os: ubuntu-24.04-arm
             build: DebugLibdeps
+          - os: ubuntu-24.04-arm
+            build: DebugCov
 
     continue-on-error: false
     steps:
@@ -79,14 +84,14 @@ jobs:
           cmake --build ./build --target run_sample_programs
 
       - name: Check test coverage and generate HTML report
-        if: matrix.build == 'Debug'
+        if: matrix.build == 'DebugCov'
         shell: bash
         run: |
           cmake --build ./build --target ccov-all
           mv ./build/ccov/all-merged/index.html ./build/ccov/all-merged/coverage.html
 
       - name: Upload coverage HTML report artifact
-        if: matrix.build == 'Debug'
+        if: matrix.build == 'DebugCov'
         uses: actions/upload-artifact@v4
         with:
           name: CoverageReport
