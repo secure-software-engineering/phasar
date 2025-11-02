@@ -310,7 +310,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE)
 
   include(external/cmake-scripts/code-coverage.cmake)
 
-  set(COV_FILEPATH_FILTER "(usr/*|external/)")
+  set(COV_FILEPATH_FILTER "(usr/*|external/|unittests/)")
   add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER} LLVM_EXCLUDE ${COV_FILEPATH_FILTER} LCOV_EXCLUDE ${COV_FILEPATH_FILTER})
 endif()
 
