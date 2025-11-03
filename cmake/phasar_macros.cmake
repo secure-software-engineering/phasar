@@ -36,7 +36,7 @@ function(add_phasar_unittest test_name)
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
 
-  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE AND NOT PHASAR_DEBUG_LIBDEPS)
+  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE)
     target_code_coverage(${test} AUTO ALL)
   endif()
 endfunction()
@@ -356,7 +356,7 @@ function(add_phasar_library name)
 
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
 
-  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE AND NOT PHASAR_DEBUG_LIBDEPS)
+  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE)
     target_code_coverage(${name} AUTO ALL)
   endif()
 endfunction(add_phasar_library)

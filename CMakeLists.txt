@@ -275,33 +275,7 @@ include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
 
-# StableCoder cmake-scripts
-# TODO: ask fabian if not release or just equal debug is better
-
-# TODO: add install lcov to bootstrap or something
-#       Do NOT do: sudo apt-get install -y lcov
-#       Apparently this version is insanely old and we need a newer version/the newest version
-#       Installing lcov via the github page + make install has four billion dependencies, so
-#       we need to install those too:
-#       These perl packages include:
-#
-#         - Capture::Tiny
-#         - DateTime
-#         - Devel::Cover
-#         - Digest::MD5
-#         - File::Spec
-#         - at least one flavor of JSON module.
-#           In order of performance/preference:
-#              - JSON::XS
-#              - Cpanel::JSON::XS
-#              - JSON::PP
-#              - JSON
-#         - Memory::Process
-#         - Module::Load::Conditional
-#         - Scalar::Util
-#         - Time::HiRes
-#         - TimeDate
-
+# Coverage
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND CODE_COVERAGE)
   find_program(LLVM_COV_PATH llvm-cov-19)
   message(STATUS "Found llvm-cov ${LLVM_COV_PATH}")
