@@ -164,7 +164,9 @@ class PhasarRecipe(ConanFile):
             "utils",
             "img",
             "githooks",
-            "external"
+            "external",
+            "build",
+            "cmake-build"
         ])
 
         for tlf in os.listdir("."):
