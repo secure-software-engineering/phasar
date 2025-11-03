@@ -299,8 +299,13 @@ if (CODE_COVERAGE)
 
   include("${CODE_COVERAGE_SCRIPT}")
 
+  find_program(cxxfilt "c++filt" QUIET)
+  if (cxxfilt)
+    set(DEMANGLER_OPTIONS LLVM_COV_HTML_OPTIONS "-Xdemangler=${cxxfilt}")
+  endif()
+
   set(COV_FILEPATH_FILTER "(usr/*|external/|unittests/)")
-  add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER})
+  add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER} ${DEMANGLER_OPTIONS})
 endif()
 
 # Googletest
