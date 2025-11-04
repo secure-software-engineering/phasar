@@ -14,9 +14,6 @@ add_phasar_library(phasar_llvm_typehierarchy
     Support
     Analysis
 
-  LINK_PRIVATE
-    ${Boost_LIBRARIES}
-
   MODULE_FILES
     TypeHierarchy.cppm
 )

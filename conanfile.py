@@ -30,7 +30,6 @@ def components_from_dotfile(dotfile):
             "nlohmann_json_schema_validator": "json-schema-validator::json-schema-validator",
             "clangCodeGen": "clang::clangCodeGen",
             "clangTooling": "clang::clangTooling",
-            "SQLite::SQLite3": "sqlite3::sqlite3",
         }
         for row in dot:
             # e.g. "node0" [ label = "phasar\n(phasar::phasar)", shape = octagon ];
@@ -41,8 +40,6 @@ def components_from_dotfile(dotfile):
                 if label.startswith("LLVM"):
                     yield node, f"llvm-core::{label}"
                 # XXX find_library adds direct filepath -> imho a flaw in current cmake files
-                elif label.endswith("libsqlite3.a"):
-                    yield node, "sqlite3::sqlite3"
                 elif label.endswith("libclang-cpp.so"):
                     yield node, "clang::clang"
                 elif label.endswith("libclangCodeGen.a"):
@@ -167,7 +164,9 @@ class PhasarRecipe(ConanFile):
             "utils",
             "img",
             "githooks",
-            "external"
+            "external",
+            "build",
+            "cmake-build"
         ])
 
         for tlf in os.listdir("."):
@@ -228,8 +227,6 @@ class PhasarRecipe(ConanFile):
             self.options.rm_safe("fPIC")
 
     def requirements(self):
-        self.requires("boost/[>1.72.0 <=1.86.0]")
-        self.requires("sqlite3/[>=3 <4]")
         self.requires(f"clang/{self.options.llvm_version}@secure-software-engineering", transitive_libs=True, transitive_headers=True)
         self.requires("nlohmann_json/3.11.3", transitive_headers=True)
         self.requires("json-schema-validator/2.3.0", transitive_libs=True, transitive_headers=True)

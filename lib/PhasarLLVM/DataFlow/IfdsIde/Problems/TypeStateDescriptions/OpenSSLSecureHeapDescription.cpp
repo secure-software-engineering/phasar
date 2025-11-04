@@ -155,11 +155,6 @@ OpenSSLSecureHeapState OpenSSLSecureHeapDescription::top() const {
   return OpenSSLSecureHeapState::TOP;
 }
 
-OpenSSLSecureHeapState OpenSSLSecureHeapDescription::start() const {
-  llvm::report_fatal_error("TypeStateDescription::start() is deprecated");
-  return OpenSSLSecureHeapState::BOT;
-}
-
 OpenSSLSecureHeapState OpenSSLSecureHeapDescription::uninit() const {
   return OpenSSLSecureHeapState::UNINIT;
 }

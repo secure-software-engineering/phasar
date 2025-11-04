@@ -264,9 +264,6 @@ endif()
 # Threads
 find_package(Threads)
 
-# Boost
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
-
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
 
@@ -326,14 +323,6 @@ else()
   set(GTEST_INCLUDE_DIR "${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include")
 endif()
 
-# SQL
-find_package(SQLite3)
-if(SQLite3_FOUND)
-  set(PHASAR_HAS_SQLITE ON)
-else()
-  set(PHASAR_HAS_SQLITE OFF)
-endif()
-
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
@@ -382,7 +371,7 @@ else()
 endif()
 
 # Clang
-option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
+option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is OFF)" OFF)
 if(BUILD_PHASAR_CLANG)
   add_clang()
 endif()

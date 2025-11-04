@@ -120,10 +120,6 @@ OpenSSLEVPKDFState OpenSSLEVPKDFDescription::uninit() const {
   return OpenSSLEVPKDFState::UNINIT;
 }
 
-OpenSSLEVPKDFState OpenSSLEVPKDFDescription::start() const {
-  return OpenSSLEVPKDFState::KDF_FETCHED;
-}
-
 OpenSSLEVPKDFState OpenSSLEVPKDFDescription::error() const {
   return OpenSSLEVPKDFState::ERROR;
 }
