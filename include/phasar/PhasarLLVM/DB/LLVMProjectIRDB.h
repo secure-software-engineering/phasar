@@ -12,7 +12,6 @@
 
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
-#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -79,16 +78,6 @@ public:
   LLVMProjectIRDB &operator=(LLVMProjectIRDB &&) noexcept = default;
 
   ~LLVMProjectIRDB();
-
-  [[nodiscard]] PSR_DEPRECATED("Deprecated in favor of getParsedIRModuleOrErr",
-                               "getParsedIRModuleOrErr") static std::
-      unique_ptr<llvm::Module> getParsedIRModuleOrNull(
-          const llvm::Twine &IRFileName, llvm::LLVMContext &Ctx) noexcept;
-
-  [[nodiscard]] PSR_DEPRECATED("Deprecated in favor of getParsedIRModuleOrErr",
-                               "getParsedIRModuleOrErr") static std::
-      unique_ptr<llvm::Module> getParsedIRModuleOrNull(
-          llvm::MemoryBufferRef IRFileContent, llvm::LLVMContext &Ctx) noexcept;
 
   [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
   getParsedIRModuleOrErr(const llvm::Twine &IRFileName,

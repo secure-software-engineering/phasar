@@ -182,10 +182,6 @@ CSTDFILEIOState CSTDFILEIOTypeStateDescription::uninit() const {
   return CSTDFILEIOState::UNINIT;
 }
 
-CSTDFILEIOState CSTDFILEIOTypeStateDescription::start() const {
-  return CSTDFILEIOState::OPENED;
-}
-
 CSTDFILEIOState CSTDFILEIOTypeStateDescription::error() const {
   return CSTDFILEIOState::ERROR;
 }

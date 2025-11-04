@@ -17,9 +17,6 @@ add_phasar_library(phasar_llvm_ifdside
     Support
     Demangle
 
-  LINK_PRIVATE
-    ${Boost_LIBRARIES}
-
   MODULE_FILES
     IfdsIde.cppm
 )

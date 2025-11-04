@@ -23,8 +23,6 @@ function usage {
     echo -e "\t--unittest\t-u\t\t- Build and run PhASARs unit-tests (default is true)"
     echo -e "\t--install\t\t\t- Install PhASAR system-wide after building (default is false)"
     echo -e "\t--help\t\t-h\t\t- Display this help message"
-    echo -e "\t-DBOOST_DIR=<path>\t\t- The directory where boost should be installed (optional)"
-    echo -e "\t-DBOOST_VERSION=<string>\t- The desired boost version to install (optional)"
     echo -e "\t-DCMAKE_BUILD_TYPE=<string>\t- The build mode for building PhASAR. One of {Debug, RelWithDebInfo, Release} (default is Release)"
     echo -e "\t-DPHASAR_INSTALL_DIR=<path>\t- The folder where to install PhASAR if --install is specified (default is ${PHASAR_INSTALL_DIR})"
     echo -e "\t-DLLVM_INSTALL_DIR=<path>\t- The folder where to install LLVM if --install is specified (default is ${LLVM_INSTALL_DIR})"
@@ -47,24 +45,6 @@ case $key in
     -u|--unittest)
     DO_UNIT_TEST=true
     shift # past argument
-    ;;
-    -DBOOST_DIR)
-    DESIRED_BOOST_DIR="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -DBOOST_DIR=*)
-    DESIRED_BOOST_DIR="${key#*=}"
-    shift # past argument=value
-    ;;
-    -DBOOST_VERSION)
-    DESIRED_BOOST_VERSION="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -DBOOST_VERSION=*)
-    DESIRED_BOOST_VERSION="${key#*=}"
-    shift # past argument=value
     ;;
     -DCMAKE_BUILD_TYPE=*)
     BUILD_TYPE="${key#*=}"
@@ -113,54 +93,6 @@ else
     ./utils/InstallAptDependencies.sh
 fi
 
-if [ ! -z "${DESIRED_BOOST_DIR}" ]; then
-    BOOST_PARAMS="-DBOOST_ROOT=${DESIRED_BOOST_DIR}"
-else
-# New way of installing boost:
-# Check whether we have the required boost packages installed
-    { BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"'); } || true
-
-	if [ -z "$BOOST_VERSION" ] ;then
-        if [ -x "$(command -v pacman)" ]; then
-            yes | sudo pacman -Syu --needed boost-libs boost
-        else
-            if [ -z "$DESIRED_BOOST_VERSION" ] ;then
-                sudo apt-get install libboost-graph-dev -y
-            else
-                # DESIRED_BOOST_VERSION in form d.d, i.e. 1.65 (this is the latest version I found in the apt repo)
-                sudo apt-get install "libboost${DESIRED_BOOST_VERSION}-graph-dev" -y
-            fi
-            #verify installation
-            BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"')
-            if [ -z "$BOOST_VERSION" ] ;then
-                echo "Failed installing boost $DESIRED_BOOST_VERSION"
-                exit 1
-            else
-                echo "Successfully installed boost v${BOOST_VERSION//_/.}"
-            fi
-        fi
-	else
-        echo "Already installed boost version ${BOOST_VERSION//_/.}"
-        if [ -x "$(command -v apt)" ]; then
-            DESIRED_BOOST_VERSION=${BOOST_VERSION//_/.}
-            # install missing packages if necessary
-            boostlibnames=("libboost-graph")
-            additional_boost_libs=()
-            for boost_lib in "${boostlibnames[@]}"; do
-                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 ||
-                dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}.0" >/dev/null 2>&1 ||
-                additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}") ||
-                additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}.0")
-                dpkg -s "${boost_lib}-dev" >/dev/null 2>&1 || additional_boost_libs+=("${boost_lib}-dev")
-            done
-            if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
-                echo "Installing additional ${#additional_boost_libs[@]} boost packages: ${additional_boost_libs[*]}"
-                sudo apt-get install "${additional_boost_libs[@]}" -y || true
-            fi
-        fi
-	fi
-fi
-
 # installing LLVM
 tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
 ./utils/install-llvm.sh "${NUM_THREADS}" "${tmp_dir}" "${LLVM_INSTALL_DIR}" ${LLVM_RELEASE}
@@ -182,7 +114,7 @@ export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
 mkdir -p "${PHASAR_DIR}"/build
 safe_cd "${PHASAR_DIR}"/build
-cmake -G Ninja -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" "${BOOST_PARAMS}" -DPHASAR_BUILD_UNITTESTS="${DO_UNIT_TEST}" "${LLVM_PARAMS}" "${PHASAR_DIR}"
+cmake -G Ninja -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DPHASAR_BUILD_UNITTESTS="${DO_UNIT_TEST}" "${LLVM_PARAMS}" "${PHASAR_DIR}"
 cmake --build . -j "${NUM_THREADS}"
 
 echo "phasar successfully built"
