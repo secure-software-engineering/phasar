@@ -113,29 +113,6 @@ LLVMProjectIRDB::getParsedIRModuleOrErr(const llvm::Twine &IRFileName,
   return getParsedIRModuleOrErr(*FileOrErr.get(), Ctx);
 }
 
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
-                                         llvm::LLVMContext &Ctx) noexcept {
-
-  auto Mod = getParsedIRModuleOrErr(IRFileContent, Ctx);
-  if (Mod) {
-    return std::move(*Mod);
-  }
-
-  return nullptr;
-}
-
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
-                                         llvm::LLVMContext &Ctx) noexcept {
-  auto Mod = getParsedIRModuleOrErr(IRFileName, Ctx);
-  if (Mod) {
-    return std::move(*Mod);
-  }
-
-  return nullptr;
-}
-
 llvm::ErrorOr<LLVMProjectIRDB>
 LLVMProjectIRDB::load(const llvm::Twine &IRFileName,
                       bool EnableOpaquePointers) {

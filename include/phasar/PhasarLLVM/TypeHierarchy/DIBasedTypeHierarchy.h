@@ -58,11 +58,6 @@ public:
                                 const DIBasedTypeHierarchyData &SerializedData);
   ~DIBasedTypeHierarchy() override = default;
 
-  [[deprecated("Use LLVMVFTableProvider::isVTable() instead")]]
-  static bool isVTable(llvm::StringRef VarName);
-  [[deprecated("Use LLVMVFTableProvider::removeVTablePrefix() instead")]]
-  static std::string removeVTablePrefix(llvm::StringRef VarName);
-
   [[nodiscard]] bool hasType(ClassType Type) const override {
     return TypeToVertex.count(Type);
   }

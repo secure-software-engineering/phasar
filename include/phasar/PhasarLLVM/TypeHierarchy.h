@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_H
 
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
 #endif // PHASAR_PHASARLLVM_TYPEHIERARCHY_H

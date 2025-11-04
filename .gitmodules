@@ -5,6 +5,3 @@
 [submodule "external/json-schema-validator"]
 	path = external/json-schema-validator
 	url = https://github.com/pboettch/json-schema-validator.git
-[submodule "external/cmake-scripts"]
-	path = external/cmake-scripts
-	url = https://github.com/StableCoder/cmake-scripts.git

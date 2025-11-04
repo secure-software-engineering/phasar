@@ -1,6 +1,5 @@
-if(SQLite3_FOUND)
-  file(GLOB_RECURSE DB_SRC *.h *.cpp)
-
+file(GLOB_RECURSE DB_SRC *.h *.cpp)
+if(PHASAR_BUILD_MODULES OR NOT "${DB_SRC}" STREQUAL "")
   add_phasar_library(phasar_db
     ${DB_SRC}
 
@@ -9,9 +8,6 @@ if(SQLite3_FOUND)
 
     LLVM_LINK_COMPONENTS
       Support
-
-    LINK_PRIVATE
-      SQLite::SQLite3
 
     MODULE_FILES
       DB.cppm
