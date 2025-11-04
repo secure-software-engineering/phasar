@@ -24,11 +24,11 @@
 
 namespace psr {
 
-/// We aim to get rid of boost, so introduce a new GraphTraits class to replace
-/// it.
-/// This GraphTraits type should be specialized for each type that implements a
-/// "graph". All the functionality should be reflected by the GraphTraits class.
-/// Once moving to C++20, we have nice type-checking using concepts
+/// We removed the dependency to boost, so introduce a new GraphTraits class to
+/// replace it. This GraphTraits type should be specialized for each type that
+/// implements a "graph". All the functionality should be reflected by the
+/// GraphTraits class. Once moving to C++20, we have nice type-checking using
+/// concepts
 template <typename Graph> struct GraphTraits;
 
 #if __cplusplus >= 202002L

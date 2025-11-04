@@ -1,7 +1,5 @@
 file(GLOB_RECURSE PHASARCLANG_SRC *.h *.cpp)
 
-
-
 add_phasar_library(phasar_clang
   ${PHASARCLANG_SRC}
   LINKS

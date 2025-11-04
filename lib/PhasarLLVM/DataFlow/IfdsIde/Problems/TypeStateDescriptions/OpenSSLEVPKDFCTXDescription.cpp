@@ -184,10 +184,6 @@ OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::uninit() const {
   return OpenSSLEVPKDFCTXState::UNINIT;
 }
 
-OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::start() const {
-  return OpenSSLEVPKDFCTXState::CTX_ATTACHED;
-}
-
 OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::error() const {
   return OpenSSLEVPKDFCTXState::ERROR;
 }

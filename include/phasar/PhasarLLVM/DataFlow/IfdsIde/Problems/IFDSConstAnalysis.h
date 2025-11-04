@@ -31,7 +31,6 @@ class Value;
 namespace psr {
 
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 
 /**
  * This IFDS analysis will compute possibly mutable memory
