@@ -1,11 +1,19 @@
 var searchData=
 [
-  ['randomchangeastconsumer_2eh_0',['RandomChangeASTConsumer.h',['../RandomChangeASTConsumer_8h.html',1,'']]],
-  ['randomchangefrontendaction_2eh_1',['RandomChangeFrontendAction.h',['../RandomChangeFrontendAction_8h.html',1,'']]],
-  ['randomchangevisitor_2eh_2',['RandomChangeVisitor.h',['../RandomChangeVisitor_8h.html',1,'']]],
-  ['readme_2edox_3',['README.dox',['../README_8dox.html',1,'']]],
-  ['registerpasses_2eh_4',['RegisterPasses.h',['../RegisterPasses_8h.html',1,'']]],
-  ['repeatiterator_2eh_5',['RepeatIterator.h',['../RepeatIterator_8h.html',1,'']]],
-  ['resolver_2eh_6',['Resolver.h',['../Resolver_8h.html',1,'']]],
-  ['rtaresolver_2eh_7',['RTAResolver.h',['../RTAResolver_8h.html',1,'']]]
+  ['semiring_2eh_0',['SemiRing.h',['../SemiRing_8h.html',1,'']]],
+  ['simpleanalysisconstructor_2eh_1',['SimpleAnalysisConstructor.h',['../SimpleAnalysisConstructor_8h.html',1,'']]],
+  ['solverresults_2eh_2',['SolverResults.h',['../SolverResults_8h.html',1,'']]],
+  ['soundness_2eh_3',['Soundness.h',['../Soundness_8h.html',1,'']]],
+  ['sourcemgrprinter_2eh_4',['SourceMgrPrinter.h',['../SourceMgrPrinter_8h.html',1,'']]],
+  ['sparsecfgbase_2eh_5',['SparseCFGBase.h',['../SparseCFGBase_8h.html',1,'']]],
+  ['sparsecfgprovider_2eh_6',['SparseCFGProvider.h',['../SparseCFGProvider_8h.html',1,'']]],
+  ['sparsellvmbasedcfg_2eh_7',['SparseLLVMBasedCFG.h',['../SparseLLVMBasedCFG_8h.html',1,'']]],
+  ['sparsellvmbasedcfgprovider_2eh_8',['SparseLLVMBasedCFGProvider.h',['../SparseLLVMBasedCFGProvider_8h.html',1,'']]],
+  ['sparsellvmbasedicfg_2eh_9',['SparseLLVMBasedICFG.h',['../SparseLLVMBasedICFG_8h.html',1,'']]],
+  ['sparsellvmbasedicfgview_2eh_10',['SparseLLVMBasedICFGView.h',['../SparseLLVMBasedICFGView_8h.html',1,'']]],
+  ['specialmemberfunctiontype_2eh_11',['SpecialMemberFunctionType.h',['../SpecialMemberFunctionType_8h.html',1,'']]],
+  ['stablevector_2eh_12',['StableVector.h',['../StableVector_8h.html',1,'']]],
+  ['staticidesolverconfig_2eh_13',['StaticIDESolverConfig.h',['../StaticIDESolverConfig_8h.html',1,'']]],
+  ['strategies_2eh_14',['Strategies.h',['../Strategies_8h.html',1,'']]],
+  ['svfpointstoset_2eh_15',['SVFPointsToSet.h',['../SVFPointsToSet_8h.html',1,'']]]
 ];

@@ -1,9 +1,7 @@
 <map id="psr::EdgeFunction&lt; L &gt;" name="psr::EdgeFunction&lt; L &gt;">
-<area shape="rect" id="Node000001" title="Ref&#45;counted and type&#45;erased edge function with small&#45;object optimization. Supports caching." alt="" coords="77,80,252,105"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1EdgeFunction.html" title=" " alt="" coords="5,168,153,208"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="147,117,99,170,95,166,143,113"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1EdgeFunction.html" title=" " alt="" coords="177,168,325,208"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,113,236,166,232,170,183,117"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1EdgeFunctionBase.html" title=" " alt="" coords="80,5,249,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,45,167,80,162,80,162,45"/>
+<area shape="rect" id="Node000001" title="Ref&#45;counted and type&#45;erased edge function with small&#45;object optimization. Supports caching." alt="" coords="5,80,180,105"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1EdgeFunction.html" title=" " alt="" coords="19,168,167,208"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,119,95,168,90,168,90,119"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1EdgeFunctionBase.html" title=" " alt="" coords="8,5,177,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,45,95,80,90,80,90,45"/>
 </map>

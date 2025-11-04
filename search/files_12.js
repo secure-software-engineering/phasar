@@ -1,20 +1,16 @@
 var searchData=
 [
-  ['semiring_2eh_0',['SemiRing.h',['../SemiRing_8h.html',1,'']]],
-  ['simpleanalysisconstructor_2eh_1',['SimpleAnalysisConstructor.h',['../SimpleAnalysisConstructor_8h.html',1,'']]],
-  ['solverresults_2eh_2',['SolverResults.h',['../SolverResults_8h.html',1,'']]],
-  ['soundness_2eh_3',['Soundness.h',['../Soundness_8h.html',1,'']]],
-  ['sourcemgrprinter_2eh_4',['SourceMgrPrinter.h',['../SourceMgrPrinter_8h.html',1,'']]],
-  ['sparsecfgbase_2eh_5',['SparseCFGBase.h',['../SparseCFGBase_8h.html',1,'']]],
-  ['sparsecfgprovider_2eh_6',['SparseCFGProvider.h',['../SparseCFGProvider_8h.html',1,'']]],
-  ['sparsellvmbasedcfg_2eh_7',['SparseLLVMBasedCFG.h',['../SparseLLVMBasedCFG_8h.html',1,'']]],
-  ['sparsellvmbasedcfgprovider_2eh_8',['SparseLLVMBasedCFGProvider.h',['../SparseLLVMBasedCFGProvider_8h.html',1,'']]],
-  ['sparsellvmbasedicfg_2eh_9',['SparseLLVMBasedICFG.h',['../SparseLLVMBasedICFG_8h.html',1,'']]],
-  ['sparsellvmbasedicfgview_2eh_10',['SparseLLVMBasedICFGView.h',['../SparseLLVMBasedICFGView_8h.html',1,'']]],
-  ['specialmemberfunctiontype_2eh_11',['SpecialMemberFunctionType.h',['../SpecialMemberFunctionType_8h.html',1,'']]],
-  ['specialsummaries_2eh_12',['SpecialSummaries.h',['../SpecialSummaries_8h.html',1,'']]],
-  ['stablevector_2eh_13',['StableVector.h',['../StableVector_8h.html',1,'']]],
-  ['staticidesolverconfig_2eh_14',['StaticIDESolverConfig.h',['../StaticIDESolverConfig_8h.html',1,'']]],
-  ['strategies_2eh_15',['Strategies.h',['../Strategies_8h.html',1,'']]],
-  ['svfpointstoset_2eh_16',['SVFPointsToSet.h',['../SVFPointsToSet_8h.html',1,'']]]
+  ['table_2eh_0',['Table.h',['../Table_8h.html',1,'']]],
+  ['tablewrappers_2eh_1',['TableWrappers.h',['../TableWrappers_8h.html',1,'']]],
+  ['taintconfig_2eh_2',['TaintConfig.h',['../TaintConfig_8h.html',1,'']]],
+  ['taintconfigbase_2eh_3',['TaintConfigBase.h',['../TaintConfigBase_8h.html',1,'']]],
+  ['taintconfigdata_2eh_4',['TaintConfigData.h',['../TaintConfigData_8h.html',1,'']]],
+  ['taintconfigutilities_2eh_5',['TaintConfigUtilities.h',['../TaintConfigUtilities_8h.html',1,'']]],
+  ['timer_2eh_6',['Timer.h',['../Timer_8h.html',1,'']]],
+  ['transferedgefunction_2eh_7',['TransferEdgeFunction.h',['../TransferEdgeFunction_8h.html',1,'']]],
+  ['typecastedgefunction_2eh_8',['TypecastEdgeFunction.h',['../TypecastEdgeFunction_8h.html',1,'']]],
+  ['typeerasureutils_2eh_9',['TypeErasureUtils.h',['../TypeErasureUtils_8h.html',1,'']]],
+  ['typehierarchy_2eh_10',['typehierarchy.h',['../PhasarLLVM_2TypeHierarchy_8h.html',1,'(Global Namespace)'],['../TypeHierarchy_8h.html',1,'(Global Namespace)'],['../TypeHierarchy_2TypeHierarchy_8h.html',1,'(Global Namespace)']]],
+  ['typestatedescription_2eh_11',['TypeStateDescription.h',['../TypeStateDescription_8h.html',1,'']]],
+  ['typetraits_2eh_12',['TypeTraits.h',['../TypeTraits_8h.html',1,'']]]
 ];

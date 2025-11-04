@@ -17,12 +17,10 @@ var searchData=
   ['llvmprojectirdb_14',['LLVMProjectIRDB',['../classpsr_1_1LLVMProjectIRDB.html',1,'psr']]],
   ['llvmsourcemanager_15',['LLVMSourceManager',['../classpsr_1_1LLVMSourceManager.html',1,'psr']]],
   ['llvmtaintconfig_16',['LLVMTaintConfig',['../classpsr_1_1LLVMTaintConfig.html',1,'psr']]],
-  ['llvmtypehierarchy_17',['LLVMTypeHierarchy',['../classpsr_1_1LLVMTypeHierarchy.html',1,'psr']]],
-  ['llvmtypehierarchydata_18',['LLVMTypeHierarchyData',['../structpsr_1_1LLVMTypeHierarchyData.html',1,'psr']]],
-  ['llvmvalueidless_19',['LLVMValueIDLess',['../structpsr_1_1LLVMValueIDLess.html',1,'psr']]],
-  ['llvmvftable_20',['LLVMVFTable',['../classpsr_1_1LLVMVFTable.html',1,'psr']]],
-  ['llvmvftabledata_21',['LLVMVFTableData',['../structpsr_1_1LLVMVFTableData.html',1,'psr']]],
-  ['llvmvftableprovider_22',['LLVMVFTableProvider',['../classpsr_1_1LLVMVFTableProvider.html',1,'psr']]],
-  ['llvmzerovalue_23',['LLVMZeroValue',['../classpsr_1_1LLVMZeroValue.html',1,'psr']]],
-  ['logger_24',['Logger',['../classpsr_1_1Logger.html',1,'psr']]]
+  ['llvmvalueidless_17',['LLVMValueIDLess',['../structpsr_1_1LLVMValueIDLess.html',1,'psr']]],
+  ['llvmvftable_18',['LLVMVFTable',['../classpsr_1_1LLVMVFTable.html',1,'psr']]],
+  ['llvmvftabledata_19',['LLVMVFTableData',['../structpsr_1_1LLVMVFTableData.html',1,'psr']]],
+  ['llvmvftableprovider_20',['LLVMVFTableProvider',['../classpsr_1_1LLVMVFTableProvider.html',1,'psr']]],
+  ['llvmzerovalue_21',['LLVMZeroValue',['../classpsr_1_1LLVMZeroValue.html',1,'psr']]],
+  ['logger_22',['Logger',['../classpsr_1_1Logger.html',1,'psr']]]
 ];

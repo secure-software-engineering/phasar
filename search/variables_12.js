@@ -13,9 +13,5 @@ var searchData=
   ['totalnumsuccessorbbs_10',['TotalNumSuccessorBBs',['../structpsr_1_1GeneralStatistics.html#a94c556798bc61cc838da50e1b617b3d5',1,'psr::GeneralStatistics']]],
   ['totalnumuses_11',['TotalNumUses',['../structpsr_1_1GeneralStatistics.html#a220fe35ca2210930ddb13ec916bc715a',1,'psr::GeneralStatistics']]],
   ['transitivederivedindex_12',['TransitiveDerivedIndex',['../structpsr_1_1DIBasedTypeHierarchyData.html#a909d7085214a903910bb5d0711ee9957',1,'psr::DIBasedTypeHierarchyData']]],
-  ['tsf_13',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]],
-  ['type_14',['Type',['../structpsr_1_1LLVMTypeHierarchy_1_1VertexProperties.html#a618310ca870e870c13c28b84b2dad71a',1,'psr::LLVMTypeHierarchy::VertexProperties']]],
-  ['typegraph_15',['TypeGraph',['../structpsr_1_1LLVMTypeHierarchyData.html#a77754b3c8ba583caffbb032fe1de71dd',1,'psr::LLVMTypeHierarchyData']]],
-  ['typeinfoprefix_16',['TypeInfoPrefix',['../classpsr_1_1LLVMTypeHierarchy.html#ae392203fc3358be37ba47dc8d0ac6663',1,'psr::LLVMTypeHierarchy']]],
-  ['typeinfoprefixdemang_17',['TypeInfoPrefixDemang',['../classpsr_1_1LLVMTypeHierarchy.html#a64cd3db5de6dcc9b2ddb79f5ce8f005f',1,'psr::LLVMTypeHierarchy']]]
+  ['tsf_13',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]]
 ];

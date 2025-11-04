@@ -10,11 +10,10 @@ var searchData=
   ['varannotation_7',['VarAnnotation',['../classpsr_1_1VarAnnotation.html#a5c6aed232b25ff3ac8c6dead84fb9820',1,'psr::VarAnnotation']]],
   ['variabledata_8',['VariableData',['../structpsr_1_1VariableData.html#aa595d8ab2441132af47c20dccb7b8727',1,'psr::VariableData']]],
   ['vectorworklist_9',['vectorworklist',['../classpsr_1_1VectorWorkList.html#a84bc874827525a819fb5c22e5c471712',1,'psr::VectorWorkList::VectorWorkList() noexcept=default'],['../classpsr_1_1VectorWorkList.html#a9d12c1825d42c7f84a8777bc9cc5c728',1,'psr::VectorWorkList::VectorWorkList(const NodeCompressor &amp;NC, const ICFGTy &amp;ICF) noexcept']]],
-  ['vertexproperties_10',['vertexproperties',['../structpsr_1_1LLVMTypeHierarchy_1_1VertexProperties.html#a8db13e709d584dd05f3edbcf8cb42c2d',1,'psr::LLVMTypeHierarchy::VertexProperties::VertexProperties()=default'],['../structpsr_1_1LLVMTypeHierarchy_1_1VertexProperties.html#ab21240df6614776732852bf4254972d9',1,'psr::LLVMTypeHierarchy::VertexProperties::VertexProperties(const llvm::StructType *Type)']]],
-  ['vertices_11',['vertices',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#a540cf80651715fd2778c5c51b289e65d',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;']]],
-  ['viewcallgraph_12',['viewCallGraph',['../classpsr_1_1CallGraphBuilder.html#a6ba194edd350e35d267a490392d0c7bc',1,'psr::CallGraphBuilder']]],
-  ['visitfunctiondecl_13',['visitFunctionDecl',['../classpsr_1_1RandomChangeVisitor.html#a5ef0ef59a8c6ab65fb042cf417b93bbc',1,'psr::RandomChangeVisitor']]],
-  ['visitstmt_14',['visitStmt',['../classpsr_1_1RandomChangeVisitor.html#a0806ff51a8003bd238674420baa78d65',1,'psr::RandomChangeVisitor']]],
-  ['visittypedecl_15',['visitTypeDecl',['../classpsr_1_1RandomChangeVisitor.html#a0632374450efe9424775f9135bcfb0e8',1,'psr::RandomChangeVisitor']]],
-  ['visitvardecl_16',['visitVarDecl',['../classpsr_1_1RandomChangeVisitor.html#a862f55c0158ccac9d28bda47ee15ce27',1,'psr::RandomChangeVisitor']]]
+  ['vertices_10',['vertices',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#a540cf80651715fd2778c5c51b289e65d',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;']]],
+  ['viewcallgraph_11',['viewCallGraph',['../classpsr_1_1CallGraphBuilder.html#a6ba194edd350e35d267a490392d0c7bc',1,'psr::CallGraphBuilder']]],
+  ['visitfunctiondecl_12',['visitFunctionDecl',['../classpsr_1_1RandomChangeVisitor.html#a5ef0ef59a8c6ab65fb042cf417b93bbc',1,'psr::RandomChangeVisitor']]],
+  ['visitstmt_13',['visitStmt',['../classpsr_1_1RandomChangeVisitor.html#a0806ff51a8003bd238674420baa78d65',1,'psr::RandomChangeVisitor']]],
+  ['visittypedecl_14',['visitTypeDecl',['../classpsr_1_1RandomChangeVisitor.html#a0632374450efe9424775f9135bcfb0e8',1,'psr::RandomChangeVisitor']]],
+  ['visitvardecl_15',['visitVarDecl',['../classpsr_1_1RandomChangeVisitor.html#a862f55c0158ccac9d28bda47ee15ce27',1,'psr::RandomChangeVisitor']]]
 ];

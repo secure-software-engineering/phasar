@@ -28,11 +28,9 @@ var searchData=
   ['llvmsolverresults_2eh_25',['LLVMSolverResults.h',['../LLVMSolverResults_8h.html',1,'']]],
   ['llvmsourcemanager_2eh_26',['LLVMSourceManager.h',['../LLVMSourceManager_8h.html',1,'']]],
   ['llvmtaintconfig_2eh_27',['LLVMTaintConfig.h',['../LLVMTaintConfig_8h.html',1,'']]],
-  ['llvmtypehierarchy_2eh_28',['LLVMTypeHierarchy.h',['../LLVMTypeHierarchy_8h.html',1,'']]],
-  ['llvmtypehierarchydata_2eh_29',['LLVMTypeHierarchyData.h',['../LLVMTypeHierarchyData_8h.html',1,'']]],
-  ['llvmvftable_2eh_30',['LLVMVFTable.h',['../LLVMVFTable_8h.html',1,'']]],
-  ['llvmvftabledata_2eh_31',['LLVMVFTableData.h',['../LLVMVFTableData_8h.html',1,'']]],
-  ['llvmvftableprovider_2eh_32',['LLVMVFTableProvider.h',['../LLVMVFTableProvider_8h.html',1,'']]],
-  ['llvmzerovalue_2eh_33',['LLVMZeroValue.h',['../LLVMZeroValue_8h.html',1,'']]],
-  ['logger_2eh_34',['Logger.h',['../Logger_8h.html',1,'']]]
+  ['llvmvftable_2eh_28',['LLVMVFTable.h',['../LLVMVFTable_8h.html',1,'']]],
+  ['llvmvftabledata_2eh_29',['LLVMVFTableData.h',['../LLVMVFTableData_8h.html',1,'']]],
+  ['llvmvftableprovider_2eh_30',['LLVMVFTableProvider.h',['../LLVMVFTableProvider_8h.html',1,'']]],
+  ['llvmzerovalue_2eh_31',['LLVMZeroValue.h',['../LLVMZeroValue_8h.html',1,'']]],
+  ['logger_2eh_32',['Logger.h',['../Logger_8h.html',1,'']]]
 ];

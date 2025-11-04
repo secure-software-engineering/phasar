@@ -19,7 +19,5 @@ var searchData=
   ['hasnoconfigurationtype_16',['HasNoConfigurationType',['../structpsr_1_1HasNoConfigurationType.html',1,'psr']]],
   ['helperanalyses_17',['HelperAnalyses',['../classpsr_1_1HelperAnalyses.html',1,'psr']]],
   ['helperanalysisconfig_18',['HelperAnalysisConfig',['../structpsr_1_1HelperAnalysisConfig.html',1,'psr']]],
-  ['hexastore_19',['Hexastore',['../classpsr_1_1Hexastore.html',1,'psr']]],
-  ['hms_20',['hms',['../structpsr_1_1hms.html',1,'psr']]],
-  ['hsresult_21',['HSResult',['../structpsr_1_1HSResult.html',1,'psr']]]
+  ['hms_19',['hms',['../structpsr_1_1hms.html',1,'psr']]]
 ];

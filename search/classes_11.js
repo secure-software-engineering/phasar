@@ -34,14 +34,13 @@ var searchData=
   ['sparsellvmbasedcfg_31',['SparseLLVMBasedCFG',['../classpsr_1_1SparseLLVMBasedCFG.html',1,'psr']]],
   ['sparsellvmbasedicfg_32',['SparseLLVMBasedICFG',['../classpsr_1_1SparseLLVMBasedICFG.html',1,'psr']]],
   ['sparsellvmbasedicfgview_33',['SparseLLVMBasedICFGView',['../classpsr_1_1SparseLLVMBasedICFGView.html',1,'psr']]],
-  ['specialsummaries_34',['SpecialSummaries',['../classpsr_1_1SpecialSummaries.html',1,'psr']]],
-  ['stablevector_35',['StableVector',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stablevector_3c_20aliassetty_20_2a_20_3e_36',['StableVector&lt; AliasSetTy * &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stablevector_3c_20instructionvertexty_20_3e_37',['StableVector&lt; InstructionVertexTy &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stablevector_3c_20interpropagationjob_20_3e_38',['StableVector&lt; InterPropagationJob &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stablevector_3c_20psr_3a_3aequivalenceclassmapng_3c_20std_3a_3apair_3c_20uint64_5ft_2c_20uint64_5ft_20_3e_2c_20edgefunction_3c_20l_5ft_20_3e_20_3e_20_3e_39',['StableVector&lt; psr::EquivalenceClassMapNG&lt; std::pair&lt; uint64_t, uint64_t &gt;, EdgeFunction&lt; l_t &gt; &gt; &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stablevector_3c_20psr_3a_3aequivalenceclassmapng_3c_20uint64_5ft_2c_20edgefunction_3c_20l_5ft_20_3e_20_3e_20_3e_40',['StableVector&lt; psr::EquivalenceClassMapNG&lt; uint64_t, EdgeFunction&lt; l_t &gt; &gt; &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stringidless_41',['StringIDLess',['../structpsr_1_1StringIDLess.html',1,'psr']]],
-  ['summaryedge_42',['SummaryEdge',['../structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html',1,'psr::IterativeIDESolverBase']]],
-  ['svfpointstoinfotraits_43',['SVFPointsToInfoTraits',['../structpsr_1_1SVFPointsToInfoTraits.html',1,'psr']]]
+  ['stablevector_34',['StableVector',['../classpsr_1_1StableVector.html',1,'psr']]],
+  ['stablevector_3c_20aliassetty_20_2a_20_3e_35',['StableVector&lt; AliasSetTy * &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
+  ['stablevector_3c_20instructionvertexty_20_3e_36',['StableVector&lt; InstructionVertexTy &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
+  ['stablevector_3c_20interpropagationjob_20_3e_37',['StableVector&lt; InterPropagationJob &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
+  ['stablevector_3c_20psr_3a_3aequivalenceclassmapng_3c_20std_3a_3apair_3c_20uint64_5ft_2c_20uint64_5ft_20_3e_2c_20edgefunction_3c_20l_5ft_20_3e_20_3e_20_3e_38',['StableVector&lt; psr::EquivalenceClassMapNG&lt; std::pair&lt; uint64_t, uint64_t &gt;, EdgeFunction&lt; l_t &gt; &gt; &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
+  ['stablevector_3c_20psr_3a_3aequivalenceclassmapng_3c_20uint64_5ft_2c_20edgefunction_3c_20l_5ft_20_3e_20_3e_20_3e_39',['StableVector&lt; psr::EquivalenceClassMapNG&lt; uint64_t, EdgeFunction&lt; l_t &gt; &gt; &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
+  ['stringidless_40',['StringIDLess',['../structpsr_1_1StringIDLess.html',1,'psr']]],
+  ['summaryedge_41',['SummaryEdge',['../structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html',1,'psr::IterativeIDESolverBase']]],
+  ['svfpointstoinfotraits_42',['SVFPointsToInfoTraits',['../structpsr_1_1SVFPointsToInfoTraits.html',1,'psr']]]
 ];

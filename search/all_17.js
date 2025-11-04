@@ -1,31 +1,5 @@
 var searchData=
 [
-  ['warning_0',['warning',['../structpsr_1_1Warning.html',1,'psr::Warning&lt; AnalysisDomainTy &gt;'],['../structpsr_1_1Warning.html#a0f38d2b4af67b25d5f0984c8f03ea68e',1,'psr::Warning::Warning()']]],
-  ['weight_1',['weight',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#ae756cd4f30298551856a69c2681c0cbe',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;']]],
-  ['withadditionalconstraint_2',['withadditionalconstraint',['../structpsr_1_1Z3BasedPathSensitivityConfig.html#a4a7d67fc860eea8cb1ba01e05987c39f',1,'psr::Z3BasedPathSensitivityConfig::withAdditionalConstraint(const z3::expr &amp;Constr) const &amp;noexcept'],['../structpsr_1_1Z3BasedPathSensitivityConfig.html#a1cb56df692346d3173b219611be9798e',1,'psr::Z3BasedPathSensitivityConfig::withAdditionalConstraint(const z3::expr &amp;Constr) &amp;&amp;noexcept']]],
-  ['withbinaryvaluedomain_3',['WithBinaryValueDomain',['../namespacepsr.html#add61a93cb36cb5fcba8231b9ebc34ef2',1,'psr']]],
-  ['withcgtype_4',['withCGType',['../structpsr_1_1HelperAnalysisConfig.html#a1313221ff722e25db15499674b3c428e',1,'psr::HelperAnalysisConfig']]],
-  ['withcomputevalues_5',['WithComputeValues',['../structpsr_1_1WithComputeValues.html',1,'psr']]],
-  ['withdagdepththreshold_6',['withDAGDepthThreshold',['../structpsr_1_1PathSensitivityConfigBase.html#a693aa341ec6c88aa991b7c34f5777afc',1,'psr::PathSensitivityConfigBase']]],
-  ['withdagsizethreshold_7',['withDAGSizeThreshold',['../structpsr_1_1PathSensitivityConfigBase.html#adc9fac0a4e7bf2848798a6869fcbbba7',1,'psr::PathSensitivityConfigBase']]],
-  ['withedgetarget_8',['withEdgeTarget',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#abfd2ca20334bdbdf107956e79a28d11d',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;']]],
-  ['withendsummarytab_9',['WithEndSummaryTab',['../structpsr_1_1WithEndSummaryTab.html',1,'psr']]],
-  ['withgcmode_10',['WithGCMode',['../structpsr_1_1WithGCMode.html',1,'psr']]],
-  ['withindirectionof_11',['withIndirectionOf',['../classpsr_1_1AbstractMemoryLocationFactory_3_01AbstractMemoryLocation_01_4.html#a3a1fc71473df2e90d1508ad0d35fac7e',1,'psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;']]],
-  ['withminimizedag_12',['withMinimizeDAG',['../structpsr_1_1PathSensitivityConfigBase.html#a284a03c0bfca573b7c652ecd1053e912',1,'psr::PathSensitivityConfigBase']]],
-  ['withnumpathsthreshold_13',['withNumPathsThreshold',['../structpsr_1_1PathSensitivityConfigBase.html#a5fad6b81f05b7e0543e701e8d45e1c77',1,'psr::PathSensitivityConfigBase']]],
-  ['withoffset_14',['withOffset',['../classpsr_1_1AbstractMemoryLocationFactory_3_01AbstractMemoryLocation_01_4.html#a8b17e2a3ad14bb99ef5c479b292e2e76',1,'psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;']]],
-  ['withoffsets_15',['withOffsets',['../classpsr_1_1AbstractMemoryLocationFactory_3_01AbstractMemoryLocation_01_4.html#a77faf49d972c8a0e16846bd905906df3',1,'psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;']]],
-  ['withsanitizer_16',['WithSanitizer',['../classpsr_1_1XTaint_1_1EdgeDomain.html#a73387eb727853a2d2e72da1884bec2cda195bbca8218ff7be66c00b4b47bf83ec',1,'psr::XTaint::EdgeDomain']]],
-  ['withstats_17',['WithStats',['../structpsr_1_1WithStats.html',1,'psr']]],
-  ['withtransferfrom_18',['withTransferFrom',['../classpsr_1_1AbstractMemoryLocationFactory_3_01AbstractMemoryLocation_01_4.html#a3fde8c54199d94f2be1a24cd9bc91807',1,'psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;']]],
-  ['withtransferto_19',['withTransferTo',['../classpsr_1_1AbstractMemoryLocationFactory_3_01AbstractMemoryLocation_01_4.html#aaad95b86b8566351833a322f5de9de2b',1,'psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;']]],
-  ['withworklist_20',['WithWorkList',['../structpsr_1_1WithWorkList.html',1,'psr']]],
-  ['wlcomphighwatermark_21',['WLCompHighWatermark',['../structpsr_1_1IterativeIDESolverStats.html#a904f534ebc2e6ff5815be7785d9b42f3',1,'psr::IterativeIDESolverStats']]],
-  ['wlprophighwatermark_22',['WLPropHighWatermark',['../structpsr_1_1IterativeIDESolverStats.html#ab2a66e85f6564fafe88d5e56b617c8a2',1,'psr::IterativeIDESolverStats']]],
-  ['worklist_23',['worklist',['../classpsr_1_1InterMonoSolver.html#a93ee3a73aa5b7dd518de0df72dcd682b',1,'psr::InterMonoSolver::Worklist'],['../classpsr_1_1IntraMonoSolver.html#a2d6bf07829d90f10580468548e054473',1,'psr::IntraMonoSolver::Worklist']]],
-  ['worklist_5ft_24',['worklist_t',['../classpsr_1_1IterativeIDESolverBase.html#a3beef79d4546edc0d6d09f72990011bf',1,'psr::IterativeIDESolverBase::worklist_t'],['../structpsr_1_1IDESolverConfigBase.html#aae72e9065e8ff916b59f620015358b60',1,'psr::IDESolverConfigBase::worklist_t'],['../structpsr_1_1WithWorkList.html#af1738db3106a864ab10773b0721784a5',1,'psr::WithWorkList::worklist_t']]],
-  ['worklisthighwatermark_25',['WorkListHighWatermark',['../structpsr_1_1IterativeIDESolverStats.html#a96d899c0a8126279a40c487d0c848d20',1,'psr::IterativeIDESolverStats']]],
-  ['worklisttraits_2eh_26',['WorkListTraits.h',['../WorkListTraits_8h.html',1,'']]],
-  ['writetextfile_27',['writeTextFile',['../namespacepsr.html#a89b776ae84a26d980e9f10cf08df5a36',1,'psr']]]
+  ['xtaintanalysisbase_2eh_0',['XTaintAnalysisBase.h',['../XTaintAnalysisBase_8h.html',1,'']]],
+  ['xtaintedgefunctionbase_2eh_1',['XTaintEdgeFunctionBase.h',['../XTaintEdgeFunctionBase_8h.html',1,'']]]
 ];
