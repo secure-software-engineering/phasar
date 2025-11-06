@@ -29,7 +29,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
   Ctx.Visited.resize(graph_traits_t::size(RevDAG));
   Ctx.NodeConstraints.resize(graph_traits_t::size(RevDAG), Ctx.True);
 
-  size_t TotalNumEdges = 0;
+  [[maybe_unused]] size_t TotalNumEdges = 0;
   for (auto I : graph_traits_t::vertices(RevDAG)) {
     TotalNumEdges += graph_traits_t::outDegree(RevDAG, I);
   }
@@ -450,7 +450,7 @@ private:
   size_t Ctr = 0;
   size_t RejectedCtr = 0;
   size_t IsValidCalls = 0;
-  const size_t &CompletedCtr;
+  [[maybe_unused]] const size_t &CompletedCtr;
 };
 
 auto Z3BasedPathSensitivityManagerBase::filterAndFlattenRevDag(

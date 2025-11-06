@@ -92,7 +92,15 @@ public:
         llvm::errs() << "Fatal error occurred. Writing ESG to temp file...\n";
         llvm::errs().flush();
 
-        auto FileName = std::string(tmpnam(nullptr)) + "-explicitesg-err.dot";
+        char FileName[] = "/tmp/explicitesg-err.dot.XXXXXX";
+        int FileStatus = mkstemp(FileName);
+
+        if (FileStatus == -1) {
+          llvm::errs() << "Fatal error occurred. Temp file for ESG could not "
+                          "be openend...\n";
+          llvm::errs().flush();
+          abort();
+        }
 
         {
           std::error_code EC;
