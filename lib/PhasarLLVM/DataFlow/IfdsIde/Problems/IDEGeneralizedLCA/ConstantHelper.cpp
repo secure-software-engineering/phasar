@@ -32,8 +32,7 @@ bool psr::glca::isConstant(const llvm::Value *Val) {
     auto *Op1 = Gep->getOperand(0); // op1 is pointer-operand
     if (auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(Op1);
         Glob && Glob->hasInitializer()) {
-      if (auto *Cdat =
-              llvm::dyn_cast<llvm::ConstantDataArray>(Glob->getInitializer())) {
+      if (llvm::isa<llvm::ConstantDataArray>(Glob->getInitializer())) {
         return true; // it is definitely a const string
       }
     }
