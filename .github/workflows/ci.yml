@@ -89,7 +89,6 @@ jobs:
         shell: bash
         run: |
           cmake --build ./build --target ccov-all
-          mv ./build/ccov/all-merged/index.html ./build/ccov/all-merged/coverage.html
 
       - name: Upload coverage HTML report artifact
         if: matrix.build == 'DebugCov'
