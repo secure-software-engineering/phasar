@@ -674,7 +674,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span> </div>
 <div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>    <span class="keyword">auto</span> AtInstruction = NodeCompressor[AtInstructionId];</div>
 <div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span> </div>
-<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>    <span class="keyword">auto</span> FunId = [=] {</div>
+<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>    <span class="keyword">auto</span> FunId = [&amp;] {</div>
 <div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>      <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {</div>
 <div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span> </div>
 <div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>        <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = FunCompressor.getOrInsert(ICFG.getFunctionOf(AtInstruction));</div>
@@ -1511,7 +1511,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:10:30 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Nov 8 2025 12:33:02 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
