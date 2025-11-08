@@ -61,7 +61,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     const auto *ValueOp = Store->getValueOperand();
     if (isConstant(ValueOp)) {
       // llvm::outs() << "==> constant store" << std::endl;
-      return lambdaFlow([=](IDEGeneralizedLCA::d_t Source)
+      return lambdaFlow([this, PointerOp](IDEGeneralizedLCA::d_t Source)
                             -> std::set<IDEGeneralizedLCA::d_t> {
         // llvm::outs() << "##> normal lambdaFlow for: " <<
         // llvmIRToString(curr)
@@ -131,7 +131,8 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     bool NoneConst = !LeftConst && !RightConst;
 
     return lambdaFlow(
-        [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
+        [this, Lhs, Rhs, BothConst, NoneConst, Curr](
+            IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           if (Source == Lhs || Source == Rhs ||
               ((BothConst || NoneConst) && isZeroValue(Source))) {
             return {Source, Curr};

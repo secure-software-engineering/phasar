@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
         compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
-        build: [ Debug, Release, DebugLibdeps ]
+        build: [ Debug, Release, DebugLibdeps, DebugCov ]
         include:
           - build: Debug
             cmake_build_type: Debug
@@ -27,11 +27,17 @@ jobs:
           - build: DebugLibdeps
             cmake_build_type: Debug
             flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+          - build: DebugCov
+            cmake_build_type: Debug
+            flags: -DCODE_COVERAGE=ON
+            extra_dependencies: llvm-19 # For coverage
         exclude:
           - os: ubuntu-24.04-arm
             build: Debug
           - os: ubuntu-24.04-arm
             build: DebugLibdeps
+          - os: ubuntu-24.04-arm
+            build: DebugCov
 
     continue-on-error: false
     steps:
@@ -44,7 +50,7 @@ jobs:
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }}
+          ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
@@ -77,3 +83,18 @@ jobs:
           cd ./examples/how-to
           cmake -S . -B build -Dphasar_ROOT="$PHASAR_ROOT_DIR/INSTALL"
           cmake --build ./build --target run_sample_programs
+
+      - name: Check test coverage and generate HTML report
+        if: matrix.build == 'DebugCov'
+        shell: bash
+        run: |
+          cmake --build ./build --target ccov-all
+
+      - name: Upload coverage HTML report artifact
+        if: matrix.build == 'DebugCov'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CoverageReport
+          path: ./build/ccov/all-merged/
+          if-no-files-found: error
+          retention-days: 7

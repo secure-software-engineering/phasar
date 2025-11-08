@@ -94,7 +94,7 @@ static bool shouldKeepInst(const llvm::Instruction *Inst,
   const auto *ValTy = Val->getType();
   bool ValPtr = ValTy->isPointerTy();
 
-  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst)) {
+  if (llvm::isa<llvm::CallBase>(Inst)) {
     if (llvm::isa<llvm::GlobalValue>(Val)) {
       return true;
     }

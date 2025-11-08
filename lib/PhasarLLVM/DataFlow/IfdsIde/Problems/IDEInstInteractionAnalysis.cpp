@@ -35,7 +35,7 @@ IDEIIAFlowFact::IDEIIAFlowFact(
 }
 
 IDEIIAFlowFact IDEIIAFlowFact::create(const llvm::Value *BaseVal) {
-  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(BaseVal)) {
+  if (llvm::isa<llvm::AllocaInst>(BaseVal)) {
     return {BaseVal};
   }
   if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(BaseVal)) {
