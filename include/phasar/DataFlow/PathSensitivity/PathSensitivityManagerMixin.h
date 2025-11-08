@@ -89,18 +89,9 @@ public:
       if (LLVM_UNLIKELY(!Nod)) {
         llvm::errs() << "Invalid Instruction-FlowFact pair. Only use those "
                         "pairs that are part of the IDE analysis results!\n";
-        llvm::errs() << "Fatal error occurred. Writing ESG to temp file...\n";
-        llvm::errs().flush();
+        llvm::errs() << "Fatal error occurred. Printing ESG ...\n";
 
-        auto FileName = std::string(tmpnam(nullptr)) + "-explicitesg-err.dot";
-
-        {
-          std::error_code EC;
-          llvm::raw_fd_ostream ROS(FileName, EC);
-          ESG.printAsDot(ROS);
-        }
-
-        llvm::errs() << "> ESG written to " << FileName << '\n';
+        ESG.printAsDot(llvm::errs());
         llvm::errs().flush();
 
         abort();

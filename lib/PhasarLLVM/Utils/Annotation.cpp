@@ -30,7 +30,7 @@ namespace psr {
 
 VarAnnotation::VarAnnotation(const llvm::CallBase *AnnotationCall) noexcept
     : AnnotationCall(AnnotationCall) {
-  auto *Callee = AnnotationCall->getCalledFunction();
+  [[maybe_unused]] auto *Callee = AnnotationCall->getCalledFunction();
   assert(Callee && Callee->hasName() &&
          (Callee->getName().starts_with("llvm.var.annotation") ||
           Callee->getName().startswith("llvm.ptr.annotation")));

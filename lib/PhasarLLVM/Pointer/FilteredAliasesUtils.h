@@ -57,7 +57,7 @@ inline LLVM_LIBRARY_VISIBILITY bool mustNoalias(const llvm::Value *P1,
     if (llvm::isa<llvm::AllocaInst>(P2) || isConstantGlobalValue(Glob1)) {
       return true;
     }
-    if (const auto *Glob2 = llvm::dyn_cast<llvm::GlobalValue>(P2)) {
+    if (llvm::isa<llvm::GlobalValue>(P2)) {
       return true; // approximation
     }
   } else if (const auto *Glob2 = llvm::dyn_cast<llvm::GlobalValue>(P2)) {

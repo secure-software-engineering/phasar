@@ -105,8 +105,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         }
 
         // check for alloca instruction for possible types
-        if (const llvm::AllocaInst *Alloc =
-                llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+        if (llvm::isa<llvm::AllocaInst>(&I)) {
           // do not add allocas from llvm internal functions
           Stats.AllocaInstructions.insert(&I);
           ++Stats.AllocationSites;

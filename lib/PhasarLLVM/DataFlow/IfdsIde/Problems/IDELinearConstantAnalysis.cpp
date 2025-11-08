@@ -347,8 +347,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     /// We are extracting the result of a BinaryOpIntrinsic
     /// The first parameter holds the resulting integer if
     /// no error occured during the operation
-    if (const auto *BinIntrinsic =
-            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Agg)) {
+    if (llvm::isa<llvm::BinaryOpIntrinsic>(Agg)) {
       if (Extract->getType()->isIntegerTy()) {
         return generateFlow(Curr, Agg);
       }

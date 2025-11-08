@@ -97,6 +97,7 @@ fi
 tmp_dir=$(mktemp -d "llvm-build.XXXXXXXX" --tmpdir)
 ./utils/install-llvm.sh "${NUM_THREADS}" "${tmp_dir}" "${LLVM_INSTALL_DIR}" ${LLVM_RELEASE}
 rm -rf "${tmp_dir}"
+
 echo "dependencies successfully installed"
 
 # *Always* set the LLVM root to ensure the Phasar script uses the proper toolchain
