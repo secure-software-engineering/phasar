@@ -180,5 +180,10 @@ LLVMVFTableProvider::removeVTablePrefix(llvm::StringRef GlobName) noexcept {
 
 /// Supercedes DIBasedTypeHierarchy::isVTable() + removeVTablePrefix
 bool LLVMVFTableProvider::isVTable(llvm::StringRef MangledVarName) {
-  return MangledVarName.startswith(VTablePrefix);
+  if (MangledVarName.startswith(VTablePrefix)) {
+    return true;
+  }
+  // In LLVM 17 demangle() takes a StringRef
+  auto Demang = llvm::demangle(MangledVarName.str());
+  return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }

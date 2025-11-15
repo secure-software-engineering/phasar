@@ -264,17 +264,46 @@ endif()
 # Threads
 find_package(Threads)
 
-# Boost
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
-
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
 
 # Nlohmann JSON
-
 include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
+
+# Coverage
+if (CODE_COVERAGE)
+  set(CODE_COVERAGE_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/code-coverage.cmake")
+  file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/refs/tags/25.08/code-coverage.cmake" "${CODE_COVERAGE_SCRIPT}"
+    EXPECTED_HASH SHA256=cad4dd2bdf944f77627687e0298debc8341bfdeffaf949937f319c7c4ff3fdaf
+    TLS_VERIFY ON
+    STATUS CODE_COVERAGE_SCRIPT_DOWNLOAD_STATUS
+  )
+  message(STATUS "Download code-coverage.cmake: ${CODE_COVERAGE_SCRIPT_DOWNLOAD_STATUS}")
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    string(REGEX MATCH "^[0-9]+" COMPILER_VERSION_MAJOR "${CMAKE_CXX_COMPILER_VERSION}")
+    message(STATUS "Clang major version: ${COMPILER_VERSION_MAJOR}")
+    set(LLVM_TOOL_VERSION_SUFFIX "-${COMPILER_VERSION_MAJOR}")
+  endif()
+
+  # pre-populate these cmake variables as we require specific versions:
+  find_program(LLVM_COV_PATH "llvm-cov${LLVM_TOOL_VERSION_SUFFIX}" REQUIRED)
+  find_program(LLVM_PROFDATA_PATH "llvm-profdata${LLVM_TOOL_VERSION_SUFFIX}" REQUIRED)
+  message(STATUS "Found llvm-cov: ${LLVM_COV_PATH}")
+  message(STATUS "Found llvm-profdata: ${LLVM_PROFDATA_PATH}")
+
+  include("${CODE_COVERAGE_SCRIPT}")
+
+  find_program(cxxfilt "c++filt" QUIET)
+  if (cxxfilt)
+    set(DEMANGLER_OPTIONS LLVM_COV_HTML_OPTIONS "-Xdemangler=${cxxfilt}")
+  endif()
+
+  set(COV_FILEPATH_FILTER "(usr/*|external/|unittests/)")
+  add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER} ${DEMANGLER_OPTIONS})
+endif()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -292,14 +321,6 @@ if (NOT PHASAR_IN_TREE)
 else()
   # Set llvm distributed includes for gtest header
   set(GTEST_INCLUDE_DIR "${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include")
-endif()
-
-# SQL
-find_package(SQLite3)
-if(SQLite3_FOUND)
-  set(PHASAR_HAS_SQLITE ON)
-else()
-  set(PHASAR_HAS_SQLITE OFF)
 endif()
 
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
@@ -350,7 +371,7 @@ else()
 endif()
 
 # Clang
-option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
+option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is OFF)" OFF)
 if(BUILD_PHASAR_CLANG)
   add_clang()
 endif()

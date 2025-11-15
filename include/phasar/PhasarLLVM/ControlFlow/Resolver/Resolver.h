@@ -89,23 +89,11 @@ public:
 
   virtual ~Resolver() = default;
 
-  [[deprecated("With the removal of DTAResolver, this is not used "
-               "anymore")]] virtual void
-  preCall(const llvm::Instruction *Inst);
-
   virtual void handlePossibleTargets(const llvm::CallBase *CallSite,
                                      FunctionSetTy &PossibleTargets);
 
-  [[deprecated("With the removal of DTAResolver, this is not used "
-               "anymore")]] virtual void
-  postCall(const llvm::Instruction *Inst);
-
   [[nodiscard]] FunctionSetTy
   resolveIndirectCall(const llvm::CallBase *CallSite);
-
-  [[deprecated("With the removal of DTAResolver, this is not used "
-               "anymore")]] virtual void
-  otherInst(const llvm::Instruction *Inst);
 
   [[nodiscard]] virtual std::string str() const = 0;
 

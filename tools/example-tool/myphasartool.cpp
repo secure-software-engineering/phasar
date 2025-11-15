@@ -32,7 +32,7 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
 
-  if (const auto *F = HA.getProjectIRDB().getFunctionDefinition("main")) {
+  if (HA.getProjectIRDB().getFunctionDefinition("main")) {
     // print type hierarchy
     HA.getTypeHierarchy().print();
     // print points-to information

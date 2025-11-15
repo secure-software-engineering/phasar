@@ -572,7 +572,7 @@ private:
 
     auto AtInstruction = NodeCompressor[AtInstructionId];
 
-    auto FunId = [=] {
+    auto FunId = [&] {
       if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
 
         auto Ret = FunCompressor.getOrInsert(ICFG.getFunctionOf(AtInstruction));

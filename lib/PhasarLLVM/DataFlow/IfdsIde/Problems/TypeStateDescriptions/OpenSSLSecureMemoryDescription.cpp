@@ -158,10 +158,6 @@ OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::top() const {
   return OpenSSLSecureMemoryState::TOP;
 }
 
-OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::start() const {
-  return OpenSSLSecureMemoryState::ALLOCATED;
-}
-
 OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::uninit() const {
   return OpenSSLSecureMemoryState::BOT;
 }

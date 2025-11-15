@@ -7,5 +7,5 @@ add_phasar_library(phasar_llvm_domain
     Domain.cppm
 
   LINK_PRIVATE
-    nlohmann_json
+    nlohmann_json::nlohmann_json
 )

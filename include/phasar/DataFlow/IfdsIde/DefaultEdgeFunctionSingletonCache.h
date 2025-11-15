@@ -46,7 +46,7 @@ public:
 
   void insert(const EdgeFunctionTy *EF, const void *Mem) override {
     assert(EF != nullptr);
-    auto [It, Inserted] = Cache.try_emplace(EF, Mem);
+    [[maybe_unused]] auto [It, Inserted] = Cache.try_emplace(EF, Mem);
     assert(Inserted);
   }
 

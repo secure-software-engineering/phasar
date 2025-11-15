@@ -18,7 +18,6 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
@@ -348,8 +347,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     /// We are extracting the result of a BinaryOpIntrinsic
     /// The first parameter holds the resulting integer if
     /// no error occured during the operation
-    if (const auto *BinIntrinsic =
-            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Agg)) {
+    if (llvm::isa<llvm::BinaryOpIntrinsic>(Agg)) {
       if (Extract->getType()->isIntegerTy()) {
         return generateFlow(Curr, Agg);
       }

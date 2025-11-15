@@ -29,7 +29,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
   Ctx.Visited.resize(graph_traits_t::size(RevDAG));
   Ctx.NodeConstraints.resize(graph_traits_t::size(RevDAG), Ctx.True);
 
-  size_t TotalNumEdges = 0;
+  [[maybe_unused]] size_t TotalNumEdges = 0;
   for (auto I : graph_traits_t::vertices(RevDAG)) {
     TotalNumEdges += graph_traits_t::outDegree(RevDAG, I);
   }
@@ -55,7 +55,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
 
     llvm::SmallVector<z3::expr> Ys;
 
-    for (auto Iter = graph_traits_t::outEdges(RevDAG, Vtx).begin();
+    for (const auto *Iter = graph_traits_t::outEdges(RevDAG, Vtx).begin();
          Iter != graph_traits_t::outEdges(RevDAG, Vtx).end();) {
       // NOLINTNEXTLINE(readability-qualified-auto, llvm-qualified-auto)
       auto It = Iter++;
@@ -103,7 +103,7 @@ z3::expr Z3BasedPathSensitivityManagerBase::filterOutUnreachableNodes(
 
   z3::expr Ret = LPC.getContext().bool_val(false);
 
-  for (auto Iter = graph_traits_t::roots(RevDAG).begin();
+  for (const auto *Iter = graph_traits_t::roots(RevDAG).begin();
        Iter != graph_traits_t::roots(RevDAG).end();) {
     // NOLINTNEXTLINE(readability-qualified-auto, llvm-qualified-auto)
     auto It = Iter++;
@@ -322,7 +322,7 @@ public:
 
   ConstraintPathFilter(LLVMPathConstraints &LPC,
                        const z3::expr &AdditionalConstraint,
-                       size_t *CompletedCtr) noexcept
+                       const size_t *CompletedCtr) noexcept
       : LPC(LPC), Solver(LPC.getContext()), CompletedCtr(*CompletedCtr) {
     Solver.add(AdditionalConstraint);
     Solver.push();
@@ -450,7 +450,7 @@ private:
   size_t Ctr = 0;
   size_t RejectedCtr = 0;
   size_t IsValidCalls = 0;
-  size_t &CompletedCtr;
+  [[maybe_unused]] const size_t &CompletedCtr;
 };
 
 auto Z3BasedPathSensitivityManagerBase::filterAndFlattenRevDag(
