@@ -10,7 +10,6 @@
 #ifndef PHASAR_UTILS_CHRONOUTILS_H
 #define PHASAR_UTILS_CHRONOUTILS_H
 
-#include "llvm/Support/Format.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <chrono>

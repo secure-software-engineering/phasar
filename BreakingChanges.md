@@ -4,6 +4,9 @@
 
 - Requiring C++20 instead of C++17
   - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
+- The `AdjacencyList` struct now now has one more template argument to denote the intege-like `vertex_t` type. It is the second template argument (which previously was the EdgeType). The edge-type is now denoted by the *third* template argument.
+- The `AdjacencyList` switches from using `llvm::NoneType` as empty-node marker to `psr::EmptyType` for forward-compatibility with LLVM-16 that removes `llvm::NoneType`.
+
 - Removed `SpecialSummaries`.
 - Removed `Hexastore` and the corresponding database queries.
 - Removed `LLVMTypeHierarchy` (and `LLVMTypeHierarchyData`), which is superceeded by `DIBasedTypeHierarchy`.

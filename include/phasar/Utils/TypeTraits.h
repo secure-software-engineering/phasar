@@ -15,8 +15,6 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <concepts>
 #include <iterator>
 #include <string>
@@ -30,6 +28,9 @@ namespace psr {
 
 using std::type_identity;
 using std::type_identity_t;
+
+/// \file TODO: We should stick to one naming convention here and not mix
+/// CamelCase with lower_case!
 
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
@@ -171,6 +172,11 @@ concept AreEqualityComparable = requires(const T &Val1, const U &Val2) {
   { Val1 == Val2 } -> std::convertible_to<bool>;
 };
 
+template <typename T>
+concept IsLessComparable = requires(const T &Val1, const T &Val2) {
+  { Val1 < Val2 } -> std::convertible_to<bool>;
+};
+
 template <typename ProblemTy>
 concept has_isInteresting_v = requires(
     const ProblemTy &Val, typename ProblemTy::ProblemAnalysisDomain::n_t Nod) {
@@ -185,16 +191,20 @@ constexpr bool has_llvm_dense_map_info = requires(const T &Val) {
   { llvm::DenseMapInfo<T>::isEqual(Val, Val) } -> std::convertible_to<bool>;
 };
 
+template <typename From, typename To>
+concept is_explicitly_convertible_to =
+    requires(From F) { static_cast<To>(std::forward<From>(F)); };
+
 template <typename Var, typename T>
 constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 template <typename Container>
 using ElementType = typename detail::ElementType<Container>::type;
-
-template <typename T, typename Enable = nlohmann::json>
+template <typename T, typename Enable = void>
 struct has_getAsJson : std::false_type {}; // NOLINT
 template <typename T>
-struct has_getAsJson<T, decltype(std::declval<const T>().getAsJson())>
+struct has_getAsJson<T,
+                     std::void_t<decltype(std::declval<const T>().getAsJson())>>
     : std::true_type {}; // NOLINT
 
 struct TrueFn {

@@ -89,6 +89,10 @@ public:
   [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
   load(const llvm::Twine &IRFileName,
        bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
+  [[nodiscard]] static LLVMProjectIRDB
+  loadOrExit(const llvm::Twine &IRFileName,
+             bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14,
+             int ErrorExitCode = 1);
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;

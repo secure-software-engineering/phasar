@@ -110,9 +110,9 @@ public:
 
   explicit GeneralStatisticsAnalysis() = default;
 
-  GeneralStatistics runOnModule(llvm::Module &M);
+  GeneralStatistics runOnModule(const llvm::Module &M);
 
-  inline GeneralStatistics run(llvm::Module &M,
+  inline GeneralStatistics run(const llvm::Module &M,
                                llvm::ModuleAnalysisManager & /*AM*/) {
     return runOnModule(M);
   }

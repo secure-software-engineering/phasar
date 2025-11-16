@@ -361,7 +361,7 @@ function(add_phasar_library name)
   endif()
 endfunction(add_phasar_library)
 
-macro(subdirlist result curdir)
+function(subdirlist result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
 
@@ -371,5 +371,5 @@ macro(subdirlist result curdir)
     endif()
   endforeach()
 
-  set(${result} ${dirlist})
-endmacro(subdirlist)
+  set(${result} ${dirlist} PARENT_SCOPE)
+endfunction(subdirlist)

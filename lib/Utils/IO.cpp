@@ -18,7 +18,6 @@
 
 #include "phasar/Utils/ErrorHandling.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/MemoryBuffer.h"
