@@ -58,9 +58,10 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// Adds a new node to the graph G with node-tag Val
   ///
   /// \returns The vertex-descriptor for the newly created node
-  template <typename TT = value_type,
-            typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static constexpr vertex_t addNode(graph_type &G, TT &&Val) {
+  template <typename TT = value_type>
+  static constexpr vertex_t addNode(graph_type &G, TT &&Val)
+    requires(!std::is_empty_v<value_type>)
+  {
     assert(G.Adj.size() == G.Nodes.size());
 
     auto Ret = vertex_t(G.Nodes.size());
@@ -70,11 +71,9 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Adds a new node to the graph G without node-tag
-  ///
-  /// \returns The vertex-descriptor for the newly created node
-  template <typename TT = value_type,
-            typename = std::enable_if_t<std::is_empty_v<TT>>>
-  static constexpr vertex_t addNode(graph_type &G, value_type /*Val*/ = {}) {
+  static constexpr vertex_t addNode(graph_type &G, value_type /*Val*/ = {})
+    requires std::is_empty_v<value_type>
+  {
     auto Ret = vertex_t(G.Adj.size());
     G.Adj.emplace_back();
     return Ret;
@@ -154,24 +153,24 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Gets a const range of all nodes in graph G
-  template <typename TT = value_type,
-            typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static constexpr const auto &nodes(const graph_type &G) noexcept {
+  static constexpr const auto &nodes(const graph_type &G) noexcept
+    requires(!std::is_empty_v<value_type>)
+  {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
   /// Gets a mutable range of all nodes in graph G
-  template <typename TT = value_type,
-            typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static constexpr auto &nodes(graph_type &G) noexcept {
+  static constexpr auto &nodes(graph_type &G) noexcept
+    requires(!std::is_empty_v<value_type>)
+  {
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes;
   }
   /// Gets a range of all nodes in graph G
-  template <typename TT = value_type,
-            typename = std::enable_if_t<std::is_empty_v<TT>>>
   static constexpr RepeatRangeType<value_type>
-  nodes(const graph_type &G) noexcept {
+  nodes(const graph_type &G) noexcept
+    requires std::is_empty_v<value_type>
+  {
     return repeat(value_type{}, G.Adj.size());
   }
 
@@ -184,28 +183,28 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   }
 
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
-  template <typename TT = value_type,
-            typename = std::enable_if_t<!std::is_empty_v<TT>>>
   static constexpr const value_type &node(const graph_type &G,
-                                          vertex_t Vtx) noexcept {
+                                          vertex_t Vtx) noexcept
+    requires(!std::is_empty_v<value_type>)
+  {
     assert(G.Adj.inbounds(Vtx));
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes[Vtx];
   }
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
-  template <typename TT = value_type,
-            typename = std::enable_if_t<!std::is_empty_v<TT>>>
-  static constexpr value_type &node(graph_type &G, vertex_t Vtx) noexcept {
+  static constexpr value_type &node(graph_type &G, vertex_t Vtx) noexcept
+    requires(!std::is_empty_v<value_type>)
+  {
     assert(G.Adj.inbounds(Vtx));
     assert(G.Adj.size() == G.Nodes.size());
     return G.Nodes[Vtx];
   }
 
   /// Gets the node-tag for node Vtx in graph G. Vtx must be part of G
-  template <typename TT = value_type,
-            typename = std::enable_if_t<std::is_empty_v<TT>>>
   static constexpr value_type node([[maybe_unused]] const graph_type &G,
-                                   [[maybe_unused]] vertex_t Vtx) noexcept {
+                                   [[maybe_unused]] vertex_t Vtx) noexcept
+    requires std::is_empty_v<value_type>
+  {
     assert(G.Adj.inbounds(Vtx));
     return {};
   }
@@ -253,8 +252,9 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
 
   /// Gets the vertex-descriptor of the target-node of the given Edge
   template <typename E = edge_t>
-  static constexpr std::enable_if_t<std::is_same_v<E, vertex_t>, vertex_t>
-  target(edge_t Edge) noexcept {
+  static constexpr vertex_t target(edge_t Edge) noexcept
+    requires std::is_same_v<vertex_t, edge_t>
+  {
     return Edge;
   }
 
@@ -262,8 +262,9 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   /// weight of the returned edge and the parameter edge is same, but the target
   /// nodes may differ.
   template <typename E = edge_t>
-  static constexpr std::enable_if_t<std::is_same_v<E, vertex_t>, edge_t>
-  withEdgeTarget(edge_t /*edge*/, vertex_t Tar) noexcept {
+  static constexpr edge_t withEdgeTarget(edge_t /*edge*/, vertex_t Tar) noexcept
+    requires std::is_same_v<vertex_t, edge_t>
+  {
     return Tar;
   }
 

@@ -201,10 +201,13 @@ constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 template <typename Container>
 using ElementType = typename detail::ElementType<Container>::type;
 template <typename T, typename Enable = void>
-struct has_getAsJson : std::false_type {}; // NOLINT
+struct [[deprecated("getAsJson should not be used anymore. Use printAsJson "
+                    "instead")]] has_getAsJson : std::false_type {}; // NOLINT
 template <typename T>
-struct has_getAsJson<T,
-                     std::void_t<decltype(std::declval<const T>().getAsJson())>>
+struct [[deprecated(
+    "getAsJson should not be used anymore. Use printAsJson "
+    "instead")]] has_getAsJson<T, std::void_t<decltype(std::declval<const T>()
+                                                           .getAsJson())>>
     : std::true_type {}; // NOLINT
 
 struct TrueFn {
