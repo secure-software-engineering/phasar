@@ -3,6 +3,7 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"

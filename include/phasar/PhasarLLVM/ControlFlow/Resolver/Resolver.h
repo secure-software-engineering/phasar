@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RESOLVER_H_
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -109,12 +110,37 @@ public:
   [[nodiscard]] llvm::ArrayRef<const llvm::Function *>
   getAddressTakenFunctions();
 
-  [[nodiscard]] static std::unique_ptr<Resolver>
+  using BaseResolverProvider = llvm::function_ref<MaybeUniquePtr<Resolver>(
+      const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,
+      const DIBasedTypeHierarchy *TH, LLVMAliasInfoRef PT)>;
+
+  /// Factory function to create a Resolver that can be used to implement the
+  /// given call-graph analysis type.
+  ///
+  /// \param Ty Determines the Resolver subclass to instantiate
+  /// \param IRDB The IR code where the Resolver should be based on. Must not be
+  /// nullptr.
+  /// \param VTP A virtual-table-provider that is used to extract C++-VTables
+  /// from the IR. Must not be nullptr.
+  /// \param TH The type-hierarchy implementation to use. Must be non-null, if
+  /// the selected call-graph analysis requires type-hierarchy information;
+  /// currently, this holds for the CHA and RTA algorithms.
+  /// \param PT The points-to implementation to use. Will be constructed
+  /// on-the-fly if nullptr, but required; currently, this holds for the OTF and
+  /// VTA algorithms.
+  static std::unique_ptr<Resolver>
   create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
          const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
-         LLVMAliasInfoRef PT = nullptr);
+         LLVMAliasInfoRef PT = nullptr,
+         BaseResolverProvider GetBaseRes = nullptr);
 
 protected:
+  virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,
+                                  const llvm::CallBase *CallSite) = 0;
+
+  virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
+                                      const llvm::CallBase *CallSite);
+
   const llvm::Function *
   getNonPureVirtualVFTEntry(const llvm::DIType *T, unsigned Idx,
                             const llvm::CallBase *CallSite,
@@ -125,17 +151,12 @@ protected:
     return psr::getNonPureVirtualVFTEntry(T, Idx, CallSite, *VTP, ReceiverType);
   }
 
+  // ---
+
   const LLVMProjectIRDB *IRDB{};
   const LLVMVFTableProvider *VTP{};
   std::optional<llvm::SmallVector<const llvm::Function *, 0>>
       AddressTakenFunctions{};
-
-protected:
-  virtual void resolveVirtualCall(FunctionSetTy &PossibleTargets,
-                                  const llvm::CallBase *CallSite) = 0;
-
-  virtual void resolveFunctionPointer(FunctionSetTy &PossibleTargets,
-                                      const llvm::CallBase *CallSite);
 };
 } // namespace psr
 

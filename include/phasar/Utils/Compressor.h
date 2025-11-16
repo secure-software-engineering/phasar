@@ -1,12 +1,21 @@
+/******************************************************************************
+ * Copyright (c) 2024 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and other
+ *****************************************************************************/
+
 #ifndef PHASAR_UTILS_COMPRESSOR_H
 #define PHASAR_UTILS_COMPRESSOR_H
 
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
-#include "llvm/ADT/SmallVector.h"
 
 #include <cstdint>
 #include <deque>
@@ -39,6 +48,15 @@ public:
     return It->second;
   }
 
+  std::pair<IdT, bool> insert(T Elem) {
+    auto [It, Inserted] = ToInt.try_emplace(Elem, IdT(ToInt.size()));
+    if (Inserted) {
+      FromInt.push_back(Elem);
+    }
+    return {It->second, Inserted};
+  }
+
+  [[nodiscard]]
   std::optional<IdT> getOrNull(T Elem) const {
     if (auto It = ToInt.find(Elem); It != ToInt.end()) {
       return It->second;
@@ -46,13 +64,19 @@ public:
     return std::nullopt;
   }
 
-  [[nodiscard]] bool inbounds(IdT Idx) const noexcept {
-    return size_t(Idx) < FromInt.size();
+  [[nodiscard]] IdT get(T Elem) const {
+    auto It = ToInt.find(Elem);
+    assert(It != ToInt.end());
+    return It->second;
   }
 
-  T operator[](IdT Idx) const noexcept {
+  [[nodiscard]] bool inbounds(IdT Idx) const noexcept {
+    return FromInt.inbounds(Idx);
+  }
+
+  [[nodiscard]] T operator[](IdT Idx) const noexcept {
     assert(inbounds(Idx));
-    return FromInt[size_t(Idx)];
+    return FromInt[Idx];
   }
 
   [[nodiscard]] size_t size() const noexcept { return FromInt.size(); }
@@ -61,8 +85,10 @@ public:
            ToInt.getMemorySize() / sizeof(typename decltype(ToInt)::value_type);
   }
 
-  auto begin() const noexcept { return FromInt.begin(); }
-  auto end() const noexcept { return FromInt.end(); }
+  [[nodiscard]] auto begin() const noexcept { return FromInt.begin(); }
+  [[nodiscard]] auto end() const noexcept { return FromInt.end(); }
+
+  [[nodiscard]] auto enumerate() const noexcept { return FromInt.enumerate(); }
 
   void clear() noexcept {
     ToInt.clear();
@@ -71,7 +97,7 @@ public:
 
 private:
   llvm::DenseMap<T, IdT> ToInt;
-  llvm::SmallVector<T, 0> FromInt;
+  TypedVector<IdT, T, 0> FromInt;
 };
 
 /// \brief A utility class that assigns a sequential Id to every inserted
@@ -86,8 +112,8 @@ public:
     ToInt.reserve(Capacity);
   }
 
-  /// Returns the index of the given element in the compressors storage. If the
-  /// element isn't present yet, it will be added first and its index will
+  /// Returns the index of the given element in the compressors storage. If
+  /// the element isn't present yet, it will be added first and its index will
   /// then be returned.
   IdT getOrInsert(const T &Elem) {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
@@ -99,8 +125,8 @@ public:
     return Ret;
   }
 
-  /// Returns the index of the given element in the compressors storage. If the
-  /// element isn't present yet, it will be added first and its index will
+  /// Returns the index of the given element in the compressors storage. If
+  /// the element isn't present yet, it will be added first and its index will
   /// then be returned.
   IdT getOrInsert(T &&Elem) {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
@@ -112,20 +138,46 @@ public:
     return Ret;
   }
 
-  /// Returns the index of the given element in the compressors storage. If the
-  /// element isn't present, std::nullopt will be returned
-  std::optional<IdT> getOrNull(const T &Elem) const {
+  std::pair<IdT, bool> insert(const T &Elem) {
+    if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
+      return {It->second, false};
+    }
+    auto Ret = Id(FromInt.size());
+    auto *Ins = &FromInt.emplace_back(Elem);
+    ToInt[Ins] = Ret;
+    return {Ret, true};
+  }
+
+  std::pair<IdT, bool> insert(T &&Elem) {
+    if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
+      return {It->second, false};
+    }
+    auto Ret = Id(FromInt.size());
+    auto *Ins = &FromInt.emplace_back(std::move(Elem));
+    ToInt[Ins] = Ret;
+    return {Ret, true};
+  }
+
+  /// Returns the index of the given element in the compressors storage. If
+  /// the element isn't present, std::nullopt will be returned
+  [[nodiscard]] std::optional<IdT> getOrNull(const T &Elem) const {
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return It->second;
     }
     return std::nullopt;
   }
 
+  [[nodiscard]] IdT get(const T &Elem) const {
+    auto It = ToInt.find(&Elem);
+    assert(It != ToInt.end());
+    return It->second;
+  }
+
   [[nodiscard]] bool inbounds(IdT Idx) const noexcept {
     return size_t(Idx) < FromInt.size();
   }
 
-  const T &operator[](IdT Idx) const noexcept {
+  [[nodiscard]] const T &operator[](IdT Idx) const noexcept {
     assert(inbounds(Idx));
     return FromInt[size_t(Idx)];
   }
@@ -138,6 +190,14 @@ public:
 
   auto begin() const noexcept { return FromInt.begin(); }
   auto end() const noexcept { return FromInt.end(); }
+
+  [[nodiscard]] auto enumerate() const noexcept {
+    return llvm::map_range(llvm::enumerate(FromInt),
+                           [](const auto &IndexAndVal) {
+                             return std::pair<IdT, const T &>{
+                                 IdT(IndexAndVal.index()), IndexAndVal.value()};
+                           });
+  }
 
   void clear() noexcept {
     ToInt.clear();

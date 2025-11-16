@@ -64,10 +64,12 @@ public:
   /// \param EntryPoints The names of the functions to start with when
   /// incrementally building up the ICFG. For whole-program analysis of an
   /// executable use {"main"}.
-  /// \param TH The type-hierarchy implementation to use. Will be constructed
-  /// on-the-fly if nullptr, but required
+  /// \param TH The type-hierarchy implementation to use. Must be non-null, if
+  /// the selected call-graph analysis requires type-hierarchy information;
+  /// currently, this holds for the CHA and RTA algorithms.
   /// \param PT The points-to implementation to use. Will be constructed
-  /// on-the-fly if nullptr, but required
+  /// on-the-fly if nullptr, but required; currently, this holds for the OTF and
+  /// VTA algorithms.
   /// \param S The soundness level to expect from the analysis. Currently unused
   /// \param IncludeGlobals Properly include global constructors/destructors
   /// into the ICFG, if true. Requires to generate artificial functions into the

@@ -106,11 +106,10 @@ public:
   [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
   load(const llvm::Twine &IRFileName);
 
-  [[deprecated("When moving to the next LLVM version, opaque pointers support "
-               "is removed completely. Please use one of the other "
-               "constructors of LLVMProjectIRDB.")]] [[nodiscard]]
-  static llvm::ErrorOr<LLVMProjectIRDB> load(const llvm::Twine &IRFileName,
-                                             bool EnableOpaquePointers);
+  [[nodiscard]] static LLVMProjectIRDB loadOrExit(const llvm::Twine &IRFileName,
+                                                  int ErrorExitCode = 1);
+  [[nodiscard]] static LLVMProjectIRDB
+  loadOrExit(const llvm::Twine &IRFileName, bool EnableOpaquePointers) = delete;
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;

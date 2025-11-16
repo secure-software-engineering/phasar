@@ -22,6 +22,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
@@ -161,15 +162,14 @@ bool psr::isVirtualCall(const llvm::Instruction *Inst,
   // check potential receiver type
   const auto *RecType = getReceiverType(CallSite);
   if (!RecType) {
-    llvm::errs() << "No receiver type found for call at "
-                 << llvmIRToString(Inst) << '\n';
     return false;
   }
 
   if (!VTP.hasVFTable(RecType)) {
     return false;
   }
-  return getVFTIndex(CallSite) >= 0;
+  auto Idx = getVFTIndex(CallSite);
+  return Idx >= 0;
 }
 
 // Derived from LLVM's llvm::Function::hasAddressTaken()
@@ -239,9 +239,11 @@ auto Resolver::resolveIndirectCall(const llvm::CallBase *CallSite)
   FunctionSetTy PossibleTargets;
   if (VTP && isVirtualCall(CallSite, *VTP)) {
     resolveVirtualCall(PossibleTargets, CallSite);
-  }
-
-  if (PossibleTargets.empty()) {
+  } else {
+    // Note: Don't use resolveFunctionPointer() as fallback when
+    // resolveVirtualCall() does not find callees, because this will break the
+    // fixpoint computation when using the OTFResolver. Resolvers should install
+    // a meaningful fallback themselves, if necessary.
     resolveFunctionPointer(PossibleTargets, CallSite);
   }
 
@@ -278,11 +280,10 @@ void Resolver::resolveFunctionPointer(FunctionSetTy &PossibleTargets,
   }
 }
 
-std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
-                                           const LLVMProjectIRDB *IRDB,
-                                           const LLVMVFTableProvider *VTP,
-                                           const DIBasedTypeHierarchy *TH,
-                                           LLVMAliasInfoRef PT) {
+std::unique_ptr<Resolver>
+Resolver::create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
+                 const LLVMVFTableProvider *VTP, const DIBasedTypeHierarchy *TH,
+                 LLVMAliasInfoRef PT, BaseResolverProvider GetBaseRes) {
   assert(IRDB != nullptr);
   assert(VTP != nullptr);
 
@@ -295,9 +296,18 @@ std::unique_ptr<Resolver> Resolver::create(CallGraphAnalysisType Ty,
   case CallGraphAnalysisType::RTA:
     assert(TH != nullptr);
     return std::make_unique<RTAResolver>(IRDB, VTP, TH);
-  case CallGraphAnalysisType::VTA:
-    llvm::report_fatal_error(
-        "The VTA callgraph algorithm is not implemented yet");
+  case CallGraphAnalysisType::VTA: {
+    assert(PT);
+    auto BaseRes = [&]() -> MaybeUniquePtr<Resolver> {
+      if (!GetBaseRes) {
+        return std::make_unique<RTAResolver>(IRDB, VTP, TH);
+      }
+
+      return GetBaseRes(IRDB, VTP, TH, PT);
+    }();
+    assert(BaseRes != nullptr);
+    return std::make_unique<VTAResolver>(IRDB, VTP, PT, std::move(BaseRes));
+  }
   case CallGraphAnalysisType::OTF:
     assert(PT);
     return std::make_unique<OTFResolver>(IRDB, VTP, PT);
