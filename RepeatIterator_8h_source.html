@@ -179,10 +179,10 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="namespacepsr.html#ab22b8fdb330ed2c5cf78d084a57ddda5">   72</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#ab22b8fdb330ed2c5cf78d084a57ddda5">RepeatRangeType</a> = llvm::iterator_range&lt;RepeatIterator&lt;T&gt;&gt;;</div>
 <div class="foldopen" id="foldopen00073" data-start="{" data-end="}">
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespacepsr.html#a0eec7ae54fc42addae219ecbaa468e2f">   73</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">auto</span> <a class="code hl_function" href="namespacepsr.html#a0eec7ae54fc42addae219ecbaa468e2f">repeat</a>(T &amp;&amp;Elem, <span class="keywordtype">size_t</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Num</a>) {</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespacepsr.html#a0eec7ae54fc42addae219ecbaa468e2f">   73</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">auto</span> <a class="code hl_function" href="namespacepsr.html#a0eec7ae54fc42addae219ecbaa468e2f">repeat</a>(T &amp;&amp;Elem, <span class="keywordtype">size_t</span> Num) {</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">iterator_type</a> = <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RepeatIterator&lt;std::decay_t&lt;T&gt;</a>&gt;;</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keyword">auto</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = llvm::make_range(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">iterator_type</a>(std::forward&lt;T&gt;(Elem)),</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>                              <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">iterator_type</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Num</a>, std::true_type{}));</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>                              <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">iterator_type</a>(Num, std::true_type{}));</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>}</div>
 </div>
@@ -217,7 +217,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

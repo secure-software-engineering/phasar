@@ -91,6 +91,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
+<code>#include &quot;llvm/ADT/iterator.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/iterator_range.h&quot;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
@@ -101,7 +102,6 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IotaIterator.html">psr::IotaIterator&lt; T &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An iterator that iterates over the same value a specified number of times.  <a href="classpsr_1_1IotaIterator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -111,20 +111,23 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:acaa8ab825c2bb2216356731188586464" id="r_acaa8ab825c2bb2216356731188586464"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:acaa8ab825c2bb2216356731188586464"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#acaa8ab825c2bb2216356731188586464">psr::IotaRangeType</a> = llvm::iterator_range&lt; <a class="el" href="classpsr_1_1IotaIterator.html">IotaIterator</a>&lt; T &gt; &gt;</td></tr>
-<tr class="separator:acaa8ab825c2bb2216356731188586464"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfccefc82cce8931c578876a9780f04e" id="r_acfccefc82cce8931c578876a9780f04e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; </td></tr>
+<tr class="memitem:acfccefc82cce8931c578876a9780f04e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#acfccefc82cce8931c578876a9780f04e">psr::IotaRangeType</a> = llvm::iterator_range&lt; <a class="el" href="classpsr_1_1IotaIterator.html">IotaIterator</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; &gt;</td></tr>
+<tr class="separator:acfccefc82cce8931c578876a9780f04e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a9909048e61a968b5df8b973377cd59ad" id="r_a9909048e61a968b5df8b973377cd59ad"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:a9909048e61a968b5df8b973377cd59ad"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a9909048e61a968b5df8b973377cd59ad">psr::iota</a> (T <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>, <a class="el" href="namespacepsr.html#ae0718c08401ee8421aeed735cf1ccd3e">type_identity_t</a>&lt; T &gt; To) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a9909048e61a968b5df8b973377cd59ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a716b14639cc1254745b0c03d0f71d42a" id="r_a716b14639cc1254745b0c03d0f71d42a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; </td></tr>
+<tr class="memitem:a716b14639cc1254745b0c03d0f71d42a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a716b14639cc1254745b0c03d0f71d42a">psr::iota</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>, <a class="el" href="namespacepsr.html#ae0718c08401ee8421aeed735cf1ccd3e">type_identity_t</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; To) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a716b14639cc1254745b0c03d0f71d42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6eb9180a914f42a6247968ddd00d3143" id="r_a6eb9180a914f42a6247968ddd00d3143"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; </td></tr>
+<tr class="memitem:a6eb9180a914f42a6247968ddd00d3143"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6eb9180a914f42a6247968ddd00d3143">psr::iota</a> (<a class="el" href="classsize__t.html">size_t</a> To) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a6eb9180a914f42a6247968ddd00d3143"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

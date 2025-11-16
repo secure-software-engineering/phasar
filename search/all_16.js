@@ -1,14 +1,14 @@
 var searchData=
 [
   ['warning_0',['warning',['../structpsr_1_1Warning.html',1,'psr::Warning&lt; AnalysisDomainTy &gt;'],['../structpsr_1_1Warning.html#a0f38d2b4af67b25d5f0984c8f03ea68e',1,'psr::Warning::Warning()']]],
-  ['weight_1',['weight',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#ae756cd4f30298551856a69c2681c0cbe',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;']]],
+  ['weight_1',['weight',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html#aae4ccd095d6a2a3a0eef1168d61a08bb',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;']]],
   ['withadditionalconstraint_2',['withadditionalconstraint',['../structpsr_1_1Z3BasedPathSensitivityConfig.html#a4a7d67fc860eea8cb1ba01e05987c39f',1,'psr::Z3BasedPathSensitivityConfig::withAdditionalConstraint(const z3::expr &amp;Constr) const &amp;noexcept'],['../structpsr_1_1Z3BasedPathSensitivityConfig.html#a1cb56df692346d3173b219611be9798e',1,'psr::Z3BasedPathSensitivityConfig::withAdditionalConstraint(const z3::expr &amp;Constr) &amp;&amp;noexcept']]],
   ['withbinaryvaluedomain_3',['WithBinaryValueDomain',['../namespacepsr.html#add61a93cb36cb5fcba8231b9ebc34ef2',1,'psr']]],
   ['withcgtype_4',['withCGType',['../structpsr_1_1HelperAnalysisConfig.html#a1313221ff722e25db15499674b3c428e',1,'psr::HelperAnalysisConfig']]],
   ['withcomputevalues_5',['WithComputeValues',['../structpsr_1_1WithComputeValues.html',1,'psr']]],
   ['withdagdepththreshold_6',['withDAGDepthThreshold',['../structpsr_1_1PathSensitivityConfigBase.html#a693aa341ec6c88aa991b7c34f5777afc',1,'psr::PathSensitivityConfigBase']]],
   ['withdagsizethreshold_7',['withDAGSizeThreshold',['../structpsr_1_1PathSensitivityConfigBase.html#adc9fac0a4e7bf2848798a6869fcbbba7',1,'psr::PathSensitivityConfigBase']]],
-  ['withedgetarget_8',['withEdgeTarget',['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#abfd2ca20334bdbdf107956e79a28d11d',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;']]],
+  ['withedgetarget_8',['withedgetarget',['../structpsr_1_1GraphTraits_3_01SCCDependencyGraph_3_01GraphNodeId_01_4_01_4.html#a0f326081d1cafb1db20bd335282773fe',1,'psr::GraphTraits&lt; SCCDependencyGraph&lt; GraphNodeId &gt; &gt;::withEdgeTarget()'],['../structpsr_1_1GraphTraits_3_01vta_1_1TypeAssignmentGraph_01_4.html#a4a4a470bc29cc2edc97a94446b278646',1,'psr::GraphTraits&lt; vta::TypeAssignmentGraph &gt;::withEdgeTarget()'],['../structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html#abd8d3fcdc3e2c93be994a836790d7149',1,'psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::withEdgeTarget()']]],
   ['withendsummarytab_9',['WithEndSummaryTab',['../structpsr_1_1WithEndSummaryTab.html',1,'psr']]],
   ['withgcmode_10',['WithGCMode',['../structpsr_1_1WithGCMode.html',1,'psr']]],
   ['withindirectionof_11',['withIndirectionOf',['../classpsr_1_1AbstractMemoryLocationFactory_3_01AbstractMemoryLocation_01_4.html#a3a1fc71473df2e90d1508ad0d35fac7e',1,'psr::AbstractMemoryLocationFactory&lt; AbstractMemoryLocation &gt;']]],

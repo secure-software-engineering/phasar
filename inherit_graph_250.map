@@ -1,3 +1,21 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html" title=" " alt="" coords="5,5,236,60"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1IntraMonoProblem.html" title="The analysis problem interface for intraprocedural monotone problems (solvable by the IntraMonoSolver..." alt="" coords="51,189,223,229"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1InterMonoProblem.html" title=" " alt="" coords="316,77,579,132"/>
+<area shape="poly" id="edge293_Node000000_Node000001" title=" " alt="" coords="204,181,315,142,354,130,356,135,317,147,206,186"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1InterMonoProblem.html" title=" " alt="" coords="329,157,565,197"/>
+<area shape="poly" id="edge295_Node000000_Node000005" title=" " alt="" coords="236,196,329,186,329,191,237,201"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1InterMonoProblem.html" title=" " alt="" coords="320,221,575,261"/>
+<area shape="poly" id="edge297_Node000000_Node000007" title=" " alt="" coords="237,216,320,225,319,230,236,222"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1InterMonoProblem.html" title="The analysis problem interface for interprocedural monotone problems (solvable by the InterMonoSolver..." alt="" coords="361,285,533,325"/>
+<area shape="poly" id="edge299_Node000000_Node000009" title=" " alt="" coords="203,231,317,270,362,283,360,288,315,275,201,236"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1InterMonoFullConstantPropagation.html" title=" " alt="" coords="629,49,827,89"/>
+<area shape="poly" id="edge294_Node000001_Node000002" title=" " alt="" coords="592,83,629,79,629,84,593,89"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1InterMonoSolverTest.html" title=" " alt="" coords="637,164,819,189"/>
+<area shape="poly" id="edge296_Node000005_Node000006" title=" " alt="" coords="579,174,636,174,636,179,579,179"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1InterMonoTaintAnalysis.html" title=" " alt="" coords="627,228,829,253"/>
+<area shape="poly" id="edge298_Node000007_Node000008" title=" " alt="" coords="588,238,626,238,626,243,588,243"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IntraMonoProblem.html" title=" " alt="" coords="5,5,268,60"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IntraMonoFullConstantPropagation.html" title=" " alt="" coords="349,13,546,53"/>
+<area shape="poly" id="edge300_Node000004_Node000003" title=" " alt="" coords="282,30,349,30,349,35,282,35"/>
+<area shape="poly" id="edge301_Node000003_Node000002" title=" " alt="" coords="560,44,630,53,629,59,559,50"/>
 </map>

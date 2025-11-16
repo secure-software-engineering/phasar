@@ -5,7 +5,7 @@ var searchData=
   ['has_5fadl_5fto_5fstring_5fv_2',['has_adl_to_string_v',['../namespacepsr.html#aeeae91ff4b22ecfca1217a8e8a94e5a7',1,'psr']]],
   ['has_5ferase_5fiterator_5fv_3',['has_erase_iterator_v',['../namespacepsr.html#a3939427529676c197a8ebd865a388b6c',1,'psr']]],
   ['has_5fgetasjson_4',['has_getAsJson',['../structpsr_1_1has__getAsJson.html',1,'psr']]],
-  ['has_5fgetasjson_3c_20t_2c_20decltype_28std_3a_3adeclval_3c_20const_20t_20_3e_28_29_2egetasjson_28_29_29_3e_5',['has_getAsJson&lt; T, decltype(std::declval&lt; const T &gt;().getAsJson())&gt;',['../structpsr_1_1has__getAsJson_3_01T_00_01decltype_07std_1_1declval_3_01const_01T_01_4_07_08_8getAsJson_07_08_08_4.html',1,'psr']]],
+  ['has_5fgetasjson_3c_20t_2c_20std_3a_3avoid_5ft_3c_20decltype_28std_3a_3adeclval_3c_20const_20t_20_3e_28_29_2egetasjson_28_29_29_3e_20_3e_5',['has_getAsJson&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &gt;().getAsJson())&gt; &gt;',['../structpsr_1_1has__getAsJson_3_01T_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_01const_01b23f1f37ea085aba06c053637750e368.html',1,'psr']]],
   ['has_5fgethashcode_6',['has_getHashCode',['../structpsr_1_1has__getHashCode.html',1,'psr']]],
   ['has_5fgethashcode_3c_20t_2c_20decltype_28std_3a_3adeclval_3c_20const_20t_20_3e_28_29_2egethashcode_28_29_29_3e_7',['has_getHashCode&lt; T, decltype(std::declval&lt; const T &gt;().getHashCode())&gt;',['../structpsr_1_1has__getHashCode_3_01T_00_01decltype_07std_1_1declval_3_01const_01T_01_4_07_08_8getHashCode_07_08_08_4.html',1,'psr']]],
   ['has_5fgetsparsecfg_8',['has_getSparseCFG',['../structpsr_1_1has__getSparseCFG.html',1,'psr']]],

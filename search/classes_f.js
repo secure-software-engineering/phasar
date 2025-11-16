@@ -31,11 +31,12 @@ var searchData=
   ['pointstotraits_28',['PointsToTraits',['../structpsr_1_1PointsToTraits.html',1,'psr']]],
   ['pointstotraits_3c_20pointstoinfo_3c_20ptatraits_20_3e_20_3e_29',['PointsToTraits&lt; PointsToInfo&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfo_3_01PTATraits_01_4_01_4.html',1,'psr']]],
   ['pointstotraits_3c_20pointstoinforef_3c_20ptatraits_20_3e_20_3e_30',['PointsToTraits&lt; PointsToInfoRef&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfoRef_3_01PTATraits_01_4_01_4.html',1,'psr']]],
-  ['prettyprinter_31',['PrettyPrinter',['../structpsr_1_1PrettyPrinter.html',1,'psr']]],
-  ['projectirdbbase_32',['ProjectIRDBBase',['../classpsr_1_1ProjectIRDBBase.html',1,'psr']]],
-  ['projectirdbbase_3c_20db_5ft_20_3e_33',['ProjectIRDBBase&lt; db_t &gt;',['../classpsr_1_1ProjectIRDBBase.html',1,'psr']]],
-  ['projectirdbbase_3c_20llvmprojectirdb_20_3e_34',['ProjectIRDBBase&lt; LLVMProjectIRDB &gt;',['../classpsr_1_1ProjectIRDBBase.html',1,'psr']]],
-  ['projectirdbtraits_35',['ProjectIRDBTraits',['../structpsr_1_1ProjectIRDBTraits.html',1,'psr']]],
-  ['projectirdbtraits_3c_20llvmprojectirdb_20_3e_36',['ProjectIRDBTraits&lt; LLVMProjectIRDB &gt;',['../structpsr_1_1ProjectIRDBTraits_3_01LLVMProjectIRDB_01_4.html',1,'psr']]],
-  ['ptatraits_37',['PTATraits',['../classPTATraits.html',1,'']]]
+  ['precomputedresolver_31',['PrecomputedResolver',['../classpsr_1_1PrecomputedResolver.html',1,'psr']]],
+  ['prettyprinter_32',['PrettyPrinter',['../structpsr_1_1PrettyPrinter.html',1,'psr']]],
+  ['projectirdbbase_33',['ProjectIRDBBase',['../classpsr_1_1ProjectIRDBBase.html',1,'psr']]],
+  ['projectirdbbase_3c_20db_5ft_20_3e_34',['ProjectIRDBBase&lt; db_t &gt;',['../classpsr_1_1ProjectIRDBBase.html',1,'psr']]],
+  ['projectirdbbase_3c_20llvmprojectirdb_20_3e_35',['ProjectIRDBBase&lt; LLVMProjectIRDB &gt;',['../classpsr_1_1ProjectIRDBBase.html',1,'psr']]],
+  ['projectirdbtraits_36',['ProjectIRDBTraits',['../structpsr_1_1ProjectIRDBTraits.html',1,'psr']]],
+  ['projectirdbtraits_3c_20llvmprojectirdb_20_3e_37',['ProjectIRDBTraits&lt; LLVMProjectIRDB &gt;',['../structpsr_1_1ProjectIRDBTraits_3_01LLVMProjectIRDB_01_4.html',1,'psr']]],
+  ['ptatraits_38',['PTATraits',['../classPTATraits.html',1,'']]]
 ];

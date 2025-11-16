@@ -94,7 +94,6 @@ $(function() {
 <div class="textblock"><code>#include &quot;<a class="el" href="Macros_8h_source.html">phasar/Utils/Macros.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/STLExtras.h&quot;</code><br />
 <code>#include &quot;llvm/Support/raw_ostream.h&quot;</code><br />
-<code>#include &quot;nlohmann/json.hpp&quot;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
@@ -115,7 +114,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1has__getAsJson.html">psr::has_getAsJson&lt; T, Enable &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1has__getAsJson_3_01T_00_01decltype_07std_1_1declval_3_01const_01T_01_4_07_08_8getAsJson_07_08_08_4.html">psr::has_getAsJson&lt; T, decltype(std::declval&lt; const T &gt;().getAsJson())&gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1has__getAsJson_3_01T_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_01const_01b23f1f37ea085aba06c053637750e368.html">psr::has_getAsJson&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &gt;().getAsJson())&gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TrueFn.html">psr::TrueFn</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -220,12 +219,18 @@ Variables</h2></td></tr>
 <tr class="memitem:a90f6ff5351ddeb07914228b06d5a94ae" id="r_a90f6ff5351ddeb07914228b06d5a94ae"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">U</a> &gt; </td></tr>
 <tr class="memitem:a90f6ff5351ddeb07914228b06d5a94ae"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a90f6ff5351ddeb07914228b06d5a94ae">psr::AreEqualityComparable</a> = detail::AreEqualityComparable&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">U</a>&gt;::value</td></tr>
 <tr class="separator:a90f6ff5351ddeb07914228b06d5a94ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b470a2843afa0cd49e07d211a783123" id="r_a2b470a2843afa0cd49e07d211a783123"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
+<tr class="memitem:a2b470a2843afa0cd49e07d211a783123"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2b470a2843afa0cd49e07d211a783123">psr::IsLessComparable</a> = detail::IsLessComparable&lt;T&gt;::value</td></tr>
+<tr class="separator:a2b470a2843afa0cd49e07d211a783123"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12aaeede56717bab7115353725c82be9" id="r_a12aaeede56717bab7115353725c82be9"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy &gt; </td></tr>
 <tr class="memitem:a12aaeede56717bab7115353725c82be9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a12aaeede56717bab7115353725c82be9">psr::has_isInteresting_v</a></td></tr>
 <tr class="separator:a12aaeede56717bab7115353725c82be9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4827f229706791e03bd460c7e39e3a91" id="r_a4827f229706791e03bd460c7e39e3a91"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:a4827f229706791e03bd460c7e39e3a91"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4827f229706791e03bd460c7e39e3a91">psr::has_llvm_dense_map_info</a></td></tr>
 <tr class="separator:a4827f229706791e03bd460c7e39e3a91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18afe45c93a741f12c61284fef745e9b" id="r_a18afe45c93a741f12c61284fef745e9b"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> To &gt; </td></tr>
+<tr class="memitem:a18afe45c93a741f12c61284fef745e9b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a18afe45c93a741f12c61284fef745e9b">psr::is_explicitly_convertible_to</a></td></tr>
+<tr class="separator:a18afe45c93a741f12c61284fef745e9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2" id="r_a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7441705fb5051f9f8c2b934f3307cac2">psr::variant_idx</a> = detail::variant_idx&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>, T&gt;::value</td></tr>
 <tr class="separator:a7441705fb5051f9f8c2b934f3307cac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -233,7 +238,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

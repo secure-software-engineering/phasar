@@ -203,6 +203,10 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_crtp_base_of&lt; Base, Derived, std::enable_if_t&lt; std::is_base_of_v&lt; typename template_arg&lt; Base, Derived &gt;::type, Derived &gt; &gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_explicitly_convertible_to</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_explicitly_convertible_to&lt; From, To, std::void_t&lt; decltype(static_cast&lt; To &gt;(std::declval&lt; From &gt;()))&gt; &gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_iterable</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_iterable&lt; T, std::void_t&lt; decltype(llvm::adl_begin(std::declval&lt; T &gt;())), decltype(llvm::adl_end(std::declval&lt; T &gt;()))&gt; &gt;</b></td></tr>
@@ -259,6 +263,10 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEqualityComparable&lt; T, decltype(std::declval&lt; T &gt;()==std::declval&lt; T &gt;())&gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsLessComparable</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsLessComparable&lt; T, decltype(std::declval&lt; T &gt;()&lt; std::declval&lt; T &gt;())&gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsPointsToIterator</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsPointsToIterator&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &amp; &gt;().forallPointeesOf(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;(), std::declval&lt; llvm::function_ref&lt; void(typename T::o_t)&gt; &gt;()))&gt; &gt;</b></td></tr>
@@ -270,6 +278,11 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>MaybeUniquePtrBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>MaybeUniquePtrBase&lt; T, true &gt;</b></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>Pearce4Data</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data for Pearce's Algorithm. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>SCCIdBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>SolverResultsBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -368,7 +381,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00074">74</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00075">75</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -386,7 +399,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00077">77</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00078">78</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -587,7 +600,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="Printer_8h_source.html#l00033">33</a> of file <a class="el" href="Printer_8h_source.html">Printer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TypeTraits_8h_source.html#l00329">psr::adl_to_string()</a>.</p>
+<p class="reference">References <a class="el" href="TypeTraits_8h_source.html#l00351">psr::adl_to_string()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="Printer_8h_source.html#l00066">psr::DToString()</a>, <a class="el" href="Printer_8h_source.html#l00086">psr::FToString()</a>, <a class="el" href="Printer_8h_source.html#l00076">psr::LToString()</a>, and <a class="el" href="Printer_8h_source.html#l00056">psr::NToString()</a>.</p>
 
@@ -753,7 +766,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

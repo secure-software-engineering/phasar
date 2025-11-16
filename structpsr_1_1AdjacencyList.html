@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PhASAR: psr::AdjacencyList&lt; T, EdgeTy &gt; Struct Template Reference</title>
+<title>PhASAR: psr::AdjacencyList&lt; T, VtxId, EdgeTy &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -85,7 +85,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structpsr_1_1AdjacencyList-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">psr::AdjacencyList&lt; T, EdgeTy &gt; Struct Template Reference</div></div>
+  <div class="headertitle"><div class="title">psr::AdjacencyList&lt; T, VtxId, EdgeTy &gt; Struct Template Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -93,69 +93,69 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a1d13ca58d8585ba245111d1d682fd5ab" id="r_a1d13ca58d8585ba245111d1d682fd5ab"><td class="memItemLeft" align="right" valign="top">llvm::SmallVector&lt; T, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a1d13ca58d8585ba245111d1d682fd5ab">Nodes</a> {}</td></tr>
-<tr class="separator:a1d13ca58d8585ba245111d1d682fd5ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a363672df09d59da6cd9ce250ab423ddc" id="r_a363672df09d59da6cd9ce250ab423ddc"><td class="memItemLeft" align="right" valign="top">llvm::SmallVector&lt; llvm::SmallVector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>, 2 &gt;, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a363672df09d59da6cd9ce250ab423ddc">Adj</a> {}</td></tr>
-<tr class="separator:a363672df09d59da6cd9ce250ab423ddc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acefc9d6c6610815e239378d80bbe3373" id="r_acefc9d6c6610815e239378d80bbe3373"><td class="memItemLeft" align="right" valign="top">llvm::SmallVector&lt; unsigned, 1 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#acefc9d6c6610815e239378d80bbe3373">Roots</a> {}</td></tr>
-<tr class="separator:acefc9d6c6610815e239378d80bbe3373"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b4bb80ae7519fa8b52049969547eb1d" id="r_a5b4bb80ae7519fa8b52049969547eb1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, T, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a5b4bb80ae7519fa8b52049969547eb1d">Nodes</a> {}</td></tr>
+<tr class="separator:a5b4bb80ae7519fa8b52049969547eb1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e0d9b19f953fd8b25e95fbed5afc0f5" id="r_a0e0d9b19f953fd8b25e95fbed5afc0f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, llvm::SmallVector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>, 2 &gt;, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a0e0d9b19f953fd8b25e95fbed5afc0f5">Adj</a> {}</td></tr>
+<tr class="separator:a0e0d9b19f953fd8b25e95fbed5afc0f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5926317ef6707edfa0fe4a5584a51da0" id="r_a5926317ef6707edfa0fe4a5584a51da0"><td class="memItemLeft" align="right" valign="top">llvm::SmallVector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, 1 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a5926317ef6707edfa0fe4a5584a51da0">Roots</a> {}</td></tr>
+<tr class="separator:a5926317ef6707edfa0fe4a5584a51da0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> = unsigned&gt;<br />
-struct psr::AdjacencyList&lt; T, EdgeTy &gt;</div>
-<p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00028">28</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
-</div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="a363672df09d59da6cd9ce250ab423ddc" name="a363672df09d59da6cd9ce250ab423ddc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a363672df09d59da6cd9ce250ab423ddc">&#9670;&#160;</a></span>Adj</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = unsigned&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">llvm::SmallVector&lt;llvm::SmallVector&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>, 2&gt;, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Adj {}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a> = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> = VtxId&gt;<br />
+struct psr::AdjacencyList&lt; T, VtxId, EdgeTy &gt;</div>
 <p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00030">30</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
-
-</div>
-</div>
-<a id="a1d13ca58d8585ba245111d1d682fd5ab" name="a1d13ca58d8585ba245111d1d682fd5ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1d13ca58d8585ba245111d1d682fd5ab">&#9670;&#160;</a></span>Nodes</h2>
+</div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="a0e0d9b19f953fd8b25e95fbed5afc0f5" name="a0e0d9b19f953fd8b25e95fbed5afc0f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e0d9b19f953fd8b25e95fbed5afc0f5">&#9670;&#160;</a></span>Adj</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = unsigned&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>  = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = VtxId&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">llvm::SmallVector&lt;T, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Nodes {}</td>
+          <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, llvm::SmallVector&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>, 2&gt;, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Adj {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00029">29</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00032">32</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
 
 </div>
 </div>
-<a id="acefc9d6c6610815e239378d80bbe3373" name="acefc9d6c6610815e239378d80bbe3373"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acefc9d6c6610815e239378d80bbe3373">&#9670;&#160;</a></span>Roots</h2>
+<a id="a5b4bb80ae7519fa8b52049969547eb1d" name="a5b4bb80ae7519fa8b52049969547eb1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b4bb80ae7519fa8b52049969547eb1d">&#9670;&#160;</a></span>Nodes</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = unsigned&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>  = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = VtxId&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">llvm::SmallVector&lt;unsigned, 1&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Roots {}</td>
+          <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, T, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Nodes {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00031">31</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
+
+</div>
+</div>
+<a id="a5926317ef6707edfa0fe4a5584a51da0" name="a5926317ef6707edfa0fe4a5584a51da0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5926317ef6707edfa0fe4a5584a51da0">&#9670;&#160;</a></span>Roots</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>  = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = VtxId&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">llvm::SmallVector&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, 1&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Roots {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00033">33</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
 
 </div>
 </div>
@@ -165,7 +165,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

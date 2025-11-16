@@ -117,11 +117,11 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> D&gt;</div>
 <div class="foldopen" id="foldopen00026" data-start="{" data-end="}">
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classpsr_1_1SparseCFGProvider.html#a825c2c4448a9ff0a809955c7e8cb404f">   26</a></span>  [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="classpsr_1_1SparseCFGProvider.html#a825c2c4448a9ff0a809955c7e8cb404f">getSparseCFG</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;f_t&gt;</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Fun</a>,</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classpsr_1_1SparseCFGProvider.html#a825c2c4448a9ff0a809955c7e8cb404f">   26</a></span>  [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="classpsr_1_1SparseCFGProvider.html#a825c2c4448a9ff0a809955c7e8cb404f">getSparseCFG</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;f_t&gt;</a> Fun,</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                                            <span class="keyword">const</span> D &amp;Val) <span class="keyword">const</span> {</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keyword">using </span><a class="code hl_function" href="namespacepsr.html#a67fed75b0d2e40664479e456df5f047b">psr::valueOf</a>;</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keyword">static_assert</span>(std::is_convertible_v&lt;<span class="keyword">decltype</span>(<a class="code hl_function" href="namespacepsr.html#a67fed75b0d2e40664479e456df5f047b">valueOf</a>(Val)), <a class="code hl_typedef" href="classpsr_1_1SparseCFGProvider.html#acf2297b51f1bcdedfe47751add4897ab">v_t</a>&gt;);</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">return</span> self().getSparseCFGImpl(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Fun</a>, <a class="code hl_function" href="namespacepsr.html#a67fed75b0d2e40664479e456df5f047b">valueOf</a>(Val));</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">return</span> self().getSparseCFGImpl(Fun, <a class="code hl_function" href="namespacepsr.html#a67fed75b0d2e40664479e456df5f047b">valueOf</a>(Val));</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  }</div>
 </div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
@@ -164,7 +164,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:02 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

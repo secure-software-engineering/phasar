@@ -207,6 +207,8 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:a8bc82b04e01b4127a410126e4c3a9ce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8eefab080b9c6ccfd3355afb9efedb9" id="r_ac8eefab080b9c6ccfd3355afb9efedb9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> llvm::ErrorOr&lt; <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html#ac8eefab080b9c6ccfd3355afb9efedb9">load</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Twine &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IRFileName</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EnableOpaquePointers</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_VERSION_MAJOR</a> &gt; 14)</td></tr>
 <tr class="separator:ac8eefab080b9c6ccfd3355afb9efedb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a088be4559bfb3f2060cd615ded71c867" id="r_a088be4559bfb3f2060cd615ded71c867"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html#a088be4559bfb3f2060cd615ded71c867">loadOrExit</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Twine &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IRFileName</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EnableOpaquePointers</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_VERSION_MAJOR</a> &gt; 14, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">int</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ErrorExitCode</a>=1)</td></tr>
+<tr class="separator:a088be4559bfb3f2060cd615ded71c867"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -543,7 +545,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Non-const overload. </p>
 
-<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00096">96</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00100">100</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
 
 </div>
 </div>
@@ -681,7 +683,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Non-const overload. </p>
 
-<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00109">109</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00113">113</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
 
 <p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00135">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::get()</a>.</p>
 
@@ -784,7 +786,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Similar to getInstruction(size_t), but is also able to return global variables by id </p>
 
-<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00113">113</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00117">117</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
 
 </div>
 </div>
@@ -859,6 +861,54 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a088be4559bfb3f2060cd615ded71c867" name="a088be4559bfb3f2060cd615ded71c867"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a088be4559bfb3f2060cd615ded71c867">&#9670;&#160;</a></span>loadOrExit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> psr::LLVMProjectIRDB::loadOrExit </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Twine &amp;&#160;</td>
+          <td class="paramname"><em>IRFileName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
+          <td class="paramname"><em>EnableOpaquePointers</em> = <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_VERSION_MAJOR</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">14&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">int</a>&#160;</td>
+          <td class="paramname"><em>ErrorExitCode</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a452e92dc40e126cdc536f2283684af66" name="a452e92dc40e126cdc536f2283684af66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a452e92dc40e126cdc536f2283684af66">&#9670;&#160;</a></span>operator bool()</h2>
 
@@ -882,7 +932,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00124">124</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMProjectIRDB_8h_source.html#l00128">128</a> of file <a class="el" href="LLVMProjectIRDB_8h_source.html">LLVMProjectIRDB.h</a>.</p>
 
 <p class="reference">References <a class="el" href="ProjectIRDBBase_8h_source.html#l00130">psr::ProjectIRDBBase&lt; LLVMProjectIRDB &gt;::isValid()</a>.</p>
 
@@ -946,7 +996,7 @@ Additional Inherited Members</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

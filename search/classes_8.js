@@ -114,6 +114,6 @@ var searchData=
   ['iterativeidesolverbase_111',['IterativeIDESolverBase',['../classpsr_1_1IterativeIDESolverBase.html',1,'psr']]],
   ['iterativeidesolverbase_3c_20defaultidesolverconfig_3c_20problemty_20_3e_2c_20staticsolverconfigty_3a_3atemplate_20edgefunctionptrtype_3c_20problemty_3a_3aproblemanalysisdomain_3a_3al_5ft_20_3e_20_3e_112',['IterativeIDESolverBase&lt; DefaultIDESolverConfig&lt; ProblemTy &gt;, StaticSolverConfigTy::template EdgeFunctionPtrType&lt; ProblemTy::ProblemAnalysisDomain::l_t &gt; &gt;',['../classpsr_1_1IterativeIDESolverBase.html',1,'psr']]],
   ['iterativeidesolverstats_113',['IterativeIDESolverStats',['../structpsr_1_1IterativeIDESolverStats.html',1,'psr']]],
-  ['iterator_114',['Iterator',['../classpsr_1_1StableVector_1_1Iterator.html',1,'psr::StableVector']]],
+  ['iterator_114',['iterator',['../classpsr_1_1BitSet_1_1Iterator.html',1,'psr::BitSet&lt; IdT, BitVectorTy &gt;::Iterator'],['../classpsr_1_1StableVector_1_1Iterator.html',1,'psr::StableVector&lt; T, Allocator &gt;::Iterator&lt; IsConst &gt;']]],
   ['iteridepropagationjob_115',['IterIDEPropagationJob',['../structpsr_1_1IterIDEPropagationJob.html',1,'psr']]]
 ];

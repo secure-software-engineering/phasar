@@ -88,13 +88,14 @@ $(function() {
   <div class="headertitle"><div class="title">AdjacencyList.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="GraphTraits_8h_source.html">phasar/Utils/GraphTraits.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="EmptyBaseOptimizationUtils_8h_source.html">phasar/Utils/EmptyBaseOptimizationUtils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="GraphTraits_8h_source.html">phasar/Utils/GraphTraits.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IotaIterator_8h_source.html">phasar/Utils/IotaIterator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="RepeatIterator_8h_source.html">phasar/Utils/RepeatIterator.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="Utilities_8h_source.html">phasar/Utils/Utilities.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="TypedVector_8h_source.html">phasar/Utils/TypedVector.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/ArrayRef.h&quot;</code><br />
-<code>#include &quot;llvm/ADT/None.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
@@ -103,12 +104,12 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList&lt; T, EdgeTy &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList&lt; T, VtxId, EdgeTy &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList_3_01llvm_1_1NoneType_00_01EdgeTy_01_4.html">psr::AdjacencyList&lt; llvm::NoneType, EdgeTy &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList_3_01EmptyType_00_01VtxId_00_01EdgeTy_01_4.html">psr::AdjacencyList&lt; EmptyType, VtxId, EdgeTy &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html">psr::GraphTraits&lt; AdjacencyList&lt; T, EdgeTy &gt; &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple graph implementation based on an adjacency list.  <a href="structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01EdgeTy_01_4_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple graph implementation based on an adjacency list.  <a href="structpsr_1_1GraphTraits_3_01AdjacencyList_3_01T_00_01VtxId_00_01EdgeTy_01_4_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -119,7 +120,7 @@ Namespaces</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 8 2025 12:33:03 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Nov 16 2025 15:46:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

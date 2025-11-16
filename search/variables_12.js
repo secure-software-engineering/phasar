@@ -13,5 +13,7 @@ var searchData=
   ['totalnumsuccessorbbs_10',['TotalNumSuccessorBBs',['../structpsr_1_1GeneralStatistics.html#a94c556798bc61cc838da50e1b617b3d5',1,'psr::GeneralStatistics']]],
   ['totalnumuses_11',['TotalNumUses',['../structpsr_1_1GeneralStatistics.html#a220fe35ca2210930ddb13ec916bc715a',1,'psr::GeneralStatistics']]],
   ['transitivederivedindex_12',['TransitiveDerivedIndex',['../structpsr_1_1DIBasedTypeHierarchyData.html#a909d7085214a903910bb5d0711ee9957',1,'psr::DIBasedTypeHierarchyData']]],
-  ['tsf_13',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]]
+  ['tsf_13',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]],
+  ['typeentrypoints_14',['TypeEntryPoints',['../structpsr_1_1vta_1_1TypeAssignmentGraph.html#ae810885c5f6a7f22ebcca780890c5220',1,'psr::vta::TypeAssignmentGraph']]],
+  ['typesperscc_15',['TypesPerSCC',['../structpsr_1_1vta_1_1TypeAssignment.html#adf2bc0708c727b6a700972202d840cba',1,'psr::vta::TypeAssignment']]]
 ];

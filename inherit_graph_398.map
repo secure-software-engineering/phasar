@@ -1,5 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1VFTable.html" title=" " alt="" coords="5,5,156,45"/>
-<area shape="rect" id="Node000001" href="$classpsr_1_1LLVMVFTable.html" title="Represents a virtual method table." alt="" coords="204,13,339,38"/>
-<area shape="poly" id="edge338_Node000000_Node000001" title=" " alt="" coords="170,23,204,23,204,28,170,28"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1type__identity.html" title=" " alt="" coords="5,5,292,60"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1DefaultAnalysisPrinterSelector_3_01LLVMIFDSAnalysisDomainDefault_01_4.html" title=" " alt="" coords="340,5,601,60"/>
+<area shape="poly" id="edge328_Node000000_Node000001" title=" " alt="" coords="306,30,340,30,340,35,306,35"/>
 </map>
