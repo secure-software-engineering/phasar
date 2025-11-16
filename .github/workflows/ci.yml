@@ -15,7 +15,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
+        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev clang-tools-19"] ]
         build: [ Debug, Release, DebugLibdeps, DebugCov ]
         include:
           - build: Debug
