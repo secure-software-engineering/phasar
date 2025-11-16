@@ -239,7 +239,7 @@ struct GraphTraits<AdjacencyList<T, VtxId, EdgeTy>> {
   ///
   /// \returns True, iff the removal was successful
   static constexpr bool pop(graph_type &G, vertex_t Vtx) {
-    if (Vtx == G.Adj.size() - 1) {
+    if (size_t(Vtx) == G.Adj.size() - 1) {
       G.Adj.pop_back();
       if constexpr (!std::is_empty_v<value_type>) {
         G.Nodes.pop_back();

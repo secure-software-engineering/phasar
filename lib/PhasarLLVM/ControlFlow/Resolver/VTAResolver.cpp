@@ -60,9 +60,6 @@ VTAResolver::VTAResolver(
 
   TA = vta::propagateTypes(TAG, SCCs, Deps, Order);
 
-  // TAG.print(llvm::errs());
-  // TA.print(llvm::errs(), TAG, SCCs);
-
   this->SCCs = std::move(SCCs);
   Nodes = std::move(TAG.Nodes);
 }
@@ -87,7 +84,7 @@ void VTAResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
 
   auto BaseCallees = BaseResolver->resolveIndirectCall(CallSite);
 
-  auto ReceiverIdx = CallSite->hasStructRetAttr();
+  auto ReceiverIdx = uint32_t(CallSite->hasStructRetAttr());
   if (CallSite->arg_size() > ReceiverIdx) {
     const auto *Receiver = CallSite->getArgOperand(ReceiverIdx);
     if (auto ReceiverNod = Nodes.getOrNull({vta::Variable{Receiver}})) {

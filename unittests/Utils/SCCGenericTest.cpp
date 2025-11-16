@@ -98,8 +98,8 @@ static void computeSCCsAndCompare(ExampleGraph &Graph,
   ASSERT_EQ(ComputedSCCsIt.SCCOfNode.size(), Graph.Adj.size())
       << "Recursive Pearce's Approach did not reach all nodes\n";
 
-#if __cplusplus >= 202002L
   [[maybe_unused]] auto SCCDeps = computeSCCDependencies(Graph, ComputedSCCsIt);
+#if __cplusplus >= 202002L
   static_assert(is_const_graph<decltype(SCCDeps)>);
 #endif
 

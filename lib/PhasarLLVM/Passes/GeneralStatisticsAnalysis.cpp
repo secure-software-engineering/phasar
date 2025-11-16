@@ -42,10 +42,11 @@ static bool isAddressTaken(const llvm::Function &Fun) noexcept {
 }
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key; // NOLINT
-GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
+GeneralStatistics
+GeneralStatisticsAnalysis::runOnModule(const llvm::Module &M) {
   PHASAR_LOG_LEVEL(INFO, "Running GeneralStatisticsAnalysis");
   Stats.ModuleName = M.getName().str();
-  for (auto &F : M) {
+  for (const auto &F : M) {
     ++Stats.Functions;
 
     if (F.hasExternalLinkage()) {
@@ -59,7 +60,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
       ++Stats.AddressTakenFunctions;
     }
 
-    for (auto &BB : F) {
+    for (const auto &BB : F) {
       ++Stats.BasicBlocks;
 
       {
@@ -75,7 +76,7 @@ GeneralStatistics GeneralStatisticsAnalysis::runOnModule(llvm::Module &M) {
         }
       }
 
-      for (auto &I : BB) {
+      for (const auto &I : BB) {
         // found one more instruction
         ++Stats.Instructions;
 

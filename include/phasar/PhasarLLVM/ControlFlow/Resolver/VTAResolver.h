@@ -43,7 +43,7 @@ public:
   /// Constructs a VTAResolver with a given pre-computed call-graph and
   /// alias-information
   ///
-  /// Builds the type-assignment graph and propagates allocated types though
+  /// Builds the type-assignment graph and propagates allocated types through
   /// it's SCCs.
   explicit VTAResolver(const LLVMProjectIRDB *IRDB,
                        const LLVMVFTableProvider *VTP, LLVMAliasIteratorRef AS,
@@ -54,7 +54,7 @@ public:
   /// Uses the optional parameter ReachableFunctions to consider only a subset
   /// of all functions for building the type-assignment graph
   ///
-  /// Builds the type-assignment graph and propagates allocated types though
+  /// Builds the type-assignment graph and propagates allocated types through
   /// it's SCCs.
   explicit VTAResolver(
       const LLVMProjectIRDB *IRDB, const LLVMVFTableProvider *VTP,

@@ -12,10 +12,14 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
+#include "llvm/Support/MathExtras.h"
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iterator>
+#include <type_traits>
 
 namespace psr {
 
@@ -141,11 +145,6 @@ public:
 
   [[nodiscard]] friend bool operator==(const BitSet &Lhs,
                                        const BitSet &Rhs) noexcept {
-    bool LeftEmpty = Lhs.Bits.none();
-    bool RightEmpty = Rhs.Bits.none();
-    if (LeftEmpty || RightEmpty) {
-      return LeftEmpty == RightEmpty;
-    }
     // Check, whether Lhs and Rhs actually have the same bits set and not
     // whether their internal representation is exactly identitcal
     uintptr_t LhsStore{};
@@ -177,6 +176,27 @@ public:
     return Bits.set_bits_begin();
   }
   [[nodiscard]] iterator end() const noexcept { return Bits.set_bits_end(); }
+
+  /// Calls the given handler function for each sert bit in the bitset.
+  ///
+  /// This is likely faster than using iterators.
+  template <typename HandlerFn>
+  std::enable_if_t<std::is_invocable_v<HandlerFn &, IdT>> foreach (
+      HandlerFn Handler) const
+      noexcept(std::is_nothrow_invocable_v<HandlerFn &, IdT>) {
+    uintptr_t Store{};
+    auto Words = getWords(Bits, Store);
+    uint32_t Offset = 0;
+    for (auto W : Words) {
+      while (W) {
+        auto Curr = llvm::countTrailingZeros(W) + Offset;
+        W &= W - 1;
+        std::invoke(Handler, IdT(Curr));
+      }
+
+      Offset += sizeof(W) * CHAR_BIT;
+    }
+  }
 
   /// Same as mergeWith()
   void operator|=(const BitSet &Other) { Bits |= Other.Bits; }
