@@ -20,16 +20,16 @@ jobs:
         include:
           - build: Debug
             cmake_build_type: Debug
-            flags: -DPHASAR_ENABLE_SANITIZERS=ON
+            flags: -DPHASAR_ENABLE_SANITIZERS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           - build: Release
             cmake_build_type: Release
-            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON
+            flags: -DPHASAR_ENABLE_DYNAMIC_LOG=OFF -DPHASAR_BUILD_DYNLIB=ON -DPHASAR_ENABLE_SANITIZERS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           - build: DebugLibdeps
             cmake_build_type: Debug
-            flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+            flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           - build: DebugCov
             cmake_build_type: Debug
-            flags: -DCODE_COVERAGE=ON
+            flags: -DCODE_COVERAGE=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             extra_dependencies: llvm-19 # For coverage
         exclude:
           - os: ubuntu-24.04-arm
@@ -52,6 +52,43 @@ jobs:
         run: |
           ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
 
+
+      - name: Download release build artifacts
+        if: matrix.build == 'Release'
+        shell: bash
+        run: |
+          name: ReleaseArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Download debug build artifacts
+        if: matrix.build == 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Download debuglibdeps build artifacts
+        if: matrix.build == 'DebugLibdeps'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugLibdepsArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Download debugcov build artifacts
+        if: matrix.build == 'DebugCov'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugCovArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
           CXX: ${{ matrix.compiler[0] }}
@@ -65,6 +102,42 @@ jobs:
             ${{ matrix.flags }} \
             -G Ninja
           ninja -C build
+
+      - name: Upload release build artifacts
+        if: matrix.build == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReleaseArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload debug build artifacts
+        if: matrix.build == 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload debuglibdeps build artifacts
+        if: matrix.build == 'DebugLibdeps'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugLibdepsArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload debugcov build artifacts
+        if: matrix.build == 'DebugCov'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugCovArtifact
+          path: ~/.cache/ccache
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Run Unittests
         shell: bash
