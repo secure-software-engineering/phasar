@@ -58,7 +58,7 @@ concept IsMatchingPTA = std::is_same_v<V, typename ConcretePTA::v_t> &&
 } // namespace detail
 
 template <typename T>
-PSR_CONCEPT IsPointsToIterator =
+concept IsPointsToIterator =
     requires(const T &PI, typename T::o_t Obj, typename T::n_t Inst,
              llvm::function_ref<void(typename T::o_t)> Callback) {
       PI.forallPointeesOf(Obj, Inst, Callback);

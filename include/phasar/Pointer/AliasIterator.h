@@ -45,7 +45,7 @@ concept HasGetAliasSet =
 
 } // namespace detail
 template <typename T>
-PSR_CONCEPT IsAliasIterator = requires {
+concept IsAliasIterator = requires {
   typename T::v_t;
   typename T::n_t;
   requires detail::IsAliasIteratorFor<T, typename T::v_t, typename T::n_t>;
