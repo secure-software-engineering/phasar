@@ -34,7 +34,7 @@ PhASAR is primarily developed and maintained by the Secure Software Engineering 
 PhASAR was initially developed by Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>).
 
 Currently, PhASAR is maintained by
-- Fabian Schiebel (@fabianbs96)(<fabian.schiebel@iem.fraunhofer.de>)
+- Fabian Schiebel (@fabianbs96)(<fabian.schiebel@uni-paderborn.de>)
 - Sriteja Kummita (@sritejakv)
 - Lucas Briese (@jusito)
 - Martin Mory (@MMory)(<martin.mory@upb.de>)
