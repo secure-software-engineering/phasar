@@ -89,7 +89,7 @@ private:
   llvm::DenseMap<const EdgeFunctionTy *, const void *, DSI> Cache;
 };
 
-template <typename EdgeFunctionTy, typename = void>
+template <typename EdgeFunctionTy>
 class DefaultEdgeFunctionSingletonCache
     : public DefaultEdgeFunctionSingletonCacheImpl<
           EdgeFunctionTy, typename EdgeFunctionTy::l_t> {

@@ -26,8 +26,6 @@
 
 namespace psr {
 
-// TODO: concept-ify AdjacencyList: Wait for #794 to be merged, as it adds major
-// changes here
 template <typename T, typename VtxId = uint32_t, typename EdgeTy = VtxId>
 struct AdjacencyList {
   TypedVector<VtxId, T, 0> Nodes{};

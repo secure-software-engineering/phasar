@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_NULLABLE_H
 #define PHASAR_UTILS_NULLABLE_H
 
+#include <cassert>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -22,22 +23,26 @@ using Nullable =
 
 template <typename T>
   requires std::is_convertible_v<T, bool>
-T &&unwrapNullable(T &&Val) noexcept {
+[[nodiscard]] constexpr T unwrapNullable(T &&Val) noexcept {
   return std::forward<T>(Val);
 }
 template <typename T>
   requires(!std::is_convertible_v<T, bool>)
-T unwrapNullable(std::optional<T> &&Val) noexcept {
+[[nodiscard]] constexpr T unwrapNullable(std::optional<T> &&Val) noexcept {
+  assert(Val && "Unwrapping nullopt!");
   return *std::move(Val);
 }
 template <typename T>
   requires(!std::is_convertible_v<T, bool>)
-const T &unwrapNullable(const std::optional<T> &Val) noexcept {
+[[nodiscard]] constexpr const T &
+unwrapNullable(const std::optional<T> &Val) noexcept {
+  assert(Val && "Unwrapping nullopt!");
   return *Val;
 }
 template <typename T>
   requires(!std::is_convertible_v<T, bool>)
-T &unwrapNullable(std::optional<T> &Val) noexcept {
+[[nodiscard]] constexpr T &unwrapNullable(std::optional<T> &Val) noexcept {
+  assert(Val && "Unwrapping nullopt!");
   return *Val;
 }
 } // namespace psr

@@ -87,7 +87,7 @@ using IFDSSolverConfigWithStats = WithStats<IFDSSolverConfig, true>;
 using IFDSSolverConfigWithStatsAndGC =
     WithGCMode<IFDSSolverConfigWithStats, JumpFunctionGCMode::Enabled>;
 
-template <typename ProblemTy, typename Enable = void>
+template <typename ProblemTy>
 struct DefaultIDESolverConfig : IDESolverConfig {};
 
 template <typename ProblemTy>

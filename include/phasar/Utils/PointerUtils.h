@@ -16,71 +16,80 @@ namespace psr {
 
 template <typename T>
   requires(!std::is_pointer_v<T>)
-constexpr T *getPointerFrom(T &Ref) noexcept {
+[[nodiscard]] constexpr T *getPointerFrom(T &Ref) noexcept {
   return std::addressof(Ref);
 }
 template <typename T>
   requires(!std::is_pointer_v<T>)
-constexpr const T *getPointerFrom(const T &Ref) noexcept {
+[[nodiscard]] constexpr const T *getPointerFrom(const T &Ref) noexcept {
   return std::addressof(Ref);
 }
 template <typename T>
   requires(!std::is_pointer_v<T>)
 constexpr T *getPointerFrom(T &&Ref) noexcept = delete;
 
-template <typename T> T *getPointerFrom(T *Ptr) noexcept { return Ptr; }
+template <typename T> [[nodiscard]] T *getPointerFrom(T *Ptr) noexcept {
+  return Ptr;
+}
 template <typename T>
-constexpr T *getPointerFrom(const std::unique_ptr<T> &Ptr) noexcept {
+[[nodiscard]] constexpr T *
+getPointerFrom(const std::unique_ptr<T> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T>
-constexpr T *getPointerFrom(std::unique_ptr<T> &Ptr) noexcept {
+[[nodiscard]] constexpr T *getPointerFrom(std::unique_ptr<T> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T>
 constexpr T *getPointerFrom(std::unique_ptr<T> &&Ptr) noexcept = delete;
 
 template <typename T, bool RequireAlignment>
-constexpr T *
+[[nodiscard]] constexpr T *
 getPointerFrom(const MaybeUniquePtr<T, RequireAlignment> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T, bool RequireAlignment>
-constexpr T *getPointerFrom(MaybeUniquePtr<T, RequireAlignment> &Ptr) noexcept {
+[[nodiscard]] constexpr T *
+getPointerFrom(MaybeUniquePtr<T, RequireAlignment> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T, bool RequireAlignment>
-constexpr T *
+[[nodiscard]] constexpr T *
 getPointerFrom(MaybeUniquePtr<T, RequireAlignment> &&Ptr) noexcept = delete;
 
 template <typename T>
-constexpr T *getPointerFrom(const std::shared_ptr<T> &Ptr) noexcept {
+[[nodiscard]] constexpr T *
+getPointerFrom(const std::shared_ptr<T> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T>
-constexpr T *getPointerFrom(std::shared_ptr<T> &Ptr) noexcept {
+[[nodiscard]] constexpr T *getPointerFrom(std::shared_ptr<T> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T>
 constexpr T *getPointerFrom(std::shared_ptr<T> &&Ptr) noexcept = delete;
 
 template <typename T>
-constexpr T *getPointerFrom(const llvm::IntrusiveRefCntPtr<T> &Ptr) noexcept {
+[[nodiscard]] constexpr T *
+getPointerFrom(const llvm::IntrusiveRefCntPtr<T> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T>
-constexpr T *getPointerFrom(llvm::IntrusiveRefCntPtr<T> &Ptr) noexcept {
+[[nodiscard]] constexpr T *
+getPointerFrom(llvm::IntrusiveRefCntPtr<T> &Ptr) noexcept {
   return Ptr.get();
 }
 template <typename T>
-constexpr T *getPointerFrom(llvm::IntrusiveRefCntPtr<T> &&Ptr) noexcept;
+[[nodiscard]] constexpr T *
+getPointerFrom(llvm::IntrusiveRefCntPtr<T> &&Ptr) noexcept;
 
 template <typename T>
-constexpr BoxedPtr<T> getPointerFrom(BoxedPtr<T> Ptr) noexcept {
+[[nodiscard]] constexpr BoxedPtr<T> getPointerFrom(BoxedPtr<T> Ptr) noexcept {
   return Ptr;
 }
 template <typename T>
-constexpr BoxedConstPtr<T> getPointerFrom(BoxedConstPtr<T> Ptr) noexcept {
+[[nodiscard]] constexpr BoxedConstPtr<T>
+getPointerFrom(BoxedConstPtr<T> Ptr) noexcept {
   return Ptr;
 }
 
