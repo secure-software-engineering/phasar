@@ -245,10 +245,18 @@ endif()
 set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 
 # Filesystem
-if (LLVM_ENABLE_LIBCXX)
-  set(PHASAR_STD_FILESYSTEM c++fs)
-else()
-  set(PHASAR_STD_FILESYSTEM stdc++fs)
+
+# Check if the underlying toolchain has a default std filesystem header
+include(CheckIncludeFileCXX)
+check_include_file_cxx(filesystem HAS_FILESYSTEM_HEADER)
+
+if (NOT HAS_FILESYSTEM_HEADER)
+  # If no file system exists, link a filesystem explicitly
+  if (LLVM_ENABLE_LIBCXX)
+    set(PHASAR_STD_FILESYSTEM c++fs)
+  else()
+    set(PHASAR_STD_FILESYSTEM stdc++fs)
+  endif()
 endif()
 
 # Config
