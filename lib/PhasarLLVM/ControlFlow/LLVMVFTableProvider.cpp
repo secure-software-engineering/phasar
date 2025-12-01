@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/MapUtils.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -25,20 +26,18 @@ static std::string getTypeName(const llvm::DIType *DITy) {
   auto TypeName = [DITy] {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
       if (auto Ident = CompTy->getIdentifier(); !Ident.empty()) {
-        return Ident;
+        // In LLVM 17 demangle() takes a StringRef
+        return llvm::demangle(Ident.str());
       }
     }
-    return DITy->getName();
+    return llvmTypeToString(DITy, true);
   }();
 
-  // In LLVM 17 demangle() takes a StringRef
-  auto Ret = llvm::demangle(TypeName.str());
-
-  if (llvm::StringRef(Ret).startswith(TSPrefixDemang)) {
-    Ret.erase(0, TSPrefixDemang.size());
+  if (llvm::StringRef(TypeName).startswith(TSPrefixDemang)) {
+    TypeName.erase(0, TSPrefixDemang.size());
   }
 
-  return Ret;
+  return TypeName;
 }
 
 static void insertVirtualFunctions(

@@ -26,6 +26,9 @@ getEntryFunctions(const LLVMProjectIRDB &IRDB,
 [[nodiscard]] std::vector<llvm::Function *>
 getEntryFunctionsMut(LLVMProjectIRDB &IRDB,
                      llvm::ArrayRef<std::string> EntryPoints);
+
+[[nodiscard]] std::vector<std::string>
+getDefaultEntryPoints(const LLVMProjectIRDB &IRDB);
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_UTILS_ENTRYFUNCTIONUTILS_H

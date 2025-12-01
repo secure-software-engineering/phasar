@@ -10,9 +10,9 @@
 #ifndef PHASAR_UTILS_GRAPHTRAITS_H
 #define PHASAR_UTILS_GRAPHTRAITS_H
 
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/ADT/None.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -35,81 +35,123 @@ template <typename Graph> struct GraphTraits;
 #if __cplusplus >= 202002L
 
 template <typename Edge>
-concept is_graph_edge = requires(const Edge e1, Edge e2) {
-  { e1 == e2 } -> std::convertible_to<bool>;
-  { e1 != e2 } -> std::convertible_to<bool>;
-  { e1 < e2 } -> std::convertible_to<bool>;
+concept is_graph_edge = requires(const Edge E1, Edge E2) {
+  { E1 == E2 } -> std::convertible_to<bool>;
+  { E1 != E2 } -> std::convertible_to<bool>;
 };
 
 template <typename GraphTrait>
-concept is_graph_trait = requires(typename GraphTrait::graph_type &graph,
-                                  const typename GraphTrait::graph_type &cgraph,
-                                  typename GraphTrait::value_type val,
-                                  typename GraphTrait::vertex_t vtx,
-                                  typename GraphTrait::edge_t edge) {
-  typename GraphTrait::graph_type;
-  typename GraphTrait::value_type;
-  typename GraphTrait::vertex_t;
-  typename GraphTrait::edge_t;
-  requires is_graph_edge<typename GraphTrait::edge_t>;
-  { GraphTrait::Invalid } -> std::convertible_to<typename GraphTrait::vertex_t>;
-  {
-    GraphTrait::addNode(graph, val)
-  } -> std::convertible_to<typename GraphTrait::vertex_t>;
-  { GraphTrait::addEdge(graph, vtx, edge) };
-  {
-    GraphTrait::outEdges(cgraph, vtx)
-  } -> psr::is_iterable_over_v<typename GraphTrait::edge_t>;
-  { GraphTrait::outDegree(cgraph, vtx) } -> std::convertible_to<size_t>;
-  { GraphTrait::dedupOutEdges(graph, vtx) };
-  {
-    GraphTrait::nodes(cgraph)
-  } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
-  {
-    GraphTrait::vertices(cgraph)
-  } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
-  {
-    GraphTrait::node(cgraph, vtx)
-  } -> std::convertible_to<typename GraphTrait::value_type>;
-  { GraphTrait::size(cgraph) } -> std::convertible_to<size_t>;
-  { GraphTrait::addRoot(graph, vtx) };
-  {
-    GraphTrait::roots(cgraph)
-  } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
-  { GraphTrait::pop(graph, vtx) } -> std::same_as<bool>;
-  { GraphTrait::roots_size(cgraph) } -> std::convertible_to<size_t>;
-  {
-    GraphTrait::target(edge)
-  } -> std::convertible_to<typename GraphTrait::vertex_t>;
-  {
-    GraphTrait::withEdgeTarget(edge, vtx)
-  } -> std::convertible_to<typename GraphTrait::edge_t>;
-  { GraphTrait::weight(edge) };
+concept is_const_graph_trait =
+    requires(const typename GraphTrait::graph_type &CGraph,
+             typename GraphTrait::value_type Val,
+             typename GraphTrait::vertex_t Vtx,
+             typename GraphTrait::edge_t Edge) {
+      typename GraphTrait::graph_type;
+      typename GraphTrait::value_type;
+      typename GraphTrait::vertex_t;
+      typename GraphTrait::edge_t;
+      requires is_graph_edge<typename GraphTrait::edge_t>;
+
+      {
+        GraphTrait::Invalid
+      } -> std::convertible_to<typename GraphTrait::vertex_t>;
+
+      {
+        GraphTrait::outEdges(CGraph, Vtx)
+      } -> psr::is_iterable_over_v<typename GraphTrait::edge_t>;
+      { GraphTrait::outDegree(CGraph, Vtx) } -> std::convertible_to<size_t>;
+      {
+        GraphTrait::nodes(CGraph)
+      } -> psr::is_iterable_over_v<typename GraphTrait::value_type>;
+      {
+        GraphTrait::roots(CGraph)
+      } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
+      {
+        GraphTrait::vertices(CGraph)
+      } -> psr::is_iterable_over_v<typename GraphTrait::vertex_t>;
+      {
+        GraphTrait::node(CGraph, Vtx)
+      } -> std::convertible_to<typename GraphTrait::value_type>;
+      { GraphTrait::size(CGraph) } -> std::convertible_to<size_t>;
+      { GraphTrait::roots_size(CGraph) } -> std::convertible_to<size_t>;
+      {
+        GraphTrait::target(Edge)
+      } -> std::convertible_to<typename GraphTrait::vertex_t>;
+      {
+        GraphTrait::withEdgeTarget(Edge, Vtx)
+      } -> std::convertible_to<typename GraphTrait::edge_t>;
+    };
+
+template <typename GraphTrait>
+concept is_graph_trait =
+    is_const_graph_trait<GraphTrait> &&
+    requires(typename GraphTrait::graph_type &Graph,
+             typename GraphTrait::value_type Val,
+             typename GraphTrait::vertex_t Vtx,
+             typename GraphTrait::edge_t Edge) {
+      {
+        GraphTrait::addNode(Graph, Val)
+      } -> std::convertible_to<typename GraphTrait::vertex_t>;
+      { GraphTrait::addEdge(Graph, Vtx, Edge) };
+      { GraphTrait::dedupOutEdges(Graph, Vtx) };
+      { GraphTrait::addRoot(Graph, Vtx) };
+      { GraphTrait::pop(Graph, Vtx) } -> std::same_as<bool>;
+    };
+
+template <typename GraphTrait>
+concept is_weighted_const_graph_trait =
+    is_const_graph_trait<GraphTrait> &&
+    requires(const typename GraphTrait::edge_t &Edge) {
+      typename GraphTrait::weight_t;
+      {
+        GraphTrait::weight(Edge)
+      } -> std::convertible_to<typename GraphTrait::weight_t>;
+    };
+template <typename GraphTrait>
+concept is_weighted_graph_trait =
+    is_graph_trait<GraphTrait> && is_weighted_const_graph_trait<GraphTrait>;
+
+template <typename Graph>
+concept is_const_graph = requires(Graph G) {
+  typename GraphTraits<std::decay_t<Graph>>;
+  requires is_const_graph_trait<GraphTraits<std::decay_t<Graph>>>;
 };
 
 template <typename Graph>
-concept is_graph = requires(Graph g) {
+concept is_graph = requires(Graph G) {
   typename GraphTraits<std::decay_t<Graph>>;
   requires is_graph_trait<GraphTraits<std::decay_t<Graph>>>;
 };
 
+template <typename Graph>
+concept is_weighted_const_graph = requires(Graph G) {
+  typename GraphTraits<std::decay_t<Graph>>;
+  requires is_weighted_const_graph_trait<GraphTraits<std::decay_t<Graph>>>;
+};
+
+template <typename Graph>
+concept is_weighted_graph = requires(Graph G) {
+  typename GraphTraits<std::decay_t<Graph>>;
+  requires is_weighted_graph_trait<GraphTraits<std::decay_t<Graph>>>;
+};
+
 template <typename GraphTrait>
 concept is_reservable_graph_trait_v =
-    is_graph_trait<GraphTrait> && requires(typename GraphTrait::graph_type &g) {
-      { GraphTrait::reserve(g, size_t(0)) };
+    is_graph_trait<GraphTrait> && requires(typename GraphTrait::graph_type &G) {
+      { GraphTrait::reserve(G, size_t(0)) };
     };
 
 template <typename GraphTrait>
 concept is_removable_graph_trait_v =
     is_graph_trait<GraphTrait> &&
-    requires(typename GraphTrait::graph_type &g,
-             typename GraphTrait::vertex_t vtx,
-             typename GraphTrait::edge_iterator edge_it,
-             typename GraphTrait::roots_iterator root_it) {
+    requires(typename GraphTrait::graph_type &G,
+             typename GraphTrait::vertex_t Vtx,
+             typename GraphTrait::edge_iterator EdgeIt,
+             typename GraphTrait::roots_iterator RootIt) {
       typename GraphTrait::edge_iterator;
       typename GraphTrait::roots_iterator;
-      { GraphTrait::removeEdge(g, vtx, edge_it) };
-      { GraphTrait::removeRoot(g, root_it) };
+      { GraphTrait::removeEdge(G, Vtx, EdgeIt) };
+      { GraphTrait::removeRoot(G, RootIt) };
     };
 
 #else
@@ -190,31 +232,43 @@ struct DefaultNodeTransform {
   }
 };
 
+/// \brief Prints the given graph G as dot.
+///
+/// \param G The graph to print
+/// \param OS The output-stream, where to print into
+/// \param Name The name of the graph
+/// \param NodeToString If the graph has node-labels, convert a node-label to
+/// string
 template <typename GraphTy, typename NodeTransform = DefaultNodeTransform>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
                 llvm::StringRef Name = "", NodeTransform NodeToString = {})
 #if __cplusplus >= 202002L
-  requires is_graph<GraphTy>
+  requires is_const_graph<GraphTy>
 #endif
 {
   using traits_t = GraphTraits<GraphTy>;
 
-  OS << "digraph " << Name << " {\n";
+  OS << "digraph \"";
+  OS.write_escaped(Name) << "\" {\n";
   psr::scope_exit CloseBrace = [&OS] { OS << "}\n"; };
 
-  auto Sz = traits_t::size(G);
-
-  for (size_t I = 0; I < Sz; ++I) {
-    OS << I;
-    if constexpr (!std::is_same_v<llvm::NoneType,
-                                  typename traits_t::value_type>) {
+  for (auto Vtx : traits_t::vertices(G)) {
+    OS << size_t(Vtx);
+    if constexpr (!std::is_empty_v<typename traits_t::value_type>) {
       OS << "[label=\"";
-      OS.write_escaped(std::invoke(NodeToString, traits_t::node(G, I)));
+      OS.write_escaped(std::invoke(NodeToString, traits_t::node(G, Vtx)));
       OS << "\"]";
     }
     OS << ";\n";
-    for (const auto &Edge : traits_t::outEdges(G, I)) {
-      OS << I << "->" << Edge << ";\n";
+    for (const auto &Edge : traits_t::outEdges(G, Vtx)) {
+      OS << size_t(Vtx) << "->";
+      if constexpr (is_llvm_printable_v<decltype(Edge)>) {
+        // to print the edge-weight as well, if possible
+        OS << Edge;
+      } else {
+        OS << size_t(traits_t::target(Edge));
+      }
+      OS << ";\n";
     }
   }
 }

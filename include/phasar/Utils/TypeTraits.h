@@ -15,8 +15,6 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -34,6 +32,9 @@ template <typename T> struct type_identity {
 #else
 template <typename T> using type_identity = std::type_identity<T>;
 #endif
+
+/// \file TODO: We should stick to one naming convention here and not mix
+/// CamelCase with lower_case!
 
 // NOLINTBEGIN(readability-identifier-naming)
 namespace detail {
@@ -165,6 +166,12 @@ struct AreEqualityComparable<T, U,
                              decltype(std::declval<T>() == std::declval<U>())>
     : std::true_type {};
 
+template <typename T, typename = bool>
+struct IsLessComparable : std::false_type {};
+template <typename T>
+struct IsLessComparable<T, decltype(std::declval<T>() < std::declval<T>())>
+    : std::true_type {};
+
 template <typename T, typename = size_t> struct HasDepth : std::false_type {};
 template <typename T>
 struct HasDepth<T, decltype(std::declval<const T &>().depth())>
@@ -202,6 +209,13 @@ struct has_llvm_dense_map_info<
                        std::declval<T>())),
                    decltype(llvm::DenseMapInfo<T>::isEqual(std::declval<T>(),
                                                            std::declval<T>()))>>
+    : std::true_type {};
+
+template <typename From, typename To, typename = void>
+struct is_explicitly_convertible_to : std::false_type {};
+template <typename From, typename To>
+struct is_explicitly_convertible_to<
+    From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
     : std::true_type {};
 } // namespace detail
 
@@ -272,6 +286,9 @@ PSR_CONCEPT IsEqualityComparable = detail::IsEqualityComparable<T>::value;
 template <typename T, typename U>
 PSR_CONCEPT AreEqualityComparable = detail::AreEqualityComparable<T, U>::value;
 
+template <typename T>
+PSR_CONCEPT IsLessComparable = detail::IsLessComparable<T>::value;
+
 template <typename ProblemTy>
 PSR_CONCEPT has_isInteresting_v = // NOLINT
     detail::has_isInteresting<ProblemTy>::value;
@@ -281,15 +298,20 @@ constexpr bool has_llvm_dense_map_info =
     detail::has_llvm_dense_map_info<T>::value;
 template <typename T> using type_identity_t = typename type_identity<T>::type;
 
+template <typename From, typename To>
+PSR_CONCEPT is_explicitly_convertible_to =
+    detail::is_explicitly_convertible_to<From, To>::value;
+
 template <typename Var, typename T>
 constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
 template <typename Container>
 using ElementType = typename detail::ElementType<Container>::type;
-template <typename T, typename Enable = nlohmann::json>
+template <typename T, typename Enable = void>
 struct has_getAsJson : std::false_type {}; // NOLINT
 template <typename T>
-struct has_getAsJson<T, decltype(std::declval<const T>().getAsJson())>
+struct has_getAsJson<T,
+                     std::void_t<decltype(std::declval<const T>().getAsJson())>>
     : std::true_type {}; // NOLINT
 
 struct TrueFn {

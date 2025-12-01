@@ -87,12 +87,16 @@ public:
 
   [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
-  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+  [[nodiscard]] static llvm::StringRef typeName(ClassType Type) {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
       auto Ident = CompTy->getIdentifier();
       return Ident.empty() ? CompTy->getName() : Ident;
     }
     return Type->getName();
+  }
+
+  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+    return typeName(Type);
   }
 
   [[nodiscard]] size_t size() const noexcept override {

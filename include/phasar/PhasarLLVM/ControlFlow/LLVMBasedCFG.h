@@ -18,6 +18,8 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
+#include "nlohmann/json.hpp"
+
 namespace llvm {
 class Function;
 } // namespace llvm
