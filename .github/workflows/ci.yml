@@ -47,10 +47,15 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: ccache  # This should always come after the actions/checkout step.
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.build }}
+
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
+          ./utils/InstallAptDependencies.sh --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
@@ -60,6 +65,8 @@ jobs:
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_PHASAR_CLANG=OFF \
             -DPHASAR_USE_Z3=ON \
             ${{ matrix.flags }} \
