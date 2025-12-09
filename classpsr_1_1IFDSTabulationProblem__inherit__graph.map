@@ -14,12 +14,12 @@
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="222,87,396,87,396,93,222,93"/>
 <area shape="rect" id="Node000006" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="693,142,865,182"/>
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="879,180,987,203,986,209,878,186"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1JoinLattice.html" title=" " alt="" coords="685,206,873,246"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="685,206,873,246"/>
 <area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="887,223,960,223,960,229,887,229"/>
 <area shape="rect" id="Node000008" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="648,271,911,296"/>
 <area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="860,265,975,243,976,249,861,271"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="656,321,903,361"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="881,314,910,305,981,275,1042,244,1044,249,983,279,912,310,883,319"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="693,321,865,361"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="878,315,910,305,981,275,1042,244,1044,249,983,279,912,310,879,320"/>
 <area shape="rect" id="Node000011" href="$classpsr_1_1DefaultAliasAwareIFDSProblem.html" title=" " alt="" coords="2085,5,2340,31"/>
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1961,79,2020,57,2085,39,2139,28,2140,33,2086,45,2022,63,1963,84"/>
 <area shape="rect" id="Node000013" href="$classpsr_1_1DefaultNoAliasIFDSProblem.html" title=" " alt="" coords="2097,55,2329,80"/>

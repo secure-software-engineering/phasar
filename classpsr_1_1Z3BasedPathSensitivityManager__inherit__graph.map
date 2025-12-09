@@ -1,5 +1,5 @@
-<map id="psr::Z3BasedPathSensitivityManager&lt; AnalysisDomainTy, typename &gt;" name="psr::Z3BasedPathSensitivityManager&lt; AnalysisDomainTy, typename &gt;">
-<area shape="rect" id="Node000001" title="An extension of the path&#45;reconstruction mechanism of the PathSensitivityManager that provides means t..." alt="" coords="1360,42,1579,97"/>
+<map id="psr::Z3BasedPathSensitivityManager&lt; AnalysisDomainTy &gt;" name="psr::Z3BasedPathSensitivityManager&lt; AnalysisDomainTy &gt;">
+<area shape="rect" id="Node000001" title="An extension of the path&#45;reconstruction mechanism of the PathSensitivityManager that provides means t..." alt="" coords="1360,49,1589,89"/>
 <area shape="rect" id="Node000002" href="$classpsr_1_1Z3BasedPathSensitivityManagerBase.html" title=" " alt="" coords="1057,5,1261,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1275,39,1360,51,1359,56,1274,44"/>
 <area shape="rect" id="Node000003" href="$classpsr_1_1PathSensitivityManagerBase.html" title=" " alt="" coords="456,5,696,45"/>

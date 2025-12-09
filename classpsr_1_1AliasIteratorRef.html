@@ -111,12 +111,14 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2afb3d5d91c790c7ae46867d04a2d145" id="r_a2afb3d5d91c790c7ae46867d04a2d145"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_base_of_v&lt;AliasIteratorRef, ConcreteAA&gt; &amp;&amp;                (detail::IsAliasIteratorFor&lt;ConcreteAA, V, N&gt;::value ||                 detail::HasGetAliasSet&lt;ConcreteAA&gt;::value)&gt;&gt; </td></tr>
-<tr class="memitem:a2afb3d5d91c790c7ae46867d04a2d145"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html#a2afb3d5d91c790c7ae46867d04a2d145">AliasIteratorRef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> *AA) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a2afb3d5d91c790c7ae46867d04a2d145"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06f60b7a8635762d8eff1ed74213649a" id="r_a06f60b7a8635762d8eff1ed74213649a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_base_of_v&lt;AliasIteratorRef, ConcreteAA&gt; &amp;&amp;                (detail::IsAliasIteratorFor&lt;ConcreteAA, V, N&gt;::value ||                 detail::HasGetAliasSet&lt;ConcreteAA&gt;::value) &amp;&amp;                CanSSO&lt;ConcreteAA&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a06f60b7a8635762d8eff1ed74213649a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html#a06f60b7a8635762d8eff1ed74213649a">AliasIteratorRef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> AA) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a06f60b7a8635762d8eff1ed74213649a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd4e4fecff7b4fb583615bbd39cecdf0" id="r_abd4e4fecff7b4fb583615bbd39cecdf0"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> &gt; <br />
+requires (!std::is_base_of_v&lt;<a class="el" href="classpsr_1_1AliasIteratorRef.html">AliasIteratorRef</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt; &amp;&amp; (detail::IsAliasIteratorFor&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>, V, N&gt; || detail::HasGetAliasSet&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt;))</td></tr>
+<tr class="memitem:abd4e4fecff7b4fb583615bbd39cecdf0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html#abd4e4fecff7b4fb583615bbd39cecdf0">AliasIteratorRef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> *AA) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:abd4e4fecff7b4fb583615bbd39cecdf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeebf81612261c6aaa801b48c0f685bff" id="r_aeebf81612261c6aaa801b48c0f685bff"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> &gt; <br />
+requires (!std::is_base_of_v&lt;<a class="el" href="classpsr_1_1AliasIteratorRef.html">AliasIteratorRef</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt; &amp;&amp; (detail::IsAliasIteratorFor&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>, V, N&gt; || detail::HasGetAliasSet&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt;) &amp;&amp; <a class="el" href="structpsr_1_1TypeErasureUtils.html#a9a3c03e33555aa04a890dc7170441141">CanSSO</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt;)</td></tr>
+<tr class="memitem:aeebf81612261c6aaa801b48c0f685bff"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html#aeebf81612261c6aaa801b48c0f685bff">AliasIteratorRef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> AA) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:aeebf81612261c6aaa801b48c0f685bff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3be5e371f442c1b8991a48aa8b2acef5" id="r_a3be5e371f442c1b8991a48aa8b2acef5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html#a3be5e371f442c1b8991a48aa8b2acef5">AliasIteratorRef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> *AA, <a class="el" href="classpsr_1_1AliasIteratorRef.html#ad68702ce3a39a92d0a120aaf7fa3ecf6">ForallAliasesOfFn</a> Fn) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a3be5e371f442c1b8991a48aa8b2acef5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c3ffbd792783b4f27c980745e88e5b8" id="r_a1c3ffbd792783b4f27c980745e88e5b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1AliasIteratorRef.html#a1c3ffbd792783b4f27c980745e88e5b8">AliasIteratorRef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1AliasIteratorRef.html">AliasIteratorRef</a> &amp;) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
@@ -143,7 +145,7 @@ class psr::AliasIteratorRef&lt; V, N &gt;</div><p>A type-erased reference to any
 <div class="ttc" id="aclasspsr_1_1LLVMAliasSet_html"><div class="ttname"><a href="classpsr_1_1LLVMAliasSet.html">psr::LLVMAliasSet</a></div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasSet_8h_source.html#l00049">LLVMAliasSet.h:50</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00076">76</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00068">68</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ad68702ce3a39a92d0a120aaf7fa3ecf6" name="ad68702ce3a39a92d0a120aaf7fa3ecf6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad68702ce3a39a92d0a120aaf7fa3ecf6">&#9670;&#160;</a></span>ForallAliasesOfFn</h2>
@@ -159,7 +161,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00081">81</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00073">73</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
@@ -177,7 +179,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00078">78</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00070">70</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
@@ -195,20 +197,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00079">79</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00071">71</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a2afb3d5d91c790c7ae46867d04a2d145" name="a2afb3d5d91c790c7ae46867d04a2d145"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2afb3d5d91c790c7ae46867d04a2d145">&#9670;&#160;</a></span>AliasIteratorRef() <span class="overload">[1/4]</span></h2>
+<a id="abd4e4fecff7b4fb583615bbd39cecdf0" name="abd4e4fecff7b4fb583615bbd39cecdf0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd4e4fecff7b4fb583615bbd39cecdf0">&#9670;&#160;</a></span>AliasIteratorRef() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> V , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_base_of_v&lt;AliasIteratorRef, ConcreteAA&gt; &amp;&amp;                (detail::IsAliasIteratorFor&lt;ConcreteAA, V, N&gt;::value ||                 detail::HasGetAliasSet&lt;ConcreteAA&gt;::value)&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> &gt; <br />
+requires (!std::is_base_of_v&lt;<a class="el" href="classpsr_1_1AliasIteratorRef.html">AliasIteratorRef</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt; &amp;&amp; (detail::IsAliasIteratorFor&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>, V, N&gt; || detail::HasGetAliasSet&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt;))</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -228,19 +231,20 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00089">89</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00080">80</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
-<a id="a06f60b7a8635762d8eff1ed74213649a" name="a06f60b7a8635762d8eff1ed74213649a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a06f60b7a8635762d8eff1ed74213649a">&#9670;&#160;</a></span>AliasIteratorRef() <span class="overload">[2/4]</span></h2>
+<a id="aeebf81612261c6aaa801b48c0f685bff" name="aeebf81612261c6aaa801b48c0f685bff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeebf81612261c6aaa801b48c0f685bff">&#9670;&#160;</a></span>AliasIteratorRef() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> V , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_base_of_v&lt;AliasIteratorRef, ConcreteAA&gt; &amp;&amp;                (detail::IsAliasIteratorFor&lt;ConcreteAA, V, N&gt;::value ||                 detail::HasGetAliasSet&lt;ConcreteAA&gt;::value) &amp;&amp;                CanSSO&lt;ConcreteAA&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a> &gt; <br />
+requires (!std::is_base_of_v&lt;<a class="el" href="classpsr_1_1AliasIteratorRef.html">AliasIteratorRef</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt; &amp;&amp; (detail::IsAliasIteratorFor&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>, V, N&gt; || detail::HasGetAliasSet&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt;) &amp;&amp; <a class="el" href="structpsr_1_1TypeErasureUtils.html#a9a3c03e33555aa04a890dc7170441141">CanSSO</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteAA</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -260,7 +264,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00099">99</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00089">89</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
@@ -300,7 +304,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00104">104</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00094">94</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
@@ -414,7 +418,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A set of type SetT containing all aliases of Of </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00138">138</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00128">128</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
@@ -471,7 +475,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00124">124</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasIterator_8h_source.html#l00114">114</a> of file <a class="el" href="AliasIterator_8h_source.html">AliasIterator.h</a>.</p>
 
 </div>
 </div>
@@ -509,7 +513,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

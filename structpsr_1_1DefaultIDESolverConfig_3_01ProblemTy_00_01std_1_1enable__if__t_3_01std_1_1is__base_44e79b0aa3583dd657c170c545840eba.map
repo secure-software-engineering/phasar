@@ -1,7 +1,0 @@
-<map id="psr::DefaultIDESolverConfig&lt; ProblemTy, std::enable_if_t&lt; std::is_base_of_v&lt; IFDSTabulationProblem&lt; typename ProblemTy::ProblemAnalysisDomain &gt;, ProblemTy &gt; &gt; &gt;" name="psr::DefaultIDESolverConfig&lt; ProblemTy, std::enable_if_t&lt; std::is_base_of_v&lt; IFDSTabulationProblem&lt; typename ProblemTy::ProblemAnalysisDomain &gt;, ProblemTy &gt; &gt; &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,275,251"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1WithComputeValues.html" title=" " alt="" coords="73,79,207,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,118,143,152,137,152,137,118"/>
-<area shape="rect" id="Node000003" href="$classBase.html" title=" " alt="" coords="113,5,167,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="143,44,143,79,137,79,137,44"/>
-</map>

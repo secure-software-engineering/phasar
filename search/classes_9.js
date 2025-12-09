@@ -2,7 +2,7 @@ var searchData=
 [
   ['joinedgefunction_0',['JoinEdgeFunction',['../structpsr_1_1JoinEdgeFunction.html',1,'psr']]],
   ['joinlattice_1',['JoinLattice',['../classpsr_1_1JoinLattice.html',1,'psr']]],
-  ['joinlattice_3c_20analysisdomainty_2c_20std_3a_3aenable_5fif_5ft_3c_20hasjoinlatticetraits_3c_20typename_20analysisdomainty_3a_3al_5ft_20_3e_20_3e_20_3e_2',['JoinLattice&lt; AnalysisDomainTy, std::enable_if_t&lt; HasJoinLatticeTraits&lt; typename AnalysisDomainTy::l_t &gt; &gt; &gt;',['../classpsr_1_1JoinLattice_3_01AnalysisDomainTy_00_01std_1_1enable__if__t_3_01HasJoinLatticeTraits_456544bd05b1ff24c4fcdcad6319f31f.html',1,'psr']]],
+  ['joinlattice_3c_20analysisdomainty_20_3e_2',['JoinLattice&lt; AnalysisDomainTy &gt;',['../classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html',1,'psr']]],
   ['joinlattice_3c_20ideextendedtaintanalysisdomain_20_3e_3',['JoinLattice&lt; IDEExtendedTaintAnalysisDomain &gt;',['../classpsr_1_1JoinLattice.html',1,'psr']]],
   ['joinlattice_3c_20idefeaturetaintanalysisdomain_20_3e_4',['JoinLattice&lt; IDEFeatureTaintAnalysisDomain &gt;',['../classpsr_1_1JoinLattice.html',1,'psr']]],
   ['joinlattice_3c_20idegeneralizedlcadomain_20_3e_5',['JoinLattice&lt; IDEGeneralizedLCADomain &gt;',['../classpsr_1_1JoinLattice.html',1,'psr']]],

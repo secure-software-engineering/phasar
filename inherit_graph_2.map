@@ -1,17 +1,17 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classBase.html" title=" " alt="" coords="5,187,60,213"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1WithComputeValues.html" title=" " alt="" coords="108,52,323,92"/>
-<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="45,173,71,136,106,102,128,90,131,94,110,106,75,140,50,176"/>
-<area shape="rect" id="Node000004" href="$structpsr_1_1WithEndSummaryTab.html" title=" " alt="" coords="121,116,310,156"/>
-<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="71,180,107,165,143,154,144,159,109,171,73,185"/>
-<area shape="rect" id="Node000005" href="$structpsr_1_1WithGCMode.html" title=" " alt="" coords="122,180,309,220"/>
-<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="74,197,122,197,122,203,74,203"/>
-<area shape="rect" id="Node000006" href="$structpsr_1_1WithStats.html" title=" " alt="" coords="133,244,297,284"/>
-<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="73,215,109,229,144,241,143,246,107,235,71,220"/>
-<area shape="rect" id="Node000007" href="$structpsr_1_1WithWorkList.html" title=" " alt="" coords="142,308,289,348"/>
-<area shape="poly" id="edge7_Node000000_Node000007" title=" " alt="" coords="50,224,75,260,110,294,143,310,140,315,106,298,71,264,45,227"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1DefaultIDESolverConfig.html" title=" " alt="" coords="404,5,607,45"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="336,50,404,39,404,44,336,55"/>
-<area shape="rect" id="Node000003" href="$structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_00_01std_1_1enable__if__t_3_01std_1_1is__base_adc4e44d50d6a7f0c5ce731aba6dd5ad.html" title=" " alt="" coords="371,69,640,168"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="336,89,371,94,370,100,336,94"/>
+<area shape="rect" id="Node000000" href="$classBase.html" title=" " alt="" coords="5,173,60,198"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1WithComputeValues.html" title=" " alt="" coords="108,37,323,77"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="45,158,71,122,106,87,128,75,131,80,110,91,75,125,50,161"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1WithEndSummaryTab.html" title=" " alt="" coords="121,101,310,141"/>
+<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="71,165,107,151,143,139,144,144,109,156,73,170"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1WithGCMode.html" title=" " alt="" coords="122,165,309,205"/>
+<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="74,183,122,183,122,188,74,188"/>
+<area shape="rect" id="Node000006" href="$structpsr_1_1WithStats.html" title=" " alt="" coords="133,229,297,269"/>
+<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="73,200,109,215,144,227,143,232,107,220,71,205"/>
+<area shape="rect" id="Node000007" href="$structpsr_1_1WithWorkList.html" title=" " alt="" coords="142,293,289,333"/>
+<area shape="poly" id="edge7_Node000000_Node000007" title=" " alt="" coords="50,209,75,246,110,279,143,296,140,301,106,284,71,249,45,212"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1DefaultIDESolverConfig.html" title=" " alt="" coords="371,5,573,45"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="336,40,370,35,371,41,337,45"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1DefaultIDESolverConfig_3_01ProblemTy_01_4.html" title=" " alt="" coords="371,69,573,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="337,70,371,74,370,79,336,75"/>
 </map>

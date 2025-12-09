@@ -113,7 +113,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacepsr.html#a068e80f033ea042c03a841efa7e3fb3f">EdgeFunctionKind</a>;</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacepsr.html#abfdb20cea38adc9f743a6670d5a26279">EdgeFunctionAllocationPolicy</a>;</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">namespace </span>detail {</div>
+<div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="namespacepsr_1_1detail.html">   24</a></span><span class="keyword">namespace </span>detail {</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">struct </span>EdgeFunctionStatsData {</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> NumEFKinds = 5;</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> NumAllocPolicies = 3;</div>
@@ -135,6 +136,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  std::array&lt;size_t, NumAllocPolicies&gt; PerAllocJFCount{};</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>};</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>} <span class="comment">// namespace detail</span></div>
+</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
 <div class="foldopen" id="foldopen00047" data-start="{" data-end="};">
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="classpsr_1_1EdgeFunctionStats.html">   47</a></span><span class="keyword">class </span><a class="code hl_class" href="classpsr_1_1EdgeFunctionStats.html">EdgeFunctionStats</a> : <span class="keyword">public</span> detail::EdgeFunctionStatsData {</div>
@@ -193,16 +195,16 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1EdgeFunctionStats_html_ac1dac8ac4366ca34bc9345612ad9e867"><div class="ttname"><a href="classpsr_1_1EdgeFunctionStats.html#ac1dac8ac4366ca34bc9345612ad9e867">psr::EdgeFunctionStats::operator&lt;&lt;</a></div><div class="ttdeci">friend llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, const EdgeFunctionStats &amp;S)</div></div>
 <div class="ttc" id="aclasspsr_1_1EdgeFunctionStats_html_acf7420b827e3c2ace3735ee797246245"><div class="ttname"><a href="classpsr_1_1EdgeFunctionStats.html#acf7420b827e3c2ace3735ee797246245">psr::EdgeFunctionStats::getNumEFs</a></div><div class="ttdeci">size_t getNumEFs() const noexcept</div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionStats_8h_source.html#l00057">EdgeFunctionStats.h:57</a></div></div>
 <div class="ttc" id="aclasspsr_1_1EdgeFunctionStats_html_ae113e1aa052de08589ebd8ac4014f1cd"><div class="ttname"><a href="classpsr_1_1EdgeFunctionStats.html#ae113e1aa052de08589ebd8ac4014f1cd">psr::EdgeFunctionStats::getNumUniqueEFs</a></div><div class="ttdeci">size_t getNumUniqueEFs(EdgeFunctionKind Kind) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionStats_8h_source.html#l00052">EdgeFunctionStats.h:52</a></div></div>
-<div class="ttc" id="aclasspsr_1_1IDESolver_html"><div class="ttname"><a href="classpsr_1_1IDESolver.html">psr::IDESolver</a></div><div class="ttdef"><b>Definition</b> <a href="IDESolver_8h_source.html#l00072">IDESolver.h:73</a></div></div>
+<div class="ttc" id="aclasspsr_1_1IDESolver_html"><div class="ttname"><a href="classpsr_1_1IDESolver.html">psr::IDESolver</a></div><div class="ttdef"><b>Definition</b> <a href="IDESolver_8h_source.html#l00073">IDESolver.h:74</a></div></div>
 <div class="ttc" id="aclasssize__t_html"><div class="ttname"><a href="classsize__t.html">size_t</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a068e80f033ea042c03a841efa7e3fb3f"><div class="ttname"><a href="namespacepsr.html#a068e80f033ea042c03a841efa7e3fb3f">psr::EdgeFunctionKind</a></div><div class="ttdeci">EdgeFunctionKind</div><div class="ttdef"><b>Definition</b> <a href="FlowEdgeFunctionCache_8h_source.html#l00036">FlowEdgeFunctionCache.h:36</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
-<div class="ttc" id="anamespacepsr_html_abfdb20cea38adc9f743a6670d5a26279"><div class="ttname"><a href="namespacepsr.html#abfdb20cea38adc9f743a6670d5a26279">psr::EdgeFunctionAllocationPolicy</a></div><div class="ttdeci">EdgeFunctionAllocationPolicy</div><div class="ttdef"><b>Definition</b> <a href="EdgeFunction_8h_source.html#l00072">EdgeFunction.h:72</a></div></div>
+<div class="ttc" id="anamespacepsr_html_abfdb20cea38adc9f743a6670d5a26279"><div class="ttname"><a href="namespacepsr.html#abfdb20cea38adc9f743a6670d5a26279">psr::EdgeFunctionAllocationPolicy</a></div><div class="ttdeci">EdgeFunctionAllocationPolicy</div><div class="ttdef"><b>Definition</b> <a href="EdgeFunction_8h_source.html#l00049">EdgeFunction.h:49</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:25 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

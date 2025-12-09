@@ -574,10 +574,10 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="classpsr_1_1JoinLattice.html" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="651,-687.78 510,-687.78 510,-657.78 651,-657.78 651,-687.78"/>
 <text text-anchor="start" x="518" y="-675.78" font-family="Helvetica,sans-Serif" font-size="10.00">psr::JoinLattice&lt; Analysis</text>
-<text text-anchor="middle" x="580.5" y="-664.78" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy, typename &gt;</text>
+<text text-anchor="middle" x="580.5" y="-664.78" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -611,10 +611,10 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="classpsr_1_1AllTopFnProvider.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="673,-601.78 488,-601.78 488,-571.78 673,-571.78 673,-601.78"/>
-<text text-anchor="start" x="496" y="-589.78" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
-<text text-anchor="middle" x="580.5" y="-578.78" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, typename &gt;</text>
+<g id="a_Node000008"><a xlink:href="classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="645,-601.78 516,-601.78 516,-571.78 645,-571.78 645,-601.78"/>
+<text text-anchor="start" x="524" y="-589.78" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
+<text text-anchor="middle" x="580.5" y="-578.78" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -622,8 +622,8 @@
 <g id="edge7_Node000001_Node000008" class="edge">
 <title>Node8&#45;&gt;Node1</title>
 <g id="a_edge7_Node000001_Node000008"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M657.56,-604.73C664.87,-606.92 672.11,-609.28 679,-611.78 714.39,-624.68 753.16,-644.13 778.44,-657.59"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="658.18,-601.26 647.6,-601.85 656.23,-607.99 658.18,-601.26"/>
+<path fill="none" stroke="#63b8ff" d="M654.88,-603.93C663.09,-606.34 671.27,-608.97 679,-611.78 714.39,-624.68 753.16,-644.13 778.44,-657.59"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="655.83,-600.56 645.25,-601.2 653.92,-607.3 655.83,-600.56"/>
 </a>
 </g>
 </g>

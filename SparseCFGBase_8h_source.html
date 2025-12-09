@@ -130,7 +130,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ICF, <span class="keyword">typename</span> Domain&gt;</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="comment">// NOLINTNEXTLINE(readability-identifier-naming)</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespacepsr.html#a539843a07a1343e3ae9ebaa6b5d6cbd8">   37</a></span><span class="keyword">constexpr</span> <span class="keywordtype">bool</span> <a class="code hl_variable" href="namespacepsr.html#a539843a07a1343e3ae9ebaa6b5d6cbd8">is_sparse_cfg_v</a> = <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is_crtp_base_of_v&lt;SparseCFGBase, ICF&gt;</a></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespacepsr.html#a539843a07a1343e3ae9ebaa6b5d6cbd8">   37</a></span><span class="keyword">constexpr</span> <span class="keywordtype">bool</span> <a class="code hl_variable" href="namespacepsr.html#a539843a07a1343e3ae9ebaa6b5d6cbd8">is_sparse_cfg_v</a> = <a class="code hl_concept" href="conceptpsr_1_1is__crtp__base__of__v.html">is_crtp_base_of_v&lt;SparseCFGBase, ICF&gt;</a></div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    &amp;&amp;std::is_same_v&lt;typename ICF::n_t, typename Domain::n_t&gt;</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        &amp;&amp;std::is_same_v&lt;typename ICF::f_t, typename Domain::f_t&gt;;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
@@ -146,13 +146,14 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1CRTPBase_html_ac011e10a41ad48c180378a83f6d4a2fc"><div class="ttname"><a href="classpsr_1_1CRTPBase.html#ac011e10a41ad48c180378a83f6d4a2fc">psr::CRTPBase::self</a></div><div class="ttdeci">constexpr Derived &amp; self() &amp;noexcept</div><div class="ttdef"><b>Definition</b> <a href="CRTPUtils_8h_source.html#l00020">CRTPUtils.h:20</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SparseCFGBase_html"><div class="ttname"><a href="classpsr_1_1SparseCFGBase.html">psr::SparseCFGBase</a></div><div class="ttdef"><b>Definition</b> <a href="SparseCFGBase_8h_source.html#l00018">SparseCFGBase.h:18</a></div></div>
 <div class="ttc" id="aclasspsr_1_1SparseCFGBase_html_a0615c03546ccb68b91fd3458555f474f"><div class="ttname"><a href="classpsr_1_1SparseCFGBase.html#a0615c03546ccb68b91fd3458555f474f">psr::SparseCFGBase::nextUserOrNull</a></div><div class="ttdeci">Nullable&lt; n_t &gt; nextUserOrNull(ByConstRef&lt; n_t &gt; FromInstruction) const</div><div class="ttdef"><b>Definition</b> <a href="SparseCFGBase_8h_source.html#l00027">SparseCFGBase.h:27</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1is__crtp__base__of__v_html"><div class="ttname"><a href="conceptpsr_1_1is__crtp__base__of__v.html">psr::is_crtp_base_of_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00151">TypeTraits.h:151</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a539843a07a1343e3ae9ebaa6b5d6cbd8"><div class="ttname"><a href="namespacepsr.html#a539843a07a1343e3ae9ebaa6b5d6cbd8">psr::is_sparse_cfg_v</a></div><div class="ttdeci">constexpr bool is_sparse_cfg_v</div><div class="ttdef"><b>Definition</b> <a href="SparseCFGBase_8h_source.html#l00037">SparseCFGBase.h:37</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:25 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

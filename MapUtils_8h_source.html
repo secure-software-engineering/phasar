@@ -113,8 +113,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a>, <span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a>,</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>          <span class="keyword">typename</span> = std::enable_if_t&lt;std::is_lvalue_reference_v&lt;MapT&gt;&gt;&gt;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> MapT, <span class="keyword">typename</span> KeyT&gt;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">requires</span> std::is_lvalue_reference_v&lt;MapT&gt;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">static</span> <span class="keyword">auto</span> getOrDefault(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a> &amp;&amp;Map, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> &amp;&amp;Key) -&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt;</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    llvm::remove_cvref_t&lt;<span class="keyword">decltype</span>(Map.find(<a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(Key))-&gt;second)&gt;&gt; {</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keyword">auto</span> It = Map.find(<a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(Key));</div>
@@ -125,44 +125,41 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordflow">return</span> It-&gt;second;</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">template</span> &lt;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a>, <span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a>,</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">typename</span> = std::enable_if_t&lt;std::is_lvalue_reference_v&lt;MapT&gt;&gt;,</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    std::enable_if_t&lt;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        !<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::CanEfficientlyPassByValue&lt;llvm::remove_cvref_t&lt;KeyT&gt;</a>&gt;, <span class="keywordtype">int</span>&gt; = 0&gt;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="namespacepsr.html#ac0bb82672eb11c0c3589bc3f539ae8a8">getOrNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a> &amp;&amp;Map, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> &amp;&amp;Key)</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    -&gt; <span class="keyword">decltype</span>(&amp;Map.find(<a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(Key))-&gt;second) {</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keyword">auto</span> It = Map.find(<a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(Key));</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keyword">decltype</span>(&amp;It-&gt;second) <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keywordflow">if</span> (It != Map.end()) {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = &amp;It-&gt;second;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  }</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>}</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="keyword">template</span> &lt;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a>, <span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a>,</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keyword">typename</span> = std::enable_if_t&lt;std::is_lvalue_reference_v&lt;MapT&gt;&gt;,</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    std::enable_if_t&lt;psr::CanEfficientlyPassByValue&lt;llvm::remove_cvref_t&lt;KeyT&gt;&gt;,</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                     <span class="keywordtype">int</span>&gt; = 0&gt;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="namespacepsr.html#ac0bb82672eb11c0c3589bc3f539ae8a8">getOrNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a> &amp;&amp;Map, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> Key)</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    -&gt; <span class="keyword">decltype</span>(&amp;Map.find(Key)-&gt;second) {</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keyword">auto</span> It = Map.find(Key);</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keyword">decltype</span>(&amp;It-&gt;second) <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordflow">if</span> (It != Map.end()) {</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = &amp;It-&gt;second;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  }</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> MapT, <span class="keyword">typename</span> KeyT&gt;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keyword">requires</span>(std::is_lvalue_reference_v&lt;MapT&gt; &amp;&amp;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>           !<a class="code hl_concept" href="conceptpsr_1_1CanEfficientlyPassByValue.html">psr::CanEfficientlyPassByValue&lt;llvm::remove_cvref_t&lt;KeyT&gt;</a>&gt;)</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="namespacepsr.html#ac0bb82672eb11c0c3589bc3f539ae8a8">getOrNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a> &amp;&amp;Map, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> &amp;&amp;Key)</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    -&gt; <span class="keyword">decltype</span>(&amp;Map.find(<a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(Key))-&gt;second) {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">auto</span> It = Map.find(<a class="code hl_define" href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a>(Key));</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keyword">decltype</span>(&amp;It-&gt;second) <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">if</span> (It != Map.end()) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = &amp;It-&gt;second;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  }</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> MapT, <span class="keyword">typename</span> KeyT&gt;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keyword">requires</span>(std::is_lvalue_reference_v&lt;MapT&gt; &amp;&amp;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>           <a class="code hl_concept" href="conceptpsr_1_1CanEfficientlyPassByValue.html">psr::CanEfficientlyPassByValue&lt;llvm::remove_cvref_t&lt;KeyT&gt;</a>&gt;)</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="namespacepsr.html#ac0bb82672eb11c0c3589bc3f539ae8a8">getOrNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MapT</a> &amp;&amp;Map, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> Key)</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    -&gt; <span class="keyword">decltype</span>(&amp;Map.find(Key)-&gt;second) {</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="keyword">auto</span> It = Map.find(Key);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="keyword">decltype</span>(&amp;It-&gt;second) <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="keywordflow">if</span> (It != Map.end()) {</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a> = &amp;It-&gt;second;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  }</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>}</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_UTILS_MAPUTILS_H</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_UTILS_MAPUTILS_H</span></div>
 <div class="ttc" id="aByRef_8h_html"><div class="ttname"><a href="ByRef_8h.html">ByRef.h</a></div></div>
 <div class="ttc" id="aDefaultValue_8h_html"><div class="ttname"><a href="DefaultValue_8h.html">DefaultValue.h</a></div></div>
 <div class="ttc" id="aMacros_8h_html"><div class="ttname"><a href="Macros_8h.html">Macros.h</a></div></div>
 <div class="ttc" id="aMacros_8h_html_a886bb5afef08c49ad3edb43f16df19b0"><div class="ttname"><a href="Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0">PSR_FWD</a></div><div class="ttdeci">#define PSR_FWD(...)</div><div class="ttdef"><b>Definition</b> <a href="Macros_8h_source.html#l00013">Macros.h:13</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1CanEfficientlyPassByValue_html"><div class="ttname"><a href="conceptpsr_1_1CanEfficientlyPassByValue.html">psr::CanEfficientlyPassByValue</a></div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00020">ByRef.h:20</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
@@ -170,7 +167,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

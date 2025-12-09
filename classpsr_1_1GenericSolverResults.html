@@ -107,26 +107,24 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae078b4f9824984afe02be72613bd854d" id="r_ae078b4f9824984afe02be72613bd854d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;                            GenericSolverResults, std::decay_t&lt;T&gt;&gt;&gt;&gt; </td></tr>
-<tr class="memitem:ae078b4f9824984afe02be72613bd854d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#ae078b4f9824984afe02be72613bd854d">GenericSolverResults</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SR</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:ae078b4f9824984afe02be72613bd854d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6425e2e5795a8002cfd833bacc12f2cd" id="r_a6425e2e5795a8002cfd833bacc12f2cd"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1GenericSolverResults.html">GenericSolverResults</a>, std::decay_t&lt;T&gt;&gt;)</td></tr>
+<tr class="memitem:a6425e2e5795a8002cfd833bacc12f2cd"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a6425e2e5795a8002cfd833bacc12f2cd">GenericSolverResults</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SR</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a6425e2e5795a8002cfd833bacc12f2cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af79163f3110beadcf792780115961b64" id="r_af79163f3110beadcf792780115961b64"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#af79163f3110beadcf792780115961b64">resultAt</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#a024bc050116ca6938ffa82ab79c3f5f9">n_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:af79163f3110beadcf792780115961b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa32ca6d462f47512bad2e14acd9cc920" id="r_aa32ca6d462f47512bad2e14acd9cc920"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a>, <a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#aa32ca6d462f47512bad2e14acd9cc920">resultsAt</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#a024bc050116ca6938ffa82ab79c3f5f9">n_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StripZero</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:aa32ca6d462f47512bad2e14acd9cc920"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a340ee1522fec245be5c5e512d414b1ca" id="r_a340ee1522fec245be5c5e512d414b1ca"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LL</a>  = L, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_same_v&lt;LL, BinaryDomain&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a340ee1522fec245be5c5e512d414b1ca"><td class="memTemplItemLeft" align="right" valign="top">std::set&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a340ee1522fec245be5c5e512d414b1ca">ifdsResultsAt</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#a024bc050116ca6938ffa82ab79c3f5f9">n_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
-<tr class="separator:a340ee1522fec245be5c5e512d414b1ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5faed7cc2ff61ef96bb7a93ca13420e5" id="r_a5faed7cc2ff61ef96bb7a93ca13420e5"><td class="memItemLeft" align="right" valign="top">std::set&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a5faed7cc2ff61ef96bb7a93ca13420e5">ifdsResultsAt</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#a024bc050116ca6938ffa82ab79c3f5f9">n_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a5faed7cc2ff61ef96bb7a93ca13420e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fae95d065eeaad5e0721c5d5c7b4f6d" id="r_a2fae95d065eeaad5e0721c5d5c7b4f6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a2fae95d065eeaad5e0721c5d5c7b4f6d">size</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a2fae95d065eeaad5e0721c5d5c7b4f6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ac9d4edd37c5e51cf46f6a17e0c3101" id="r_a2ac9d4edd37c5e51cf46f6a17e0c3101"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a2ac9d4edd37c5e51cf46f6a17e0c3101">containsNode</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#a024bc050116ca6938ffa82ab79c3f5f9">n_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:a2ac9d4edd37c5e51cf46f6a17e0c3101"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a54e405600b8f982bd9009cccacef08" id="r_a7a54e405600b8f982bd9009cccacef08"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NN</a>  = N, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                                 std::is_same_v&lt;NN, const llvm::Instruction *&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a7a54e405600b8f982bd9009cccacef08"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a7a54e405600b8f982bd9009cccacef08">resultAtInLLVMSSA</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
-<tr class="separator:a7a54e405600b8f982bd9009cccacef08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac97ac9c344ca0782a4bf1699f5dad7b9" id="r_ac97ac9c344ca0782a4bf1699f5dad7b9"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NN</a>  = N, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                                 std::is_same_v&lt;NN, const llvm::Instruction *&gt;&gt;&gt; </td></tr>
-<tr class="memitem:ac97ac9c344ca0782a4bf1699f5dad7b9"><td class="memTemplItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a>, <a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#ac97ac9c344ca0782a4bf1699f5dad7b9">resultsAtInLLVMSSA</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StripZero</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
-<tr class="separator:ac97ac9c344ca0782a4bf1699f5dad7b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40fd2130d5616579cd21ea9412d71197" id="r_a40fd2130d5616579cd21ea9412d71197"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a40fd2130d5616579cd21ea9412d71197">resultAtInLLVMSSA</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a40fd2130d5616579cd21ea9412d71197"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73c778c25ee397a40c9dccf0fa2f709a" id="r_a73c778c25ee397a40c9dccf0fa2f709a"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a>, <a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#a73c778c25ee397a40c9dccf0fa2f709a">resultsAtInLLVMSSA</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Stmt</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StripZero</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a73c778c25ee397a40c9dccf0fa2f709a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae13a931855955a9fe986f92826d8c851" id="r_ae13a931855955a9fe986f92826d8c851"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericSolverResults.html#ae13a931855955a9fe986f92826d8c851">foreachResultEntry</a> (llvm::function_ref&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>(std::tuple&lt; <a class="el" href="classpsr_1_1GenericSolverResults.html#a024bc050116ca6938ffa82ab79c3f5f9">n_t</a>, <a class="el" href="classpsr_1_1GenericSolverResults.html#acc070adeb6ffc5b46b15919b061842bb">d_t</a>, <a class="el" href="classpsr_1_1GenericSolverResults.html#a9164281871490b853cfc5c08b7194371">l_t</a> &gt;)&gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Handler</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:ae13a931855955a9fe986f92826d8c851"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -192,15 +190,16 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ae078b4f9824984afe02be72613bd854d" name="ae078b4f9824984afe02be72613bd854d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae078b4f9824984afe02be72613bd854d">&#9670;&#160;</a></span>GenericSolverResults()</h2>
+<a id="a6425e2e5795a8002cfd833bacc12f2cd" name="a6425e2e5795a8002cfd833bacc12f2cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6425e2e5795a8002cfd833bacc12f2cd">&#9670;&#160;</a></span>GenericSolverResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;                            GenericSolverResults, std::decay_t&lt;T&gt;&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1GenericSolverResults.html">GenericSolverResults</a>, std::decay_t&lt;T&gt;&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -283,19 +282,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00113">113</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00114">114</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
-<a id="a340ee1522fec245be5c5e512d414b1ca" name="a340ee1522fec245be5c5e512d414b1ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a340ee1522fec245be5c5e512d414b1ca">&#9670;&#160;</a></span>ifdsResultsAt()</h2>
+<a id="a5faed7cc2ff61ef96bb7a93ca13420e5" name="a5faed7cc2ff61ef96bb7a93ca13420e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5faed7cc2ff61ef96bb7a93ca13420e5">&#9670;&#160;</a></span>ifdsResultsAt()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LL</a>  = L, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_same_v&lt;LL, BinaryDomain&gt;&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -315,7 +312,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00077">77</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00075">75</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 </div>
 </div>
@@ -357,19 +354,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00064">64</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00094">psr::GenericSolverResults&lt; N, D, L &gt;::resultAtInLLVMSSA()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00093">psr::GenericSolverResults&lt; N, D, L &gt;::resultAtInLLVMSSA()</a>.</p>
 
 </div>
 </div>
-<a id="a7a54e405600b8f982bd9009cccacef08" name="a7a54e405600b8f982bd9009cccacef08"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a54e405600b8f982bd9009cccacef08">&#9670;&#160;</a></span>resultAtInLLVMSSA()</h2>
+<a id="a40fd2130d5616579cd21ea9412d71197" name="a40fd2130d5616579cd21ea9412d71197"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40fd2130d5616579cd21ea9412d71197">&#9670;&#160;</a></span>resultAtInLLVMSSA()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NN</a>  = N, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                                 std::is_same_v&lt;NN, const llvm::Instruction *&gt;&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -399,7 +394,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00094">94</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00093">93</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 <p class="reference">References <a class="el" href="GenericSolverResults_8h_source.html#l00064">psr::GenericSolverResults&lt; N, D, L &gt;::resultAt()</a>.</p>
 
@@ -443,19 +438,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00070">70</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00105">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAtInLLVMSSA()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00104">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAtInLLVMSSA()</a>.</p>
 
 </div>
 </div>
-<a id="ac97ac9c344ca0782a4bf1699f5dad7b9" name="ac97ac9c344ca0782a4bf1699f5dad7b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac97ac9c344ca0782a4bf1699f5dad7b9">&#9670;&#160;</a></span>resultsAtInLLVMSSA()</h2>
+<a id="a73c778c25ee397a40c9dccf0fa2f709a" name="a73c778c25ee397a40c9dccf0fa2f709a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73c778c25ee397a40c9dccf0fa2f709a">&#9670;&#160;</a></span>resultsAtInLLVMSSA()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NN</a>  = N, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                                 std::is_same_v&lt;NN, const llvm::Instruction *&gt;&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -485,7 +478,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00105">105</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="GenericSolverResults_8h_source.html#l00104">104</a> of file <a class="el" href="GenericSolverResults_8h_source.html">GenericSolverResults.h</a>.</p>
 
 <p class="reference">References <a class="el" href="GenericSolverResults_8h_source.html#l00070">psr::GenericSolverResults&lt; N, D, L &gt;::resultsAt()</a>.</p>
 
@@ -526,7 +519,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:07 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

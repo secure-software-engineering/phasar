@@ -1,3 +1,25 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1TypedVector.html" title=" " alt="" coords="5,5,191,45"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1TypeStateDescriptionBase.html" title=" " alt="" coords="5,173,225,198"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="300,5,488,45"/>
+<area shape="poly" id="edge334_Node000000_Node000001" title=" " alt="" coords="137,160,195,107,232,79,272,55,300,43,302,48,275,60,235,84,198,112,140,164"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="283,69,505,109"/>
+<area shape="poly" id="edge336_Node000000_Node000003" title=" " alt="" coords="157,164,272,119,311,107,313,112,274,124,159,169"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="297,133,491,173"/>
+<area shape="poly" id="edge338_Node000000_Node000005" title=" " alt="" coords="238,169,296,162,297,167,239,174"/>
+<area shape="rect" id="Node000007" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="283,197,505,237"/>
+<area shape="poly" id="edge340_Node000000_Node000007" title=" " alt="" coords="239,197,283,202,283,207,239,202"/>
+<area shape="rect" id="Node000009" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="273,261,515,301"/>
+<area shape="poly" id="edge342_Node000000_Node000009" title=" " alt="" coords="159,201,274,247,313,259,311,264,272,252,157,206"/>
+<area shape="rect" id="Node000011" href="$structpsr_1_1TypeStateDescription.html" title=" " alt="" coords="300,325,488,365"/>
+<area shape="poly" id="edge344_Node000000_Node000011" title=" " alt="" coords="140,206,198,259,235,287,275,311,302,323,300,328,272,316,232,291,195,263,137,210"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1CSTDFILEIOTypeStateDescription.html" title=" " alt="" coords="597,5,787,45"/>
+<area shape="poly" id="edge335_Node000001_Node000002" title=" " alt="" coords="502,23,597,23,597,28,502,28"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1OpenSSLEVPKDFCTXDescription.html" title=" " alt="" coords="563,77,821,102"/>
+<area shape="poly" id="edge337_Node000003_Node000004" title=" " alt="" coords="519,87,562,87,562,92,519,92"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1OpenSSLEVPKDFDescription.html" title=" " alt="" coords="575,141,809,166"/>
+<area shape="poly" id="edge339_Node000005_Node000006" title=" " alt="" coords="506,151,575,151,575,156,506,156"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1OpenSSLSecureHeapDescription.html" title=" " alt="" coords="563,205,821,230"/>
+<area shape="poly" id="edge341_Node000007_Node000008" title=" " alt="" coords="519,215,562,215,562,220,519,220"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1OpenSSLSecureMemoryDescription.html" title=" " alt="" coords="589,261,795,301"/>
+<area shape="poly" id="edge343_Node000009_Node000010" title=" " alt="" coords="528,279,589,279,589,284,528,284"/>
 </map>

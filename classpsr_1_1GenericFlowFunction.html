@@ -112,10 +112,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8c81c117e3eb16826ab89c7b33e4aae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb1775e9ae143b88102c8588d3341480" id="r_afb1775e9ae143b88102c8588d3341480"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericFlowFunction.html#afb1775e9ae143b88102c8588d3341480">GenericFlowFunction</a> (<a class="el" href="classpsr_1_1GenericFlowFunction.html#ad5329979a3ccef24e9222ae2e8baf5ce">FlowFunctionPtrType</a> FF) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:afb1775e9ae143b88102c8588d3341480"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aedd0073405b47cb275ed43138ea7c5c7" id="r_aedd0073405b47cb275ed43138ea7c5c7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_base_of_v&lt;                            FlowFunctionType, std::decay_t&lt;T&gt;&gt;&gt;&gt; </td></tr>
-<tr class="memitem:aedd0073405b47cb275ed43138ea7c5c7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericFlowFunction.html#aedd0073405b47cb275ed43138ea7c5c7">GenericFlowFunction</a> (T &amp;&amp;FF)</td></tr>
-<tr class="separator:aedd0073405b47cb275ed43138ea7c5c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3df97d0db14881b85a64b5f18865b382" id="r_a3df97d0db14881b85a64b5f18865b382"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , typename... ArgTys&gt; </td></tr>
+<tr class="memitem:ab9376aacfc1b9beb1babc1d774d9254c" id="r_ab9376aacfc1b9beb1babc1d774d9254c"><td class="memTemplParams" colspan="2">template&lt;derived_from_decay&lt; <a class="el" href="classpsr_1_1GenericFlowFunction.html#a9582c5b4195ff4221f777c507e36a3b4">FlowFunctionType</a> &gt; T&gt; </td></tr>
+<tr class="memitem:ab9376aacfc1b9beb1babc1d774d9254c"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericFlowFunction.html#ab9376aacfc1b9beb1babc1d774d9254c">GenericFlowFunction</a> (T &amp;&amp;FF)</td></tr>
+<tr class="separator:ab9376aacfc1b9beb1babc1d774d9254c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3df97d0db14881b85a64b5f18865b382" id="r_a3df97d0db14881b85a64b5f18865b382"><td class="memTemplParams" colspan="2">template&lt;std::derived_from&lt; <a class="el" href="classpsr_1_1GenericFlowFunction.html#a9582c5b4195ff4221f777c507e36a3b4">FlowFunctionType</a> &gt; T, typename... ArgTys&gt; </td></tr>
 <tr class="memitem:a3df97d0db14881b85a64b5f18865b382"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericFlowFunction.html#a3df97d0db14881b85a64b5f18865b382">GenericFlowFunction</a> (std::in_place_type_t&lt; T &gt;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgTys</a> &amp;&amp;...<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>)</td></tr>
 <tr class="separator:a3df97d0db14881b85a64b5f18865b382"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ab625fb76296090b9f0af3a55d32601" id="r_a3ab625fb76296090b9f0af3a55d32601"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1GenericFlowFunction.html#a3ab625fb76296090b9f0af3a55d32601">GenericFlowFunction</a> (<a class="el" href="classpsr_1_1GenericFlowFunction.html">GenericFlowFunction</a> &amp;&amp;) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
@@ -279,15 +279,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="aedd0073405b47cb275ed43138ea7c5c7" name="aedd0073405b47cb275ed43138ea7c5c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedd0073405b47cb275ed43138ea7c5c7">&#9670;&#160;</a></span>GenericFlowFunction() <span class="overload">[3/6]</span></h2>
+<a id="ab9376aacfc1b9beb1babc1d774d9254c" name="ab9376aacfc1b9beb1babc1d774d9254c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9376aacfc1b9beb1babc1d774d9254c">&#9670;&#160;</a></span>GenericFlowFunction() <span class="overload">[3/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>  = std::set&lt;D&gt;&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_base_of_v&lt;                            FlowFunctionType, std::decay_t&lt;T&gt;&gt;&gt;&gt; </div>
+template&lt;derived_from_decay&lt; <a class="el" href="classpsr_1_1GenericFlowFunction.html#a9582c5b4195ff4221f777c507e36a3b4">FlowFunctionType</a> &gt; T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -319,7 +319,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>  = std::set&lt;D&gt;&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , typename... ArgTys&gt; </div>
+template&lt;std::derived_from&lt; <a class="el" href="classpsr_1_1GenericFlowFunction.html#a9582c5b4195ff4221f777c507e36a3b4">FlowFunctionType</a> &gt; T, typename... ArgTys&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -709,7 +709,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:07 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

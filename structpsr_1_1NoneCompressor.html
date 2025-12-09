@@ -95,9 +95,10 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:adb3c4cc41108405e0e4e6125febb6795" id="r_adb3c4cc41108405e0e4e6125febb6795"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1NoneCompressor.html#adb3c4cc41108405e0e4e6125febb6795">NoneCompressor</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
 <tr class="separator:adb3c4cc41108405e0e4e6125febb6795"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adebe476f8b65ac9b5e9052cac8fd2f00" id="r_adebe476f8b65ac9b5e9052cac8fd2f00"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;NoneCompressor, T&gt;&gt;&gt; </td></tr>
-<tr class="memitem:adebe476f8b65ac9b5e9052cac8fd2f00"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1NoneCompressor.html#adebe476f8b65ac9b5e9052cac8fd2f00">NoneCompressor</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:adebe476f8b65ac9b5e9052cac8fd2f00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fd4f16fc114692ed0ec2bd05ff67341" id="r_a4fd4f16fc114692ed0ec2bd05ff67341"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="structpsr_1_1NoneCompressor.html">NoneCompressor</a>, T&gt;)</td></tr>
+<tr class="memitem:a4fd4f16fc114692ed0ec2bd05ff67341"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1NoneCompressor.html#a4fd4f16fc114692ed0ec2bd05ff67341">NoneCompressor</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a4fd4f16fc114692ed0ec2bd05ff67341"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e98bc09dceb2023605103ba30905ae4" id="r_a7e98bc09dceb2023605103ba30905ae4"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:a7e98bc09dceb2023605103ba30905ae4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1NoneCompressor.html#a7e98bc09dceb2023605103ba30905ae4">getOrInsert</a> (T &amp;&amp;Val) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a7e98bc09dceb2023605103ba30905ae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,13 +141,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="adebe476f8b65ac9b5e9052cac8fd2f00" name="adebe476f8b65ac9b5e9052cac8fd2f00"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adebe476f8b65ac9b5e9052cac8fd2f00">&#9670;&#160;</a></span>NoneCompressor() <span class="overload">[2/2]</span></h2>
+<a id="a4fd4f16fc114692ed0ec2bd05ff67341" name="a4fd4f16fc114692ed0ec2bd05ff67341"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fd4f16fc114692ed0ec2bd05ff67341">&#9670;&#160;</a></span>NoneCompressor() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;NoneCompressor, T&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="structpsr_1_1NoneCompressor.html">NoneCompressor</a>, T&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -319,7 +321,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:07 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

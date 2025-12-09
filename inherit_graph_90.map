@@ -1,3 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1CallStringCTX.html" title=" " alt="" coords="5,5,144,45"/>
+<area shape="rect" id="Node000000" href="$structpsr_1_1CFGTraits_3_01LLVMBasedCFG_01_4.html" title=" " alt="" coords="5,101,207,141"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1CFGTraits_3_01LLVMBasedBackwardCFG_01_4.html" title=" " alt="" coords="277,5,478,45"/>
+<area shape="poly" id="edge173_Node000000_Node000001" title=" " alt="" coords="160,93,254,55,292,43,294,48,256,60,162,98"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1CFGTraits_3_01LLVMBasedICFG_01_4.html" title=" " alt="" coords="277,69,478,109"/>
+<area shape="poly" id="edge175_Node000000_Node000003" title=" " alt="" coords="220,105,276,99,277,104,221,111"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1CFGTraits_3_01SparseLLVMBasedCFG_01_4.html" title=" " alt="" coords="255,133,500,173"/>
+<area shape="poly" id="edge176_Node000000_Node000004" title=" " alt="" coords="221,132,255,136,254,142,220,137"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1CFGTraits_3_01SparseLLVMBasedICFGView_01_4.html" title=" " alt="" coords="255,197,500,237"/>
+<area shape="poly" id="edge177_Node000000_Node000005" title=" " alt="" coords="162,145,256,183,294,195,292,200,254,188,160,150"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1CFGTraits_3_01LLVMBasedBackwardICFG_01_4.html" title=" " alt="" coords="548,5,749,45"/>
+<area shape="poly" id="edge174_Node000001_Node000002" title=" " alt="" coords="492,23,548,23,548,28,492,28"/>
 </map>

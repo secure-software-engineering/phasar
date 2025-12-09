@@ -85,7 +85,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#concepts">Concepts</a>  </div>
   <div class="headertitle"><div class="title">PointsToIterator.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -95,6 +95,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="TypeErasureUtils_8h_source.html">phasar/Utils/TypeErasureUtils.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Utilities_8h_source.html">phasar/Utils/Utilities.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/STLFunctionalExtras.h&quot;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 </div>
@@ -118,16 +119,15 @@ Namespaces</h2></td></tr>
 <tr class="memdesc:namespacepsr_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:ade16ce1934158d0223bfb2e5c000979b" id="r_ade16ce1934158d0223bfb2e5c000979b"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:ade16ce1934158d0223bfb2e5c000979b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ade16ce1934158d0223bfb2e5c000979b">psr::IsPointsToIterator</a> = detail::IsPointsToIterator&lt;T&gt;::value</td></tr>
-<tr class="separator:ade16ce1934158d0223bfb2e5c000979b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsPointsToIterator.html">psr::IsPointsToIterator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

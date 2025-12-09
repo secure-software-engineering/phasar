@@ -105,9 +105,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6b551b19d5cea248a57b5f731fa33007"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8823d6ad7c221496372cbf0dee84c450" id="r_a8823d6ad7c221496372cbf0dee84c450"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a8823d6ad7c221496372cbf0dee84c450">MaybeUniquePtr</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a8823d6ad7c221496372cbf0dee84c450"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a450459faa5db507f88cb58c2f77d3720" id="r_a450459faa5db507f88cb58c2f77d3720"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;T, TT&gt; &amp;&amp;                                        std::is_convertible_v&lt;TT *, T *&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a450459faa5db507f88cb58c2f77d3720"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a450459faa5db507f88cb58c2f77d3720">MaybeUniquePtr</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a450459faa5db507f88cb58c2f77d3720"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3e74a7e613ef2b022e9c3b529203035" id="r_af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
+requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</td></tr>
+<tr class="memitem:af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af3e74a7e613ef2b022e9c3b529203035">MaybeUniquePtr</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:af3e74a7e613ef2b022e9c3b529203035"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a154e7a211785137f662090c35dd0dbc0" id="r_a154e7a211785137f662090c35dd0dbc0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a154e7a211785137f662090c35dd0dbc0">MaybeUniquePtr</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a154e7a211785137f662090c35dd0dbc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8b261b096337d40aa1df7130261c747" id="r_ad8b261b096337d40aa1df7130261c747"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ad8b261b096337d40aa1df7130261c747">swap</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
@@ -116,15 +117,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af364d4247b00af650d8aaecef8c767e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19678b143e15af8c39bbd60f344d8979" id="r_a19678b143e15af8c39bbd60f344d8979"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a19678b143e15af8c39bbd60f344d8979">operator=</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a19678b143e15af8c39bbd60f344d8979"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaab60ab7b25d561a5ed29ec12d926812" id="r_aaab60ab7b25d561a5ed29ec12d926812"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;T, TT&gt; &amp;&amp;                                        std::is_convertible_v&lt;TT *, T *&gt;&gt;&gt; </td></tr>
-<tr class="memitem:aaab60ab7b25d561a5ed29ec12d926812"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#aaab60ab7b25d561a5ed29ec12d926812">operator=</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:aaab60ab7b25d561a5ed29ec12d926812"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac887fa92f587c8e350c19e17b95138d5" id="r_ac887fa92f587c8e350c19e17b95138d5"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
+requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</td></tr>
+<tr class="memitem:ac887fa92f587c8e350c19e17b95138d5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ac887fa92f587c8e350c19e17b95138d5">operator=</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:ac887fa92f587c8e350c19e17b95138d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc8b616a5ac12e2a70307eec380063f4" id="r_acc8b616a5ac12e2a70307eec380063f4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#acc8b616a5ac12e2a70307eec380063f4">MaybeUniquePtr</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;)=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">delete</a></td></tr>
 <tr class="separator:acc8b616a5ac12e2a70307eec380063f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad266b715b0b690772f1abc92ee50135a" id="r_ad266b715b0b690772f1abc92ee50135a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ad266b715b0b690772f1abc92ee50135a">operator=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;)=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">delete</a></td></tr>
 <tr class="separator:ad266b715b0b690772f1abc92ee50135a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a088863105cb62888285ed643ec442e0e" id="r_a088863105cb62888285ed643ec442e0e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a088863105cb62888285ed643ec442e0e">~MaybeUniquePtr</a> ()</td></tr>
-<tr class="separator:a088863105cb62888285ed643ec442e0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a341a5033c3c628b9f0c3d13d4bc80489" id="r_a341a5033c3c628b9f0c3d13d4bc80489"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a341a5033c3c628b9f0c3d13d4bc80489">~MaybeUniquePtr</a> ()</td></tr>
+<tr class="separator:a341a5033c3c628b9f0c3d13d4bc80489"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c6da076e6b53088a6b319e4ecfcfddd" id="r_a3c6da076e6b53088a6b319e4ecfcfddd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a3c6da076e6b53088a6b319e4ecfcfddd">get</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a3c6da076e6b53088a6b319e4ecfcfddd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac91c726334054211ad92c967d6aef07" id="r_aac91c726334054211ad92c967d6aef07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#aac91c726334054211ad92c967d6aef07">operator-&gt;</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
@@ -273,15 +275,16 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="a450459faa5db507f88cb58c2f77d3720" name="a450459faa5db507f88cb58c2f77d3720"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a450459faa5db507f88cb58c2f77d3720">&#9670;&#160;</a></span>MaybeUniquePtr() <span class="overload">[4/6]</span></h2>
+<a id="af3e74a7e613ef2b022e9c3b529203035" name="af3e74a7e613ef2b022e9c3b529203035"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3e74a7e613ef2b022e9c3b529203035">&#9670;&#160;</a></span>MaybeUniquePtr() <span class="overload">[4/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;T, TT&gt; &amp;&amp;                                        std::is_convertible_v&lt;TT *, T *&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
+requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -301,7 +304,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00079">79</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00078">78</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -331,7 +334,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00082">82</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00081">81</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -363,8 +366,8 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="a088863105cb62888285ed643ec442e0e" name="a088863105cb62888285ed643ec442e0e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a088863105cb62888285ed643ec442e0e">&#9670;&#160;</a></span>~MaybeUniquePtr()</h2>
+<a id="a341a5033c3c628b9f0c3d13d4bc80489" name="a341a5033c3c628b9f0c3d13d4bc80489"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a341a5033c3c628b9f0c3d13d4bc80489">&#9670;&#160;</a></span>~MaybeUniquePtr()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -375,7 +378,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::~<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::~<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -383,12 +386,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00128">128</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00123">123</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -418,7 +421,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00135">135</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00130">130</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMProjectIRDB_8h_source.html#l00113">psr::LLVMProjectIRDB::getModule()</a>.</p>
 
@@ -449,7 +452,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00198">198</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00193">193</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -478,7 +481,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00139">139</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00134">134</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -507,7 +510,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00137">137</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00132">132</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -565,7 +568,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00096">96</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00095">95</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -595,21 +598,22 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00101">101</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00100">100</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00144">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
+<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00139">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
 
 </div>
 </div>
-<a id="aaab60ab7b25d561a5ed29ec12d926812" name="aaab60ab7b25d561a5ed29ec12d926812"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaab60ab7b25d561a5ed29ec12d926812">&#9670;&#160;</a></span>operator=() <span class="overload">[4/4]</span></h2>
+<a id="ac887fa92f587c8e350c19e17b95138d5" name="ac887fa92f587c8e350c19e17b95138d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac887fa92f587c8e350c19e17b95138d5">&#9670;&#160;</a></span>operator=() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;T, TT&gt; &amp;&amp;                                        std::is_convertible_v&lt;TT *, T *&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
+requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -629,9 +633,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00113">113</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00111">111</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00144">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
+<p class="reference">References <a class="el" href="MaybeUniquePtr_8h_source.html#l00139">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::release()</a>.</p>
 
 </div>
 </div>
@@ -660,7 +664,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00166">166</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00161">161</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -689,9 +693,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00144">144</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00139">139</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="MaybeUniquePtr_8h_source.html#l00101">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>, and <a class="el" href="MaybeUniquePtr_8h_source.html#l00113">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="MaybeUniquePtr_8h_source.html#l00100">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>, and <a class="el" href="MaybeUniquePtr_8h_source.html#l00111">psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;::operator=()</a>.</p>
 
 </div>
 </div>
@@ -720,7 +724,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00149">149</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00144">144</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -752,7 +756,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00157">157</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00152">152</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -784,7 +788,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00162">162</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00157">157</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -814,7 +818,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00087">87</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00086">86</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -855,7 +859,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00175">175</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00170">170</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -895,7 +899,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00184">184</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00179">179</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -935,7 +939,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00193">193</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00188">188</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -975,7 +979,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00171">171</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00166">166</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1015,7 +1019,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00180">180</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00175">175</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1055,7 +1059,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00189">189</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00184">184</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1095,7 +1099,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00091">91</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="MaybeUniquePtr_8h_source.html#l00090">90</a> of file <a class="el" href="MaybeUniquePtr_8h_source.html">MaybeUniquePtr.h</a>.</p>
 
 </div>
 </div>
@@ -1105,7 +1109,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:07 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

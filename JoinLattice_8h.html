@@ -85,11 +85,12 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#concepts">Concepts</a>  </div>
   <div class="headertitle"><div class="title">JoinLattice.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="Macros_8h_source.html">phasar/Utils/Macros.h</a>&quot;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 </div>
@@ -99,31 +100,27 @@ $(function() {
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1JoinLatticeTraits.html">psr::JoinLatticeTraits&lt; L &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1JoinLattice.html">psr::JoinLattice&lt; AnalysisDomainTy, typename &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1JoinLattice.html">psr::JoinLattice&lt; AnalysisDomainTy &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_00_01std_1_1enable__if__t_3_01HasJoinLatticeTraits_456544bd05b1ff24c4fcdcad6319f31f.html">psr::JoinLattice&lt; AnalysisDomainTy, std::enable_if_t&lt; HasJoinLatticeTraits&lt; typename AnalysisDomainTy::l_t &gt; &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html">psr::JoinLattice&lt; AnalysisDomainTy &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1NonTopBotValue.html">psr::NonTopBotValue&lt; L, typename &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1NonTopBotValue.html">psr::NonTopBotValue&lt; L &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacepsr" id="r_namespacepsr"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html">psr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacepsr_1_1detail" id="r_namespacepsr_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html">psr::detail</a></td></tr>
-<tr class="memdesc:namespacepsr_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:aefacd58da4853c16c74a6c44c148a184" id="r_aefacd58da4853c16c74a6c44c148a184"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </td></tr>
-<tr class="memitem:aefacd58da4853c16c74a6c44c148a184"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aefacd58da4853c16c74a6c44c148a184">psr::HasJoinLatticeTraits</a> = detail::HasJoinLatticeTraitsHelper&lt;L&gt;::value</td></tr>
-<tr class="separator:aefacd58da4853c16c74a6c44c148a184"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1HasJoinLatticeTraits.html">psr::HasJoinLatticeTraits</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

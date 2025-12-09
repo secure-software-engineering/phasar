@@ -1,3 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classllvm_1_1SmallVector_3_01llvm_1_1SmallVector_3_01uint32__t_00_012_01_4_00_01SmallSize_01_4.html" title=" " alt="" coords="5,5,161,60"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,141,124,166"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1has__getAsJson.html" title=" " alt="" coords="211,5,355,45"/>
+<area shape="poly" id="edge350_Node000000_Node000001" title=" " alt="" coords="84,128,122,90,171,55,210,38,212,43,173,60,125,95,88,132"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1has__getHashCode.html" title=" " alt="" coords="200,69,367,109"/>
+<area shape="poly" id="edge351_Node000000_Node000002" title=" " alt="" coords="120,134,171,119,212,107,213,112,173,124,121,139"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1has__std__hash.html" title=" " alt="" coords="209,133,358,173"/>
+<area shape="poly" id="edge352_Node000000_Node000003" title=" " alt="" coords="138,151,208,151,208,156,138,156"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1is__pathtracingfilter__for.html" title=" " alt="" coords="172,197,395,237"/>
+<area shape="poly" id="edge353_Node000000_Node000004" title=" " alt="" coords="121,167,173,183,213,195,212,200,171,188,120,172"/>
+<area shape="rect" id="Node000005" href="$structpsr_1_1is__variant.html" title=" " alt="" coords="207,262,359,287"/>
+<area shape="poly" id="edge354_Node000000_Node000005" title=" " alt="" coords="87,175,125,212,148,231,173,247,208,260,206,265,171,252,145,236,121,216,83,179"/>
 </map>

@@ -1,9 +1,9 @@
-<map id="psr::DefaultEdgeFunctionSingletonCache&lt; EdgeFunctionTy, typename &gt;" name="psr::DefaultEdgeFunctionSingletonCache&lt; EdgeFunctionTy, typename &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1076,45,1301,100"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1DefaultEdgeFunctionSingletonCache.html" title=" " alt="" coords="1575,5,1862,60"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="1315,60,1325,59,1575,41,1575,46,1326,65,1315,65"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1DefaultEdgeFunctionSingletonCache.html" title=" " alt="" coords="1565,84,1872,139"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="1315,88,1326,89,1565,104,1565,109,1325,94,1315,93"/>
+<map id="psr::DefaultEdgeFunctionSingletonCache&lt; EdgeFunctionTy &gt;" name="psr::DefaultEdgeFunctionSingletonCache&lt; EdgeFunctionTy &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1076,53,1331,93"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1DefaultEdgeFunctionSingletonCache.html" title=" " alt="" coords="1605,5,1891,60"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="1344,60,1604,40,1605,46,1345,65"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1DefaultEdgeFunctionSingletonCache.html" title=" " alt="" coords="1595,84,1901,139"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="1345,88,1355,89,1594,103,1594,109,1354,94,1344,93"/>
 <area shape="rect" id="Node000002" href="$classpsr_1_1DefaultEdgeFunctionSingletonCacheImpl.html" title=" " alt="" coords="772,45,1027,100"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1040,70,1076,70,1076,75,1040,75"/>
 <area shape="rect" id="Node000003" href="$classpsr_1_1EdgeFunctionSingletonCache.html" title=" " alt="" coords="5,57,204,97"/>

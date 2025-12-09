@@ -102,9 +102,10 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a161adfb0722cb0ab3864cee70845bf6f" id="r_a161adfb0722cb0ab3864cee70845bf6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ad7cac0de91e70a0960ff6db0fa168499">AliasResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FunctionAliasView.html#a161adfb0722cb0ab3864cee70845bf6f">alias</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Rep</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DataLayout &amp;DL)</td></tr>
 <tr class="separator:a161adfb0722cb0ab3864cee70845bf6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8d50269d3e69b4b01de403f67110956" id="r_aa8d50269d3e69b4b01de403f67110956"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_empty_v&lt;AliasFn&gt; &amp;&amp;                                  std::is_default_constructible_v&lt;AliasFn&gt;&gt;&gt; </td></tr>
-<tr class="memitem:aa8d50269d3e69b4b01de403f67110956"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FunctionAliasView.html#aa8d50269d3e69b4b01de403f67110956">FunctionAliasView</a> (T *Context, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:aa8d50269d3e69b4b01de403f67110956"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefc6e7911602c87e95779c5a65aebe92" id="r_aefc6e7911602c87e95779c5a65aebe92"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a> &gt; <br />
+requires (std::is_empty_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a>&gt; &amp;&amp; std::is_default_constructible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a>&gt;)</td></tr>
+<tr class="memitem:aefc6e7911602c87e95779c5a65aebe92"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FunctionAliasView.html#aefc6e7911602c87e95779c5a65aebe92">FunctionAliasView</a> (T *Context, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:aefc6e7911602c87e95779c5a65aebe92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
@@ -129,13 +130,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa8d50269d3e69b4b01de403f67110956" name="aa8d50269d3e69b4b01de403f67110956"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8d50269d3e69b4b01de403f67110956">&#9670;&#160;</a></span>FunctionAliasView()</h2>
+<a id="aefc6e7911602c87e95779c5a65aebe92" name="aefc6e7911602c87e95779c5a65aebe92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefc6e7911602c87e95779c5a65aebe92">&#9670;&#160;</a></span>FunctionAliasView()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;std::is_empty_v&lt;AliasFn&gt; &amp;&amp;                                  std::is_default_constructible_v&lt;AliasFn&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a> &gt; <br />
+requires (std::is_empty_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a>&gt; &amp;&amp; std::is_default_constructible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AliasFn</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -165,7 +167,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AliasAnalysisView_8h_source.html#l00044">44</a> of file <a class="el" href="AliasAnalysisView_8h_source.html">AliasAnalysisView.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AliasAnalysisView_8h_source.html#l00043">43</a> of file <a class="el" href="AliasAnalysisView_8h_source.html">AliasAnalysisView.h</a>.</p>
 
 </div>
 </div>
@@ -220,7 +222,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:07 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

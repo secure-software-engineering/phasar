@@ -2,7 +2,7 @@ var searchData=
 [
   ['handlepossibletargets_0',['handlepossibletargets',['../classpsr_1_1Resolver.html#abf137f7fd10824aae7c495ede8cc5420',1,'psr::Resolver::handlePossibleTargets()'],['../classpsr_1_1OTFResolver.html#ac8d79c2fb162f94b377402b4361f941c',1,'psr::OTFResolver::handlePossibleTargets()']]],
   ['handletranslationunit_1',['HandleTranslationUnit',['../classpsr_1_1RandomChangeASTConsumer.html#add4c0842655cbed9e8706a53e3b8f7b2',1,'psr::RandomChangeASTConsumer']]],
-  ['hasflag_2',['hasFlag',['../namespacepsr.html#a06b3afcf458d3452fec7d9c82b0d91e3',1,'psr']]],
+  ['hasflag_2',['hasFlag',['../namespacepsr.html#af39ddf2d031789575e662ff0961417dd',1,'psr']]],
   ['hasfunction_3',['hasFunction',['../classpsr_1_1ProjectIRDBBase.html#a9e61acf51eb9cfc129f67076e24bc669',1,'psr::ProjectIRDBBase']]],
   ['hash_4',['hash',['../structstd_1_1hash_3_01psr_1_1glca_1_1EdgeValue_01_4.html#a81ab3aab453620b336dd7b78f8a383e0',1,'std::hash&lt; psr::glca::EdgeValue &gt;']]],
   ['hash_5fvalue_5',['hash_value',['../namespacepsr.html#a89a5a197a0c956411069a5985d8b7caf',1,'psr']]],

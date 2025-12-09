@@ -1,4 +1,4 @@
-<map id="psr::DefaultIDESolverConfig&lt; ProblemTy, Enable &gt;" name="psr::DefaultIDESolverConfig&lt; ProblemTy, Enable &gt;">
+<map id="psr::DefaultIDESolverConfig&lt; ProblemTy &gt;" name="psr::DefaultIDESolverConfig&lt; ProblemTy &gt;">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,152,208,192"/>
 <area shape="rect" id="Node000002" href="$structpsr_1_1WithComputeValues.html" title=" " alt="" coords="43,79,170,104"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,118,109,152,104,152,104,118"/>

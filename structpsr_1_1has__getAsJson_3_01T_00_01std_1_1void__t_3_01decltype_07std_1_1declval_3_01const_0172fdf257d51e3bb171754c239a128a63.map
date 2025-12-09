@@ -1,5 +1,0 @@
-<map id="psr::has_getAsJson&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &gt;().getAsJson())&gt; &gt;" name="psr::has_getAsJson&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &gt;().getAsJson())&gt; &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,197,148"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="45,5,157,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,44,104,79,99,79,99,44"/>
-</map>

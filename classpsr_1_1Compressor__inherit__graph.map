@@ -1,4 +1,4 @@
-<map id="psr::Compressor&lt; T, IdT, Enable &gt;" name="psr::Compressor&lt; T, IdT, Enable &gt;">
+<map id="psr::Compressor&lt; T, IdT &gt;" name="psr::Compressor&lt; T, IdT &gt;">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,62,160,102"/>
 <area shape="rect" id="Node000002" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="375,5,550,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,55,183,45,282,28,375,19,375,25,283,33,185,50,148,60"/>

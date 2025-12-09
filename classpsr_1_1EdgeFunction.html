@@ -130,18 +130,21 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4c45ca36d5d55fe2227f73eda535d2c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82ec3ee898acf63ec5c25afa31151db6" id="r_a82ec3ee898acf63ec5c25afa31151db6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a82ec3ee898acf63ec5c25afa31151db6">~EdgeFunction</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a82ec3ee898acf63ec5c25afa31151db6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3299c2c8801129087d3c3d37cfde73da" id="r_a3299c2c8801129087d3c3d37cfde73da"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;                                     EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a3299c2c8801129087d3c3d37cfde73da"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a3299c2c8801129087d3c3d37cfde73da">EdgeFunction</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CEF</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a3299c2c8801129087d3c3d37cfde73da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aecea98fd9f848145a17107788a8fb646" id="r_aecea98fd9f848145a17107788a8fb646"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:aecea98fd9f848145a17107788a8fb646"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#aecea98fd9f848145a17107788a8fb646">EdgeFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CEF</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(<a class="el" href="classpsr_1_1EdgeFunctionBase.html#a4b6c52bae357d570e95d2b62a68c65ee">IsSOOCandidate</a>&lt; std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; &gt;)</td></tr>
-<tr class="separator:aecea98fd9f848145a17107788a8fb646"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1eb8cfb34febe324380dc92836df4b37" id="r_a1eb8cfb34febe324380dc92836df4b37"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , typename... ArgTys&gt; </td></tr>
+<tr class="memitem:aa2ceac076c34abbf1096474c9216e749" id="r_aa2ceac076c34abbf1096474c9216e749"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</td></tr>
+<tr class="memitem:aa2ceac076c34abbf1096474c9216e749"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#aa2ceac076c34abbf1096474c9216e749">EdgeFunction</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CEF</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:aa2ceac076c34abbf1096474c9216e749"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac77d3b7e4516af5e2a355174b3dc3247" id="r_ac77d3b7e4516af5e2a355174b3dc3247"><td class="memTemplParams" colspan="2">template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</td></tr>
+<tr class="memitem:ac77d3b7e4516af5e2a355174b3dc3247"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ac77d3b7e4516af5e2a355174b3dc3247">EdgeFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CEF</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(<a class="el" href="classpsr_1_1EdgeFunctionBase.html#a4b6c52bae357d570e95d2b62a68c65ee">IsSOOCandidate</a>&lt; std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; &gt;)</td></tr>
+<tr class="separator:ac77d3b7e4516af5e2a355174b3dc3247"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1eb8cfb34febe324380dc92836df4b37" id="r_a1eb8cfb34febe324380dc92836df4b37"><td class="memTemplParams" colspan="2">template&lt;IsEdgeFunction ConcreteEF, typename... ArgTys&gt; </td></tr>
 <tr class="memitem:a1eb8cfb34febe324380dc92836df4b37"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a1eb8cfb34febe324380dc92836df4b37">EdgeFunction</a> (std::in_place_type_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgTys</a> &amp;&amp;...<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(<a class="el" href="classpsr_1_1EdgeFunctionBase.html#a4b6c52bae357d570e95d2b62a68c65ee">IsSOOCandidate</a>&lt; std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; &gt; &amp;&amp;std::is_nothrow_constructible_v&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>, ArgTys... &gt;)</td></tr>
 <tr class="separator:a1eb8cfb34febe324380dc92836df4b37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3632a292e27079efbe3adfd8339d6bd5" id="r_a3632a292e27079efbe3adfd8339d6bd5"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                                     IsEdgeFunction&lt;ConcreteEF&gt; &amp;&amp;                                     std::is_move_constructible_v&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a3632a292e27079efbe3adfd8339d6bd5"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a3632a292e27079efbe3adfd8339d6bd5">EdgeFunction</a> (<a class="el" href="structpsr_1_1CachedEdgeFunction.html">CachedEdgeFunction</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; EF)</td></tr>
-<tr class="separator:a3632a292e27079efbe3adfd8339d6bd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81084499228367afab6fade6b72b2f58" id="r_a81084499228367afab6fade6b72b2f58"><td class="memTemplParams" colspan="2">template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires std::is_move_constructible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;</td></tr>
+<tr class="memitem:a81084499228367afab6fade6b72b2f58"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a81084499228367afab6fade6b72b2f58">EdgeFunction</a> (<a class="el" href="structpsr_1_1CachedEdgeFunction.html">CachedEdgeFunction</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; EF)</td></tr>
+<tr class="separator:a81084499228367afab6fade6b72b2f58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c32f2f1d548078ca796c2811ddf74ad" id="r_a0c32f2f1d548078ca796c2811ddf74ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1EdgeFunction.html#a88792e3bb4d80cc0f03eaeaa82c8ccc6">l_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a0c32f2f1d548078ca796c2811ddf74ad">computeTarget</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1EdgeFunction.html#a88792e3bb4d80cc0f03eaeaa82c8ccc6">l_t</a> &gt; <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">Source</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:a0c32f2f1d548078ca796c2811ddf74ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af543947cdf292d0cb2a6dd01c4181cfb" id="r_af543947cdf292d0cb2a6dd01c4181cfb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#af543947cdf292d0cb2a6dd01c4181cfb">composeWith</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SecondEF</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
@@ -150,15 +153,20 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a18f1c2ce2104b2b93d908f5e913aca57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f6c16185e6a2f3c6b68eacf8c8777c2" id="r_a9f6c16185e6a2f3c6b68eacf8c8777c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a9f6c16185e6a2f3c6b68eacf8c8777c2">referenceEquals</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a9f6c16185e6a2f3c6b68eacf8c8777c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a441282a50d3f238544e648e42e739886" id="r_a441282a50d3f238544e648e42e739886"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a441282a50d3f238544e648e42e739886"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a441282a50d3f238544e648e42e739886">equals</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a441282a50d3f238544e648e42e739886"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac976e4efefedc204a12633ce8dad2612" id="r_ac976e4efefedc204a12633ce8dad2612"><td class="memTemplParams" colspan="2">template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</td></tr>
+<tr class="memitem:ac976e4efefedc204a12633ce8dad2612"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ac976e4efefedc204a12633ce8dad2612">PSR_DEPRECATED</a> (&quot;With C++20, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">we</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">do</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">not</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">need</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">this</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">helper</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">anymore</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">use</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">instead&quot;</a>, &quot;operator==&quot;) bool equals(<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:ac976e4efefedc204a12633ce8dad2612"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad660dddf41c5ed62a504407bbd3a6c40" id="r_ad660dddf41c5ed62a504407bbd3a6c40"><td class="memTemplParams" colspan="2">template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</td></tr>
+<tr class="memitem:ad660dddf41c5ed62a504407bbd3a6c40"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ad660dddf41c5ed62a504407bbd3a6c40">operator==</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:ad660dddf41c5ed62a504407bbd3a6c40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a752c2ee61a3d4a9499a7cc0cb23ba34c" id="r_a752c2ee61a3d4a9499a7cc0cb23ba34c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a752c2ee61a3d4a9499a7cc0cb23ba34c">isConstant</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a752c2ee61a3d4a9499a7cc0cb23ba34c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b8689e6b0ac8c33ab47785feff3d50c" id="r_a4b8689e6b0ac8c33ab47785feff3d50c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a4b8689e6b0ac8c33ab47785feff3d50c">isValid</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a4b8689e6b0ac8c33ab47785feff3d50c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76223631d14f8c5d7ee3e3da0501cf9e" id="r_a76223631d14f8c5d7ee3e3da0501cf9e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a76223631d14f8c5d7ee3e3da0501cf9e">operator bool</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="memdesc:a76223631d14f8c5d7ee3e3da0501cf9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a null-check. True, iff thie edge function is not null.  <br /></td></tr>
+<tr class="memdesc:a76223631d14f8c5d7ee3e3da0501cf9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a null-check. True, iff this edge function is not null.  <br /></td></tr>
 <tr class="separator:a76223631d14f8c5d7ee3e3da0501cf9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c4feb6000868054d3533bb557ed088f" id="r_a2c4feb6000868054d3533bb557ed088f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; </td></tr>
 <tr class="memitem:a2c4feb6000868054d3533bb557ed088f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a2c4feb6000868054d3533bb557ed088f">isa</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
@@ -203,28 +211,8 @@ Friends</h2></td></tr>
 <tr class="separator:acc90a9ecaf56689c70f39a2994657232"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af14e3cde86aab0835c4e07c783f3d28e" id="r_af14e3cde86aab0835c4e07c783f3d28e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#af14e3cde86aab0835c4e07c783f3d28e">operator==</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:af14e3cde86aab0835c4e07c783f3d28e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35c56b87edd14301c2dc88e1f1b6e0d5" id="r_a35c56b87edd14301c2dc88e1f1b6e0d5"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a35c56b87edd14301c2dc88e1f1b6e0d5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a35c56b87edd14301c2dc88e1f1b6e0d5">operator==</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a35c56b87edd14301c2dc88e1f1b6e0d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1869213f4d81ea519c55b4c370d7ab59" id="r_a1869213f4d81ea519c55b4c370d7ab59"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a1869213f4d81ea519c55b4c370d7ab59"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a1869213f4d81ea519c55b4c370d7ab59">operator==</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a1869213f4d81ea519c55b4c370d7ab59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae37fb3a19009545f33acf6b1e055d83f" id="r_ae37fb3a19009545f33acf6b1e055d83f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ae37fb3a19009545f33acf6b1e055d83f">operator==</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;EF, std::nullptr_t) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:ae37fb3a19009545f33acf6b1e055d83f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5491993566e26ac8282d2547a77e5449" id="r_a5491993566e26ac8282d2547a77e5449"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a5491993566e26ac8282d2547a77e5449">operator==</a> (std::nullptr_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;EF) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a5491993566e26ac8282d2547a77e5449"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae61d34a5fc5ce23014163902d9ce3346" id="r_ae61d34a5fc5ce23014163902d9ce3346"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ae61d34a5fc5ce23014163902d9ce3346">operator!=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:ae61d34a5fc5ce23014163902d9ce3346"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff11145a7103801a162b3f93609b6356" id="r_aff11145a7103801a162b3f93609b6356"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#aff11145a7103801a162b3f93609b6356">operator!=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;EF, std::nullptr_t) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:aff11145a7103801a162b3f93609b6356"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16b84697d41593dff4ee9e42d4047d01" id="r_a16b84697d41593dff4ee9e42d4047d01"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a16b84697d41593dff4ee9e42d4047d01">operator!=</a> (std::nullptr_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;EF) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a16b84697d41593dff4ee9e42d4047d01"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5f65de0698bc27ec1b62d300ff145d7" id="r_ab5f65de0698bc27ec1b62d300ff145d7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:ab5f65de0698bc27ec1b62d300ff145d7"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ab5f65de0698bc27ec1b62d300ff145d7">operator!=</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:ab5f65de0698bc27ec1b62d300ff145d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d4af7e41233995a650c78f4455190c8" id="r_a8d4af7e41233995a650c78f4455190c8"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a8d4af7e41233995a650c78f4455190c8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a8d4af7e41233995a650c78f4455190c8">operator!=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a8d4af7e41233995a650c78f4455190c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a945aa012fc2f599900b4bfe29e278cdc" id="r_a945aa012fc2f599900b4bfe29e278cdc"><td class="memItemLeft" align="right" valign="top">llvm::raw_ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a945aa012fc2f599900b4bfe29e278cdc">operator&lt;&lt;</a> (llvm::raw_ostream &amp;OS, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;EF)</td></tr>
 <tr class="separator:a945aa012fc2f599900b4bfe29e278cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ce180a1e7a531f2fe98d3c8ca9620ff" id="r_a7ce180a1e7a531f2fe98d3c8ca9620ff"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a7ce180a1e7a531f2fe98d3c8ca9620ff">operator&lt;&lt;</a> (std::ostream &amp;OS, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a> &amp;EF)</td></tr>
@@ -240,7 +228,7 @@ Friends</h2></td></tr>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L&gt;<br />
 class psr::EdgeFunction&lt; L &gt;</div><p>Ref-counted and type-erased edge function with small-object optimization. Supports caching. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00174">174</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00151">151</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a88792e3bb4d80cc0f03eaeaa82c8ccc6" name="a88792e3bb4d80cc0f03eaeaa82c8ccc6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a88792e3bb4d80cc0f03eaeaa82c8ccc6">&#9670;&#160;</a></span>l_t</h2>
@@ -256,7 +244,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00176">176</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00153">153</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -318,7 +306,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Default-initializes the edge-function with nullptr. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00183">183</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00160">160</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -350,7 +338,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Copy constructor. Increments the ref-count, if not small-object-optimized. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00185">185</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00162">162</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -381,7 +369,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Move constructor. Does not increment the ref-count, but instead leaves the moved-from edge function in the nullptr state. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00189">189</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00166">166</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -411,19 +399,20 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Destructor. Decrements the ref-count if not small-object-optimized and destroyes the held edge function once the ref-count reaches 0. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00220">220</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00197">197</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
-<a id="a3299c2c8801129087d3c3d37cfde73da" name="a3299c2c8801129087d3c3d37cfde73da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3299c2c8801129087d3c3d37cfde73da">&#9670;&#160;</a></span>EdgeFunction() <span class="overload">[5/8]</span></h2>
+<a id="aa2ceac076c34abbf1096474c9216e749" name="aa2ceac076c34abbf1096474c9216e749"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2ceac076c34abbf1096474c9216e749">&#9670;&#160;</a></span>EdgeFunction() <span class="overload">[5/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;                                     EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -444,19 +433,20 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Implicit-conversion constructor from <a class="el" href="classpsr_1_1EdgeFunctionRef.html" title="Non-null reference to an edge function that is guarenteed to be managed by an EdgeFunction object.">EdgeFunctionRef</a>. Increments the ref-count if not small-object optimized </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00236">236</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00213">213</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
-<a id="aecea98fd9f848145a17107788a8fb646" name="aecea98fd9f848145a17107788a8fb646"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aecea98fd9f848145a17107788a8fb646">&#9670;&#160;</a></span>EdgeFunction() <span class="overload">[6/8]</span></h2>
+<a id="ac77d3b7e4516af5e2a355174b3dc3247" name="ac77d3b7e4516af5e2a355174b3dc3247"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac77d3b7e4516af5e2a355174b3dc3247">&#9670;&#160;</a></span>EdgeFunction() <span class="overload">[6/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </div>
+template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -477,7 +467,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Conversion-constructor from any edge function (that satisfies the IsEdgeFunction trait). Stores a type-erased copy of CEF and allocates space for it on the heap if small-object-optimization cannot be applied. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00256">256</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00231">231</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -489,7 +479,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , typename... ArgTys&gt; </div>
+template&lt;IsEdgeFunction ConcreteEF, typename... ArgTys&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -520,21 +510,22 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Emplacement-constructor for any edge function. Constructs a new object of type ConcreteEF with the given constructor arguments and allocates space for it on the heap if small-object-optimization cannot be applied. No extra copy- or move construction/assignment is performed. Use this ctor if even moving is expensive. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00267">267</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00242">242</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>.</p>
 
 </div>
 </div>
-<a id="a3632a292e27079efbe3adfd8339d6bd5" name="a3632a292e27079efbe3adfd8339d6bd5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3632a292e27079efbe3adfd8339d6bd5">&#9670;&#160;</a></span>EdgeFunction() <span class="overload">[8/8]</span></h2>
+<a id="a81084499228367afab6fade6b72b2f58" name="a81084499228367afab6fade6b72b2f58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81084499228367afab6fade6b72b2f58">&#9670;&#160;</a></span>EdgeFunction() <span class="overload">[8/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                                     IsEdgeFunction&lt;ConcreteEF&gt; &amp;&amp;                                     std::is_move_constructible_v&lt;ConcreteEF&gt;&gt;&gt; </div>
+template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires std::is_move_constructible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -555,7 +546,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Conversion-constructor for any edge function with enabled caching. Stores a type-erased copy of EF.EF and allocates space for it on the heap if small-object-optimization cannot be applied. If a heap allocation is requires, first consults the EF.Cache to check whether an equivalent edge function is already allocated. If so, takes the one from the cache and increases its ref-count. Otherwise, performs a fresh allocation and inserts the edge function into EF.Cache. When all references to this edge function are out-of-scope, the destructor automatically removes the edge function from EF.Cache. Hence, make sure that EF.Cache lives at least as long as the last edge function cached in it. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00303">303</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00277">277</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 <p class="reference">References <a class="el" href="EdgeFunctionSingletonCache_8h_source.html#l00037">psr::CachedEdgeFunction&lt; EdgeFunctionTy &gt;::Cache</a>, <a class="el" href="EdgeFunctionSingletonCache_8h_source.html#l00036">psr::CachedEdgeFunction&lt; EdgeFunctionTy &gt;::EF</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>.</p>
 
@@ -592,7 +583,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Compatible with the llvm::isa API.</p>
 <p>Use with caution! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00608">608</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00535">535</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -634,7 +625,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>This function composes the two edge functions this and SecondEF. This function is used to extend an edge function in order to construct so-called jump functions that describe the effects of everlonger sequences of code.</p>
 <p>For semantic correctness, please make sure that for all inputs x in l_t, it holds: compose(FirstEF, SecondEF).computeTarget(x) == SecondEF.computeTarget(FirstEF.computeTarget(x)). </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00367">367</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00341">341</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -667,9 +658,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Calls the static function EF::compose(*this, SecondEF) for your concrete edge function EF.</p>
 <p>For semantic correctness, please make sure that for all inputs x in l_t, it holds: this-&gt;composeWith(SecondEF).computeTarget(x) == SecondEF.computeTarget(this-&gt;computeTarget(x)). </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00354">354</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00328">328</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00240">psr::EdgeFunctionComposer&lt; L &gt;::compose()</a>, and <a class="el" href="SemiRing_8h_source.html#l00022">psr::SemiRing&lt; AnalysisDomainTy &gt;::extend()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00239">psr::EdgeFunctionComposer&lt; L &gt;::compose()</a>, and <a class="el" href="SemiRing_8h_source.html#l00022">psr::SemiRing&lt; AnalysisDomainTy &gt;::extend()</a>.</p>
 
 </div>
 </div>
@@ -701,11 +692,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>This function describes the concrete value computation for its respective exploded supergraph edge. The <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">function(s)</a> will be evaluated once the exploded supergraph has been constructed and the concrete values of the various value computation problems along the supergraph edges are evaluated.</p>
 <p>Please also refer to the various edge function factories of the <a class="el" href="classpsr_1_1EdgeFunctions.html">EdgeFunctions</a> interface: EdgeFunctions::get*EdgeFunction() for more details. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00337">337</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00311">311</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00116">psr::AllBottom&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00447">psr::ConstantEdgeFunction&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00226">psr::EdgeFunctionComposer&lt; L &gt;::computeTarget()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00488">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00116">psr::AllBottom&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00446">psr::ConstantEdgeFunction&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00226">psr::EdgeFunctionComposer&lt; L &gt;::computeTarget()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00487">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>.</p>
 
 </div>
 </div>
@@ -734,9 +725,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00674">674</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00601">601</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00266">psr::EdgeFunctionComposer&lt; L &gt;::depth()</a>, and <a class="el" href="IDESolver_8h_source.html#l00281">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00265">psr::EdgeFunctionComposer&lt; L &gt;::depth()</a>, and <a class="el" href="IDESolver_8h_source.html#l00281">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
 
 </div>
 </div>
@@ -769,39 +760,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Performs an <em>checked</em> typecast to ConcreteEF. If this edge function is not <em>exactly</em> of type ConcreteEF, returns nullptr.</p>
 <p>Compatible with the llvm::dyn_cast API. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00619">619</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="a441282a50d3f238544e648e42e739886" name="a441282a50d3f238544e648e42e739886"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a441282a50d3f238544e648e42e739886">&#9670;&#160;</a></span>equals()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt;::equals </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;&#160;</td>
-          <td class="paramname"><em>Other</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00445">445</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00546">546</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -830,7 +789,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00640">640</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00567">567</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00281">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
 
@@ -865,7 +824,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Gets the cache where this edge function is being cached in. If this edge function is not cached (i.e., <a class="el" href="classpsr_1_1EdgeFunction.html#a916ca35111dce4a324d0d95758d5fcbf">isCached()</a> returns false), returns nullptr. Assumes that the held edge function is <em>exactly</em> of type ConcreteEF. In debug builds, asserts isa&lt;ConcreteEF&gt;.</p>
 <p>Use with caution! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00656">656</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00583">583</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -894,9 +853,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00683">683</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00610">610</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00814">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getEmptyKey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00741">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getEmptyKey()</a>.</p>
 
 </div>
 </div>
@@ -925,7 +884,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00665">665</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00592">592</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -955,7 +914,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Gets an opaque identifier for this edge function. Only meant for comparisons of object-identity. Do not dereference! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00646">646</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00573">573</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -984,9 +943,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00689">689</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00616">616</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00817">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getTombstoneKey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00744">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getTombstoneKey()</a>.</p>
 
 </div>
 </div>
@@ -1019,7 +978,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Performs a runtime-typecheck. True, if the concrete type of the held edge function <em>exactly</em> equals ConcreteEF.</p>
 <p>CAUTION: This model of isa-relation does not care about inheritance. Edge functions of a base class BaseEF and a derived class DerivedEF are considered unrelated! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00592">592</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00519">519</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1050,7 +1009,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>True, iff this edge function is cached in a <a class="el" href="classpsr_1_1EdgeFunctionSingletonCache.html">EdgeFunctionSingletonCache</a>.</p>
 <p>False for small-object-optimized- and null-EF. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00636">636</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00563">563</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1079,9 +1038,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 <p>True, if the concrete edge function defines itself as constant, i.e. for all x,y in l_t it holds: computeTarget(x) == computeTarget(y).</p>
-<p>Allows for better optimizations in compose and join and should be provided, whehever this knowledge is available. </p>
+<p>Allows for better optimizations in compose and join and should be provided, whenever this knowledge is available. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00574">574</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00501">501</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1112,7 +1071,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>True, iff this edge function is not small-object-optimized and thus its lifetime is managed by ref-counting.</p>
 <p>False for null-EF. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00629">629</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00556">556</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1141,7 +1100,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00579">579</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00506">506</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1183,7 +1142,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>This function describes the join of the two edge functions this and OtherEF. The function is called whenever two edge functions need to be joined, for instance, when two branches lead to a common successor instruction.</p>
 <p>For semantic correctness, please make sure that for all inputs x in l_t, it holds (with joinl = JoinLatticeTraits&lt;l_t&gt;::join): joinl(join(FirstEF, SecondEF).computeTarget(x)), joinl(FirstEF.computeTarget(x), SecondEF.computeTarget(x))) == this-&gt;joinWith(OtherEF).computeTarget(x) i.e. that joining on edge functions only goes up the lattice that is connected with the value-lattice on l_t </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00408">408</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00382">382</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1216,9 +1175,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Calls the static function EF::join(*this, OtherEF) for your concrete edge function EF.</p>
 <p>For semantic correctness, please make sure that for all inputs x in l_t, it holds (with join = JoinLatticeTraits&lt;l_t&gt;::join): join(this-&gt;joinWith(OtherEF).computeTarget(x)), join(this-&gt;computeTarget(x), OtherEF.computeTarget(x))) == this-&gt;joinWith(OtherEF).computeTarget(x) i.e. that joining on edge functions only goes up the lattice that is connected with the value-lattice on l_t </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00391">391</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00365">365</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="SemiRing_8h_source.html#l00027">psr::SemiRing&lt; AnalysisDomainTy &gt;::combine()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00488">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00430">psr::EdgeIdentity&lt; L &gt;::join()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="SemiRing_8h_source.html#l00027">psr::SemiRing&lt; AnalysisDomainTy &gt;::combine()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00487">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00429">psr::EdgeIdentity&lt; L &gt;::join()</a>.</p>
 
 </div>
 </div>
@@ -1247,9 +1206,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p>Performs a null-check. True, iff thie edge function is not null. </p>
+<p>Performs a null-check. True, iff this edge function is not null. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00584">584</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00511">511</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1280,7 +1239,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Combined copy- and move assignment. If the assigned-to edge function is not null, invokes the destructor on it, before overwriting its content. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00206">206</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00183">183</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1311,7 +1270,83 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Null-assignment operator. Decrements the ref-count if not small-object-optimized or already null. Leaves the assigned-to edge function in the nullptr state. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00213">213</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00190">190</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+
+</div>
+</div>
+<a id="ad660dddf41c5ed62a504407bbd3a6c40" name="ad660dddf41c5ed62a504407bbd3a6c40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad660dddf41c5ed62a504407bbd3a6c40">&#9670;&#160;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
+<div class="memtemplate">
+template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>== </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;&#160;</td>
+          <td class="paramname"><em>Other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00427">427</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+
+</div>
+</div>
+<a id="ac976e4efefedc204a12633ce8dad2612" name="ac976e4efefedc204a12633ce8dad2612"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac976e4efefedc204a12633ce8dad2612">&#9670;&#160;</a></span>PSR_DEPRECATED()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
+<div class="memtemplate">
+template&lt;IsEdgeFunction ConcreteEF&gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a>&gt;&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt;::PSR_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;With C++&#160;</td>
+          <td class="paramname"><em>20</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">we</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">do</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">not</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">need</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">this</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">helper</a>&#160;</td>
+          <td class="paramname"><em>anymore</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00417">417</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1341,7 +1376,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00417">417</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00391">391</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1373,7 +1408,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Standard swap; does not affect ref-counts. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00195">195</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00172">172</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1404,211 +1439,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00679">679</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="aff11145a7103801a162b3f93609b6356" name="aff11145a7103801a162b3f93609b6356"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aff11145a7103801a162b3f93609b6356">&#9670;&#160;</a></span>operator!= <span class="overload">[1/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>EF</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::nullptr_t&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00492">492</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="ae61d34a5fc5ce23014163902d9ce3346" name="ae61d34a5fc5ce23014163902d9ce3346"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae61d34a5fc5ce23014163902d9ce3346">&#9670;&#160;</a></span>operator!= <span class="overload">[2/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>LHS</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>RHS</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00488">488</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="a8d4af7e41233995a650c78f4455190c8" name="a8d4af7e41233995a650c78f4455190c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d4af7e41233995a650c78f4455190c8">&#9670;&#160;</a></span>operator!= <span class="overload">[3/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>LHS</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;&#160;</td>
-          <td class="paramname"><em>RHS</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00514">514</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="ab5f65de0698bc27ec1b62d300ff145d7" name="ab5f65de0698bc27ec1b62d300ff145d7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5f65de0698bc27ec1b62d300ff145d7">&#9670;&#160;</a></span>operator!= <span class="overload">[4/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;&#160;</td>
-          <td class="paramname"><em>LHS</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>RHS</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00505">505</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="a16b84697d41593dff4ee9e42d4047d01" name="a16b84697d41593dff4ee9e42d4047d01"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16b84697d41593dff4ee9e42d4047d01">&#9670;&#160;</a></span>operator!= <span class="overload">[5/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
-          <td>(</td>
-          <td class="paramtype">std::nullptr_t&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>EF</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00496">496</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00606">606</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1649,7 +1480,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Arbitrary partial ordering for being able to sort edge functions. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00560">560</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00487">487</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1691,7 +1522,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Printing function. Based on llvm::raw_ostream &amp;<a class="el" href="classpsr_1_1EdgeFunction.html#a945aa012fc2f599900b4bfe29e278cdc">operator&lt;&lt;(llvm::raw_ostream &amp;OS, const ConcreteEF &amp;EF)</a> for the concrete type ConcreteEF of EF.</p>
 <p>If the ConcreteEF does not define a fitting printing function, defaults to printing the concrete type ConcreteEF. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00525">525</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00452">452</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1733,12 +1564,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Printing function. Based on llvm::raw_ostream &amp;<a class="el" href="classpsr_1_1EdgeFunction.html#a945aa012fc2f599900b4bfe29e278cdc">operator&lt;&lt;(llvm::raw_ostream &amp;OS, const EdgeFunction &amp;EF)</a>.</p>
 <p>Useful for unittests (gtest works with std::ostream instead of llvm::raw_ostream). </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00540">540</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00467">467</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
 <a id="ae37fb3a19009545f33acf6b1e055d83f" name="ae37fb3a19009545f33acf6b1e055d83f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae37fb3a19009545f33acf6b1e055d83f">&#9670;&#160;</a></span>operator== <span class="overload">[1/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae37fb3a19009545f33acf6b1e055d83f">&#9670;&#160;</a></span>operator== <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1773,12 +1604,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00480">480</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00441">441</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
 <a id="af14e3cde86aab0835c4e07c783f3d28e" name="af14e3cde86aab0835c4e07c783f3d28e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af14e3cde86aab0835c4e07c783f3d28e">&#9670;&#160;</a></span>operator== <span class="overload">[2/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af14e3cde86aab0835c4e07c783f3d28e">&#9670;&#160;</a></span>operator== <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1815,131 +1646,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Checks for equality of two edge functions. Equality requires exact type-equality and value-equality based on operator== of the concrete edge functions that are compared.</p>
 <p>If the concrete edge function has no nonstatic data members, the equality is defaulted to only compare the types. However, by explicitly defining operator==, this behavior can be overridden. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00429">429</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="a1869213f4d81ea519c55b4c370d7ab59" name="a1869213f4d81ea519c55b4c370d7ab59"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1869213f4d81ea519c55b4c370d7ab59">&#9670;&#160;</a></span>operator== <span class="overload">[3/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>LHS</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;&#160;</td>
-          <td class="paramname"><em>RHS</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00476">476</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="a35c56b87edd14301c2dc88e1f1b6e0d5" name="a35c56b87edd14301c2dc88e1f1b6e0d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35c56b87edd14301c2dc88e1f1b6e0d5">&#9670;&#160;</a></span>operator== <span class="overload">[4/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;                !std::is_same_v&lt;EdgeFunction, std::decay_t&lt;ConcreteEF&gt;&gt; &amp;&amp;                IsEdgeFunction&lt;ConcreteEF&gt;&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt;&#160;</td>
-          <td class="paramname"><em>LHS</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>RHS</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00466">466</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
-
-</div>
-</div>
-<a id="a5491993566e26ac8282d2547a77e5449" name="a5491993566e26ac8282d2547a77e5449"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5491993566e26ac8282d2547a77e5449">&#9670;&#160;</a></span>operator== <span class="overload">[5/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== </td>
-          <td>(</td>
-          <td class="paramtype">std::nullptr_t&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; L &gt; &amp;&#160;</td>
-          <td class="paramname"><em>EF</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00484">484</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00403">403</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1981,7 +1688,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Standard swap; does not affect ref-counts. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00200">200</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00177">177</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -2013,7 +1720,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Stringify function. Based on llvm::raw_ostream &amp;<a class="el" href="classpsr_1_1EdgeFunction.html#a945aa012fc2f599900b4bfe29e278cdc">operator&lt;&lt;(llvm::raw_ostream &amp;OS, const EdgeFunction &amp;EF)</a>.</p>
 <p>Useful for ADL calls to to_string (overloads with all the to_string functions of the STL). Do not rename! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00551">551</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00478">478</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -2023,7 +1730,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

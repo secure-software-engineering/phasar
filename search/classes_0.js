@@ -27,7 +27,7 @@ var searchData=
   ['allsanitized_24',['AllSanitized',['../structpsr_1_1XTaint_1_1AllSanitized.html',1,'psr::XTaint']]],
   ['alltop_25',['AllTop',['../structpsr_1_1AllTop.html',1,'psr']]],
   ['alltopfnprovider_26',['AllTopFnProvider',['../classpsr_1_1AllTopFnProvider.html',1,'psr']]],
-  ['alltopfnprovider_3c_20analysisdomainty_2c_20std_3a_3aenable_5fif_5ft_3c_20hasjoinlatticetraits_3c_20typename_20analysisdomainty_3a_3al_5ft_20_3e_20_3e_20_3e_27',['AllTopFnProvider&lt; AnalysisDomainTy, std::enable_if_t&lt; HasJoinLatticeTraits&lt; typename AnalysisDomainTy::l_t &gt; &gt; &gt;',['../classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_00_01std_1_1enable__if__t_3_01HasJoinLatticeTr6cd632c21bfa9caa39e7c5dd82b153f6.html',1,'psr']]],
+  ['alltopfnprovider_3c_20analysisdomainty_20_3e_27',['AllTopFnProvider&lt; AnalysisDomainTy &gt;',['../classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html',1,'psr']]],
   ['alltopfnprovider_3c_20ideextendedtaintanalysisdomain_20_3e_28',['AllTopFnProvider&lt; IDEExtendedTaintAnalysisDomain &gt;',['../classpsr_1_1AllTopFnProvider.html',1,'psr']]],
   ['alltopfnprovider_3c_20idefeaturetaintanalysisdomain_20_3e_29',['AllTopFnProvider&lt; IDEFeatureTaintAnalysisDomain &gt;',['../classpsr_1_1AllTopFnProvider.html',1,'psr']]],
   ['alltopfnprovider_3c_20idegeneralizedlcadomain_20_3e_30',['AllTopFnProvider&lt; IDEGeneralizedLCADomain &gt;',['../classpsr_1_1AllTopFnProvider.html',1,'psr']]],

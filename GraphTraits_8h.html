@@ -85,6 +85,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#concepts">Concepts</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">GraphTraits.h File Reference</div></div>
 </div><!--header-->
@@ -93,6 +94,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="Utilities_8h_source.html">phasar/Utils/Utilities.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/StringRef.h&quot;</code><br />
 <code>#include &quot;llvm/Support/raw_ostream.h&quot;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
@@ -108,16 +110,38 @@ Classes</h2></td></tr>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacepsr" id="r_namespacepsr"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html">psr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacepsr_1_1detail" id="r_namespacepsr_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html">psr::detail</a></td></tr>
-<tr class="memdesc:namespacepsr_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__graph__edge.html">psr::is_graph_edge</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__const__graph__trait.html">psr::is_const_graph_trait</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__graph__trait.html">psr::is_graph_trait</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__weighted__const__graph__trait.html">psr::is_weighted_const_graph_trait</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__weighted__graph__trait.html">psr::is_weighted_graph_trait</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__const__graph.html">psr::is_const_graph</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__graph.html">psr::is_graph</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__weighted__const__graph.html">psr::is_weighted_const_graph</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__weighted__graph.html">psr::is_weighted_graph</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__reservable__graph__trait__v.html">psr::is_reservable_graph_trait_v</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__removable__graph__trait__v.html">psr::is_removable_graph_trait_v</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a2927a990abfea591237b47f55f7a75a5" id="r_a2927a990abfea591237b47f55f7a75a5"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GraphTy</a> &gt; </td></tr>
+<tr class="memitem:a2927a990abfea591237b47f55f7a75a5" id="r_a2927a990abfea591237b47f55f7a75a5"><td class="memTemplParams" colspan="2">template&lt;is_graph GraphTy&gt; </td></tr>
 <tr class="memitem:a2927a990abfea591237b47f55f7a75a5"><td class="memTemplItemLeft" align="right" valign="top">std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GraphTy</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2927a990abfea591237b47f55f7a75a5">psr::reverseGraph</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GraphTy</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a>)</td></tr>
 <tr class="separator:a2927a990abfea591237b47f55f7a75a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a492aaba5eb18e5df8eae284652c0c4c0" id="r_a492aaba5eb18e5df8eae284652c0c4c0"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GraphTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a>  = DefaultNodeTransform&gt; </td></tr>
+<tr class="memitem:a492aaba5eb18e5df8eae284652c0c4c0" id="r_a492aaba5eb18e5df8eae284652c0c4c0"><td class="memTemplParams" colspan="2">template&lt;is_const_graph GraphTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a>  = DefaultNodeTransform&gt; </td></tr>
 <tr class="memitem:a492aaba5eb18e5df8eae284652c0c4c0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a492aaba5eb18e5df8eae284652c0c4c0">psr::printGraph</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GraphTy</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a>, llvm::raw_ostream &amp;OS, llvm::StringRef Name=&quot;&quot;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeToString</a>={})</td></tr>
 <tr class="memdesc:a492aaba5eb18e5df8eae284652c0c4c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints the given graph G as dot.  <br /></td></tr>
 <tr class="separator:a492aaba5eb18e5df8eae284652c0c4c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -125,7 +149,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

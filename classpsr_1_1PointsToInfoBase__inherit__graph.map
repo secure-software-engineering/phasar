@@ -1,9 +1,11 @@
 <map id="psr::PointsToInfoBase&lt; Derived &gt;" name="psr::PointsToInfoBase&lt; Derived &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="251,20,412,60"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1PointsToInfoBase.html" title=" " alt="" coords="592,20,833,60"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="426,37,592,37,592,43,426,43"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="5,27,201,53"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,37,251,37,251,43,215,43"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1PointsToInfoRef_3_01PTATraits_00_01std_1_1enable__if__t_3_01is__PointsToTraits__v_3_01PTATraits_01_4_01_4_01_4.html" title=" " alt="" coords="883,5,1057,75"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="847,37,883,37,883,43,847,43"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="45,80,207,120"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1PointsToInfoBase.html" title=" " alt="" coords="5,197,247,237"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,134,129,197,123,197,123,134"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="28,5,224,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,44,129,80,123,80,123,44"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1PointsToInfoRef_3_01PTATraits_01_4.html" title=" " alt="" coords="51,287,201,327"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="129,251,129,287,123,287,123,251"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1PointsToInfo_3_01PTATraits_01_4.html" title=" " alt="" coords="56,376,196,416"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="129,341,129,376,123,376,123,341"/>
 </map>

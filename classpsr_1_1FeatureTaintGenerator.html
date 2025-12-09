@@ -111,9 +111,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acf7084b80e291a432644e8306498f352" id="r_acf7084b80e291a432644e8306498f352"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SourceDetector</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> &gt; </td></tr>
 <tr class="memitem:acf7084b80e291a432644e8306498f352"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FeatureTaintGenerator.html#acf7084b80e291a432644e8306498f352">FeatureTaintGenerator</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SourceDetector</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SrcDetector</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EFGen</a>)</td></tr>
 <tr class="separator:acf7084b80e291a432644e8306498f352"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf7f51e36b1f3b338a7e1deebd8b2bc0" id="r_adf7f51e36b1f3b338a7e1deebd8b2bc0"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;                FeatureTaintGenerator, std::decay_t&lt;EdgeFactGenerator&gt;&gt;&gt;&gt; </td></tr>
-<tr class="memitem:adf7f51e36b1f3b338a7e1deebd8b2bc0"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FeatureTaintGenerator.html#adf7f51e36b1f3b338a7e1deebd8b2bc0">FeatureTaintGenerator</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EFGen</a>)</td></tr>
-<tr class="separator:adf7f51e36b1f3b338a7e1deebd8b2bc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c39a5c82e5e09fc6a08a65d98e6ef14" id="r_a7c39a5c82e5e09fc6a08a65d98e6ef14"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> &gt; <br />
+requires ( !std::is_same_v&lt;<a class="el" href="classpsr_1_1FeatureTaintGenerator.html">FeatureTaintGenerator</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a>&gt;&gt;)</td></tr>
+<tr class="memitem:a7c39a5c82e5e09fc6a08a65d98e6ef14"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FeatureTaintGenerator.html#a7c39a5c82e5e09fc6a08a65d98e6ef14">FeatureTaintGenerator</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EFGen</a>)</td></tr>
+<tr class="separator:a7c39a5c82e5e09fc6a08a65d98e6ef14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac739cc71ca0cf89e8de45c1390e83e10" id="r_ac739cc71ca0cf89e8de45c1390e83e10"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FeatureTaintGenerator.html#ac739cc71ca0cf89e8de45c1390e83e10">isSource</a> (<a class="el" href="classpsr_1_1FeatureTaintGenerator.html#aa7c564725cbe58480bca7c5fd7e479ef">InstOrGlobal</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IG</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="separator:ac739cc71ca0cf89e8de45c1390e83e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a334e9aa3317c20aab6af09cc925d3c38" id="r_a334e9aa3317c20aab6af09cc925d3c38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1IDEFeatureTaintEdgeFact.html">IDEFeatureTaintEdgeFact</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FeatureTaintGenerator.html#a334e9aa3317c20aab6af09cc925d3c38">getGeneratedTaintsAt</a> (<a class="el" href="classpsr_1_1FeatureTaintGenerator.html#aa7c564725cbe58480bca7c5fd7e479ef">InstOrGlobal</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IG</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
@@ -283,13 +284,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="adf7f51e36b1f3b338a7e1deebd8b2bc0" name="adf7f51e36b1f3b338a7e1deebd8b2bc0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adf7f51e36b1f3b338a7e1deebd8b2bc0">&#9670;&#160;</a></span>FeatureTaintGenerator() <span class="overload">[3/3]</span></h2>
+<a id="a7c39a5c82e5e09fc6a08a65d98e6ef14" name="a7c39a5c82e5e09fc6a08a65d98e6ef14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c39a5c82e5e09fc6a08a65d98e6ef14">&#9670;&#160;</a></span>FeatureTaintGenerator() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = std::enable_if_t&lt;!std::is_same_v&lt;                FeatureTaintGenerator, std::decay_t&lt;EdgeFactGenerator&gt;&gt;&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a> &gt; <br />
+requires ( !std::is_same_v&lt;<a class="el" href="classpsr_1_1FeatureTaintGenerator.html">FeatureTaintGenerator</a>, std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFactGenerator</a>&gt;&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -465,7 +467,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -119,16 +119,16 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepsr.html">psr</a> {</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keyword">namespace </span>detail {</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="namespacepsr_1_1detail.html#a6ded5a893fa5be95f2a79c912d7f0344">   30</a></span><a class="code hl_define" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a> <a class="code hl_variable" href="namespacepsr_1_1detail.html#a6ded5a893fa5be95f2a79c912d7f0344">IsSomehowPrintable</a> =</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">concept </span>IsSomehowPrintable =</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">has_str_v&lt;T&gt;</a> || <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is_llvm_printable_v&lt;T&gt;</a> || <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">has_adl_to_string_v&lt;T&gt;</a>;</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
 <div class="foldopen" id="foldopen00033" data-start="{" data-end="}">
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">   33</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">printSomehow</a>(<span class="keyword">const</span> T &amp;Val) {</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">has_str_v&lt;T&gt;</a>) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1has__str__v.html">has_str_v&lt;T&gt;</a>) {</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordflow">return</span> Val.str();</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">has_adl_to_string_v&lt;T&gt;</a>) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr.html#ac6bd229538865a7f26288f7c12ded50f">adl_to_string</a>(Val);</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is_llvm_printable_v&lt;T&gt;</a>) {</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1has__adl__to__string__v.html">has_adl_to_string_v&lt;T&gt;</a>) {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr.html#a2cc220ee4e33dc7e81fc267972154c1c">adl_to_string</a>(Val);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1is__llvm__printable__v.html">is_llvm_printable_v&lt;T&gt;</a>) {</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    std::string <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Str</a>;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    llvm::raw_string_ostream <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ROS</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Str</a>);</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ROS</a> &lt;&lt; Val;</div>
@@ -145,96 +145,93 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="comment">///</span></div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="comment">/// your types</span></div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> N,</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>          <span class="keyword">typename</span> = std::enable_if_t&lt;detail::IsSomehowPrintable&lt;N&gt;&gt;&gt;</div>
-<div class="foldopen" id="foldopen00056" data-start="{" data-end="}">
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="namespacepsr.html#a652e76b5e1ffdaa51849e84c24cae9d9">   56</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr.html#a652e76b5e1ffdaa51849e84c24cae9d9">NToString</a>(<span class="keyword">const</span> N &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>) {</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>);</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>}</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="comment"></span><span class="keyword">template</span> &lt;detail::IsSomehowPr<span class="keywordtype">int</span>able N&gt;</div>
+<div class="foldopen" id="foldopen00055" data-start="{" data-end="}">
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">   55</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(<span class="keyword">const</span> N &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>) {</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Node</a>);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}</div>
 </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment"></span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="comment">/// Stringify the given data-flow fact.</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="comment">///</span></div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="comment">/// your types</span></div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> D,</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>          <span class="keyword">typename</span> = std::enable_if_t&lt;detail::IsSomehowPrintable&lt;D&gt;&gt;&gt;</div>
-<div class="foldopen" id="foldopen00066" data-start="{" data-end="}">
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="namespacepsr.html#ada2907f128bbe76a145aa04e510d227f">   66</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">DToString</a>(<span class="keyword">const</span> D &amp;Fact) {</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(Fact);</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>}</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="comment"></span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment">/// Stringify the given data-flow fact.</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="comment">///</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="comment">/// your types</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="comment"></span><span class="keyword">template</span> &lt;detail::IsSomehowPr<span class="keywordtype">int</span>able D&gt;</div>
+<div class="foldopen" id="foldopen00064" data-start="{" data-end="}">
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="namespacepsr.html#a62db583f31f369a96d09589e54dc5f6f">   64</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">DToString</a>(<span class="keyword">const</span> D &amp;Fact) {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(Fact);</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>}</div>
 </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="comment"></span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="comment">/// Stringify the given edge value.</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="comment">///</span></div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="comment">/// your types</span></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> L,</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>          <span class="keyword">typename</span> = std::enable_if_t&lt;detail::IsSomehowPrintable&lt;L&gt;&gt;&gt;</div>
-<div class="foldopen" id="foldopen00076" data-start="{" data-end="}">
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="namespacepsr.html#a4eb0f5c83c9361d8c7f541b4de30b202">   76</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">LToString</a>(<span class="keyword">const</span> L &amp;Value) {</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(Value);</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>}</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="comment"></span> </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="comment">/// Stringify the given edge value.</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="comment">///</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="comment">/// your types</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="comment"></span><span class="keyword">template</span> &lt;detail::IsSomehowPr<span class="keywordtype">int</span>able L&gt;</div>
+<div class="foldopen" id="foldopen00073" data-start="{" data-end="}">
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespacepsr.html#a2b14c0a125432f99699d7d3ca1c6d7b9">   73</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">decltype</span>(<span class="keyword">auto</span>) <a class="code hl_function" href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">LToString</a>(<span class="keyword">const</span> L &amp;Value) {</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(Value);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>}</div>
 </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="comment"></span> </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="comment">/// Stringify the given function.</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="comment">///</span></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><span class="comment">/// your types</span></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> F,</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>          <span class="keyword">typename</span> = std::enable_if_t&lt;detail::IsSomehowPrintable&lt;F&gt;&gt;&gt;</div>
-<div class="foldopen" id="foldopen00086" data-start="{" data-end="}">
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="namespacepsr.html#a3f0b8ac0481b2e6b9292821230c37a5b">   86</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a3f0b8ac0481b2e6b9292821230c37a5b">FToString</a>(<span class="keyword">const</span> F &amp;Fun) {</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(Fun);</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>}</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="comment"></span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="comment">/// Stringify the given function.</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="comment">///</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="comment">/// Default implementation. Provide your own overload to customize this API for</span></div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="comment">/// your types</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="comment"></span><span class="keyword">template</span> &lt;detail::IsSomehowPr<span class="keywordtype">int</span>able F&gt;</div>
+<div class="foldopen" id="foldopen00082" data-start="{" data-end="}">
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="namespacepsr.html#ad2026cef8eb352eb4f78b8c941dcbad5">   82</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#ad2026cef8eb352eb4f78b8c941dcbad5">FToString</a>(<span class="keyword">const</span> F &amp;Fun) {</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">detail::printSomehow</a>(Fun);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>}</div>
 </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="comment">// -- specializations</span></div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="comment">// --- LLVM</span></div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="comment">// Note: Provide forward declarations here, such that improper usage will</span></div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="comment">// definitely lead to an error instead of triggering one of the default</span></div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="comment">// implementations</span></div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="comment"></span> </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="comment">/// Stringify the given LLVM Value.</span></div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="comment">///</span></div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno"><a class="line" href="namespacepsr.html#ad1b73d191d182723c34d5e3d7b6ef355">  100</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a652e76b5e1ffdaa51849e84c24cae9d9">NToString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span><span class="comment"></span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="comment">/// Stringify the given LLVM Instruction.</span></div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="comment">///</span></div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9e176aab202fe8a7a0c62ea74b9b4635">  105</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a652e76b5e1ffdaa51849e84c24cae9d9">NToString</a>(<span class="keyword">const</span> llvm::Instruction *V);</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="comment"></span> </div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span><span class="comment">/// Stringify the given LLVM Value.</span></div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span><span class="comment">///</span></div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno"><a class="line" href="namespacepsr.html#a0ce2f0c3abaa2617e07b00d2e3469b3c">  110</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">DToString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span><span class="comment"></span> </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="comment">/// Stringify the given LLVM Function.</span></div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="comment">///</span></div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="namespacepsr.html#ae969edb13f0a7afebb054220350082b3">  115</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] llvm::StringRef <a class="code hl_function" href="namespacepsr.html#a3f0b8ac0481b2e6b9292821230c37a5b">FToString</a>(<span class="keyword">const</span> llvm::Function *V);</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aMacros_8h_html_a2a61702ca9be186404c0447bbd84a05f"><div class="ttname"><a href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a></div><div class="ttdeci">#define PSR_CONCEPT</div><div class="ttdef"><b>Definition</b> <a href="Macros_8h_source.html#l00016">Macros.h:16</a></div></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="comment">// -- specializations</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="comment">// --- LLVM</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="comment">// Note: Provide forward declarations here, such that improper usage will</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="comment">// definitely lead to an error instead of triggering one of the default</span></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span><span class="comment">// implementations</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="comment"></span> </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="comment">/// Stringify the given LLVM Value.</span></div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="comment">///</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="namespacepsr.html#ad1b73d191d182723c34d5e3d7b6ef355">   96</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="comment"></span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="comment">/// Stringify the given LLVM Instruction.</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="comment">///</span></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9e176aab202fe8a7a0c62ea74b9b4635">  101</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">NToString</a>(<span class="keyword">const</span> llvm::Instruction *V);</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="comment"></span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="comment">/// Stringify the given LLVM Value.</span></div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span><span class="comment">///</span></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="namespacepsr.html#a0ce2f0c3abaa2617e07b00d2e3469b3c">  106</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">DToString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span><span class="comment"></span> </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span><span class="comment">/// Stringify the given LLVM Function.</span></div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="comment">///</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="comment">/// \remark Link phasar_llvm_utils to use this</span></div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="namespacepsr.html#ae969edb13f0a7afebb054220350082b3">  111</a></span><span class="comment"></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] llvm::StringRef <a class="code hl_function" href="namespacepsr.html#ad2026cef8eb352eb4f78b8c941dcbad5">FToString</a>(<span class="keyword">const</span> llvm::Function *V);</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aTypeTraits_8h_html"><div class="ttname"><a href="TypeTraits_8h.html">TypeTraits.h</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1has__adl__to__string__v_html"><div class="ttname"><a href="conceptpsr_1_1has__adl__to__string__v.html">psr::has_adl_to_string_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00116">TypeTraits.h:116</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1has__str__v_html"><div class="ttname"><a href="conceptpsr_1_1has__str__v.html">psr::has_str_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00111">TypeTraits.h:111</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1is__llvm__printable__v_html"><div class="ttname"><a href="conceptpsr_1_1is__llvm__printable__v.html">psr::is_llvm_printable_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00105">TypeTraits.h:105</a></div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_1_1detail_html_a310e8a4c7323bdbc8608cd3fd1786a9a"><div class="ttname"><a href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">psr::detail::printSomehow</a></div><div class="ttdeci">decltype(auto) printSomehow(const T &amp;Val)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00033">Printer.h:33</a></div></div>
-<div class="ttc" id="anamespacepsr_1_1detail_html_a6ded5a893fa5be95f2a79c912d7f0344"><div class="ttname"><a href="namespacepsr_1_1detail.html#a6ded5a893fa5be95f2a79c912d7f0344">psr::detail::IsSomehowPrintable</a></div><div class="ttdeci">PSR_CONCEPT IsSomehowPrintable</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00030">Printer.h:30</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a3f0b8ac0481b2e6b9292821230c37a5b"><div class="ttname"><a href="namespacepsr.html#a3f0b8ac0481b2e6b9292821230c37a5b">psr::FToString</a></div><div class="ttdeci">std::string FToString(const F &amp;Fun)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00086">Printer.h:86</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a2cc220ee4e33dc7e81fc267972154c1c"><div class="ttname"><a href="namespacepsr.html#a2cc220ee4e33dc7e81fc267972154c1c">psr::adl_to_string</a></div><div class="ttdeci">decltype(auto) adl_to_string(const T &amp;Val)</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00250">TypeTraits.h:250</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a5462787d6bd41739c36e66d99f2aee6a"><div class="ttname"><a href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString</a></div><div class="ttdeci">std::string DToString(const AbstractMemoryLocation &amp;AML)</div></div>
-<div class="ttc" id="anamespacepsr_html_a652e76b5e1ffdaa51849e84c24cae9d9"><div class="ttname"><a href="namespacepsr.html#a652e76b5e1ffdaa51849e84c24cae9d9">psr::NToString</a></div><div class="ttdeci">decltype(auto) NToString(const N &amp;Node)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00056">Printer.h:56</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a8d0886fed3b61a4324c1c8d5d156bf03"><div class="ttname"><a href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">psr::NToString</a></div><div class="ttdeci">decltype(auto) NToString(const N &amp;Node)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00055">Printer.h:55</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ac1657d444b8f6ddfe706d149969f200f"><div class="ttname"><a href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString</a></div><div class="ttdeci">std::string LToString(const IDEFeatureTaintEdgeFact &amp;EdgeFact)</div></div>
-<div class="ttc" id="anamespacepsr_html_ac6bd229538865a7f26288f7c12ded50f"><div class="ttname"><a href="namespacepsr.html#ac6bd229538865a7f26288f7c12ded50f">psr::adl_to_string</a></div><div class="ttdeci">decltype(auto) adl_to_string(const T &amp;Val)</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00351">TypeTraits.h:351</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ad2026cef8eb352eb4f78b8c941dcbad5"><div class="ttname"><a href="namespacepsr.html#ad2026cef8eb352eb4f78b8c941dcbad5">psr::FToString</a></div><div class="ttdeci">std::string FToString(const F &amp;Fun)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00082">Printer.h:82</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

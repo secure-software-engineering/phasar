@@ -85,8 +85,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">FlowFunctionCache.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -95,6 +94,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="ByRef_8h_source.html">phasar/Utils/ByRef.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="PointerUtils_8h_source.html">phasar/Utils/PointerUtils.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="TableWrappers_8h_source.html">phasar/Utils/TableWrappers.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/DenseMap.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Instruction.h&quot;</code><br />
@@ -124,20 +124,11 @@ Functions</h2></td></tr>
 <tr class="memitem:a512378e39a40dba379c9c754251c7252" id="r_a512378e39a40dba379c9c754251c7252"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FFTy</a> &gt; </td></tr>
 <tr class="memitem:a512378e39a40dba379c9c754251c7252"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a512378e39a40dba379c9c754251c7252">psr::detail::AutoAddZeroFF</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FFTy</a>, D) -&gt; AutoAddZeroFF&lt; std::decay_t&lt; D &gt;, std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FFTy</a> &gt; &gt;</td></tr>
 <tr class="separator:a512378e39a40dba379c9c754251c7252"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a23c6d9680da490bf760a3bec94260efc" id="r_a23c6d9680da490bf760a3bec94260efc"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = void&gt; </td></tr>
-<tr class="memitem:a23c6d9680da490bf760a3bec94260efc"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a23c6d9680da490bf760a3bec94260efc">psr::detail::IsFlowFunction</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></td></tr>
-<tr class="separator:a23c6d9680da490bf760a3bec94260efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36c2281998e5dcc9624ecbed7d7102fe" id="r_a36c2281998e5dcc9624ecbed7d7102fe"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = void&gt; </td></tr>
-<tr class="memitem:a36c2281998e5dcc9624ecbed7d7102fe"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a36c2281998e5dcc9624ecbed7d7102fe">psr::detail::IsFlowFunctionPtr</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></td></tr>
-<tr class="separator:a36c2281998e5dcc9624ecbed7d7102fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

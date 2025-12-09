@@ -18,19 +18,19 @@
 <area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="1785,496,1910,472,2045,440,2109,420,2111,425,2046,445,1911,477,1786,501"/>
 <area shape="rect" id="Node000008" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="1547,561,1809,586"/>
 <area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="1808,556,1925,532,1986,514,2044,491,2102,457,2151,420,2154,424,2105,461,2046,496,1988,519,1927,537,1809,561"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="1555,317,1801,357"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1815,348,2046,373,2069,376,2069,382,2045,379,1815,353"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="1592,317,1764,357"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1778,344,2046,373,2069,376,2069,382,2045,379,1777,350"/>
 <area shape="rect" id="Node000010" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="1557,253,1799,293"/>
 <area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="1813,293,1927,315,2046,344,2111,365,2109,370,2045,349,1926,321,1812,298"/>
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1301,158,1523,220,1619,251,1617,256,1522,225,1299,164"/>
 <area shape="rect" id="Node000012" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="1120,189,1292,229"/>
 <area shape="poly" id="edge12_Node000010_Node000012" title=" " alt="" coords="1306,220,1557,254,1556,260,1305,225"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1JoinLattice.html" title=" " alt="" coords="1112,253,1300,293"/>
+<area shape="rect" id="Node000013" href="$classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="1112,253,1300,293"/>
 <area shape="poly" id="edge13_Node000010_Node000013" title=" " alt="" coords="1314,271,1557,271,1557,276,1314,276"/>
 <area shape="rect" id="Node000014" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="1075,318,1337,343"/>
 <area shape="poly" id="edge14_Node000010_Node000014" title=" " alt="" coords="1325,314,1556,285,1557,291,1325,319"/>
-<area shape="rect" id="Node000015" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="1083,368,1329,408"/>
-<area shape="poly" id="edge15_Node000010_Node000015" title=" " alt="" coords="1332,363,1426,341,1522,313,1546,303,1585,291,1587,296,1548,308,1524,319,1427,346,1333,368"/>
+<area shape="rect" id="Node000015" href="$classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="1120,368,1292,408"/>
+<area shape="poly" id="edge15_Node000010_Node000015" title=" " alt="" coords="1305,368,1410,345,1522,313,1546,303,1585,291,1587,296,1548,308,1524,319,1411,350,1306,373"/>
 <area shape="rect" id="Node000016" title=" " alt="" coords="1115,45,1297,85"/>
 <area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="1311,76,2348,206,2348,211,1310,81"/>
 <area shape="rect" id="Node000017" title=" " alt="" coords="789,5,971,45"/>

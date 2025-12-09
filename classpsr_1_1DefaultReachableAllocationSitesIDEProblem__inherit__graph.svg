@@ -120,10 +120,10 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="classpsr_1_1JoinLattice.html" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="651,-164 510,-164 510,-134 651,-134 651,-164"/>
 <text text-anchor="start" x="518" y="-152" font-family="Helvetica,sans-Serif" font-size="10.00">psr::JoinLattice&lt; Analysis</text>
-<text text-anchor="middle" x="580.5" y="-141" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy, typename &gt;</text>
+<text text-anchor="middle" x="580.5" y="-141" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -157,10 +157,10 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="classpsr_1_1AllTopFnProvider.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="673,-78 488,-78 488,-48 673,-48 673,-78"/>
-<text text-anchor="start" x="496" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
-<text text-anchor="middle" x="580.5" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, typename &gt;</text>
+<g id="a_Node000009"><a xlink:href="classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="645,-78 516,-78 516,-48 645,-48 645,-78"/>
+<text text-anchor="start" x="524" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
+<text text-anchor="middle" x="580.5" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy &gt;</text>
 </a>
 </g>
 </g>

@@ -11,12 +11,12 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="classllvm_1_1DenseMap_3_01const_01psr_1_1IDEInstInteractionAnalysisT_1_1IIAAKillOrReplaceEF_01_5412ee8f58a9eb1054509ad3aa867d850.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="classllvm_1_1DenseMap_3_01const_01psr_1_1IDEInstInteractionAnalysisT_1_1IIAAAddLabelsEF_01_5_00_729e53c43e3e5331372e12f7b199e7ed.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="151,-52 0,-52 0,0 151,0 151,-52"/>
 <text text-anchor="start" x="8" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00">DenseMap&lt; const psr</text>
 <text text-anchor="start" x="8" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">::IDEInstInteractionAnalysis</text>
-<text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">T::IIAAKillOrReplaceEF *,</text>
-<text text-anchor="middle" x="75.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00"> const void *, DSI &gt;</text>
+<text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">T::IIAAAddLabelsEF *, const</text>
+<text text-anchor="middle" x="75.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00"> void *, DSI &gt;</text>
 </a>
 </g>
 </g>

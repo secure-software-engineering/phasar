@@ -85,14 +85,15 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#concepts">Concepts</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">EdgeFunction.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="EdgeFunctionSingletonCache_8h_source.html">phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ByRef_8h_source.html">phasar/Utils/ByRef.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="EmptyBaseOptimizationUtils_8h_source.html">phasar/Utils/EmptyBaseOptimizationUtils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="Macros_8h_source.html">phasar/Utils/Macros.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/DenseMapInfo.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/Hashing.h&quot;</code><br />
@@ -128,25 +129,23 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1DenseMapInfo_3_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1isa__impl__cl_3_01To_00_01const_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::isa_impl_cl&lt; To, const psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1CastIsPossible_3_01To_00_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::CastIsPossible&lt; To, psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1cast__retty__impl_3_01To_00_01const_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::cast_retty_impl&lt; To, const psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1CastInfo_3_01To_00_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::CastInfo&lt; To, psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1cast__retty__impl_3_01To_00_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::cast_retty_impl&lt; To, psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1cast__convert__val_3_01To_00_01const_01psr_1_1EdgeFunction_3_01L_01_4_00_01const_0af8144d4ec69ce1448f16c6427b6b4f9.html">llvm::cast_convert_val&lt; To, const psr::EdgeFunction&lt; L &gt;, const psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1cast__convert__val_3_01To_00_01psr_1_1EdgeFunction_3_01L_01_4_00_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::cast_convert_val&lt; To, psr::EdgeFunction&lt; L &gt;, psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1CastInfo_3_01To_00_01const_01psr_1_1EdgeFunction_3_01L_01_4_01_4.html">llvm::CastInfo&lt; To, const psr::EdgeFunction&lt; L &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacepsr" id="r_namespacepsr"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html">psr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacepsr_1_1detail" id="r_namespacepsr_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html">psr::detail</a></td></tr>
-<tr class="memdesc:namespacepsr_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacellvm" id="r_namespacellvm"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacellvm.html">llvm</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsEdgeFunction.html">psr::IsEdgeFunction</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
@@ -156,20 +155,11 @@ Enumerations</h2></td></tr>
 , <a class="el" href="namespacepsr.html#abfdb20cea38adc9f743a6670d5a26279af4523b793869ba7138c1c2db3774c2cd">psr::CustomHeapAllocated</a>
  }</td></tr>
 <tr class="separator:abfdb20cea38adc9f743a6670d5a26279"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a2dab6d5279a3ebb5e855716fd482c71c" id="r_a2dab6d5279a3ebb5e855716fd482c71c"><td class="memTemplParams" colspan="2">template&lt;typename To , typename L &gt; </td></tr>
-<tr class="memitem:a2dab6d5279a3ebb5e855716fd482c71c"><td class="memTemplItemLeft" align="right" valign="top">cast_retty&lt; To, <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt; &gt;::ret_type&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacellvm.html#a2dab6d5279a3ebb5e855716fd482c71c">llvm::dyn_cast_or_null</a> (const <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt; &amp;EF) noexcept</td></tr>
-<tr class="separator:a2dab6d5279a3ebb5e855716fd482c71c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8760a7d8a1f2c5eab5b645d1d6270440" id="r_a8760a7d8a1f2c5eab5b645d1d6270440"><td class="memTemplParams" colspan="2">template&lt;typename To , typename L &gt; </td></tr>
-<tr class="memitem:a8760a7d8a1f2c5eab5b645d1d6270440"><td class="memTemplItemLeft" align="right" valign="top">cast_retty&lt; To, <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt; &gt;::ret_type&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacellvm.html#a8760a7d8a1f2c5eab5b645d1d6270440">llvm::cast_or_null</a> (const <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt; &amp;EF) noexcept</td></tr>
-<tr class="separator:a8760a7d8a1f2c5eab5b645d1d6270440"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:26 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

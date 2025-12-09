@@ -166,10 +166,10 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="classpsr_1_1JoinLattice.html" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="651,-169.5 510,-169.5 510,-139.5 651,-139.5 651,-169.5"/>
 <text text-anchor="start" x="518" y="-157.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::JoinLattice&lt; Analysis</text>
-<text text-anchor="middle" x="580.5" y="-146.5" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy, typename &gt;</text>
+<text text-anchor="middle" x="580.5" y="-146.5" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -221,10 +221,10 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="classpsr_1_1AllTopFnProvider.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="673,-70.5 488,-70.5 488,-40.5 673,-40.5 673,-70.5"/>
-<text text-anchor="start" x="496" y="-58.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
-<text text-anchor="middle" x="580.5" y="-47.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, typename &gt;</text>
+<g id="a_Node000010"><a xlink:href="classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="645,-70.5 516,-70.5 516,-40.5 645,-40.5 645,-70.5"/>
+<text text-anchor="start" x="524" y="-58.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
+<text text-anchor="middle" x="580.5" y="-47.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -232,8 +232,8 @@
 <g id="edge9_Node000003_Node000010" class="edge">
 <title>Node10&#45;&gt;Node3</title>
 <g id="a_edge9_Node000003_Node000010"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M668.03,-74.85C671.85,-76.85 675.53,-79.06 679,-81.5 690.5,-89.59 685.4,-99.57 697,-107.5 703.34,-111.84 710.32,-115.45 717.6,-118.47"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="669.41,-71.64 658.87,-70.55 666.43,-77.97 669.41,-71.64"/>
+<path fill="none" stroke="#63b8ff" d="M654.94,-68.96C663.47,-72.26 671.71,-76.37 679,-81.5 690.5,-89.59 685.4,-99.57 697,-107.5 703.34,-111.84 710.32,-115.45 717.6,-118.47"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="655.83,-65.56 645.23,-65.56 653.52,-72.16 655.83,-65.56"/>
 </a>
 </g>
 </g>

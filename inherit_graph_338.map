@@ -1,5 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1ProjectIRDBBase.html" title=" " alt="" coords="5,5,168,45"/>
-<area shape="rect" id="Node000001" href="$classpsr_1_1LLVMProjectIRDB.html" title="Project IR Database that manages a LLVM IR module." alt="" coords="216,13,377,38"/>
-<area shape="poly" id="edge316_Node000000_Node000001" title=" " alt="" coords="182,23,216,23,216,28,182,28"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1RepeatIterator.html" title="An iterator that iterates over the same value a specified number of times." alt="" coords="5,5,188,31"/>
 </map>

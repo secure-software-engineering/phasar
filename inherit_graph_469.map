@@ -1,17 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,338,117,363"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1has__getAsJson_3_01T_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_01const_01b23f1f37ea085aba06c053637750e368.html" title=" " alt="" coords="185,5,377,75"/>
-<area shape="poly" id="edge357_Node000000_Node000001" title=" " alt="" coords="63,324,73,274,91,211,120,144,140,113,163,85,183,69,186,73,167,89,144,116,125,147,96,212,78,275,69,325"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1has__getHashCode_3_01T_00_01decltype_07std_1_1declval_3_01const_01T_01_4_07_08_8getHashCode_07_08_08_4.html" title=" " alt="" coords="167,99,394,154"/>
-<area shape="poly" id="edge358_Node000000_Node000002" title=" " alt="" coords="68,324,81,288,101,245,128,201,164,163,180,152,183,156,167,167,133,205,106,248,86,290,73,326"/>
-<area shape="rect" id="Node000003" href="$structpsr_1_1has__getSparseCFG_3_01T_00_01D_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_3d6aece4725c2ee7959dba385e5a1b3c.html" title=" " alt="" coords="178,178,383,291"/>
-<area shape="poly" id="edge359_Node000000_Node000003" title=" " alt="" coords="97,329,177,287,179,291,100,334"/>
-<area shape="rect" id="Node000004" href="$structpsr_1_1has__std__hash_3_01T_00_01decltype_07std_1_1hash_3_01T_01_4_02_03_07std_1_1declval_3_01const_01T_01_4_08_08_4.html" title=" " alt="" coords="197,316,364,385"/>
-<area shape="poly" id="edge360_Node000000_Node000004" title=" " alt="" coords="131,348,197,348,197,353,131,353"/>
-<area shape="rect" id="Node000005" href="$structpsr_1_1is__PointsToTraits_3_01T_00_01std_1_1void__t_3_01typename_01T_1_1v__t_00_01typenamefa80385505af6f7e573238f9488efefa.html" title=" " alt="" coords="178,409,383,508"/>
-<area shape="poly" id="edge361_Node000000_Node000005" title=" " alt="" coords="102,367,181,407,179,412,99,372"/>
-<area shape="rect" id="Node000006" href="$structpsr_1_1is__pathtracingfilter__for_3_01PathTracingFilter_3_01EndFilter_00_01ErrFilter_01_4_1b0040c37f57ef1a1d1d3276edbb2d0b.html" title=" " alt="" coords="165,533,396,675"/>
-<area shape="poly" id="edge362_Node000000_Node000006" title=" " alt="" coords="76,375,113,443,138,482,167,518,179,530,176,534,163,522,134,485,108,446,72,377"/>
-<area shape="rect" id="Node000007" href="$structpsr_1_1is__variant_3_01std_1_1variant_3_01Args_8_8_8_01_4_01_4.html" title=" " alt="" coords="199,700,362,740"/>
-<area shape="poly" id="edge363_Node000000_Node000007" title=" " alt="" coords="65,377,70,439,84,522,97,566,115,609,138,649,167,685,182,696,200,705,198,710,180,701,163,689,134,652,110,612,92,568,79,523,64,440,60,377"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,60,113,85"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1DefaultAnalysisPrinterSelector.html" title=" " alt="" coords="185,5,399,60"/>
+<area shape="poly" id="edge362_Node000000_Node000001" title=" " alt="" coords="126,59,184,48,185,54,127,64"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1DefaultAnalysisPrinterSelector_3_01LLVMIFDSAnalysisDomainDefault_01_4.html" title=" " alt="" coords="161,84,423,139"/>
+<area shape="poly" id="edge363_Node000000_Node000002" title=" " alt="" coords="127,81,161,87,161,92,126,86"/>
 </map>

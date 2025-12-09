@@ -31,7 +31,7 @@ var searchData=
   ['solverresults_28',['SolverResults',['../classpsr_1_1SolverResults.html',1,'psr']]],
   ['solverstatsselector_29',['SolverStatsSelector',['../structpsr_1_1SolverStatsSelector.html',1,'psr']]],
   ['solverstatsselector_3c_20defaultidesolverconfig_3c_20problemty_20_3e_20_3e_30',['SolverStatsSelector&lt; DefaultIDESolverConfig&lt; ProblemTy &gt; &gt;',['../structpsr_1_1SolverStatsSelector.html',1,'psr']]],
-  ['solverstatsselector_3c_20staticsolverconfigty_2c_20std_3a_3aenable_5fif_5ft_3c_20staticsolverconfigty_3a_3aenablestatistics_20_3e_20_3e_31',['SolverStatsSelector&lt; StaticSolverConfigTy, std::enable_if_t&lt; StaticSolverConfigTy::EnableStatistics &gt; &gt;',['../structpsr_1_1SolverStatsSelector_3_01StaticSolverConfigTy_00_01std_1_1enable__if__t_3_01StaticSo4006d5762488086969e9b1e0ba14d859.html',1,'psr']]],
+  ['solverstatsselector_3c_20staticsolverconfigty_20_3e_31',['SolverStatsSelector&lt; StaticSolverConfigTy &gt;',['../structpsr_1_1SolverStatsSelector_3_01StaticSolverConfigTy_01_4.html',1,'psr']]],
   ['sourcecodeinfo_32',['SourceCodeInfo',['../structpsr_1_1SourceCodeInfo.html',1,'psr']]],
   ['sourcemgrprinter_33',['SourceMgrPrinter',['../classpsr_1_1SourceMgrPrinter.html',1,'psr']]],
   ['sparsecfgbase_34',['SparseCFGBase',['../classpsr_1_1SparseCFGBase.html',1,'psr']]],

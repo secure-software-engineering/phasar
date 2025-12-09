@@ -84,9 +84,9 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#concepts">Concepts</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">psr::detail Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -103,10 +103,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>AbstractMemoryLocationStorage</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>AreEqualityComparable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>AreEqualityComparable&lt; T, U, decltype(std::declval&lt; T &gt;()==std::declval&lt; U &gt;())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>AutoAddZeroFF</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>DefaultCast</b></td></tr>
@@ -121,69 +117,11 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>FlowFunctionCacheBase</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_adl_to_string</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_erase_iterator</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_erase_iterator&lt; T, std::void_t&lt; decltype(std::declval&lt; T &gt;().erase(std::declval&lt; typename T::iterator &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_isInteresting</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_isInteresting&lt; ProblemTy, decltype(std::declval&lt; std::add_const_t&lt; ProblemTy &gt; &gt;().isInteresting(std::declval&lt; typename ProblemTy::ProblemAnalysisDomain::n_t &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_llvm_dense_map_info</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_llvm_dense_map_info&lt; T, std::void_t&lt; decltype(llvm::DenseMapInfo&lt; T &gt;::getEmptyKey()), decltype(llvm::DenseMapInfo&lt; T &gt;::getTombstoneKey()), decltype(llvm::DenseMapInfo&lt; T &gt;::getHashValue(std::declval&lt; T &gt;())), decltype(llvm::DenseMapInfo&lt; T &gt;::isEqual(std::declval&lt; T &gt;(), std::declval&lt; T &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_reserve</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_reserve&lt; T, std::void_t&lt; decltype(std::declval&lt; T &amp; &gt;().reserve(size_t(0)))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_str</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>has_str&lt; T, decltype(std::declval&lt; T &gt;().str())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAlias</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAlias&lt; T, decltype(std::declval&lt; T &gt;().alias(std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAsAbstractObject</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasAsAbstractObject&lt; T, decltype(std::declval&lt; const T &amp; &gt;().asAbstractObject(std::declval&lt; typename T::v_t &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasBinaryValueDomain</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasBinaryValueDomain&lt; AnalysisDomainTy, typename AnalysisDomainTy::l_t &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasDepth</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasDepth&lt; T, decltype(std::declval&lt; const T &amp; &gt;().depth())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetAliasSet</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetAliasSet&lt; T, std::void_t&lt; decltype(std::declval&lt; T &gt;().getAliasSet(std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetPointsToSet</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasGetPointsToSet&lt; T, decltype(std::declval&lt; const T &amp; &gt;().getPointsToSet(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>Hasher</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasIsConstant</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasIsConstant&lt; T, decltype(std::declval&lt; const T &amp; &gt;().isConstant())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasJoinLatticeTraitsHelper</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasJoinLatticeTraitsHelper&lt; L, std::enable_if_t&lt; std::is_convertible_v&lt; decltype(JoinLatticeTraits&lt; L &gt;::top()), L &gt; &amp;&amp;std::is_convertible_v&lt; decltype(JoinLatticeTraits&lt; L &gt;::bottom()), L &gt; &amp;&amp;std::is_convertible_v&lt; decltype(JoinLatticeTraits&lt; L &gt;::join(std::declval&lt; L &gt;(), std::declval&lt; L &gt;())), L &gt; &gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasMayPointsTo</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasMayPointsTo&lt; T, decltype(std::declval&lt; const T &amp; &gt;().mayPointsTo(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasReachableAllocationSites</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>HasReachableAllocationSites&lt; T, std::void_t&lt; decltype(std::declval&lt; T &amp; &gt;().getReachableAllocationSites(std::declval&lt; typename T::v_t &gt;(), true, std::declval&lt; typename T::n_t &gt;())), decltype(std::declval&lt; T &amp; &gt;().isInReachableAllocationSites(std::declval&lt; typename T::v_t &gt;(), std::declval&lt; typename T::v_t &gt;(), true, std::declval&lt; typename T::n_t &gt;()))&gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IDEAliasAwareDefaultFlowFunctionsImpl</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -199,77 +137,13 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IntraFlowFunctionsMixin&lt; IntraFFTy, IntraFFTy &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_crtp_base_of</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_crtp_base_of&lt; Base, Derived, std::enable_if_t&lt; std::is_base_of_v&lt; typename template_arg&lt; Base, Derived &gt;::type, Derived &gt; &gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_explicitly_convertible_to</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_explicitly_convertible_to&lt; From, To, std::void_t&lt; decltype(static_cast&lt; To &gt;(std::declval&lt; From &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_iterable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_iterable&lt; T, std::void_t&lt; decltype(llvm::adl_begin(std::declval&lt; T &gt;())), decltype(llvm::adl_end(std::declval&lt; T &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_iterable_over</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_iterable_over&lt; T, U, std::enable_if_t&lt; is_iterable&lt; T &gt;::value &amp;&amp;std::is_same_v&lt; U, std::decay_t&lt; decltype(*llvm::adl_begin(std::declval&lt; T &gt;()))&gt; &gt; &gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_llvm_hashable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_llvm_hashable&lt; T, decltype(hash_value(std::declval&lt; T &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_llvm_hashable&lt; T, decltype(llvm::hash_value(std::declval&lt; T &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_pair</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_pair&lt; std::pair&lt; U, V &gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_printable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_printable&lt; T, OS, decltype(std::declval&lt; OS &amp; &gt;()&lt;&lt; std::declval&lt; T &gt;())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_removable_graph_trait</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_removable_graph_trait&lt; GraphTrait, std::void_t&lt; typename GraphTrait::edge_iterator, typename GraphTrait::roots_iterator, decltype(GraphTrait::removeEdge(std::declval&lt; typename GraphTrait::graph_type &amp; &gt;(), std::declval&lt; typename GraphTrait::vertex_t &gt;(), std::declval&lt; typename GraphTrait::edge_iterator &gt;())), decltype(GraphTrait::removeRoot(std::declval&lt; typename GraphTrait::graph_type &amp; &gt;(), std::declval&lt; typename GraphTrait::roots_iterator &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_reservable_graph_trait</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_reservable_graph_trait&lt; GraphTrait, std::void_t&lt; decltype(GraphTrait::reserve(std::declval&lt; typename GraphTrait::graph_type &amp; &gt;(), size_t()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_std_hashable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_std_hashable&lt; T, decltype(std::declval&lt; std::hash&lt; T &gt; &gt;()(std::declval&lt; T &gt;()))&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_tuple</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>is_tuple&lt; std::tuple&lt; Elems... &gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasInfo</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasInfo&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &gt;().print(llvm::outs())), decltype(std::declval&lt; const T &gt;().printAsJson(llvm::outs())), decltype(std::declval&lt; T &gt;().mergeWith(std::declval&lt; T &gt;())), decltype(std::declval&lt; T &gt;().introduceAlias(std::declval&lt; typename AliasInfoTraits&lt; T &gt;::v_t &gt;(), std::declval&lt; typename AliasInfoTraits&lt; T &gt;::v_t &gt;(), std::declval&lt; typename AliasInfoTraits&lt; T &gt;::n_t &gt;(), AliasResult{}))&gt;, std::enable_if_t&lt; std::is_same_v&lt; std::tuple&lt; bool, AliasAnalysisType, AliasResult, typename AliasInfoTraits&lt; T &gt;::AliasSetPtrTy, typename AliasInfoTraits&lt; T &gt;::AllocationSiteSetPtrTy, bool, AnalysisProperties, bool, bool, bool &gt;, decltype(testAliasInfo(std::declval&lt; T &amp; &gt;(), std::declval&lt; const T &amp; &gt;()))&gt; &gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasIterator</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasIteratorFor</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsAliasIteratorFor&lt; T, V, N, std::void_t&lt; decltype(std::declval&lt; T &gt;().forallAliasesOf(std::declval&lt; V &gt;(), std::declval&lt; N &gt;(), std::declval&lt; llvm::function_ref&lt; void(V)&gt; &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEdgeFunction</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEdgeFunction&lt; T, std::void_t&lt; typename T::l_t, decltype(std::declval&lt; const T &amp; &gt;().computeTarget(std::declval&lt; typename T::l_t &gt;())), decltype(T::compose(std::declval&lt; EdgeFunctionRef&lt; T &gt; &gt;(), std::declval&lt; EdgeFunction&lt; typename T::l_t &gt; &gt;())), decltype(T::join(std::declval&lt; EdgeFunctionRef&lt; T &gt; &gt;(), std::declval&lt; EdgeFunction&lt; typename T::l_t &gt; &gt;()))&gt; &gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEqualityComparable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsEqualityComparable&lt; T, decltype(std::declval&lt; T &gt;()==std::declval&lt; T &gt;())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsLessComparable</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsLessComparable&lt; T, decltype(std::declval&lt; T &gt;()&lt; std::declval&lt; T &gt;())&gt;</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsPointsToIterator</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>IsPointsToIterator&lt; T, std::void_t&lt; decltype(std::declval&lt; const T &amp; &gt;().forallPointeesOf(std::declval&lt; typename T::o_t &gt;(), std::declval&lt; typename T::n_t &gt;(), std::declval&lt; llvm::function_ref&lt; void(typename T::o_t)&gt; &gt;()))&gt; &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>IterativeIDESolverResults</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -303,12 +177,6 @@ Typedefs</h2></td></tr>
 <tr class="memitem:af4f851b8b73bde08afb5e023d73c7903" id="r_af4f851b8b73bde08afb5e023d73c7903"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:af4f851b8b73bde08afb5e023d73c7903"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#af4f851b8b73bde08afb5e023d73c7903">CellVecSmallVectorTy</a> = llvm::SmallVector&lt; T, 8 &gt;</td></tr>
 <tr class="separator:af4f851b8b73bde08afb5e023d73c7903"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf8738393259fa2242f2030dbc4ecf18" id="r_aaf8738393259fa2242f2030dbc4ecf18"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:aaf8738393259fa2242f2030dbc4ecf18"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#aaf8738393259fa2242f2030dbc4ecf18">is_llvm_printable</a> = is_printable&lt; T, llvm::raw_ostream &gt;</td></tr>
-<tr class="separator:aaf8738393259fa2242f2030dbc4ecf18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa25d514ba4ce213d3c0982a724396d11" id="r_aa25d514ba4ce213d3c0982a724396d11"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:aa25d514ba4ce213d3c0982a724396d11"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#aa25d514ba4ce213d3c0982a724396d11">is_std_printable</a> = is_printable&lt; T, std::ostream &gt;</td></tr>
-<tr class="separator:aa25d514ba4ce213d3c0982a724396d11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -321,9 +189,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a512378e39a40dba379c9c754251c7252" id="r_a512378e39a40dba379c9c754251c7252"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FFTy</a> &gt; </td></tr>
 <tr class="memitem:a512378e39a40dba379c9c754251c7252"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a512378e39a40dba379c9c754251c7252">AutoAddZeroFF</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FFTy</a>, D) -&gt; AutoAddZeroFF&lt; std::decay_t&lt; D &gt;, std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FFTy</a> &gt; &gt;</td></tr>
 <tr class="separator:a512378e39a40dba379c9c754251c7252"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dc261e478a4680e073133b24cbb8613" id="r_a2dc261e478a4680e073133b24cbb8613"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:a2dc261e478a4680e073133b24cbb8613"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a2dc261e478a4680e073133b24cbb8613">testAliasInfo</a> (T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AI</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CAI</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="structpsr_1_1AliasInfoTraits.html">AliasInfoTraits</a>&lt; T &gt;::n_t &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>={}, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="structpsr_1_1AliasInfoTraits.html">AliasInfoTraits</a>&lt; T &gt;::v_t &gt; &amp;VT={}) -&gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(std::make_tuple(CAI.isInterProcedural(), CAI.getAliasAnalysisType(), AI.alias(*VT, *VT, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), AI.getAliasSet(*VT, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), AI.getReachableAllocationSites(*VT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a>, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), AI.isInReachableAllocationSites(*VT, *VT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a>, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), CAI.getAnalysisProperties(), CAI.isContextSensitive(), CAI.isFieldSensitive(), CAI.isFlowSensitive()))</td></tr>
-<tr class="separator:a2dc261e478a4680e073133b24cbb8613"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a907a9c49b531820bab5374909f0426fe" id="r_a907a9c49b531820bab5374909f0426fe"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OS_t</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:a907a9c49b531820bab5374909f0426fe"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a907a9c49b531820bab5374909f0426fe">printHelper</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OS_t</a> &amp;OS, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;Data)</td></tr>
 <tr class="separator:a907a9c49b531820bab5374909f0426fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -333,18 +198,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a310e8a4c7323bdbc8608cd3fd1786a9a" id="r_a310e8a4c7323bdbc8608cd3fd1786a9a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:a310e8a4c7323bdbc8608cd3fd1786a9a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a310e8a4c7323bdbc8608cd3fd1786a9a">printSomehow</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;Val)</td></tr>
 <tr class="separator:a310e8a4c7323bdbc8608cd3fd1786a9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a23c6d9680da490bf760a3bec94260efc" id="r_a23c6d9680da490bf760a3bec94260efc"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = void&gt; </td></tr>
-<tr class="memitem:a23c6d9680da490bf760a3bec94260efc"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a23c6d9680da490bf760a3bec94260efc">IsFlowFunction</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></td></tr>
-<tr class="separator:a23c6d9680da490bf760a3bec94260efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36c2281998e5dcc9624ecbed7d7102fe" id="r_a36c2281998e5dcc9624ecbed7d7102fe"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = void&gt; </td></tr>
-<tr class="memitem:a36c2281998e5dcc9624ecbed7d7102fe"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a36c2281998e5dcc9624ecbed7d7102fe">IsFlowFunctionPtr</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></td></tr>
-<tr class="separator:a36c2281998e5dcc9624ecbed7d7102fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ded5a893fa5be95f2a79c912d7f0344" id="r_a6ded5a893fa5be95f2a79c912d7f0344"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:a6ded5a893fa5be95f2a79c912d7f0344"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html#a6ded5a893fa5be95f2a79c912d7f0344">IsSomehowPrintable</a></td></tr>
-<tr class="separator:a6ded5a893fa5be95f2a79c912d7f0344"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. </p>
@@ -364,42 +217,6 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="TableWrappers_8h_source.html#l00048">48</a> of file <a class="el" href="TableWrappers_8h_source.html">TableWrappers.h</a>.</p>
-
-</div>
-</div>
-<a id="aaf8738393259fa2242f2030dbc4ecf18" name="aaf8738393259fa2242f2030dbc4ecf18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf8738393259fa2242f2030dbc4ecf18">&#9670;&#160;</a></span>is_llvm_printable</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="namespacepsr_1_1detail.html#aaf8738393259fa2242f2030dbc4ecf18">psr::detail::is_llvm_printable</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typedef</a> is_printable&lt;T, llvm::raw_ostream&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00075">75</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
-
-</div>
-</div>
-<a id="aa25d514ba4ce213d3c0982a724396d11" name="aa25d514ba4ce213d3c0982a724396d11"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa25d514ba4ce213d3c0982a724396d11">&#9670;&#160;</a></span>is_std_printable</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="namespacepsr_1_1detail.html#aa25d514ba4ce213d3c0982a724396d11">psr::detail::is_std_printable</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typedef</a> is_printable&lt;T, std::ostream&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00078">78</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 
 </div>
 </div>
@@ -600,9 +417,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="Printer_8h_source.html#l00033">33</a> of file <a class="el" href="Printer_8h_source.html">Printer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="TypeTraits_8h_source.html#l00351">psr::adl_to_string()</a>.</p>
+<p class="reference">References <a class="el" href="TypeTraits_8h_source.html#l00250">psr::adl_to_string()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Printer_8h_source.html#l00066">psr::DToString()</a>, <a class="el" href="Printer_8h_source.html#l00086">psr::FToString()</a>, <a class="el" href="Printer_8h_source.html#l00076">psr::LToString()</a>, and <a class="el" href="Printer_8h_source.html#l00056">psr::NToString()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Printer_8h_source.html#l00064">psr::DToString()</a>, <a class="el" href="Printer_8h_source.html#l00082">psr::FToString()</a>, <a class="el" href="Printer_8h_source.html#l00073">psr::LToString()</a>, and <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>.</p>
 
 </div>
 </div>
@@ -648,125 +465,10 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="a2dc261e478a4680e073133b24cbb8613" name="a2dc261e478a4680e073133b24cbb8613"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2dc261e478a4680e073133b24cbb8613">&#9670;&#160;</a></span>testAliasInfo()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> psr::detail::testAliasInfo </td>
-          <td>(</td>
-          <td class="paramtype">T &amp;&#160;</td>
-          <td class="paramname"><em>AI</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;&#160;</td>
-          <td class="paramname"><em>CAI</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="structpsr_1_1AliasInfoTraits.html">AliasInfoTraits</a>&lt; T &gt;::n_t &gt; &amp;&#160;</td>
-          <td class="paramname"><em>NT</em> = <code>{}</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="structpsr_1_1AliasInfoTraits.html">AliasInfoTraits</a>&lt; T &gt;::v_t &gt; &amp;&#160;</td>
-          <td class="paramname"><em>VT</em> = <code>{}</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(std::make_tuple(CAI.isInterProcedural(), CAI.getAliasAnalysisType(), AI.alias(*VT, *VT, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), AI.getAliasSet(*VT, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), AI.getReachableAllocationSites(*VT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a>, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), AI.isInReachableAllocationSites(*VT, *VT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a>, *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NT</a>), CAI.getAnalysisProperties(), CAI.isContextSensitive(), CAI.isFieldSensitive(), CAI.isFlowSensitive()))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="a23c6d9680da490bf760a3bec94260efc" name="a23c6d9680da490bf760a3bec94260efc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a23c6d9680da490bf760a3bec94260efc">&#9670;&#160;</a></span>IsFlowFunction</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = void&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a> psr::detail::IsFlowFunction = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="FlowFunctionCache_8h_source.html#l00023">23</a> of file <a class="el" href="FlowFunctionCache_8h_source.html">FlowFunctionCache.h</a>.</p>
-
-</div>
-</div>
-<a id="a36c2281998e5dcc9624ecbed7d7102fe" name="a36c2281998e5dcc9624ecbed7d7102fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36c2281998e5dcc9624ecbed7d7102fe">&#9670;&#160;</a></span>IsFlowFunctionPtr</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a>  = void&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a> psr::detail::IsFlowFunctionPtr = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="FlowFunctionCache_8h_source.html#l00032">32</a> of file <a class="el" href="FlowFunctionCache_8h_source.html">FlowFunctionCache.h</a>.</p>
-
-</div>
-</div>
-<a id="a6ded5a893fa5be95f2a79c912d7f0344" name="a6ded5a893fa5be95f2a79c912d7f0344"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ded5a893fa5be95f2a79c912d7f0344">&#9670;&#160;</a></span>IsSomehowPrintable</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="Macros_8h.html#a2a61702ca9be186404c0447bbd84a05f">PSR_CONCEPT</a> psr::detail::IsSomehowPrintable</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    has_str_v&lt;T&gt; || is_llvm_printable_v&lt;T&gt; || has_adl_to_string_v&lt;T&gt;</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="Printer_8h_source.html#l00030">30</a> of file <a class="el" href="Printer_8h_source.html">Printer.h</a>.</p>
-
-</div>
-</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Dec 4 2025 16:24:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Dec 9 2025 15:41:07 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

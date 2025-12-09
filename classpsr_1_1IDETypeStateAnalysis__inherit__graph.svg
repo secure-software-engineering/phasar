@@ -168,7 +168,7 @@
 <g id="a_Node000007"><a xlink:href="classpsr_1_1JoinLattice.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1325,-67.5 1184,-67.5 1184,-37.5 1325,-37.5 1325,-67.5"/>
 <text text-anchor="start" x="1192" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::JoinLattice&lt; Analysis</text>
-<text text-anchor="middle" x="1254.5" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy, typename &gt;</text>
+<text text-anchor="middle" x="1254.5" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -203,9 +203,9 @@
 <g id="Node000009" class="node">
 <title>Node9</title>
 <g id="a_Node000009"><a xlink:href="classpsr_1_1AllTopFnProvider.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="1347,-201.5 1162,-201.5 1162,-171.5 1347,-171.5 1347,-201.5"/>
-<text text-anchor="start" x="1170" y="-189.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
-<text text-anchor="middle" x="1254.5" y="-178.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, typename &gt;</text>
+<polygon fill="white" stroke="#666666" points="1319,-201.5 1190,-201.5 1190,-171.5 1319,-171.5 1319,-201.5"/>
+<text text-anchor="start" x="1198" y="-189.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
+<text text-anchor="middle" x="1254.5" y="-178.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -213,8 +213,8 @@
 <g id="edge8_Node000002_Node000009" class="edge">
 <title>Node9&#45;&gt;Node2</title>
 <g id="a_edge8_Node000002_Node000009"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1357.26,-176.48C1409.03,-171.2 1472.91,-164.39 1530,-157.5 1535.82,-156.8 1541.83,-156.05 1547.87,-155.27"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1356.67,-173.02 1347.08,-177.52 1357.38,-179.99 1356.67,-173.02"/>
+<path fill="none" stroke="#63b8ff" d="M1329.13,-179.32C1384.44,-173.79 1462.03,-165.71 1530,-157.5 1535.82,-156.8 1541.83,-156.05 1547.87,-155.27"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1328.67,-175.85 1319.07,-180.33 1329.37,-182.82 1328.67,-175.85"/>
 </a>
 </g>
 </g>
@@ -270,10 +270,10 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="classpsr_1_1JoinLattice.html" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="971,-249.5 830,-249.5 830,-219.5 971,-219.5 971,-249.5"/>
 <text text-anchor="start" x="838" y="-237.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::JoinLattice&lt; Analysis</text>
-<text text-anchor="middle" x="900.5" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy, typename &gt;</text>
+<text text-anchor="middle" x="900.5" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">DomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -307,10 +307,10 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="classpsr_1_1AllTopFnProvider.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="993,-163.5 808,-163.5 808,-133.5 993,-133.5 993,-163.5"/>
-<text text-anchor="start" x="816" y="-151.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
-<text text-anchor="middle" x="900.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy, typename &gt;</text>
+<g id="a_Node000015"><a xlink:href="classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="965,-163.5 836,-163.5 836,-133.5 965,-133.5 965,-163.5"/>
+<text text-anchor="start" x="844" y="-151.5" font-family="Helvetica,sans-Serif" font-size="10.00">psr::AllTopFnProvider</text>
+<text text-anchor="middle" x="900.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; AnalysisDomainTy &gt;</text>
 </a>
 </g>
 </g>
@@ -318,8 +318,8 @@
 <g id="edge15_Node000010_Node000015" class="edge">
 <title>Node15&#45;&gt;Node10</title>
 <g id="a_edge15_Node000010_Node000015"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M995.3,-165.56C1039.19,-174.64 1091.84,-187.13 1138,-202.5 1146.31,-205.27 1147.72,-207.66 1156,-210.5 1165.48,-213.75 1175.63,-216.74 1185.65,-219.44"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="995.99,-162.13 985.49,-163.55 994.59,-168.98 995.99,-162.13"/>
+<path fill="none" stroke="#63b8ff" d="M974.99,-161.46C1022.19,-170.72 1084.47,-184.68 1138,-202.5 1146.31,-205.27 1147.72,-207.66 1156,-210.5 1165.48,-213.75 1175.63,-216.74 1185.65,-219.44"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="975.64,-158.02 965.15,-159.56 974.31,-164.9 975.64,-158.02"/>
 </a>
 </g>
 </g>
