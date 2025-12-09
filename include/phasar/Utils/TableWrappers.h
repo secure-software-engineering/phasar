@@ -82,27 +82,27 @@ public:
     return Map.try_emplace(std::move(Key), std::move(Value));
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<CanEfficientlyPassByValue<VV>>>
-  V getOr(ByConstRef<K> Key, V Or) const {
+  V getOr(ByConstRef<K> Key, V Or) const
+    requires CanEfficientlyPassByValue<V>
+  {
     if (auto It = Map.find(Key); It != Map.end()) {
       return It->second;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, const V &Or) const {
+  const V &getOr(ByConstRef<K> Key, const V &Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  {
     if (auto It = Map.find(Key); It != Map.end()) {
       return It->second;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, V &&Or) const = delete;
+  const V &getOr(ByConstRef<K> Key, V &&Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  = delete;
 
   const_iterator find(ByConstRef<K> Key) const { return Map.find(Key); }
 
@@ -288,27 +288,27 @@ public:
     return Value;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<CanEfficientlyPassByValue<VV>>>
-  V getOr(ByConstRef<K> Key, V Or) const {
+  V getOr(ByConstRef<K> Key, V Or) const
+    requires CanEfficientlyPassByValue<V>
+  {
     if (Map.count(Key)) {
       return Value;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, const V &Or) const {
+  const V &getOr(ByConstRef<K> Key, const V &Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  {
     if (Map.count(Key)) {
       return Value;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, V &&Or) const = delete;
+  const V &getOr(ByConstRef<K> Key, V &&Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  = delete;
 
   const_iterator find(ByConstRef<K> Key) const {
     return llvm::map_iterator(Map.find(Key),
@@ -480,27 +480,27 @@ public:
     return Map.try_emplace(std::move(Key), std::move(Value));
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<CanEfficientlyPassByValue<VV>>>
-  V getOr(ByConstRef<K> Key, V Or) const {
+  V getOr(ByConstRef<K> Key, V Or) const
+    requires CanEfficientlyPassByValue<V>
+  {
     if (auto It = Map.find(Key); It != Map.end()) {
       return It->second;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, const V &Or) const {
+  const V &getOr(ByConstRef<K> Key, const V &Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  {
     if (auto It = Map.find(Key); It != Map.end()) {
       return It->second;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, V &&Or) const = delete;
+  const V &getOr(ByConstRef<K> Key, V &&Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  = delete;
 
   const_iterator find(ByConstRef<K> Key) const { return Map.find(Key); }
 
@@ -673,27 +673,27 @@ public:
     return Map.try_emplace(std::move(Key), std::move(Value));
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<CanEfficientlyPassByValue<VV>>>
-  V getOr(ByConstRef<K> Key, V Or) const {
+  V getOr(ByConstRef<K> Key, V Or) const
+    requires CanEfficientlyPassByValue<V>
+  {
     if (auto It = Map.find(Key); It != Map.end()) {
       return It->second;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, const V &Or) const {
+  const V &getOr(ByConstRef<K> Key, const V &Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  {
     if (auto It = Map.find(Key); It != Map.end()) {
       return It->second;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, V &&Or) const = delete;
+  const V &getOr(ByConstRef<K> Key, V &&Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  = delete;
 
   const_iterator find(ByConstRef<K> Key) const { return Map.find(Key); }
 
@@ -871,27 +871,27 @@ public:
     return Value;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<CanEfficientlyPassByValue<VV>>>
-  V getOr(ByConstRef<K> Key, V Or) const {
+  V getOr(ByConstRef<K> Key, V Or) const
+    requires CanEfficientlyPassByValue<V>
+  {
     if (Map.contains(Key)) {
       return Value;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, const V &Or) const {
+  const V &getOr(ByConstRef<K> Key, const V &Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  {
     if (Map.contains(Key)) {
       return Value;
     }
     return Or;
   }
 
-  template <typename VV = V,
-            typename = std::enable_if_t<!CanEfficientlyPassByValue<VV>>>
-  const V &getOr(ByConstRef<K> Key, V &&Or) const = delete;
+  const V &getOr(ByConstRef<K> Key, V &&Or) const
+    requires(!CanEfficientlyPassByValue<V>)
+  = delete;
 
   const_iterator find(ByConstRef<K> Key) const {
     return llvm::map_iterator(Map.find(Key),

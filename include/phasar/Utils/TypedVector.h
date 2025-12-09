@@ -89,8 +89,9 @@ public:
 
   void push_back(ByConstRef<ValueT> Val) { Vec.push_back(Val); }
 
-  template <typename T = ValueT>
-  std::enable_if_t<!CanEfficientlyPassByValue<T>> push_back(ValueT &&Val) {
+  void push_back(ValueT &&Val)
+    requires(!CanEfficientlyPassByValue<ValueT>)
+  {
     Vec.push_back(std::move(Val));
   }
 

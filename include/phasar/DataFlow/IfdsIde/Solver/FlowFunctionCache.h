@@ -6,6 +6,7 @@
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/TableWrappers.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
@@ -19,23 +20,15 @@
 
 namespace psr {
 namespace detail {
-template <typename T, typename D, typename = void>
-constexpr inline bool IsFlowFunction = false;
+template <typename T, typename D>
+concept IsFlowFunction = requires(T &FF, D Fact) {
+  { FF.computeTargets(Fact) } -> is_iterable_over_v<D>;
+};
 
 template <typename T, typename D>
-constexpr inline bool
-    IsFlowFunction<T, D,
-                   std::void_t<decltype(std::declval<T>().computeTargets(
-                       std::declval<D>()))>> = true;
-
-template <typename T, typename D, typename = void>
-constexpr inline bool IsFlowFunctionPtr = false;
-
-template <typename T, typename D>
-constexpr inline bool
-    IsFlowFunctionPtr<T, D,
-                      std::void_t<decltype(std::declval<T>()->computeTargets(
-                          std::declval<D>()))>> = true;
+concept IsFlowFunctionPtr = requires(T FF, D Fact) {
+  { FF->computeTargets(Fact) } -> is_iterable_over_v<D>;
+};
 
 template <typename D, typename FFTy> struct AutoAddZeroFF {
   FFTy FF;

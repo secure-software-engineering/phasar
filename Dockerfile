@@ -1,9 +1,9 @@
 ARG baseimage="ubuntu:24.04"
-FROM "$baseimage" as build
+FROM "$baseimage" AS build
 
 RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
   set -eux; \
-  ./InstallAptDependencies.sh --noninteractive tzdata clang-19 libclang-rt-19-dev
+  ./InstallAptDependencies.sh --noninteractive tzdata clang-19 libclang-rt-19-dev clang-tools-19
 
 ENV CC=/usr/bin/clang-19 \
     CXX=/usr/bin/clang++-19

@@ -39,7 +39,7 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
-template <typename AnalysisDomainTy, typename = void> class AllTopFnProvider {
+template <typename AnalysisDomainTy> class AllTopFnProvider {
 public:
   virtual ~AllTopFnProvider() = default;
   /// Returns an edge function that represents the top element of the analysis.
@@ -47,9 +47,8 @@ public:
 };
 
 template <typename AnalysisDomainTy>
-class AllTopFnProvider<
-    AnalysisDomainTy,
-    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
+  requires HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>
+class AllTopFnProvider<AnalysisDomainTy> {
 public:
   virtual ~AllTopFnProvider() = default;
   /// Returns an edge function that represents the top element of the analysis.
@@ -194,21 +193,21 @@ protected:
                       AnalysisType);
   }
 
-  template <typename D = d_t, typename L = l_t>
-  std::enable_if_t<std::is_same_v<L, psr::BinaryDomain>>
-  onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
+  template <typename D = d_t>
+    requires std::is_same_v<l_t, BinaryDomain>
+  void onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
     Printer->onResult(Instr, PSR_FWD(DfFact), AnalysisType);
   }
 
   /// Seeds that just start with ZeroValue and bottomElement() at the starting
   /// points of each EntryPoint function.
   /// Takes the __ALL__ EntryPoint into account.
-  template <
-      typename CC = typename AnalysisDomainTy::c_t,
-      typename = std::enable_if_t<std::is_nothrow_default_constructible_v<CC>>>
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> createDefaultSeeds() {
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> createDefaultSeeds()
+    requires std::is_nothrow_default_constructible_v<
+        typename AnalysisDomainTy::c_t>
+  {
     InitialSeeds<n_t, d_t, l_t> Seeds;
-    CC C{};
+    typename AnalysisDomainTy::c_t C{};
 
     addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
                               this->bottomElement());

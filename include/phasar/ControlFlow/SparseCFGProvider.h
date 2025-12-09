@@ -37,18 +37,12 @@ private:
   }
 };
 
-template <typename T, typename D, typename = void>
-struct has_getSparseCFG : std::false_type {}; // NOLINT
-template <typename T, typename D>
-struct has_getSparseCFG<
-    T, D,
-    std::void_t<decltype(std::declval<const T>().getSparseCFG(
-        std::declval<typename T::f_t>(), std::declval<D>()))>>
-    : std::true_type {};
-
 template <typename T, typename D>
 // NOLINTNEXTLINE
-constexpr bool has_getSparseCFG_v = has_getSparseCFG<T, D>::value;
+constexpr bool has_getSparseCFG_v =
+    requires(const T &ICF, typename T::f_t Fun, D Fact) { //
+      ICF.getSparseCFG(Fun, Fact);
+    };
 } // namespace psr
 
 #endif // PHASAR_CONTROLFLOW_SPARSECFGPROVIDER_H

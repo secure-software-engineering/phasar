@@ -19,45 +19,37 @@
 #include "llvm/ADT/STLFunctionalExtras.h"
 
 #include <cassert>
+#include <concepts>
 #include <type_traits>
 
 namespace psr {
 
 namespace detail {
 
-template <typename T, typename V, typename N, typename = void>
-struct IsAliasIteratorFor : std::false_type {};
-
 template <typename T, typename V, typename N>
-struct IsAliasIteratorFor<
-    T, V, N,
-    std::void_t<decltype(std::declval<T>().forallAliasesOf(
-        std::declval<V>(), std::declval<N>(),
-        std::declval<llvm::function_ref<void(V)>>()))>> : std::true_type {};
+concept IsAliasIteratorFor =
+    requires(T &AI, V Ptr, N Inst, llvm::function_ref<void(V)> Callback) {
+      AI.forallAliasesOf(Ptr, Inst, Callback);
+    };
 
-template <typename T, typename = void>
-struct IsAliasIterator
-    : IsAliasIteratorFor<T, typename T::v_t, typename T::n_t> {};
-
-template <typename T, typename = AliasResult>
-struct HasAlias : std::false_type {};
 template <typename T>
-struct HasAlias<T, decltype(std::declval<T>().alias(
-                       std::declval<typename T::v_t>(),
-                       std::declval<typename T::v_t>(),
-                       std::declval<typename T::n_t>()))> : std::true_type {};
+concept HasAlias = requires(T &AS, typename T::v_t Ptr, typename T::n_t Inst) {
+  { AS.alias(Ptr, Ptr, Inst) } -> std::same_as<AliasResult>;
+};
 
-template <typename T, typename = void>
-struct HasGetAliasSet : std::false_type {};
 template <typename T>
-struct HasGetAliasSet<
-    T, std::void_t<decltype(std::declval<T>().getAliasSet(
-           std::declval<typename T::v_t>(), std::declval<typename T::n_t>()))>>
-    : std::true_type {};
+concept HasGetAliasSet =
+    requires(T &AS, typename T::v_t Ptr, typename T::n_t Inst) {
+      AS.getAliasSet(Ptr, Inst);
+    };
 
 } // namespace detail
 template <typename T>
-PSR_CONCEPT IsAliasIterator = detail::IsAliasIterator<T>::value;
+concept IsAliasIterator = requires {
+  typename T::v_t;
+  typename T::n_t;
+  requires detail::IsAliasIteratorFor<T, typename T::v_t, typename T::n_t>;
+};
 
 /// \brief A type-erased reference to any object implementing the
 /// IsAliasIterator interface. Use this, if your alias-aware analysis just needs
@@ -81,21 +73,19 @@ public:
   using ForallAliasesOfFn = void (*)(void *, ByConstRef<V>, ByConstRef<N>,
                                      llvm::function_ref<void(V)>);
 
-  template <typename ConcreteAA,
-            typename = std::enable_if_t<
-                !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
-                (detail::IsAliasIteratorFor<ConcreteAA, V, N>::value ||
-                 detail::HasGetAliasSet<ConcreteAA>::value)>>
+  template <typename ConcreteAA>
+    requires(!std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
+             (detail::IsAliasIteratorFor<ConcreteAA, V, N> ||
+              detail::HasGetAliasSet<ConcreteAA>))
   constexpr AliasIteratorRef(ConcreteAA *AA) noexcept
       : AA(getOpaquePtr(psr::assertNotNull(AA))), Fn(TypeErase<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
   }
-  template <typename ConcreteAA,
-            typename = std::enable_if_t<
-                !std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
-                (detail::IsAliasIteratorFor<ConcreteAA, V, N>::value ||
-                 detail::HasGetAliasSet<ConcreteAA>::value) &&
-                CanSSO<ConcreteAA>>>
+  template <typename ConcreteAA>
+    requires(!std::is_base_of_v<AliasIteratorRef, ConcreteAA> &&
+             (detail::IsAliasIteratorFor<ConcreteAA, V, N> ||
+              detail::HasGetAliasSet<ConcreteAA>) &&
+             CanSSO<ConcreteAA>)
   constexpr AliasIteratorRef(ConcreteAA AA) noexcept
       : AA(getOpaquePtr(AA)), Fn(TypeErase<ConcreteAA>) {
     static_assert(IsAliasIterator<AliasIteratorRef>);
@@ -147,7 +137,7 @@ private:
   static void aliasesOfThunk(void *AA, ByConstRef<v_t> Of, ByConstRef<n_t> At,
                              llvm::function_ref<void(v_t)> WithAlias) {
     auto *CAA = fromOpaquePtr<ConcreteAA>(AA);
-    if constexpr (detail::IsAliasIteratorFor<ConcreteAA, V, N>::value) {
+    if constexpr (detail::IsAliasIteratorFor<ConcreteAA, V, N>) {
       return (void)CAA->forallAliasesOf(Of, At, WithAlias);
     } else {
       auto AliasSetPtr = CAA->getAliasSet(Of, At);

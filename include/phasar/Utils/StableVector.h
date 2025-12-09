@@ -105,16 +105,19 @@ public:
     }
 
     Iterator(const Iterator &) noexcept = default;
-    template <bool C, typename = std::enable_if_t<!C && IsConst>>
-    Iterator(const Iterator<C> &Other) noexcept
+
+    Iterator(const Iterator<false> &Other) noexcept
+      requires IsConst
         : It(Other.It), ItEnd(Other.ItEnd), Outer(Other.Outer),
           OuterEnd(Other.OuterEnd), Total(Other.Total), Pos(Other.Pos) {}
 
     ~Iterator() = default;
 
     Iterator &operator=(const Iterator &) noexcept = default;
-    template <bool C, typename = std::enable_if_t<!C && IsConst>>
-    Iterator &operator=(const Iterator<C> &Other) noexcept {
+
+    Iterator &operator=(const Iterator<false> &Other) noexcept
+      requires IsConst
+    {
       new (this) Iterator(Other);
       return *this;
     }

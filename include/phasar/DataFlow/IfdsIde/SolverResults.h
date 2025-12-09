@@ -22,6 +22,7 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Table.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include <set>
@@ -97,10 +98,9 @@ public:
 
   // this function only exists for IFDS problems which use BinaryDomain as their
   // value domain L
-  template <typename ValueDomain = l_t,
-            typename = typename std::enable_if_t<
-                std::is_same_v<ValueDomain, BinaryDomain>>>
-  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const {
+  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const
+    requires std::is_same_v<l_t, BinaryDomain>
+  {
     std::set<D> KeySet;
     const auto &ResultMap = self().Results.row(Stmt);
     for (const auto &[FlowFact, Val] : ResultMap) {
@@ -124,13 +124,10 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
-                     llvm::Instruction>,
-      std::unordered_map<d_t, l_t>>
+  [[nodiscard]] std::unordered_map<d_t, l_t>
   resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool AllowOverapproximation = false,
-                     bool StripZero = false) const;
+                     bool StripZero = false) const
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>;
 
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
@@ -147,13 +144,9 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
-                     llvm::Instruction>,
-      l_t>
-  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
-                    bool AllowOverapproximation = false) const;
+  [[nodiscard]] l_t resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
+                                      bool AllowOverapproximation = false) const
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>;
 
   [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {

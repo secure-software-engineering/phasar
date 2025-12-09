@@ -11,15 +11,12 @@
 #define PHASAR_POINTER_ALIASINFOBASE_H
 
 #include "phasar/Pointer/AliasInfoTraits.h"
-#include "phasar/Utils/Macros.h"
 
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json_fwd.hpp"
 
-#include <optional>
-#include <tuple>
-#include <type_traits>
+#include <concepts>
 
 namespace llvm {
 class Function;
@@ -37,45 +34,32 @@ public:
   static const llvm::Function *retrieveFunction(const llvm::Value *V);
 };
 
-namespace detail {
-
 template <typename T>
-auto testAliasInfo(
-    T &AI, const T &CAI,
-    const std::optional<typename AliasInfoTraits<T>::n_t> &NT = {},
-    const std::optional<typename AliasInfoTraits<T>::v_t> &VT = {})
-    -> decltype(std::make_tuple(
-        CAI.isInterProcedural(), CAI.getAliasAnalysisType(),
-        AI.alias(*VT, *VT, *NT), AI.getAliasSet(*VT, *NT),
-        AI.getReachableAllocationSites(*VT, true, *NT),
-        AI.isInReachableAllocationSites(*VT, *VT, true, *NT),
-        CAI.getAnalysisProperties(), CAI.isContextSensitive(),
-        CAI.isFieldSensitive(), CAI.isFlowSensitive()));
-template <typename T, typename = void, typename = void>
-struct IsAliasInfo : std::false_type {};
-template <typename T>
-struct IsAliasInfo<
-    T,
-    std::void_t<decltype(std::declval<const T>().print(llvm::outs())),
-                decltype(std::declval<const T>().printAsJson(llvm::outs())),
-                decltype(std::declval<T>().mergeWith(std::declval<T>())),
-                decltype(std::declval<T>().introduceAlias(
-                    std::declval<typename AliasInfoTraits<T>::v_t>(),
-                    std::declval<typename AliasInfoTraits<T>::v_t>(),
-                    std::declval<typename AliasInfoTraits<T>::n_t>(),
-                    AliasResult{}))>,
-    std::enable_if_t<std::is_same_v<
-        std::tuple<bool, AliasAnalysisType, AliasResult,
-                   typename AliasInfoTraits<T>::AliasSetPtrTy,
-                   typename AliasInfoTraits<T>::AllocationSiteSetPtrTy, bool,
-                   AnalysisProperties, bool, bool, bool>,
-        decltype(testAliasInfo(std::declval<T &>(),
-                               std::declval<const T &>()))>>> : std::true_type {
-};
+concept IsAliasInfo =
+    requires(const T &CVal, T &MutVal, typename AliasInfoTraits<T>::v_t Ptr,
+             typename AliasInfoTraits<T>::n_t Inst) {
+      CVal.print(llvm::outs());
+      CVal.printAsJson(llvm::outs());
+      MutVal.mergeWith(MutVal);
+      MutVal.introduceAlias(Ptr, Ptr, Inst, AliasResult{});
 
-} // namespace detail
-
-template <typename T> PSR_CONCEPT IsAliasInfo = detail::IsAliasInfo<T>::value;
+      { CVal.isInterProcedural() } -> std::convertible_to<bool>;
+      { CVal.getAliasAnalysisType() } -> std::same_as<AliasAnalysisType>;
+      { MutVal.alias(Ptr, Ptr, Inst) } -> std::same_as<AliasResult>;
+      {
+        MutVal.getAliasSet(Ptr, Inst)
+      } -> std::same_as<typename AliasInfoTraits<T>::AliasSetPtrTy>;
+      {
+        MutVal.getReachableAllocationSites(Ptr, bool{}, Inst)
+      } -> std::same_as<typename AliasInfoTraits<T>::AllocationSiteSetPtrTy>;
+      {
+        MutVal.isInReachableAllocationSites(Ptr, Ptr, bool{}, Inst)
+      } -> std::convertible_to<bool>;
+      { CVal.getAnalysisProperties() } -> std::same_as<AnalysisProperties>;
+      { CVal.isContextSensitive() } -> std::convertible_to<bool>;
+      { CVal.isFieldSensitive() } -> std::convertible_to<bool>;
+      { CVal.isFlowSensitive() } -> std::convertible_to<bool>;
+    };
 
 } // namespace psr
 

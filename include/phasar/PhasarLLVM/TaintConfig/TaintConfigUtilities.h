@@ -17,13 +17,13 @@
 #include "llvm/IR/Instructions.h"
 
 #include <algorithm>
+#include <concepts>
 #include <iterator>
 #include <type_traits>
 
 namespace psr {
-template <typename ContainerTy,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                            const llvm::CallBase *CB,
                            const llvm::Function *Callee) {
@@ -44,12 +44,11 @@ void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
   }
 }
 
-template <typename ContainerTy, typename Pred,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                         const llvm::CallBase *CB, const llvm::Function *Callee,
-                        Pred &&LeakIf) {
+                        std::invocable<const llvm::Value *> auto &&LeakIf) {
 
   const auto &Callback = Config.getRegisteredSinkCallBack();
   if (Callback) {
@@ -66,6 +65,7 @@ void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
 }
 
 template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 inline void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                                const llvm::CallBase *CB,
                                const llvm::Function *Callee) {
@@ -73,9 +73,8 @@ inline void collectLeakedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                      [](const llvm::Value * /*V*/) { return true; });
 }
 
-template <typename ContainerTy,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
                            const llvm::CallBase *CB,
                            const llvm::Function *Callee) {
@@ -88,9 +87,8 @@ void collectSanitizedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
 
 // ----------------------------------
 
-template <typename ContainerTy,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 [[nodiscard]] ContainerTy getGeneratedFacts(const LLVMTaintConfig &Config,
                                             const llvm::CallBase *CB,
                                             const llvm::Function *Callee) {
@@ -99,20 +97,19 @@ template <typename ContainerTy,
   return Ret;
 }
 
-template <typename ContainerTy, typename Pred,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 [[nodiscard]] ContainerTy
 getLeakedFacts(const LLVMTaintConfig &Config, const llvm::CallBase *CB,
-               const llvm::Function *Callee, Pred &&LeakIf) {
+               const llvm::Function *Callee,
+               std::invocable<const llvm::Value *> auto &&LeakIf) {
   ContainerTy Ret;
   collectLeakedFacts(Ret, Config, CB, Callee, PSR_FWD(LeakIf));
   return Ret;
 }
 
-template <typename ContainerTy,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 [[nodiscard]] ContainerTy getLeakedFacts(const LLVMTaintConfig &Config,
                                          const llvm::CallBase *CB,
                                          const llvm::Function *Callee) {
@@ -121,9 +118,8 @@ template <typename ContainerTy,
   return Ret;
 }
 
-template <typename ContainerTy,
-          typename = std::enable_if_t<std::is_same_v<
-              typename ContainerTy::value_type, const llvm::Value *>>>
+template <typename ContainerTy>
+  requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 [[nodiscard]] ContainerTy getSanitizedFacts(const LLVMTaintConfig &Config,
                                             const llvm::CallBase *CB,
                                             const llvm::Function *Callee) {

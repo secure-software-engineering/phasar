@@ -32,6 +32,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
+#include <concepts>
 #include <functional>
 #include <memory>
 #include <set>
@@ -122,10 +123,9 @@ private:
                                  const llvm::Value *ValueOp,
                                  const llvm::Instruction *Store);
 
-  template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
-                                   CallBack, const llvm::Value *>>>
   void forEachAliasOf(AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS,
-                      const llvm::Value *Of, CallBack &&CB) {
+                      const llvm::Value *Of,
+                      std::invocable<const llvm::Value *> auto &&CB) {
     if (!HasPreciseAliasInfo) {
       auto OfFF = makeFlowFact(Of);
       for (const auto *Alias : *PTS) {

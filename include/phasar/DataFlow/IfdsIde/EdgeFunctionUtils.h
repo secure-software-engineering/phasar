@@ -17,6 +17,7 @@
 
 #include "llvm/ADT/ArrayRef.h"
 
+#include <concepts>
 #include <type_traits>
 
 namespace psr {
@@ -51,14 +52,12 @@ template <typename L> struct ConstantEdgeFunction {
     return Value;
   }
 
-  template <typename ConcreteEF, typename = std::enable_if_t<std::is_base_of_v<
-                                     ConstantEdgeFunction, ConcreteEF>>>
+  template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
   compose(EdgeFunctionRef<ConcreteEF> This,
           const EdgeFunction<l_t> &SecondFunction);
 
-  template <typename ConcreteEF, typename = std::enable_if_t<std::is_base_of_v<
-                                     ConstantEdgeFunction, ConcreteEF>>>
+  template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
   join(EdgeFunctionRef<ConcreteEF> This,
        const EdgeFunction<l_t> &OtherFunction);
@@ -70,17 +69,18 @@ template <typename L> struct ConstantEdgeFunction {
   value_type Value{};
 };
 
-template <typename L, typename = std::enable_if_t<
-                          CanEfficientlyPassByValue<ConstantEdgeFunction<L>>>>
-[[nodiscard]] bool operator==(ConstantEdgeFunction<L> LHS,
-                              ConstantEdgeFunction<L> RHS) noexcept {
+template <typename L>
+  requires CanEfficientlyPassByValue<ConstantEdgeFunction<L>>
+[[nodiscard]] constexpr bool operator==(ConstantEdgeFunction<L> LHS,
+                                        ConstantEdgeFunction<L> RHS) noexcept {
   return LHS.Value == RHS.Value;
 }
 
-template <typename L, typename = std::enable_if_t<
-                          !CanEfficientlyPassByValue<ConstantEdgeFunction<L>>>>
-[[nodiscard]] bool operator==(const ConstantEdgeFunction<L> &LHS,
-                              const ConstantEdgeFunction<L> &RHS) noexcept {
+template <typename L>
+  requires(!CanEfficientlyPassByValue<ConstantEdgeFunction<L>>)
+[[nodiscard]] constexpr bool
+operator==(const ConstantEdgeFunction<L> &LHS,
+           const ConstantEdgeFunction<L> &RHS) noexcept {
   return LHS.Value == RHS.Value;
 }
 
@@ -144,10 +144,10 @@ template <typename L> struct AllBottom final {
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
-  template <typename LL = L,
-            typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
   friend bool operator==(const AllBottom<L> &LHS,
-                         const AllBottom<L> &RHS) noexcept {
+                         const AllBottom<L> &RHS) noexcept
+    requires(!HasJoinLatticeTraits<L>)
+  {
     return LHS.BottomValue == RHS.BottomValue;
   }
 };
@@ -183,9 +183,9 @@ template <typename L> struct AllTop final {
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
-  template <typename LL = L,
-            typename = std::enable_if_t<!HasJoinLatticeTraits<LL>>>
-  friend bool operator==(const AllTop<L> &LHS, const AllTop<L> &RHS) noexcept {
+  friend bool operator==(const AllTop<L> &LHS, const AllTop<L> &RHS) noexcept
+    requires(!HasJoinLatticeTraits<L>)
+  {
     return LHS.TopValue == RHS.TopValue;
   }
 };
@@ -234,8 +234,7 @@ template <typename L> struct EdgeFunctionComposer {
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  template <typename ConcreteEF, typename = std::enable_if_t<std::is_base_of_v<
-                                     EdgeFunctionComposer, ConcreteEF>>>
+  template <std::derived_from<EdgeFunctionComposer> ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
   compose(EdgeFunctionRef<ConcreteEF> This,
           const EdgeFunction<l_t> &SecondFunction) {
@@ -442,7 +441,7 @@ EdgeFunction<L> EdgeIdentity<L>::join(EdgeFunctionRef<EdgeIdentity> This,
 }
 
 template <typename L>
-template <typename ConcreteEF, typename>
+template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
 EdgeFunction<L>
 ConstantEdgeFunction<L>::compose(EdgeFunctionRef<ConcreteEF> This,
                                  const EdgeFunction<L> &SecondFunction) {
@@ -483,7 +482,7 @@ ConstantEdgeFunction<L>::compose(EdgeFunctionRef<ConcreteEF> This,
 }
 
 template <typename L>
-template <typename ConcreteEF, typename>
+template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
 EdgeFunction<L>
 ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
                               const EdgeFunction<l_t> &OtherFunction) {

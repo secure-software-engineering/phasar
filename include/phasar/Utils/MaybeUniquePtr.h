@@ -73,9 +73,8 @@ public:
   constexpr MaybeUniquePtr(std::unique_ptr<T> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
 
-  template <typename TT,
-            typename = std::enable_if_t<!std::is_same_v<T, TT> &&
-                                        std::is_convertible_v<TT *, T *>>>
+  template <typename TT>
+    requires(!std::is_same_v<T, TT> && std::is_convertible_v<TT *, T *>)
   constexpr MaybeUniquePtr(std::unique_ptr<TT> &&Owner) noexcept
       : MaybeUniquePtr(Owner.release(), true) {}
 
@@ -107,9 +106,8 @@ public:
     return *this;
   }
 
-  template <typename TT,
-            typename = std::enable_if_t<!std::is_same_v<T, TT> &&
-                                        std::is_convertible_v<TT *, T *>>>
+  template <typename TT>
+    requires(!std::is_same_v<T, TT> && std::is_convertible_v<TT *, T *>)
   constexpr MaybeUniquePtr &operator=(std::unique_ptr<TT> &&Owner) noexcept {
     if (owns()) {
       delete Data.getPointer();
@@ -122,10 +120,7 @@ public:
   MaybeUniquePtr(const MaybeUniquePtr &) = delete;
   MaybeUniquePtr &operator=(const MaybeUniquePtr &) = delete;
 
-#if __cplusplus >= 202002L
-  constexpr
-#endif
-      ~MaybeUniquePtr() {
+  constexpr ~MaybeUniquePtr() {
     if (owns()) {
       delete Data.getPointer();
       Data = {};

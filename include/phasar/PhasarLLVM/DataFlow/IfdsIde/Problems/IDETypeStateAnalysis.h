@@ -174,9 +174,10 @@ private:
       return AllBottom<l_t>{TSD->bottom()};
     }
   }
-  template <typename LL = l_t,
-            typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
-  static AllBottom<l_t> makeAllBottom(EmptyType /*unused*/) noexcept {
+
+  static AllBottom<l_t> makeAllBottom(EmptyType /*unused*/) noexcept
+    requires HasJoinLatticeTraits<l_t>
+  {
     return AllBottom<l_t>{};
   }
   static bool isBottom(l_t State, const TypeStateDescriptionTy *TSD) noexcept {
@@ -186,9 +187,10 @@ private:
       return State == TSD->bottom();
     }
   }
-  template <typename LL = l_t,
-            typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
-  static bool isBottom(l_t State, EmptyType /*unused*/) noexcept {
+
+  static bool isBottom(l_t State, EmptyType /*unused*/) noexcept
+    requires HasJoinLatticeTraits<l_t>
+  {
     return State == JoinLatticeTraits<l_t>::bottom();
   }
 
@@ -279,9 +281,8 @@ private:
       }
     }
 
-    template <typename LL = l_t,
-              typename = std::enable_if_t<HasJoinLatticeTraits<LL>>>
     TSConstant(l_t Value, EmptyType /*unused*/ = {}) noexcept
+      requires HasJoinLatticeTraits<l_t>
         : ConstantEdgeFunction<l_t>{Value} {}
 
     /// XXX: Cannot default compose() and join(), because l_t does not implement

@@ -139,10 +139,9 @@ public:
 
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-PSR_CONCEPT is_cfg_v =
-    is_crtp_base_of_v<CFGBase, ICF> &&
-    std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
-    std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
+concept is_cfg_v = is_crtp_base_of_v<CFGBase, ICF> &&
+                   std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
+                   std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
 
 } // namespace psr
 

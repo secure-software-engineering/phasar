@@ -40,9 +40,10 @@ struct SCCIdBase {
   explicit constexpr SCCIdBase(uint32_t Val) noexcept : Value(Val) {}
 
   explicit constexpr operator uint32_t() const noexcept { return Value; }
-  template <typename T = size_t,
-            typename = std::enable_if_t<!std::is_same_v<uint32_t, T>>>
-  explicit constexpr operator size_t() const noexcept {
+  template <typename T = size_t>
+  explicit constexpr operator size_t() const noexcept
+    requires(!std::is_same_v<uint32_t, T>)
+  {
     return Value;
   }
 
@@ -109,13 +110,8 @@ template <typename GraphNodeId> struct SCCHolder {
   /// \param Name The name of the graph
   /// \param NodeToString If the graph has node-labels, convert a node-label to
   /// string
-  template <typename G, typename NodeTransform = DefaultNodeTransform,
-            std::enable_if_t<
-                std::is_same_v<typename GraphTraits<G>::vertex_t, GraphNodeId>,
-                int> = 0>
-#if __cplusplus >= 202002L
-    requires is_const_graph<G>
-#endif
+  template <is_const_graph G, typename NodeTransform = DefaultNodeTransform>
+    requires std::is_same_v<typename GraphTraits<G>::vertex_t, GraphNodeId>
   void print(const G &Graph, llvm::raw_ostream &OS, llvm::StringRef Name = "",
              NodeTransform NodeToString = {}) const {
     OS << "digraph \"";

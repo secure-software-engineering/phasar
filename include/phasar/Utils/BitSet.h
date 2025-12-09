@@ -15,6 +15,7 @@
 #include "llvm/Support/MathExtras.h"
 
 #include <climits>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -180,9 +181,8 @@ public:
   /// Calls the given handler function for each sert bit in the bitset.
   ///
   /// This is likely faster than using iterators.
-  template <typename HandlerFn>
-  std::enable_if_t<std::is_invocable_v<HandlerFn &, IdT>> foreach (
-      HandlerFn Handler) const
+  template <std::invocable<IdT> HandlerFn>
+  void foreach (HandlerFn Handler) const
       noexcept(std::is_nothrow_invocable_v<HandlerFn &, IdT>) {
     uintptr_t Store{};
     auto Words = getWords(Bits, Store);

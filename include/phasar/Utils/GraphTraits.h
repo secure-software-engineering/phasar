@@ -16,9 +16,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
-#if __cplusplus >= 202002L
 #include <concepts>
-#endif
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -31,8 +29,6 @@ namespace psr {
 /// GraphTraits class. Once moving to C++20, we have nice type-checking using
 /// concepts
 template <typename Graph> struct GraphTraits;
-
-#if __cplusplus >= 202002L
 
 template <typename Edge>
 concept is_graph_edge = requires(const Edge E1, Edge E2) {
@@ -154,53 +150,7 @@ concept is_removable_graph_trait_v =
       { GraphTrait::removeRoot(G, RootIt) };
     };
 
-#else
-namespace detail {
-template <typename GraphTrait, typename = void>
-// NOLINTNEXTLINE(readability-identifier-naming)
-struct is_reservable_graph_trait : std::false_type {};
-template <typename GraphTrait>
-struct is_reservable_graph_trait<
-    GraphTrait,
-    std::void_t<decltype(GraphTrait::reserve(
-        std::declval<typename GraphTrait::graph_type &>(), size_t()))>>
-    : std::true_type {};
-
-template <typename GraphTrait, typename = void>
-// NOLINTNEXTLINE(readability-identifier-naming)
-struct is_removable_graph_trait : std::false_type {};
-template <typename GraphTrait>
-struct is_removable_graph_trait<
-    GraphTrait,
-    std::void_t<typename GraphTrait::edge_iterator,
-                typename GraphTrait::roots_iterator,
-                decltype(GraphTrait::removeEdge(
-                    std::declval<typename GraphTrait::graph_type &>(),
-                    std::declval<typename GraphTrait::vertex_t>(),
-                    std::declval<typename GraphTrait::edge_iterator>())),
-                decltype(GraphTrait::removeRoot(
-                    std::declval<typename GraphTrait::graph_type &>(),
-                    std::declval<typename GraphTrait::roots_iterator>()))>>
-    : std::true_type {};
-} // namespace detail
-
-template <typename GraphTrait>
-// NOLINTNEXTLINE(readability-identifier-naming)
-static constexpr bool is_reservable_graph_trait_v =
-    detail::is_reservable_graph_trait<GraphTrait>::value;
-
-template <typename GraphTrait>
-// NOLINTNEXTLINE(readability-identifier-naming)
-static constexpr bool is_removable_graph_trait_v =
-    detail::is_removable_graph_trait<GraphTrait>::value;
-#endif
-
-template <typename GraphTy>
-std::decay_t<GraphTy> reverseGraph(GraphTy &&G)
-#if __cplusplus >= 202002L
-  requires is_graph<GraphTy>
-#endif
-{
+template <is_graph GraphTy> std::decay_t<GraphTy> reverseGraph(GraphTy &&G) {
   std::decay_t<GraphTy> Ret;
   using traits_t = GraphTraits<std::decay_t<GraphTy>>;
   if constexpr (is_reservable_graph_trait_v<traits_t>) {
@@ -239,13 +189,9 @@ struct DefaultNodeTransform {
 /// \param Name The name of the graph
 /// \param NodeToString If the graph has node-labels, convert a node-label to
 /// string
-template <typename GraphTy, typename NodeTransform = DefaultNodeTransform>
+template <is_const_graph GraphTy, typename NodeTransform = DefaultNodeTransform>
 void printGraph(const GraphTy &G, llvm::raw_ostream &OS,
-                llvm::StringRef Name = "", NodeTransform NodeToString = {})
-#if __cplusplus >= 202002L
-  requires is_const_graph<GraphTy>
-#endif
-{
+                llvm::StringRef Name = "", NodeTransform NodeToString = {}) {
   using traits_t = GraphTraits<GraphTy>;
 
   OS << "digraph \"";

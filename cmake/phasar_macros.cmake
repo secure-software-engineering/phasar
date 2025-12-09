@@ -279,7 +279,7 @@ function(add_phasar_library name)
     EXPORT_NAME ${component_name}
   )
 
-  target_compile_features(${name} PUBLIC cxx_std_17)
+  target_compile_features(${name} PUBLIC cxx_std_20)
 
   set(install_module)
   if(PHASAR_LIB_MODULE_FILES)

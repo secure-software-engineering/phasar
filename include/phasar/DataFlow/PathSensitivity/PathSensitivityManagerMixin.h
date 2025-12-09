@@ -74,8 +74,7 @@ public:
   /// implementation-defined way.
   template <
       typename FactsRangeTy, typename ConfigTy,
-      typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+      is_pathtracingfilter_for_v<NodeRef> Filter = DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagToAll(n_t Inst, FactsRangeTy FactsRange,
                 const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -149,8 +148,8 @@ public:
   /// The result is given as graph, where cycles are unrolled once in an
   /// implementation-defined way.
   template <
-      typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+      typename ConfigTy, typename L,
+      is_pathtracingfilter_for_v<NodeRef> Filter = DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, const SolverResults<n_t, d_t, L> &SR,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -165,9 +164,8 @@ public:
   ///
   /// The result is given as graph, where cycles are unrolled once in an
   /// implementation-defined way.
-  template <
-      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  template <typename ConfigTy, is_pathtracingfilter_for_v<NodeRef> Filter =
+                                   DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, d_t Fact,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -182,9 +180,8 @@ public:
   ///
   /// The result is given as graph, where cycles are unrolled once in an
   /// implementation-defined way.
-  template <
-      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  template <typename ConfigTy, is_pathtracingfilter_for_v<NodeRef> Filter =
+                                   DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagToInLLVMSSA(n_t Inst, d_t Fact,
                       const PathSensitivityConfigBase<ConfigTy> &Config,

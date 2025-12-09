@@ -24,15 +24,15 @@
 #include <type_traits>
 
 namespace psr {
-template <typename T, typename IdT = uint32_t, typename Enable = void>
-class Compressor;
+template <typename T, typename IdT = uint32_t> class Compressor;
 
 /// \brief A utility class that assigns a sequential Id to every inserted
 /// object.
 ///
 /// This specialization handles types that can be efficiently passed by value
 template <typename T, typename IdT>
-class Compressor<T, IdT, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
+  requires CanEfficientlyPassByValue<T>
+class Compressor<T, IdT> {
 public:
   void reserve(size_t Capacity) {
     assert(Capacity <= UINT32_MAX);
@@ -105,7 +105,8 @@ private:
 ///
 /// This specialization handles types that cannot be efficiently passed by value
 template <typename T, typename IdT>
-class Compressor<T, IdT, std::enable_if_t<!CanEfficientlyPassByValue<T>>> {
+  requires(!CanEfficientlyPassByValue<T>)
+class Compressor<T, IdT> {
 public:
   void reserve(size_t Capacity) {
     assert(Capacity <= UINT32_MAX);

@@ -29,21 +29,18 @@ template <typename T> struct PointsToTraits {
   //                           (not necessarily PointsToSetTy const *)
 };
 
-template <typename T, typename Enable = void>
-struct is_PointsToTraits : std::false_type {}; // NOLINT
 template <typename T>
-struct is_PointsToTraits<
-    T, std::void_t<typename T::v_t, typename T::n_t, typename T::o_t,
-                   typename T::PointsToSetTy, typename T::PointsToSetPtrTy>>
-    : std::true_type {};
-
-template <typename T>
-PSR_CONCEPT is_PointsToTraits_v = // NOLINT
-    is_PointsToTraits<T>::value;
+concept is_PointsToTraits_v = requires { // NOLINT
+  typename T::v_t;
+  typename T::n_t;
+  typename T::o_t;
+  typename T::PointsToSetTy;
+  typename T::PointsToSetPtrTy;
+};
 
 // clang-format off
 template <typename T1, typename T2>
-PSR_CONCEPT is_equivalent_PointsToTraits_v = // NOLINT
+concept is_equivalent_PointsToTraits_v = // NOLINT
     is_PointsToTraits_v<T1> && is_PointsToTraits_v<T2> &&
     std::is_same_v<typename T1::n_t, typename T2::n_t> &&
     std::is_same_v<typename T1::v_t, typename T2::v_t> &&
@@ -82,10 +79,10 @@ public:
     return self().mayPointsToImpl(Pointer, Obj, AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsTo(ByConstRef<v_t> Pointer, ByConstRef<o_t> Obj,
-                                 ByConstRef<n_t> AtInstruction) const {
+                                 ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().mayPointsToImpl(Pointer, Obj, AtInstruction);
   }
 
@@ -94,10 +91,10 @@ public:
     return self().getPointsToSetImpl(Pointer, AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] PointsToSetPtrTy
-  getPointsToSet(ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) const {
+  getPointsToSet(ByConstRef<v_t> Pointer, ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().getPointsToSetImpl(Pointer, AtInstruction);
   }
 
@@ -109,20 +106,20 @@ private:
     return getPointerFrom(Pts)->count(Obj);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] bool mayPointsToImpl(ByConstRef<v_t> Pointer,
                                      ByConstRef<o_t> Obj,
-                                     ByConstRef<n_t> AtInstruction) const {
+                                     ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().mayPointsTo(self().asAbstractObject(Pointer), Obj,
                               AtInstruction);
   }
 
-  template <typename V = v_t,
-            typename = std::enable_if_t<!std::is_same_v<V, o_t>>>
   [[nodiscard]] PointsToSetPtrTy
   getPointsToSetImpl(ByConstRef<v_t> Pointer,
-                     ByConstRef<n_t> AtInstruction) const {
+                     ByConstRef<n_t> AtInstruction) const
+    requires(!std::is_same_v<v_t, o_t>)
+  {
     return self().getPointsToSetImpl(asAbstractObject(Pointer), AtInstruction);
   }
 };
