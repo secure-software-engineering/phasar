@@ -94,8 +94,8 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
     } else {
       ICF = std::make_unique<LLVMBasedICFG>(
           &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-          CGTy == CallGraphAnalysisType::OTF ? &getAliasInfo() : nullptr,
-          SoundnessLevel, AutoGlobalSupport);
+          needsAliasInfo(CGTy) ? &getAliasInfo() : nullptr, SoundnessLevel,
+          AutoGlobalSupport);
     }
   }
 
