@@ -103,7 +103,7 @@ jobs:
         if: matrix.build == 'DebugCov'
         uses: actions/upload-artifact@v4
         with:
-          name: CoverageReport
+          name: phasar-coverage-report-llvm-${{ matrix.llvm-version }}
           path: ./build/ccov/all-merged/
           if-no-files-found: error
           retention-days: 7
