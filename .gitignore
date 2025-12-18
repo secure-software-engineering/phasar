@@ -33,6 +33,8 @@ log/*
 # MS VS Code
 .vscode/
 
+.devcontainer/
+
 # Eclipse
 .cproject
 .project

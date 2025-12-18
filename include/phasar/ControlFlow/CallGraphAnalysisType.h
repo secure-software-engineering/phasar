@@ -22,6 +22,12 @@ enum class CallGraphAnalysisType {
   Invalid
 };
 
+[[nodiscard]] constexpr bool
+needsAliasInfo(CallGraphAnalysisType CGTy) noexcept {
+  return CGTy == CallGraphAnalysisType::OTF ||
+         CGTy == CallGraphAnalysisType::VTA;
+}
+
 std::string toString(CallGraphAnalysisType CGA);
 
 CallGraphAnalysisType toCallGraphAnalysisType(llvm::StringRef S);
