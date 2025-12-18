@@ -161,6 +161,8 @@ private:
     return Mod->getFunction(FunctionName) != nullptr;
   }
   [[nodiscard]] g_t
+  getGlobalVariableImpl(llvm::StringRef GlobalVariableName) const;
+  [[nodiscard]] g_t
   getGlobalVariableDefinitionImpl(llvm::StringRef GlobalVariableName) const;
   [[nodiscard]] size_t getNumInstructionsImpl() const noexcept {
     return IdToInst.size() - IdOffset;

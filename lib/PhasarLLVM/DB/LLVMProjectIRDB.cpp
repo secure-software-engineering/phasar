@@ -321,9 +321,15 @@ LLVMProjectIRDB::getFunctionDefinitionImpl(llvm::StringRef FunctionName) const {
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
+LLVMProjectIRDB::getGlobalVariableImpl(
+    llvm::StringRef GlobalVariableName) const {
+  return Mod->getGlobalVariable(GlobalVariableName, true);
+}
+
+[[nodiscard]] const llvm::GlobalVariable *
 LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
     llvm::StringRef GlobalVariableName) const {
-  auto *G = Mod->getGlobalVariable(GlobalVariableName);
+  const auto *G = getGlobalVariable(GlobalVariableName);
   if (G && !G->isDeclaration()) {
     return G;
   }
