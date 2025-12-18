@@ -65,7 +65,7 @@ struct variant_idx<std::variant<Ts...>, T>
 
 template <typename Container> struct ElementType {
   using IteratorTy =
-      std::decay_t<decltype(llvm::adl_begin(std::declval<Container>()))>;
+      std::decay_t<decltype(llvm::adl_begin(std::declval<Container &>()))>;
   using type = typename std::iterator_traits<IteratorTy>::value_type;
 };
 

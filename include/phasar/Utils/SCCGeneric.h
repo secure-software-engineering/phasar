@@ -372,8 +372,10 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
 
   using OutEdgeRange =
       decltype(GTraits::outEdges(Graph, std::declval<Vertex>()));
-  using OutEdgeIterator = decltype(std::begin(std::declval<OutEdgeRange>()));
-  using OutEdgeSentinel = decltype(std::end(std::declval<OutEdgeRange>()));
+  using OutEdgeIterator =
+      decltype(llvm::adl_begin(std::declval<OutEdgeRange &>()));
+  using OutEdgeSentinel =
+      decltype(llvm::adl_end(std::declval<OutEdgeRange &>()));
 
   struct DfsFrame {
     Vertex CurrVtx;
@@ -401,7 +403,7 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
 
       auto &&OutEdges = GTraits::outEdges(Graph, W);
       Frame = &CallStack.emplace_back(
-          DfsFrame{W, std::begin(OutEdges), std::end(OutEdges)});
+          DfsFrame{W, llvm::adl_begin(OutEdges), llvm::adl_end(OutEdges)});
       V = W;
 
     } while (Frame->It != Frame->End);
@@ -463,7 +465,7 @@ pearce4VisitIt(const G &Graph, typename GraphTraits<G>::vertex_t Start,
         "the out-edges, but never an owning container by value. Otherwise, "
         "the DFSFrame iterators may be dangling");
     CallStack.emplace_back(
-        DfsFrame{Start, std::begin(OutEdges), std::end(OutEdges)});
+        DfsFrame{Start, llvm::adl_begin(OutEdges), llvm::adl_end(OutEdges)});
   }
 
   // Simulate the recursion
