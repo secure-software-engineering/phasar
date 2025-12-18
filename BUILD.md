@@ -80,6 +80,7 @@ When using CMake to compile PhASAR the following optional parameters can be used
 | **PHASAR_ENABLE_PIC** : BOOL | Build Position-Independed Code (default is ON) |
 | **PHASAR_ENABLE_WARNINGS** : BOOL | Enable compiler warnings (default is ON) |
 | **CMAKE_CXX_STANDARD** : INT|Adapt the used C++ standard (minimum required is 20)|
+| **PHASAR_LLVM_VERSION** : INT|The LLVM major-version to use. Can be 16 or 17 (default is 16)|
 
 You can use these parameters either directly or modify the installer-script `bootstrap.sh`
 
