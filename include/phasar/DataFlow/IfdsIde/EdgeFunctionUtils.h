@@ -54,14 +54,12 @@ template <typename L> struct ConstantEdgeFunction {
 
   template <typename ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<ConcreteEF> This,
-          const EdgeFunction<l_t> &SecondFunction)
+  compose(EdgeFunctionRef<ConcreteEF> This, const EdgeFunction<l_t> &SecondFunction)
     requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>>;
 
   template <typename ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
-  join(EdgeFunctionRef<ConcreteEF> This,
-       const EdgeFunction<l_t> &OtherFunction)
+  join(EdgeFunctionRef<ConcreteEF> This, const EdgeFunction<l_t> &OtherFunction)
     requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>>;
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
@@ -447,7 +445,8 @@ template <typename ConcreteEF>
 EdgeFunction<L>
 ConstantEdgeFunction<L>::compose(EdgeFunctionRef<ConcreteEF> This,
                                  const EdgeFunction<L> &SecondFunction)
-  requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>> {
+  requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>> 
+{
   if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
     return Default;
   }
@@ -489,7 +488,8 @@ template <typename ConcreteEF>
 EdgeFunction<L>
 ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
                               const EdgeFunction<l_t> &OtherFunction)
-  requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>> {
+  requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>> 
+{
   if (auto Default = defaultJoinOrNull<l_t>(This, OtherFunction)) {
     return Default;
   }
