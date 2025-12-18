@@ -1,13 +1,53 @@
 #!/bin/bash
 set -euo pipefail
 
-if printf "%s\n" "$@" | grep -Eqe '^--noninteractive|-ni$'; then
-    readonly noninteractive="true"
-    shift
-else
-    readonly noninteractive="false"
+noninteractive="false"
+LLVM_IR_VERSION=16
+
+# Parsing command-line-parameters
+# See "https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash" as a reference
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    --noninteractive|-ni)
+    noninteractive="true"
+    shift # past argument
+    ;;
+    --llvm-version)
+    LLVM_IR_VERSION=$2
+    shift # past argument
+    shift # past value
+    ;;
+    --llvm-version=*)
+    LLVM_IR_VERSION="${key#*=}"
+    shift # past argument=value
+    ;;
+    --help|-h)
+    echo "USAGE: ./InstallAptDependencies.sh [options] [additional deps]"
+    echo ""
+    echo "OPTIONS:"
+    echo -e "\t--noninteractive,-ni\t- Non-interactive mode for apt"
+    echo -e "\t--llvm-version=<value>\t- The LLVM major-version to use (16 or 17, default is 16)"
+    exit 0
+    ;;
+    *) # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+# End - Parsing command-line-parameters
+
+if [ "$LLVM_IR_VERSION" -ne "16" ] && [ "$LLVM_IR_VERSION" -ne "17" ]; then
+    echo "Invalid LLVM version: $LLVM_IR_VERSION, expected 16 or 17" >&2
+    exit 1
 fi
-readonly LLVM_IR_VERSION=16
+
 additional_dependencies=("$@")
 
 (
