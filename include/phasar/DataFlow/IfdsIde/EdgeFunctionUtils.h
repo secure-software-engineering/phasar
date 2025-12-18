@@ -52,15 +52,17 @@ template <typename L> struct ConstantEdgeFunction {
     return Value;
   }
 
-  template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
+  template <typename ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
   compose(EdgeFunctionRef<ConcreteEF> This,
-          const EdgeFunction<l_t> &SecondFunction);
+          const EdgeFunction<l_t> &SecondFunction)
+    requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>>;
 
-  template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
+  template <typename ConcreteEF>
   [[nodiscard]] static EdgeFunction<l_t>
   join(EdgeFunctionRef<ConcreteEF> This,
-       const EdgeFunction<l_t> &OtherFunction);
+       const EdgeFunction<l_t> &OtherFunction)
+    requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>>;
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
@@ -441,10 +443,11 @@ EdgeFunction<L> EdgeIdentity<L>::join(EdgeFunctionRef<EdgeIdentity> This,
 }
 
 template <typename L>
-template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
+template <typename ConcreteEF>
 EdgeFunction<L>
 ConstantEdgeFunction<L>::compose(EdgeFunctionRef<ConcreteEF> This,
-                                 const EdgeFunction<L> &SecondFunction) {
+                                 const EdgeFunction<L> &SecondFunction)
+  requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>> {
   if (auto Default = defaultComposeOrNull(This, SecondFunction)) {
     return Default;
   }
@@ -482,10 +485,11 @@ ConstantEdgeFunction<L>::compose(EdgeFunctionRef<ConcreteEF> This,
 }
 
 template <typename L>
-template <std::derived_from<ConstantEdgeFunction<L>> ConcreteEF>
+template <typename ConcreteEF>
 EdgeFunction<L>
 ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
-                              const EdgeFunction<l_t> &OtherFunction) {
+                              const EdgeFunction<l_t> &OtherFunction)
+  requires std::derived_from<ConcreteEF, ConstantEdgeFunction<L>> {
   if (auto Default = defaultJoinOrNull<l_t>(This, OtherFunction)) {
     return Default;
   }
