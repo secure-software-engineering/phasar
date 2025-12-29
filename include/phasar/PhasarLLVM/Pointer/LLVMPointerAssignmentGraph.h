@@ -85,7 +85,9 @@ struct LLVMPAGDomain : LLVMAnalysisDomainDefault {
 };
 
 class LLVMPAGBuilder : public PAGBuilder<LLVMPAGDomain> {
+private:
   struct PAGBuildData;
+
   void buildPAG(const LLVMProjectIRDB &IRDB, ValueCompressor<v_t> &VC,
                 PBStrategy &Strategy) override;
 };

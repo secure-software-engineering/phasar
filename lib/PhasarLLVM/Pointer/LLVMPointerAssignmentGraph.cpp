@@ -97,7 +97,8 @@ struct GlobalCache {
   }
 };
 } // namespace
-struct LLVMPAGBuilder::PAGBuildData {
+
+struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   const llvm::DataLayout &DL; // NOLINT
   ValueCompressor<v_t> &VC;   // NOLINT
 
@@ -219,9 +220,7 @@ struct LLVMPAGBuilder::PAGBuildData {
   }
 
   void addDelayedEdges(PBStrategy &Strategy) {
-    OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto Val) {
-      auto VId = ValueId(Val);
-
+    OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto VId) {
       for (auto [IncStore, _] : IncomingStores[VId]) {
         for (auto OutLoad : OutgoingLoads[VId]) {
           Strategy.onAddEdge(IncStore, OutLoad, Assign{}, nullptr);
