@@ -89,7 +89,7 @@ private:
   struct PAGBuildData;
 
   void buildPAG(const LLVMProjectIRDB &IRDB, ValueCompressor<v_t> &VC,
-                PBStrategy &Strategy) override;
+                pag::PBStrategyRef<LLVMPAGDomain> Strategy) override;
 };
 
 } // namespace psr

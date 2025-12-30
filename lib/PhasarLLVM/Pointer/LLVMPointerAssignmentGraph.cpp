@@ -16,6 +16,8 @@
 #include <concepts>
 
 using namespace psr;
+using namespace psr::pag;
+using LLVMPBStrategyRef = pag::PBStrategyRef<LLVMPAGDomain>;
 
 static_assert(detail::IsPointerWithAtleastOneFreeLowBit<PAGVariable>);
 
@@ -29,8 +31,6 @@ std::string psr::to_string(PAGVariable Var) {
 
 namespace {
 
-using LLVMPBStrategy = LLVMPAGBuilder::PBStrategy;
-
 struct GlobalCache {
   const llvm::DataLayout &DL; // NOLINT
   // Due to the recursion in getOrCreateGCacheEntry, we need pointer stability
@@ -38,8 +38,8 @@ struct GlobalCache {
       Cache{};
 
   [[nodiscard]] llvm::ArrayRef<ValueId> getOrCreateGCacheEntry(
-      LLVMPBStrategy &Strategy, const llvm::Constant *Const,
-      std::invocable<const llvm::Value *, LLVMPBStrategy &> auto GetVariable) {
+      LLVMPBStrategyRef Strategy, const llvm::Constant *Const,
+      std::invocable<const llvm::Value *, LLVMPBStrategyRef> auto GetVariable) {
     if (definitelyContainsNoPointer(Const)) {
       return {};
     }
@@ -109,7 +109,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   llvm::DenseMap<const llvm::Value *, llvm::SmallDenseMap<int64_t, ValueId>>
       LocalGeps{};
 
-  [[nodiscard]] ValueId getVariable(PAGVariable V, LLVMPBStrategy &Strategy) {
+  [[nodiscard]] ValueId getVariable(PAGVariable V, LLVMPBStrategyRef Strategy) {
     auto [Id, Inserted] = VC.insert(V);
     if (Inserted) {
       OnlyIncomingStoresAndOutgoingLoads.insert(Id);
@@ -121,14 +121,14 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     return Id;
   }
 
-  void addAllIncomingStores(PBStrategy &Strategy, ValueId To,
+  void addAllIncomingStores(LLVMPBStrategyRef Strategy, ValueId To,
                             llvm::SmallDenseMap<ValueId, Edge, 2> &Froms) {
     for (auto [From, E] : Froms) {
       Strategy.onAddEdge(From, To, E, nullptr);
     }
     Froms.clear();
   }
-  void addAllOutgoingLoads(PBStrategy &Strategy, ValueId From,
+  void addAllOutgoingLoads(LLVMPBStrategyRef Strategy, ValueId From,
                            llvm::SmallDenseSet<ValueId, 2> &Tos) {
     for (auto To : Tos) {
       Strategy.onAddEdge(From, To, Load{}, nullptr);
@@ -136,14 +136,14 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     Tos.clear();
   }
 
-  void eraseFromSimpleStoreLoad(PBStrategy &Strategy, ValueId VId) {
+  void eraseFromSimpleStoreLoad(LLVMPBStrategyRef Strategy, ValueId VId) {
     if (OnlyIncomingStoresAndOutgoingLoads.tryErase(VId)) {
       addAllIncomingStores(Strategy, VId, IncomingStores[VId]);
       addAllOutgoingLoads(Strategy, VId, OutgoingLoads[VId]);
     }
   }
 
-  void addEdge(PBStrategy &Strategy, ValueId From, ValueId To, Edge E,
+  void addEdge(LLVMPBStrategyRef Strategy, ValueId From, ValueId To, Edge E,
                const llvm::Instruction *AtInstruction) {
     // llvm::errs() << "[addEdge]: " << int(From) << "->" << int(To)
     //              << " :: " << to_string(E) << '\n';
@@ -170,7 +170,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
 
   void initializeGlobals(const LLVMProjectIRDB &IRDB,
-                         LLVMPBStrategy &Strategy) {
+                         LLVMPBStrategyRef Strategy) {
     GlobalCache GCache{IRDB.getModule()->getDataLayout()};
 
     for (const auto &Glob : IRDB.getModule()->globals()) {
@@ -184,12 +184,12 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
   }
 
-  void initializeGlobal(GlobalCache &GCache, LLVMPBStrategy &Strategy,
+  void initializeGlobal(GlobalCache &GCache, LLVMPBStrategyRef Strategy,
                         const llvm::GlobalVariable &Glob) {
     auto GlobObj = getVariable(&Glob, Strategy);
     auto Stores = GCache.getOrCreateGCacheEntry(
         Strategy, Glob.getInitializer(),
-        [this](const llvm::Value *V, LLVMPBStrategy &Strategy) {
+        [this](const llvm::Value *V, LLVMPBStrategyRef Strategy) {
           return getVariable(V, Strategy);
         });
 
@@ -199,7 +199,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
   }
 
-  void initializeFunctions(const LLVMProjectIRDB &IRDB, PBStrategy &Strategy) {
+  void initializeFunctions(const LLVMProjectIRDB &IRDB,
+                           LLVMPBStrategyRef Strategy) {
     // TODO: Use LibrarySummary here
     // TODO: Skip functions that have been proven unreachable previously
 
@@ -212,14 +213,14 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     addDelayedEdges(Strategy);
   }
 
-  void initializeFun(PBStrategy &Strategy, const llvm::Function &Fun) {
+  void initializeFun(LLVMPBStrategyRef Strategy, const llvm::Function &Fun) {
     // TODO: RPO Order to profit from OTF-merged values
     for (const auto &BB : Fun) {
       propagateBB(Strategy, BB);
     }
   }
 
-  void addDelayedEdges(PBStrategy &Strategy) {
+  void addDelayedEdges(LLVMPBStrategyRef Strategy) {
     OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto VId) {
       for (auto [IncStore, _] : IncomingStores[VId]) {
         for (auto OutLoad : OutgoingLoads[VId]) {
@@ -237,7 +238,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void propagateBB(PBStrategy &Strategy, const llvm::BasicBlock &BB) {
+  void propagateBB(LLVMPBStrategyRef Strategy, const llvm::BasicBlock &BB) {
     const auto *Inst = &BB.front();
     if (Inst->isDebugOrPseudoInst()) {
       Inst = Inst->getNextNonDebugInstruction();
@@ -248,7 +249,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
   }
 
-  void dispatch(PBStrategy &Strategy, const llvm::Instruction &I) {
+  void dispatch(LLVMPBStrategyRef Strategy, const llvm::Instruction &I) {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
       return (void)getVariable(Alloca, Strategy);
     }
@@ -324,7 +325,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     } while (!WL.empty());
   }
 
-  void handleStore(PBStrategy &Strategy, const llvm::StoreInst *Store) {
+  void handleStore(LLVMPBStrategyRef Strategy, const llvm::StoreInst *Store) {
 
     if (definitelyContainsNoPointer(Store->getValueOperand())) {
       return;
@@ -339,7 +340,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void handleLoad(PBStrategy &Strategy, const llvm::LoadInst *Ld) {
+  void handleLoad(LLVMPBStrategyRef Strategy, const llvm::LoadInst *Ld) {
     if (definitelyContainsNoPointer(Ld)) {
       return;
     }
@@ -365,7 +366,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void handleCastImpl(PBStrategy &Strategy, const llvm::User *Cast,
+  void handleCastImpl(LLVMPBStrategyRef Strategy, const llvm::User *Cast,
                       const llvm::Value *Op) {
     auto OperandObj = getVariable(Op, Strategy);
 
@@ -381,7 +382,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     VC.addAlias(Cast, OperandObj);
   }
 
-  void handleCast(PBStrategy &Strategy, const llvm::User *Cast) {
+  void handleCast(LLVMPBStrategyRef Strategy, const llvm::User *Cast) {
     if (definitelyContainsNoPointer(Cast)) {
       return;
     }
@@ -389,7 +390,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     handleOperand(Cast->getOperand(0),
                   [&](const auto *Op) { handleCastImpl(Strategy, Cast, Op); });
   }
-  void handleGep(PBStrategy &Strategy, const llvm::GEPOperator *Gep) {
+  void handleGep(LLVMPBStrategyRef Strategy, const llvm::GEPOperator *Gep) {
     handleOperand(Gep->getPointerOperand(), [&](const auto *PointerOp) {
       if (psr::isAllocaInstOrHeapAllocaFunction(PointerOp) &&
           !isAddressTakenVariable(PointerOp) && Gep->hasAllConstantIndices() &&
@@ -414,7 +415,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void handleMemTransfer(PBStrategy &Strategy,
+  void handleMemTransfer(LLVMPBStrategyRef Strategy,
                          const llvm::MemTransferInst *MemTrn) {
 
     handleOperand(MemTrn->getDest(), [&](const auto *Dest) {
@@ -436,7 +437,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void handleCallTarget(PBStrategy &Strategy, const llvm::CallBase *Call,
+  void handleCallTarget(LLVMPBStrategyRef Strategy, const llvm::CallBase *Call,
                         const llvm::Function *Callee,
                         llvm::ArrayRef<llvm::SmallDenseSet<ValueId>> Args,
                         std::optional<ValueId> CSVal) {
@@ -461,14 +462,14 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       auto ParamObj = getVariable(&Param, Strategy);
       for (auto ArgVal : Arg) {
         addEdge(Strategy, ArgVal, ParamObj,
-                LLVMPAGBuilder::Call{uint16_t(Param.getArgNo())}, Call);
+                pag::Call{uint16_t(Param.getArgNo())}, Call);
       }
     }
 
     // TODO: Varargs
   }
 
-  void handleCall(PBStrategy &Strategy, const llvm::CallBase *Call) {
+  void handleCall(LLVMPBStrategyRef Strategy, const llvm::CallBase *Call) {
     const auto *FnPtr = Call->getCalledOperand()->stripPointerCastsAndAliases();
 
     llvm::SmallVector<llvm::SmallDenseSet<ValueId>> Args;
@@ -496,7 +497,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void handleReturn(PBStrategy &Strategy, const llvm::ReturnInst *Ret) {
+  void handleReturn(LLVMPBStrategyRef Strategy, const llvm::ReturnInst *Ret) {
     const auto *RetVal = Ret->getReturnValue();
     if (!RetVal || definitelyContainsNoPointer(RetVal)) {
       return;
@@ -510,7 +511,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     });
   }
 
-  void handlePhi(PBStrategy &Strategy, const llvm::PHINode *Phi) {
+  void handlePhi(LLVMPBStrategyRef Strategy, const llvm::PHINode *Phi) {
     if (definitelyContainsNoPointer(Phi)) {
       return;
     }
@@ -531,7 +532,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
   }
 
-  void handleSelect(PBStrategy &Strategy, const llvm::SelectInst *Select) {
+  void handleSelect(LLVMPBStrategyRef Strategy,
+                    const llvm::SelectInst *Select) {
     if (definitelyContainsNoPointer(Select)) {
       return;
     }
@@ -560,7 +562,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
 void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
                                    ValueCompressor<v_t> &VC,
-                                   PBStrategy &Strategy) {
+                                   LLVMPBStrategyRef Strategy) {
   PAGBuildData BData{IRDB.getModule()->getDataLayout(), VC};
 
   const size_t NumPossibleValues = Strategy.getNumPossibleValues(IRDB);
