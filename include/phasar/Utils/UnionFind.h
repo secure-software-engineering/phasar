@@ -1,13 +1,15 @@
 #pragma once
 
+#include "phasar/Utils/TypeTraits.h"
+
 #include "llvm/ADT/IntEqClasses.h"
 
 namespace psr {
 
-template <typename IdT = uint32_t, typename MappedIdT = IdT>
+template <SmallIdType IdT = uint32_t, SmallIdType MappedIdT = IdT>
 class CompressedUnionFind;
 
-template <typename IdT = uint32_t> class UnionFind {
+template <SmallIdType IdT = uint32_t> class UnionFind {
 public:
   UnionFind() noexcept = default;
   explicit UnionFind(size_t InitSz) : Equiv(InitSz) {}
@@ -20,14 +22,14 @@ public:
 
   void grow(size_t NewSz) { Equiv.grow(NewSz); }
 
-  template <typename MappedIdT = IdT>
+  template <SmallIdType MappedIdT = IdT>
   [[nodiscard]] CompressedUnionFind<IdT, MappedIdT> compress() &&;
 
 private:
   llvm::IntEqClasses Equiv;
 };
 
-template <typename IdT, typename MappedIdT> class CompressedUnionFind {
+template <SmallIdType IdT, SmallIdType MappedIdT> class CompressedUnionFind {
 public:
   [[nodiscard]] size_t size() const noexcept { return Equiv.getNumClasses(); }
 
@@ -47,8 +49,8 @@ private:
   llvm::IntEqClasses Equiv;
 };
 
-template <typename IdT>
-template <typename MappedIdT>
+template <SmallIdType IdT>
+template <SmallIdType MappedIdT>
 inline CompressedUnionFind<IdT, MappedIdT> UnionFind<IdT>::compress() && {
   Equiv.compress();
   return {std::move(Equiv)};

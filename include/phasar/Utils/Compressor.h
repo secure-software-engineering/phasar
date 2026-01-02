@@ -24,13 +24,13 @@
 #include <type_traits>
 
 namespace psr {
-template <typename T, typename IdT = uint32_t> class Compressor;
+template <typename T, IdType IdT = uint32_t> class Compressor;
 
 /// \brief A utility class that assigns a sequential Id to every inserted
 /// object.
 ///
 /// This specialization handles types that can be efficiently passed by value
-template <typename T, typename IdT>
+template <typename T, IdType IdT>
   requires CanEfficientlyPassByValue<T>
 class Compressor<T, IdT> {
 public:
@@ -56,8 +56,7 @@ public:
     return {It->second, Inserted};
   }
 
-  [[nodiscard]]
-  std::optional<IdT> getOrNull(T Elem) const {
+  [[nodiscard]] std::optional<IdT> getOrNull(T Elem) const {
     if (auto It = ToInt.find(Elem); It != ToInt.end()) {
       return It->second;
     }
@@ -104,7 +103,7 @@ private:
 /// object.
 ///
 /// This specialization handles types that cannot be efficiently passed by value
-template <typename T, typename IdT>
+template <typename T, IdType IdT>
   requires(!CanEfficientlyPassByValue<T>)
 class Compressor<T, IdT> {
 public:

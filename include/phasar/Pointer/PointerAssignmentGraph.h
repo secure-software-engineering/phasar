@@ -7,6 +7,8 @@
 #include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
+#include "llvm/Support/Compiler.h"
+
 #include <concepts>
 #include <cstdint>
 #include <memory>
@@ -37,11 +39,15 @@ struct Edge : public std::variant<Assign, Gep, Call, Return, Load, Store,
   using std::variant<Assign, Gep, Call, Return, Load, Store, StorePOI,
                      Copy>::variant;
 
-  template <typename T> static constexpr size_t kindOf() noexcept {
-    return psr::variant_idx<Base, T>;
+  enum class EdgeKind : uint32_t {};
+
+  template <typename T> static constexpr EdgeKind kindOf() noexcept {
+    return EdgeKind(psr::variant_idx<Base, T>);
   }
 
-  [[nodiscard]] constexpr size_t kind() const noexcept { return this->index(); }
+  [[nodiscard]] constexpr EdgeKind kind() const noexcept {
+    return EdgeKind(this->index());
+  }
 
   template <typename T, typename... Ts>
   [[nodiscard]] constexpr bool isa() const noexcept {
@@ -59,7 +65,8 @@ struct Edge : public std::variant<Assign, Gep, Call, Return, Load, Store,
   }
 
   template <typename HandlerFn>
-  constexpr decltype(auto) apply(HandlerFn &&Handler) const {
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr decltype(auto)
+  apply(HandlerFn &&Handler) const {
     return std::visit(PSR_FWD(Handler), *this);
   }
 

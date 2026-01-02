@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_BITSET_H
 #define PHASAR_UTILS_BITSET_H
 
+#include "phasar/Utils/TypeTraits.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/Support/MathExtras.h"
@@ -34,7 +36,8 @@ namespace psr {
 /// convertible from and to uint32_t.
 /// \tparam BitVectorTy The underlying bit-vector to use. Must be either
 /// llvm::BitVector or llvm::SmallBitVector.
-template <typename IdT, typename BitVectorTy = llvm::BitVector> class BitSet {
+template <SmallIdType IdT, typename BitVectorTy = llvm::BitVector>
+class BitSet {
   static llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
                                             uintptr_t & /*Store*/) {
     return BV.getData();

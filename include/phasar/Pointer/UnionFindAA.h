@@ -1,0 +1,353 @@
+#pragma once
+
+#include "phasar/Pointer/CallingContextConstructor.h"
+#include "phasar/Pointer/PointerAssignmentGraph.h"
+#include "phasar/Pointer/RawAliasSet.h"
+#include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/Nullable.h"
+#include "phasar/Utils/PointerUtils.h"
+#include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedVector.h"
+#include "phasar/Utils/UnionFind.h"
+#include "phasar/Utils/Utilities.h"
+#include "phasar/Utils/ValueCompressor.h"
+
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/ErrorHandling.h"
+
+#include <concepts>
+
+namespace psr {
+
+template <typename T>
+concept UnionFindAAResult = requires(const T &Result, ValueId Var) {
+  { T::isCached() } noexcept -> std::convertible_to<bool>;
+  { Result.getRawAliasSet(Var) } -> std::convertible_to<RawAliasSet<ValueId>>;
+  { Result.mayAlias(Var, Var) } -> std::convertible_to<bool>;
+};
+
+struct UnionFindAAResultBase {
+  enum class ObjectRepId : uint32_t {};
+
+  TypedVector<ObjectRepId, RawAliasSet<ValueId>> BackwardView;
+};
+
+struct BasicUnionFindAAResult : UnionFindAAResultBase {
+  TypedVector<ValueId, ObjectRepId> Var2Rep;
+
+  static constexpr bool isCached() noexcept { return true; }
+
+  [[nodiscard]] const RawAliasSet<ValueId> &
+  getRawAliasSet(ValueId Var) const noexcept {
+    auto Rep = Var2Rep[Var];
+    return BackwardView[Rep];
+  }
+
+  [[nodiscard]] bool mayAlias(ValueId Var1, ValueId Var2) const noexcept {
+    if (Var1 == Var2) {
+      return true;
+    }
+    auto Rep1 = Var2Rep[Var1];
+    auto Rep2 = Var2Rep[Var2];
+    return Rep1 == Rep2;
+  }
+};
+
+struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
+  TypedVector<ValueId, llvm::SmallVector<ObjectRepId, 2>> Var2Rep{};
+
+  static constexpr bool isCached() noexcept { return false; }
+
+  [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
+    RawAliasSet<ValueId> ResultSet;
+    for (auto Rep : Var2Rep[Var]) {
+      ResultSet |= BackwardView[Rep];
+    }
+    return ResultSet;
+  }
+
+  [[nodiscard]] bool mayAlias(ValueId Var1, ValueId Var2) const noexcept {
+    if (Var1 == Var2) {
+      return true;
+    }
+
+    // Note: K is mostly small (1 or 2), so below loop should be very cheap
+    const auto &Reps1 = Var2Rep[Var1];
+    const auto &Reps2 = Var2Rep[Var2];
+    for (ObjectRepId R1 : Reps1) {
+      if (llvm::is_contained(Reps2, R1)) {
+        return true;
+      }
+    }
+    return false;
+  }
+};
+
+template <typename AnalysisDomainT, typename ObjectIdT>
+struct BasicUnionFindAA {
+  using ObjectId = ObjectIdT;
+
+  using n_t = typename AnalysisDomainT::n_t;
+  using v_t = typename AnalysisDomainT::v_t;
+  using f_t = typename AnalysisDomainT::f_t;
+  using db_t = typename AnalysisDomainT::db_t;
+
+  void onAddEdge(ObjectId From, ObjectId To, pag::Edge /*E*/,
+                 Nullable<n_t> /*AtInstruction*/) {
+    AliasSets.join(From, To);
+  }
+
+  void onAddValue(ByConstRef<v_t> /*Var*/, ObjectId VId) {
+    AliasSets.grow(size_t(VId) + 1);
+  }
+
+  [[nodiscard]] BasicUnionFindAAResult
+  consumeAAResults(size_t NumVars,
+                   std::invocable<ValueId> auto Var2Obj = IdentityFn{}) && {
+    auto Equiv = std::move(AliasSets)
+                     .template compress<BasicUnionFindAAResult::ObjectRepId>();
+
+    static constexpr auto InvalidRep =
+        BasicUnionFindAAResult::ObjectRepId(UINT32_MAX);
+
+    BasicUnionFindAAResult Result{};
+    Result.BackwardView.resize(Equiv.size());
+    Result.Var2Rep.resize(NumVars, InvalidRep);
+
+    for (auto VId : iota<ValueId>(NumVars)) {
+      // TODO: Skip only-ret val-ids
+      auto ObjId = std::invoke(Var2Obj, VId);
+      auto Rep = Equiv[ObjId];
+      assert(Result.Var2Rep[VId] == InvalidRep &&
+             "Mapping from ValueId to AliasSet-Id must be injective!");
+      Result.Var2Rep[VId] = Rep;
+      Result.BackwardView[Rep].insert(VId);
+    }
+
+    return Result;
+  }
+
+  UnionFind<ObjectId> AliasSets{};
+};
+
+template <typename AnalysisDomainT, unsigned K = 1>
+class CallingContextSensUnionFindAA {
+public:
+  enum class CtxObjectId : uint32_t {};
+
+  using n_t = typename AnalysisDomainT::n_t;
+  using v_t = typename AnalysisDomainT::v_t;
+  using f_t = typename AnalysisDomainT::f_t;
+  using db_t = typename AnalysisDomainT::db_t;
+  using i_t = typename AnalysisDomainT::i_t;
+
+  CallingContextSensUnionFindAA(MaybeUniquePtr<i_t> ICF) noexcept
+      : ICF(std::move(ICF)) {
+    assert(this->ICF != nullptr);
+  }
+
+  void onAddEdge(ValueId From, ValueId To, pag::Edge E,
+                 Nullable<n_t> CallSite) {
+    E.apply(Overloaded{
+        [&, this, CallSite](pag::Call) {
+          for (const auto &[ArgCtxId, FromObj] : Var2Obj[From]) {
+            auto ParamCtx = CC[ArgCtxId].withPrefix(CallSite);
+            auto ParamCtxId = CC.getOrInsert(ParamCtx);
+
+            if (const auto *Dst = getObjectOrNull(To, ParamCtxId)) {
+              Base.AliasSets.join(FromObj, *Dst);
+            }
+          }
+        },
+        [&, this, CallSite](pag::Return) {
+          for (const auto &[CSValCtxId, ToObj] : Var2Obj[To]) {
+            auto RetCtx = CC[CSValCtxId].withPrefix(CallSite);
+            auto RetCtxId = CC.getOrInsert(RetCtx);
+
+            if (const auto *Src = getObjectOrNull(From, RetCtxId)) {
+              Base.AliasSets.join(*Src, ToObj);
+            }
+          }
+        },
+        [&, this](auto) {
+          const auto &FromObjects = Var2Obj[From];
+          for (const auto &[FromCtx, FromObj] : FromObjects) {
+            if (FromCtx == CallingContextId::None) {
+              for (const auto &[ToCtx, ToObj] : Var2Obj[To]) {
+                Base.AliasSets.join(FromObj, ToObj);
+              }
+            } else if (const auto *Dst = getObjectOrNull(To, FromCtx)) {
+              Base.AliasSets.join(FromObj, *Dst);
+            }
+          }
+        },
+    });
+  }
+
+  void onAddValue(ByConstRef<v_t> Var, ValueId VId) {
+    Var2Obj.emplace_back();
+    if (const auto &Fun = getFunction(Var)) {
+      CC.visitAllCallingContexts(
+          unwrapNullable(Fun), *ICF, *ICF,
+          [this, VId](ByConstRef<n_t> /*FirstCS*/, CallingContextId Ctx) {
+            std::ignore = getObject(VId, Ctx);
+          });
+
+      if (!ICF->getCallersOf(unwrapNullable(Fun)).empty()) {
+        return;
+      }
+      // fallback in case, we have no callers
+    }
+    std::ignore = getObject(VId, CallingContextId::None);
+  }
+
+  [[nodiscard]] CallingContextSensUnionFindAAResult
+  consumeAAResults(size_t NumVars) && {
+    auto Equiv = std::move(Base.AliasSets)
+                     .template compress<BasicUnionFindAAResult::ObjectRepId>();
+
+    CallingContextSensUnionFindAAResult Result{};
+    Result.BackwardView.resize(Equiv.size());
+    Result.Var2Rep.resize(NumVars);
+
+    for (const auto &[ValId, Objects] : Var2Obj.enumerate()) {
+      // TODO: Skip only-ret val-ids
+
+      for (const auto &[_, Obj] : Objects) {
+        auto Rep = Equiv[Obj];
+        if (Result.BackwardView[Rep].try_insert(ValId)) {
+          Result.Var2Rep[ValId].push_back(Rep);
+        }
+      }
+      if (Objects.empty()) {
+        llvm::errs() << "Warning: Empty Objects-set for Var#" << uint32_t(ValId)
+                     << '\n';
+      }
+    }
+
+    return Result;
+  }
+
+private:
+  [[nodiscard]] Nullable<f_t> getFunction(ByConstRef<v_t> Var) {
+    auto Ptr = getPointerFrom(Var);
+    if constexpr (requires() {
+                    {
+                      Ptr->getFunction()
+                    } -> std::convertible_to<Nullable<f_t>>;
+                  }) {
+      return Ptr->getFunction();
+    } else {
+      return ICF.getFunction(Var);
+    }
+  }
+
+  [[nodiscard]] CtxObjectId getObject(ValueId VId, CallingContextId Ctx) {
+    auto [It, Inserted] =
+        Var2Obj[VId].try_emplace(Ctx, CtxObjectId(Obj2Var.size()));
+    if (Inserted) {
+      Obj2Var.emplace_back(VId, Ctx);
+      Base.AliasSets.grow(size_t(It->second) + 1);
+    }
+    return It->second;
+  }
+
+  MaybeUniquePtr<i_t> ICF;
+  TypedVector<CtxObjectId, std::pair<ValueId, CallingContextId>> Obj2Var{};
+  TypedVector<ValueId, llvm::SmallDenseMap<CallingContextId, CtxObjectId>>
+      Var2Obj{};
+
+  CallingContextConstructor<n_t, f_t, K> CC{};
+  BasicUnionFindAA<AnalysisDomainT, CtxObjectId> Base{};
+};
+
+template <typename AnalysisDomainT, unsigned K = 5>
+class IndirectionSencUnionFindAA {
+public:
+  static_assert(K > 0, "A depth-limit of 0 is invalid!");
+
+  enum class IndObjectId : uint32_t {};
+  enum class IndDepth : uint32_t {};
+
+  using n_t = typename AnalysisDomainT::n_t;
+  using v_t = typename AnalysisDomainT::v_t;
+  using f_t = typename AnalysisDomainT::f_t;
+  using db_t = typename AnalysisDomainT::db_t;
+
+  void onAddEdge(ValueId From, ValueId To, pag::Edge E,
+                 Nullable<n_t> /*CallSite*/) {
+    using namespace pag;
+    const auto &FromFldObjects = Var2Obj[From];
+    for (const auto &[FromCtx, FromObj] : FromFldObjects.enumerate()) {
+      switch (E.kind()) {
+      case Edge::kindOf<Copy>():
+        if (FromCtx == IndDepth{}) {
+          break;
+        }
+
+      // fallthrough
+      case Edge::kindOf<Assign>():
+      case Edge::kindOf<Gep>():
+      case Edge::kindOf<Call>():
+      case Edge::kindOf<Return>():
+        if (auto ToObj = getFldObjectOrNull(To, FromCtx)) {
+          Base.AliasSets.join(FromObj, *ToObj);
+        }
+
+        break;
+      case Edge::kindOf<Load>():
+        if (auto ToCtx = prevFldDepth(FromCtx)) {
+          if (auto ToObj = getFldObjectOrNull(To, *ToCtx)) {
+            Base.AliasSets.join(FromObj, *ToObj);
+          }
+        }
+        if (FromCtx == K - 1) {
+          // For soundness
+          if (auto ToObj = getFldObjectOrNull(To, FromCtx)) {
+            Base.AliasSets.join(FromObj, *ToObj);
+          }
+        }
+        break;
+      case Edge::kindOf<Store>():
+      case Edge::kindOf<StorePOI>():
+        if (auto ToObj = getFldObjectOrNull(To, nextFldDepth(FromCtx))) {
+          Base.AliasSets.join(FromObj, ToObj);
+        }
+
+        break;
+      default:
+        llvm_unreachable("This switch should cover all cases explicitly");
+      }
+    }
+  }
+
+  void onAddValue(ByConstRef<v_t> /*Var*/, ValueId VId) {
+    auto Obj = Obj2Var.size();
+    Base.AliasSets.grow(Obj + K);
+    // TODO: For some values, we can already see that depth>=2 does not make
+    // sense, so we could exit the below loop early
+    for (auto Depth : iota<IndDepth>(K)) {
+      Var2Obj[VId].push_back(IndObjectId(Obj));
+      Obj++;
+      Obj2Var.emplace_back(VId, Depth);
+    }
+  }
+
+  [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
+    return Base.consumeAAResults(NumVars, [this](ValueId VId) {
+      // When presenting the results, we only care about the values at depth 0
+      return Var2Obj[VId][IndDepth{}];
+    });
+  }
+
+private:
+  // XXX: Replace inner TypedVector by sth like TypedInplaceVector (e.g., using
+  // std::inplace_vector once moving forward with the required C++ version)
+  TypedVector<ValueId, TypedVector<IndDepth, IndObjectId, K>> Var2Obj{};
+  TypedVector<IndObjectId, std::pair<ValueId, IndDepth>> Obj2Var{};
+  BasicUnionFindAA<AnalysisDomainT, IndObjectId> Base{};
+};
+} // namespace psr

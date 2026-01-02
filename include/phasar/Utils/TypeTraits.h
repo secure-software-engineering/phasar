@@ -16,6 +16,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <concepts>
+#include <cstddef>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -56,6 +57,19 @@ public:
       decltype(getTemplateArgImpl<Base>(std::declval<const Derived &>()));
 };
 
+template <template <typename...> typename Base, typename Derived>
+class IsTemplateInstanceImpl {
+private:
+  template <template <typename...> typename TBase, typename... TT>
+  static std::true_type test(const TBase<TT...> &Impl);
+  template <template <typename...> typename TBase>
+  static std::false_type test(...);
+
+public:
+  static constexpr bool value =
+      decltype(test<Base>(std::declval<const Derived &>()))::value;
+};
+
 template <typename Var, typename T> struct variant_idx;
 template <typename... Ts, typename T>
 struct variant_idx<std::variant<Ts...>, T>
@@ -91,6 +105,12 @@ template <typename T, typename Over>
 concept is_iterable_over_v = is_iterable_v<T> && requires(T &Val) {
   { *llvm::adl_begin(Val) } -> same_as_decay<Over>;
 };
+
+template <typename T>
+concept Foreachable = requires(T &Val) { Val.foreach ([](auto &&...Elem) {}); };
+template <typename T, typename... Over>
+concept ForeachableOver =
+    requires(T &Val) { Val.foreach ([](const Over &...Elem) {}); };
 
 template <typename T>
 concept is_pair_v = detail::is_pair<T>::value; // NOLINT
@@ -195,6 +215,17 @@ template <typename From, typename To>
 concept is_explicitly_convertible_to =
     requires(From F) { static_cast<To>(std::forward<From>(F)); };
 
+template <typename T>
+concept IdType = is_explicitly_convertible_to<T, size_t> &&
+                 is_explicitly_convertible_to<size_t, T>;
+
+template <typename T, unsigned MaxWidth = sizeof(unsigned)>
+concept SmallIdType = IdType<T> && sizeof(T) <= MaxWidth;
+
+template <typename Derived, template <typename...> typename Base>
+concept IsTemplateInstance =
+    detail::IsTemplateInstanceImpl<Base, Derived>::value;
+
 template <typename Var, typename T>
 constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
@@ -227,7 +258,7 @@ struct FalseFn {
 /// Delegates to the ctor of T
 template <typename T> struct DefaultConstruct {
   template <typename... U>
-  [[nodiscard]] inline T
+  [[nodiscard]] T
   operator()(U &&...Val) noexcept(std::is_nothrow_constructible_v<T, U...>) {
     return T(std::forward<U>(Val)...);
   }
@@ -256,6 +287,10 @@ struct IdentityFn {
   template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<decltype(Val)>(Val);
   }
+};
+
+template <typename ArgT> struct DummyFn {
+  void operator()(ArgT Arg) const noexcept {}
 };
 
 // NOLINTEND(readability-identifier-naming)

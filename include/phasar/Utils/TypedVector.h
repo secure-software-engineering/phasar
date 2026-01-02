@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_TYPEDVECTOR_H
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
@@ -32,7 +33,7 @@ namespace psr {
 /// \tparam ValueT The usual value_type of SmallVector.
 /// \tparam SmallSize The size of the inline-storage of SmallVector (default:
 /// 0)
-template <typename IdT, typename ValueT, unsigned SmallSize = 0>
+template <IdType IdT, typename ValueT, unsigned SmallSize = 0>
 class TypedVector {
 public:
   TypedVector() noexcept = default;
