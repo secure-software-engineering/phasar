@@ -160,6 +160,11 @@ private:
   hasFunctionImpl(llvm::StringRef FunctionName) const noexcept {
     return Mod->getFunction(FunctionName) != nullptr;
   }
+  [[nodiscard]] f_t getFunctionOfImpl(n_t Inst) const {
+    assert(Inst != nullptr);
+    return Inst->getFunction();
+  }
+
   [[nodiscard]] g_t
   getGlobalVariableDefinitionImpl(llvm::StringRef GlobalVariableName) const;
   [[nodiscard]] size_t getNumInstructionsImpl() const noexcept {

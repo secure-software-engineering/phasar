@@ -96,18 +96,18 @@ private:
 
 namespace llvm {
 template <> struct PointerLikeTypeTraits<psr::PAGVariable> {
-  static inline void *getAsVoidPointer(psr::PAGVariable P) {
+  static void *getAsVoidPointer(psr::PAGVariable P) {
     return P.getOpaqueValue();
   }
 
-  static inline psr::PAGVariable getFromVoidPointer(void *P) {
+  static psr::PAGVariable getFromVoidPointer(void *P) {
     psr::PAGVariable V{nullptr};
     static_cast<psr::PAGVariable::Base &>(V) =
         psr::PAGVariable::Base::getFromOpaqueValue(P);
     return V;
   }
 
-  static inline psr::PAGVariable getFromVoidPointer(const void *P) {
+  static psr::PAGVariable getFromVoidPointer(const void *P) {
     psr::PAGVariable V{nullptr};
     static_cast<psr::PAGVariable::Base &>(V) =
         psr::PAGVariable::Base::getFromOpaqueValue(P);

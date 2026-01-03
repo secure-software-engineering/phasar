@@ -1,10 +1,13 @@
 #pragma once
 
+#include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/Pointer/CallingContextConstructor.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
 #include "phasar/Pointer/RawAliasSet.h"
+#include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PointerUtils.h"
@@ -27,6 +30,72 @@ concept UnionFindAAResult = requires(const T &Result, ValueId Var) {
   { T::isCached() } noexcept -> std::convertible_to<bool>;
   { Result.getRawAliasSet(Var) } -> std::convertible_to<RawAliasSet<ValueId>>;
   { Result.mayAlias(Var, Var) } -> std::convertible_to<bool>;
+  { Result.size() } noexcept -> std::convertible_to<size_t>;
+};
+
+template <UnionFindAAResult FirstT, UnionFindAAResult SecondT>
+struct UnionFindAAResultIntersection {
+  [[nodiscard]] static constexpr bool isCached() noexcept {
+    // The set-intersection is not cached
+    return false;
+  }
+
+  [[nodiscard]] constexpr size_t size() const noexcept {
+    assert(
+        First.size() == Second.size() &&
+        "Only alias-results on the same ValueCompressor should be intersected");
+    return First.size();
+  }
+
+  [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
+    auto ResultSet = First.getRawAliasSet(Var);
+    ResultSet &= Second.getRawAliasSet(Var);
+    return ResultSet;
+  }
+
+  [[nodiscard]] constexpr bool mayAlias(ValueId Var1, ValueId Var2) const {
+    return First.mayAlias(Var1, Var2) && Second.mayAlias(Var1, Var2);
+  }
+
+  [[no_unique_address]] FirstT First;
+  [[no_unique_address]] SecondT Second;
+};
+
+/// Lazy caching of union-find alias-analysis results. This class is *not*
+/// thread-safe!
+template <UnionFindAAResult AAResT, bool ShouldCacheMayAlias = true>
+class CachedUnionFindAAResult {
+public:
+  explicit CachedUnionFindAAResult(AAResT &&AARes) : AARes(std::move(AARes)) {
+    Var2AliasVars.resize(this->AARes.size());
+    ComputedAliasSetFor.reserve(this->AARes.size());
+  }
+
+  [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
+
+  [[nodiscard]] constexpr size_t size() const noexcept { return AARes.size(); }
+
+  [[nodiscard]] const RawAliasSet<ValueId> &getRawAliasSet(ValueId Var) const {
+    if (ComputedAliasSetFor.tryInsert(Var)) [[unlikely]] {
+      Var2AliasVars[Var] = AARes.getRawAliasSet(Var);
+    }
+    return Var2AliasVars[Var];
+  }
+
+  [[nodiscard]] bool mayAlias(ValueId Var1, ValueId Var2) const {
+    if constexpr (ShouldCacheMayAlias) {
+      return getRawAliasSet(Var1).contains(Var2);
+    } else {
+      return AARes.mayAlias(Var1, Var2);
+    }
+  }
+
+private:
+  // TODO: Combine Var2AliasVars+ComputedAliasSetFor into a ValueIdMap!
+  mutable TypedVector<ValueId, RawAliasSet<ValueId>> Var2AliasVars;
+  mutable BitSet<ValueId> ComputedAliasSetFor{};
+
+  [[no_unique_address]] AAResT AARes;
 };
 
 struct UnionFindAAResultBase {
@@ -38,7 +107,10 @@ struct UnionFindAAResultBase {
 struct BasicUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, ObjectRepId> Var2Rep;
 
-  static constexpr bool isCached() noexcept { return true; }
+  [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
+  [[nodiscard]] constexpr size_t size() const noexcept {
+    return Var2Rep.size();
+  }
 
   [[nodiscard]] const RawAliasSet<ValueId> &
   getRawAliasSet(ValueId Var) const noexcept {
@@ -59,7 +131,10 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
 struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, llvm::SmallVector<ObjectRepId, 2>> Var2Rep{};
 
-  static constexpr bool isCached() noexcept { return false; }
+  [[nodiscard]] static constexpr bool isCached() noexcept { return false; }
+  [[nodiscard]] constexpr size_t size() const noexcept {
+    return Var2Rep.size();
+  }
 
   [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
     RawAliasSet<ValueId> ResultSet;
@@ -142,11 +217,12 @@ public:
   using v_t = typename AnalysisDomainT::v_t;
   using f_t = typename AnalysisDomainT::f_t;
   using db_t = typename AnalysisDomainT::db_t;
-  using i_t = typename AnalysisDomainT::i_t;
 
-  CallingContextSensUnionFindAA(MaybeUniquePtr<i_t> ICF) noexcept
-      : ICF(std::move(ICF)) {
-    assert(this->ICF != nullptr);
+  CallingContextSensUnionFindAA(MaybeUniquePtr<CallGraph<n_t, f_t>> CG,
+                                const db_t *IRDB) noexcept
+      : CG(std::move(CG)), IRDB(IRDB) {
+    assert(this->CG != nullptr);
+    assert(this->IRDB != nullptr);
   }
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
@@ -191,12 +267,12 @@ public:
     Var2Obj.emplace_back();
     if (const auto &Fun = getFunction(Var)) {
       CC.visitAllCallingContexts(
-          unwrapNullable(Fun), *ICF, *ICF,
+          unwrapNullable(Fun), *CG, *IRDB,
           [this, VId](ByConstRef<n_t> /*FirstCS*/, CallingContextId Ctx) {
             std::ignore = getObject(VId, Ctx);
           });
 
-      if (!ICF->getCallersOf(unwrapNullable(Fun)).empty()) {
+      if (!CG->getCallersOf(unwrapNullable(Fun)).empty()) {
         return;
       }
       // fallback in case, we have no callers
@@ -218,7 +294,7 @@ public:
 
       for (const auto &[_, Obj] : Objects) {
         auto Rep = Equiv[Obj];
-        if (Result.BackwardView[Rep].try_insert(ValId)) {
+        if (Result.BackwardView[Rep].tryInsert(ValId)) {
           Result.Var2Rep[ValId].push_back(Rep);
         }
       }
@@ -233,18 +309,23 @@ public:
 
 private:
   [[nodiscard]] Nullable<f_t> getFunction(ByConstRef<v_t> Var) {
-    auto Ptr = getPointerFrom(Var);
-    if constexpr (requires() {
-                    {
-                      Ptr->getFunction()
-                    } -> std::convertible_to<Nullable<f_t>>;
-                  }) {
-      return Ptr->getFunction();
+    if constexpr (requires() { getPointerFrom(Var)->getFunction(); }) {
+      return getPointerFrom(Var)->getFunction();
     } else {
-      return ICF.getFunction(Var);
+      return IRDB->getFunctionOf(Var);
     }
   }
 
+  [[nodiscard]] const CtxObjectId *getObjectOrNull(ValueId Val,
+                                                   CallingContextId Ctx) {
+
+    const auto *Ret = getOrNull(Var2Obj[Val], Ctx);
+    if (!Ret) {
+      Ret = getOrNull(Var2Obj[Val], CallingContextId::None);
+    }
+
+    return Ret;
+  }
   [[nodiscard]] CtxObjectId getObject(ValueId VId, CallingContextId Ctx) {
     auto [It, Inserted] =
         Var2Obj[VId].try_emplace(Ctx, CtxObjectId(Obj2Var.size()));
@@ -255,7 +336,8 @@ private:
     return It->second;
   }
 
-  MaybeUniquePtr<i_t> ICF;
+  MaybeUniquePtr<CallGraph<n_t, f_t>> CG;
+  const db_t *IRDB{};
   TypedVector<CtxObjectId, std::pair<ValueId, CallingContextId>> Obj2Var{};
   TypedVector<ValueId, llvm::SmallDenseMap<CallingContextId, CtxObjectId>>
       Var2Obj{};
@@ -265,7 +347,7 @@ private:
 };
 
 template <typename AnalysisDomainT, unsigned K = 5>
-class IndirectionSencUnionFindAA {
+class IndirectionSensUnionFindAA {
 public:
   static_assert(K > 0, "A depth-limit of 0 is invalid!");
 
@@ -293,28 +375,28 @@ public:
       case Edge::kindOf<Gep>():
       case Edge::kindOf<Call>():
       case Edge::kindOf<Return>():
-        if (auto ToObj = getFldObjectOrNull(To, FromCtx)) {
+        if (auto ToObj = getObjectOrNull(To, FromCtx)) {
           Base.AliasSets.join(FromObj, *ToObj);
         }
 
         break;
       case Edge::kindOf<Load>():
-        if (auto ToCtx = prevFldDepth(FromCtx)) {
-          if (auto ToObj = getFldObjectOrNull(To, *ToCtx)) {
+        if (auto ToCtx = prevDepth(FromCtx)) {
+          if (auto ToObj = getObjectOrNull(To, *ToCtx)) {
             Base.AliasSets.join(FromObj, *ToObj);
           }
         }
-        if (FromCtx == K - 1) {
+        if (FromCtx == IndDepth(K - 1)) {
           // For soundness
-          if (auto ToObj = getFldObjectOrNull(To, FromCtx)) {
+          if (auto ToObj = getObjectOrNull(To, FromCtx)) {
             Base.AliasSets.join(FromObj, *ToObj);
           }
         }
         break;
       case Edge::kindOf<Store>():
       case Edge::kindOf<StorePOI>():
-        if (auto ToObj = getFldObjectOrNull(To, nextFldDepth(FromCtx))) {
-          Base.AliasSets.join(FromObj, ToObj);
+        if (auto ToObj = getObjectOrNull(To, nextDepth(FromCtx))) {
+          Base.AliasSets.join(FromObj, *ToObj);
         }
 
         break;
@@ -337,13 +419,37 @@ public:
   }
 
   [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
-    return Base.consumeAAResults(NumVars, [this](ValueId VId) {
+    return std::move(Base).consumeAAResults(NumVars, [this](ValueId VId) {
       // When presenting the results, we only care about the values at depth 0
       return Var2Obj[VId][IndDepth{}];
     });
   }
 
 private:
+  [[nodiscard]] std::optional<IndObjectId> getObjectOrNull(ValueId VId,
+                                                           IndDepth Ctx) {
+    const auto &Map = Var2Obj[VId];
+    if (!Map.inbounds(Ctx)) {
+      return std::nullopt;
+    }
+
+    return Map[Ctx];
+  }
+
+  constexpr static IndDepth nextDepth(IndDepth Ctx) noexcept {
+    if (Ctx == IndDepth(K - 1)) {
+      return Ctx;
+    }
+
+    return IndDepth(uint32_t(Ctx) + 1);
+  }
+  constexpr static std::optional<IndDepth> prevDepth(IndDepth Ctx) noexcept {
+    if (Ctx == IndDepth{}) {
+      return std::nullopt;
+    }
+    return IndDepth(uint32_t(Ctx) - 1);
+  }
+
   // XXX: Replace inner TypedVector by sth like TypedInplaceVector (e.g., using
   // std::inplace_vector once moving forward with the required C++ version)
   TypedVector<ValueId, TypedVector<IndDepth, IndObjectId, K>> Var2Obj{};

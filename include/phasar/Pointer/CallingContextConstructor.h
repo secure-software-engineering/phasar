@@ -1,14 +1,16 @@
 #pragma once
 
 #include "phasar/ControlFlow/CallGraph.h"
-#include "phasar/ControlFlow/ICFGBase.h"
+#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/StrongTypeDef.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/Hashing.h"
 
 #include <array>
+#include <cstdint>
 
 namespace psr {
 template <typename N, unsigned K = 1> struct CallingContext {
@@ -65,8 +67,9 @@ struct DenseMapInfo<psr::CallingContext<N, K>> {
 };
 } // namespace llvm
 
+PHASAR_STRONG_TYPEDEF(psr, uint32_t, CallingContextId, None = 0);
+
 namespace psr {
-enum class CallingContextId : uint32_t { None = 0 };
 
 template <typename N, typename F, unsigned K = 1>
 class CallingContextConstructor {
@@ -83,23 +86,23 @@ public:
     CC2Id.getOrInsert(CallingContext<n_t, K>{});
   }
 
-  template <typename CFGTy>
+  template <typename DBTy>
   void visitAllCallingContexts(
       const llvm::Function *Fun, const CallGraph<n_t, f_t> &CG,
-      const CFGBase<CFGTy> &CF,
+      const ProjectIRDBBase<DBTy> &IRDB,
       std::invocable<n_t, CallingContextId> auto CCVisitor) {
     CallingContext<n_t, K> Ctx{};
-    visitAllCallingContextsImpl<0>(Fun, CG, CF, CCVisitor, Ctx);
+    visitAllCallingContextsImpl<0>(Fun, CG, IRDB, CCVisitor, Ctx);
   }
 
-  template <typename CFGTy>
+  template <typename DBTy>
   void visitContextsAtCall(ByConstRef<n_t> Call, const CallGraph<n_t, f_t> &CG,
-                           const CFGBase<CFGTy> &CF,
+                           const ProjectIRDBBase<DBTy> &IRDB,
                            std::invocable<CallingContextId> auto CCVisitor) {
     CallingContext<n_t, K> Ctx{};
     Ctx.Callers[0] = Call;
     visitAllCallingContextsImpl<1>(
-        CF.getFunctionOf(Call), CG, CF,
+        IRDB.getFunctionOf(Call), CG, IRDB,
         [CCVisitor{std::move(CCVisitor)}](ByConstRef<n_t>,
                                           CallingContextId Ctx) {
           std::invoke(CCVisitor, Ctx);
@@ -117,10 +120,10 @@ public:
   }
 
 private:
-  template <typename CFGTy, unsigned Idx>
+  template <unsigned Idx, typename DBTy>
   void visitAllCallingContextsImpl(
       ByConstRef<f_t> Fun, const CallGraph<n_t, f_t> &CG,
-      const CFGBase<CFGTy> &CF,
+      const ProjectIRDBBase<DBTy> &IRDB,
       std::invocable<n_t, CallingContextId> auto &&CCVisitor,
       CallingContext<n_t, K> &CurrCtx) {
     // TODO: Improve this algorithm
@@ -130,7 +133,7 @@ private:
 
       for (const auto &CS : CallersOfCS) {
         CurrCtx.Callers[Idx] = CS;
-        visitAllCallingContextsImpl<(Idx + 1)>(CF.getFunctionOf(CS), CG, CF,
+        visitAllCallingContextsImpl<(Idx + 1)>(IRDB.getFunctionOf(CS), CG, IRDB,
                                                CCVisitor, CurrCtx);
       }
 

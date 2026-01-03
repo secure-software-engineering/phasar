@@ -1,6 +1,7 @@
 #pragma once
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/StrongTypeDef.h"
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -9,6 +10,9 @@
 
 #include <optional>
 #include <type_traits>
+
+/// The id-type for values inserted into the ValueCompressor.
+PHASAR_STRONG_TYPEDEF(psr, uint32_t, ValueId);
 
 namespace psr {
 
@@ -20,9 +24,6 @@ template <typename T>
 static constexpr bool IsPointerWithAtleastOneFreeLowBit<T> =
     llvm::PointerLikeTypeTraits<T>::NumLowBitsAvailable > 0;
 } // namespace detail
-
-/// The id-type for values inserted into the ValueCompressor.
-enum class ValueId : uint32_t {};
 
 /// A utility-class that assigns sequential integer-like ids (psr::ValueId) to
 /// every inserted value.
@@ -102,20 +103,3 @@ private:
 };
 
 } // namespace psr
-
-namespace llvm {
-template <> struct DenseMapInfo<psr::ValueId> {
-  static constexpr psr::ValueId getEmptyKey() noexcept {
-    return psr::ValueId(UINT32_MAX);
-  }
-  static constexpr psr::ValueId getTombstoneKey() noexcept {
-    return psr::ValueId(UINT32_MAX - 1);
-  }
-  static inline llvm::hash_code getHashValue(psr::ValueId VId) {
-    return llvm::hash_value(std::underlying_type_t<psr::ValueId>(VId));
-  }
-  static constexpr bool isEqual(psr::ValueId L, psr::ValueId R) noexcept {
-    return L == R;
-  }
-};
-} // namespace llvm
