@@ -10,6 +10,7 @@
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -239,10 +240,9 @@ public:
   using db_t = typename AnalysisDomainT::db_t;
 
   CallingContextSensUnionFindAA(MaybeUniquePtr<CallGraph<n_t, f_t>> CG,
-                                const db_t *IRDB) noexcept
+                                NonNullPtr<const db_t> IRDB) noexcept
       : CG(std::move(CG)), IRDB(IRDB) {
     assert(this->CG != nullptr);
-    assert(this->IRDB != nullptr);
   }
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
@@ -357,7 +357,7 @@ private:
   }
 
   MaybeUniquePtr<CallGraph<n_t, f_t>> CG;
-  const db_t *IRDB{};
+  NonNullPtr<const db_t> IRDB;
   TypedVector<CtxObjectId, std::pair<ValueId, CallingContextId>> Obj2Var{};
   TypedVector<ValueId, llvm::SmallDenseMap<CallingContextId, CtxObjectId>>
       Var2Obj{};

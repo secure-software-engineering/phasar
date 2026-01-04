@@ -298,6 +298,9 @@ bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 bool isVarAnnotationIntrinsic(const llvm::Function *F);
 
 inline const llvm::Function *getFunction(const llvm::Value *V) {
+  if (!V) {
+    return nullptr;
+  }
   if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     return Inst->getFunction();
   }
@@ -305,6 +308,13 @@ inline const llvm::Function *getFunction(const llvm::Value *V) {
     return Arg->getParent();
   }
   return nullptr;
+}
+inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
+  if (!Inst) {
+    return nullptr;
+  }
+
+  return Inst->getFunction();
 }
 
 /**
