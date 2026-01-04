@@ -7,6 +7,7 @@
 #include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Nullable.h"
@@ -22,6 +23,8 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include <concepts>
+#include <functional>
+#include <type_traits>
 
 namespace psr {
 
@@ -96,6 +99,23 @@ private:
   mutable BitSet<ValueId> ComputedAliasSetFor{};
 
   [[no_unique_address]] AAResT AARes;
+};
+
+/// Implements the AliasIterator interface
+template <typename AAResT, typename Var2IdMapper, typename Id2VarMapper>
+  requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
+struct UnionFindAliasIterator {
+  [[no_unique_address]] AAResT AARes;
+  [[no_unique_address]] Var2IdMapper Var2Id;
+  [[no_unique_address]] Id2VarMapper Id2Var;
+
+  void forallAliasesOf(auto &&Ptr, auto && /*Inst*/, auto Callback) {
+    auto Id = std::invoke(Var2Id, Ptr);
+    const auto &RawAliases = AARes.getRawAliasSet(Id);
+    RawAliases.foreach ([&, Callback = copyOrRef(Callback)](ValueId Alias) {
+      std::invoke(Id2Var, Alias, Callback);
+    });
+  }
 };
 
 struct UnionFindAAResultBase {

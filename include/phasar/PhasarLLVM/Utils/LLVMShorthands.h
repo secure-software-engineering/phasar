@@ -19,7 +19,9 @@
 
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Casting.h"
 
@@ -294,6 +296,16 @@ bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
  * @param F The function to test - Target of the call instruction
  */
 bool isVarAnnotationIntrinsic(const llvm::Function *F);
+
+inline const llvm::Function *getFunction(const llvm::Value *V) {
+  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return Inst->getFunction();
+  }
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->getParent();
+  }
+  return nullptr;
+}
 
 /**
  * Retrieves String annotation value as per

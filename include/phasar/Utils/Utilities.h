@@ -10,6 +10,7 @@
 #ifndef PHASAR_UTILS_UTILITIES_H_
 #define PHASAR_UTILS_UTILITIES_H_
 
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/SmallVector.h"
@@ -266,6 +267,14 @@ forward_like(U &&X) noexcept { // NOLINT
     } else {
       return std::move(X); // NOLINT
     }
+  }
+}
+
+template <typename T> constexpr auto copyOrRef(T &Val) noexcept {
+  if constexpr (CanEfficientlyPassByValue<T>) {
+    return Val;
+  } else {
+    return std::ref(Val);
   }
 }
 
