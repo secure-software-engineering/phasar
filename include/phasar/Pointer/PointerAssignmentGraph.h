@@ -87,7 +87,13 @@ struct Edge : public std::variant<Assign, Gep, Call, Return, Load, Store,
 };
 
 template <typename T>
-concept PBStrategy =
+concept CanOnAddEdge =
+    requires(T &Strategy, ValueId From, ValueId To, pag::Edge E) {
+      Strategy.onAddEdge(From, To, E, Nullable<typename T::n_t>{});
+    };
+
+template <typename T>
+concept PBStrategyBase =
     requires(T &Strategy, const T &CStrategy, ValueId From, ValueId To,
              const typename T::n_t &Inst, pag::Edge E) {
       typename T::v_t;
@@ -95,10 +101,11 @@ concept PBStrategy =
       typename T::f_t;
       typename T::n_t;
 
-      { T() } noexcept;
-      Strategy.onAddEdge(From, To, E, Nullable<typename T::n_t>{});
       CStrategy.withCalleesOfCallAt(Inst, [](typename T::f_t Callee) {});
     };
+
+template <typename T>
+concept PBStrategy = CanOnAddEdge<T> && PBStrategyBase<T>;
 
 template <typename T>
 concept CanOnAddValue = requires(T &Strategy, const T::v_t &Var) {
@@ -113,7 +120,7 @@ concept CanGetNumPossibleValues =
       } noexcept -> std::convertible_to<size_t>;
     };
 
-template <PBStrategy FirstT, PBStrategy SecondT>
+template <PBStrategy FirstT, CanOnAddEdge SecondT>
   requires(std::same_as<typename FirstT::n_t, typename SecondT::n_t> &&
            std::same_as<typename FirstT::v_t, typename SecondT::v_t> &&
            std::same_as<typename FirstT::f_t, typename SecondT::f_t> &&
@@ -154,6 +161,46 @@ struct PBStrategyCombinator {
     }
     if constexpr (CanGetNumPossibleValues<FirstT>) {
       return First.getNumPossibleValues(IRDB);
+    }
+  }
+
+  constexpr void
+  withCalleesOfCallAt(ByConstRef<n_t> CS,
+                      llvm::function_ref<void(f_t)> WithCallee) const {
+    Second.withCalleesOfCallAt(CS, WithCallee);
+  }
+};
+
+template <CanOnAddEdge FirstT, PBStrategyBase SecondT> struct PBMixin {
+  using n_t = typename SecondT::n_t;
+  using v_t = typename SecondT::v_t;
+  using f_t = typename SecondT::f_t;
+  using db_t = typename SecondT::db_t;
+
+  [[no_unique_address]] FirstT First;
+  [[no_unique_address]] SecondT Second;
+
+  constexpr void onAddEdge(ValueId From, ValueId To, Edge E,
+                           Nullable<n_t> AtInstruction) {
+    First.onAddEdge(From, To, E, AtInstruction);
+  }
+
+  constexpr void onAddValue(ByConstRef<v_t> Variable, ValueId VId)
+    requires CanOnAddValue<FirstT>
+  {
+    First.onAddValue(Variable, VId);
+  }
+
+  [[nodiscard]] constexpr size_t
+  getNumPossibleValues(const db_t &IRDB) const noexcept
+    requires(CanGetNumPossibleValues<FirstT> ||
+             CanGetNumPossibleValues<SecondT>)
+  {
+    if constexpr (CanGetNumPossibleValues<FirstT>) {
+      return First.getNumPossibleValues(IRDB);
+    }
+    if constexpr (CanGetNumPossibleValues<SecondT>) {
+      return Second.getNumPossibleValues(IRDB);
     }
   }
 
@@ -253,8 +300,8 @@ private:
   }
 
   template <typename ConcreteStrategyT>
-  static void getNumPossibleValuesThunk(const void *Ctx,
-                                        const db_t &IRDB) noexcept {
+  static size_t getNumPossibleValuesThunk(const void *Ctx,
+                                          const db_t &IRDB) noexcept {
     if constexpr (CanGetNumPossibleValues<ConcreteStrategyT>) {
       return static_cast<const ConcreteStrategyT *>(Ctx)->getNumPossibleValues(
           IRDB);

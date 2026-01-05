@@ -5,6 +5,7 @@ set(lca_files
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp
+  context_01.c
 )
 
 set(lca_files_mem2reg

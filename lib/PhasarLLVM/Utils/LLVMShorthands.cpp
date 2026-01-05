@@ -505,6 +505,9 @@ static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
 }
 
 bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
+  if (!Var) {
+    return false;
+  }
   if (!isAllocationSiteOrSimilar(Var)) {
     return true;
   }
@@ -520,11 +523,10 @@ bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
         continue;
       }
       if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Use.getUser())) {
-        if (Store->getValueOperand() == Use) {
+        if (Store->getPointerOperand() == Use) {
           continue;
         }
-      } else if (llvm::isa<llvm::IntrinsicInst>(Use.getUser())) {
-        // Approximation!
+      } else if (llvm::isa<llvm::DbgInfoIntrinsic>(Use.getUser())) {
         continue;
       } else if (llvm::isa<llvm::CastInst>(Use.getUser())) {
         if (!CurrVal->getType()->isPointerTy()) {

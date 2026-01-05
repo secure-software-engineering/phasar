@@ -210,7 +210,7 @@ struct BasicUnionFindAA {
         BasicUnionFindAAResult::ObjectRepId(UINT32_MAX);
 
     BasicUnionFindAAResult Result{};
-    Result.BackwardView.resize(Equiv.size());
+    Result.BackwardView.resize(Equiv.numClasses());
     Result.Var2Rep.resize(NumVars, InvalidRep);
 
     for (auto VId : iota<ValueId>(NumVars)) {
@@ -239,7 +239,7 @@ public:
   using f_t = typename AnalysisDomainT::f_t;
   using db_t = typename AnalysisDomainT::db_t;
 
-  CallingContextSensUnionFindAA(MaybeUniquePtr<CallGraph<n_t, f_t>> CG,
+  CallingContextSensUnionFindAA(MaybeUniquePtr<const CallGraph<n_t, f_t>> CG,
                                 NonNullPtr<const db_t> IRDB) noexcept
       : CG(std::move(CG)), IRDB(IRDB) {
     assert(this->CG != nullptr);
@@ -247,6 +247,9 @@ public:
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
                  Nullable<n_t> CallSite) {
+    // llvm::errs() << "[CtxAA][onAddEdge]: From: " << int(From)
+    //              << ", To: " << int(To) << ", E: " << to_string(E)
+    //              << ", At: " << llvmIRToString(CallSite) << '\n';
     E.apply(Overloaded{
         [&, this, CallSite](pag::Call) {
           for (const auto &[ArgCtxId, FromObj] : Var2Obj[From]) {
@@ -300,13 +303,20 @@ public:
     std::ignore = getObject(VId, CallingContextId::None);
   }
 
+  void withCalleesOfCallAt(ByConstRef<n_t> CS,
+                           std::invocable<f_t> auto WithCallee) const {
+    for (const auto &Callee : CG->getCalleesOfCallAt(CS)) {
+      std::invoke(WithCallee, Callee);
+    }
+  }
+
   [[nodiscard]] CallingContextSensUnionFindAAResult
   consumeAAResults(size_t NumVars) && {
     auto Equiv = std::move(Base.AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
     CallingContextSensUnionFindAAResult Result{};
-    Result.BackwardView.resize(Equiv.size());
+    Result.BackwardView.resize(Equiv.numClasses());
     Result.Var2Rep.resize(NumVars);
 
     for (const auto &[ValId, Objects] : Var2Obj.enumerate()) {
@@ -356,7 +366,7 @@ private:
     return It->second;
   }
 
-  MaybeUniquePtr<CallGraph<n_t, f_t>> CG;
+  MaybeUniquePtr<const CallGraph<n_t, f_t>> CG;
   NonNullPtr<const db_t> IRDB;
   TypedVector<CtxObjectId, std::pair<ValueId, CallingContextId>> Obj2Var{};
   TypedVector<ValueId, llvm::SmallDenseMap<CallingContextId, CtxObjectId>>

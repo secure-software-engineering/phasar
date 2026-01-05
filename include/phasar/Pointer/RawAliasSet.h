@@ -4,6 +4,8 @@
 
 #include "llvm/ADT/SparseBitVector.h"
 
+#include <concepts>
+
 namespace psr {
 
 template <typename ASet>
@@ -22,12 +24,13 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
   ConstSet.foreach (DummyFn<typename ASet::value_type>{});
   MutSet |= ConstSet;
   MutSet &= ConstSet;
+  MutSet -= ConstSet;
+  { ConstSet == ConstSet } noexcept -> std::convertible_to<bool>;
+  { ConstSet != ConstSet } noexcept -> std::convertible_to<bool>;
   { MutSet.tryMergeWith(ConstSet) } -> std::convertible_to<bool>;
   { MutSet.clear() } noexcept;
   { ConstSet.empty() } noexcept -> std::convertible_to<bool>;
   { ConstSet.size() } noexcept -> std::convertible_to<size_t>;
-
-  // TODO: Difference?
 };
 
 template <SmallIdType IdT> class RawAliasSet {
@@ -53,6 +56,9 @@ public:
 
   void operator|=(const RawAliasSet &Other) { Bits |= Other.Bits; }
   void operator&=(const RawAliasSet &Other) { Bits &= Other.Bits; }
+  void operator-=(const RawAliasSet &Other) {
+    Bits.intersectWithComplement(Other.Bits);
+  }
 
   [[nodiscard]] bool empty() const noexcept { return Bits.empty(); }
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
@@ -67,6 +73,10 @@ public:
   }
 
   void erase(IdT Id) { Bits.reset(uint32_t(Id)); }
+
+  [[nodiscard]] bool operator==(const RawAliasSet &Other) const noexcept {
+    return Bits == Other.Bits;
+  }
 
 private:
   llvm::SparseBitVector<> Bits;

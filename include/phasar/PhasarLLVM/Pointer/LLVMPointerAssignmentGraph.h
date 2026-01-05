@@ -26,9 +26,7 @@ struct PAGVariable : public llvm::PointerIntPair<const llvm::Value *, 1, bool> {
   };
 
   PAGVariable() noexcept = default; // To enable move-assign in TinyPtrVector
-  PAGVariable(const llvm::Value *Var) noexcept : Base(Var, false) {
-    assert(Var != nullptr);
-  }
+  PAGVariable(const llvm::Value *Var) noexcept : Base(Var, false) {}
   PAGVariable(Return RetVar) noexcept : Base(RetVar.Fun, true) {
     assert(RetVar.Fun != nullptr);
   }
@@ -85,11 +83,12 @@ struct LLVMPAGDomain : LLVMAnalysisDomainDefault {
 };
 
 class LLVMPAGBuilder : public PAGBuilder<LLVMPAGDomain> {
-private:
-  struct PAGBuildData;
-
+public:
   void buildPAG(const LLVMProjectIRDB &IRDB, ValueCompressor<v_t> &VC,
                 pag::PBStrategyRef<LLVMPAGDomain> Strategy) override;
+
+private:
+  struct PAGBuildData;
 };
 
 } // namespace psr

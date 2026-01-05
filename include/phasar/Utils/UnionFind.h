@@ -31,14 +31,11 @@ private:
 
 template <SmallIdType IdT, SmallIdType MappedIdT> class CompressedUnionFind {
 public:
-  [[nodiscard]] size_t size() const noexcept { return Equiv.getNumClasses(); }
-
-  [[nodiscard]] bool inbounds(IdT Id) const noexcept {
-    return size_t(Id) < size();
+  [[nodiscard]] size_t numClasses() const noexcept {
+    return Equiv.getNumClasses();
   }
 
   [[nodiscard]] MappedIdT operator[](IdT Id) const {
-    assert(inbounds(Id));
     return MappedIdT(Equiv[unsigned(Id)]);
   }
 

@@ -6,7 +6,7 @@
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/ValueCompressor.h"
 
-#include "llvm/ADT/BitVector.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Instructions.h"
@@ -222,11 +222,19 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void addDelayedEdges(LLVMPBStrategyRef Strategy) {
     OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto VId) {
+      const bool NeedsStoreSafetyFallback =
+          OutgoingLoads[VId].empty() &&
+          llvm::any_of(VC.id2vars(VId), [](PAGVariable Var) {
+            return Var.isReturnVariable() ||
+                   isAddressTakenVariable(Var.valueOrNull());
+          });
+
       for (auto [IncStore, _] : IncomingStores[VId]) {
         for (auto OutLoad : OutgoingLoads[VId]) {
           Strategy.onAddEdge(IncStore, OutLoad, Assign{}, nullptr);
         }
-        if (OutgoingLoads[VId].empty()) {
+        if (NeedsStoreSafetyFallback) {
+          // Safety-fallback: we may have missed a use of the stored value
           Strategy.onAddEdge(IncStore, VId, StorePOI{}, nullptr);
         }
       }
