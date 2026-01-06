@@ -29,6 +29,7 @@
 
 namespace psr {
 
+/// Base interface for results of a union-find alias-analysis.
 template <typename T>
 concept UnionFindAAResult = requires(const T &Result, ValueId Var) {
   { T::isCached() } noexcept -> std::convertible_to<bool>;
@@ -37,6 +38,9 @@ concept UnionFindAAResult = requires(const T &Result, ValueId Var) {
   { Result.size() } noexcept -> std::convertible_to<size_t>;
 };
 
+/// The intersection of two (different) independent union-find alias-analysis
+/// results.
+/// Use this to achieve better precision than feasible with a single analysis.
 template <UnionFindAAResult FirstT, UnionFindAAResult SecondT>
 struct UnionFindAAResultIntersection {
   [[nodiscard]] static constexpr bool isCached() noexcept {
@@ -102,7 +106,7 @@ private:
   [[no_unique_address]] AAResT AARes;
 };
 
-/// Implements the AliasIterator interface
+/// Implements the AliasIterator interface on union-find alias-analysis results.
 template <typename AAResT, typename Var2IdMapper, typename Id2VarMapper>
   requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
 struct UnionFindAliasIterator {
@@ -119,12 +123,14 @@ struct UnionFindAliasIterator {
   }
 };
 
+/// Common base-class of union-find alias-analysis results.
 struct UnionFindAAResultBase {
   enum class ObjectRepId : uint32_t {};
 
   TypedVector<ObjectRepId, RawAliasSet<ValueId>> BackwardView;
 };
 
+/// Basic implementation of union-find alias-analysis results.
 struct BasicUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, ObjectRepId> Var2Rep;
 
@@ -149,6 +155,8 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
   }
 };
 
+/// Union-find alias-analysis results for an analysis that achieves (partial)
+/// calling-context sensitivity through heap cloning.
 struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, llvm::SmallVector<ObjectRepId, 2>> Var2Rep{};
 
@@ -182,7 +190,14 @@ struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
   }
 };
 
-template <typename AnalysisDomainT, typename ObjectIdT>
+/// Union-find alias-analysis that is neither context, nor field, nor
+/// indirection sensitive.
+/// Most useful for building a more precise alias-analysis on top of this,
+/// instead of using this directly.
+///
+/// \tparam AnalysisDomainT The analysis domain to use, e.g., LLVMPAGDomain.
+/// \tparam ObjectIdT The type of object-Ids (default ValueId).
+template <typename AnalysisDomainT, typename ObjectIdT = ValueId>
 struct BasicUnionFindAA {
   using ObjectId = ObjectIdT;
 
@@ -229,6 +244,12 @@ struct BasicUnionFindAA {
   UnionFind<ObjectId> AliasSets{};
 };
 
+/// Union-find alias-analysis that achieves (partial) calling-context
+/// sensitivity through heap cloning.
+/// Implements pag::PBStrategy.
+///
+/// \tparam AnalysisDomainT The analysis domain to use, e.g., LLVMPAGDomain.
+/// \tparam K The maximum length of call-strings (default 1).
 template <typename AnalysisDomainT, unsigned K = 1>
 class CallingContextSensUnionFindAA {
 public:
@@ -310,6 +331,7 @@ public:
     }
   }
 
+  /// Retrieve the analysis results after buildPAG() has returned.
   [[nodiscard]] CallingContextSensUnionFindAAResult
   consumeAAResults(size_t NumVars) && {
     auto Equiv = std::move(Base.AliasSets)
@@ -376,6 +398,13 @@ private:
   BasicUnionFindAA<AnalysisDomainT, CtxObjectId> Base{};
 };
 
+/// Union-find alias-analysis that achieves (partial) indirection-depth-context
+/// sensitivity through heap cloning.
+/// Use this with pag::PBMixin to implement pag::PBStrategy.
+///
+/// \tparam AnalysisDomainT The analysis domain to use, e.g., LLVMPAGDomain.
+/// \tparam K The maximum depth of pointer-indirections that can be
+/// differentiated (default 5).
 template <typename AnalysisDomainT, unsigned K = 5>
 class IndirectionSensUnionFindAA {
 public:
@@ -448,6 +477,7 @@ public:
     }
   }
 
+  /// Retrieve the analysis results after buildPAG() has returned.
   [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
     return std::move(Base).consumeAAResults(NumVars, [this](ValueId VId) {
       // When presenting the results, we only care about the values at depth 0

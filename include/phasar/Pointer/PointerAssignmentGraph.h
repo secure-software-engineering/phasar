@@ -171,37 +171,21 @@ struct PBStrategyCombinator {
   }
 };
 
-template <CanOnAddEdge FirstT, PBStrategyBase SecondT> struct PBMixin {
+template <CanOnAddEdge FirstT, PBStrategyBase SecondT>
+struct PBMixin : public FirstT {
   using n_t = typename SecondT::n_t;
   using v_t = typename SecondT::v_t;
   using f_t = typename SecondT::f_t;
   using db_t = typename SecondT::db_t;
 
-  [[no_unique_address]] FirstT First;
   [[no_unique_address]] SecondT Second;
-
-  constexpr void onAddEdge(ValueId From, ValueId To, Edge E,
-                           Nullable<n_t> AtInstruction) {
-    First.onAddEdge(From, To, E, AtInstruction);
-  }
-
-  constexpr void onAddValue(ByConstRef<v_t> Variable, ValueId VId)
-    requires CanOnAddValue<FirstT>
-  {
-    First.onAddValue(Variable, VId);
-  }
 
   [[nodiscard]] constexpr size_t
   getNumPossibleValues(const db_t &IRDB) const noexcept
-    requires(CanGetNumPossibleValues<FirstT> ||
+    requires(!CanGetNumPossibleValues<FirstT> &&
              CanGetNumPossibleValues<SecondT>)
   {
-    if constexpr (CanGetNumPossibleValues<FirstT>) {
-      return First.getNumPossibleValues(IRDB);
-    }
-    if constexpr (CanGetNumPossibleValues<SecondT>) {
-      return Second.getNumPossibleValues(IRDB);
-    }
+    return Second.getNumPossibleValues(IRDB);
   }
 
   constexpr void

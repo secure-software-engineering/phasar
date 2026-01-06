@@ -138,8 +138,14 @@ constexpr auto ContextAABuilder = [](const auto &IRDB, const auto &CG) {
   };
 };
 
-constexpr auto IndAABuilder = [](const auto & /*IRDB*/, const auto & /*CG*/) {
-  return IndirectionSensUnionFindAA<LLVMPAGDomain>{};
+constexpr auto IndAABuilder = [](const auto & /*IRDB*/, const auto &CG) {
+  auto Ret = pag::PBMixin{
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+      pag::LLVMCGProvider{&CG},
+  };
+
+  static_assert(pag::PBStrategy<decltype(Ret)>);
+  return Ret;
 };
 
 TEST(CtxSensUnionFindAATest, Basic01) {

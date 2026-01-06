@@ -1,5 +1,6 @@
 #pragma once
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/RawAliasSet.h"
@@ -24,6 +25,26 @@ llvmUnionFindAliasHandler(const ValueCompressor<PAGVariable> &VC,
     }
   };
 }
+
+namespace pag {
+/// Utility class to make pag::PBMixin<IndirectionSensUnionFindAA,
+/// LLVMCGProvider> implement PBStrategy.
+class LLVMCGProvider : public LLVMPAGDomain {
+public:
+  constexpr LLVMCGProvider(NonNullPtr<const LLVMBasedCallGraph> CG) noexcept
+      : CG(CG) {}
+
+  void withCalleesOfCallAt(n_t Inst,
+                           std::invocable<f_t> auto WithCallee) const {
+    for (const auto *Callee : CG->getCalleesOfCallAt(Inst)) {
+      std::invoke(WithCallee, Callee);
+    }
+  }
+
+private:
+  NonNullPtr<const LLVMBasedCallGraph> CG;
+};
+} // namespace pag
 
 template <typename AAResT, typename Var2IdMapper, typename Id2VarMapper>
   requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
