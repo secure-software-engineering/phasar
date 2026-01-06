@@ -157,7 +157,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Container&gt; <span class="keyword">struct </span><a class="code hl_typedef" href="namespacepsr.html#a6cc99285b5058131accd52ece38b2cc1">ElementType</a> {</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keyword">using </span>IteratorTy =</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      std::decay_t&lt;decltype(llvm::adl_begin(std::declval&lt;Container&gt;()))&gt;;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      std::decay_t&lt;decltype(llvm::adl_begin(std::declval&lt;Container &amp;&gt;()))&gt;;</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keyword">using </span>type = <span class="keyword">typename</span> std::iterator_traits&lt;IteratorTy&gt;::value_type;</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>};</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
@@ -461,7 +461,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jan 4 2026 09:47:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Jan 6 2026 16:16:19 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
