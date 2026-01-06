@@ -34,9 +34,6 @@ static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
   if (Enable) {
     Ctx.enableOpaquePointers();
   }
-#else // LLVM_VERSION_MAJOR >= 17
-#error                                                                         \
-    "Non-opaque pointers are not supported anymore. Refactor PhASAR to remove typed pointer support."
 #endif
 }
 

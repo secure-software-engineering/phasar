@@ -12,8 +12,8 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
-#include "llvm/Support/MathExtras.h"
 
+#include <bit>
 #include <climits>
 #include <concepts>
 #include <cstddef>
@@ -189,7 +189,7 @@ public:
     uint32_t Offset = 0;
     for (auto W : Words) {
       while (W) {
-        auto Curr = llvm::countTrailingZeros(W) + Offset;
+        auto Curr = std::countr_zero(W) + Offset;
         W &= W - 1;
         std::invoke(Handler, IdT(Curr));
       }
