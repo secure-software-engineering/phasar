@@ -154,7 +154,7 @@ TEST(CtxSensUnionFindAATest, Basic01) {
                    LineColFunOp{3, 0, "main", llvm::Instruction::Alloca},
                    LineColFunOp{5, 0, "main", llvm::Instruction::Load},
                }}};
-  doAnalysisAndCompareResults("basic_01_cpp_dbg.ll", GT, ContextAABuilder);
+  doAnalysisAndCompareResults("basic_01_c_dbg.ll", GT, ContextAABuilder);
 }
 
 // TODO: Add more basic tests

@@ -14,6 +14,7 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedArray.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/UnionFind.h"
 #include "phasar/Utils/Utilities.h"
@@ -468,11 +469,14 @@ public:
   void onAddValue(ByConstRef<v_t> /*Var*/, ValueId VId) {
     auto Obj = Obj2Var.size();
     Base.AliasSets.grow(Obj + K);
+    Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {
+      return IndObjectId(Obj + size_t(Depth));
+    });
     // TODO: For some values, we can already see that depth>=2 does not make
     // sense, so we could exit the below loop early
     for (auto Depth : iota<IndDepth>(K)) {
-      Var2Obj[VId].push_back(IndObjectId(Obj));
-      Obj++;
+      // Var2Obj[VId].push_back(IndObjectId(Obj));
+      // Obj++;
       Obj2Var.emplace_back(VId, Depth);
     }
   }
@@ -510,9 +514,7 @@ private:
     return IndDepth(uint32_t(Ctx) - 1);
   }
 
-  // XXX: Replace inner TypedVector by sth like TypedInplaceVector (e.g., using
-  // std::inplace_vector once moving forward with the required C++ version)
-  TypedVector<ValueId, TypedVector<IndDepth, IndObjectId, K>> Var2Obj{};
+  TypedVector<ValueId, TypedArray<IndDepth, IndObjectId, K>> Var2Obj{};
   TypedVector<IndObjectId, std::pair<ValueId, IndDepth>> Obj2Var{};
   BasicUnionFindAA<AnalysisDomainT, IndObjectId> Base{};
 };
