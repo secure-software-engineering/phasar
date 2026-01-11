@@ -48,7 +48,6 @@ public:
   using mono_container_t = IntraMonoFullConstantPropagation::mono_container_t;
 
   InterMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
-                                   const DIBasedTypeHierarchy *TH,
                                    const LLVMBasedICFG *ICF,
                                    LLVMAliasInfoRef PT,
                                    std::vector<std::string> EntryPoints = {});

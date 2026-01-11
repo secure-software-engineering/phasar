@@ -31,10 +31,9 @@
 namespace psr {
 
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
-    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
+    const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
     const LLVMTaintConfig &Config, std::vector<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,
+    : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, ICF, PT,
                                                      std::move(EntryPoints)),
       Config(Config) {}
 

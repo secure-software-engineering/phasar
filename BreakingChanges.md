@@ -2,6 +2,7 @@
 
 ## development HEAD
 
+- `IntraMonoProblem` and `InterMonoProblem`, and all reference-implementations of these problems do not receive a TypeHierarchy-pointer anymore in the ctor.
 - Requiring C++20 instead of C++17
   - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
 - The `AdjacencyList` struct now now has one more template argument to denote the intege-like `vertex_t` type. It is the second template argument (which previously was the EdgeType). The edge-type is now denoted by the *third* template argument.

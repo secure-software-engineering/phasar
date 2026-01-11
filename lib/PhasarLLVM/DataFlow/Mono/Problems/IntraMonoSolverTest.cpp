@@ -34,12 +34,11 @@ using namespace psr;
 namespace psr {
 
 IntraMonoSolverTest::IntraMonoSolverTest(const LLVMProjectIRDB *IRDB,
-                                         const DIBasedTypeHierarchy *TH,
                                          const LLVMBasedCFG *CF,
                                          LLVMAliasInfoRef PT,
                                          std::vector<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoSolverTestAnalysisDomain>(
-          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
+          IRDB, CF, PT, std::move(EntryPoints)) {}
 
 IntraMonoSolverTest::mono_container_t
 IntraMonoSolverTest::merge(const IntraMonoSolverTest::mono_container_t &Lhs,
