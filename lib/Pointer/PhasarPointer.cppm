@@ -34,7 +34,6 @@ using psr::toString;
 using psr::operator<<;
 using psr::AliasSetOwner;
 using psr::is_equivalent_PointsToTraits_v;
-using psr::is_PointsToTraits;
 using psr::is_PointsToTraits_v;
 using psr::PointsToInfo;
 using psr::PointsToInfoBase;
