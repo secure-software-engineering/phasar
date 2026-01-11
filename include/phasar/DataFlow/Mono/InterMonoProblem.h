@@ -17,7 +17,7 @@
 #ifndef PHASAR_DATAFLOW_MONO_INTERMONOPROBLEM_H
 #define PHASAR_DATAFLOW_MONO_INTERMONOPROBLEM_H
 
-#include "phasar/ControlFlow/ICFGBase.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Pointer/AliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -29,8 +29,10 @@
 namespace psr {
 
 template <typename T>
-concept InterMonoAnalysisDomain =
-    MonoAnalysisDomain<T> && requires() { typename T::i_t; };
+concept InterMonoAnalysisDomain = MonoAnalysisDomain<T> && requires() {
+  typename T::i_t;
+  requires ICFG<typename T::i_t>;
+};
 
 /// \brief The analysis problem interface for interprocedural monotone problems
 /// (solvable by the InterMonoSolver). Create a subclass from this and override
@@ -62,10 +64,7 @@ public:
   InterMonoProblem(const db_t *IRDB, const i_t *ICF, AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
       : IntraMonoProblem<AnalysisDomainTy>(IRDB, ICF, PT, EntryPoints),
-        ICF(ICF) {
-    static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
-                  "Type parameter i_t must implement the ICFG interface!");
-  }
+        ICF(ICF) {}
 
   ~InterMonoProblem() override = default;
   InterMonoProblem(const InterMonoProblem &Other) = delete;

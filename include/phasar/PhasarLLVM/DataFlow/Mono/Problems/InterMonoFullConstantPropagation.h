@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoFullConstantPropagation.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"

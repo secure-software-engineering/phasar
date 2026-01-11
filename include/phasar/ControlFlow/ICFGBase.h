@@ -12,6 +12,7 @@
 
 #include "phasar/ControlFlow/CFGBase.h"
 #include "phasar/ControlFlow/CallGraphBase.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -118,7 +119,7 @@ public:
 /// from the given analysis-Domain
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-concept is_icfg_v = is_crtp_base_of_v<ICFGBase, ICF> &&
+concept is_icfg_v = ICFG<ICF> && ICFGDump<ICF> &&
                     std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
                     std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
 

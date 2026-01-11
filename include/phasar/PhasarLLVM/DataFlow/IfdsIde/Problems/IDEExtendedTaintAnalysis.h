@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
@@ -40,8 +41,6 @@
 #include <type_traits>
 
 namespace psr {
-
-class LLVMBasedICFG;
 
 struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = AbstractMemoryLocation;
