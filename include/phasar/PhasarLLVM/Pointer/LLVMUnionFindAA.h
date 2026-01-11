@@ -3,6 +3,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/BottomupUnionFindAA.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
 #include "phasar/Utils/MapUtils.h"
@@ -13,6 +14,7 @@
 namespace psr {
 extern template class CallingContextSensUnionFindAA<LLVMPAGDomain>;
 extern template class IndirectionSensUnionFindAA<LLVMPAGDomain>;
+extern template class BottomupUnionFindAA<LLVMPAGDomain>;
 
 inline constexpr std::invocable<ValueId> auto
 llvmUnionFindAliasHandler(const ValueCompressor<PAGVariable> &VC,

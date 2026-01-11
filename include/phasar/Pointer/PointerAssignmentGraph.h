@@ -64,6 +64,12 @@ struct Edge : public std::variant<Assign, Gep, Call, Return, Load, Store,
     return std::nullopt;
   }
 
+  template <typename T> [[nodiscard]] constexpr T cast() const noexcept {
+    assert(isa<T>() && "Invalid cast!");
+    const auto *Ptr = std::get_if<T>(this);
+    return *Ptr;
+  }
+
   template <typename HandlerFn>
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr decltype(auto)
   apply(HandlerFn &&Handler) const {

@@ -9,7 +9,6 @@
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MapUtils.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PointerUtils.h"
@@ -129,6 +128,8 @@ struct UnionFindAAResultBase {
   enum class ObjectRepId : uint32_t {};
 
   TypedVector<ObjectRepId, RawAliasSet<ValueId>> BackwardView;
+
+  void dump(llvm::raw_ostream &OS = llvm::errs(), uint32_t Indent = 0) const;
 };
 
 /// Basic implementation of union-find alias-analysis results.
@@ -216,9 +217,9 @@ struct BasicUnionFindAA {
     AliasSets.grow(size_t(VId) + 1);
   }
 
+  template <std::invocable<ValueId> Var2ObjFn = IdentityFn>
   [[nodiscard]] BasicUnionFindAAResult
-  consumeAAResults(size_t NumVars,
-                   std::invocable<ValueId> auto Var2Obj = IdentityFn{}) && {
+  consumeAAResults(size_t NumVars, Var2ObjFn Var2Obj = {}) && {
     auto Equiv = std::move(AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
@@ -261,11 +262,10 @@ public:
   using f_t = typename AnalysisDomainT::f_t;
   using db_t = typename AnalysisDomainT::db_t;
 
-  CallingContextSensUnionFindAA(MaybeUniquePtr<const CallGraph<n_t, f_t>> CG,
-                                NonNullPtr<const db_t> IRDB) noexcept
-      : CG(std::move(CG)), IRDB(IRDB) {
-    assert(this->CG != nullptr);
-  }
+  constexpr CallingContextSensUnionFindAA(
+      NonNullPtr<const CallGraph<n_t, f_t>> CG,
+      NonNullPtr<const db_t> IRDB) noexcept
+      : CG(CG), IRDB(IRDB) {}
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
                  Nullable<n_t> CallSite) {
@@ -389,7 +389,7 @@ private:
     return It->second;
   }
 
-  MaybeUniquePtr<const CallGraph<n_t, f_t>> CG;
+  NonNullPtr<const CallGraph<n_t, f_t>> CG;
   NonNullPtr<const db_t> IRDB;
   TypedVector<CtxObjectId, std::pair<ValueId, CallingContextId>> Obj2Var{};
   TypedVector<ValueId, llvm::SmallDenseMap<CallingContextId, CtxObjectId>>
