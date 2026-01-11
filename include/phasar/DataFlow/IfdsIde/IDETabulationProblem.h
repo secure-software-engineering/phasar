@@ -10,7 +10,6 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
@@ -95,7 +94,7 @@ public:
   /// Λ). If not provided here, you must set it via \link initializeZeroValue()
   /// \endlink.
   explicit IDETabulationProblem(
-      const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
+      const db_t *IRDB, std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
@@ -175,9 +174,7 @@ public:
   /// the level of soundness is ignored. Otherwise, true.
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
-  [[nodiscard]] const ProjectIRDBBase<db_t> *getProjectIRDB() const noexcept {
-    return IRDB;
-  }
+  [[nodiscard]] const db_t *getProjectIRDB() const noexcept { return IRDB; }
 
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
@@ -215,7 +212,7 @@ protected:
     return Seeds;
   }
 
-  const ProjectIRDBBase<db_t> *IRDB{};
+  const db_t *IRDB{};
   std::vector<std::string> EntryPoints;
   std::optional<d_t> ZeroValue;
 

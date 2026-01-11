@@ -1,7 +1,6 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_COMPRESSOR_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_COMPRESSOR_H
 
-#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
 
@@ -39,8 +38,8 @@ class LLVMProjectIRDB;
 template <typename T> struct NodeCompressorTraits {
   using type = Compressor<T>;
 
-  static type create(const ProjectIRDBBase<LLVMProjectIRDB>
-                         * /*IRDB*/) noexcept(noexcept(type())) {
+  static type
+  create(const LLVMProjectIRDB * /*IRDB*/) noexcept(noexcept(type())) {
     return type();
   }
 };

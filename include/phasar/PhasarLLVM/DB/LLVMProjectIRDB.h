@@ -38,7 +38,10 @@ template <> struct ProjectIRDBTraits<LLVMProjectIRDB> {
 };
 
 /// \brief Project IR Database that manages a LLVM IR module.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
+#pragma GCC diagnostic pop
   friend ProjectIRDBBase;
 
 public:

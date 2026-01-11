@@ -77,7 +77,7 @@ public:
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultAliasAwareIDEProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasIteratorRef AS,
+      const db_t *IRDB, LLVMAliasIteratorRef AS,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
@@ -124,7 +124,7 @@ public:
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit DefaultAliasAwareIFDSProblem(
-      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasIteratorRef AS,
+      const db_t *IRDB, LLVMAliasIteratorRef AS,
       std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),

@@ -55,7 +55,7 @@ public:
   /// @param[in] ZeroValue Provides the special tautological zero value (aka.
   /// Λ).
   /// \endlink.
-  explicit IFDSTabulationProblem(const ProjectIRDBBase<db_t> *IRDB,
+  explicit IFDSTabulationProblem(const db_t *IRDB,
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}

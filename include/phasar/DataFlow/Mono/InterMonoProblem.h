@@ -58,9 +58,8 @@ public:
   /// @param[in] CF A control flow graph based on the given IRDB.
   /// @param[in] PT Points-to information based on the given IRDB.
   /// @param[in] EntryPoints A vector of entry points. Provide at least one.
-  InterMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
-                   const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                   AliasInfoRef<v_t, n_t> PT,
+  InterMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+                   const i_t *ICF, AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
       : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {

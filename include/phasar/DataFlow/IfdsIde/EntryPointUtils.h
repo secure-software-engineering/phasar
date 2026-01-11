@@ -11,7 +11,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_ENTRYPOINTUTILS_H
 
 #include "phasar/ControlFlow/CFGBase.h"
-#include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Domain/BinaryDomain.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -57,9 +57,8 @@ void forallStartingPoints(const EntryRange &EntryPoints, const ICFGorIRDB *ICDB,
 
 } // namespace detail
 
-template <typename EntryRange, typename C, typename DB, typename HandlerFn>
-void forallStartingPoints(const EntryRange &EntryPoints,
-                          const ProjectIRDBBase<DB> *IRDB,
+template <typename EntryRange, typename C, ProjectIRDB DB, typename HandlerFn>
+void forallStartingPoints(const EntryRange &EntryPoints, const DB *IRDB,
                           const CFGBase<C> &CFG, HandlerFn Handler) {
   return detail::forallStartingPoints(EntryPoints, IRDB, CFG,
                                       std::move(Handler));
@@ -71,12 +70,11 @@ void forallStartingPoints(const EntryRange &EntryPoints, const I *ICF,
   detail::forallStartingPoints(EntryPoints, ICF, *ICF, std::move(Handler));
 }
 
-template <typename EntryRange, typename C, typename DB, typename SeedsT,
+template <typename EntryRange, typename C, ProjectIRDB DB, typename SeedsT,
           typename D, typename L>
   requires(std::is_convertible_v<L, typename SeedsT::l_t> &&
            std::is_convertible_v<D, typename SeedsT::d_t>)
-void addSeedsForStartingPoints(const EntryRange &EntryPoints,
-                               const ProjectIRDBBase<DB> *IRDB,
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const DB *IRDB,
                                const CFGBase<C> &CFG, SeedsT &Seeds,
                                const D &ZeroValue, const L &BottomValue) {
   forallStartingPoints(EntryPoints, IRDB, CFG,
@@ -99,12 +97,11 @@ void addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
 }
 
 /// Simplification for IFDS, passing BinaryDomain::BOTTOM as L
-template <typename EntryRange, typename C, typename DB, typename SeedsT,
+template <typename EntryRange, typename C, ProjectIRDB DB, typename SeedsT,
           typename D>
   requires(std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
            std::is_convertible_v<D, typename SeedsT::d_t>)
-void addSeedsForStartingPoints(const EntryRange &EntryPoints,
-                               const ProjectIRDBBase<DB> *IRDB,
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const DB *IRDB,
                                const CFGBase<C> &CFG, SeedsT &Seeds,
                                const D &ZeroValue) {
   addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, ZeroValue,

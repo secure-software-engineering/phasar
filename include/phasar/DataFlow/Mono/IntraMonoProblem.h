@@ -53,7 +53,7 @@ public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
 
 protected:
-  const ProjectIRDBBase<db_t> *IRDB;
+  const db_t *IRDB;
   const TypeHierarchy<t_t, f_t> *TH;
   const CFGBase<c_t> *CF;
   AliasInfoRef<v_t, n_t> PT;
@@ -71,9 +71,8 @@ public:
   /// @param[in] CF A control flow graph based on the given IRDB.
   /// @param[in] PT Points-to information based on the given IRDB.
   /// @param[in] EntryPoints A vector of entry points. Provide at least one.
-  IntraMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
-                   const TypeHierarchy<t_t, f_t> *TH, const CFGBase<c_t> *CF,
-                   AliasInfoRef<v_t, n_t> PT,
+  IntraMonoProblem(const db_t *IRDB, const TypeHierarchy<t_t, f_t> *TH,
+                   const CFGBase<c_t> *CF, AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
         EntryPoints(std::move(EntryPoints)) {}
@@ -96,9 +95,7 @@ public:
     return EntryPoints;
   }
 
-  [[nodiscard]] const ProjectIRDBBase<db_t> *getProjectIRDB() const {
-    return IRDB;
-  }
+  [[nodiscard]] const db_t *getProjectIRDB() const { return IRDB; }
 
   [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
     return TH;
