@@ -1,12 +1,14 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
 
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
+#include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/Pointer/BottomupUnionFindAA.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
@@ -127,6 +129,10 @@ void doAnalysisAndCompareResults(
                     << stringifyVal(VC, VId);
     });
   }
+
+  if (::testing::Test::HasFailure()) {
+    Results.dump();
+  }
 }
 
 using namespace psr::unittest;
@@ -148,13 +154,25 @@ constexpr auto IndAABuilder = [](const auto & /*IRDB*/, const auto &CG) {
   return Ret;
 };
 
+constexpr auto BotAABuilder = [](const auto &IRDB, const auto &CG) {
+  auto Ret = BottomupUnionFindAA<LLVMPAGDomain>{
+      ReverseCGGraph{
+          &CG,
+          &IRDB,
+      },
+  };
+
+  static_assert(pag::PBStrategy<decltype(Ret)>);
+  return Ret;
+};
+
 TEST(CtxSensUnionFindAATest, Basic01) {
   GTMap GT = {{LineColFunOp{3, 0, "main", llvm::Instruction::Alloca},
                {
                    LineColFunOp{3, 0, "main", llvm::Instruction::Alloca},
                    LineColFunOp{5, 0, "main", llvm::Instruction::Load},
                }}};
-  doAnalysisAndCompareResults("basic_01_cpp_dbg.ll", GT, ContextAABuilder);
+  doAnalysisAndCompareResults("basic_01_c_dbg.ll", GT, ContextAABuilder);
 }
 
 // TODO: Add more basic tests
@@ -190,6 +208,27 @@ TEST(CtxSensUnionFindAATest, Context01) {
 // TODO: Add more context tests
 
 // TODO: Add tests for IndirectionSensUnionFindAA
+
+TEST(BotUnionFindAATest, Context05) {
+  GTMap GT = {
+      {LineColFunOp{8, 0, "main", llvm::Instruction::Alloca},
+       {
+           LineColFunOp{8, 0, "main", llvm::Instruction::Alloca},
+           LineColFunOp{11, 0, "main", llvm::Instruction::Call},
+           LineColFunOp{14, 0, "main", llvm::Instruction::Load},
+       }},
+      {LineColFunOp{9, 0, "main", llvm::Instruction::Alloca},
+       {
+           LineColFunOp{9, 0, "main", llvm::Instruction::Alloca},
+           LineColFunOp{12, 0, "main", llvm::Instruction::Call},
+       }},
+  };
+  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+  //                                     "BottomupUnionFindAA");
+  doAnalysisAndCompareResults("context_05_c_dbg.ll", GT, BotAABuilder);
+}
+
+// TODO: Add more tests for BottomupUnionFindAA
 
 } // namespace
 

@@ -15,6 +15,7 @@ set(lca_files
   context_02.c
   context_03.c
   context_04.c
+  context_05.c
 )
 
 set(lca_files_mem2reg

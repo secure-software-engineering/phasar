@@ -9,11 +9,11 @@
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MapUtils.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/TypedArray.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/UnionFind.h"
 #include "phasar/Utils/Utilities.h"
@@ -128,6 +128,8 @@ struct UnionFindAAResultBase {
   enum class ObjectRepId : uint32_t {};
 
   TypedVector<ObjectRepId, RawAliasSet<ValueId>> BackwardView;
+
+  void dump(llvm::raw_ostream &OS = llvm::errs(), uint32_t Indent = 0) const;
 };
 
 /// Basic implementation of union-find alias-analysis results.
@@ -215,9 +217,9 @@ struct BasicUnionFindAA {
     AliasSets.grow(size_t(VId) + 1);
   }
 
+  template <std::invocable<ValueId> Var2ObjFn = IdentityFn>
   [[nodiscard]] BasicUnionFindAAResult
-  consumeAAResults(size_t NumVars,
-                   std::invocable<ValueId> auto Var2Obj = IdentityFn{}) && {
+  consumeAAResults(size_t NumVars, Var2ObjFn Var2Obj = {}) && {
     auto Equiv = std::move(AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
@@ -260,11 +262,10 @@ public:
   using f_t = typename AnalysisDomainT::f_t;
   using db_t = typename AnalysisDomainT::db_t;
 
-  CallingContextSensUnionFindAA(MaybeUniquePtr<const CallGraph<n_t, f_t>> CG,
-                                NonNullPtr<const db_t> IRDB) noexcept
-      : CG(std::move(CG)), IRDB(IRDB) {
-    assert(this->CG != nullptr);
-  }
+  constexpr CallingContextSensUnionFindAA(
+      NonNullPtr<const CallGraph<n_t, f_t>> CG,
+      NonNullPtr<const db_t> IRDB) noexcept
+      : CG(CG), IRDB(IRDB) {}
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
                  Nullable<n_t> CallSite) {
@@ -388,7 +389,7 @@ private:
     return It->second;
   }
 
-  MaybeUniquePtr<const CallGraph<n_t, f_t>> CG;
+  NonNullPtr<const CallGraph<n_t, f_t>> CG;
   NonNullPtr<const db_t> IRDB;
   TypedVector<CtxObjectId, std::pair<ValueId, CallingContextId>> Obj2Var{};
   TypedVector<ValueId, llvm::SmallDenseMap<CallingContextId, CtxObjectId>>
@@ -468,11 +469,14 @@ public:
   void onAddValue(ByConstRef<v_t> /*Var*/, ValueId VId) {
     auto Obj = Obj2Var.size();
     Base.AliasSets.grow(Obj + K);
+    Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {
+      return IndObjectId(Obj + size_t(Depth));
+    });
     // TODO: For some values, we can already see that depth>=2 does not make
     // sense, so we could exit the below loop early
     for (auto Depth : iota<IndDepth>(K)) {
-      Var2Obj[VId].push_back(IndObjectId(Obj));
-      Obj++;
+      // Var2Obj[VId].push_back(IndObjectId(Obj));
+      // Obj++;
       Obj2Var.emplace_back(VId, Depth);
     }
   }
@@ -510,9 +514,7 @@ private:
     return IndDepth(uint32_t(Ctx) - 1);
   }
 
-  // XXX: Replace inner TypedVector by sth like TypedInplaceVector (e.g., using
-  // std::inplace_vector once moving forward with the required C++ version)
-  TypedVector<ValueId, TypedVector<IndDepth, IndObjectId, K>> Var2Obj{};
+  TypedVector<ValueId, TypedArray<IndDepth, IndObjectId, K>> Var2Obj{};
   TypedVector<IndObjectId, std::pair<ValueId, IndDepth>> Obj2Var{};
   BasicUnionFindAA<AnalysisDomainT, IndObjectId> Base{};
 };

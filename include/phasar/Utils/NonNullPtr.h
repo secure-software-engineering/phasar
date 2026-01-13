@@ -9,6 +9,8 @@
 namespace psr {
 template <typename T>
 class [[gsl::Pointer(T)]] NonNullPtr : public std::reference_wrapper<T> {
+  using Base = std::reference_wrapper<T>;
+
 public:
   constexpr NonNullPtr(std::nullptr_t) = delete;
 
@@ -30,31 +32,37 @@ public:
 
   [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE
       LLVM_ATTRIBUTE_RETURNS_NONNULL constexpr T *
+      get() const noexcept {
+    return std::addressof(this->Base::get());
+  }
+
+  [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE
+      LLVM_ATTRIBUTE_RETURNS_NONNULL constexpr T *
       operator->() const noexcept {
-    return std::addressof(this->get());
+    return get();
   }
 
   [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr T &
   operator*() const noexcept {
-    return this->get();
+    return this->Base::get();
   }
 
   [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr bool
   operator==(NonNullPtr Other) noexcept {
-    return &this->get() == &Other.get();
+    return get() == Other.get();
   }
   [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr bool
   operator==(const T *R) noexcept {
-    return &this->get() == R;
+    return get() == R;
   }
   [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr bool
   operator==(std::nullptr_t) noexcept = delete; // NonNullPtr is never null
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, NonNullPtr RW) {
-    return OS << &RW.get();
+    return OS << RW.get();
   }
   friend std::ostream &operator<<(std::ostream &OS, NonNullPtr RW) {
-    return OS << &RW.get();
+    return OS << RW.get();
   }
 };
 } // namespace psr

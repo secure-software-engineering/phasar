@@ -8,6 +8,7 @@ namespace psr {
 
 template class CallingContextSensUnionFindAA<LLVMPAGDomain>;
 template class IndirectionSensUnionFindAA<LLVMPAGDomain>;
+template class BottomupUnionFindAA<LLVMPAGDomain>;
 
 detail::LLVMLocalUnionFindAliasIteratorBase::
     LLVMLocalUnionFindAliasIteratorBase(
