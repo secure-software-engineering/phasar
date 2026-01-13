@@ -6,6 +6,7 @@ int main() {
   int x = 42;
 
   int *xx = id2(&x);
+  int *yy = id2(&x);
 
   return *xx;
 }
