@@ -1,11 +1,7 @@
 set(lca_files
   basic_01.c
   basic_02.c
-  basic_03.c
-  basic_04.c
-  basic_05.c
-  basic_06.cpp
-  basic_07.cpp
+  basic_03.cpp
   call_01.cpp
   dynamic_01.cpp
   global_01.cpp
@@ -30,11 +26,7 @@ set(lca_files
 set(lca_files_mem2reg
   basic_01.c
   basic_02.c
-  basic_03.c
-  basic_04.c
-  basic_05.c
-  basic_06.cpp
-  basic_07.cpp
+  basic_03.cpp
   dynamic_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp

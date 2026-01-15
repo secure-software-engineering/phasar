@@ -167,39 +167,120 @@ constexpr auto BotAABuilder = [](const auto &IRDB, const auto &CG) {
 };
 
 TEST(CtxSensUnionFindAATest, Basic01) {
-  GTMap GT = {{LineColFunOp{3, 0, "main", llvm::Instruction::Alloca},
+  GTMap GT = {{LineColFunOp{.Line = 3,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
                {
-                   LineColFunOp{3, 0, "main", llvm::Instruction::Alloca},
-                   LineColFunOp{5, 0, "main", llvm::Instruction::Load},
+                   LineColFunOp{.Line = 3,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 5,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
                }}};
   doAnalysisAndCompareResults("basic_01_c_dbg.ll", GT, ContextAABuilder);
 }
 
-// TODO: Add more basic tests
+TEST(CtxSensUnionFindAATest, Basic02) {
+  GTMap GT = {{LineColFunOp{.Line = 3,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 3,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 6,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }}};
+
+  doAnalysisAndCompareResults("basic_02_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Basic03) {
+  GTMap GT = {{LineColFunOp{.Line = 4,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 4,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 6,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }}};
+
+  doAnalysisAndCompareResults("basic_03_c_dbg.ll", GT, ContextAABuilder);
+}
 
 TEST(CtxSensUnionFindAATest, Context01) {
   GTMap GT = {
-      {LineColFunOp{5, 0, "main", llvm::Instruction::Alloca},
+      {LineColFunOp{.Line = 5,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
        {
-           LineColFunOp{5, 0, "main", llvm::Instruction::Alloca},
-           LineColFunOp{8, 0, "main", llvm::Instruction::Call},
-           LineColFunOp{11, 0, "main", llvm::Instruction::Load},
-           ArgInFun{0, "id"},
+           LineColFunOp{.Line = 5,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 8,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 11,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
+           ArgInFun{.Idx = 0, .InFunction = "id"},
        }},
-      {LineColFunOp{6, 0, "main", llvm::Instruction::Alloca},
+      {LineColFunOp{.Line = 6,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
        {
-           LineColFunOp{6, 0, "main", llvm::Instruction::Alloca},
-           LineColFunOp{9, 0, "main", llvm::Instruction::Call},
-           ArgInFun{0, "id"},
+           LineColFunOp{.Line = 6,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 9,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           ArgInFun{.Idx = 0, .InFunction = "id"},
        }},
-      {ArgInFun{0, "id"},
+      {ArgInFun{.Idx = 0, .InFunction = "id"},
        {
-           LineColFunOp{5, 0, "main", llvm::Instruction::Alloca},
-           LineColFunOp{6, 0, "main", llvm::Instruction::Alloca},
-           LineColFunOp{8, 0, "main", llvm::Instruction::Call},
-           LineColFunOp{9, 0, "main", llvm::Instruction::Call},
-           LineColFunOp{11, 0, "main", llvm::Instruction::Load},
-           ArgInFun{0, "id"},
+           LineColFunOp{.Line = 5,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 6,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 8,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 9,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 11,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
+           ArgInFun{.Idx = 0, .InFunction = "id"},
        }},
   };
   doAnalysisAndCompareResults("context_01_c_dbg.ll", GT, ContextAABuilder);
@@ -209,23 +290,238 @@ TEST(CtxSensUnionFindAATest, Context01) {
 
 // TODO: Add tests for IndirectionSensUnionFindAA
 
-TEST(BotUnionFindAATest, Context05) {
+TEST(BotUnionFindAATest, Context01) {
   GTMap GT = {
-      {LineColFunOp{8, 0, "main", llvm::Instruction::Alloca},
+      {LineColFunOp{.Line = 5,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
        {
-           LineColFunOp{8, 0, "main", llvm::Instruction::Alloca},
-           LineColFunOp{11, 0, "main", llvm::Instruction::Call},
-           LineColFunOp{14, 0, "main", llvm::Instruction::Load},
+           LineColFunOp{.Line = 5,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 8,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 11,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
        }},
-      {LineColFunOp{9, 0, "main", llvm::Instruction::Alloca},
+      {LineColFunOp{.Line = 6,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
        {
-           LineColFunOp{9, 0, "main", llvm::Instruction::Alloca},
-           LineColFunOp{12, 0, "main", llvm::Instruction::Call},
+           LineColFunOp{.Line = 6,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 9,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+       }},
+  };
+
+  doAnalysisAndCompareResults("context_01_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context02) {
+  GTMap GT = {
+      {LineColFunOp{.Line = 6,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 6,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 9,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 10,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 14,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
+       }},
+      {LineColFunOp{.Line = 7,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 7,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 11,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 12,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+       }},
+  };
+
+  doAnalysisAndCompareResults("context_02_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context03) {
+  GTMap GT = {{LineColFunOp{.Line = 6,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 6,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 8,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 9,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 11,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }}};
+
+  doAnalysisAndCompareResults("context_03_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context04) {
+  GTMap GT = {{LineColFunOp{.Line = 7,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 7,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 9,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 10,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 12,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }}};
+
+  doAnalysisAndCompareResults("context_04_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context05) {
+  GTMap GT = {{LineColFunOp{.Line = 8,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 8,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 10,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 11,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 13,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }}};
+
+  doAnalysisAndCompareResults("context_05_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context06) {
+  GTMap GT = {{LineColFunOp{.Line = 9,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 9,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 11,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 12,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 14,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }}};
+
+  doAnalysisAndCompareResults("context_06_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context07) {
+  GTMap GT = {
+      {LineColFunOp{.Line = 8,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 8,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 11,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 14,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
+       }},
+      {LineColFunOp{.Line = 9,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 9,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 12,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
        }},
   };
   // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
   //                                     "BottomupUnionFindAA");
-  doAnalysisAndCompareResults("context_05_c_dbg.ll", GT, BotAABuilder);
+  doAnalysisAndCompareResults("context_07_c_dbg.ll", GT, BotAABuilder);
 }
 
 // TODO: Add more tests for BottomupUnionFindAA

@@ -6,8 +6,8 @@ int *id3(int *r) { return id2(r); }
 int main() {
   int x = 42;
 
-  int *xx = id3(&x);
-  int *yy = id3(&x);
+  int *xx1 = id3(&x);
+  int *xx2 = id3(&x);
 
-  return *xx;
+  return *xx1;
 }
