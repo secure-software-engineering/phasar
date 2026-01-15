@@ -519,9 +519,49 @@ TEST(BotUnionFindAATest, Context07) {
                         .OpCode = llvm::Instruction::Call},
        }},
   };
-  // psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-  //                                     "BottomupUnionFindAA");
+
   doAnalysisAndCompareResults("context_07_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context08) {
+  GTMap GT = {
+      {LineColFunOp{.Line = 12,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 12,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 15,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 21,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
+       }},
+      {{LineColFunOp{.Line = 2,
+                     .Col = 25,
+                     .InFunction = "selfRecursion",
+                     .OpCode = llvm::Instruction::Alloca}},
+       {LineColFunOp{.Line = 3,
+                     .Col = 7,
+                     .InFunction = "selfRecursion",
+                     .OpCode = llvm::Instruction::Load},
+        LineColFunOp{.Line = 7,
+                     .Col = 10,
+                     .InFunction = "selfRecursion",
+                     .OpCode = llvm::Instruction::Load},
+        LineColFunOp{.Line = 10,
+                     .Col = 0,
+                     .InFunction = "selfRecursion",
+                     .OpCode = llvm::Instruction::Call}}},
+  };
+
+  doAnalysisAndCompareResults("context_08_c_dbg.ll", GT, BotAABuilder);
 }
 
 // TODO: Add more tests for BottomupUnionFindAA

@@ -3,7 +3,9 @@ int *selfRecursion(int *Ptr) {
   if (*Ptr <= 0) {
     return Ptr;
   }
-  return Ptr;
+
+  *Ptr = *Ptr - 1;
+  return selfRecursion(Ptr);
 }
 
 int main() {
