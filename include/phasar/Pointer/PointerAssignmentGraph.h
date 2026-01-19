@@ -99,15 +99,20 @@ concept CanOnAddEdge =
     };
 
 template <typename T>
+concept CanWithCalleesOfCallAt =
+    requires(const T &CStrategy, const typename T::n_t &Inst) {
+      CStrategy.withCalleesOfCallAt(Inst, [](typename T::f_t Callee) {});
+    };
+
+template <typename T>
 concept PBStrategyBase =
+    CanWithCalleesOfCallAt<T> &&
     requires(T &Strategy, const T &CStrategy, ValueId From, ValueId To,
              const typename T::n_t &Inst, pag::Edge E) {
       typename T::v_t;
       typename T::db_t;
       typename T::f_t;
       typename T::n_t;
-
-      CStrategy.withCalleesOfCallAt(Inst, [](typename T::f_t Callee) {});
     };
 
 template <typename T>
@@ -173,7 +178,11 @@ struct PBStrategyCombinator {
   constexpr void
   withCalleesOfCallAt(ByConstRef<n_t> CS,
                       llvm::function_ref<void(f_t)> WithCallee) const {
-    Second.withCalleesOfCallAt(CS, WithCallee);
+    if constexpr (CanWithCalleesOfCallAt<SecondT>) {
+      Second.withCalleesOfCallAt(CS, WithCallee);
+    } else {
+      First.withCalleesOfCallAt(CS, WithCallee);
+    }
   }
 };
 

@@ -2,6 +2,7 @@
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/RawAliasSet.h"
+#include "phasar/Pointer/UnionFindAA.h"
 #include "phasar/Utils/ValueCompressor.h"
 
 namespace psr {
@@ -30,4 +31,130 @@ detail::LLVMLocalUnionFindAliasIteratorBase::
     Vars |= Globals;
   }
 }
+
 } // namespace psr
+
+using namespace psr;
+
+CallingContextSensUnionFindAAResult
+psr::computeCtxSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
+                                  const LLVMBasedCallGraph &CG) {
+  auto Strategy = CallingContextSensUnionFindAA<LLVMPAGDomain>{
+      &CG,
+      &IRDB,
+  };
+  return computeUnionFindAARaw(IRDB, std::move(Strategy));
+}
+
+BasicUnionFindAAResult
+psr::computeBotCtxSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
+                                     const LLVMBasedCallGraph &CG) {
+  auto Strategy = BottomupUnionFindAA<LLVMPAGDomain>{
+      ReverseCGGraph{
+          &CG,
+          &IRDB,
+      },
+  };
+  return computeUnionFindAARaw(IRDB, std::move(Strategy));
+}
+
+BasicUnionFindAAResult
+psr::computeIndSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
+                                  const LLVMBasedCallGraph &CG) {
+  auto Strategy = pag::PBMixin{
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+      pag::LLVMCGProvider{&CG},
+  };
+  return computeUnionFindAARaw(IRDB, std::move(Strategy));
+}
+
+UnionFindAAResultIntersection<CallingContextSensUnionFindAAResult,
+                              BasicUnionFindAAResult>
+psr::computeCtxIndSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
+                                     const LLVMBasedCallGraph &CG) {
+  auto Strategy = UnionFindAACombinator{
+      CallingContextSensUnionFindAA<LLVMPAGDomain>{
+          &CG,
+          &IRDB,
+      },
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+  };
+  return computeUnionFindAARaw(IRDB, std::move(Strategy));
+}
+
+UnionFindAAResultIntersection<BasicUnionFindAAResult, BasicUnionFindAAResult>
+psr::computeBotCtxIndSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
+                                        const LLVMBasedCallGraph &CG) {
+  auto Strategy = UnionFindAACombinator{
+      BottomupUnionFindAA<LLVMPAGDomain>{
+          ReverseCGGraph{
+              &CG,
+              &IRDB,
+          },
+      },
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+  };
+  return computeUnionFindAARaw(IRDB, std::move(Strategy));
+}
+
+LLVMUnionFindAliasIterator<CallingContextSensUnionFindAAResult>
+psr::computeCtxSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                               const LLVMBasedCallGraph &CG) {
+  auto Strategy = CallingContextSensUnionFindAA<LLVMPAGDomain>{
+      &CG,
+      &IRDB,
+  };
+  return computeUnionFindAA(IRDB, std::move(Strategy));
+}
+
+LLVMUnionFindAliasIterator<BasicUnionFindAAResult>
+psr::computeBotCtxSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                                  const LLVMBasedCallGraph &CG) {
+  auto Strategy = BottomupUnionFindAA<LLVMPAGDomain>{
+      ReverseCGGraph{
+          &CG,
+          &IRDB,
+      },
+  };
+  return computeUnionFindAA(IRDB, std::move(Strategy));
+}
+
+LLVMUnionFindAliasIterator<BasicUnionFindAAResult>
+psr::computeIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                               const LLVMBasedCallGraph &CG) {
+  auto Strategy = pag::PBMixin{
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+      pag::LLVMCGProvider{&CG},
+  };
+  return computeUnionFindAA(IRDB, std::move(Strategy));
+}
+
+LLVMUnionFindAliasIterator<UnionFindAAResultIntersection<
+    CallingContextSensUnionFindAAResult, BasicUnionFindAAResult>>
+psr::computeCtxIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                                  const LLVMBasedCallGraph &CG) {
+  auto Strategy = UnionFindAACombinator{
+      CallingContextSensUnionFindAA<LLVMPAGDomain>{
+          &CG,
+          &IRDB,
+      },
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+  };
+  return computeUnionFindAA(IRDB, std::move(Strategy));
+}
+
+LLVMUnionFindAliasIterator<UnionFindAAResultIntersection<
+    BasicUnionFindAAResult, BasicUnionFindAAResult>>
+psr::computeBotCtxIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
+                                     const LLVMBasedCallGraph &CG) {
+  auto Strategy = UnionFindAACombinator{
+      BottomupUnionFindAA<LLVMPAGDomain>{
+          ReverseCGGraph{
+              &CG,
+              &IRDB,
+          },
+      },
+      IndirectionSensUnionFindAA<LLVMPAGDomain>{},
+  };
+  return computeUnionFindAA(IRDB, std::move(Strategy));
+}

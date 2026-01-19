@@ -69,6 +69,31 @@ struct UnionFindAAResultIntersection {
   [[no_unique_address]] SecondT Second;
 };
 
+template <pag::PBStrategy FirstT, pag::CanOnAddEdge SecondT>
+  requires(std::same_as<typename FirstT::n_t, typename SecondT::n_t> &&
+           std::same_as<typename FirstT::v_t, typename SecondT::v_t> &&
+           std::same_as<typename FirstT::f_t, typename SecondT::f_t> &&
+           std::same_as<typename FirstT::db_t, typename SecondT::db_t>)
+struct UnionFindAACombinator
+    : public pag::PBStrategyCombinator<FirstT, SecondT> {
+
+  constexpr UnionFindAACombinator(std::convertible_to<FirstT> auto &&First,
+                                  std::convertible_to<SecondT> auto &&Second)
+      : pag::PBStrategyCombinator<FirstT, SecondT>{PSR_FWD(First),
+                                                   PSR_FWD(Second)} {}
+
+  [[nodiscard]] UnionFindAAResult auto consumeAAResults(size_t NumVars) && {
+    return UnionFindAAResultIntersection{
+        std::move(this->First).consumeAAResults(NumVars),
+        std::move(this->Second).consumeAAResults(NumVars),
+    };
+  }
+};
+
+template <typename FirstT, typename SecondT>
+UnionFindAACombinator(FirstT, SecondT)
+    -> UnionFindAACombinator<FirstT, SecondT>;
+
 /// Lazy caching of union-find alias-analysis results. This class is *not*
 /// thread-safe!
 template <UnionFindAAResult AAResT, bool ShouldCacheMayAlias = true>
