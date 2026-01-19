@@ -538,31 +538,322 @@ TEST(BotUnionFindAATest, Context08) {
                         .Col = 0,
                         .InFunction = "main",
                         .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 19,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
            LineColFunOp{.Line = 21,
                         .Col = 0,
                         .InFunction = "main",
                         .OpCode = llvm::Instruction::Load},
-       }},
-      {{LineColFunOp{.Line = 2,
-                     .Col = 25,
-                     .InFunction = "selfRecursion",
-                     .OpCode = llvm::Instruction::Alloca}},
-       {LineColFunOp{.Line = 3,
-                     .Col = 7,
-                     .InFunction = "selfRecursion",
-                     .OpCode = llvm::Instruction::Load},
-        LineColFunOp{.Line = 7,
-                     .Col = 10,
-                     .InFunction = "selfRecursion",
-                     .OpCode = llvm::Instruction::Load},
-        LineColFunOp{.Line = 10,
-                     .Col = 0,
-                     .InFunction = "selfRecursion",
-                     .OpCode = llvm::Instruction::Call}}},
+       }}
+      // ,
+      // {{LineColFunOp{.Line = 2,
+      //                .Col = 25,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Alloca}},
+      //  {LineColFunOp{.Line = 3,
+      //                .Col = 7,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Load},
+      //   LineColFunOp{.Line = 7,
+      //                .Col = 10,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Load},
+      //   LineColFunOp{.Line = 8,
+      //                .Col = 0,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Call}}},
   };
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
 
   doAnalysisAndCompareResults("context_08_c_dbg.ll", GT, BotAABuilder);
 }
+
+TEST(BotUnionFindAATest, Context09) {
+  GTMap GT = {
+      {LineColFunOp{.Line = 12,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 12,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 14,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 18,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 20,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load},
+       }}
+      // ,
+      // {{LineColFunOp{.Line = 2,
+      //                .Col = 25,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Alloca}},
+      //  {LineColFunOp{.Line = 3,
+      //                .Col = 7,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Load},
+      //   LineColFunOp{.Line = 7,
+      //                .Col = 10,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Load},
+      //   LineColFunOp{.Line = 10,
+      //                .Col = 0,
+      //                .InFunction = "selfRecursion",
+      //                .OpCode = llvm::Instruction::Call}}},
+  };
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
+
+  doAnalysisAndCompareResults("context_09_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context10) {
+  GTMap GT = {
+      {LineColFunOp{.Line = 24,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {
+           LineColFunOp{.Line = 24,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 26,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 30,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 32,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Load}
+           //              ,
+           // LineColFunOp{.Line = 2,
+           //              .Col = 25,
+           //              .InFunction = "Back",
+           //              .OpCode = llvm::Instruction::Alloca},
+           // LineColFunOp{.Line = 21,
+           //              .Col = 0,
+           //              .InFunction = "Back",
+           //              .OpCode = llvm::Instruction::Load},
+       }}
+      // ,
+      // {{LineColFunOp{.Line = 24,
+      //                .Col = 0,
+      //                .InFunction = "main",
+      //                .OpCode = llvm::Instruction::Alloca}},
+      //  {LineColFunOp{.Line = 14,
+      //                .Col = 7,
+      //                .InFunction = "Forth",
+      //                .OpCode = llvm::Instruction::Load},
+      //   LineColFunOp{.Line = 15,
+      //                .Col = 5,
+      //                .InFunction = "Forth",
+      //                .OpCode = llvm::Instruction::Load},
+      //   LineColFunOp{.Line = 16,
+      //                .Col = 12,
+      //                .InFunction = "Forth",
+      //                .OpCode = llvm::Instruction::Call}}},
+  };
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
+
+  doAnalysisAndCompareResults("context_10_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context11) {
+  GTMap GT{{LineColFunOp{.Line = 33,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 33,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 35,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 39,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 41,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Load}}}};
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
+
+  doAnalysisAndCompareResults("context_11_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context12) {
+  GTMap GT{{LineColFunOp{.Line = 5,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 5,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 10,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 11,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 13,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Load}}},
+
+           {LineColFunOp{.Line = 6,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 6,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 8,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 9,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call}}}};
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
+
+  doAnalysisAndCompareResults("context_12_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context13) {
+  GTMap GT{{LineColFunOp{.Line = 5,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 5,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 8,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 9,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 10,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 11,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 17,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Load}}},
+
+           {LineColFunOp{.Line = 6,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 6,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 8,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 9,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 10,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 11,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call}}}};
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
+
+  doAnalysisAndCompareResults("context_13_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Context14) {
+  GTMap GT{{LineColFunOp{.Line = 8,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 11,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 14,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 15,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 17,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 18,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}}};
+
+  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+                                      "BottomupUnionFindAA");
+
+  doAnalysisAndCompareResults("context_14_cpp_dbg.ll", GT, BotAABuilder);
+}
+
+// TEST(BotUnionFindAATest, Context15) {
+//   // TODO:
+//   GTMap GT;
+//
+//   psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
+//                                       "BottomupUnionFindAA");
+//
+//   doAnalysisAndCompareResults("context_15_c_dbg.ll", GT, BotAABuilder);
+// }
 
 // TODO: Add more tests for BottomupUnionFindAA
 
