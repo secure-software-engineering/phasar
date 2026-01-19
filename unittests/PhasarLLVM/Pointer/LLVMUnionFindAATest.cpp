@@ -86,11 +86,10 @@ void doAnalysisAndCompareResults(
                                         {"main"}, TH, VTP);
 
   ValueCompressor<PAGVariable> VC;
-  auto PB = LLVMPAGBuilder();
   auto AA = AABuilder(IRDB, BaseCG);
-  PB.buildPAG(IRDB, VC, &AA);
 
-  UnionFindAAResult auto Results = std::move(AA).consumeAAResults(VC.size());
+  UnionFindAAResult auto Results =
+      computeUnionFindAARaw(IRDB, std::move(AA), &VC);
 
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
     const auto PtrId = asId(VC, IRDB, PtrVar);
