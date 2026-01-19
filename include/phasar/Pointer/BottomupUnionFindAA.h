@@ -13,6 +13,7 @@
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/SCCId.h"
+#include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/ValueCompressor.h"
 
@@ -25,9 +26,15 @@
 #include <unordered_map>
 
 namespace psr {
-template <typename AnalysisDomainT> class BottomupUnionFindAA {
+template <typename AnalysisDomainT, Soundness SoundnessFlag = Soundness::Soundy>
+class BottomupUnionFindAA {
+  struct ParamInfo {
+    ValueId Arg;
+    ValueId Param;
+    pag::Call CS;
+  };
   struct CallSiteInfo {
-    llvm::SmallVector<std::tuple<ValueId, ValueId, pag::Call>, 2> Params{};
+    llvm::SmallVector<ParamInfo, 2> Params{};
     llvm::SmallVector<ValueId, 1> Ret{};
     std::optional<ValueId> RetSlot{};
   };
@@ -108,6 +115,19 @@ public:
   }
 
   [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
+
+    bottomupPropagation(NumVars);
+
+    if constexpr (SoundnessFlag != Soundness::Unsound) {
+      // For soundness, we need to handle parameter aliasing
+      topdownPropagation();
+    }
+
+    return std::move(Base).consumeAAResults(NumVars);
+  }
+
+private:
+  void bottomupPropagation(size_t NumVars) {
     TypedVector<ValueId, RawAliasSet<ValueId>> IntermediateBackView(NumVars);
 
     for (SCCId<FunVtxTy> CurrSCC :
@@ -158,11 +178,29 @@ public:
         IntermediateBackView[SumIdRep].insert(SumId);
       });
     }
-
-    return std::move(Base).consumeAAResults(NumVars);
   }
 
-private:
+  void topdownPropagation() {
+    for (SCCId<FunVtxTy> CurrSCC : iota<SCCId<FunVtxTy>>(CGSCCs->size())) {
+      for (const auto &[CS, CSInfo] : Calls[CurrSCC]) {
+        const size_t Sz = CSInfo.Params.size();
+        for (size_t I : psr::iota(Sz)) {
+          const ParamInfo FirstInfo = CSInfo.Params[I];
+          const auto FirstArgRep = Base.AliasSets.find(FirstInfo.Arg);
+          for (size_t J : psr::iota(I + 1, Sz)) {
+            const ParamInfo &SecondInfo = CSInfo.Params[J];
+            const auto SecondArgRep = Base.AliasSets.find(SecondInfo.Arg);
+
+            if (FirstArgRep == SecondArgRep) {
+              // Found parameter-aliasing!
+              Base.AliasSets.join(FirstInfo.Param, SecondInfo.Param);
+            }
+          }
+        }
+      }
+    }
+  }
+
   [[nodiscard]] Nullable<f_t> getFunction(ByConstRef<v_t> Var) {
     if constexpr (requires() { getPointerFrom(Var)->getFunction(); }) {
       return getPointerFrom(Var)->getFunction();
