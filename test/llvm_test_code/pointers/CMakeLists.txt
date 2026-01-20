@@ -10,17 +10,25 @@ set(lca_files
   context_01.c
   context_02.c
   context_03.c
-  context_04.c
-  context_05.c
-  context_06.c
+  context_04_0.c
+  context_04_1.c
+  context_05_0.c
+  context_05_1.c
+  context_06_0.c
+  context_06_1.c
   context_07.c
   context_08.c
-  context_09.c
-  context_10.c
-  context_11.c
-  context_12.c
-  context_13.c
-  context_14.cpp
+  context_09_0.c
+  context_09_1.c
+  context_10_0.c
+  context_10_1.c
+  context_11_0.c
+  context_11_1.c
+  context_12_0.c
+  context_12_1.c
+  context_13_0.c
+  context_13_1.c
+  indirection_01.c
 )
 
 set(lca_files_mem2reg

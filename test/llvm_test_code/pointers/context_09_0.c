@@ -10,12 +10,10 @@ int *selfRecursion(int *Ptr) {
 
 int main() {
   int k = 4;
+  int l = 4;
 
   int *x = selfRecursion(&k);
-
-  k = 4;
-
-  int *y = selfRecursion(&k);
+  int *y = selfRecursion(&l);
 
   return *y;
 }

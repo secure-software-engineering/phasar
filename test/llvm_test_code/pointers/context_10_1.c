@@ -1,11 +1,10 @@
 
 int *Back(int *Ptr);
-int *Stop(int *Ptr);
 
 int *Forth(int *Ptr) {
   if (*Ptr > 0) {
     *Ptr = *Ptr - 1;
-    return Stop(Ptr);
+    return Back(Ptr);
   }
 
   return Ptr;
@@ -14,29 +13,24 @@ int *Forth(int *Ptr) {
 int *Back(int *Ptr) {
   if (*Ptr > 0) {
     *Ptr = *Ptr - 1;
-    return Stop(Ptr);
+    return Forth(Ptr);
   }
 
   return Ptr;
 }
 
-int *Stop(int *Ptr) {
-  if (*Ptr % 2 == 1) {
-    return Forth(Ptr);
-  }
-
-  return Back(Ptr);
-}
-
 // Mutual recursion test
 int main() {
   int k = 2;
+  int l = 2;
 
-  int *x = Back(&k);
+  int *xx1 = Back(&k);
+  k = 2;
+  int *xx2 = Back(&k);
 
-  k = 3;
+  int *yy1 = Back(&l);
+  l = 4;
+  int *yy2 = Back(&l);
 
-  int *y = Forth(&k);
-
-  return *x;
+  return *xx1;
 }
