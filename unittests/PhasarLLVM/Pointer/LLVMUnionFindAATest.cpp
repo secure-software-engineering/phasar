@@ -509,19 +509,35 @@ TEST(BotUnionFindAATest, Context05_1) {
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 10,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Call},
                    LineColFunOp{.Line = 11,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Call},
-                   LineColFunOp{.Line = 13,
+                   LineColFunOp{.Line = 12,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 16,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
-               }}};
+               }},
+              {LineColFunOp{.Line = 9,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 9,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call}}}};
 
   doAnalysisAndCompareResults("context_05_1_c_dbg.ll", GT, BotAABuilder);
 }
@@ -558,20 +574,36 @@ TEST(BotUnionFindAATest, Context06_1) {
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 9,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 12,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call}}},
+              {LineColFunOp{.Line = 10,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
                {
-                   LineColFunOp{.Line = 9,
+                   LineColFunOp{.Line = 10,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 11,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Call},
-                   LineColFunOp{.Line = 12,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Call},
                    LineColFunOp{.Line = 14,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 15,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 17,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
@@ -676,9 +708,6 @@ TEST(BotUnionFindAATest, Context09_0) {
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load}}}};
 
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
-
   doAnalysisAndCompareResults("context_09_0_c_dbg.ll", GT, BotAABuilder);
 }
 
@@ -694,6 +723,10 @@ TEST(BotUnionFindAATest, Context09_1) {
                 LineColFunOp{.Line = 15,
                              .Col = 0,
                              .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 17,
+                             .Col = 0,
+                             .InFunction = "main",
                              .OpCode = llvm::Instruction::Call}}},
               {LineColFunOp{.Line = 13,
                             .Col = 0,
@@ -703,17 +736,18 @@ TEST(BotUnionFindAATest, Context09_1) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 16,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
                 LineColFunOp{.Line = 18,
                              .Col = 0,
                              .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
                              .OpCode = llvm::Instruction::Load}}}};
-
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
 
   doAnalysisAndCompareResults("context_09_1_c_dbg.ll", GT, BotAABuilder);
 }
@@ -740,9 +774,6 @@ TEST(BotUnionFindAATest, Context10_0) {
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load}}}};
 
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
-
   doAnalysisAndCompareResults("context_10_0_c_dbg.ll", GT, BotAABuilder);
 }
 
@@ -755,21 +786,34 @@ TEST(BotUnionFindAATest, Context10_1) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 26,
+                LineColFunOp{.Line = 27,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 30,
+                LineColFunOp{.Line = 29,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 32,
+                LineColFunOp{.Line = 35,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load}}}};
-
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
+                             .OpCode = llvm::Instruction::Load}}},
+              {LineColFunOp{.Line = 25,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 25,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 31,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call}}}};
 
   doAnalysisAndCompareResults("context_10_1_c_dbg.ll", GT, BotAABuilder);
 }
@@ -783,21 +827,30 @@ TEST(BotUnionFindAATest, Context11_0) {
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca},
-             LineColFunOp{.Line = 35,
+             LineColFunOp{.Line = 36,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call},
              LineColFunOp{.Line = 39,
                           .Col = 0,
                           .InFunction = "main",
+                          .OpCode = llvm::Instruction::Load}}},
+           {LineColFunOp{.Line = 34,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 34,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 37,
+                          .Col = 0,
+                          .InFunction = "main",
                           .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 41,
+             LineColFunOp{.Line = 39,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Load}}}};
-
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
 
   doAnalysisAndCompareResults("context_11_0_c_dbg.ll", GT, BotAABuilder);
 }
@@ -811,21 +864,34 @@ TEST(BotUnionFindAATest, Context11_1) {
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca},
-             LineColFunOp{.Line = 35,
+             LineColFunOp{.Line = 36,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 39,
+             LineColFunOp{.Line = 37,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call},
              LineColFunOp{.Line = 41,
                           .Col = 0,
                           .InFunction = "main",
-                          .OpCode = llvm::Instruction::Load}}}};
-
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
+                          .OpCode = llvm::Instruction::Load}}},
+           {LineColFunOp{.Line = 34,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 34,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 38,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call},
+             LineColFunOp{.Line = 39,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Call}}}};
 
   doAnalysisAndCompareResults("context_11_1_c_dbg.ll", GT, BotAABuilder);
 }
@@ -869,9 +935,6 @@ TEST(BotUnionFindAATest, Context12_0) {
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call}}}};
 
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
-
   doAnalysisAndCompareResults("context_12_0_c_dbg.ll", GT, BotAABuilder);
 }
 
@@ -888,15 +951,10 @@ TEST(BotUnionFindAATest, Context12_1) {
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 9,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 13,
+             LineColFunOp{.Line = 11,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Load}}},
-
            {LineColFunOp{.Line = 6,
                          .Col = 0,
                          .InFunction = "main",
@@ -905,17 +963,10 @@ TEST(BotUnionFindAATest, Context12_1) {
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca},
-             LineColFunOp{.Line = 10,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 11,
+             LineColFunOp{.Line = 9,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call}}}};
-
-  psr::Logger::initializeStderrLogger(psr::SeverityLevel::DEBUG,
-                                      "BottomupUnionFindAA");
 
   doAnalysisAndCompareResults("context_12_1_c_dbg.ll", GT, BotAABuilder);
 }
@@ -949,7 +1000,6 @@ TEST(BotUnionFindAATest, Context13_0) {
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Load}}},
-
            {LineColFunOp{.Line = 6,
                          .Col = 0,
                          .InFunction = "main",
@@ -990,24 +1040,7 @@ TEST(BotUnionFindAATest, Context13_1) {
              LineColFunOp{.Line = 8,
                           .Col = 0,
                           .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 9,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 10,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 11,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 17,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Load}}},
-
+                          .OpCode = llvm::Instruction::Call}}},
            {LineColFunOp{.Line = 6,
                          .Col = 0,
                          .InFunction = "main",
@@ -1016,22 +1049,14 @@ TEST(BotUnionFindAATest, Context13_1) {
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca},
-             LineColFunOp{.Line = 12,
+             LineColFunOp{.Line = 9,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 13,
+             LineColFunOp{.Line = 11,
                           .Col = 0,
                           .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 14,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call},
-             LineColFunOp{.Line = 15,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Call}}}};
+                          .OpCode = llvm::Instruction::Load}}}};
 
   doAnalysisAndCompareResults("context_13_1_c_dbg.ll", GT, BotAABuilder);
 }
