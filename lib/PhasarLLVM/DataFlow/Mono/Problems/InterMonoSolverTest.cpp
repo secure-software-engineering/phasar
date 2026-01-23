@@ -94,7 +94,7 @@ InterMonoSolverTest::initialSeeds() {
   std::unordered_map<InterMonoSolverTest::n_t,
                      InterMonoSolverTest::mono_container_t>
       Seeds;
-  InterMonoSolverTest::f_t Main = ICF->getFunction("main");
+  InterMonoSolverTest::f_t Main = IRDB->getFunction("main");
   for (const auto *StartPoint : ICF->getStartPointsOf(Main)) {
     Seeds.insert({StartPoint, allTop()});
   }

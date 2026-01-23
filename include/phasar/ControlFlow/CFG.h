@@ -32,8 +32,7 @@ concept CFG = requires(const T &CF, typename T::n_t Inst, typename T::f_t Fun) {
   typename T::n_t;
   typename T::f_t;
 
-  /// Returns an iterable range of all predecessor instructions of Inst in the
-  /// CFG
+  /// Returns the function that contains the given instruction Inst.
   // TODO: Actually belongs into ProjectIRDB!
   { CF.getFunctionOf(Inst) } -> std::convertible_to<typename T::f_t>;
   /// Returns an iterable range of all instructions of the given function that

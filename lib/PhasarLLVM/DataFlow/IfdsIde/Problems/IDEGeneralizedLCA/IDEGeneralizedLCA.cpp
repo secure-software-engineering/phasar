@@ -264,7 +264,7 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getNormalEdgeFunction(
   PHASAR_LOG_LEVEL(DEBUG, "(D) Succ Node :   " << DToString(SuccNode));
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
-      isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
+      isEntryPoint(IRDB->getFunctionOf(Curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
     PHASAR_LOG_LEVEL(DEBUG, "Case: Intialize global variable at entry point.");
     PHASAR_LOG_LEVEL(DEBUG, ' ');
@@ -513,11 +513,11 @@ void IDEGeneralizedLCA::emitTextReport(
     // Emit only IR code, function name and module info
     Os << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (const auto *F : ICF->getAllFunctions()) {
+    for (const auto *F : IRDB->getAllFunctions()) {
       std::string FName = getFunctionNameFromIR(F);
       Os << "\nFunction: " << FName << "\n----------"
          << std::string(FName.size(), '-') << '\n';
-      for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+      for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
         auto Results = SR.resultsAt(Stmt, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
@@ -564,12 +564,12 @@ IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
         SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   llvm::outs() << "\n==== Computing LCA Results ====\n";
-  for (const auto *F : ICF->getAllFunctions()) {
+  for (const auto *F : IRDB->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
     llvm::outs() << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
-    for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+    for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
       llvm::outs() << "\nIR : " << NToString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping

@@ -72,25 +72,43 @@ concept ProjectSymbolTable = requires(const T &ST, llvm::StringRef Name,
 /// This concept describes the minimum requirements for a project-IR-database.
 /// Each phasar-analysis works on a program that is managed by a ProjectIRDB.
 template <typename T>
-concept ProjectIRDB = requires(const T &DB) {
-  /// Returns the managed module
-  { DB.getModule() } noexcept -> std::convertible_to<typename T::m_t>;
+concept ProjectIRDB =
+    requires(const T &DB, typename T::n_t Inst, typename T::f_t Fun) {
+      /// Returns the managed module
+      { DB.getModule() } noexcept -> std::convertible_to<typename T::m_t>;
 
-  /// Check if debug information are available.
-  { DB.debugInfoAvailable() } -> std::convertible_to<bool>;
+      /// Check if debug information are available.
+      { DB.debugInfoAvailable() } -> std::convertible_to<bool>;
 
-  /// Returns a range of all function definitions and declarations available
-  { DB.getAllFunctions() } -> psr::is_iterable_over_v<typename T::f_t>;
+      /// Returns a range of all function definitions and declarations available
+      { DB.getAllFunctions() } -> psr::is_iterable_over_v<typename T::f_t>;
 
-  /// Returns the number of functions in the managed module.
-  { DB.getNumFunctions() } -> std::convertible_to<size_t>;
+      /// Returns the number of functions in the managed module.
+      { DB.getNumFunctions() } -> std::convertible_to<size_t>;
 
-  /// Returns a range of all instructions available.
-  { DB.getAllInstructions() } -> psr::is_iterable_over_v<typename T::n_t>;
+      /// Returns a range of all global variables (and global constants, e.g,
+      /// string literals) in the managed module
+      { DB.getAllGlobals() } -> psr::is_iterable_over_v<typename T::g_t>;
 
-  /// Returns the number of instruction in the managed module.
-  { DB.getNumInstructions() } -> std::convertible_to<size_t>;
+      /// Returns the number of global variables (and global constants) in the
+      /// managed module.
+      { DB.getNumGlobals() } -> std::convertible_to<size_t>;
 
-  requires ProjectSymbolTable<T>;
-};
+      /// Returns a range of all instructions available.
+      { DB.getAllInstructions() } -> psr::is_iterable_over_v<typename T::n_t>;
+
+      /// Returns the number of instruction in the managed module.
+      { DB.getNumInstructions() } -> std::convertible_to<size_t>;
+
+      /// Returns the function that contains the given instruction Inst.
+      { DB.getFunctionOf(Inst) } -> std::convertible_to<typename T::f_t>;
+
+      /// Returns an iterable range of all instructions of the given function
+      /// that are part of the control-flow graph.
+      {
+        DB.getAllInstructionsOf(Fun)
+      } -> psr::is_iterable_over_v<typename T::n_t>;
+
+      requires ProjectSymbolTable<T>;
+    };
 } // namespace psr

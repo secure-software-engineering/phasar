@@ -46,6 +46,11 @@ concept ICFG = requires(const T &ICF, llvm::StringRef Name,
   /// Returns an iterable range of all call-instruction in the given function
   { ICF.getCallsFromWithin(Fun) } -> psr::is_iterable_over_v<typename T::n_t>;
 
+  /// Returns an iterable range of all instructions in all functions of the ICFG
+  /// that are neither call-sites nor start-points of a function
+  // TODO: Get rid of this function
+  { ICF.allNonCallStartNodes() } -> psr::is_iterable_over_v<typename T::n_t>;
+
   /// The total number of call-sites in the ICFG. Same as
   /// getCallGraph().getNumVertexCallSites()
   { ICF.getNumCallSites() } noexcept -> std::convertible_to<size_t>;
