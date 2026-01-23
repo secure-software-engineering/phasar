@@ -68,7 +68,7 @@ protected:
       for (const auto &[Fact, Value] : ResultSet) {
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
-        if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
+        if (FactRef.starts_with("%" + std::get<2>(Truth) + " ")) {
           llvm::outs() << "Checking variable: " << FactStr << '\n';
           ResultNotEmpty = true;
           EXPECT_EQ(std::get<3>(Truth), Value);

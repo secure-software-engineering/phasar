@@ -63,15 +63,15 @@ bool isConstructor(llvm::StringRef MangledName) {
 
 bool isMangled(llvm::StringRef Name) {
   // See llvm/Demangle/Demangle.cpp
-  if (Name.startswith("_Z") || Name.startswith("___Z")) {
+  if (Name.starts_with("_Z") || Name.starts_with("___Z")) {
     // Itanium ABI
     return true;
   }
-  if (Name.startswith("_R")) {
+  if (Name.starts_with("_R")) {
     // Rust ABI
     return true;
   }
-  if (Name.startswith("_D")) {
+  if (Name.starts_with("_D")) {
     // D ABI
     return true;
   }

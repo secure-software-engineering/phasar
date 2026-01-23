@@ -488,7 +488,7 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   }
   if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     // ZGV is the encoding of "GuardVariable"
-    return GV->getName().startswith("_ZGV");
+    return GV->getName().starts_with("_ZGV");
   }
   return false;
 }

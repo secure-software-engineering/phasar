@@ -187,10 +187,10 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
   llvm::SmallVector<const llvm::Function *, 1> VarAnnotations{};
   llvm::SmallVector<const llvm::Function *, 1> PtrAnnotations{};
   for (const auto *F : AnnotatedCode.getAllFunctions()) {
-    if (F->getName().startswith("llvm.var.annotation")) {
+    if (F->getName().starts_with("llvm.var.annotation")) {
       VarAnnotations.push_back(F);
     }
-    if (F->getName().startswith("llvm.ptr.annotation")) {
+    if (F->getName().starts_with("llvm.ptr.annotation")) {
       PtrAnnotations.push_back(F);
     }
   }
