@@ -20,6 +20,9 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+#include <cstdint>
+#include <optional>
+
 namespace {
 
 template <typename AliasInfoTy>
@@ -59,6 +62,36 @@ public:
 
     return Seeds;
   };
+
+  [[nodiscard]] auto killsAt() const {
+    return [this](n_t Curr, d_t CurrNode) -> std::optional<int32_t> {
+      const auto *CS = llvm::dyn_cast<llvm::CallBase>(Curr);
+      if (!CS) {
+        return std::nullopt;
+      }
+
+      const auto *DestFun = CS->getCalledFunction();
+      if (!DestFun) {
+        return std::nullopt;
+      }
+
+      container_type Kill;
+      psr::collectSanitizedFacts(Kill, *Config, CS, DestFun);
+
+      const auto &DL = IRDB->getModule()->getDataLayout();
+
+      for (const auto *KillFact : Kill) {
+        auto [BasePtr, Offset] =
+            psr::FieldSensAllocSitesAwareIFDSProblemBase::getBaseAndOffset(
+                KillFact, DL);
+        if (BasePtr == CurrNode) {
+          return Offset;
+        }
+      }
+
+      return std::nullopt;
+    };
+  }
 
   [[nodiscard]] FlowFunctionPtrType
   getSummaryFlowFunction(n_t CallSite, f_t DestFun) override {
@@ -119,7 +152,11 @@ protected:
     psr::LLVMTaintConfig TC(IRDB);
     ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
 
-    psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(&TaintProblem, &AS);
+    psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(
+        &TaintProblem, &AS,
+        {
+            .KillsAt = TaintProblem.killsAt(),
+        });
 
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                             nullptr, &BaseAS);
@@ -210,6 +247,14 @@ TEST_F(CFLFieldSensTest, Basic_09_1) {
   run({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt);
 }
 
+TEST_F(CFLFieldSensTest, Basic_09) {
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[24] = {"23"};
+
+  run({PathToLLFiles + "xtaint09_cpp.ll"}, Gt);
+}
+
 TEST_F(CFLFieldSensTest, Basic_12) {
   std::map<int, std::set<std::string>> Gt;
 
@@ -221,8 +266,6 @@ TEST_F(CFLFieldSensTest, Basic_12) {
 }
 
 TEST_F(CFLFieldSensTest, Basic_13) {
-  GTEST_SKIP() << "Requires sanitizer-callback to edge-functions to prevent "
-                  "{28: {27}} to be leaked!";
   std::map<int, std::set<std::string>> Gt;
 
   Gt[30] = {"29"};
@@ -231,8 +274,6 @@ TEST_F(CFLFieldSensTest, Basic_13) {
 }
 
 TEST_F(CFLFieldSensTest, Basic_14) {
-  GTEST_SKIP() << "Requires sanitizer-callback to edge-functions to prevent "
-                  "{31: {30}} to be leaked!";
   std::map<int, std::set<std::string>> Gt;
 
   Gt[33] = {"32"};

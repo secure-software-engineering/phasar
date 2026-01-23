@@ -314,24 +314,6 @@ auto FieldSensAllocSitesAwareIFDSProblem::initialSeeds()
   return {std::move(Ret)};
 }
 
-static std::pair<const llvm::Value *, int32_t>
-getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
-  llvm::APInt Offset(64, 0);
-  int32_t OffsVal = CFLFieldAccessPath::TopOffset;
-  const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
-
-  if (llvm::isa<llvm::GEPOperator>(Base)) {
-    return {Base->stripPointerCastsAndAliases(), CFLFieldAccessPath::TopOffset};
-  }
-
-  auto RawOffsVal = Offset.getSExtValue();
-  if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
-    OffsVal = int32_t(RawOffsVal);
-  }
-
-  return {Base->stripPointerCastsAndAliases(), OffsVal};
-}
-
 auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) -> EdgeFunction<l_t> {
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
@@ -457,6 +439,16 @@ auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
 auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, n_t RetSite, d_t RetSiteNode,
     llvm::ArrayRef<f_t> Callees) -> EdgeFunction<l_t> {
+
+  if (CallNode == RetSiteNode && Config.KillsAt) {
+    if (auto KillOffs = Config.KillsAt(CallSite, CallNode)) {
+      // Let the summary-FF kill the fact
+
+      // XXX: Can we somehow circumvent calling KillsAt twice?
+      return AllTop<l_t>{};
+    }
+  }
+
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Gen from zero
 
@@ -469,6 +461,23 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
 
 auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
     n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) -> EdgeFunction<l_t> {
+
+  llvm::errs() << "[getSummaryEdgeFunction]: Curr: " << llvmIRToString(Curr)
+               << ":\n";
+  llvm::errs() << "  > CurrNode: " << llvmIRToString(CurrNode) << '\n';
+  llvm::errs() << "  > SuccNode: " << llvmIRToString(SuccNode) << '\n';
+
+  if (CurrNode == SuccNode && Config.KillsAt) {
+    if (auto KillOffs = Config.KillsAt(Curr, CurrNode)) {
+      // kill
+      llvm::errs() << "  > request to kill " << llvmIRToString(CurrNode)
+                   << " with offset " << *KillOffs << '\n';
+      CFLFieldAccessPath FieldString{};
+      FieldString.Kills.insert(*KillOffs);
+      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
+    }
+  }
+
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
@@ -560,7 +569,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
         Txn.Paths.insert(CFLFieldAccessPath{});
         return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
       }
-    } else if (FldSensR && L.isa<EdgeFunction<l_t>>()) {
+    } else if (FldSensR && L.isa<EdgeIdentity<l_t>>()) {
       if (FldSensR->Transform.Paths.contains(CFLFieldAccessPath{})) {
         return R;
       }

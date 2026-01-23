@@ -21,7 +21,9 @@
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/FunctionExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -131,8 +133,37 @@ struct CFLFieldSensAnalysisDomain : AnalysisDomainTy {
   using l_t = LatticeDomain<CFLFieldSensEdgeValue>;
 };
 
+struct FieldSensAllocSitesAwareIFDSProblemConfig
+    : LLVMIFDSAnalysisDomainDefault {
+  llvm::unique_function<std::optional<int32_t>(n_t Curr, d_t CurrNode)> KillsAt;
+  // TODO: more
+};
+
+class FieldSensAllocSitesAwareIFDSProblemBase {
+public:
+  [[nodiscard]] static std::pair<const llvm::Value *, int32_t>
+  getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
+    llvm::APInt Offset(64, 0);
+    int32_t OffsVal = CFLFieldAccessPath::TopOffset;
+    const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
+
+    if (llvm::isa<llvm::GEPOperator>(Base)) {
+      return {Base->stripPointerCastsAndAliases(),
+              CFLFieldAccessPath::TopOffset};
+    }
+
+    auto RawOffsVal = Offset.getSExtValue();
+    if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
+      OffsVal = int32_t(RawOffsVal);
+    }
+
+    return {Base->stripPointerCastsAndAliases(), OffsVal};
+  }
+};
+
 class FieldSensAllocSitesAwareIFDSProblem
-    : public IDETabulationProblem<
+    : public FieldSensAllocSitesAwareIFDSProblemBase,
+      public IDETabulationProblem<
           CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>> {
   using Base = IDETabulationProblem<
       CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>>;
@@ -167,23 +198,22 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
-  // Constructs an IDETabulationProblem with the usual arguments + alias
+  /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
   ///
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
   explicit FieldSensAllocSitesAwareIFDSProblem(
       IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem,
-      LLVMAliasInfoRef AS) noexcept(std::is_nothrow_move_constructible_v<d_t>)
+      LLVMAliasInfoRef AS,
+      FieldSensAllocSitesAwareIFDSProblemConfig Config =
+          {}) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : Base(UserProblem->getProjectIRDB(), UserProblem->getEntryPoints(),
              UserProblem->getZeroValue()),
-        AS(AS), UserProblem(UserProblem) {}
+        AS(AS), UserProblem(UserProblem), Config(std::move(Config)) {}
 
   FieldSensAllocSitesAwareIFDSProblem(std::nullptr_t,
                                       LLVMAliasInfoRef AS) = delete;
-
-  // TODO: Provide a customization-point to provide sanitizer information to the
-  // edge functions!
 
   // TODO: Provide a customization-point to provide gen offsets to the
   // edge-functions (generating from zero currently always generates at
@@ -251,6 +281,7 @@ private:
 
   LLVMAliasInfoRef AS;
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
+  FieldSensAllocSitesAwareIFDSProblemConfig Config{};
   MemoryLocationAllocator MemLocAlloc{};
   llvm::DenseMap<const llvm::Value *, const CachedAccessPath *> MemLocCache{};
 
