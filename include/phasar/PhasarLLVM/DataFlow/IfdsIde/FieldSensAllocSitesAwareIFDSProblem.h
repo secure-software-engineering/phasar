@@ -118,6 +118,10 @@ struct CFLFieldSensEdgeValue {
     return !(*this == Other);
   }
 
+  [[nodiscard]] friend auto hash_value(const CFLFieldSensEdgeValue EV) {
+    return llvm::hash_combine_range(EV.Paths.begin(), EV.Paths.end());
+  }
+
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const CFLFieldSensEdgeValue &EV);
 };
@@ -177,6 +181,13 @@ public:
 
   FieldSensAllocSitesAwareIFDSProblem(std::nullptr_t,
                                       LLVMAliasInfoRef AS) = delete;
+
+  // TODO: Provide a customization-point to provide sanitizer information to the
+  // edge functions!
+
+  // TODO: Provide a customization-point to provide gen offsets to the
+  // edge-functions (generating from zero currently always generates at
+  // epsilon!)
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
 

@@ -23,7 +23,8 @@ template <typename T, typename Enable = void> class Compressor;
 ///
 /// This specialization handles types that can be efficiently passed by value
 template <typename T>
-class Compressor<T, std::enable_if_t<CanEfficientlyPassByValue<T>>> {
+class Compressor<T, std::enable_if_t<CanEfficientlyPassByValue<T> &&
+                                     has_llvm_dense_map_info<T>>> {
 public:
   void reserve(size_t Capacity) {
     assert(Capacity <= UINT32_MAX);
@@ -70,7 +71,8 @@ private:
 ///
 /// This specialization handles types that cannot be efficiently passed by value
 template <typename T>
-class Compressor<T, std::enable_if_t<!CanEfficientlyPassByValue<T>>> {
+class Compressor<T, std::enable_if_t<!CanEfficientlyPassByValue<T> ||
+                                     !has_llvm_dense_map_info<T>>> {
 public:
   void reserve(size_t Capacity) {
     assert(Capacity <= UINT32_MAX);
@@ -132,6 +134,9 @@ private:
       assert(Elem != nullptr);
       if constexpr (has_llvm_dense_map_info<T>) {
         return llvm::DenseMapInfo<T>::getHashValue(*Elem);
+      } else if constexpr (is_llvm_hashable_v<T>) {
+        using llvm::hash_value;
+        return hash_value(*Elem);
       } else {
         return std::hash<T>{}(*Elem);
       }

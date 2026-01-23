@@ -1,5 +1,6 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -123,9 +124,14 @@ protected:
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                             nullptr, &BaseAS);
 
-    auto Results = psr::solveIDEProblem(FsTaintProblem, ICFG);
+    psr::IterativeIDESolver Solver(&FsTaintProblem, &ICFG);
+    Solver.solve();
+    auto Results = Solver.getSolverResults();
 
-    Results.dumpResults(ICFG);
+    Solver.dumpResults();
+
+    // auto Results = psr::solveIDEProblem(FsTaintProblem, ICFG);
+    // Results.dumpResults(ICFG);
 
     std::map<int, std::set<std::string>> ComputedLeaks;
 
@@ -194,6 +200,78 @@ TEST_F(CFLFieldSensTest, Basic_06) {
   // no leaks expected
 
   run({PathToLLFiles + "xtaint06_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_09_1) {
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[25] = {"24"};
+
+  run({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_12) {
+  std::map<int, std::set<std::string>> Gt;
+
+  // We sanitize an alias - since we don't have must-alias relations, we cannot
+  // kill aliases at all
+  Gt[28] = {"27"};
+
+  run({PathToLLFiles + "xtaint12_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_13) {
+  GTEST_SKIP() << "Requires sanitizer-callback to edge-functions to prevent "
+                  "{28: {27}} to be leaked!";
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[30] = {"29"};
+
+  run({PathToLLFiles + "xtaint13_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_14) {
+  GTEST_SKIP() << "Requires sanitizer-callback to edge-functions to prevent "
+                  "{31: {30}} to be leaked!";
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[33] = {"32"};
+
+  run({PathToLLFiles + "xtaint14_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_16) {
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[24] = {"23"};
+
+  run({PathToLLFiles + "xtaint16_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_17) {
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[27] = {"26"};
+
+  run({PathToLLFiles + "xtaint17_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_18) {
+  std::map<int, std::set<std::string>> Gt;
+
+  // no leaks expected
+
+  run({PathToLLFiles + "xtaint18_cpp.ll"}, Gt);
+}
+
+TEST_F(CFLFieldSensTest, Basic_20) {
+  std::map<int, std::set<std::string>> Gt;
+
+  Gt[22] = {"14"};
+  // Gt[24] = {"23"}; // no leak here, because above we define the semantics to
+  // exclude deep taints!
+
+  run({PathToLLFiles + "xtaint20_cpp.ll"}, Gt);
 }
 
 } // namespace

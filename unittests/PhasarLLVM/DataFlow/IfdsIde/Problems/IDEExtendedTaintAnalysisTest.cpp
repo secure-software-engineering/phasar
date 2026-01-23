@@ -202,7 +202,7 @@ TEST_F(IDETaintAnalysisTest, XTaint09_1) {
 
   Gt[25] = {"24"};
 
-  doAnalysis({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt, std::monostate{});
+  doAnalysis({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt, std::monostate{}, true);
 }
 
 TEST_F(IDETaintAnalysisTest, XTaint09) {

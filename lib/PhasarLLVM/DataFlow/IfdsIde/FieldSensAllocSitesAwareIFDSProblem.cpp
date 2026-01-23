@@ -145,6 +145,8 @@ void CFLFieldSensEdgeValue::applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit) {
 }
 
 void CFLFieldSensEdgeValue::applyGepAndKill(GEPEvent Evt) {
+  llvm::errs() << "[applyGepAndKill]: " << *this << " + " << Evt.Field << "\n";
+
   auto Save = std::exchange(Paths, {});
 
   for (const auto &F : Save) {
@@ -154,12 +156,24 @@ void CFLFieldSensEdgeValue::applyGepAndKill(GEPEvent Evt) {
       auto FF = F;
       FF.Kills.insert(Offs);
       Paths.insert(std::move(FF));
+      llvm::errs() << "> add K" << Offs << '\n';
       continue;
     }
 
     if (F.Stores.back() == Offs) {
+      llvm::errs() << "> Kill ";
+      llvm::interleave(
+          F.Stores, llvm::errs(),
+          [](auto StoreOffs) { llvm::errs() << 'S' << StoreOffs; }, ".");
+      llvm::errs() << '\n';
       continue;
     }
+
+    llvm::errs() << "> Retain ";
+    llvm::interleave(
+        F.Stores, llvm::errs(),
+        [](auto StoreOffs) { llvm::errs() << 'S' << StoreOffs; }, ".");
+    llvm::errs() << '\n';
 
     assert(F.Stores.back() != Offs);
     Paths.insert(F);
@@ -331,13 +345,21 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
     // TODO;: How to deal with BasePtr?
 
-    if (CurrNode == SuccNode &&
-        (PointerOp == CurrNode ||
-         PointerOp->stripPointerCastsAndAliases() == CurrNode)) {
-      // Kill
+    const auto &DL = IRDB->getModule()->getDataLayout();
+    auto [BasePtr, Offset] = getBaseAndOffset(PointerOp, DL);
 
-      auto [BasePtr, Offset] =
-          getBaseAndOffset(PointerOp, IRDB->getModule()->getDataLayout());
+    auto [BaseBasePtr,
+          BaseOffset] = [&]() -> std::pair<const llvm::Value *, int32_t> {
+      if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
+        return getBaseAndOffset(
+            llvm::cast<llvm::LoadInst>(BasePtr)->getPointerOperand(), DL);
+      }
+
+      return {nullptr, INT32_MIN};
+    }();
+    if (CurrNode == SuccNode &&
+        (BasePtr == CurrNode || BaseBasePtr == CurrNode)) {
+      // Kill
 
       CFLFieldAccessPath FieldString{};
       FieldString.Kills.insert(Offset);
@@ -348,11 +370,20 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     if (ValueOp == CurrNode && CurrNode != SuccNode) {
       // Store
 
-      auto [BasePtr, Offset] =
-          getBaseAndOffset(PointerOp, IRDB->getModule()->getDataLayout());
-
       CFLFieldAccessPath FieldString{};
       FieldString.Stores.push_back(Offset);
+
+      if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
+        // This is a hack, to be more correct wih field-insensitive alias
+        // information
+        auto [BaseBasePtr, BaseOffset] = getBaseAndOffset(
+            llvm::cast<llvm::LoadInst>(BasePtr)->getPointerOperand(), DL);
+        if (BaseBasePtr == SuccNode) {
+          // push back, or push front?
+          FieldString.Stores.insert(FieldString.Stores.begin(), BaseOffset);
+        }
+      }
+
       return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
     }
 

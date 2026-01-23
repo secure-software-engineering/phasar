@@ -347,7 +347,7 @@ else()
 endif()
 
 # Clang
-option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
+option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is OFF)" OFF)
 if(BUILD_PHASAR_CLANG)
   add_clang()
 endif()
