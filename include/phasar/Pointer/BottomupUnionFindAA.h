@@ -26,8 +26,13 @@
 #include <unordered_map>
 
 namespace psr {
+
+struct BottomupUnionFindAABase {
+  static constexpr llvm::StringLiteral LogCategory = "BottomupUnionFindAA";
+};
+
 template <typename AnalysisDomainT, Soundness SoundnessFlag = Soundness::Soundy>
-class BottomupUnionFindAA {
+class BottomupUnionFindAA : BottomupUnionFindAABase {
   struct ParamInfo {
     ValueId Arg;
     ValueId Param;
@@ -48,6 +53,8 @@ public:
   using CGTy = CallGraph<n_t, f_t>;
   using RevCGTy = ReverseCGGraph<CGTy, db_t>;
   using FunVtxTy = typename RevCGTy::FunctionId;
+
+  using BottomupUnionFindAABase::LogCategory;
 
   static constexpr auto InvalidSCC = SCCId<FunVtxTy>(UINT32_MAX);
 
@@ -134,31 +141,33 @@ private:
          llvm::reverse(iota<SCCId<FunVtxTy>>(CGSCCs->size()))) {
 
       for (const auto &[CS, CSInfo] : Calls[CurrSCC]) {
-        PHASAR_LOG_LEVEL_CAT(DEBUG, "BottomupUnionFindAA",
-                             "At CS: " << NToString(CS));
+        PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "At CS: " << NToString(CS));
         llvm::SmallDenseMap<ValueId, llvm::SmallVector<ValueId, 2>> BackMap;
 
         for (const auto &[Arg, Param, E] : CSInfo.Params) {
-          BackMap[Param].push_back(Arg);
+          auto ParamRep = Base.AliasSets.find(Param);
+          BackMap[ParamRep].push_back(Arg);
         }
         if (CSInfo.RetSlot) {
           for (auto Ret : CSInfo.Ret) {
-            BackMap[Ret].push_back(*CSInfo.RetSlot);
+            auto RetRep = Base.AliasSets.find(Ret);
+            BackMap[RetRep].push_back(*CSInfo.RetSlot);
           }
         }
 
         // --- Apply summaries:
         for (const auto &[Param, Args] : BackMap) {
-          PHASAR_LOG_LEVEL_CAT(DEBUG, "BottomupUnionFindAA",
+          PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
                                "  Param: " << psr::to_underlying(Param)
                                            << "; Args: "
                                            << PrettyPrinter{Args});
 
           const auto &ToAliases = IntermediateBackView[Param];
           ToAliases.foreach ([&](ValueId Alias) {
-            if (const auto *AliasFroms = getOrNull(BackMap, Alias)) {
+            auto AliasRep = Base.AliasSets.find(Alias);
+            if (const auto *AliasFroms = getOrNull(BackMap, AliasRep)) {
               for (auto Arg : Args) {
-                PHASAR_LOG_LEVEL_CAT(DEBUG, "BottomupUnionFindAA",
+                PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
                                      "  JOIN " << psr::to_underlying(Arg)
                                                << " WITH "
                                                << PrettyPrinter{*AliasFroms});
