@@ -266,6 +266,11 @@ transferAndKillTwoFlows(d_t To, d_t From1, d_t From2) {
 auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
                                               [[maybe_unused]] n_t Succ)
     -> FlowFunctionPtrType {
+  PHASAR_LOG_LEVEL_CAT(DEBUG, "IFDSTaintAnalysis",
+                       "getNormalFlowFunction: " << llvmIRToString(Curr)
+                                                 << " --> "
+                                                 << llvmIRToString(Succ));
+
   // If a tainted value is stored, the store location must be tainted too
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     container_type Gen;
@@ -396,14 +401,6 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   // populateWithMayAliases(Leak, CallSite);
   populateWithMustAliases(Kill, CallSite);
 
-  if (CS->hasStructRetAttr()) {
-    const auto *SRet = CS->getArgOperand(0);
-    if (!Gen.count(SRet)) {
-      // SRet is guaranteed to be written to by the call. If it does not
-      // generate it, we can freely kill it
-      Kill.insert(SRet);
-    }
-  }
   if (Gen.empty() && Leak.empty() && Kill.empty()) {
     if (Llvmfdff.contains(DestFun)) {
       // Note: The LLVMfdff is constant during the lifetime of the analysis, so
@@ -436,6 +433,15 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
     // not found
     return nullptr;
+  }
+
+  if (CS->hasStructRetAttr()) {
+    const auto *SRet = CS->getArgOperand(0);
+    if (!Gen.count(SRet)) {
+      // SRet is guaranteed to be written to by the call. If it does not
+      // generate it, we can freely kill it
+      Kill.insert(SRet);
+    }
   }
   if (Gen.empty()) {
     if (!Leak.empty() || !Kill.empty()) {
