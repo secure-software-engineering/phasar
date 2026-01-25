@@ -51,15 +51,13 @@ public:
   ~SVFPointsToSet() {
     SVF::SVFIR::releaseSVFIR();
     SVF::AndersenWaveDiff::releaseAndersenWaveDiff();
-    SVF::SymbolTableInfo::releaseSymbolInfo();
     SVF::LLVMModuleSet::releaseLLVMModuleSet();
   }
 
   [[nodiscard]] constexpr SVF::SVFIR &getPAG() const noexcept { return *PAG; }
 
 private:
-  SVFPointsToSet(SVF::SVFModule *Mod)
-      : IRBuilder(Mod), PAG(IRBuilder.build()) {}
+  SVFPointsToSet() : PAG(IRBuilder.build()) {}
 
   [[nodiscard]] constexpr Derived &self() noexcept {
     return static_cast<Derived &>(*this);
@@ -71,7 +69,7 @@ private:
   [[nodiscard]] o_t
   asAbstractObjectImpl(psr::ByConstRef<v_t> Pointer) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    return psr::getNodeId(Pointer, *ModSet, *PAG);
+    return psr::getNodeId(Pointer, *ModSet);
   }
 
   [[nodiscard]] std::optional<v_t> asPointerOrNullImpl(o_t Obj) const noexcept {
@@ -112,9 +110,8 @@ protected:
 };
 
 struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
-  VFSPointsToSetImpl(SVF::SVFModule *Mod)
-      : SVFPointsToSet(Mod),
-        // Note: We must use the static createVFSWPA() function, otherwise SVF
+  VFSPointsToSetImpl()
+      : // Note: We must use the static createVFSWPA() function, otherwise SVF
         // will leak memory
         VFS(SVF::VersionedFlowSensitive::createVFSWPA(PAG)) {}
 
@@ -126,8 +123,8 @@ struct VFSPointsToSetImpl : SVFPointsToSet<VFSPointsToSetImpl> {
 };
 
 struct DDAPointsToSetImpl : SVFPointsToSet<DDAPointsToSetImpl> {
-  DDAPointsToSetImpl(SVF::SVFModule *Mod) : SVFPointsToSet(Mod), Client(Mod) {
-    Client.initialise(Mod);
+  DDAPointsToSetImpl() {
+    Client.initialise();
     DDA.emplace(PAG, &Client);
     DDA->initialize();
     Client.answerQueries(&*DDA);
@@ -146,26 +143,25 @@ struct DDAPointsToSetImpl : SVFPointsToSet<DDAPointsToSetImpl> {
 
 auto psr::createSVFVFSPointsToInfo(LLVMProjectIRDB &IRDB)
     -> SVFBasedPointsToInfo {
-  return SVFBasedPointsToInfo(std::in_place_type<VFSPointsToSetImpl>,
-                              psr::initSVFModule(IRDB));
+  psr::initSVFModule(IRDB);
+  return SVFBasedPointsToInfo(std::in_place_type<VFSPointsToSetImpl>);
 }
 
 auto psr::createSVFDDAPointsToInfo(LLVMProjectIRDB &IRDB)
     -> SVFBasedPointsToInfo {
-  return SVFBasedPointsToInfo(std::in_place_type<DDAPointsToSetImpl>,
-                              psr::initSVFModule(IRDB));
+  psr::initSVFModule(IRDB);
+  return SVFBasedPointsToInfo(std::in_place_type<DDAPointsToSetImpl>);
 }
 
 auto psr::createSVFPointsToInfo(LLVMProjectIRDB &IRDB,
                                 SVFPointsToAnalysisType PTATy)
     -> SVFBasedPointsToInfo {
+  psr::initSVFModule(IRDB);
   switch (PTATy) {
   case SVFPointsToAnalysisType::DDA:
-    return SVFBasedPointsToInfo(std::in_place_type<DDAPointsToSetImpl>,
-                                psr::initSVFModule(IRDB));
+    return SVFBasedPointsToInfo(std::in_place_type<DDAPointsToSetImpl>);
   case SVFPointsToAnalysisType::VFS:
-    return SVFBasedPointsToInfo(std::in_place_type<VFSPointsToSetImpl>,
-                                psr::initSVFModule(IRDB));
+    return SVFBasedPointsToInfo(std::in_place_type<VFSPointsToSetImpl>);
   }
   llvm_unreachable("Should have handled all SVFPointsToAnalysisType variants "
                    "in the switch above!");
@@ -178,7 +174,7 @@ template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
   using v_t = const llvm::Value *;
   using o_t = const llvm::Value *;
 
-  SVFLLVMPointsToIterator(SVF::SVFModule *Mod) : PT(Mod) {}
+  SVFLLVMPointsToIterator() = default;
 
   [[nodiscard]] constexpr o_t asAbstractObject(v_t Pointer) const noexcept {
     return Pointer;
@@ -186,11 +182,11 @@ template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
 
   [[nodiscard]] SVF::NodeID getNodeId(v_t Pointer) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    return psr::getNodeId(Pointer, *ModSet, PT.getPAG());
+    return psr::getNodeId(Pointer, *ModSet);
   }
   [[nodiscard]] SVF::NodeID getObjNodeId(o_t Obj) const noexcept {
     auto *ModSet = SVF::LLVMModuleSet::getLLVMModuleSet();
-    return psr::getObjNodeId(Obj, *ModSet, PT.getPAG());
+    return psr::getObjNodeId(Obj, *ModSet);
   }
 
   void forallPointeesOf(o_t Pointer, n_t /*At*/,
@@ -227,13 +223,13 @@ template <typename SVFPointsToSetT> struct SVFLLVMPointsToIterator {
 auto psr::createLLVMSVFPointsToIterator(LLVMProjectIRDB &IRDB,
                                         SVFPointsToAnalysisType PTATy)
     -> LLVMPointsToIterator {
-  auto *Mod = psr::initSVFModule(IRDB);
+  psr::initSVFModule(IRDB);
 
   switch (PTATy) {
   case SVFPointsToAnalysisType::DDA:
-    return {std::make_unique<SVFLLVMPointsToIterator<DDAPointsToSetImpl>>(Mod)};
+    return {std::make_unique<SVFLLVMPointsToIterator<DDAPointsToSetImpl>>()};
   case SVFPointsToAnalysisType::VFS:
-    return {std::make_unique<SVFLLVMPointsToIterator<VFSPointsToSetImpl>>(Mod)};
+    return {std::make_unique<SVFLLVMPointsToIterator<VFSPointsToSetImpl>>()};
   }
   llvm_unreachable("Should have handled all SVFPointsToAnalysisType variants "
                    "in the switch above!");

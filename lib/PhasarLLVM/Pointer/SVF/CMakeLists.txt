@@ -22,3 +22,5 @@ add_phasar_library(phasar_llvm_pointer_svf
 
 target_include_directories(phasar_llvm_pointer_svf SYSTEM PRIVATE ${SVF_INSTALL_INCLUDE_DIR})
 target_link_directories(phasar_llvm_pointer_svf PUBLIC ${SVF_INSTALL_LIB_DIR})
+# Such that SVF finds its extapi.bc without system-wide installation:
+target_compile_options(phasar_llvm_pointer_svf PRIVATE -DPHASAR_SVF_INSTALL_LIBDIR="${SVF_INSTALL_LIBDIR}")
