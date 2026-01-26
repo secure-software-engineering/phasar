@@ -334,9 +334,8 @@ endif()
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
-if (NOT PHASAR_LLVM_VERSION)
-  set(PHASAR_LLVM_VERSION 16)
-endif()
+set(PHASAR_LLVM_VERSION 16 CACHE STRING "The LLVM major-version that PhASAR should use")
+
 include(add_llvm)
 add_llvm()
 

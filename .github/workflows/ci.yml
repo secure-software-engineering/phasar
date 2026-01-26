@@ -17,6 +17,7 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
         compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev clang-tools-19"] ]
         build: [ Debug, Release, DebugLibdeps, DebugCov ]
+        llvm-version: [ 16, 17 ]
         include:
           - build: Debug
             cmake_build_type: Debug
@@ -55,7 +56,7 @@ jobs:
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
+          ./utils/InstallAptDependencies.sh --llvm-version ${{ matrix.llvm-version }} --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
@@ -69,6 +70,7 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_PHASAR_CLANG=OFF \
             -DPHASAR_USE_Z3=ON \
+            -DPHASAR_LLVM_VERSION=${{ matrix.llvm-version }} \
             ${{ matrix.flags }} \
             -G Ninja
           ninja -C build
@@ -101,7 +103,7 @@ jobs:
         if: matrix.build == 'DebugCov'
         uses: actions/upload-artifact@v4
         with:
-          name: CoverageReport
+          name: phasar-coverage-report-llvm-${{ matrix.llvm-version }}
           path: ./build/ccov/all-merged/
           if-no-files-found: error
           retention-days: 7

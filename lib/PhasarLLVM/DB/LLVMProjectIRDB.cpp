@@ -34,9 +34,6 @@ static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
   if (Enable) {
     Ctx.enableOpaquePointers();
   }
-#else // LLVM_VERSION_MAJOR >= 17
-#error                                                                         \
-    "Non-opaque pointers are not supported anymore. Refactor PhASAR to remove typed pointer support."
 #endif
 }
 
@@ -321,9 +318,15 @@ LLVMProjectIRDB::getFunctionDefinitionImpl(llvm::StringRef FunctionName) const {
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
+LLVMProjectIRDB::getGlobalVariableImpl(
+    llvm::StringRef GlobalVariableName) const {
+  return Mod->getGlobalVariable(GlobalVariableName, true);
+}
+
+[[nodiscard]] const llvm::GlobalVariable *
 LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
     llvm::StringRef GlobalVariableName) const {
-  auto *G = Mod->getGlobalVariable(GlobalVariableName);
+  const auto *G = getGlobalVariable(GlobalVariableName);
   if (G && !G->isDeclaration()) {
     return G;
   }
