@@ -4,9 +4,11 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/BottomupUnionFindAA.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NonNullPtr.h"
@@ -21,10 +23,10 @@ extern template class CallingContextSensUnionFindAA<LLVMPAGDomain>;
 extern template class IndirectionSensUnionFindAA<LLVMPAGDomain>;
 extern template class BottomupUnionFindAA<LLVMPAGDomain>;
 
-inline constexpr std::invocable<ValueId> auto
+constexpr std::invocable<ValueId> auto
 llvmUnionFindAliasHandler(const ValueCompressor<PAGVariable> &VC,
                           std::invocable<const llvm::Value *> auto Callback) {
-  return [&VC, Callback](ValueId Alias) {
+  return [&VC, Callback{copyOrRef(Callback)}](ValueId Alias) {
     for (auto V : VC.id2vars(Alias)) {
       if (const auto *LLVMVar = V.valueOrNull()) [[likely]] {
         std::invoke(Callback, LLVMVar);
@@ -53,28 +55,90 @@ private:
 };
 } // namespace pag
 
-template <typename AAResT>
+template <typename Derived, typename AAResT>
   requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
-struct LLVMUnionFindAliasIterator {
-  AAResT AARes;
-  MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC;
+struct LLVMUnionFindAliasIteratorMixin {
+  [[no_unique_address]] AAResT AARes;
 
   using v_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
 
-  void forallAliasesOf(ValueId VId, const auto & /*Inst*/,
-                       std::invocable<const llvm::Value *> auto Callback) {
-    const auto &RawAliases = AARes.getRawAliasSet(VId);
-    RawAliases.foreach (llvmUnionFindAliasHandler(VC, copyOrRef(Callback)));
+  [[nodiscard]] decltype(auto) getRawAliasSet(ValueId ValId) const {
+    return AARes.getRawAliasSet(ValId);
   }
 
-  void forallAliasesOf(const llvm::Value *Ptr, const auto &Inst,
-                       std::invocable<const llvm::Value *> auto Callback) {
-    if (auto ValId = VC->getOrNull(Ptr)) {
-      foreachAliasOf(*ValId, Inst, copyOrRef(Callback));
+  void
+  forallAliasesOf(ValueId VId, const auto & /*Inst*/,
+                  std::invocable<const llvm::Value *> auto Callback) const {
+    const auto &RawAliases = AARes.getRawAliasSet(VId);
+    RawAliases.foreach (
+        llvmUnionFindAliasHandler(*self().VC, copyOrRef(Callback)));
+  }
+
+  void
+  forallAliasesOf(const llvm::Value *Ptr, const auto &Inst,
+                  std::invocable<const llvm::Value *> auto Callback) const {
+    if (auto ValId = self().VC->getOrNull(Ptr)) {
+      forallAliasesOf(*ValId, Inst, copyOrRef(Callback));
     }
   }
+
+  [[nodiscard]] bool mayAlias(ValueId Ptr1, ValueId Ptr2) const {
+    return AARes.mayAlias(Ptr1, Ptr2);
+  }
+
+  [[nodiscard]] bool mayAlias(ValueId Ptr1, ValueId Ptr2,
+                              const auto & /*AtInstruction*/) const {
+    return AARes.mayAlias(Ptr1, Ptr2);
+  }
+
+  [[nodiscard]] bool mayAlias(const llvm::Value *Ptr1,
+                              const llvm::Value *Ptr2) const {
+    auto ValId1 = self().VC->getOrNull(Ptr1);
+    auto ValId2 = self().VC->getOrNull(Ptr2);
+
+    return ValId1 && ValId2 && mayAlias(*ValId1, *ValId2);
+  }
+
+  [[nodiscard]] bool mayAlias(const llvm::Value *Ptr1, const llvm::Value *Ptr2,
+                              const auto & /*AtInstruction*/) const {
+    return mayAlias(Ptr1, Ptr2);
+  }
+
+  [[nodiscard]] AliasResult alias(const llvm::Value *Ptr1,
+                                  const llvm::Value *Ptr2,
+                                  const auto &AtInstruction) const {
+    auto ValId1 = self().VC->getOrNull(Ptr1);
+    auto ValId2 = self().VC->getOrNull(Ptr2);
+    if (!ValId1 || !ValId2) {
+      return AliasResult::NoAlias;
+    }
+    if (*ValId1 == *ValId2) {
+      return AliasResult::MustAlias;
+    }
+    return mayAlias(*ValId1, *ValId2, AtInstruction) ? AliasResult::MayAlias
+                                                     : AliasResult::NoAlias;
+  }
+
+  [[nodiscard]] constexpr const Derived &self() const noexcept {
+    return *static_cast<const Derived *>(this);
+  }
+};
+
+template <typename AAResT>
+  requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+struct LLVMUnionFindAliasIterator
+    : public LLVMUnionFindAliasIteratorMixin<LLVMUnionFindAliasIterator<AAResT>,
+                                             AAResT> {
+  MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC;
+
+  constexpr LLVMUnionFindAliasIterator(
+      AAResT &&AARes, MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC)
+      : psr::LLVMUnionFindAliasIteratorMixin<LLVMUnionFindAliasIterator<AAResT>,
+                                             AAResT>{PSR_FWD(AARes)},
+        VC(std::move(VC)) {}
 };
 
 template <typename AAResT>
@@ -96,19 +160,37 @@ protected:
 };
 } // namespace detail
 
-template <typename AAResT>
-class LLVMLocalUnionFindAliasIterator
+template <typename Derived, typename AAResT>
+class LLVMLocalUnionFindAliasIteratorMixin
     : public detail::LLVMLocalUnionFindAliasIteratorBase {
 public:
-  LLVMLocalUnionFindAliasIterator(
-      AAResT &&AARes, NonNullPtr<const ValueCompressor<PAGVariable>> VC)
-      : detail::LLVMLocalUnionFindAliasIteratorBase(*VC), AARes(PSR_FWD(AARes)),
-        VC(VC) {}
+  LLVMLocalUnionFindAliasIteratorMixin(AAResT &&AARes,
+                                       const ValueCompressor<PAGVariable> &VC)
+      : detail::LLVMLocalUnionFindAliasIteratorBase(VC), AARes(PSR_FWD(AARes)) {
+  }
 
-  void foreachAliasOf(ValueId VId, const llvm::Function *Context,
-                      std::invocable<const llvm::Value *> auto WithAlias) {
+  [[nodiscard]] decltype(auto) getRawAliasSet(ValueId ValId) const {
+    return AARes.getRawAliasSet(ValId);
+  }
+
+  [[nodiscard]] auto getRawAliasSet(ValueId ValId,
+                                    const llvm::Function *Context) const {
+    auto Vars = AARes.getRawAliasSet(ValId);
+    if (Context) {
+      Vars &= getOrDefault(GlobalsOrInFun, Context);
+    }
+    return Vars;
+  }
+
+  [[nodiscard]] auto getRawAliasSet(ValueId ValId,
+                                    const llvm::Instruction *Context) const {
+    return getRawAliasSet(ValId, getFunction(Context));
+  }
+
+  void forallAliasesOf(ValueId VId, const llvm::Function *Context,
+                       std::invocable<const llvm::Value *> auto WithAlias) {
     const auto AliasHandler =
-        llvmUnionFindAliasHandler(VC, copyOrRef(WithAlias));
+        llvmUnionFindAliasHandler(*self().VC, copyOrRef(WithAlias));
 
     auto &&RawVars = AARes.getRawAliasSet(VId);
     if (Context) {
@@ -120,26 +202,86 @@ public:
     }
   }
 
-  void foreachAliasOf(const llvm::Value *Val, const llvm::Function *Context,
-                      std::invocable<const llvm::Value *> auto WithAlias) {
-    if (auto ValId = VC->getOrNull(Val)) {
-      foreachAliasOf(*ValId, Context, copyOrRef(WithAlias));
+  void forallAliasesOf(const llvm::Value *Val, const llvm::Function *Context,
+                       std::invocable<const llvm::Value *> auto WithAlias) {
+    if (auto ValId = self().VC->getOrNull(Val)) {
+      forallAliasesOf(*ValId, Context, copyOrRef(WithAlias));
     }
   }
 
-  void foreachAliasOf(const llvm::Value *Val,
-                      const llvm::Instruction *AtInstruction,
-                      std::invocable<const llvm::Value *> auto WithAlias) {
-    foreachAliasOf(Val, psr::getFunction(AtInstruction), copyOrRef(WithAlias));
+  void forallAliasesOf(ValueId ValId, const llvm::Instruction *AtInstruction,
+                       std::invocable<const llvm::Value *> auto WithAlias) {
+    forallAliasesOf(ValId, psr::getFunction(AtInstruction),
+                    copyOrRef(WithAlias));
   }
 
-  void foreachAliasOf(const llvm::Value *Val,
-                      std::invocable<const llvm::Value *> auto WithAlias) {
-    foreachAliasOf(Val, psr::getFunction(Val), copyOrRef(WithAlias));
+  void forallAliasesOf(const llvm::Value *Val,
+                       const llvm::Instruction *AtInstruction,
+                       std::invocable<const llvm::Value *> auto WithAlias) {
+    forallAliasesOf(Val, psr::getFunction(AtInstruction), copyOrRef(WithAlias));
+  }
+
+  void forallAliasesOf(const llvm::Value *Val,
+                       std::invocable<const llvm::Value *> auto WithAlias) {
+    forallAliasesOf(Val, psr::getFunction(Val), copyOrRef(WithAlias));
+  }
+
+  [[nodiscard]] bool
+  mayAlias(ValueId ValId1, ValueId ValId2,
+           const llvm::Instruction * /*AtInstruction*/ = nullptr) const {
+    // TODO: Should we filter by AtInstruction-context here as well?
+    return AARes.mayAlias(ValId1, ValId2);
+  }
+
+  [[nodiscard]] bool
+  mayAlias(const llvm::Value *Ptr1, const llvm::Value *Ptr2,
+           const llvm::Instruction * /*AtInstruction*/ = nullptr) const {
+    auto ValId1 = self().VC->getOrNull(Ptr1);
+    auto ValId2 = self().VC->getOrNull(Ptr2);
+
+    // TODO: Should we filter by AtInstruction-context here as well?
+    return ValId1 && ValId2 && AARes.mayAlias(*ValId1, *ValId2);
+  }
+
+  [[nodiscard]] AliasResult alias(const llvm::Value *Ptr1,
+                                  const llvm::Value *Ptr2,
+                                  const auto &AtInstruction) const {
+    auto ValId1 = self().VC->getOrNull(Ptr1);
+    auto ValId2 = self().VC->getOrNull(Ptr2);
+    if (!ValId1 || !ValId2) {
+      return AliasResult::NoAlias;
+    }
+    if (*ValId1 == *ValId2) {
+      return AliasResult::MustAlias;
+    }
+    return mayAlias(*ValId1, *ValId2, AtInstruction) ? AliasResult::MayAlias
+                                                     : AliasResult::NoAlias;
+  }
+
+  [[nodiscard]] constexpr const Derived &self() const noexcept {
+    return *static_cast<const Derived *>(this);
   }
 
 private:
   AAResT AARes;
+};
+
+template <typename AAResT>
+class LLVMLocalUnionFindAliasIterator
+    : public LLVMLocalUnionFindAliasIteratorMixin<
+          LLVMLocalUnionFindAliasIterator<AAResT>, AAResT> {
+  friend LLVMLocalUnionFindAliasIteratorMixin<
+      LLVMLocalUnionFindAliasIterator<AAResT>, AAResT>;
+
+public:
+  LLVMLocalUnionFindAliasIterator(
+      AAResT &&AARes, NonNullPtr<const ValueCompressor<PAGVariable>> VC)
+      : LLVMLocalUnionFindAliasIteratorMixin<
+            LLVMLocalUnionFindAliasIterator<AAResT>, AAResT>(PSR_FWD(AARes),
+                                                             *VC),
+        VC(VC) {}
+
+private:
   NonNullPtr<const ValueCompressor<PAGVariable>> VC;
 };
 

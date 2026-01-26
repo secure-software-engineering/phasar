@@ -1,0 +1,171 @@
+#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
+
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/RawAliasSet.h"
+#include "phasar/Pointer/UnionFindAA.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/ValueCompressor.h"
+
+#include "llvm/IR/Argument.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+
+#include <memory>
+#include <type_traits>
+
+#include <llvm-16/llvm/Support/ErrorHandling.h>
+
+using namespace psr;
+
+static inline bool isPotentialAllocSite(const llvm::Value *Val) {
+  if (!Val->getType()->isPointerTy()) {
+    return false;
+  }
+  if (llvm::isa<llvm::AllocaInst, llvm::Argument>(Val)) {
+    return true;
+  }
+  if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Val)) {
+    return Call->getCalledFunction() &&
+           psr::isHeapAllocatingFunction(Call->getCalledFunction());
+  }
+  return false;
+}
+
+template <template <typename, typename> typename AAResIterT, typename AAResT>
+struct [[clang::internal_linkage]] LLVMUnionFindAliasSet::UnionFindAAResultModel
+    : public UnionFindAAResultConcept,
+      public AAResIterT<UnionFindAAResultModel<AAResIterT, AAResT>, AAResT> {
+
+  using base_t = AAResIterT<UnionFindAAResultModel<AAResIterT, AAResT>, AAResT>;
+
+  template <typename... ArgsT>
+  constexpr UnionFindAAResultModel(
+      MaybeUniquePtr<const ValueCompressor<PAGVariable>> VC, ArgsT &&...Args)
+      : UnionFindAAResultConcept{std::move(VC)}, base_t{PSR_FWD(Args)...} {}
+
+  void forallAliasesOf(v_t Ptr, n_t Inst,
+                       llvm::function_ref<void(v_t)> Callback) override {
+    this->base_t::forallAliasesOf(Ptr, Inst, Callback);
+  }
+
+  AliasResult alias(v_t Ptr1, v_t Ptr2, n_t AtInstruction = nullptr) override {
+    return this->base_t::alias(Ptr1, Ptr2, AtInstruction);
+  }
+
+  AliasSetPtrTy constructAliasSet(ValueId ValId, n_t Inst,
+                                  AliasSetOwner<AliasSetTy> &Owner) override {
+    auto ASet = Owner.acquire();
+    try {
+      this->base_t::forallAliasesOf(
+          ValId, Inst,
+          [ASet{ASet.get()}](v_t Alias) -> void { ASet->insert(Alias); });
+      return ASet;
+    } catch (...) {
+      Owner.release(ASet.get());
+      throw;
+    }
+  }
+
+  AllocationSiteSetPtrTy constructReachableAllocSites(v_t V, ValueId ValId,
+                                                      bool IntraProcOnly,
+                                                      n_t Inst) override {
+    if (!this->AllocationSites) [[unlikely]] {
+      this->AllocationSites.emplace();
+      for (const auto &[VId, Vars] : this->VC->id2vars().enumerate()) {
+        for (const PAGVariable &Var : Vars) {
+          if (const auto *LLVMVar = Var.valueOrNull();
+              LLVMVar && isPotentialAllocSite(LLVMVar)) {
+            this->AllocationSites->insert(VId);
+            break;
+          }
+        }
+      }
+    }
+
+    auto RawAliases = [&]() -> RawAliasSet<ValueId> {
+      if constexpr (requires() { this->base_t::getRawAliasSet(ValId, Inst); }) {
+        return this->base_t::getRawAliasSet(ValId, Inst);
+      } else {
+        return this->base_t::getRawAliasSet(ValId);
+      }
+    }();
+    RawAliases &= *this->AllocationSites;
+
+    auto Ret = std::make_unique<AliasSetTy>();
+
+    RawAliases.foreach (llvmUnionFindAliasHandler(
+        *this->VC, [&Ret, V, IntraProcOnly](v_t Alias) {
+          if (psr::isInReachableAllocationSitesTy(V, Alias, IntraProcOnly)) {
+            Ret->insert(Alias);
+          }
+        }));
+
+    return Ret;
+  }
+};
+
+LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
+                                             Config Cfg,
+                                             ValueCompressor<PAGVariable> *VC) {
+  MaybeUniquePtr<ValueCompressor<PAGVariable>> VCOwn = VC;
+  if (!VC) {
+    VCOwn = std::make_unique<ValueCompressor<PAGVariable>>();
+  }
+
+  const auto MakeAAResModel =
+      [Cfg, &VC]<UnionFindAAResult AAResT>(
+          AAResT &&AARes) -> std::unique_ptr<UnionFindAAResultConcept> {
+    if (Cfg.ALocality == AnalysisLocality::FunctionLocal) {
+      const auto &VCRef = *VC;
+      return std::make_unique<UnionFindAAResultModel<
+          LLVMLocalUnionFindAliasIteratorMixin, std::remove_cvref_t<AAResT>>>(
+          std::move(VC), PSR_FWD(AARes), VCRef);
+    }
+
+    return std::make_unique<UnionFindAAResultModel<
+        LLVMUnionFindAliasIteratorMixin, std::remove_cvref_t<AAResT>>>(
+        std::move(VC), PSR_FWD(AARes));
+  };
+
+  auto VTP = LLVMVFTableProvider(*IRDB);
+  auto TH = DIBasedTypeHierarchy(*IRDB);
+  auto Res = RTAResolver(IRDB, &VTP, &TH);
+  const auto BaseCG = buildLLVMBasedCallGraph(
+      *IRDB, Res, getEntryFunctions(*IRDB, getDefaultEntryPoints(*IRDB)));
+
+  switch (Cfg.AType) {
+  case AnalysisType::CtxSens:
+    AARes = MakeAAResModel(computeCtxSensUnionFindAARaw(*IRDB, BaseCG));
+    return;
+  case AnalysisType::IndSens:
+    AARes = MakeAAResModel(computeIndSensUnionFindAARaw(*IRDB, BaseCG));
+    return;
+  case AnalysisType::CtxIndSens:
+    AARes = MakeAAResModel(computeCtxIndSensUnionFindAARaw(*IRDB, BaseCG));
+    return;
+  case AnalysisType::BotCtxSens:
+    AARes = MakeAAResModel(computeBotCtxSensUnionFindAARaw(*IRDB, BaseCG));
+    return;
+  case AnalysisType::BotCtxIndSens:
+    AARes = MakeAAResModel(computeBotCtxIndSensUnionFindAARaw(*IRDB, BaseCG));
+    return;
+  }
+
+  llvm_unreachable(
+      "We should have handled all AnalysisType values in the switch above");
+}
+
+auto LLVMUnionFindAliasSet::getEmptyAliasSet() -> BoxedPtr<AliasSetTy> {
+  static AliasSetTy EmptySet{};
+  static AliasSetTy *EmptySetPtr = &EmptySet;
+  return &EmptySetPtr;
+}
