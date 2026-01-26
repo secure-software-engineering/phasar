@@ -6,17 +6,6 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Compiler.h"
 
-LLVM_LIBRARY_VISIBILITY inline const llvm::Function *
-getFunction(const llvm::Value *V) {
-  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    return Inst->getFunction();
-  }
-  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    return Arg->getParent();
-  }
-  return nullptr;
-}
-
 [[nodiscard]] LLVM_LIBRARY_VISIBILITY inline bool
 isConstantGlobalValue(const llvm::GlobalValue *GlobV) {
   if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(GlobV)) {
