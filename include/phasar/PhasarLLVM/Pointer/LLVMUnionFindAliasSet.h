@@ -66,7 +66,7 @@ public:
   explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB)
       : LLVMUnionFindAliasSet(IRDB, Config{}, nullptr) {}
 
-  [[nodiscard]] constexpr std::false_type isInterProcedural() const noexcept {
+  [[nodiscard]] constexpr std::true_type isInterProcedural() const noexcept {
     return {};
   };
 
@@ -82,15 +82,18 @@ public:
   }
 
   [[nodiscard]] constexpr AliasResult alias(v_t V1, v_t V2, n_t I) const {
+    assert(isValid());
     return AARes->alias(V1, V2, I);
   }
 
   void foreachAliasOf(v_t V, n_t I,
                       llvm::function_ref<void(v_t)> WithAlias) const {
+    assert(isValid());
     AARes->forallAliasesOf(V, I, WithAlias);
   }
 
   [[nodiscard]] AliasSetPtrTy getAliasSet(v_t V, n_t I) {
+    assert(isValid());
     auto ValId = AARes->VC->getOrNull(V);
     if (!ValId) {
       return getEmptyAliasSet();
@@ -106,6 +109,7 @@ public:
 
   [[nodiscard]] AllocationSiteSetPtrTy
   getReachableAllocationSites(v_t V, bool IntraProcOnly, n_t I) const {
+    assert(isValid());
     auto ValId = AARes->VC->getOrNull(V);
     if (!ValId) {
       return std::make_unique<AliasSetTy>();
@@ -117,6 +121,7 @@ public:
   [[nodiscard]] bool isInReachableAllocationSites(
       const llvm::Value *V, const llvm::Value *PotentialValue,
       bool IntraProcOnly, const llvm::Instruction *I) const {
+    assert(isValid());
     if (!psr::isInterestingPointer(V)) {
       return false;
     }
@@ -127,6 +132,11 @@ public:
     }
 
     return alias(V, PotentialValue, I) != AliasResult::NoAlias;
+  }
+
+  [[nodiscard]] bool isValid() const noexcept {
+    return AARes != nullptr && Props != AnalysisProperties::None &&
+           AARes->VC != nullptr && AARes->VC->size() == AliasSets.size();
   }
 
 private:

@@ -11,7 +11,10 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
+#include "phasar/Utils/AnalysisProperties.h"
+#include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/IR/Argument.h"
@@ -21,8 +24,6 @@
 
 #include <memory>
 #include <type_traits>
-
-#include <llvm-16/llvm/Support/ErrorHandling.h>
 
 using namespace psr;
 
@@ -142,20 +143,37 @@ LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
   const auto BaseCG = buildLLVMBasedCallGraph(
       *IRDB, Res, getEntryFunctions(*IRDB, getDefaultEntryPoints(*IRDB)));
 
+  scope_exit ResizeAliasSetCache = [&] {
+    if (!AARes) {
+      // Something went wrong and we hopefully have an in-flight
+      // exception...
+      return;
+    }
+
+    AliasSets.resize(AARes->VC->size());
+  };
+
   switch (Cfg.AType) {
   case AnalysisType::CtxSens:
+    Props = AnalysisProperties::ContextSensitive;
     AARes = MakeAAResModel(computeCtxSensUnionFindAARaw(*IRDB, BaseCG));
     return;
   case AnalysisType::IndSens:
+    Props = AnalysisProperties::FieldSensitive;
     AARes = MakeAAResModel(computeIndSensUnionFindAARaw(*IRDB, BaseCG));
     return;
   case AnalysisType::CtxIndSens:
+    Props = AnalysisProperties::ContextSensitive |
+            AnalysisProperties::FieldSensitive;
     AARes = MakeAAResModel(computeCtxIndSensUnionFindAARaw(*IRDB, BaseCG));
     return;
   case AnalysisType::BotCtxSens:
+    Props = AnalysisProperties::ContextSensitive;
     AARes = MakeAAResModel(computeBotCtxSensUnionFindAARaw(*IRDB, BaseCG));
     return;
   case AnalysisType::BotCtxIndSens:
+    Props = AnalysisProperties::ContextSensitive |
+            AnalysisProperties::FieldSensitive;
     AARes = MakeAAResModel(computeBotCtxIndSensUnionFindAARaw(*IRDB, BaseCG));
     return;
   }

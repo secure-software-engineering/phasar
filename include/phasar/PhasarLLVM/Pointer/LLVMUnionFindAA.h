@@ -15,6 +15,9 @@
 #include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+
 #include <memory>
 #include <type_traits>
 
@@ -115,7 +118,11 @@ struct LLVMUnionFindAliasIteratorMixin {
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      return AliasResult::MustAlias;
+      // TODO: Check exactly the conditions for must alias!
+      return !llvm::isa<llvm::LoadInst>(Ptr1) &&
+                     !llvm::isa<llvm::LoadInst>(Ptr2)
+                 ? AliasResult::MustAlias
+                 : AliasResult::MayAlias;
     }
     return mayAlias(*ValId1, *ValId2, AtInstruction) ? AliasResult::MayAlias
                                                      : AliasResult::NoAlias;
@@ -252,7 +259,11 @@ public:
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      return AliasResult::MustAlias;
+      // TODO: Check exactly the conditions for must alias!
+      return !llvm::isa<llvm::LoadInst>(Ptr1) &&
+                     !llvm::isa<llvm::LoadInst>(Ptr2)
+                 ? AliasResult::MustAlias
+                 : AliasResult::MayAlias;
     }
     return mayAlias(*ValId1, *ValId2, AtInstruction) ? AliasResult::MayAlias
                                                      : AliasResult::NoAlias;
