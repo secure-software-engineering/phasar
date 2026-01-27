@@ -252,7 +252,12 @@ template <typename L> struct hash<psr::LatticeDomain<L>> {
       return SIZE_MAX - 1;
     }
     assert(LD.getValueOrNull() != nullptr);
-    return std::hash<L>{}(*LD.getValueOrNull());
+    if constexpr (psr::is_std_hashable_v<L>) {
+      return std::hash<L>{}(*LD.getValueOrNull());
+    } else {
+      using llvm::hash_value;
+      return hash_value(*LD.getValueOrNull());
+    }
   }
 };
 } // namespace std
