@@ -1,7 +1,5 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
-
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Type.h"
@@ -37,6 +35,19 @@ LLVMBasePointerAliasSet::getBasePointer(const llvm::Value *Pointer) {
   return Pointer;
 }
 
+auto LLVMBasePointerAliasSet::getAliasSet(v_t Pointer, n_t AtInstruction) const
+    -> AliasSetPtrTy {
+  auto Aliases = AS.getAliasSet(Pointer, AtInstruction);
+
+  auto Ret = std::make_unique<AliasSetTy>();
+  for (const auto *Alias : *Aliases) {
+    Ret->insert(getBasePointer(Alias));
+  }
+
+  return Ret;
+}
+
+#if 0
 static constexpr ptrdiff_t TopOffset = LLVMFieldAliasSet::AccessPath::TopOffset;
 
 constexpr static void addOffset(ptrdiff_t &Into, ptrdiff_t Offs) noexcept {
@@ -83,17 +94,7 @@ auto LLVMFieldAliasSet::getAccessPath(const llvm::Value *Pointer) const
   return Ret;
 }
 
-auto LLVMBasePointerAliasSet::getAliasSet(v_t Pointer, n_t AtInstruction) const
-    -> AliasSetPtrTy {
-  auto Aliases = AS.getAliasSet(Pointer, AtInstruction);
 
-  auto Ret = std::make_unique<AliasSetTy>();
-  for (const auto *Alias : *Aliases) {
-    Ret->insert(getBasePointer(Alias));
-  }
-
-  return Ret;
-}
 
 auto LLVMFieldAliasSet::getAliasSet(v_t Pointer, n_t AtInstruction) const
     -> AliasSetPtrTy {
@@ -106,3 +107,5 @@ auto LLVMFieldAliasSet::getAliasSet(v_t Pointer, n_t AtInstruction) const
 
   return Ret;
 }
+
+#endif

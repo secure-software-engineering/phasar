@@ -56,6 +56,9 @@ private:
   LLVMAliasInfoRef AS;
 };
 
+} // namespace psr
+#if 0
+namespace psr{
 class LLVMFieldAliasSet {
 public:
   struct AccessPath {
@@ -126,5 +129,7 @@ template <> struct DenseMapInfo<psr::LLVMFieldAliasSet::AccessPath> {
   }
 };
 } // namespace llvm
+
+#endif
 
 #endif // PHASAR_PHASARLLVM_POINTER_LLVMFIELDALIASSET_H
