@@ -25,16 +25,15 @@ enum class JumpFunctionGCMode {
 
 struct IDESolverConfigBase {
   template <typename K, typename V>
-  static inline constexpr bool
-      IsSimple1d = sizeof(std::pair<K, V>) <= 32 &&
-                   std::is_nothrow_move_constructible_v<K>
-                       &&std::is_nothrow_move_constructible_v<V>
-                           &&has_llvm_dense_map_info<K>;
+  static inline constexpr bool IsSimple1d =
+      sizeof(std::pair<K, V>) <= 32 &&
+      std::is_nothrow_move_constructible_v<K> &&
+      std::is_nothrow_move_constructible_v<V> && has_llvm_dense_map_info<K>;
 
   template <typename T>
-  static inline constexpr bool
-      IsSimpleVal = sizeof(T) <= 32 && std::is_nothrow_move_constructible_v<T>
-                                           &&has_llvm_dense_map_info<T>;
+  static inline constexpr bool IsSimpleVal =
+      sizeof(T) <= 32 && std::is_nothrow_move_constructible_v<T> &&
+      has_llvm_dense_map_info<T>;
 
   template <typename K, typename V>
   using map_t = std::conditional_t<IsSimple1d<K, V>, DenseTable1d<K, V>,
@@ -88,15 +87,14 @@ using IFDSSolverConfigWithStats = WithStats<IFDSSolverConfig, true>;
 using IFDSSolverConfigWithStatsAndGC =
     WithGCMode<IFDSSolverConfigWithStats, JumpFunctionGCMode::Enabled>;
 
-template <typename ProblemTy, typename Enable = void>
+template <typename ProblemTy>
 struct DefaultIDESolverConfig : IDESolverConfig {};
 
 template <typename ProblemTy>
-struct DefaultIDESolverConfig<
-    ProblemTy,
-    std::enable_if_t<std::is_base_of_v<
-        IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain>,
-        ProblemTy>>> : IFDSSolverConfig {};
+  requires std::is_base_of_v<
+      IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain>,
+      ProblemTy>
+struct DefaultIDESolverConfig<ProblemTy> : IFDSSolverConfig {};
 
 } // namespace psr
 

@@ -37,14 +37,13 @@ template <typename F, typename NodeRef, typename = void>
 struct is_pathtracingfilter_for : std::false_type {};
 
 template <typename EndFilter, typename ErrFilter, typename NodeRef>
-struct is_pathtracingfilter_for<
-    PathTracingFilter<EndFilter, ErrFilter>, NodeRef,
-    std::enable_if_t<std::is_invocable_r_v<bool, EndFilter, NodeRef, NodeRef> &&
-                     std::is_invocable_r_v<bool, ErrFilter, NodeRef, NodeRef>>>
-    : std::true_type {};
+  requires(std::is_invocable_r_v<bool, EndFilter, NodeRef, NodeRef> &&
+           std::is_invocable_r_v<bool, ErrFilter, NodeRef, NodeRef>)
+struct is_pathtracingfilter_for<PathTracingFilter<EndFilter, ErrFilter>,
+                                NodeRef> : std::true_type {};
 
 template <typename F, typename NodeRef>
-constexpr static bool is_pathtracingfilter_for_v =
+concept is_pathtracingfilter_for_v =
     is_pathtracingfilter_for<F, NodeRef>::value;
 } // namespace psr
 

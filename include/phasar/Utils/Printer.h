@@ -27,7 +27,7 @@ class Function;
 namespace psr {
 namespace detail {
 template <typename T>
-PSR_CONCEPT IsSomehowPrintable =
+concept IsSomehowPrintable =
     has_str_v<T> || is_llvm_printable_v<T> || has_adl_to_string_v<T>;
 
 template <typename T> decltype(auto) printSomehow(const T &Val) {
@@ -51,8 +51,7 @@ template <typename T> decltype(auto) printSomehow(const T &Val) {
 ///
 /// Default implementation. Provide your own overload to customize this API for
 /// your types
-template <typename N,
-          typename = std::enable_if_t<detail::IsSomehowPrintable<N>>>
+template <detail::IsSomehowPrintable N>
 [[nodiscard]] decltype(auto) NToString(const N &Node) {
   return detail::printSomehow(Node);
 }
@@ -61,8 +60,7 @@ template <typename N,
 ///
 /// Default implementation. Provide your own overload to customize this API for
 /// your types
-template <typename D,
-          typename = std::enable_if_t<detail::IsSomehowPrintable<D>>>
+template <detail::IsSomehowPrintable D>
 [[nodiscard]] decltype(auto) DToString(const D &Fact) {
   return detail::printSomehow(Fact);
 }
@@ -71,8 +69,7 @@ template <typename D,
 ///
 /// Default implementation. Provide your own overload to customize this API for
 /// your types
-template <typename L,
-          typename = std::enable_if_t<detail::IsSomehowPrintable<L>>>
+template <detail::IsSomehowPrintable L>
 [[nodiscard]] decltype(auto) LToString(const L &Value) {
   return detail::printSomehow(Value);
 }
@@ -81,8 +78,7 @@ template <typename L,
 ///
 /// Default implementation. Provide your own overload to customize this API for
 /// your types
-template <typename F,
-          typename = std::enable_if_t<detail::IsSomehowPrintable<F>>>
+template <detail::IsSomehowPrintable F>
 [[nodiscard]] std::string FToString(const F &Fun) {
   return detail::printSomehow(Fun);
 }

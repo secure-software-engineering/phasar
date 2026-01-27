@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMALIASSETDATA_H
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMALIASSETDATA_H
 
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>

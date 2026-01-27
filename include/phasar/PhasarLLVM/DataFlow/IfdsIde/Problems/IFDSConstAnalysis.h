@@ -31,7 +31,6 @@ class Value;
 namespace psr {
 
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 
 /**
  * This IFDS analysis will compute possibly mutable memory
@@ -48,8 +47,6 @@ class IFDSConstAnalysis
 public:
   IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     std::vector<std::string> EntryPoints = {"main"});
-
-  ~IFDSConstAnalysis() override = default;
 
   /**
    * If the current instruction is a store instruction, the memory locations's

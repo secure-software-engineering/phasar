@@ -107,7 +107,7 @@ OpenSSLSecureHeapState OpenSSLSecureHeapDescription::getNextState(
 }
 
 std::string OpenSSLSecureHeapDescription::getTypeNameOfInterest() const {
-  return "i8";
+  return {};
 }
 
 set<int>
@@ -153,11 +153,6 @@ OpenSSLSecureHeapState OpenSSLSecureHeapDescription::bottom() const {
 
 OpenSSLSecureHeapState OpenSSLSecureHeapDescription::top() const {
   return OpenSSLSecureHeapState::TOP;
-}
-
-OpenSSLSecureHeapState OpenSSLSecureHeapDescription::start() const {
-  llvm::report_fatal_error("TypeStateDescription::start() is deprecated");
-  return OpenSSLSecureHeapState::BOT;
 }
 
 OpenSSLSecureHeapState OpenSSLSecureHeapDescription::uninit() const {

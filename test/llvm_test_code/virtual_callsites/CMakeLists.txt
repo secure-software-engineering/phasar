@@ -11,4 +11,5 @@ set(NoMem2regSources
 
 foreach(TEST_SRC ${NoMem2regSources})
   generate_ll_file(FILE ${TEST_SRC})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)

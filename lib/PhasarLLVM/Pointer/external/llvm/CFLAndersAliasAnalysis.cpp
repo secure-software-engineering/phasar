@@ -52,13 +52,11 @@
 // run on. Realistically, this likely isn't a problem until we allow
 // FunctionPasses to run concurrently.
 
-#include "llvm/Analysis/CFLAndersAliasAnalysis.h"
+#include "CFLAndersAliasAnalysis.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/None.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/iterator_range.h"
@@ -336,7 +334,7 @@ class CFLAndersAAResult::FunctionInfo {
   /// Summary of externally visible effects.
   AliasSummary Summary;
 
-  Optional<AliasAttrs> getAttrs(const Value *) const;
+  std::optional<AliasAttrs> getAttrs(const Value *) const;
 
 public:
   FunctionInfo(const Function &, const SmallVectorImpl<Value *> &,
@@ -354,12 +352,12 @@ static bool hasWriteOnlyState(StateSet Set) {
   return (Set & StateSet(WriteOnlyStateMask)).any();
 }
 
-static Optional<InterfaceValue>
+static std::optional<InterfaceValue>
 getInterfaceValue(InstantiatedValue IValue,
                   const SmallVectorImpl<Value *> &RetVals) {
   auto Val = IValue.Val;
 
-  Optional<unsigned> Index;
+  std::optional<unsigned> Index;
   if (auto Arg = dyn_cast<Argument>(Val))
     Index = Arg->getArgNo() + 1;
   else if (is_contained(RetVals, Val))
@@ -367,7 +365,7 @@ getInterfaceValue(InstantiatedValue IValue,
 
   if (Index)
     return InterfaceValue{*Index, IValue.DerefLevel};
-  return None;
+  return {};
 }
 
 static void populateAttrMap(DenseMap<const Value *, AliasAttrs> &AttrMap,
@@ -510,14 +508,14 @@ CFLAndersAAResult::FunctionInfo::FunctionInfo(
   populateExternalRelations(Summary.RetParamRelations, Fn, RetVals, ReachSet);
 }
 
-Optional<AliasAttrs>
+std::optional<AliasAttrs>
 CFLAndersAAResult::FunctionInfo::getAttrs(const Value *V) const {
   assert(V != nullptr);
 
   auto Itr = AttrMap.find(V);
   if (Itr != AttrMap.end())
     return Itr->second;
-  return None;
+  return {};
 }
 
 bool CFLAndersAAResult::FunctionInfo::mayAlias(
@@ -628,12 +626,12 @@ static void initializeWorkList(std::vector<WorkListItem> &WorkList,
   }
 }
 
-static Optional<InstantiatedValue> getNodeBelow(const CFLGraph &Graph,
-                                                InstantiatedValue V) {
+static std::optional<InstantiatedValue> getNodeBelow(const CFLGraph &Graph,
+                                                     InstantiatedValue V) {
   auto NodeBelow = InstantiatedValue{V.Val, V.DerefLevel + 1};
   if (Graph.getNode(NodeBelow))
     return NodeBelow;
-  return None;
+  return {};
 }
 
 static void processWorkListItem(const WorkListItem &Item, const CFLGraph &Graph,
@@ -812,7 +810,8 @@ CFLAndersAAResult::buildInfoFrom(const Function &Fn) {
 }
 
 void CFLAndersAAResult::scan(const Function &Fn) {
-  auto InsertPair = Cache.insert(std::make_pair(&Fn, Optional<FunctionInfo>()));
+  auto InsertPair =
+      Cache.insert(std::make_pair(&Fn, std::optional<FunctionInfo>()));
   (void)InsertPair;
   assert(InsertPair.second &&
          "Trying to scan a function that has already been cached");
@@ -827,21 +826,21 @@ void CFLAndersAAResult::scan(const Function &Fn) {
 
 void CFLAndersAAResult::evict(const Function *Fn) { Cache.erase(Fn); }
 
-const Optional<CFLAndersAAResult::FunctionInfo> &
+const std::optional<CFLAndersAAResult::FunctionInfo> &
 CFLAndersAAResult::ensureCached(const Function &Fn) {
   auto Iter = Cache.find(&Fn);
   if (Iter == Cache.end()) {
     scan(Fn);
     Iter = Cache.find(&Fn);
     assert(Iter != Cache.end());
-    assert(Iter->second.hasValue());
+    assert(Iter->second.has_value());
   }
   return Iter->second;
 }
 
 const AliasSummary *CFLAndersAAResult::getAliasSummary(const Function &Fn) {
   auto &FunInfo = ensureCached(Fn);
-  if (FunInfo.hasValue())
+  if (FunInfo.has_value())
     return &FunInfo->getAliasSummary();
   else
     return nullptr;
@@ -881,7 +880,8 @@ AliasResult CFLAndersAAResult::query(const MemoryLocation &LocA,
 
 AliasResult CFLAndersAAResult::alias(const MemoryLocation &LocA,
                                      const MemoryLocation &LocB,
-                                     AAQueryInfo &AAQI) {
+                                     AAQueryInfo &AAQI,
+                                     const Instruction *CtxI) {
   if (LocA.Ptr == LocB.Ptr)
     return AliasResult::MustAlias;
 
@@ -891,11 +891,11 @@ AliasResult CFLAndersAAResult::alias(const MemoryLocation &LocA,
   // ConstantExpr, but every query needs to have at least one Value tied to a
   // Function, and neither GlobalValues nor ConstantExprs are.
   if (isa<Constant>(LocA.Ptr) && isa<Constant>(LocB.Ptr))
-    return AAResultBase::alias(LocA, LocB, AAQI);
+    return AAResultBase::alias(LocA, LocB, AAQI, CtxI);
 
   AliasResult QueryResult = query(LocA, LocB);
   if (QueryResult == AliasResult::MayAlias)
-    return AAResultBase::alias(LocA, LocB, AAQI);
+    return AAResultBase::alias(LocA, LocB, AAQI, CtxI);
 
   return QueryResult;
 }
@@ -907,28 +907,4 @@ CFLAndersAAResult CFLAndersAA::run(Function &F, FunctionAnalysisManager &AM) {
     return AM.getResult<TargetLibraryAnalysis>(F);
   };
   return CFLAndersAAResult(GetTLI);
-}
-
-char CFLAndersAAWrapperPass::ID = 0;
-INITIALIZE_PASS(CFLAndersAAWrapperPass, "cfl-anders-aa",
-                "Inclusion-Based CFL Alias Analysis", false, true)
-
-ImmutablePass *llvm::createCFLAndersAAWrapperPass() {
-  return new CFLAndersAAWrapperPass();
-}
-
-CFLAndersAAWrapperPass::CFLAndersAAWrapperPass() : ImmutablePass(ID) {
-  initializeCFLAndersAAWrapperPassPass(*PassRegistry::getPassRegistry());
-}
-
-void CFLAndersAAWrapperPass::initializePass() {
-  auto GetTLI = [this](Function &F) -> TargetLibraryInfo & {
-    return this->getAnalysis<TargetLibraryInfoWrapperPass>().getTLI(F);
-  };
-  Result.reset(new CFLAndersAAResult(GetTLI));
-}
-
-void CFLAndersAAWrapperPass::getAnalysisUsage(AnalysisUsage &AU) const {
-  AU.setPreservesAll();
-  AU.addRequired<TargetLibraryInfoWrapperPass>();
 }

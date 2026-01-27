@@ -11,6 +11,7 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/ErrorHandling.h"
 
 std::string psr::toString(CallGraphAnalysisType CGA) {
   switch (CGA) {
@@ -21,6 +22,7 @@ std::string psr::toString(CallGraphAnalysisType CGA) {
   case CallGraphAnalysisType::Invalid:
     return "Invalid";
   }
+  llvm_unreachable("All alternatives should be handled by the switch above");
 }
 
 psr::CallGraphAnalysisType psr::toCallGraphAnalysisType(llvm::StringRef S) {

@@ -236,13 +236,15 @@ public:
     OS << '\n';
   }
 
-  template <bool B = EnableStatistics, typename = std::enable_if_t<B>>
-  [[nodiscard]] IterativeIDESolverStats getStats() const noexcept {
+  [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
+    requires EnableStatistics
+  {
     return *this;
   }
 
-  template <bool B = EnableStatistics, typename = std::enable_if_t<B>>
-  void dumpStats(llvm::raw_ostream &OS = llvm::outs()) const {
+  void dumpStats(llvm::raw_ostream &OS = llvm::outs()) const
+    requires EnableStatistics
+  {
     OS << getStats();
   }
 
@@ -442,11 +444,11 @@ private:
     }
   }
 
-  template <bool CV = ComputeValues>
-  std::enable_if_t<CV, bool>
-  storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                           uint32_t SourceFact, uint32_t LocalFact,
-                           uint32_t FunId, EdgeFunctionPtrType LocalEF) {
+  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
+                                uint32_t SourceFact, uint32_t LocalFact,
+                                uint32_t FunId, EdgeFunctionPtrType LocalEF)
+    requires ComputeValues
+  {
     auto &EF = JumpFns.getOrCreate(combineIds(SourceFact, LocalFact));
     if (!EF) {
       EF = std::move(LocalEF);
@@ -492,11 +494,12 @@ private:
     }
     return false;
   }
-  template <bool CV = ComputeValues>
-  std::enable_if_t<!CV, bool>
-  storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                           uint32_t SourceFact, uint32_t LocalFact,
-                           uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/) {
+
+  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
+                                uint32_t SourceFact, uint32_t LocalFact,
+                                uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/)
+    requires(!ComputeValues)
+  {
     if (JumpFns.insert(combineIds(SourceFact, LocalFact)).second) {
       WorkList.emplace(PropagationJob{{}, SuccId, SourceFact, LocalFact});
 
@@ -521,10 +524,10 @@ private:
     return false;
   }
 
-  template <bool EST = UseEndSummaryTab, bool CV = ComputeValues>
-  std::enable_if_t<EST && CV> storeSummary(SummaryEdges_JF1 &JumpFns,
-                                           uint32_t LocalFact,
-                                           EdgeFunctionPtrType LocalEF) {
+  void storeSummary(SummaryEdges_JF1 &JumpFns, uint32_t LocalFact,
+                    EdgeFunctionPtrType LocalEF)
+    requires(UseEndSummaryTab && ComputeValues)
+  {
     auto &EF = JumpFns[LocalFact];
     if (!EF) {
       EF = std::move(LocalEF);
@@ -550,10 +553,10 @@ private:
     }
   }
 
-  template <bool EST = UseEndSummaryTab, bool CV = ComputeValues>
-  std::enable_if_t<EST && !CV> storeSummary(SummaryEdges_JF1 &JumpFns,
-                                            uint32_t LocalFact,
-                                            EdgeFunctionPtrType /*LocalEF*/) {
+  void storeSummary(SummaryEdges_JF1 &JumpFns, uint32_t LocalFact,
+                    EdgeFunctionPtrType /*LocalEF*/)
+    requires(UseEndSummaryTab && !ComputeValues)
+  {
     if (JumpFns.insert({LocalFact, {}}).second) {
       if constexpr (EnableStatistics) {
         this->NumPathEdges++;
@@ -569,7 +572,7 @@ private:
 
     auto AtInstruction = NodeCompressor[AtInstructionId];
 
-    auto FunId = [=] {
+    auto FunId = [&] {
       if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
 
         auto Ret = FunCompressor.getOrInsert(ICFG.getFunctionOf(AtInstruction));
@@ -622,11 +625,11 @@ private:
         auto FactId = FactCompressor.getOrInsert(Fact);
         auto EF = [&] {
           if constexpr (ComputeValues) {
-            return Problem.extend(SourceEF,
-                                  FECache.getNormalEdgeFunction(
-                                      Problem, AtInstruction, CSFact, Succ,
-                                      Fact, combineIds(AtInstructionId, SuccId),
-                                      combineIds(PropagatedFactId, FactId)));
+            auto NEF = FECache.getNormalEdgeFunction(
+                Problem, AtInstruction, CSFact, Succ, Fact,
+                combineIds(AtInstructionId, SuccId),
+                combineIds(PropagatedFactId, FactId));
+            return Problem.extend(SourceEF, std::move(NEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -695,12 +698,11 @@ private:
 
         auto EF = [&] {
           if constexpr (ComputeValues) {
-            return Problem.extend(SourceEF,
-                                  FECache.getCallToRetEdgeFunction(
-                                      Problem, AtInstruction, CSFact, RetSite,
-                                      Fact, Callees /*Vec*/,
-                                      combineIds(AtInstructionId, RetSiteId),
-                                      combineIds(PropagatedFactId, FactId)));
+            auto CEF = FECache.getCallToRetEdgeFunction(
+                Problem, AtInstruction, CSFact, RetSite, Fact, Callees /*Vec*/,
+                combineIds(AtInstructionId, RetSiteId),
+                combineIds(PropagatedFactId, FactId));
+            return Problem.extend(SourceEF, std::move(CEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -838,11 +840,11 @@ private:
 
         auto CallEF = [&] {
           if constexpr (ComputeValues) {
-            return Problem.extend(
-                SourceEF, FECache.getCallEdgeFunction(
-                              Problem, AtInstruction, CSFact, Callee, Fact,
-                              combineIds(AtInstructionId, CalleeId),
-                              combineIds(CSFactId, FactId)));
+            auto CEF = FECache.getCallEdgeFunction(
+                Problem, AtInstruction, CSFact, Callee, Fact,
+                combineIds(AtInstructionId, CalleeId),
+                combineIds(CSFactId, FactId));
+            return Problem.extend(SourceEF, std::move(CEF));
           } else {
             return EdgeFunctionPtrType{};
           }
@@ -958,16 +960,15 @@ private:
   }
 
   void processInterJobs() {
-
-    llvm::errs() << "processInterJobs: " << CallWL.size()
-                 << " relevant calls\n";
+    PHASAR_LOG_LEVEL(INFO, "processInterJobs: " << CallWL.size()
+                                                << " relevant calls");
 
     /// Here, no other job is running concurrently, so we save and reset the
     /// CallWL, such that we can start concurrent jobs in the loop below
     std::vector<uint64_t> RelevantCalls(CallWL.begin(), CallWL.end());
 
     scope_exit FinishedInterCalls = [] {
-      llvm::errs() << "> end inter calls\n";
+      PHASAR_LOG_LEVEL(INFO, "> end inter calls");
     };
 
     if constexpr (EnableStatistics) {
@@ -1041,8 +1042,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void submitInitialValues() {
+  void submitInitialValues()
+    requires ComputeValues
+  {
     auto Seeds = Problem.initialSeeds();
     for (const auto &[Inst, SeedMap] : Seeds.getSeeds()) {
       auto InstId = NodeCompressor.getOrInsert(Inst);
@@ -1054,8 +1056,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void propagateValue(uint32_t SPId, uint32_t FactId, l_t Val) {
+  void propagateValue(uint32_t SPId, uint32_t FactId, l_t Val)
+    requires ComputeValues
+  {
 
     /// TODO: Unbalanced return-sites
 
@@ -1132,8 +1135,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void computeValues(uint32_t SPId) {
+  void computeValues(uint32_t SPId)
+    requires ComputeValues
+  {
     auto SP = NodeCompressor[SPId];
     auto Fun = ICFG.getFunctionOf(SP);
 
@@ -1254,14 +1258,14 @@ private:
   }
 
   void runGC() {
-    llvm::errs() << "runGC() with " << CandidateFunctionsForGC.count()
-                 << " candidates\n";
+    PHASAR_LOG_LEVEL(INFO, "runGC() with " << CandidateFunctionsForGC.count()
+                                           << " candidates");
 
     size_t NumCollectedFuns = 0;
 
     scope_exit FinishGC = [&NumCollectedFuns] {
-      llvm::errs() << "> Finished GC run (collected " << NumCollectedFuns
-                   << " functions)\n";
+      PHASAR_LOG_LEVEL(INFO, "> Finished GC run (collected " << NumCollectedFuns
+                                                             << " functions)");
     };
 
     auto FinalCandidates = getCollectableFunctions();

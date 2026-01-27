@@ -12,10 +12,12 @@
 
 #include "phasar/ControlFlow/CFGBase.h"
 #include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/Domain/BinaryDomain.h"
 
 #include "llvm/ADT/STLExtras.h"
 
 #include <functional>
+#include <type_traits>
 
 namespace psr {
 
@@ -71,6 +73,8 @@ void forallStartingPoints(const EntryRange &EntryPoints, const I *ICF,
 
 template <typename EntryRange, typename C, typename DB, typename SeedsT,
           typename D, typename L>
+  requires(std::is_convertible_v<L, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
 void addSeedsForStartingPoints(const EntryRange &EntryPoints,
                                const ProjectIRDBBase<DB> *IRDB,
                                const CFGBase<C> &CFG, SeedsT &Seeds,
@@ -83,6 +87,8 @@ void addSeedsForStartingPoints(const EntryRange &EntryPoints,
 
 template <typename EntryRange, typename I, typename SeedsT, typename D,
           typename L>
+  requires(std::is_convertible_v<L, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
 void addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
                                SeedsT &Seeds, const D &ZeroValue,
                                const L &BottomValue) {
@@ -90,6 +96,29 @@ void addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
                        [&Seeds, &ZeroValue, &BottomValue](const auto &SP) {
                          Seeds.addSeed(SP, ZeroValue, BottomValue);
                        });
+}
+
+/// Simplification for IFDS, passing BinaryDomain::BOTTOM as L
+template <typename EntryRange, typename C, typename DB, typename SeedsT,
+          typename D>
+  requires(std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
+void addSeedsForStartingPoints(const EntryRange &EntryPoints,
+                               const ProjectIRDBBase<DB> *IRDB,
+                               const CFGBase<C> &CFG, SeedsT &Seeds,
+                               const D &ZeroValue) {
+  addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, ZeroValue,
+                            BinaryDomain::BOTTOM);
+}
+
+/// Simplification for IFDS, passing BinaryDomain::BOTTOM as L
+template <typename EntryRange, typename I, typename SeedsT, typename D>
+  requires(std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
+                               SeedsT &Seeds, const D &ZeroValue) {
+  addSeedsForStartingPoints(EntryPoints, ICF, Seeds, ZeroValue,
+                            BinaryDomain::BOTTOM);
 }
 } // namespace psr
 

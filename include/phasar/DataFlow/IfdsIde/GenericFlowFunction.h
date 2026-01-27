@@ -57,12 +57,12 @@ public:
 
   GenericFlowFunction() noexcept = default;
   GenericFlowFunction(FlowFunctionPtrType FF) noexcept : FF(std::move(FF)) {}
-  template <typename T, typename = std::enable_if_t<std::is_base_of_v<
-                            FlowFunctionType, std::decay_t<T>>>>
+
+  template <derived_from_decay<FlowFunctionType> T>
   GenericFlowFunction(T &&FF)
       : FF(std::make_unique<std::decay_t<T>>(std::forward<T>(FF))) {}
 
-  template <typename T, typename... ArgTys>
+  template <std::derived_from<FlowFunctionType> T, typename... ArgTys>
   explicit GenericFlowFunction(std::in_place_type_t<T> /*unused*/,
                                ArgTys &&...Args)
       : FF(std::make_unique<T>(std::forward<ArgTys>(Args)...)) {}

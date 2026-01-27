@@ -97,7 +97,7 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB, bool UseLazyEvaluation,
 }
 
 LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
-                           const nlohmann::json &SerializedPTS)
+                           const LLVMAliasSetData &SerializedPTS)
     : PTA(AliasAnalysisView::create(*IRDB, true, AliasAnalysisType::Basic)) {
   assert(IRDB != nullptr);
   // Assume, we already have validated the json schema
@@ -105,23 +105,19 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMAliasSet",
                        "Load precomputed points-to info from JSON");
 
-  const auto &Sets = SerializedPTS.at("AliasSets");
-  assert(Sets.is_array());
-  const auto &Fns = SerializedPTS.at("AnalyzedFunctions");
-  assert(Fns.is_array());
+  const auto &Sets = SerializedPTS.AliasSets;
+  const auto &Fns = SerializedPTS.AnalyzedFunctions;
 
   /// Deserialize the AliasSets - an array of arrays (both are to be
   /// interpreted as sets of metadata-ids)
 
   Owner.reserve(Sets.size());
   for (const auto &PtsJson : Sets) {
-    assert(PtsJson.is_array());
     auto PTS = Owner.acquire();
     for (const auto &Alias : PtsJson) {
-      const auto AliasStr = Alias.get<std::string>();
-      const auto *Inst = fromMetaDataId(*IRDB, AliasStr);
+      const auto *Inst = fromMetaDataId(*IRDB, Alias);
       if (!Inst) {
-        PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << AliasStr);
+        PHASAR_LOG_LEVEL(WARNING, "Invalid Value-Id: " << Alias);
         continue;
       }
 
@@ -135,12 +131,7 @@ LLVMAliasSet::LLVMAliasSet(LLVMProjectIRDB *IRDB,
 
   AnalyzedFunctions.reserve(Fns.size());
   for (const auto &F : Fns) {
-    if (!F.is_string()) {
-      PHASAR_LOG_LEVEL(WARNING, "Invalid Function Name: " << F);
-      continue;
-    }
-
-    const auto *IRFn = IRDB->getFunction(F.get<std::string>());
+    const auto *IRFn = IRDB->getFunction(F);
 
     if (!IRFn) {
       PHASAR_LOG_LEVEL(WARNING, "Function: " << F << " not in the IRDB");
@@ -262,8 +253,9 @@ void LLVMAliasSet::mergeAliasSets(BoxedPtr<AliasSetTy> PTS1,
   Owner.release(ToDelete);
 }
 
-bool LLVMAliasSet::interIsReachableAllocationSiteTy(
-    [[maybe_unused]] const llvm::Value *V, const llvm::Value *P) const {
+[[nodiscard]] static bool
+interIsReachableAllocationSiteTy([[maybe_unused]] const llvm::Value *V,
+                                 const llvm::Value *P) {
   // consider the full inter-procedural points-to/alias information
 
   if (llvm::isa<llvm::AllocaInst>(P)) {
@@ -279,9 +271,9 @@ bool LLVMAliasSet::interIsReachableAllocationSiteTy(
   return false;
 }
 
-bool LLVMAliasSet::intraIsReachableAllocationSiteTy(
+[[nodiscard]] static bool intraIsReachableAllocationSiteTy(
     [[maybe_unused]] const llvm::Value *V, const llvm::Value *P,
-    const llvm::Function *VFun, const llvm::GlobalObject *VG) const {
+    const llvm::Function *VFun, const llvm::GlobalObject *VG) {
   // consider the function-local, i.e. intra-procedural, points-to/alias
   // information only
 
@@ -367,7 +359,7 @@ void LLVMAliasSet::addPointer(FunctionAliasView AA, const llvm::DataLayout &DL,
         Reps[ToMerge[0]]->getType()};
     llvm::SmallVector<unsigned> ToRemove;
 
-    for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
+    for (auto Idx : llvm::ArrayRef(ToMerge).slice(1)) {
       mergeAliasSets(PTS, AliasSets[Reps[Idx]]);
       if (auto [Unused, Inserted] = OccurringTypes.insert(Reps[Idx]->getType());
           !Inserted) {
@@ -785,3 +777,21 @@ void LLVMAliasSet::drawAliasSetsDistribution(int Peak) const {
 }
 
 } // namespace psr
+
+bool psr::isInReachableAllocationSitesTy(const llvm::Value *V,
+                                         const llvm::Value *PotentialValue,
+                                         bool IntraProcOnly,
+                                         const llvm::Function *VFun,
+                                         const llvm::GlobalObject *VG) {
+  if (IntraProcOnly) {
+    if (!VFun) {
+      VFun = AliasInfoBaseUtils::retrieveFunction(V);
+    }
+    if (!VG) {
+      VG = llvm::dyn_cast<llvm::GlobalObject>(V);
+    }
+    return intraIsReachableAllocationSiteTy(V, PotentialValue, VFun, VG);
+  }
+
+  return interIsReachableAllocationSiteTy(V, PotentialValue);
+}

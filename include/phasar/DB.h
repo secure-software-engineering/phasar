@@ -13,9 +13,4 @@
 #include "phasar/Config/phasar-config.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 
-#ifdef PHASAR_HAS_SQLITE
-#include "phasar/DB/Hexastore.h"
-#include "phasar/DB/Queries.h"
-#endif
-
 #endif // PHASAR_DB_H

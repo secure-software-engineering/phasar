@@ -35,6 +35,10 @@ function(add_phasar_unittest test_name)
   )
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
+
+  if (CODE_COVERAGE)
+    target_code_coverage(${test} AUTO ALL)
+  endif()
 endfunction()
 
 function(validate_binary_version result item)
@@ -82,7 +86,7 @@ function(generate_ll_file)
         NAMES clang++-${PHASAR_LLVM_VERSION} clang++
         HINTS ${binary_hint_paths})
       find_program(opt REQUIRED
-        NAMES opt-${PHASAR_LLVM_VERSION}4 opt
+        NAMES opt-${PHASAR_LLVM_VERSION} opt
         HINTS ${binary_hint_paths})
 
       set(IS_VALID_VERSION "")
@@ -208,7 +212,7 @@ function(generate_ll_file)
       add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -p mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
@@ -241,7 +245,7 @@ endmacro(add_phasar_executable)
 
 function(add_phasar_library name)
   set(PHASAR_LIB_OPTIONS SHARED STATIC MODULE INTERFACE)
-  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES)
+  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES MODULE_FILES)
   cmake_parse_arguments(PHASAR_LIB "${PHASAR_LIB_OPTIONS}" "" "${PHASAR_LIB_MULTIVAL}" ${ARGN})
   set(srcs ${PHASAR_LIB_UNPARSED_ARGUMENTS})
   list(APPEND srcs ${PHASAR_LIB_FILES})
@@ -275,7 +279,29 @@ function(add_phasar_library name)
     EXPORT_NAME ${component_name}
   )
 
-  target_compile_features(${name} PUBLIC cxx_std_17)
+  target_compile_features(${name} PUBLIC cxx_std_20)
+
+  set(install_module)
+  if(PHASAR_LIB_MODULE_FILES)
+    if(PHASAR_BUILD_MODULES)
+      target_sources(${name} PUBLIC
+        FILE_SET cxx_modules
+        TYPE CXX_MODULES
+        FILES ${PHASAR_LIB_MODULE_FILES}
+      )
+
+      target_compile_features(${name} PUBLIC cxx_std_20)
+
+      set(install_module FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    elseif(NOT srcs)
+      # Add dummy src to prevent cmake error
+      set(dummy_src "${CMAKE_CURRENT_BINARY_DIR}/${name}_dummysrc.cpp")
+      if(NOT EXISTS "${dummy_src}")
+        file(WRITE "${dummy_src}" "")
+      endif()
+      target_sources(${name} PRIVATE "${dummy_src}")
+    endif()
+  endif()
 
   if(LLVM_COMMON_DEPENDS)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
@@ -316,20 +342,26 @@ function(add_phasar_library name)
       EXPORT LLVMExports
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+      ${install_module}
     )
   else()
     install(TARGETS ${name}
       EXPORT PhasarExports
-
       # NOTE: Library, archive and runtime destination are automatically set by
       # GNUInstallDirs which is included in the top-level CMakeLists.txt
+
+      ${install_module}
     )
   endif()
 
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
+
+  if (CODE_COVERAGE)
+    target_code_coverage(${name} AUTO ALL)
+  endif()
 endfunction(add_phasar_library)
 
-macro(subdirlist result curdir)
+function(subdirlist result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
 
@@ -339,5 +371,5 @@ macro(subdirlist result curdir)
     endif()
   endforeach()
 
-  set(${result} ${dirlist})
-endmacro(subdirlist)
+  set(${result} ${dirlist} PARENT_SCOPE)
+endfunction(subdirlist)

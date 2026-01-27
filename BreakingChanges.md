@@ -2,7 +2,37 @@
 
 ## development HEAD
 
-*None*
+- Requiring C++20 instead of C++17
+  - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
+- The `AdjacencyList` struct now now has one more template argument to denote the intege-like `vertex_t` type. It is the second template argument (which previously was the EdgeType). The edge-type is now denoted by the *third* template argument.
+- The `AdjacencyList` switches from using `llvm::NoneType` as empty-node marker to `psr::EmptyType` for forward-compatibility with LLVM-16 that removes `llvm::NoneType`.
+
+- Removed `SpecialSummaries`.
+- Removed `Hexastore` and the corresponding database queries.
+- Removed `LLVMTypeHierarchy` (and `LLVMTypeHierarchyData`), which is superceeded by `DIBasedTypeHierarchy`.
+- Removed `Resolver::preCall()`, `Resolver::postCall()`, and `Resolver::otherInst()`.
+- Removed `TypestateDescription::start()`. Instead apply `TypestateDescription::getNextState()` on `TypestateDescription::uninit()`.
+- Removed `LLVMProjectIRDB::getParsedIRModuleOrNull()`. Use `LLVMProjectIRDB::getParsedIRModuleOrErr()` instead.
+- Removed `DIBasedTypeHierarchy::isVTable()` and `DIBasedTypeHierarchy::removeVTablePrefix()`. Use the corresponding functions from `LLVMVFTableProvider` instead.
+- Removed the CMake variable `PHASAR_HAS_SQLITE` as we removed the dependency on sqlite3.
+- The CMake Option `BUILD_PHASAR_CLANG` is no longer `ON` by default.
+- Removed the dependency to boost:
+  - Removed the boost-related command-line options in `bootstrap.sh`
+  - `InstallAptDependencies.sh` no longer installs boost (so, boost is also no longer built into PhASAR's Docker containers)
+
+## v2510
+
+- Removed some old APIs from `PhasarConfig`
+- Removed the header `phasar/Config/Version.h`. Use the generated header `phasar/Config/phasar-config.h` instead.
+- Removed `getAsJson()` from various classes. Use `printAsJson(llvm::raw_ostream &)` instead.
+- Removed `CallGraphAnalysisType::DTA` and the `DTAResolver` (see below)
+- Removed the legacy flow functions `Identity`, `LambdaFlow`, etc. Use the static functions from `FlowFunctionTemplates` instead.
+- Removed getter-functions from `GeneralStatistics`. Use the corresponding public fields instead.
+- Removed `LLVMAliasGraph`. Use `LLVMAliasSet` instead.
+- Removed `TypeGraphs/*` as they are not used.
+- Removed the namespace-scoped function `initializeLogger()`. Use the static functions in the `Logger` class instead.
+- Removed `legacy::stripPointer(const llvm::Type *)` as it does not work anymore with opaque pointers.
+
 
 ## v2503
 

@@ -14,10 +14,8 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/Twine.h"
@@ -28,8 +26,8 @@
 #include <memory>
 #include <optional>
 
-using namespace std;
 using namespace psr;
+using namespace psr::unittest;
 
 /* ============== TEST FIXTURE ============== */
 class IDETSAnalysisOpenSSLSecureHeapTest : public ::testing::Test {
@@ -43,10 +41,10 @@ protected:
   std::optional<OpenSSLSecureHeapDescription> Desc;
   std::optional<IDETypeStateAnalysis<OpenSSLSecureHeapDescription>> TSProblem;
   std::optional<IDESecureHeapPropagation> SecureHeapPropagationProblem;
-  unique_ptr<
+  std::unique_ptr<
       IDESolver<IDETypeStateAnalysisDomain<OpenSSLSecureHeapDescription>>>
       Llvmtssolver;
-  unique_ptr<IDESolver<IDESecureHeapPropagationAnalysisDomain>>
+  std::unique_ptr<IDESolver<IDESecureHeapPropagationAnalysisDomain>>
       SecureHeapPropagationResults;
   enum OpenSSLSecureHeapState {
     TOP = 42,
@@ -57,8 +55,6 @@ protected:
     FREED = 4,
     ERROR = 5
   };
-  IDETSAnalysisOpenSSLSecureHeapTest() = default;
-  ~IDETSAnalysisOpenSSLSecureHeapTest() override = default;
 
   void initialize(const llvm::Twine &IRFile) {
     HA.emplace(IRFile, EntryPoints);
@@ -66,24 +62,20 @@ protected:
     SecureHeapPropagationProblem =
         createAnalysisProblem<IDESecureHeapPropagation>(*HA, EntryPoints);
     SecureHeapPropagationResults =
-        make_unique<IDESolver<IDESecureHeapPropagationAnalysisDomain>>(
+        std::make_unique<IDESolver<IDESecureHeapPropagationAnalysisDomain>>(
             *SecureHeapPropagationProblem, &HA->getICFG());
 
     Desc.emplace(*SecureHeapPropagationResults);
     TSProblem = createAnalysisProblem<
         IDETypeStateAnalysis<OpenSSLSecureHeapDescription>>(*HA, &*Desc,
                                                             EntryPoints);
-    Llvmtssolver = make_unique<
+    Llvmtssolver = std::make_unique<
         IDESolver<IDETypeStateAnalysisDomain<OpenSSLSecureHeapDescription>>>(
         *TSProblem, &HA->getICFG());
 
     SecureHeapPropagationResults->solve();
     Llvmtssolver->solve();
   }
-
-  void SetUp() override { ValueAnnotationPass::resetValueID(); }
-
-  void TearDown() override {}
 
   /**
    * We map instruction id to value for the ground truth. ID has to be

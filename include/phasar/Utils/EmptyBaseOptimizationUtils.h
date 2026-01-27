@@ -30,31 +30,21 @@ template <typename T> struct DummyPair {
   [[nodiscard]] auto getHashCode() const noexcept {
     return std::hash<T>{}(first);
   }
-  template <typename TT = T>
-  friend std::enable_if_t<CanEfficientlyPassByValue<TT>, bool>
+
+  friend bool
   operator==(DummyPair LHS,
-             DummyPair RHS) noexcept(noexcept(LHS.first == RHS.first)) {
+             DummyPair RHS) noexcept(noexcept(LHS.first == RHS.first))
+    requires CanEfficientlyPassByValue<T>
+  {
     return LHS.first == RHS.first;
   }
 
-  template <typename TT = T>
-  friend std::enable_if_t<!CanEfficientlyPassByValue<TT>, bool>
+  friend bool
   operator==(const DummyPair &LHS,
-             const DummyPair &RHS) noexcept(noexcept(LHS.first == RHS.first)) {
+             const DummyPair &RHS) noexcept(noexcept(LHS.first == RHS.first))
+    requires(!CanEfficientlyPassByValue<T>)
+  {
     return LHS.first == RHS.first;
-  }
-
-  template <typename TT = T>
-  friend std::enable_if_t<CanEfficientlyPassByValue<TT>, bool>
-  operator!=(DummyPair LHS, DummyPair RHS) noexcept(noexcept(LHS == RHS)) {
-    return !(LHS == RHS);
-  }
-
-  template <typename TT = T>
-  friend std::enable_if_t<!CanEfficientlyPassByValue<TT>, bool>
-  operator!=(const DummyPair &LHS,
-             const DummyPair &RHS) noexcept(noexcept(LHS == RHS)) {
-    return !(LHS == RHS);
   }
 };
 } // namespace psr

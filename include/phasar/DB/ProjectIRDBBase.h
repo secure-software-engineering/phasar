@@ -10,6 +10,7 @@
 #ifndef PHASAR_DB_PROJECTIRDBBASE_H
 #define PHASAR_DB_PROJECTIRDBBASE_H
 
+#include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -63,13 +64,14 @@ public:
     return self().getAllFunctionsImpl();
   }
 
-  // Returns the function's definition if available, its declaration otherwise.
-  [[nodiscard]] f_t getFunction(llvm::StringRef FunctionName) const {
+  // Returns the function if available, nullptr/nullopt otherwise.
+  [[nodiscard]] Nullable<f_t> getFunction(llvm::StringRef FunctionName) const {
     assert(isValid());
     return self().getFunctionImpl(FunctionName);
   }
   /// Returns the function's definition if available, null otherwise.
-  [[nodiscard]] f_t getFunctionDefinition(llvm::StringRef FunctionName) const {
+  [[nodiscard]] Nullable<f_t>
+  getFunctionDefinition(llvm::StringRef FunctionName) const {
     assert(isValid());
     return self().getFunctionDefinitionImpl(FunctionName);
   }
@@ -79,8 +81,17 @@ public:
     return self().hasFunctionImpl(FunctionName);
   }
 
-  /// Returns the global variable's definition if available, null otherwise.
-  [[nodiscard]] g_t
+  /// Returns the global variable's definition if available, nullptr/nullopt
+  /// otherwise.
+  [[nodiscard]] Nullable<g_t>
+  getGlobalVariable(llvm::StringRef GlobalVariableName) const {
+    assert(isValid());
+    return self().getGlobalVariableImpl(GlobalVariableName);
+  }
+
+  /// Returns the global variable's definition if available, nullptr/nullopt
+  /// otherwise.
+  [[nodiscard]] Nullable<g_t>
   getGlobalVariableDefinition(llvm::StringRef GlobalVariableName) const {
     assert(isValid());
     return self().getGlobalVariableDefinitionImpl(GlobalVariableName);
@@ -102,9 +113,9 @@ public:
     return self().getNumFunctionsImpl();
   }
 
-  /// Returns the instruction to the corresponding Id. Returns nullptr, if there
-  /// is no instruction for this Id
-  [[nodiscard]] n_t getInstruction(size_t Id) const {
+  /// Returns the instruction to the corresponding Id. Returns nullptr/nullopt,
+  /// if there is no instruction for this Id
+  [[nodiscard]] Nullable<n_t> getInstruction(size_t Id) const {
     assert(isValid());
     return self().getInstructionImpl(Id);
   }

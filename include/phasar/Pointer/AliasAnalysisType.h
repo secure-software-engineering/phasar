@@ -1,12 +1,15 @@
 #ifndef PHASAR_POINTER_ALIASANALYSISTYPE_H
 #define PHASAR_POINTER_ALIASANALYSISTYPE_H
 
+#include "phasar/Config/phasar-config.h" // For PHASAR_USE_SVF in AliasAnalysisType.def
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
 
 namespace psr {
+
 enum class AliasAnalysisType {
 #define ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, TYPE) NAME,
 #include "phasar/Pointer/AliasAnalysisType.def"

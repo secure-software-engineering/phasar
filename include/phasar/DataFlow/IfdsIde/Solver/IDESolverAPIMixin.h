@@ -142,11 +142,10 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  template <typename CancellationRequest,
-            typename = std::enable_if_t<
-                std::is_invocable_r_v<bool, CancellationRequest> ||
-                std::is_invocable_r_v<bool, CancellationRequest,
-                                      std::chrono::steady_clock::time_point>>>
+  template <typename CancellationRequest>
+    requires(std::is_invocable_r_v<bool, CancellationRequest> ||
+             std::is_invocable_r_v<bool, CancellationRequest,
+                                   std::chrono::steady_clock::time_point>)
   auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) & {
@@ -169,11 +168,10 @@ public:
   ///
   /// \returns An std::optional holding the analysis results or std::nullopt if
   /// the analysis was cancelled.
-  template <typename CancellationRequest,
-            typename = std::enable_if_t<
-                std::is_invocable_r_v<bool, CancellationRequest> ||
-                std::is_invocable_r_v<bool, CancellationRequest,
-                                      std::chrono::steady_clock::time_point>>>
+  template <typename CancellationRequest>
+    requires(std::is_invocable_r_v<bool, CancellationRequest> ||
+             std::is_invocable_r_v<bool, CancellationRequest,
+                                   std::chrono::steady_clock::time_point>)
   auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) && {
@@ -204,11 +202,10 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  template <typename CancellationRequest,
-            typename = std::enable_if_t<
-                std::is_invocable_r_v<bool, CancellationRequest> ||
-                std::is_invocable_r_v<bool, CancellationRequest,
-                                      std::chrono::steady_clock::time_point>>>
+  template <typename CancellationRequest>
+    requires(std::is_invocable_r_v<bool, CancellationRequest> ||
+             std::is_invocable_r_v<bool, CancellationRequest,
+                                   std::chrono::steady_clock::time_point>)
   auto continueUntil(CancellationRequest CancellationRequested,
                      std::chrono::milliseconds Interval = std::chrono::seconds{
                          1}) & {
@@ -238,11 +235,10 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  template <typename CancellationRequest,
-            typename = std::enable_if_t<
-                std::is_invocable_r_v<bool, CancellationRequest> ||
-                std::is_invocable_r_v<bool, CancellationRequest,
-                                      std::chrono::steady_clock::time_point>>>
+  template <typename CancellationRequest>
+    requires(std::is_invocable_r_v<bool, CancellationRequest> ||
+             std::is_invocable_r_v<bool, CancellationRequest,
+                                   std::chrono::steady_clock::time_point>)
   auto continueUntil(CancellationRequest CancellationRequested,
                      std::chrono::milliseconds Interval = std::chrono::seconds{
                          1}) && {
@@ -424,7 +420,7 @@ public:
   }
 
 private:
-  [[nodiscard]] Derived &self() &noexcept {
+  [[nodiscard]] Derived &self() & noexcept {
     static_assert(std::is_base_of_v<IDESolverAPIMixin, Derived>,
                   "Invalid CRTP instantiation");
     return static_cast<Derived &>(*this);

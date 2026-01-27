@@ -79,8 +79,8 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &S) {
 /// requirements, although the performance is probably higher for small
 /// elements that are trivially copyable.
 template <typename ContainerTy, typename OtherContainerTy>
-std::enable_if_t<!has_erase_iterator_v<ContainerTy>>
-intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
+  requires(!has_erase_iterator_v<ContainerTy>)
+void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   static_assert(std::is_same_v<typename ContainerTy::value_type,
                                typename OtherContainerTy::value_type>,
                 "The containers Src and Dest must be compatible");
@@ -124,9 +124,8 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   }
 }
 
-template <typename ContainerTy, typename OtherContainerTy>
-std::enable_if_t<has_erase_iterator_v<ContainerTy>>
-intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
+template <has_erase_iterator_v ContainerTy, typename OtherContainerTy>
+void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   static_assert(std::is_same_v<typename ContainerTy::value_type,
                                typename OtherContainerTy::value_type>,
                 "The containers Src and Dest must be compatible");
@@ -251,7 +250,8 @@ auto remove_by_index(Container &Cont, const Indices &Idx) {
 
 /// See <https://en.cppreference.com/w/cpp/utility/forward_like>
 template <class T, class U>
-[[nodiscard]] constexpr auto &&forward_like(U &&X) noexcept { // NOLINT
+[[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr auto &&
+forward_like(U &&X) noexcept { // NOLINT
   // NOLINTNEXTLINE
   constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
   if constexpr (std::is_lvalue_reference_v<T &&>) {
@@ -275,7 +275,7 @@ struct identity {
   }
 };
 
-template <typename T, typename = std::enable_if_t<is_llvm_printable_v<T>>>
+template <is_llvm_printable_v T>
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::optional<T> &Opt) {
   if (Opt) {
@@ -287,7 +287,9 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-template <typename T> LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
+template <typename T>
+  requires(!std::is_pointer_v<T>)
+LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
   return Value;
 }
 

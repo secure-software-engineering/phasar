@@ -38,8 +38,8 @@ std::optional<T> getOrNull(llvm::ErrorOr<T> ValOrErr) noexcept(
   return std::nullopt;
 }
 
-template <typename T,
-          typename = std::enable_if_t<std::is_default_constructible_v<T>>>
+template <typename T>
+  requires std::is_default_constructible_v<T>
 T getOrEmpty(llvm::ErrorOr<T> ValOrErr) noexcept(
     std::is_nothrow_move_constructible_v<T>) {
   if (ValOrErr) {

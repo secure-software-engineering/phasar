@@ -74,8 +74,7 @@ public:
   /// implementation-defined way.
   template <
       typename FactsRangeTy, typename ConfigTy,
-      typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+      is_pathtracingfilter_for_v<NodeRef> Filter = DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagToAll(n_t Inst, FactsRangeTy FactsRange,
                 const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -89,18 +88,9 @@ public:
       if (LLVM_UNLIKELY(!Nod)) {
         llvm::errs() << "Invalid Instruction-FlowFact pair. Only use those "
                         "pairs that are part of the IDE analysis results!\n";
-        llvm::errs() << "Fatal error occurred. Writing ESG to temp file...\n";
-        llvm::errs().flush();
+        llvm::errs() << "Fatal error occurred. Printing ESG ...\n";
 
-        auto FileName = std::string(tmpnam(nullptr)) + "-explicitesg-err.dot";
-
-        {
-          std::error_code EC;
-          llvm::raw_fd_ostream ROS(FileName, EC);
-          ESG.printAsDot(ROS);
-        }
-
-        llvm::errs() << "> ESG written to " << FileName << '\n';
+        ESG.printAsDot(llvm::errs());
         llvm::errs().flush();
 
         abort();
@@ -158,8 +148,8 @@ public:
   /// The result is given as graph, where cycles are unrolled once in an
   /// implementation-defined way.
   template <
-      typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+      typename ConfigTy, typename L,
+      is_pathtracingfilter_for_v<NodeRef> Filter = DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, const SolverResults<n_t, d_t, L> &SR,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -174,9 +164,8 @@ public:
   ///
   /// The result is given as graph, where cycles are unrolled once in an
   /// implementation-defined way.
-  template <
-      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  template <typename ConfigTy, is_pathtracingfilter_for_v<NodeRef> Filter =
+                                   DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, d_t Fact,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -191,9 +180,8 @@ public:
   ///
   /// The result is given as graph, where cycles are unrolled once in an
   /// implementation-defined way.
-  template <
-      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  template <typename ConfigTy, is_pathtracingfilter_for_v<NodeRef> Filter =
+                                   DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagToInLLVMSSA(n_t Inst, d_t Fact,
                       const PathSensitivityConfigBase<ConfigTy> &Config,

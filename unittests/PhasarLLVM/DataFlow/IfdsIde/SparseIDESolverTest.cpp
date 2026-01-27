@@ -12,7 +12,6 @@
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Soundness.h"
 
@@ -194,8 +193,8 @@ static constexpr std::string_view LCATestFiles[] = {
 };
 
 static constexpr std::string_view TaintTestFiles[] = {
-    "double_free_01_c.ll",
-    "double_free_02_c.ll",
+    "double_free_01_c_dbg.ll",
+    "double_free_02_c_dbg.ll",
 };
 
 INSTANTIATE_TEST_SUITE_P(SparseIDETest, LinearConstant,

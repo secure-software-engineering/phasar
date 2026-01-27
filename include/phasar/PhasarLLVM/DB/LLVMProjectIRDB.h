@@ -21,6 +21,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -44,8 +45,17 @@ public:
   /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
+  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
+
+  /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
+  [[deprecated("When moving to the next LLVM version, opaque pointers support "
+               "is removed completely. Please use one of the other "
+               "constructors of LLVMProjectIRDB.")]]
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
+                           bool EnableOpaquePointers);
+
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is optionally being preprocessed.
   ///
@@ -56,23 +66,50 @@ public:
   /// ownership of it. The module is optionally being preprocessed.
   explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
                            bool DoPreprocessing = true);
+  /// Initializes the new ProjectIRDB with the given IR Module and takes
+  /// ownership of it. The module is optionally being preprocessed. Takes the
+  /// given LLVMContext and binds its lifetime to the lifetime of the
+  /// constructed ProjectIRDB
+  explicit LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
+                           std::unique_ptr<llvm::LLVMContext> Ctx,
+                           bool DoPreprocessing = true);
+
   /// Parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
+  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
+
+  /// Parses the given LLVM IR file and owns the resulting IR Module.
+  /// If an error occurs, an error message is written to stderr and subsequent
+  /// calls to isValid() return false.
+  [[deprecated("When moving to the next LLVM version, opaque pointers support "
+               "is removed completely. Please use one of the other "
+               "constructors of LLVMProjectIRDB.")]]
   explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                           bool EnableOpaquePointers = LLVM_VERSION_MAJOR > 14);
+                           bool EnableOpaquePointers);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
-  LLVMProjectIRDB &operator=(LLVMProjectIRDB &) = delete;
+  LLVMProjectIRDB &operator=(const LLVMProjectIRDB &) = delete;
+
+  LLVMProjectIRDB(LLVMProjectIRDB &&) noexcept = default;
+  LLVMProjectIRDB &operator=(LLVMProjectIRDB &&) noexcept = default;
 
   ~LLVMProjectIRDB();
 
-  [[nodiscard]] static std::unique_ptr<llvm::Module>
-  getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
-                          llvm::LLVMContext &Ctx) noexcept;
-  [[nodiscard]] static std::unique_ptr<llvm::Module>
-  getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
-                          llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+  getParsedIRModuleOrErr(const llvm::Twine &IRFileName,
+                         llvm::LLVMContext &Ctx) noexcept;
+  [[nodiscard]] static llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+  getParsedIRModuleOrErr(llvm::MemoryBufferRef IRFileContent,
+                         llvm::LLVMContext &Ctx) noexcept;
+
+  [[nodiscard]] static llvm::ErrorOr<LLVMProjectIRDB>
+  load(const llvm::Twine &IRFileName);
+
+  [[nodiscard]] static LLVMProjectIRDB loadOrExit(const llvm::Twine &IRFileName,
+                                                  int ErrorExitCode = 1);
+  [[nodiscard]] static LLVMProjectIRDB
+  loadOrExit(const llvm::Twine &IRFileName, bool EnableOpaquePointers) = delete;
 
   /// Also use the const overload
   using ProjectIRDBBase::getFunction;
@@ -124,6 +161,8 @@ private:
     return Mod->getFunction(FunctionName) != nullptr;
   }
   [[nodiscard]] g_t
+  getGlobalVariableImpl(llvm::StringRef GlobalVariableName) const;
+  [[nodiscard]] g_t
   getGlobalVariableDefinitionImpl(llvm::StringRef GlobalVariableName) const;
   [[nodiscard]] size_t getNumInstructionsImpl() const noexcept {
     return IdToInst.size() - IdOffset;
@@ -145,7 +184,7 @@ private:
 
   [[nodiscard]] auto getAllInstructionsImpl() const noexcept {
     return llvm::map_range(
-        llvm::makeArrayRef(IdToInst).drop_front(IdOffset),
+        llvm::ArrayRef(IdToInst).drop_front(IdOffset),
         [](const llvm::Value *V) { return llvm::cast<llvm::Instruction>(V); });
   }
 
@@ -163,7 +202,8 @@ private:
   /// the preprocessing as well
   void preprocessModule(llvm::Module *NonConstMod);
 
-  llvm::LLVMContext Ctx;
+  // LLVMContext is not movable, so wrap it into a unique_ptr
+  std::unique_ptr<llvm::LLVMContext> Ctx;
   MaybeUniquePtr<llvm::Module> Mod = nullptr;
   size_t IdOffset = 0;
   llvm::SmallVector<const llvm::Value *, 0> IdToInst;

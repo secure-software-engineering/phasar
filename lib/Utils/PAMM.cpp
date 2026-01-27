@@ -62,8 +62,8 @@ void PAMM::startTimer(llvm::StringRef TimerId) {
 }
 
 void PAMM::resetTimer(llvm::StringRef TimerId) {
-  bool InRunningTimers = RunningTimer.erase(TimerId);
-  bool InStoppedTimers = StoppedTimer.erase(TimerId);
+  [[maybe_unused]] bool InRunningTimers = RunningTimer.erase(TimerId);
+  [[maybe_unused]] bool InStoppedTimers = StoppedTimer.erase(TimerId);
 
   assert((InRunningTimers && !InStoppedTimers) ||
          (!InRunningTimers && InStoppedTimers) &&
@@ -149,7 +149,8 @@ std::string PAMM::getPrintableDuration(uint64_t Duration) {
 }
 
 void PAMM::regCounter(llvm::StringRef CounterId, unsigned IntialValue) {
-  auto [It, Inserted] = Counter.try_emplace(CounterId, IntialValue);
+  [[maybe_unused]] auto [It, Inserted] =
+      Counter.try_emplace(CounterId, IntialValue);
   assert(Inserted && "regCounter failed due to an invalid counter id");
 }
 
@@ -214,7 +215,7 @@ PAMM::getSumCount(std::initializer_list<llvm::StringRef> CounterIds) {
 }
 
 void PAMM::regHistogram(llvm::StringRef HistogramId) {
-  auto [It, Inserted] = Histogram.try_emplace(HistogramId);
+  [[maybe_unused]] auto [It, Inserted] = Histogram.try_emplace(HistogramId);
   assert(Inserted && "failed to register new histogram due to an invalid id");
 }
 

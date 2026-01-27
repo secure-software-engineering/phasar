@@ -29,11 +29,15 @@ template <typename N, typename D, typename L> class InitialSeeds {
 public:
   using GeneralizedSeeds = std::map<N, std::map<D, L>>;
 
+  using n_t = N;
+  using d_t = D;
+  using l_t = L;
+
   InitialSeeds() = default;
 
-  template <typename LL = L,
-            typename = std::enable_if_t<std::is_same_v<LL, BinaryDomain>>>
-  InitialSeeds(const std::map<N, std::set<D>> &Seeds) {
+  InitialSeeds(const std::map<N, std::set<D>> &Seeds)
+    requires std::is_same_v<l_t, BinaryDomain>
+  {
     for (const auto &[Node, Facts] : Seeds) {
       for (const auto &Fact : Facts) {
         this->Seeds[Node][Fact] = BinaryDomain::BOTTOM;
@@ -43,9 +47,9 @@ public:
 
   InitialSeeds(GeneralizedSeeds Seeds) : Seeds(std::move(Seeds)) {}
 
-  template <typename LL = L,
-            typename = std::enable_if_t<std::is_same_v<LL, BinaryDomain>>>
-  void addSeed(N Node, D Fact) {
+  void addSeed(N Node, D Fact)
+    requires std::is_same_v<l_t, BinaryDomain>
+  {
     addSeed(Node, Fact, BinaryDomain::BOTTOM);
   }
 

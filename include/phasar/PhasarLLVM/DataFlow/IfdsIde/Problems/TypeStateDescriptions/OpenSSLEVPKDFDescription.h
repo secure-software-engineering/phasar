@@ -12,7 +12,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
-#include <map>
 #include <set>
 #include <string>
 
@@ -81,8 +80,6 @@ public:
   [[nodiscard]] TypeStateDescription::State top() const override;
 
   [[nodiscard]] TypeStateDescription::State uninit() const override;
-
-  [[nodiscard]] TypeStateDescription::State start() const override;
 
   [[nodiscard]] TypeStateDescription::State error() const override;
 

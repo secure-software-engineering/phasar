@@ -44,6 +44,7 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -168,10 +169,9 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
-  resultAtInLLVMSSA(NTy Stmt, d_t Value) {
+  [[nodiscard]] l_t resultAtInLLVMSSA(n_t Stmt, d_t Value)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     return getSolverResults().resultAtInLLVMSSA(Stmt, Value);
   }
 
@@ -198,11 +198,11 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
-      std::unordered_map<d_t, l_t>>
-  resultsAtInLLVMSSA(NTy Stmt, bool StripZero = false) {
+  [[nodiscard]]
+  std::unordered_map<d_t, l_t> resultsAtInLLVMSSA(n_t Stmt,
+                                                  bool StripZero = false)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     return getSolverResults().resultsAtInLLVMSSA(Stmt, StripZero);
   }
 
@@ -1616,7 +1616,7 @@ public:
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string D1Label = DToString(D1Fact);
+          std::string D1Label{DToString(D1Fact)};
 
           // Get or create the fact subgraph
           D1FSG = FG->getOrCreateFactSG(D1FactId, D1Label);
@@ -1634,7 +1634,7 @@ public:
           if (!IDEProblem.isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string D2Label = DToString(D2Fact);
+            std::string D2Label{DToString(D2Fact)};
             DOTNode D2 = {FuncName, D2Label, N2StmtId, D2FactId, false, true};
             std::string EFLabel;
             auto EFVec = IntermediateEdgeFunctions[std::make_tuple(
@@ -1719,7 +1719,7 @@ public:
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string D1Label = DToString(D1Fact);
+          std::string D1Label{DToString(D1Fact)};
           D1 = {FNameOfN1, D1Label, N1StmtId, D1FactId, false, true};
           // FG should already exist even for single statement functions
           if (!G.containsFactSG(FNameOfN1, D1FactId)) {
@@ -1738,7 +1738,7 @@ public:
           } else {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string D2Label = DToString(D2Fact);
+            std::string D2Label{DToString(D2Fact)};
             D2 = {FNameOfN2, D2Label, N2StmtId, D2FactId, false, true};
             // FG should already exist even for single statement functions
             if (!G.containsFactSG(FNameOfN2, D2FactId)) {

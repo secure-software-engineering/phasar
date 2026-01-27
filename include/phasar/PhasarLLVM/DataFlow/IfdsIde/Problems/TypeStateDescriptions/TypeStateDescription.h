@@ -12,10 +12,12 @@
 
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 
-#include "llvm/IR/InstrTypes.h"
-
 #include <set>
 #include <string>
+
+namespace llvm {
+class CallBase;
+} // namespace llvm
 
 namespace psr {
 
@@ -73,12 +75,6 @@ struct TypeStateDescription : public TypeStateDescriptionBase {
    * handle
    */
   [[nodiscard]] virtual State uninit() const = 0;
-
-  /**
-   * Represents the start/initial state of an object after creation, e.g. state
-   * of a file handle after fopen()
-   */
-  [[nodiscard, deprecated]] virtual State start() const = 0;
 
   /**
    * Represents the error state of an object

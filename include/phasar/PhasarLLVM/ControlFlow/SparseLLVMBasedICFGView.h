@@ -7,8 +7,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
-#define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H
+#define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H
 
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/ICFGBase.h"
@@ -34,7 +34,7 @@ struct CFGTraits<SparseLLVMBasedICFGView> : CFGTraits<LLVMBasedCFG> {};
 /// It still owns the sparse value-flow graphs.
 ///
 /// Use this in the IDESolver or IFDSSolver to profit from the SparseIFDS or
-/// SparseIDE optimization after Karakays et al. "Symbol-Specific Sparsification
+/// SparseIDE optimization after Karakaya et al. "Symbol-Specific Sparsification
 /// of Interprocedural Distributive Environment Problems"
 /// <https://doi.org/10.48550/arXiv.2401.14813>
 class SparseLLVMBasedICFGView
@@ -45,6 +45,9 @@ class SparseLLVMBasedICFGView
   friend SparseLLVMBasedCFGProvider<SparseLLVMBasedICFGView>;
 
 public:
+  using typename LLVMBasedCFG::f_t;
+  using typename LLVMBasedCFG::n_t;
+
   explicit SparseLLVMBasedICFGView(const LLVMBasedICFG *ICF,
                                    LLVMAliasInfoRef PT);
 
@@ -75,4 +78,4 @@ private:
 };
 } // namespace psr
 
-#endif // PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
+#endif // PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_VIEW_H

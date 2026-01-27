@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
