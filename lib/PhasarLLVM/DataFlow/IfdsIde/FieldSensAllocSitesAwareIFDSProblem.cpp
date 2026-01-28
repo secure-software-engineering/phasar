@@ -4,6 +4,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Fn.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Union.h"
 
 #include "llvm/ADT/APInt.h"
@@ -21,6 +22,7 @@
 #include <cstring>
 #include <functional>
 #include <numeric>
+#include <type_traits>
 #include <utility>
 
 using namespace psr;
@@ -76,6 +78,95 @@ struct CFLFieldSensEdgeFunction {
     return OS << "Txn[" << EF.Transform << ']';
   }
 };
+
+[[nodiscard]] std::string storesToString(const CFLFieldAccessPath &AP) {
+  std::string Ret;
+  llvm::raw_string_ostream ROS(Ret);
+
+  llvm::interleave(
+      AP.Stores, ROS, [&ROS](auto StoreOffs) { ROS << 'S' << StoreOffs; }, ".");
+
+  return Ret;
+}
+
+// Returns whether to retain F
+[[nodiscard]] auto applyOneGepAndStore(CFLFieldAccessPath &F, GEPEvent Evt,
+                                       uint8_t DepthKLimit) {
+  if (F.Stores.size() == DepthKLimit) {
+    // TODO: Optimize:
+    F.Stores.erase(F.Stores.begin());
+  }
+  F.Stores.push_back(std::exchange(F.Offset, 0) + Evt.Field);
+  return std::true_type{};
+}
+
+// Returns whether to retain F
+[[nodiscard]] auto applyOneGepAndLoad(CFLFieldAccessPath &F, GEPEvent Evt,
+                                      uint8_t DepthKLimit) {
+  auto Offs = F.Offset + Evt.Field;
+  if (F.Stores.empty()) {
+
+    if (F.kills(Offs)) {
+      return false;
+    }
+
+    F.Offset = 0;
+
+    // TODO: Is this application of k-limiting correct here?
+    // cf. Section 4.2.3 "K-Limiting" in the paper
+    if (F.Loads.size() == DepthKLimit) {
+      return true;
+    }
+
+    F.Loads.push_back(Offs);
+    F.Kills.clear();
+    return true;
+  }
+
+  if (F.Stores.back() != Offs) {
+    return false;
+  }
+
+  assert(F.Stores.back() == Offs);
+  F.Offset = 0;
+  F.Stores.pop_back();
+  // llvm::errs() << "> pop_back\n";
+  return true;
+}
+
+[[nodiscard]] auto applyOneGepAndKill(CFLFieldAccessPath &F, GEPEvent Evt,
+                                      uint8_t /*DepthKLimit*/) {
+  auto Offs = F.Offset + Evt.Field;
+
+  if (F.Stores.empty()) {
+    F.Kills.insert(Offs);
+    PHASAR_LOG_LEVEL_CAT(DEBUG, CFLFieldSensEdgeValue::LogCategory,
+                         "> add K" << Offs);
+    return true;
+  }
+
+  if (F.Stores.back() == Offs) {
+    PHASAR_LOG_LEVEL_CAT(DEBUG, CFLFieldSensEdgeValue::LogCategory,
+                         "> Kill " << storesToString(F));
+    return false;
+  }
+
+  PHASAR_LOG_LEVEL_CAT(DEBUG, CFLFieldSensEdgeValue::LogCategory,
+                       "> Retain " << storesToString(F));
+
+  assert(F.Stores.back() != Offs);
+  return true;
+}
+
+[[nodiscard]] auto applyOneGep(CFLFieldAccessPath &F, GEPEvent Evt,
+                               uint8_t /*DepthKLimit*/) {
+  if (F.Stores.empty()) {
+    F.Offset = addOffsets(F.Offset, Evt.Field);
+  } else {
+    F.Stores.back() = addOffsets(F.Stores.back(), -Evt.Field);
+  }
+  return std::true_type{};
+}
 
 } // namespace
 
@@ -203,21 +294,60 @@ void CFLFieldSensEdgeValue::applyKill() { applyGepAndKill(GEPEvent{0}); }
 
 void CFLFieldSensEdgeValue::applyTransform(const CFLFieldAccessPath &Txn,
                                            uint8_t DepthKLimit) {
-  // TODO: Optimize!
+  auto Save = std::exchange(Paths, {});
+  Paths.reserve(Save.size());
 
-  if (Txn.Offset) {
-    applyGep(GEPEvent{Txn.Offset});
+  const auto TxnOffset = Txn.Offset;
+
+  for (const auto &F : Save) {
+    auto Copy = F;
+    bool Retain = [&] {
+      if (TxnOffset) {
+        if (!applyOneGep(Copy, GEPEvent{TxnOffset}, DepthKLimit)) {
+          return false;
+        }
+      }
+      for (auto Ld : Txn.Loads) {
+        if (!applyOneGepAndLoad(Copy, GEPEvent{Ld}, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto Kl : Txn.Kills) {
+        if (!applyOneGepAndKill(Copy, GEPEvent{Kl}, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto St : Txn.Stores) {
+        if (!applyOneGepAndStore(Copy, GEPEvent{St}, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      return true;
+    }();
+
+    if (Retain) {
+      Paths.insert(std::move(Copy));
+    }
   }
 
-  for (auto Ld : Txn.Loads) {
-    applyGepAndLoad(GEPEvent{Ld}, DepthKLimit);
-  }
-  for (auto Kl : Txn.Kills) {
-    applyGepAndKill(GEPEvent{Kl});
-  }
-  for (auto St : Txn.Stores) {
-    applyGepAndStore(GEPEvent{St}, DepthKLimit);
-  }
+  // // TODO: Optimize!
+
+  // if (Txn.Offset) {
+  //   applyGep(GEPEvent{Txn.Offset});
+  // }
+
+  // for (auto Ld : Txn.Loads) {
+  //   applyGepAndLoad(GEPEvent{Ld}, DepthKLimit);
+  // }
+  // for (auto Kl : Txn.Kills) {
+  //   applyGepAndKill(GEPEvent{Kl});
+  // }
+  // for (auto St : Txn.Stores) {
+  //   applyGepAndStore(GEPEvent{St}, DepthKLimit);
+  // }
 }
 
 void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
@@ -232,6 +362,9 @@ void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
     applyTransform(*It, DepthKLimit);
     return;
   }
+
+  // This path should be very rare, otherwise we will for sure have a
+  // performance problem...
 
   auto End = Txns.Paths.end();
   auto Ret = *this;
@@ -392,8 +525,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
       CFLFieldAccessPath FieldString{};
       FieldString.Loads.push_back(LoadOffs);
-      llvm::errs() << "Handle load: " << llvmIRToString(Load) << '\n';
-      llvm::errs() << "> CurrNode: " << llvmIRToString(CurrNode) << '\n';
+      // llvm::errs() << "Handle load: " << llvmIRToString(Load) << '\n';
+      // llvm::errs() << "> CurrNode: " << llvmIRToString(CurrNode) << '\n';
       return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
     }
 
@@ -461,16 +594,22 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
 auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
     n_t Curr, d_t CurrNode, n_t /*Succ*/, d_t SuccNode) -> EdgeFunction<l_t> {
 
-  llvm::errs() << "[getSummaryEdgeFunction]: Curr: " << llvmIRToString(Curr)
-               << ":\n";
-  llvm::errs() << "  > CurrNode: " << llvmIRToString(CurrNode) << '\n';
-  llvm::errs() << "  > SuccNode: " << llvmIRToString(SuccNode) << '\n';
+  PHASAR_LOG_LEVEL_CAT(
+      DEBUG, LogCategory,
+      "[getSummaryEdgeFunction]: Curr: " << llvmIRToString(Curr) << ":");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  > CurrNode: " << llvmIRToString(CurrNode));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  > SuccNode: " << llvmIRToString(SuccNode));
 
   if (CurrNode == SuccNode && Config.KillsAt) {
     if (auto KillOffs = Config.KillsAt(Curr, CurrNode)) {
       // kill
-      llvm::errs() << "  > request to kill " << llvmIRToString(CurrNode)
-                   << " with offset " << *KillOffs << '\n';
+      PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                           "  > request to kill " << llvmIRToString(CurrNode)
+                                                  << " with offset "
+                                                  << *KillOffs);
+
       CFLFieldAccessPath FieldString{};
       FieldString.Kills.insert(*KillOffs);
       return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
@@ -483,8 +622,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
     return CFLFieldSensEdgeFunction{{{CFLFieldAccessPath{}}}, DepthKLimit};
   }
 
-  // TODO: Is that correct? -- We may need to handle field-indirections here as
-  // well
+  // TODO: Is that correct? -- We may need to handle field-indirections here
+  // as well
   return EdgeIdentity<l_t>{};
 }
 
@@ -518,7 +657,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
                              llvm::Twine(to_string(R)));
   }();
 
-  // llvm::errs() << "EXTEND " << L << " X " << R << " ==> " << Ret << '\n';
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "EXTEND " << L << " X " << R << " ==> " << Ret);
 
   return Ret;
 }
@@ -581,7 +721,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
     return AllBottom<l_t>{};
   }();
 
-  llvm::errs() << "COMBINE " << L << " X " << R << " ==> " << Ret << '\n';
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "COMBINE " << L << " X " << R << " ==> " << Ret);
 
   return Ret;
 }
@@ -611,7 +752,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 //     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(BasePtr)) {
 //       Offsets.push_back(0);
 //       BasePtr = Load->getPointerOperand()->stripPointerCasts();
-//     } else if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(BasePtr))
+//     } else if (const auto *Gep =
+//     llvm::dyn_cast<llvm::GEPOperator>(BasePtr))
 //     {
 
 //       auto GepOffs = detail::AbstractMemoryLocationImpl::computeOffset(DL,

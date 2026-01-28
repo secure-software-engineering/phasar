@@ -18,7 +18,7 @@ namespace psr {
 template <typename SetLT, typename SetRT>
 [[nodiscard]] std::decay_t<SetLT> setUnion(SetLT &&First, SetRT &&Second,
                                            bool *ChangedPtr = nullptr) {
-  bool FirstSmaller = First.size() < Second.size();
+  const bool FirstSmaller = First.size() < Second.size();
   auto &Smaller = FirstSmaller ? First : Second;
 
   bool ChangedBuf = false;

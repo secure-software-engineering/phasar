@@ -17,6 +17,7 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instruction.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
@@ -137,15 +138,21 @@ private:
   const psr::LLVMTaintConfig *Config{};
 };
 
+using namespace psr::unittest;
+
 class CFLFieldSensTest : public ::testing::Test {
 protected:
   static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("xtaint/");
   const std::vector<std::string> EntryPoints = {"main"};
 
+  using TaintSetT = std::set<TestingSrcLocation>;
+
   void run(const llvm::Twine &IRFileName,
-           const std::map<int, std::set<std::string>> &GroundTruth) {
-    psr::LLVMProjectIRDB IRDB(IRFileName);
-    ASSERT_TRUE(IRDB);
+           const std::map<TestingSrcLocation, TaintSetT> &GroundTruth) {
+    auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRFileName);
+
+    auto GroundTruthEntries =
+        convertTestingLocationSetMapInIR(GroundTruth, IRDB);
 
     psr::LLVMAliasSet BaseAS(&IRDB);
     psr::FilteredLLVMAliasSet AS(&BaseAS);
@@ -165,12 +172,11 @@ protected:
     Solver.solve();
     auto Results = Solver.getSolverResults();
 
-    Solver.dumpResults();
-
     // auto Results = psr::solveIDEProblem(FsTaintProblem, ICFG);
     // Results.dumpResults(ICFG);
 
-    std::map<int, std::set<std::string>> ComputedLeaks;
+    std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
+        ComputedLeaks;
 
     for (auto IIt = TaintProblem.Leaks.begin(), End = TaintProblem.Leaks.end();
          IIt != End;) {
@@ -187,132 +193,141 @@ protected:
                        << " has non-empty field-string: " << Res << '\n';
           TaintProblem.Leaks.erase(It);
         } else {
-          ComputedLeaks[stoi(psr::getMetaDataID(LeakInst))].insert(
-              psr::getMetaDataID(LeakFact));
+          ComputedLeaks[LeakInst].insert(LeakFact);
         }
       }
     }
 
-    EXPECT_EQ(GroundTruth, ComputedLeaks);
+    EXPECT_EQ(GroundTruthEntries, ComputedLeaks);
+    if (HasFailure()) {
+      Solver.dumpResults();
+    }
   }
 };
 
 TEST_F(CFLFieldSensTest, Basic_01) {
-  std::map<int, std::set<std::string>> Gt;
 
-  Gt[13] = {"12"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{8, 3, "main"},
+       {LineColFunOp{8, 9, "main", llvm::Instruction::Load}}},
+  };
 
-  run({PathToLLFiles + "xtaint01_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_02) {
-  // GTEST_SKIP() << "Need field-sensitive alias information!";
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{9, 3, "main"},
+       {LineColFunOp{9, 9, "main", llvm::Instruction::Load}}},
+  };
 
-  std::map<int, std::set<std::string>> Gt;
-
-  Gt[18] = {"17"};
-
-  run({PathToLLFiles + "xtaint02_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_03) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{10, 3, "main"},
+       {LineColFunOp{10, 9, "main", llvm::Instruction::Load}}},
+  };
 
-  Gt[21] = {"20"};
-
-  run({PathToLLFiles + "xtaint03_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_04) {
-  std::map<int, std::set<std::string>> Gt;
+  auto Call = LineColFun{6, 3, "_Z3barPi"};
 
-  Gt[16] = {"15"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {Call, {OperandOf{0, Call}}},
+  };
 
-  run({PathToLLFiles + "xtaint04_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_06) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // no leaks expected
-
-  run({PathToLLFiles + "xtaint06_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint06_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_09_1) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{14, 3, "main"}, {LineColFun{14, 8, "main"}}},
+  };
 
-  Gt[25] = {"24"};
-
-  run({PathToLLFiles + "xtaint09_1_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_09) {
-  std::map<int, std::set<std::string>> Gt;
+  auto SinkCall = LineColFun{16, 3, "main"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {SinkCall, {OperandOf{0, SinkCall}}},
+  };
 
-  Gt[24] = {"23"};
-
-  run({PathToLLFiles + "xtaint09_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_12) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{19, 3, "main"}, {LineColFun{19, 8, "main"}}},
+  };
 
   // We sanitize an alias - since we don't have must-alias relations, we cannot
   // kill aliases at all
-  Gt[28] = {"27"};
 
-  run({PathToLLFiles + "xtaint12_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint12_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_13) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}},
+  };
 
-  Gt[30] = {"29"};
-
-  run({PathToLLFiles + "xtaint13_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint13_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_14) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{24, 3, "main"}, {LineColFun{24, 8, "main"}}},
+  };
 
-  Gt[33] = {"32"};
-
-  run({PathToLLFiles + "xtaint14_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_16) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
+  };
 
-  Gt[24] = {"23"};
-
-  run({PathToLLFiles + "xtaint16_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint16_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_17) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}},
+  };
 
-  Gt[27] = {"26"};
-
-  run({PathToLLFiles + "xtaint17_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint17_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_18) {
-  std::map<int, std::set<std::string>> Gt;
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // no leaks expected
+  };
 
-  // no leaks expected
-
-  run({PathToLLFiles + "xtaint18_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, GroundTruth);
 }
 
 TEST_F(CFLFieldSensTest, Basic_20) {
-  std::map<int, std::set<std::string>> Gt;
-
-  Gt[22] = {"14"};
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      {LineColFun{12, 3, "main"}, {LineColFun{6, 7, "main"}}},
+      // {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
+  };
   // Gt[24] = {"23"}; // no leak here, because above we define the semantics to
   // exclude deep taints!
 
-  run({PathToLLFiles + "xtaint20_cpp.ll"}, Gt);
+  run({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, GroundTruth);
 }
 
 } // namespace

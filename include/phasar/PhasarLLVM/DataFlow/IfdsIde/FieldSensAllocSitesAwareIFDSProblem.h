@@ -103,6 +103,8 @@ struct CFLFieldAccessPathDMI {
 struct CFLFieldSensEdgeValue {
   llvm::SmallDenseSet<CFLFieldAccessPath, 2, CFLFieldAccessPathDMI> Paths;
 
+  static constexpr llvm::StringLiteral LogCategory = "CFLFieldSensEdgeValue";
+
   void applyStore(uint8_t DepthKLimit);
   void applyGepAndStore(GEPEvent Evt, uint8_t DepthKLimit);
   void applyLoad(uint8_t DepthKLimit);
@@ -141,6 +143,9 @@ struct FieldSensAllocSitesAwareIFDSProblemConfig
 
 class FieldSensAllocSitesAwareIFDSProblemBase {
 public:
+  static constexpr llvm::StringLiteral LogCategory =
+      "FieldSensAllocSitesAwareIFDSProblem";
+
   [[nodiscard]] static std::pair<const llvm::Value *, int32_t>
   getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
     llvm::APInt Offset(64, 0);
