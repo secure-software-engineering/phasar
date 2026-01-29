@@ -16,15 +16,12 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
-#include "phasar/Utils/MemoryLocationAllocator.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasePointerAliasSet.h"
 
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FunctionExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Operator.h"
-#include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
@@ -47,12 +44,10 @@ struct GEPEvent {
 struct CFLFieldAccessPath {
   static constexpr int32_t TopOffset = INT32_MIN;
 
-  // TODO: compose
-
   llvm::SmallVector<int32_t, 4> Loads;
   llvm::SmallVector<int32_t, 4> Stores;
   llvm::SmallDenseSet<int32_t, 2> Kills;
-  // Add an offset for pending GEPs; INT16_MIN is Top
+  // Add an offset for pending GEPs; INT32_MIN is Top
   int32_t Offset = {0};
   int32_t EmptyTombstone = 0;
 
@@ -173,23 +168,6 @@ class FieldSensAllocSitesAwareIFDSProblem
   using Base = IDETabulationProblem<
       CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>>;
 
-  // struct CachedAccessPath final
-  //     : public llvm::TrailingObjects<CachedAccessPath, int32_t> {
-
-  //   using OffsetType = int32_t;
-
-  //   constexpr CachedAccessPath(const llvm::Value *BasePtr,
-  //                              uint32_t NumOffsets) noexcept
-  //       : BasePtr(BasePtr), NumOffsets(NumOffsets) {}
-
-  //   const llvm::Value *BasePtr{};
-  //   uint32_t NumOffsets{};
-
-  //   [[nodiscard]] llvm::ArrayRef<int32_t> offsets() const noexcept {
-  //     return {this->getTrailingObjects<int32_t>(), NumOffsets};
-  //   }
-  // };
-
 public:
   using typename Base::container_type;
   using typename Base::d_t;
@@ -281,15 +259,9 @@ public:
                             const EdgeFunction<l_t> &R) override;
 
 private:
-  // [[nodiscard]] const CachedAccessPath *
-  // getAccessPath(const llvm::Value *Pointer);
-
   LLVMAliasInfoRef AS;
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   FieldSensAllocSitesAwareIFDSProblemConfig Config{};
-  // MemoryLocationAllocator MemLocAlloc{};
-  // llvm::DenseMap<const llvm::Value *, const CachedAccessPath *>
-  // MemLocCache{};
 
   uint8_t DepthKLimit = 5; // Original from the paper
 };

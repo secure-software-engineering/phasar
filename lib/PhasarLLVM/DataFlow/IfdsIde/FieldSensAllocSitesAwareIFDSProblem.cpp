@@ -77,6 +77,25 @@ struct CFLFieldSensEdgeFunction {
                                        const CFLFieldSensEdgeFunction &EF) {
     return OS << "Txn[" << EF.Transform << ']';
   }
+
+  [[nodiscard]] static auto from(CFLFieldSensEdgeValue &&Txn,
+                                 uint8_t DepthKLimit) {
+    return CFLFieldSensEdgeFunction{
+        .Transform = std::move(Txn),
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+
+  [[nodiscard]] static auto from(CFLFieldAccessPath &&Txn,
+                                 uint8_t DepthKLimit) {
+    // Avoid initializer-list as it prevents moving
+    auto Ret = CFLFieldSensEdgeFunction{
+        .Transform = {},
+        .DepthKLimit = DepthKLimit,
+    };
+    Ret.Transform.Paths.insert(std::move(Txn));
+    return Ret;
+  }
 };
 
 [[nodiscard]] std::string storesToString(const CFLFieldAccessPath &AP) {
@@ -470,7 +489,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction{{{CFLFieldAccessPath{}}}, DepthKLimit};
+    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
   }
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -496,7 +515,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
       CFLFieldAccessPath FieldString{};
       FieldString.Kills.insert(Offset);
-      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
+                                            DepthKLimit);
     }
 
     const auto *ValueOp = Store->getValueOperand();
@@ -507,8 +527,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
       if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
         // This is a hack, to be more correct wih field-insensitive alias
         // information
-        auto [BaseBasePtr, BaseOffset] = getBaseAndOffset(
-            llvm::cast<llvm::LoadInst>(BasePtr)->getPointerOperand(), DL);
+
         if (BaseBasePtr == SuccNode) {
           // push before Offset, or after?
           FieldString.Stores.push_back(BaseOffset);
@@ -517,7 +536,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
       FieldString.Stores.push_back(Offset);
 
-      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
+                                            DepthKLimit);
     }
 
     // unaffected by the store
@@ -532,21 +552,14 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
       auto [BasePtr, Offset] = getBaseAndOffset(
           Load->getPointerOperand(), IRDB->getModule()->getDataLayout());
 
-      int32_t LoadOffs = 0;
-
-      // if (BasePtr == CurrNode && Load->getPointerOperand() != CurrNode) {
-      // This is a hack, but we do sth similar in the IDEExtendedTaintAnalysis
-      // (see forEachAliasOf() Lines 144 ff)
-      LoadOffs = Offset;
-      // }
-
       // TODO;: How to deal with BasePtr?
 
       CFLFieldAccessPath FieldString{};
-      FieldString.Loads.push_back(LoadOffs);
+      FieldString.Loads.push_back(Offset);
       // llvm::errs() << "Handle load: " << llvmIRToString(Load) << '\n';
       // llvm::errs() << "> CurrNode: " << llvmIRToString(CurrNode) << '\n';
-      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
+                                            DepthKLimit);
     }
 
     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
@@ -555,7 +568,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
       CFLFieldAccessPath FieldString{};
       FieldString.Offset = OffsVal;
-      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
+                                            DepthKLimit);
     }
   }
 
@@ -568,7 +582,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallEdgeFunction(
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction{{{CFLFieldAccessPath{}}}, DepthKLimit};
+    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
   }
 
   // This is naturally identity
@@ -581,7 +595,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction{{{CFLFieldAccessPath{}}}, DepthKLimit};
+    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
   }
 
   return EdgeIdentity<l_t>{};
@@ -603,7 +617,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction{{{CFLFieldAccessPath{}}}, DepthKLimit};
+    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
   }
 
   // This naturally identity
@@ -631,14 +645,15 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
 
       CFLFieldAccessPath FieldString{};
       FieldString.Kills.insert(*KillOffs);
-      return CFLFieldSensEdgeFunction{{{std::move(FieldString)}}, DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
+                                            DepthKLimit);
     }
   }
 
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction{{{CFLFieldAccessPath{}}}, DepthKLimit};
+    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
   }
 
   // TODO: Is that correct? -- We may need to handle field-indirections here
@@ -667,7 +682,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
       auto Txn = FldSensL->Transform;
       Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
       // TODO: k-limit the number of paths!
-      return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
 
     llvm::report_fatal_error("[FieldSensAllocSitesAwareIFDSProblem::extend]: "
@@ -712,7 +727,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
         if (Changed) {
           // TODO: k-limit the number of paths!
-          return CFLFieldSensEdgeFunction{{std::move(Union)}, DepthKLimit};
+          return CFLFieldSensEdgeFunction::from(
+              CFLFieldSensEdgeValue{std::move(Union)}, DepthKLimit);
         }
 
         return LeftSmaller ? R : L;
@@ -725,7 +741,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
         auto Txn = FldSensL->Transform;
         Txn.Paths.insert(CFLFieldAccessPath{});
-        return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
+        return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
       }
     } else if (FldSensR && L.isa<EdgeIdentity<l_t>>()) {
       if (FldSensR->Transform.Paths.contains(CFLFieldAccessPath{})) {
@@ -734,7 +750,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
       auto Txn = FldSensR->Transform;
       Txn.Paths.insert(CFLFieldAccessPath{});
-      return CFLFieldSensEdgeFunction{std::move(Txn), DepthKLimit};
+      return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
 
     return AllBottom<l_t>{};
@@ -745,77 +761,3 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
   return Ret;
 }
-
-// static std::pair<const llvm::Value *, llvm::SmallVector<int32_t, 10>>
-// createAccessPath(const llvm::Value *Pointer, const llvm::DataLayout &DL) {
-
-//   std::pair<const llvm::Value *, llvm::SmallVector<int32_t, 10>> Ret;
-//   auto &[BasePtr, Offsets] = Ret;
-
-//   BasePtr = Pointer;
-//   Offsets.push_back(0);
-
-//   // Note: llvm::Constant includes llvm::GlobalValue
-//   if (llvm::isa<llvm::Constant>(Pointer) ||
-//       llvm::isa<llvm::AllocaInst>(Pointer) ||
-//       llvm::isa<llvm::Argument>(Pointer) ||
-//       llvm::isa<llvm::CallBase>(Pointer)) {
-//     // Globals, argument, function calls and allocas define themselves
-//     return Ret;
-//   }
-
-//   while (true) {
-//     // TODO: Should we look into the cache within this loop?
-//     // TODO: Handle constant GEPs
-
-//     if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(BasePtr)) {
-//       Offsets.push_back(0);
-//       BasePtr = Load->getPointerOperand()->stripPointerCasts();
-//     } else if (const auto *Gep =
-//     llvm::dyn_cast<llvm::GEPOperator>(BasePtr))
-//     {
-
-//       auto GepOffs = detail::AbstractMemoryLocationImpl::computeOffset(DL,
-//       Gep); if (GepOffs.has_value() && *GepOffs >= INT32_MIN &&
-//           *GepOffs <= INT32_MAX) {
-//         Offsets.back() = addOffsets(Offsets.back(), int32_t(*GepOffs));
-//       } else {
-//         Offsets.back() = CFLFieldAccessPath::TopOffset;
-//       }
-//       BasePtr = Gep->getPointerOperand()->stripPointerCasts();
-//     } else {
-//       // TODO aggregate instructions, e.g. insertvalue, extractvalue, ...
-//       break;
-//     }
-//   }
-
-//   // NOTE: Do not reverse the offsets as we do in
-//   // AbstractMemoryLocationFactoryBase::createImpl().
-//   // For the CFL formulation, we need the offsets in inverse order anyway!
-
-//   return Ret;
-// }
-
-// auto FieldSensAllocSitesAwareIFDSProblem::getAccessPath(
-//     const llvm::Value *Pointer) -> const CachedAccessPath * {
-//   auto &Ret = MemLocCache[Pointer];
-//   if (Ret) {
-//     return Ret;
-//   }
-
-//   auto [BasePtr, Offsets] =
-//       createAccessPath(Pointer, IRDB->getModule()->getDataLayout());
-//   assert(Offsets.size() < UINT32_MAX);
-
-//   using OffsetType = CachedAccessPath::OffsetType;
-
-//   auto NumBytes =
-//       CachedAccessPath::totalSizeToAlloc<OffsetType>(Offsets.size());
-//   auto *RawMem = MemLocAlloc.allocate(NumBytes);
-//   auto *AP = new (RawMem) CachedAccessPath(BasePtr, Offsets.size());
-//   memcpy(AP->getTrailingObjects<OffsetType>(), Offsets.data(),
-//          Offsets.size() * sizeof(OffsetType));
-
-//   Ret = AP;
-//   return AP;
-// }

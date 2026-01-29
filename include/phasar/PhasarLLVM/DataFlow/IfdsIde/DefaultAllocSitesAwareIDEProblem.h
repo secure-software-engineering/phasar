@@ -12,7 +12,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasePointerAliasSet.h"
 
 #include <cassert>
 

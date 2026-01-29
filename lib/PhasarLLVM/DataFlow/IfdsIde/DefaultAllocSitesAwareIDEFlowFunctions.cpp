@@ -1,12 +1,9 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAllocSitesAwareIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMFieldAliasSet.h"
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 
 using namespace psr;
