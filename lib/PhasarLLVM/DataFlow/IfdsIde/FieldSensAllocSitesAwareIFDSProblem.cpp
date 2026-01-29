@@ -96,6 +96,15 @@ struct CFLFieldSensEdgeFunction {
     Ret.Transform.Paths.insert(std::move(Txn));
     return Ret;
   }
+
+  [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit) {
+    auto Ret = CFLFieldSensEdgeFunction{
+        .Transform = {},
+        .DepthKLimit = DepthKLimit,
+    };
+    Ret.Transform.Paths.insert(CFLFieldAccessPath{});
+    return Ret;
+  }
 };
 
 [[nodiscard]] std::string storesToString(const CFLFieldAccessPath &AP) {
@@ -424,8 +433,8 @@ size_t psr::hash_value(const CFLFieldAccessPath &FieldString) noexcept {
   auto HCS = llvm::hash_combine_range(FieldString.Stores.begin(),
                                       FieldString.Stores.end());
   // Xor does not care about the order
-  auto HCK = std::accumulate(FieldString.Kills.begin(), FieldString.Kills.end(),
-                             0, std::bit_xor<>{});
+  auto HCK = std::reduce(FieldString.Kills.begin(), FieldString.Kills.end(), 0,
+                         std::bit_xor<>{});
   return llvm::hash_combine(HCL, HCS, HCK);
 }
 
@@ -489,7 +498,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
+    return CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit);
   }
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -582,7 +591,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallEdgeFunction(
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
+    return CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit);
   }
 
   // This is naturally identity
@@ -595,7 +604,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
+    return CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit);
   }
 
   return EdgeIdentity<l_t>{};
@@ -617,7 +626,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
+    return CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit);
   }
 
   // This naturally identity
@@ -653,7 +662,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
-    return CFLFieldSensEdgeFunction::from(CFLFieldAccessPath{}, DepthKLimit);
+    return CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit);
   }
 
   // TODO: Is that correct? -- We may need to handle field-indirections here

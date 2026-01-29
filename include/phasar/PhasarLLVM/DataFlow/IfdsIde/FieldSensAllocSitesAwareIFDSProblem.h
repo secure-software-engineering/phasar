@@ -91,6 +91,12 @@ struct CFLFieldAccessPathDMI {
   }
   static bool isEqual(const CFLFieldAccessPath &L,
                       const CFLFieldAccessPath &R) noexcept {
+    if (L.EmptyTombstone != R.EmptyTombstone) {
+      return false;
+    }
+    if (L.EmptyTombstone) {
+      return true;
+    }
     return L == R;
   }
 };
