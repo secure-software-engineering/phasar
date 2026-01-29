@@ -29,29 +29,27 @@ public:
   /// Initialize the IDE solver for step-wise solving (iteratively calling
   /// next() or nextN()).
   /// For a more high-level API use solveUntil() or solveTimeout().
-  ///
-  /// \returns True, iff it is valid to call next() or nextN() afterwards.
-  [[nodiscard]] bool initialize() { return self().doInitialize(); }
+  constexpr void initialize() { self().doInitialize(); }
 
   /// Performs one tiny step towards the analysis' fixpoint. For a
   /// more high-level API use solveUntil() or solveTimeout().
   ///
-  /// Requires that initialize() has been called before once and returned true
-  /// and that all previous next() or nextN() calls returned true as well.
+  /// Requires that initialize() has been called before once and that all
+  /// previous next() or nextN() calls returned true as well.
   ///
   /// \returns True, iff there are more steps to process before calling
   /// finalize()
-  [[nodiscard]] bool next() { return self().doNext(); }
+  [[nodiscard]] constexpr bool next() { return self().doNext(); }
 
   /// Performs N tiny steps towards the analysis' fixpoint.
   /// For a more high-level API use solveUntil() or solveTimeout().
   ///
-  /// Requires that initialize() has been called before once and returned true
-  /// and that all previous next() or nextN() calls returned true as well.
+  /// Requires that initialize() has been called before once and that all
+  /// previous next() or nextN() calls returned true as well.
   ///
   /// \returns True, iff there are more steps to process before calling
   /// finalize()
-  [[nodiscard]] bool nextN(size_t MaxNumIterations) {
+  [[nodiscard]] constexpr bool nextN(size_t MaxNumIterations) {
     PHASAR_LOG_LEVEL(DEBUG,
                      "[nextN]: Next " << MaxNumIterations << " Iterations");
 
@@ -70,20 +68,22 @@ public:
   /// nextN() call returned false.
   ///
   /// \returns A view into the computed analysis results
-  decltype(auto) finalize() & { return self().doFinalize(); }
+  constexpr decltype(auto) finalize() & { return self().doFinalize(); }
   /// Computes the final analysis results after the analysis has reached its
   /// fixpoint, i.e. either initialize() returned false or the last next() or
   /// nextN() call returned false.
   ///
   /// \returns The computed analysis results
-  decltype(auto) finalize() && { return std::move(self()).doFinalize(); }
+  constexpr decltype(auto) finalize() && {
+    return std::move(self()).doFinalize();
+  }
 
   /// Runs the solver on the configured problem. This can take some time and
   /// cannot be interrupted. If you need the ability to interrupt the solving
   /// process consider using solveUntil() or solveTimeout().
   ///
   /// \returns A view into the computed analysis results
-  decltype(auto) solve() & {
+  constexpr decltype(auto) solve() & {
     solveImpl();
     return finalize();
   }
@@ -93,7 +93,7 @@ public:
   /// process consider using solveUntil() or solveTimeout().
   ///
   /// \returns The computed analysis results
-  decltype(auto) solve() && {
+  constexpr decltype(auto) solve() && {
     solveImpl();
     return std::move(*this).finalize();
   }
@@ -110,7 +110,7 @@ public:
   /// flinalized solving.
   ///
   /// \returns A view into the computed analysis results
-  decltype(auto) continueSolving() & {
+  constexpr decltype(auto) continueSolving() & {
     continueImpl();
     return finalize();
   }
@@ -127,7 +127,7 @@ public:
   /// flinalized solving.
   ///
   /// \returns The computed analysis results
-  decltype(auto) continueSolving() && {
+  constexpr decltype(auto) continueSolving() && {
     continueImpl();
     return std::move(*this).finalize();
   }
@@ -146,7 +146,7 @@ public:
     requires(std::is_invocable_r_v<bool, CancellationRequest> ||
              std::is_invocable_r_v<bool, CancellationRequest,
                                    std::chrono::steady_clock::time_point>)
-  auto
+  constexpr auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) & {
     using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
@@ -172,7 +172,7 @@ public:
     requires(std::is_invocable_r_v<bool, CancellationRequest> ||
              std::is_invocable_r_v<bool, CancellationRequest,
                                    std::chrono::steady_clock::time_point>)
-  auto
+  constexpr auto
   solveUntil(CancellationRequest CancellationRequested,
              std::chrono::milliseconds Interval = std::chrono::seconds{1}) && {
     using RetTy =
@@ -206,9 +206,9 @@ public:
     requires(std::is_invocable_r_v<bool, CancellationRequest> ||
              std::is_invocable_r_v<bool, CancellationRequest,
                                    std::chrono::steady_clock::time_point>)
-  auto continueUntil(CancellationRequest CancellationRequested,
-                     std::chrono::milliseconds Interval = std::chrono::seconds{
-                         1}) & {
+  constexpr auto continueUntil(
+      CancellationRequest CancellationRequested,
+      std::chrono::milliseconds Interval = std::chrono::seconds{1}) & {
     using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
     return [&]() -> RetTy {
       if (continueUntilImpl(std::move(CancellationRequested), Interval)) {
@@ -239,9 +239,9 @@ public:
     requires(std::is_invocable_r_v<bool, CancellationRequest> ||
              std::is_invocable_r_v<bool, CancellationRequest,
                                    std::chrono::steady_clock::time_point>)
-  auto continueUntil(CancellationRequest CancellationRequested,
-                     std::chrono::milliseconds Interval = std::chrono::seconds{
-                         1}) && {
+  constexpr auto continueUntil(
+      CancellationRequest CancellationRequested,
+      std::chrono::milliseconds Interval = std::chrono::seconds{1}) && {
     using RetTy =
         std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
     return [&]() -> RetTy {
@@ -260,8 +260,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto solveWithTimeout(std::chrono::milliseconds Timeout,
-                        std::chrono::milliseconds Interval) & {
+  constexpr auto solveWithTimeout(std::chrono::milliseconds Timeout,
+                                  std::chrono::milliseconds Interval) & {
     auto CancellationRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -279,8 +279,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto solveWithTimeout(std::chrono::milliseconds Timeout,
-                        std::chrono::milliseconds Interval) && {
+  constexpr auto solveWithTimeout(std::chrono::milliseconds Timeout,
+                                  std::chrono::milliseconds Interval) && {
     auto CancellatioNRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -304,8 +304,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto continueWithTimeout(std::chrono::milliseconds Timeout,
-                           std::chrono::milliseconds Interval) & {
+  constexpr auto continueWithTimeout(std::chrono::milliseconds Timeout,
+                                     std::chrono::milliseconds Interval) & {
     auto CancellationRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -330,8 +330,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto continueWithTimeout(std::chrono::milliseconds Timeout,
-                           std::chrono::milliseconds Interval) && {
+  constexpr auto continueWithTimeout(std::chrono::milliseconds Timeout,
+                                     std::chrono::milliseconds Interval) && {
     auto CancellationRequested =
         [Timeout, Start = std::chrono::steady_clock::now()](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -348,7 +348,7 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
+  constexpr auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
     using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
     return [&]() -> RetTy {
       if (solveWithAsyncCancellationImpl(IsCancelled)) {
@@ -363,7 +363,7 @@ public:
   ///
   /// \returns An std::optional holding the analysis results or std::nullopt if
   /// the analysis was cancelled.
-  auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
+  constexpr auto solveWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
     using RetTy =
         std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
     return [&]() -> RetTy {
@@ -386,7 +386,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto continueWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
+  constexpr auto
+  continueWithAsyncCancellation(std::atomic_bool &IsCancelled) & {
     using RetTy = std::optional<std::decay_t<decltype(finalize())>>;
     return [&]() -> RetTy {
       if (continueWithAsyncCancellationImpl(IsCancelled)) {
@@ -408,7 +409,8 @@ public:
   ///
   /// \returns An std::optional holding a view into the analysis results or
   /// std::nullopt if the analysis was cancelled.
-  auto continueWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
+  constexpr auto
+  continueWithAsyncCancellation(std::atomic_bool &IsCancelled) && {
     using RetTy =
         std::optional<std::decay_t<decltype(std::move(*this).finalize())>>;
     return [&]() -> RetTy {
@@ -420,26 +422,25 @@ public:
   }
 
 private:
-  [[nodiscard]] Derived &self() & noexcept {
+  [[nodiscard]] constexpr Derived &self() & noexcept {
     static_assert(std::is_base_of_v<IDESolverAPIMixin, Derived>,
                   "Invalid CRTP instantiation");
     return static_cast<Derived &>(*this);
   }
 
-  void continueImpl() {
+  constexpr void continueImpl() {
     while (next()) {
       // no interrupt in normal solving process
     }
   }
 
-  void solveImpl() {
-    if (initialize()) {
-      continueImpl();
-    }
+  constexpr void solveImpl() {
+    initialize();
+    continueImpl();
   }
 
   template <typename CancellationRequest>
-  [[nodiscard]] bool
+  [[nodiscard]] constexpr bool
   continueUntilImpl(CancellationRequest CancellationRequested,
                     std::chrono::milliseconds Interval) {
     auto IsCancellationRequested =
@@ -482,8 +483,9 @@ private:
   }
 
   template <typename CancellationRequest>
-  [[nodiscard]] bool solveUntilImpl(CancellationRequest CancellationRequested,
-                                    std::chrono::milliseconds Interval) {
+  [[nodiscard]] constexpr bool
+  solveUntilImpl(CancellationRequest CancellationRequested,
+                 std::chrono::milliseconds Interval) {
     auto IsCancellationRequested =
         [&CancellationRequested](
             std::chrono::steady_clock::time_point TimeStamp) {
@@ -496,18 +498,16 @@ private:
           }
         };
 
-    bool Initialized = initialize();
+    initialize();
     auto TimeStamp = std::chrono::steady_clock::now();
     if (IsCancellationRequested(TimeStamp)) {
       return false;
     }
 
-    return Initialized
-               ? continueUntilImpl(std::move(CancellationRequested), Interval)
-               : true;
+    return continueUntilImpl(std::move(CancellationRequested), Interval);
   }
 
-  [[nodiscard]] bool
+  [[nodiscard]] constexpr bool
   continueWithAsyncCancellationImpl(std::atomic_bool &IsCancelled) {
     while (next()) {
       if (IsCancelled.load()) {
@@ -517,14 +517,14 @@ private:
     return !IsCancelled.load();
   }
 
-  [[nodiscard]] bool
+  [[nodiscard]] constexpr bool
   solveWithAsyncCancellationImpl(std::atomic_bool &IsCancelled) {
-    bool Initialized = initialize();
+    initialize();
     if (IsCancelled.load()) {
       return false;
     }
 
-    return Initialized ? continueWithAsyncCancellationImpl(IsCancelled) : true;
+    return continueWithAsyncCancellationImpl(IsCancelled);
   }
 };
 } // namespace psr

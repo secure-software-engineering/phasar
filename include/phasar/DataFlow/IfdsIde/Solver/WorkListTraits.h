@@ -9,6 +9,7 @@
 #include <cassert>
 #include <deque>
 #include <functional>
+#include <optional>
 #include <vector>
 namespace psr {
 
@@ -24,6 +25,15 @@ public:
 
   template <typename... ArgTys> void emplace(ArgTys &&...Args) {
     WL.emplace_back(std::forward<ArgTys>(Args)...);
+  }
+
+  [[nodiscard]] std::optional<T> pop() noexcept {
+    std::optional<T> Ret;
+    if (!WL.empty()) {
+      Ret.emplace(std::move(WL.back()));
+      WL.pop_back();
+    }
+    return Ret;
   }
 
   template <typename HandlerFun>
@@ -61,6 +71,14 @@ template <typename T, size_t N> class SmallVectorWorkList {
     WL.emplace_back(std::forward<ArgTys>(Args)...);
   }
 
+  [[nodiscard]] std::optional<T> pop() noexcept {
+    std::optional<T> Ret;
+    if (!WL.empty()) {
+      Ret.emplace(std::move(WL.pop_back_val()));
+    }
+    return Ret;
+  }
+
   template <typename HandlerFun>
   void processEntriesUntilEmpty(HandlerFun Handler) {
     while (!WL.empty()) {
@@ -95,6 +113,15 @@ public:
 
   template <typename... ArgTys> void emplace(ArgTys &&...Args) {
     WL.emplace_back(std::forward<ArgTys>(Args)...);
+  }
+
+  [[nodiscard]] std::optional<T> pop() noexcept {
+    std::optional<T> Ret;
+    if (!WL.empty()) {
+      Ret.emplace(std::move(WL.front()));
+      WL.pop_front();
+    }
+    return Ret;
   }
 
   template <typename HandlerFun>

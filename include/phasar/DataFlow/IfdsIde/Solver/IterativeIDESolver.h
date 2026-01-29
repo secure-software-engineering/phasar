@@ -6,6 +6,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCache.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IdBasedSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverBase.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverResults.h"
@@ -65,7 +66,12 @@ class IterativeIDESolver
       public IterativeIDESolverBase<
           StaticSolverConfigTy,
           typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-              typename ProblemTy::ProblemAnalysisDomain::l_t>> {
+              typename ProblemTy::ProblemAnalysisDomain::l_t>>,
+      public IDESolverAPIMixin<
+          IterativeIDESolver<ProblemTy, StaticSolverConfigTy>> {
+
+  friend IDESolverAPIMixin<IterativeIDESolver<ProblemTy, StaticSolverConfigTy>>;
+
 public:
   using domain_t = typename ProblemTy::ProblemAnalysisDomain;
   using d_t = typename domain_t::d_t;
@@ -145,34 +151,7 @@ public:
       : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
 
   void solve() {
-    const auto NumInsts = Problem.getProjectIRDB()->getNumInstructions();
-    const auto NumFuns = Problem.getProjectIRDB()->getNumFunctions();
-
-    NodeCompressor =
-        NodeCompressorTraits<n_t>::create(Problem.getProjectIRDB());
-
-    JumpFunctions.reserve(NumInsts);
-    this->base_results_t::ValTab.reserve(NumInsts);
-
-    /// Initial size of 64 is too much for jump functions per instruction; 16
-    /// should be better:
-    for (size_t I = 0; I != NumInsts; ++I) {
-      JumpFunctions.emplace_back();
-      this->base_results_t::ValTab.emplace_back().reserve(16);
-    }
-    if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
-      RefCountPerFunction = llvm::OwningArrayRef<size_t>(NumFuns);
-      std::uninitialized_fill_n(RefCountPerFunction.data(),
-                                RefCountPerFunction.size(), 0);
-      CandidateFunctionsForGC.resize(NumFuns);
-    }
-
-    NodeCompressor.reserve(NumInsts);
-    FactCompressor.reserve(NumInsts);
-    FunCompressor.reserve(NumFuns);
-    FECache.reserve(NumInsts, ICFG.getNumCallSites(), NumFuns);
-    /// Make sure, that the Zero-flowfact always has the ID 0
-    FactCompressor.getOrInsert(Problem.getZeroValue());
+    doInitialize();
 
     performDataflowFactPropagation();
 
@@ -183,6 +162,13 @@ public:
   [[nodiscard]] IdBasedSolverResults<n_t, d_t, l_t>
   getSolverResults() const noexcept {
     return IdBasedSolverResults<n_t, d_t, l_t>(this);
+  }
+
+  [[nodiscard]] IdBasedSolverResults<n_t, d_t, l_t>
+  consumeSolverResults() noexcept {
+    return IdBasedSolverResults<n_t, d_t, l_t>(
+        std::make_unique<detail::IterativeIDESolverResults<n_t, d_t, l_t>>(
+            std::move(*this)));
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
@@ -249,41 +235,43 @@ public:
   }
 
 private:
-  void performDataflowFactPropagation() {
+  void doInitialize() {
+    const auto NumInsts = Problem.getProjectIRDB()->getNumInstructions();
+    const auto NumFuns = Problem.getProjectIRDB()->getNumFunctions();
+
+    NodeCompressor =
+        NodeCompressorTraits<n_t>::create(Problem.getProjectIRDB());
+
+    JumpFunctions.reserve(NumInsts);
+    this->base_results_t::ValTab.reserve(NumInsts);
+
+    /// Initial size of 64 is too much for jump functions per instruction; 16
+    /// should be better:
+    for (size_t I = 0; I != NumInsts; ++I) {
+      JumpFunctions.emplace_back();
+      this->base_results_t::ValTab.emplace_back().reserve(16);
+    }
+    if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
+      RefCountPerFunction = llvm::OwningArrayRef<size_t>(NumFuns);
+      std::uninitialized_fill_n(RefCountPerFunction.data(),
+                                RefCountPerFunction.size(), 0);
+      CandidateFunctionsForGC.resize(NumFuns);
+    }
+
+    NodeCompressor.reserve(NumInsts);
+    FactCompressor.reserve(NumInsts);
+    FunCompressor.reserve(NumFuns);
+    FECache.reserve(NumInsts, ICFG.getNumCallSites(), NumFuns);
+    /// Make sure, that the Zero-flowfact always has the ID 0
+    FactCompressor.getOrInsert(Problem.getZeroValue());
+
     submitInitialSeeds();
+  }
 
-    std::atomic_bool Finished = true;
-    do {
-      /// NOTE: Have a separate function on the worklist to process it, to
-      /// allow for easier integration with task-pools
-      WorkList.processEntriesUntilEmpty([this, &Finished](PropagationJob Job) {
-        /// propagate only handles intra-edges as of now - add separate
-        /// functionality to handle inter-edges as well
-        propagate(Job.AtInstruction, Job.SourceFact, Job.PropagatedFact,
-                  std::move(Job.SourceEF));
-        bool Dummy = true;
-        Finished.compare_exchange_strong(
-            Dummy, false, std::memory_order_release, std::memory_order_relaxed);
-      });
-
-#ifndef NDEBUG
-      // Sanity checks
-      if (llvm::any_of(RefCountPerFunction, [](auto RC) { return RC != 0; })) {
-        llvm::report_fatal_error(
-            "Worklist.empty() does not imply Function ref-counts==0 ?");
-      }
-
-      if (!WorkList.empty()) {
-        llvm::report_fatal_error(
-            "Worklist should be empty after processing all items");
-      }
-#endif // NDEBUG
-
-      assert(WorkList.empty() &&
-             "Worklist should be empty after processing all items");
-
+  bool doNext() {
+    std::optional Job = WorkList.pop();
+    if (!Job) [[unlikely]] {
       processInterJobs();
-
       if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
         /// CAUTION: The functions from the CallWL also need to be considered
         /// live! We therefore need to be careful when applying this GC in a
@@ -292,8 +280,19 @@ private:
         runGC();
       }
 
-    } while (Finished.exchange(true, std::memory_order_acq_rel) == false);
+      Job = WorkList.pop();
+      if (!Job) {
+        return false;
+      }
+    }
 
+    propagate(Job->AtInstruction, Job->SourceFact, Job->PropagatedFact,
+              std::move(Job->SourceEF));
+
+    return true;
+  }
+
+  void finalizePhase1() {
     if constexpr (EnableStatistics) {
       this->FEStats = FECache.getStats();
       this->NumAllInterPropagations = AllInterPropagations.size();
@@ -344,6 +343,70 @@ private:
     SourceFactAndFuncToInterJob.clear();
     WorkList.clear();
     CallWL.clear();
+  }
+
+  void doFinalizeImpl() {
+    finalizePhase1();
+    /// Finished Phase I, now go for Phase II if necessary
+    performValuePropagation();
+  }
+
+  auto doFinalize() & {
+    doFinalizeImpl();
+    return getSolverResults();
+  }
+
+  auto doFinalize() && {
+    doFinalizeImpl();
+    return consumeSolverResults();
+  }
+
+  void performDataflowFactPropagation() {
+    // submitInitialSeeds();
+
+    std::atomic_bool Finished = true;
+    do {
+      /// NOTE: Have a separate function on the worklist to process it, to
+      /// allow for easier integration with task-pools
+      WorkList.processEntriesUntilEmpty([this, &Finished](PropagationJob Job) {
+        /// propagate only handles intra-edges as of now - add separate
+        /// functionality to handle inter-edges as well
+        propagate(Job.AtInstruction, Job.SourceFact, Job.PropagatedFact,
+                  std::move(Job.SourceEF));
+        bool Dummy = true;
+        Finished.compare_exchange_strong(
+            Dummy, false, std::memory_order_release, std::memory_order_relaxed);
+      });
+
+#ifndef NDEBUG
+      // Sanity checks
+      if (llvm::any_of(RefCountPerFunction, [](auto RC) { return RC != 0; })) {
+        llvm::report_fatal_error(
+            "Worklist.empty() does not imply Function ref-counts==0 ?");
+      }
+
+      if (!WorkList.empty()) {
+        llvm::report_fatal_error(
+            "Worklist should be empty after processing all items");
+      }
+#endif // NDEBUG
+
+      assert(WorkList.empty() &&
+             "Worklist should be empty after processing all items");
+
+      processInterJobs();
+
+      if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
+        /// CAUTION: The functions from the CallWL also need to be considered
+        /// live! We therefore need to be careful when applying this GC in a
+        /// multithreaded environment
+
+        runGC();
+      }
+
+    } while (Finished.exchange(true, std::memory_order_acq_rel) == false);
+
+    finalizePhase1();
   }
 
   void performValuePropagation() {
