@@ -290,10 +290,23 @@ void CFLFieldSensEdgeValue::applyStore(uint8_t DepthKLimit) {
 void CFLFieldSensEdgeValue::applyLoad(uint8_t DepthKLimit) {
   applyGepAndLoad(GEPEvent{0}, DepthKLimit);
 }
-void CFLFieldSensEdgeValue::applyKill() { applyGepAndKill(GEPEvent{0}); }
+void CFLFieldSensEdgeValue::applyKill() { //
+  applyGepAndKill(GEPEvent{0});
+}
 
 void CFLFieldSensEdgeValue::applyTransform(const CFLFieldAccessPath &Txn,
                                            uint8_t DepthKLimit) {
+  if (Paths.empty() || Txn.empty()) {
+    // Nothing to be done here
+    return;
+  }
+  if (Paths.size() == 1 && Paths.begin()->empty()) {
+    Paths.clear();
+    Paths.insert(Txn);
+    return;
+  }
+  // llvm::errs() << "[applyTransform]: " << *this << " X " << Txn << '\n';
+
   auto Save = std::exchange(Paths, {});
   Paths.reserve(Save.size());
 
@@ -333,6 +346,8 @@ void CFLFieldSensEdgeValue::applyTransform(const CFLFieldAccessPath &Txn,
     }
   }
 
+  // llvm::errs() << "[applyTransform]: > result: " << *this << '\n';
+
   // // TODO: Optimize!
 
   // if (Txn.Offset) {
@@ -358,7 +373,7 @@ void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
   }
 
   auto It = Txns.Paths.begin();
-  if (Txns.Paths.size() == 1) {
+  if (Txns.Paths.size() == 1) [[likely]] {
     applyTransform(*It, DepthKLimit);
     return;
   }
@@ -372,9 +387,13 @@ void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
   Ret.applyTransform(*It, DepthKLimit);
 
   for (++It; It != End; ++It) {
-    auto Tmp = *this;
-    Tmp.applyTransform(*It, DepthKLimit);
-    Ret.Paths.insert(Tmp.Paths.begin(), Tmp.Paths.end());
+    if (!It->empty()) {
+      auto Tmp = *this;
+      Tmp.applyTransform(*It, DepthKLimit);
+      Ret.Paths.insert(Tmp.Paths.begin(), Tmp.Paths.end());
+    } else {
+      Ret.Paths.insert(Paths.begin(), Paths.end());
+    }
   }
 
   *this = std::move(Ret);
