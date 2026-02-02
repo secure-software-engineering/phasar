@@ -9,11 +9,13 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/AliasInfoBase.h"
 #include "phasar/Pointer/RawAliasSet.h"
-#include "phasar/Pointer/UnionFindAA.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/EnumFlags.h"
+#include "phasar/Utils/Fn.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/StrongTypeDef.h"
 #include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
@@ -23,9 +25,10 @@
 #include "llvm/Support/Casting.h"
 
 #include <memory>
-#include <type_traits>
 
 using namespace psr;
+
+static_assert(IsAliasInfo<LLVMUnionFindAliasSet>);
 
 static inline bool isPotentialAllocSite(const llvm::Value *Val) {
   if (!Val->getType()->isPointerTy()) {
@@ -112,6 +115,28 @@ struct [[clang::internal_linkage]] LLVMUnionFindAliasSet::UnionFindAAResultModel
 
     return Ret;
   }
+
+  void print(llvm::raw_ostream &OS, Config Cfg) const override {
+    OS << "LLVMUnionFindAliasSet(" << to_string(Cfg.ALocality) << ", "
+       << to_string(Cfg.AType) << ") {\n";
+
+    for (auto ValId : iota<ValueId>(VC->size())) {
+      OS << "  #" << psr::to_underlying(ValId) << ": {";
+      bool First = true;
+      const auto &Aliases = this->base_t::getRawAliasSet(ValId);
+      Aliases.foreach ([&](auto AliasId) {
+        if (First) {
+          First = false;
+        } else {
+          OS << ", ";
+        }
+
+        OS << psr::to_underlying(AliasId);
+      });
+      OS << "}\n";
+    }
+    OS << "}\n";
+  };
 };
 
 LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
@@ -122,26 +147,29 @@ LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
     VCOwn = std::make_unique<ValueCompressor<PAGVariable>>();
   }
 
-  const auto MakeAAResModel =
-      [Cfg, &VC]<UnionFindAAResult AAResT>(
-          AAResT &&AARes) -> std::unique_ptr<UnionFindAAResultConcept> {
-    if (Cfg.ALocality == AnalysisLocality::FunctionLocal) {
-      const auto &VCRef = *VC;
-      return std::make_unique<UnionFindAAResultModel<
-          LLVMLocalUnionFindAliasIteratorMixin, std::remove_cvref_t<AAResT>>>(
-          std::move(VC), PSR_FWD(AARes), VCRef);
-    }
-
-    return std::make_unique<UnionFindAAResultModel<
-        LLVMUnionFindAliasIteratorMixin, std::remove_cvref_t<AAResT>>>(
-        std::move(VC), PSR_FWD(AARes));
-  };
-
   auto VTP = LLVMVFTableProvider(*IRDB);
   auto TH = DIBasedTypeHierarchy(*IRDB);
   auto Res = RTAResolver(IRDB, &VTP, &TH);
   const auto BaseCG = buildLLVMBasedCallGraph(
       *IRDB, Res, getEntryFunctions(*IRDB, getDefaultEntryPoints(*IRDB)));
+
+  auto MakeAAResModel =
+      [&, IRDB, Cfg, VCOwn = std::move(VCOwn)](
+          auto AAResCtor) mutable -> std::unique_ptr<UnionFindAAResultConcept> {
+    auto AARes = AAResCtor(*IRDB, BaseCG, VCOwn.get());
+    using AAResT = decltype(AARes);
+
+    if (Cfg.ALocality == AnalysisLocality::FunctionLocal) {
+      const auto &VCRef = *VCOwn;
+      return std::make_unique<
+          UnionFindAAResultModel<LLVMLocalUnionFindAliasIteratorMixin, AAResT>>(
+          std::move(VCOwn), PSR_FWD(AARes), VCRef);
+    }
+
+    return std::make_unique<
+        UnionFindAAResultModel<LLVMUnionFindAliasIteratorMixin, AAResT>>(
+        std::move(VCOwn), PSR_FWD(AARes));
+  };
 
   scope_exit ResizeAliasSetCache = [&] {
     if (!AARes) {
@@ -154,27 +182,27 @@ LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
   };
 
   switch (Cfg.AType) {
-  case AnalysisType::CtxSens:
+  case UnionFindAliasAnalysisType::CtxSens:
     Props = AnalysisProperties::ContextSensitive;
-    AARes = MakeAAResModel(computeCtxSensUnionFindAARaw(*IRDB, BaseCG));
+    AARes = MakeAAResModel(fn<computeCtxSensUnionFindAARaw>);
     return;
-  case AnalysisType::IndSens:
+  case UnionFindAliasAnalysisType::IndSens:
     Props = AnalysisProperties::FieldSensitive;
-    AARes = MakeAAResModel(computeIndSensUnionFindAARaw(*IRDB, BaseCG));
+    AARes = MakeAAResModel(fn<computeIndSensUnionFindAARaw>);
     return;
-  case AnalysisType::CtxIndSens:
+  case UnionFindAliasAnalysisType::CtxIndSens:
     Props = AnalysisProperties::ContextSensitive |
             AnalysisProperties::FieldSensitive;
-    AARes = MakeAAResModel(computeCtxIndSensUnionFindAARaw(*IRDB, BaseCG));
+    AARes = MakeAAResModel(fn<computeCtxIndSensUnionFindAARaw>);
     return;
-  case AnalysisType::BotCtxSens:
+  case UnionFindAliasAnalysisType::BotCtxSens:
     Props = AnalysisProperties::ContextSensitive;
-    AARes = MakeAAResModel(computeBotCtxSensUnionFindAARaw(*IRDB, BaseCG));
+    AARes = MakeAAResModel(fn<computeBotCtxSensUnionFindAARaw>);
     return;
-  case AnalysisType::BotCtxIndSens:
+  case UnionFindAliasAnalysisType::BotCtxIndSens:
     Props = AnalysisProperties::ContextSensitive |
             AnalysisProperties::FieldSensitive;
-    AARes = MakeAAResModel(computeBotCtxIndSensUnionFindAARaw(*IRDB, BaseCG));
+    AARes = MakeAAResModel(fn<computeBotCtxIndSensUnionFindAARaw>);
     return;
   }
 
@@ -186,4 +214,26 @@ auto LLVMUnionFindAliasSet::getEmptyAliasSet() -> BoxedPtr<AliasSetTy> {
   static AliasSetTy EmptySet{};
   static AliasSetTy *EmptySetPtr = &EmptySet;
   return &EmptySetPtr;
+}
+
+void LLVMUnionFindAliasSet::print(llvm::raw_ostream &OS) const {
+  assert(isValid());
+  AARes->print(OS, Cfg);
+}
+
+void LLVMUnionFindAliasSet::printAsJson(llvm::raw_ostream &OS) const {
+  // TODO
+  OS << "{}\n";
+}
+
+[[nodiscard]] llvm::StringRef
+psr::to_string(LLVMUnionFindAliasSet::AnalysisLocality Loc) noexcept {
+  switch (Loc) {
+  case LLVMUnionFindAliasSet::AnalysisLocality::Global:
+    return "global";
+  case LLVMUnionFindAliasSet::AnalysisLocality::FunctionLocal:
+    return "local";
+  }
+  llvm_unreachable(
+      "All analysis-localities should be handled in the switch above");
 }

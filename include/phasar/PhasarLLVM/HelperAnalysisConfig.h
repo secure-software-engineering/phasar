@@ -14,6 +14,7 @@
 #include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/Soundness.h"
 
 #include <optional>
@@ -23,6 +24,7 @@ struct HelperAnalysisConfig {
   std::optional<LLVMAliasSetData> PrecomputedPTS = std::nullopt;
   std::optional<CallGraphData> PrecomputedCG = std::nullopt;
   AliasAnalysisType PTATy = AliasAnalysisType::CFLAnders;
+  UnionFindAliasAnalysisType UFAATy = UnionFindAliasAnalysisType::CtxIndSens;
   CallGraphAnalysisType CGTy = CallGraphAnalysisType::OTF;
   Soundness SoundnessLevel = Soundness::Soundy;
   bool AutoGlobalSupport = true;

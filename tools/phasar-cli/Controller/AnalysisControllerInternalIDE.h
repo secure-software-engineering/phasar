@@ -56,7 +56,7 @@ template <typename SolverTy, typename ProblemTy, typename... ArgTys>
 static void executeSparseIfdsIdeAnalysis(AnalysisController &Data,
                                          ArgTys &&...Args) {
 
-  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), &Data.HA->getAliasInfo());
+  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
   executeIfdsIdeAnalysisImpl<SolverTy, ProblemTy>(
       Data, SVFG, std::forward<ArgTys>(Args)...);
 }

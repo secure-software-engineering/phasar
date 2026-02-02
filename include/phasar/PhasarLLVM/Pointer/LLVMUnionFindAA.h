@@ -71,6 +71,8 @@ struct LLVMUnionFindAliasIteratorMixin {
     return AARes.getRawAliasSet(ValId);
   }
 
+  [[nodiscard]] const auto &base() const noexcept { return AARes; }
+
   void
   forallAliasesOf(ValueId VId, const auto & /*Inst*/,
                   std::invocable<const llvm::Value *> auto Callback) const {
@@ -188,6 +190,8 @@ public:
     }
     return Vars;
   }
+
+  [[nodiscard]] const auto &base() const noexcept { return AARes; }
 
   [[nodiscard]] auto getRawAliasSet(ValueId ValId,
                                     const llvm::Instruction *Context) const {
@@ -328,23 +332,25 @@ computeUnionFindAARaw(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
   return computeUnionFindAARaw(IRDB, Strategy, std::move(VC), std::move(Impl));
 }
 
-[[nodiscard]] CallingContextSensUnionFindAAResult
-computeCtxSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
-                             const LLVMBasedCallGraph &CG);
-[[nodiscard]] BasicUnionFindAAResult
-computeBotCtxSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
-                                const LLVMBasedCallGraph &CG);
-[[nodiscard]] BasicUnionFindAAResult
-computeIndSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
-                             const LLVMBasedCallGraph &CG);
+[[nodiscard]] CallingContextSensUnionFindAAResult computeCtxSensUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+[[nodiscard]] BasicUnionFindAAResult computeBotCtxSensUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+[[nodiscard]] BasicUnionFindAAResult computeIndSensUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 [[nodiscard]] UnionFindAAResultIntersection<CallingContextSensUnionFindAAResult,
                                             BasicUnionFindAAResult>
-computeCtxIndSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
-                                const LLVMBasedCallGraph &CG);
+computeCtxIndSensUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 [[nodiscard]] UnionFindAAResultIntersection<BasicUnionFindAAResult,
                                             BasicUnionFindAAResult>
-computeBotCtxIndSensUnionFindAARaw(const LLVMProjectIRDB &IRDB,
-                                   const LLVMBasedCallGraph &CG);
+computeBotCtxIndSensUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 
 template <pag::PBStrategy AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
@@ -381,21 +387,26 @@ computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
 }
 
 [[nodiscard]] LLVMUnionFindAliasIterator<CallingContextSensUnionFindAAResult>
-computeCtxSensUnionFindAA(const LLVMProjectIRDB &IRDB,
-                          const LLVMBasedCallGraph &CG);
+computeCtxSensUnionFindAA(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<BasicUnionFindAAResult>
-computeBotCtxSensUnionFindAA(const LLVMProjectIRDB &IRDB,
-                             const LLVMBasedCallGraph &CG);
+computeBotCtxSensUnionFindAA(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<BasicUnionFindAAResult>
-computeIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
-                          const LLVMBasedCallGraph &CG);
+computeIndSensUnionFindAA(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<UnionFindAAResultIntersection<
     CallingContextSensUnionFindAAResult, BasicUnionFindAAResult>>
-computeCtxIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
-                             const LLVMBasedCallGraph &CG);
+computeCtxIndSensUnionFindAA(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 [[nodiscard]] LLVMUnionFindAliasIterator<UnionFindAAResultIntersection<
     BasicUnionFindAAResult, BasicUnionFindAAResult>>
-computeBotCtxIndSensUnionFindAA(const LLVMProjectIRDB &IRDB,
-                                const LLVMBasedCallGraph &CG);
+computeBotCtxIndSensUnionFindAA(
+    const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 
 } // namespace psr
