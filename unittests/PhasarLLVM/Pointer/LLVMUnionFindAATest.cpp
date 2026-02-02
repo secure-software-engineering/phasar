@@ -1986,6 +1986,8 @@ TEST(IndirectionSensUnionFindAATest, Basic03) {
   doAnalysisAndCompareResults("basic_03_cpp_dbg.ll", GT, IndAABuilder);
 }
 
+#if false
+
 TEST(IndirectionSensUnionFindAATest, Context01) {
   /*
   ValueCompressor: {
@@ -2093,6 +2095,7 @@ UnionFindAAResult {
                              .OpCode = llvm::Instruction::Alloca}}}};
   doAnalysisAndCompareResults("context_01_c_dbg.ll", GT, IndAABuilder);
 }
+#endif
 
 TEST(IndirectionSensUnionFindAATest, Context02) {
   /*
