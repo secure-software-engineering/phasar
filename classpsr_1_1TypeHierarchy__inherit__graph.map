@@ -1,9 +1,7 @@
 <map id="psr::TypeHierarchy&lt; T, F &gt;" name="psr::TypeHierarchy&lt; T, F &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,148,102"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1TypeHierarchy.html" title=" " alt="" coords="373,5,572,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,69,373,42,374,48,162,74"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1TypeHierarchy.html" title=" " alt="" coords="401,85,544,125"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="162,87,172,87,401,99,401,105,172,93,162,92"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1DIBasedTypeHierarchy.html" title="Represents the type hierarchy of the target program." alt="" coords="621,20,819,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="586,30,621,30,621,35,586,35"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,5,176,45"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1TypeHierarchy.html" title=" " alt="" coords="5,123,204,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,59,107,122,102,122,102,59"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1DIBasedTypeHierarchy.html" title="Represents the type hierarchy of the target program." alt="" coords="6,227,203,252"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,191,107,226,102,226,102,191"/>
 </map>

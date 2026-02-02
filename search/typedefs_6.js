@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['g_5ft_0',['g_t',['../classpsr_1_1ProjectIRDBBase.html#aed4e377b452150362e0a64eaa130a764',1,'psr::ProjectIRDBBase::g_t'],['../structpsr_1_1ProjectIRDBTraits_3_01LLVMProjectIRDB_01_4.html#a92ee60d32d11a91152e68cbdcc599ce4',1,'psr::ProjectIRDBTraits&lt; LLVMProjectIRDB &gt;::g_t']]],
+  ['g_5ft_0',['g_t',['../structpsr_1_1ProjectIRDBTraits_3_01LLVMProjectIRDB_01_4.html#a92ee60d32d11a91152e68cbdcc599ce4',1,'psr::ProjectIRDBTraits&lt; LLVMProjectIRDB &gt;']]],
   ['genconstant_1',['GenConstant',['../namespacepsr_1_1glca.html#a2a79052f8a368dd65db0edce1d077ff3',1,'psr::glca']]],
   ['genedgefunction_2',['GenEdgeFunction',['../namespacepsr_1_1XTaint.html#a42910bd186da4799deadcdb8838f5f06',1,'psr::XTaint']]],
   ['generalizedseeds_3',['GeneralizedSeeds',['../classpsr_1_1InitialSeeds.html#ac391b9aea515d31444632e572f989cec',1,'psr::InitialSeeds']]],

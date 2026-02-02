@@ -1,11 +1,10 @@
 <map id="psr::InterMonoTaintAnalysis" name="psr::InterMonoTaintAnalysis">
-<area shape="rect" id="Node000001" title=" " alt="" coords="923,45,1125,70"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1InterMonoProblem.html" title=" " alt="" coords="619,37,873,77"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="887,55,923,55,923,60,887,60"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1IntraMonoProblem.html" title="The analysis problem interface for intraprocedural monotone problems (solvable by the IntraMonoSolver..." alt="" coords="227,5,399,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="413,30,619,45,618,51,412,35"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1InterMonoProblem.html" title="The analysis problem interface for interprocedural monotone problems (solvable by the InterMonoSolver..." alt="" coords="227,69,399,109"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="412,87,501,85,594,79,629,75,629,80,595,84,501,90,412,92"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1IntraMonoProblem.html" title="The analysis problem interface for intraprocedural monotone problems (solvable by the IntraMonoSolver..." alt="" coords="5,69,177,109"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,87,226,87,226,92,191,92"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="923,13,1125,38"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1InterMonoProblem.html" title=" " alt="" coords="619,5,873,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="887,23,923,23,923,28,887,28"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IntraMonoProblem.html" title="The analysis problem interface for intraprocedural monotone problems (solvable by the IntraMonoSolver..." alt="" coords="5,8,177,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="191,20,378,15,595,15,619,15,619,21,595,20,379,20,191,26"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1InterMonoProblem.html" title="The analysis problem interface for interprocedural monotone problems (solvable by the InterMonoSolver..." alt="" coords="227,36,399,76"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="192,38,227,42,226,48,191,43"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="412,53,594,44,618,42,619,47,595,49,412,58"/>
 </map>

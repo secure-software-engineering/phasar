@@ -1,41 +1,39 @@
 <map id="psr::CFGBase&lt; Derived &gt;" name="psr::CFGBase&lt; Derived &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="251,268,441,293"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1SparseCFGBase.html" title=" " alt="" coords="1214,73,1411,113"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="353,254,368,217,392,173,423,130,464,94,513,67,564,45,618,29,673,17,785,4,897,5,1003,16,1101,32,1185,52,1251,70,1249,75,1183,57,1100,38,1002,21,896,11,785,10,674,22,619,34,566,50,515,72,467,99,427,133,396,176,373,219,358,256"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="1200,246,1425,286"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="455,276,1200,265,1200,270,455,282"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="1200,139,1425,179"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="385,259,465,229,563,204,664,184,766,170,866,161,1052,152,1200,152,1200,157,1052,157,867,166,767,176,665,190,564,209,466,234,387,264"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1SparseCFGBase.html" title=" " alt="" coords="744,79,897,119"/>
-<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="358,254,375,226,399,193,429,161,464,136,498,120,534,108,609,93,681,88,744,89,744,94,681,93,609,98,536,113,500,125,467,140,432,165,403,196,379,229,362,257"/>
-<area shape="rect" id="Node000014" title=" " alt="" coords="708,203,933,243"/>
-<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="437,263,465,259,708,231,708,237,466,265,438,268"/>
-<area shape="rect" id="Node000015" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="741,319,900,344"/>
-<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="398,295,466,311,538,321,612,326,741,330,741,335,611,332,538,326,465,317,397,300"/>
-<area shape="rect" id="Node000016" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="689,369,952,409"/>
-<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="376,299,417,325,466,347,522,363,579,374,689,385,689,390,578,379,520,368,464,352,415,330,373,303"/>
-<area shape="rect" id="Node000017" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="701,433,941,459"/>
-<area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="365,303,406,355,434,381,467,402,523,425,584,439,644,446,701,449,700,455,643,452,583,444,522,430,464,407,431,386,402,359,360,306"/>
-<area shape="rect" id="Node000018" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="699,483,942,523"/>
-<area shape="poly" id="edge21_Node000001_Node000018" title=" " alt="" coords="358,306,372,344,395,389,426,433,445,452,467,468,522,493,581,508,642,515,699,515,699,520,641,520,580,513,520,498,464,472,442,456,422,436,390,391,367,346,353,308"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="5,268,201,293"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,278,250,278,250,283,215,283"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1SparseLLVMBasedCFG.html" title="A class that implements a sparse control flow graph. Conforms to the CFGBase CRTP interface." alt="" coords="1757,84,1951,109"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1425,91,1756,93,1756,99,1425,96"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1LLVMBasedBackwardCFG.html" title="A class that represents a backwards control flow graph. Conforms to the CFGBase CRTP interface." alt="" coords="1475,253,1689,279"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1439,263,1474,263,1474,269,1439,269"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1LLVMBasedBackwardICFG.html" title="A class that represents a backwards interprocedural control flow graph. Conforms to the ICFGBase CRTP..." alt="" coords="1745,253,1963,279"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1703,263,1744,263,1744,269,1703,269"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1LLVMBasedCFG.html" title=" " alt="" coords="1507,147,1657,172"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1439,157,1506,157,1506,162,1439,162"/>
-<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="1650,141,1797,107,1798,112,1651,146"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1LLVMBasedICFG.html" title="A class that implements a inter&#45;procedural control flow graph. Conforms to the ICFGBase CRTP interfac..." alt="" coords="1777,139,1931,164"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1671,154,1776,151,1776,156,1671,159"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1SparseLLVMBasedICFGView.html" title="Similar to SparseLLVMBasedICFG; the only difference is that this one is no LLVMBasedICFG – it contain..." alt="" coords="1739,188,1969,213"/>
-<area shape="poly" id="edge12_Node000009_Node000012" title=" " alt="" coords="1671,170,1770,185,1770,191,1671,175"/>
-<area shape="rect" id="Node000011" href="$classpsr_1_1SparseLLVMBasedICFG.html" title="A class that implements a sparse interprocedural control flow graph. Conforms to the ICFGBase CRTP in..." alt="" coords="2019,139,2217,164"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1945,149,2018,149,2018,154,1945,154"/>
-<area shape="poly" id="edge14_Node000013_Node000003" title=" " alt="" coords="911,95,1214,91,1214,97,911,101"/>
-<area shape="poly" id="edge16_Node000014_Node000005" title=" " alt="" coords="947,231,1200,254,1200,259,947,237"/>
-<area shape="poly" id="edge17_Node000014_Node000008" title=" " alt="" coords="947,213,1058,203,1176,187,1230,177,1231,182,1176,193,1059,208,947,218"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="251,233,441,259"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1SparseCFGBase.html" title=" " alt="" coords="1214,66,1411,106"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="356,220,373,189,397,153,427,118,464,89,513,64,565,43,618,28,673,16,784,4,895,5,1000,14,1097,29,1180,46,1246,63,1245,69,1179,52,1096,34,1000,19,895,10,785,10,674,22,620,33,567,49,516,69,467,94,431,121,401,156,378,191,361,222"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="1200,239,1425,279"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="455,245,1200,255,1200,261,455,250"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="1200,133,1425,173"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="399,227,465,210,564,192,666,178,869,160,1053,151,1200,149,1200,154,1053,157,869,165,667,184,565,198,466,215,400,232"/>
+<area shape="rect" id="Node000013" href="$classpsr_1_1SparseCFGBase.html" title=" " alt="" coords="744,73,897,113"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="362,221,404,173,432,148,464,129,535,104,610,90,681,85,744,85,744,90,681,90,610,95,537,109,466,134,435,153,408,176,366,224"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="708,197,933,237"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="455,237,708,221,708,226,455,242"/>
+<area shape="rect" id="Node000015" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="689,311,952,351"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="379,264,419,286,466,305,522,318,579,326,689,333,689,338,579,331,521,323,465,310,417,291,376,269"/>
+<area shape="rect" id="Node000016" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="701,376,941,401"/>
+<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="367,268,409,312,436,334,466,352,524,372,584,384,644,391,701,393,700,398,644,396,583,390,522,377,464,357,433,339,405,316,363,271"/>
+<area shape="rect" id="Node000017" href="$classpsr_1_1CFGBase.html" title=" " alt="" coords="699,426,942,466"/>
+<area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="359,270,375,304,398,343,429,382,467,412,522,436,582,450,642,457,699,457,699,462,642,462,581,456,520,441,464,416,425,385,394,347,370,307,355,273"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1CRTPBase.html" title=" " alt="" coords="5,233,201,259"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,243,250,243,250,249,215,249"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1SparseLLVMBasedCFG.html" title="A class that implements a sparse control flow graph. Conforms to the CFGBase CRTP interface." alt="" coords="1757,77,1951,103"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1425,84,1756,87,1756,92,1425,90"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1LLVMBasedBackwardCFG.html" title="A class that represents a backwards control flow graph. Conforms to the CFGBase CRTP interface." alt="" coords="1475,247,1689,272"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1439,257,1474,257,1474,262,1439,262"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1LLVMBasedBackwardICFG.html" title="A class that represents a backwards interprocedural control flow graph. Conforms to the ICFGBase CRTP..." alt="" coords="1745,247,1963,272"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1703,257,1744,257,1744,262,1703,262"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1LLVMBasedCFG.html" title=" " alt="" coords="1507,140,1657,165"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1439,150,1506,150,1506,155,1439,155"/>
+<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="1650,134,1797,100,1798,105,1651,140"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1LLVMBasedICFG.html" title="A class that implements a inter&#45;procedural control flow graph. Conforms to the ICFGBase CRTP interfac..." alt="" coords="1777,132,1931,157"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1671,147,1776,144,1776,150,1671,153"/>
+<area shape="rect" id="Node000012" href="$classpsr_1_1SparseLLVMBasedICFGView.html" title="Similar to SparseLLVMBasedICFG; the only difference is that this one is no LLVMBasedICFG – it contain..." alt="" coords="1739,181,1969,207"/>
+<area shape="poly" id="edge12_Node000009_Node000012" title=" " alt="" coords="1671,164,1770,179,1770,184,1671,169"/>
+<area shape="rect" id="Node000011" href="$classpsr_1_1SparseLLVMBasedICFG.html" title="A class that implements a sparse interprocedural control flow graph. Conforms to the ICFGBase CRTP in..." alt="" coords="2019,132,2217,157"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1945,142,2018,142,2018,147,1945,147"/>
+<area shape="poly" id="edge14_Node000013_Node000003" title=" " alt="" coords="911,89,1214,85,1214,90,911,94"/>
+<area shape="poly" id="edge16_Node000014_Node000005" title=" " alt="" coords="947,225,1200,247,1200,252,947,230"/>
+<area shape="poly" id="edge17_Node000014_Node000008" title=" " alt="" coords="947,206,1058,196,1176,181,1230,170,1231,175,1176,186,1059,201,947,212"/>
 </map>

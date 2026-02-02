@@ -1,32 +1,26 @@
 <map id="psr::IDESecureHeapPropagation" name="psr::IDESecureHeapPropagation">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1948,383,2176,408"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IDETabulationProblem.html" title=" " alt="" coords="1628,368,1899,423"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1912,393,1948,393,1948,398,1912,398"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="935,308,1096,363"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1110,329,1120,329,1251,325,1383,329,1494,339,1604,358,1643,365,1642,371,1604,363,1493,345,1383,334,1251,330,1120,334,1110,334"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="396,297,599,352"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="613,324,934,331,934,336,613,330"/>
-<area shape="rect" id="Node000011" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="699,5,860,60"/>
-<area shape="poly" id="edge11_Node000011_Node000004" title=" " alt="" coords="510,283,530,234,559,177,598,120,621,94,646,71,671,55,698,45,700,50,673,60,650,75,624,97,602,123,563,180,534,237,515,285"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="5,305,208,345"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="222,322,396,322,396,327,222,327"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="1165,343,1337,383"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="1351,367,1628,384,1628,390,1350,372"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1JoinLattice.html" title=" " alt="" coords="1157,407,1345,447"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="1359,418,1627,401,1628,406,1359,423"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="1120,472,1383,497"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="1339,467,1604,421,1628,416,1628,422,1604,426,1339,472"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider.html" title=" " alt="" coords="1165,522,1337,562"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1350,522,1472,497,1603,461,1704,420,1706,425,1605,466,1473,502,1352,528"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="1130,177,1373,217"/>
-<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="1386,217,1494,244,1551,263,1605,285,1674,324,1731,365,1727,370,1671,329,1603,290,1549,268,1493,250,1384,222"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="874,58,911,70,1005,98,1097,129,1206,174,1204,179,1095,134,1003,103,910,75,872,64"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="693,85,865,125"/>
-<area shape="poly" id="edge12_Node000010_Node000012" title=" " alt="" coords="879,120,1097,162,1155,174,1154,179,1095,167,878,126"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="685,149,873,189"/>
-<area shape="poly" id="edge13_Node000010_Node000013" title=" " alt="" coords="887,172,1130,187,1130,192,887,178"/>
-<area shape="rect" id="Node000014" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="648,213,911,239"/>
-<area shape="poly" id="edge14_Node000010_Node000014" title=" " alt="" coords="924,214,1130,202,1130,207,924,220"/>
-<area shape="rect" id="Node000015" href="$classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="693,263,865,303"/>
-<area shape="poly" id="edge15_Node000010_Node000015" title=" " alt="" coords="879,263,1141,214,1142,219,880,268"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="1768,162,1996,187"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IDETabulationProblem.html" title=" " alt="" coords="1448,147,1719,202"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1732,172,1768,172,1768,177,1732,177"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="699,75,860,130"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="873,94,985,90,1124,90,1274,98,1424,117,1473,129,1518,145,1516,150,1471,134,1424,123,1274,103,1123,95,986,95,874,99"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="960,125,1203,165"/>
+<area shape="poly" id="edge10_Node000010_Node000003" title=" " alt="" coords="874,113,960,126,959,131,873,119"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="396,75,599,130"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="612,100,698,100,698,105,612,105"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="5,83,208,123"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="222,100,396,100,396,105,222,105"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="693,5,865,45"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="879,21,992,24,1130,33,1279,54,1353,69,1425,88,1488,114,1542,145,1540,149,1486,119,1423,93,1352,74,1278,59,1129,39,992,29,879,26"/>
+<area shape="poly" id="edge11_Node000010_Node000006" title=" " alt="" coords="873,47,912,60,983,91,1044,123,1042,127,981,96,910,65,871,52"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="685,307,873,347"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="887,308,1133,268,1423,212,1478,199,1479,205,1425,217,1133,273,887,313"/>
+<area shape="poly" id="edge12_Node000010_Node000007" title=" " alt="" coords="855,299,909,274,952,247,992,217,1056,164,1060,168,996,221,955,251,912,278,857,304"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="648,239,911,265"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="924,235,1447,185,1448,190,925,241"/>
+<area shape="poly" id="edge13_Node000010_Node000008" title=" " alt="" coords="848,233,910,215,977,189,1036,163,1039,168,979,194,912,220,849,238"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="693,165,865,205"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="879,181,1448,174,1448,179,879,187"/>
+<area shape="poly" id="edge14_Node000010_Node000009" title=" " alt="" coords="879,170,959,159,960,164,879,175"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="1217,151,1448,164,1448,169,1216,156"/>
 </map>

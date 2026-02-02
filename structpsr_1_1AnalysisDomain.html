@@ -98,6 +98,9 @@ Inheritance diagram for psr::AnalysisDomain:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
+<tr class="memitem:a6a141ea68e8eb975b59ead5b9aec7153" id="r_a6a141ea68e8eb975b59ead5b9aec7153"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AnalysisDomain.html#a6a141ea68e8eb975b59ead5b9aec7153">ir_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a></td></tr>
+<tr class="memdesc:a6a141ea68e8eb975b59ead5b9aec7153"><td class="mdescLeft">&#160;</td><td class="mdescRight">Program IR.  <br /></td></tr>
+<tr class="separator:a6a141ea68e8eb975b59ead5b9aec7153"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a566c15664dc07b8d8e940eca3373659a" id="r_a566c15664dc07b8d8e940eca3373659a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AnalysisDomain.html#a566c15664dc07b8d8e940eca3373659a">d_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a></td></tr>
 <tr class="separator:a566c15664dc07b8d8e940eca3373659a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85a4af2ab1137d939cb13d68fd4af948" id="r_a85a4af2ab1137d939cb13d68fd4af948"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AnalysisDomain.html#a85a4af2ab1137d939cb13d68fd4af948">n_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a></td></tr>
@@ -124,7 +127,7 @@ Public Types</h2></td></tr>
 <p>Virtually all of PhASAR's internal analyses are implemented in a generic way using interfaces and template parameters. In order to specify concrete types for the template parameters such that an analysis can compute some useful information on some concrete target code, a configuration template parameter of type <a class="el" href="structpsr_1_1AnalysisDomain.html">AnalysisDomain</a> is passed around to make the necessary information available to the required analyses.</p>
 <p>If a type is not meant to be used by an analysis it should be left as an alias to void. If any analysis detects that a parameter is required to conduct an analysis but not correctly set, it will statically report an error and ask for the missing piece of information. </p>
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00032">32</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00051">51</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ac61deb8f1172350abeb3469256bb46bb" name="ac61deb8f1172350abeb3469256bb46bb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac61deb8f1172350abeb3469256bb46bb">&#9670;&#160;</a></span>c_t</h2>
@@ -138,7 +141,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00050">50</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00071">71</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -155,7 +158,7 @@ Public Types</h2></td></tr>
 </div><div class="memdoc">
 <p>Data-flow fact &mdash; Specifies the type of an individual data-flow fact that is propagated through the program under analysis. </p>
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00035">35</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00056">56</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -171,7 +174,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00056">56</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00077">77</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -187,7 +190,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00042">42</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00063">63</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -202,6 +205,24 @@ Public Types</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00074">74</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+
+</div>
+</div>
+<a id="a6a141ea68e8eb975b59ead5b9aec7153" name="a6a141ea68e8eb975b59ead5b9aec7153"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a141ea68e8eb975b59ead5b9aec7153">&#9670;&#160;</a></span>ir_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="structpsr_1_1AnalysisDomain.html#a6a141ea68e8eb975b59ead5b9aec7153">psr::AnalysisDomain::ir_t</a> =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Program IR. </p>
 
 <p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00053">53</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
@@ -219,7 +240,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00059">59</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00080">80</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -235,7 +256,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00061">61</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00082">82</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -251,7 +272,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00039">39</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00060">60</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -267,7 +288,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00045">45</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00066">66</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -283,7 +304,7 @@ Public Types</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00047">47</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="AnalysisDomain_8h_source.html#l00068">68</a> of file <a class="el" href="AnalysisDomain_8h_source.html">AnalysisDomain.h</a>.</p>
 
 </div>
 </div>
@@ -293,7 +314,7 @@ Public Types</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 28 2026 18:18:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Feb 2 2026 17:52:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
