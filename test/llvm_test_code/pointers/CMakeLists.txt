@@ -29,6 +29,7 @@ set(lca_files
   context_13_0.c
   context_13_1.c
   indirection_01.c
+  indirection_02.c
 )
 
 set(lca_files_mem2reg
