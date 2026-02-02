@@ -40,8 +40,8 @@ concept IsAliasInfo =
              typename AliasInfoTraits<T>::n_t Inst) {
       CVal.print(llvm::outs());
       CVal.printAsJson(llvm::outs());
-      MutVal.mergeWith(MutVal);
-      MutVal.introduceAlias(Ptr, Ptr, Inst, AliasResult{});
+      // MutVal.mergeWith(MutVal);
+      // MutVal.introduceAlias(Ptr, Ptr, Inst, AliasResult{});
 
       { CVal.isInterProcedural() } noexcept -> std::convertible_to<bool>;
       {

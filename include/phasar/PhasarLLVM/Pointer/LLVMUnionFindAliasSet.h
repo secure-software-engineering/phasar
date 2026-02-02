@@ -8,6 +8,7 @@
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/AliasSetOwner.h"
 #include "phasar/Pointer/RawAliasSet.h"
+#include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/AnalysisProperties.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/ValueCompressor.h"
@@ -39,23 +40,15 @@ public:
   using AliasSetTy = traits_t::AliasSetTy;
   using AliasSetPtrTy = traits_t::AliasSetPtrTy;
   using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
-  using AliasSetMap = llvm::DenseMap<const llvm::Value *, BoxedPtr<AliasSetTy>>;
 
-  enum class AnalysisType {
-    CtxSens,
-    IndSens,
-    CtxIndSens,
-    BotCtxSens,
-    BotCtxIndSens,
-  };
-
-  enum class AnalysisLocality {
+  enum class AnalysisLocality : uint8_t {
     Global,
     FunctionLocal,
   };
 
   struct Config {
-    AnalysisType AType = AnalysisType::BotCtxIndSens;
+    UnionFindAliasAnalysisType AType =
+        UnionFindAliasAnalysisType::BotCtxIndSens;
     AnalysisLocality ALocality = AnalysisLocality::Global;
   };
 
@@ -134,6 +127,9 @@ public:
     return alias(V, PotentialValue, I) != AliasResult::NoAlias;
   }
 
+  void print(llvm::raw_ostream &OS) const;
+  void printAsJson(llvm::raw_ostream &OS) const;
+
   [[nodiscard]] bool isValid() const noexcept {
     return AARes != nullptr && Props != AnalysisProperties::None &&
            AARes->VC != nullptr && AARes->VC->size() == AliasSets.size();
@@ -161,6 +157,8 @@ private:
     virtual AllocationSiteSetPtrTy
     constructReachableAllocSites(v_t V, ValueId ValId, bool IntraProcOnly,
                                  n_t Inst) = 0;
+
+    virtual void print(llvm::raw_ostream &OS, Config Cfg) const = 0;
   };
 
   template <template <typename, typename> typename AAResIterT, typename AAResT>
@@ -168,11 +166,17 @@ private:
 
   [[nodiscard]] static BoxedPtr<AliasSetTy> getEmptyAliasSet();
 
+  // --- data members:
+
   std::unique_ptr<UnionFindAAResultConcept> AARes{};
   AnalysisProperties Props{};
+  Config Cfg{};
 
   AliasSetOwner<AliasSetTy>::memory_resource_type MRes{};
   AliasSetOwner<AliasSetTy> Owner{&MRes};
   TypedVector<ValueId, AliasSetPtrTy> AliasSets;
 };
+
+[[nodiscard]] llvm::StringRef
+to_string(LLVMUnionFindAliasSet::AnalysisLocality ALoc) noexcept;
 } // namespace psr

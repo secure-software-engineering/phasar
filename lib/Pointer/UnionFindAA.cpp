@@ -1,7 +1,7 @@
 
 #include "phasar/Pointer/UnionFindAA.h"
 
-#include "phasar/Utils/StrongTypeDef.h"
+#include "phasar/Utils/StrongTypeDef.h" // for to_underlying
 
 using namespace psr;
 

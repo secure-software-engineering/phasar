@@ -13,7 +13,9 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
+#include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 
 #include "llvm/ADT/Twine.h"
 
@@ -60,14 +62,14 @@ public:
   ~HelperAnalyses() noexcept;
 
   [[nodiscard]] LLVMProjectIRDB &getProjectIRDB();
-  [[nodiscard]] LLVMAliasSet &getAliasInfo();
+  [[nodiscard]] LLVMAliasInfoRef getAliasInfo();
   [[nodiscard]] DIBasedTypeHierarchy &getTypeHierarchy();
   [[nodiscard]] LLVMBasedICFG &getICFG();
   [[nodiscard]] LLVMBasedCFG &getCFG();
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
-  std::unique_ptr<LLVMAliasSet> PT;
+  LLVMAliasInfo PT{};
   std::unique_ptr<DIBasedTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
   std::unique_ptr<LLVMBasedCFG> CFG;
@@ -78,6 +80,7 @@ private:
   // PTS
   std::optional<LLVMAliasSetData> PrecomputedPTS;
   AliasAnalysisType PTATy{};
+  UnionFindAliasAnalysisType UFAATy{};
   bool AllowLazyPTS{};
 
   // ICF
