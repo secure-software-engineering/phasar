@@ -2187,25 +2187,19 @@ Relevant lines:
   #5: <1, 2, 3, 9, 15, 16, 19>
   #15: <5, 6, 7, 10, 17, 18>
 
-
-  // TODO: talk with Fabian about the same points as in comment in Context01
-  unittest
-
-  // TODO: talk with fabian on why it's #5 and #15 here?
-
-  // TODO: ask fabian if my following expected result would be correct:
-
-  #9: <1, 2, 3, 11, 12, 19>
-  #10: <5, 6, 7, 13, 14>
-
   */
   GTMap GT = {
-      {// #9: %x = alloca i32, align 4, !psr.id !40 | ID: 11
-       LineColFunOp{.Line = 6,
+      {LineColFunOp{.Line = 6,
                     .Col = 0,
                     .InFunction = "main",
                     .OpCode = llvm::Instruction::Alloca},
        {
+           ArgInFun{.Idx = 0, .InFunction = "id1"},
+           LineColFunOp{.Line = 2,
+                        .Col = 27,
+                        .InFunction = "id1",
+                        .OpCode = llvm::Instruction::Load},
+           RetVal{.InFunction = "id1"},
            LineColFunOp{.Line = 6,
                         .Col = 0,
                         .InFunction = "main",
@@ -2223,12 +2217,17 @@ Relevant lines:
                         .InFunction = "main",
                         .OpCode = llvm::Instruction::Load},
        }},
-      {// #10: %y = alloca i32, align 4, !psr.id !41 | ID: 12
-       LineColFunOp{.Line = 7,
+      {LineColFunOp{.Line = 7,
                     .Col = 0,
                     .InFunction = "main",
                     .OpCode = llvm::Instruction::Alloca},
        {
+           ArgInFun{.Idx = 0, .InFunction = "id2"},
+           LineColFunOp{.Line = 3,
+                        .Col = 27,
+                        .InFunction = "id2",
+                        .OpCode = llvm::Instruction::Load},
+           RetVal{.InFunction = "id2"},
            LineColFunOp{.Line = 7,
                         .Col = 0,
                         .InFunction = "main",
@@ -2326,6 +2325,18 @@ unittest
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "id1"},
+                   LineColFunOp{.Line = 2,
+                                .Col = 27,
+                                .InFunction = "id1",
+                                .OpCode = llvm::Instruction::Load},
+                   RetVal{.InFunction = "id1"},
+                   ArgInFun{.Idx = 0, .InFunction = "id2"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 27,
+                                .InFunction = "id2",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id2"},
                    LineColFunOp{.Line = 6,
                                 .Col = 0,
                                 .InFunction = "main",
@@ -2438,6 +2449,24 @@ unittest
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "id1"},
+                   LineColFunOp{.Line = 2,
+                                .Col = 27,
+                                .InFunction = "id1",
+                                .OpCode = llvm::Instruction::Load},
+                   RetVal{.InFunction = "id1"},
+                   ArgInFun{.Idx = 0, .InFunction = "id2"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 27,
+                                .InFunction = "id2",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id2"},
+                   ArgInFun{.Idx = 0, .InFunction = "id3"},
+                   LineColFunOp{.Line = 4,
+                                .Col = 27,
+                                .InFunction = "id3",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id3"},
                    LineColFunOp{.Line = 7,
                                 .Col = 0,
                                 .InFunction = "main",
