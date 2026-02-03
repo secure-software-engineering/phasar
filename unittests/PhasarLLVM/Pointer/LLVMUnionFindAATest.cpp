@@ -1986,8 +1986,6 @@ TEST(IndirectionSensUnionFindAATest, Basic03) {
   doAnalysisAndCompareResults("basic_03_cpp_dbg.ll", GT, IndAABuilder);
 }
 
-#if false
-
 TEST(IndirectionSensUnionFindAATest, Context01) {
   /*
   ValueCompressor: {
@@ -2055,47 +2053,42 @@ UnionFindAAResult {
 
     Shouldn't the result be something like:
 
-    #5: <1, 2, 3, 5, 9, 11>
-    #6: <6, 10>
 
     ?
   */
 
-  GTMap GT = {{// #5: %x = alloca i32, align 4, !psr.id !30 | ID: 6
-               LineColFunOp{.Line = 5,
+  GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {// #1: ptr %p | ID: id.0
-                LineColFunOp{.Line = 2,
-                             .Col = 14,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                // #2: %0 = load ptr, ptr %p.addr, align 8, !dbg !22, !psr.id
-                // !23 | ID: 3
+               {ArgInFun{.Idx = 0, .InFunction = "id"},
                 LineColFunOp{.Line = 2,
                              .Col = 26,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                // #3: fun @id.<ret>
-                LineColFunOp{.Line = 2,
-                             .Col = 19,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca}}},
-              {// #6: %y = alloca i32, align 4, !psr.id !31 | ID: 7
-               LineColFunOp{.Line = 6,
-                            .Col = 0,
-                            .InFunction = "main",
-                            .OpCode = llvm::Instruction::Alloca},
-               {// #10: %call1 = call ptr @id(ptr noundef %y), !dbg !52, !psr.id
-                // !53 | ID: 19
-                LineColFunOp{.Line = 9,
+                             .InFunction = "id",
+                             .OpCode = llvm::Instruction::Load},
+                RetVal{.InFunction = "id"},
+                LineColFunOp{.Line = 5,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca}}}};
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 6,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 8,
+                             .Col = 13,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 9,
+                             .Col = 13,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 11,
+                             .Col = 11,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Load}}}};
   doAnalysisAndCompareResults("context_01_c_dbg.ll", GT, IndAABuilder);
 }
-#endif
 
 TEST(IndirectionSensUnionFindAATest, Context02) {
   /*
