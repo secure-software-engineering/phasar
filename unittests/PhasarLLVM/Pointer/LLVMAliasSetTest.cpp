@@ -18,8 +18,7 @@ using namespace psr;
 
 TEST(LLVMAliasSet, Intra_01) {
   ValueAnnotationPass::resetValueID();
-  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
-                       "pointers/basic_01_cpp.ll");
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + "pointers/basic_01_c.ll");
 
   LLVMAliasSet PTS(&IRDB, false);
   const auto *Main = IRDB.getFunctionDefinition("main");
