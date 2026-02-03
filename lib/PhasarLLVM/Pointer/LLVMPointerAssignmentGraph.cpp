@@ -1,8 +1,11 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Pointer/PointerAssignmentGraph.h"
 #include "phasar/Utils/BitSet.h"
+#include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/ValueCompressor.h"
 
@@ -14,6 +17,7 @@
 #include "llvm/IR/Operator.h"
 
 #include <concepts>
+#include <functional>
 
 using namespace psr;
 using namespace psr::pag;
@@ -96,11 +100,44 @@ struct GlobalCache {
     return Vec;
   }
 };
+
+struct PAGMappedLibrarySummary {
+  library_summary::LLVMFunctionDataFlowFacts Facts;
+
+  bool
+  mapFunctionSummary(const llvm::Function *Fun,
+                     std::invocable<uint32_t, library_summary::DataFlowFact,
+                                    pag::Edge> auto AddEdge) const {
+    const auto *LibSum = Facts.getFactsForFunctionOrNull(Fun);
+    if (!LibSum) {
+      return false;
+    }
+
+    const size_t NumParams = Fun->arg_size();
+
+    for (const auto &[ParamFact, Pts] : *LibSum) {
+      if (ParamFact >= NumParams ||
+          !Fun->getArg(ParamFact)->getType()->isPointerTy()) {
+        continue;
+      }
+
+      for (const auto &DestFact : Pts) {
+        auto E = DestFact.dyn_cast<library_summary::Parameter>()
+                     ? pag::Edge(pag::StorePOI{})
+                     : pag::Assign{};
+        std::invoke(AddEdge, ParamFact, DestFact, E);
+      }
+    }
+    return true;
+  }
+};
+
 } // namespace
 
 struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
-  const llvm::DataLayout &DL; // NOLINT
-  ValueCompressor<v_t> &VC;   // NOLINT
+  const llvm::DataLayout &DL;           // NOLINT
+  ValueCompressor<v_t> &VC;             // NOLINT
+  const PAGMappedLibrarySummary &MLSum; // NOLINT
 
   llvm::DenseMap<ValueId, ValueId> TheOneLoad{};
   BitSet<ValueId> OnlyIncomingStoresAndOutgoingLoads{};
@@ -449,7 +486,32 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
                         const llvm::Function *Callee,
                         llvm::ArrayRef<llvm::SmallDenseSet<ValueId>> Args,
                         std::optional<ValueId> CSVal) {
-    // TODO: Handle library summaries here!
+    const bool HasLibrarySummary = MLSum.mapFunctionSummary(
+        Callee, [&](uint32_t ParamIdx, library_summary::DataFlowFact Dest,
+                    pag::Edge E) {
+          if (ParamIdx > Args.size()) {
+            return;
+          }
+          const auto HandleArgs = [&](ValueId DestVal) {
+            for (auto FromVal : Args[ParamIdx]) {
+              addEdge(Strategy, FromVal, DestVal, E, Call);
+            }
+          };
+          if (const auto *DestParam =
+                  Dest.dyn_cast<library_summary::Parameter>()) {
+            for (const auto &DestVal : Args[DestParam->Index]) {
+              HandleArgs(DestVal);
+            }
+          } else {
+            if (CSVal) {
+              HandleArgs(*CSVal);
+            }
+          }
+        });
+    if (HasLibrarySummary) {
+      return;
+    }
+
     if (Callee->isDeclaration()) {
       return;
     }
@@ -491,6 +553,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
         ArgVal.insert(getVariable(ArgOp, Strategy));
       });
     }
+
     std::optional<ValueId> CSVal;
     if (Call->getType()->isPointerTy()) {
       CSVal = getVariable(Call, Strategy);
@@ -571,7 +634,18 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
                                    ValueCompressor<v_t> &VC,
                                    LLVMPBStrategyRef Strategy) {
-  PAGBuildData BData{IRDB.getModule()->getDataLayout(), VC};
+
+  const auto &LibSum = getLibCSummary();
+  const PAGMappedLibrarySummary MLSum{
+      {library_summary::readFromFDFF(LibSum, [&IRDB](llvm::StringRef FName) {
+        return IRDB.getFunction(FName);
+      })}};
+
+  PAGBuildData BData{
+      .DL = IRDB.getModule()->getDataLayout(),
+      .VC = VC,
+      .MLSum = MLSum,
+  };
 
   const size_t NumPossibleValues = Strategy.getNumPossibleValues(IRDB);
   const size_t NumPresentValues = VC.size();

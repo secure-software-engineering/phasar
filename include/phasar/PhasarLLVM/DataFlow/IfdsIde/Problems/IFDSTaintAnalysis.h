@@ -11,9 +11,9 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 
 #include <map>
 #include <set>
