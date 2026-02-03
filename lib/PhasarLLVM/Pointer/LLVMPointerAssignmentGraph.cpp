@@ -102,7 +102,7 @@ struct GlobalCache {
 };
 
 struct PAGMappedLibrarySummary {
-  library_summary::LLVMFunctionDataFlowFacts Facts;
+  const library_summary::LLVMFunctionDataFlowFacts &Facts; // NOLINT
 
   bool
   mapFunctionSummary(const llvm::Function *Fun,
@@ -631,20 +631,27 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
 };
 
+static const auto &getMappedLibSum(
+    std::optional<library_summary::LLVMFunctionDataFlowFacts> &MLSumBuf,
+    const LLVMProjectIRDB &IRDB) {
+  MLSumBuf.emplace(library_summary::readFromFDFF(
+      getLibCSummary(),
+      [&IRDB](llvm::StringRef FName) { return IRDB.getFunction(FName); }));
+  return *MLSumBuf;
+}
+
 void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
                                    ValueCompressor<v_t> &VC,
                                    LLVMPBStrategyRef Strategy) {
 
-  const auto &LibSum = getLibCSummary();
-  const PAGMappedLibrarySummary MLSum{
-      {library_summary::readFromFDFF(LibSum, [&IRDB](llvm::StringRef FName) {
-        return IRDB.getFunction(FName);
-      })}};
+  std::optional<library_summary::LLVMFunctionDataFlowFacts> MLSumBuf{};
+  const auto &MLSum =
+      this->MLSum ? *this->MLSum : getMappedLibSum(MLSumBuf, IRDB);
 
   PAGBuildData BData{
       .DL = IRDB.getModule()->getDataLayout(),
       .VC = VC,
-      .MLSum = MLSum,
+      .MLSum = {MLSum},
   };
 
   const size_t NumPossibleValues = Strategy.getNumPossibleValues(IRDB);

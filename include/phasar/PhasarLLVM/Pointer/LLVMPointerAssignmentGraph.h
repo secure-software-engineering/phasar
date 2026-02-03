@@ -12,6 +12,10 @@ class Function;
 
 namespace psr {
 
+namespace library_summary {
+class LLVMFunctionDataFlowFacts;
+} // namespace library_summary
+
 /// The PAG-node used for LLVM-based pointer-assignment graphs. It consists of
 /// regular LLVM values + special return-slots per non-void function. In that
 /// case, the stored pointer is the corresponding function.
@@ -84,11 +88,18 @@ struct LLVMPAGDomain : LLVMAnalysisDomainDefault {
 
 class LLVMPAGBuilder : public PAGBuilder<LLVMPAGDomain> {
 public:
+  constexpr LLVMPAGBuilder() noexcept = default;
+  constexpr LLVMPAGBuilder(
+      const library_summary::LLVMFunctionDataFlowFacts *MLSum) noexcept
+      : MLSum(MLSum) {}
+
   void buildPAG(const LLVMProjectIRDB &IRDB, ValueCompressor<v_t> &VC,
                 pag::PBStrategyRef<LLVMPAGDomain> Strategy) override;
 
 private:
   struct PAGBuildData;
+
+  const library_summary::LLVMFunctionDataFlowFacts *MLSum{};
 };
 
 } // namespace psr
