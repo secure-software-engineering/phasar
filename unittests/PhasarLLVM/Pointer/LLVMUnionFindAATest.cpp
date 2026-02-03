@@ -2042,20 +2042,6 @@ UnionFindAAResult {
   #24: <>
 }
   */
-  /*
-    TODO: talk with fabian about the following:
-
-    UnionFindAAResult has itself in it, but if I put in ground truth, it
-    doesn't work. LineColFunOp{.Line = 5,...
-    -> LineColFunOp{.Line = 5, ...
-    -> LineColFunOp{.Line = 2,
-                             .Col = 14,
-
-    Shouldn't the result be something like:
-
-
-    ?
-  */
 
   GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
@@ -2197,12 +2183,6 @@ UnionFindAAResult {
   #43: <>
   #44: <>
 }
-
-Relevant lines:
-
-  #5: <1, 2, 3, 9, 15, 16, 19>
-  #15: <5, 6, 7, 10, 17, 18>
-
   */
   GTMap GT = {{LineColFunOp{.Line = 6,
                             .Col = 0,
@@ -2360,10 +2340,6 @@ UnionFindAAResult {
   #28: <>
   #29: <>
 }
-
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
-
   */
 
   GTMap GT = {{LineColFunOp{.Line = 6,
@@ -2503,8 +2479,7 @@ UnionFindAAResult {
   #33: <>
   #34: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
   */
   GTMap GT = {{LineColFunOp{.Line = 7,
                             .Col = 0,
@@ -2669,15 +2644,36 @@ UnionFindAAResult {
   #43: <>
   #44: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
   */
   GTMap GT = {{LineColFunOp{.Line = 7,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "id1"},
+                   LineColFunOp{.Line = 2,
+                                .Col = 27,
+                                .InFunction = "id1",
+                                .OpCode = llvm::Instruction::Load},
+                   RetVal{.InFunction = "id1"},
+                   ArgInFun{.Idx = 0, .InFunction = "id2"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 27,
+                                .InFunction = "id2",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id2"},
+                   ArgInFun{.Idx = 0, .InFunction = "id3"},
+                   LineColFunOp{.Line = 4,
+                                .Col = 27,
+                                .InFunction = "id3",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id3"},
                    LineColFunOp{.Line = 7,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 8,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
@@ -2689,27 +2685,51 @@ unittest
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 12,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 13,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
                    LineColFunOp{.Line = 15,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
                }},
-              {LineColFunOp{.Line = 8,
+              {LineColFunOp{.Line = 10,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {LineColFunOp{.Line = 8,
+               {LineColFunOp{.Line = 10,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 12,
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 13,
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 12,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 12,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call}}}};
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_04_1_c_dbg.ll", GT, IndAABuilder);
 }
@@ -2812,14 +2832,37 @@ UnionFindAAResult {
   #38: <>
   #39: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
   */
   GTMap GT = {{LineColFunOp{.Line = 8,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "id1"},
+                   LineColFunOp{.Line = 2,
+                                .Col = 27,
+                                .InFunction = "id1",
+                                .OpCode = llvm::Instruction::Load},
+                   RetVal{.InFunction = "id1"},
+                   ArgInFun{.Idx = 0, .InFunction = "id2"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 27,
+                                .InFunction = "id2",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id2"},
+                   ArgInFun{.Idx = 0, .InFunction = "id3"},
+                   LineColFunOp{.Line = 4,
+                                .Col = 27,
+                                .InFunction = "id3",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id3"},
+                   ArgInFun{.Idx = 0, .InFunction = "id4"},
+                   LineColFunOp{.Line = 5,
+                                .Col = 27,
+                                .InFunction = "id4",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id4"},
                    LineColFunOp{.Line = 8,
                                 .Col = 0,
                                 .InFunction = "main",
@@ -2836,7 +2879,23 @@ unittest
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
-               }}};
+               }},
+              {LineColFunOp{.Line = 10,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 10,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_05_0_c_dbg.ll", GT, IndAABuilder);
 }
@@ -2951,15 +3010,42 @@ UnionFindAAResult {
   #48: <>
   #49: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
   */
   GTMap GT = {{LineColFunOp{.Line = 8,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "id1"},
+                   LineColFunOp{.Line = 2,
+                                .Col = 27,
+                                .InFunction = "id1",
+                                .OpCode = llvm::Instruction::Load},
+                   RetVal{.InFunction = "id1"},
+                   ArgInFun{.Idx = 0, .InFunction = "id2"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 27,
+                                .InFunction = "id2",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id2"},
+                   ArgInFun{.Idx = 0, .InFunction = "id3"},
+                   LineColFunOp{.Line = 4,
+                                .Col = 27,
+                                .InFunction = "id3",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id3"},
+                   ArgInFun{.Idx = 0, .InFunction = "id4"},
+                   LineColFunOp{.Line = 5,
+                                .Col = 27,
+                                .InFunction = "id4",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id4"},
                    LineColFunOp{.Line = 8,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 9,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
@@ -2971,27 +3057,51 @@ unittest
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 13,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 14,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
                    LineColFunOp{.Line = 16,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
                }},
-              {LineColFunOp{.Line = 9,
+              {LineColFunOp{.Line = 11,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {LineColFunOp{.Line = 9,
+               {LineColFunOp{.Line = 11,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 13,
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 12,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 12,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 14,
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call}}}};
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 14,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_05_1_c_dbg.ll", GT, IndAABuilder);
 }
@@ -3101,16 +3211,42 @@ UnionFindAAResult {
   #43: <>
   #44: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest.
-
-// TODO: why is result broken in #5? Was that a copy paste error?
   */
   GTMap GT = {{LineColFunOp{.Line = 9,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "id1"},
+                   LineColFunOp{.Line = 2,
+                                .Col = 27,
+                                .InFunction = "id1",
+                                .OpCode = llvm::Instruction::Load},
+                   RetVal{.InFunction = "id1"},
+                   ArgInFun{.Idx = 0, .InFunction = "id2"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 27,
+                                .InFunction = "id2",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id2"},
+                   ArgInFun{.Idx = 0, .InFunction = "id3"},
+                   LineColFunOp{.Line = 4,
+                                .Col = 27,
+                                .InFunction = "id3",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id3"},
+                   ArgInFun{.Idx = 0, .InFunction = "id4"},
+                   LineColFunOp{.Line = 5,
+                                .Col = 27,
+                                .InFunction = "id4",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id4"},
+                   ArgInFun{.Idx = 0, .InFunction = "id5"},
+                   LineColFunOp{.Line = 6,
+                                .Col = 27,
+                                .InFunction = "id5",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "id5"},
                    LineColFunOp{.Line = 9,
                                 .Col = 0,
                                 .InFunction = "main",
@@ -3127,7 +3263,23 @@ unittest.
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
-               }}};
+               }},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 12,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 12,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_06_0_c_dbg.ll", GT, IndAABuilder);
 }
@@ -3259,14 +3411,47 @@ UnionFindAAResult {
   #53: <>
   #54: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
   */
   GTMap GT = {{LineColFunOp{.Line = 9,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {LineColFunOp{.Line = 9,
+               {ArgInFun{.Idx = 0, .InFunction = "id1"},
+                LineColFunOp{.Line = 2,
+                             .Col = 27,
+                             .InFunction = "id1",
+                             .OpCode = llvm::Instruction::Load},
+                RetVal{.InFunction = "id1"},
+                ArgInFun{.Idx = 0, .InFunction = "id2"},
+                LineColFunOp{.Line = 3,
+                             .Col = 27,
+                             .InFunction = "id2",
+                             .OpCode = llvm::Instruction::Call},
+                RetVal{.InFunction = "id2"},
+                ArgInFun{.Idx = 0, .InFunction = "id3"},
+                LineColFunOp{.Line = 4,
+                             .Col = 27,
+                             .InFunction = "id3",
+                             .OpCode = llvm::Instruction::Call},
+                RetVal{.InFunction = "id3"},
+                ArgInFun{.Idx = 0, .InFunction = "id4"},
+                LineColFunOp{.Line = 5,
+                             .Col = 27,
+                             .InFunction = "id4",
+                             .OpCode = llvm::Instruction::Call},
+                RetVal{.InFunction = "id4"},
+                ArgInFun{.Idx = 0, .InFunction = "id5"},
+                LineColFunOp{.Line = 6,
+                             .Col = 27,
+                             .InFunction = "id5",
+                             .OpCode = llvm::Instruction::Call},
+                RetVal{.InFunction = "id5"},
+                LineColFunOp{.Line = 9,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 10,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
@@ -3277,29 +3462,51 @@ unittest
                 LineColFunOp{.Line = 13,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call}}},
-              {LineColFunOp{.Line = 10,
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 15,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call},
+                LineColFunOp{.Line = 17,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Load}}},
+              {LineColFunOp{.Line = 12,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {
-                   LineColFunOp{.Line = 10,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 14,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Call},
-                   LineColFunOp{.Line = 15,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Call},
-                   LineColFunOp{.Line = 17,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Load},
-               }}};
+               {LineColFunOp{.Line = 12,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 14,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 15,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 15,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_06_1_c_dbg.ll", GT, IndAABuilder);
 }
@@ -3404,8 +3611,7 @@ UnionFindAAResult {
   #38: <>
   #39: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
   */
   GTMap GT = {
       {LineColFunOp{.Line = 8,
@@ -3413,11 +3619,43 @@ unittest
                     .InFunction = "main",
                     .OpCode = llvm::Instruction::Alloca},
        {
+           ArgInFun{.Idx = 0, .InFunction = "buzz"},
+           LineColFunOp{.Line = 2,
+                        .Col = 28,
+                        .InFunction = "buzz",
+                        .OpCode = llvm::Instruction::Load},
+           RetVal{.InFunction = "buzz"},
+           ArgInFun{.Idx = 0, .InFunction = "baz"},
+           LineColFunOp{.Line = 3,
+                        .Col = 27,
+                        .InFunction = "baz",
+                        .OpCode = llvm::Instruction::Call},
+           RetVal{.InFunction = "baz"},
+           ArgInFun{.Idx = 0, .InFunction = "bar"},
+           LineColFunOp{.Line = 4,
+                        .Col = 27,
+                        .InFunction = "bar",
+                        .OpCode = llvm::Instruction::Call},
+           RetVal{.InFunction = "bar"},
+           ArgInFun{.Idx = 0, .InFunction = "foo"},
+           LineColFunOp{.Line = 5,
+                        .Col = 27,
+                        .InFunction = "foo",
+                        .OpCode = llvm::Instruction::Call},
+           RetVal{.InFunction = "foo"},
            LineColFunOp{.Line = 8,
                         .Col = 0,
                         .InFunction = "main",
                         .OpCode = llvm::Instruction::Alloca},
+           LineColFunOp{.Line = 9,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Alloca},
            LineColFunOp{.Line = 11,
+                        .Col = 0,
+                        .InFunction = "main",
+                        .OpCode = llvm::Instruction::Call},
+           LineColFunOp{.Line = 12,
                         .Col = 0,
                         .InFunction = "main",
                         .OpCode = llvm::Instruction::Call},
@@ -3426,20 +3664,22 @@ unittest
                         .InFunction = "main",
                         .OpCode = llvm::Instruction::Load},
        }},
-      {LineColFunOp{.Line = 9,
+      {LineColFunOp{.Line = 11,
                     .Col = 0,
                     .InFunction = "main",
                     .OpCode = llvm::Instruction::Alloca},
-       {
-           LineColFunOp{.Line = 9,
-                        .Col = 0,
-                        .InFunction = "main",
-                        .OpCode = llvm::Instruction::Alloca},
-           LineColFunOp{.Line = 12,
-                        .Col = 0,
-                        .InFunction = "main",
-                        .OpCode = llvm::Instruction::Call},
-       }},
+       {LineColFunOp{.Line = 11,
+                     .Col = 0,
+                     .InFunction = "main",
+                     .OpCode = llvm::Instruction::Alloca}}},
+      {LineColFunOp{.Line = 12,
+                    .Col = 0,
+                    .InFunction = "main",
+                    .OpCode = llvm::Instruction::Alloca},
+       {LineColFunOp{.Line = 12,
+                     .Col = 0,
+                     .InFunction = "main",
+                     .OpCode = llvm::Instruction::Alloca}}},
   };
 
   doAnalysisAndCompareResults("context_07_c_dbg.ll", GT, IndAABuilder);
@@ -3510,21 +3750,48 @@ UnionFindAAResult {
   #33: <>
   #34: <>
 }
-// TODO: talk with Fabian about the same points as in comment in Context01
-unittest
+
+#10: <2, 3, 4, 5, 6, 8, 12, 13, 14, 15>
+
   */
   GTMap GT = {{LineColFunOp{.Line = 12,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   ArgInFun{.Idx = 0, .InFunction = "selfRecursion"},
+                   LineColFunOp{.Line = 3,
+                                .Col = 8,
+                                .InFunction = "selfRecursion",
+                                .OpCode = llvm::Instruction::Load},
+                   LineColFunOp{.Line = 4,
+                                .Col = 12,
+                                .InFunction = "selfRecursion",
+                                .OpCode = llvm::Instruction::Load},
+                   LineColFunOp{.Line = 7,
+                                .Col = 11,
+                                .InFunction = "selfRecursion",
+                                .OpCode = llvm::Instruction::Load},
+                   LineColFunOp{.Line = 8,
+                                .Col = 10,
+                                .InFunction = "selfRecursion",
+                                .OpCode = llvm::Instruction::Call},
+                   RetVal{.InFunction = "selfRecursion"},
                    LineColFunOp{.Line = 12,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 7,
-                                .Col = 11,
-                                .InFunction = "selfRecursion",
+                   LineColFunOp{.Line = 15,
+                                .Col = 12,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 19,
+                                .Col = 12,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Call},
+                   LineColFunOp{.Line = 21,
+                                .Col = 0,
+                                .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
                }}};
 
