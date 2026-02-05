@@ -198,9 +198,9 @@ protected:
     }
 
     EXPECT_EQ(GroundTruthEntries, ComputedLeaks);
-    if (HasFailure()) {
-      Solver.dumpResults();
-    }
+    // if (HasFailure()) {
+    Solver.dumpResults();
+    // }
   }
 };
 
@@ -327,6 +327,24 @@ TEST_F(CFLFieldSensTest, Basic_20) {
   // exclude deep taints!
 
   run({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, GroundTruth);
+}
+
+TEST_F(CFLFieldSensTest, Basic_22) {
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // TODO
+  };
+
+  run({PathToLLFiles + "xtaint22_cpp_dbg.ll"}, GroundTruth);
+  FAIL() << "Not Implemented yet";
+}
+
+TEST_F(CFLFieldSensTest, Basic_23) {
+  std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
+      // TODO
+  };
+
+  run({PathToLLFiles + "xtaint23_cpp_dbg.ll"}, GroundTruth);
+  FAIL() << "Not Implemented yet";
 }
 
 } // namespace
