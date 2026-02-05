@@ -160,10 +160,9 @@ protected:
     ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
 
     psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(
-        &TaintProblem, &AS,
-        {
-            .KillsAt = TaintProblem.killsAt(),
-        });
+        &TaintProblem, {
+                           .KillsAt = TaintProblem.killsAt(),
+                       });
 
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                             nullptr, &BaseAS);

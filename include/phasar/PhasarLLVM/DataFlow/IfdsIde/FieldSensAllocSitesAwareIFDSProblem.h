@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
@@ -129,6 +130,10 @@ struct CFLFieldSensEdgeValue {
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const CFLFieldSensEdgeValue &EV);
+
+  [[nodiscard]] bool isEpsilon() const {
+    return Paths.size() == 1 && Paths.begin()->empty();
+  }
 };
 
 template <typename AnalysisDomainTy>
@@ -142,10 +147,14 @@ struct FieldSensAllocSitesAwareIFDSProblemConfig
   // TODO: more
 };
 
-class FieldSensAllocSitesAwareIFDSProblemBase {
+class FieldSensAllocSitesAwareIFDSProblemBase
+    : public CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault> {
 public:
   static constexpr llvm::StringLiteral LogCategory =
       "FieldSensAllocSitesAwareIFDSProblem";
+
+  [[nodiscard]] static InitialSeeds<n_t, d_t, l_t>
+  makeInitialSeeds(const InitialSeeds<n_t, d_t, BinaryDomain> &UserSeeds);
 
   [[nodiscard]] static std::pair<const llvm::Value *, int32_t>
   getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
@@ -194,21 +203,23 @@ public:
   /// information to lower suprious aliases
   explicit FieldSensAllocSitesAwareIFDSProblem(
       IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem,
-      LLVMAliasInfoRef AS,
       FieldSensAllocSitesAwareIFDSProblemConfig Config =
           {}) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : Base(UserProblem->getProjectIRDB(), UserProblem->getEntryPoints(),
              UserProblem->getZeroValue()),
-        AS(AS), UserProblem(UserProblem), Config(std::move(Config)) {}
+        UserProblem(UserProblem), Config(std::move(Config)) {}
 
-  FieldSensAllocSitesAwareIFDSProblem(std::nullptr_t,
-                                      LLVMAliasInfoRef AS) = delete;
+  FieldSensAllocSitesAwareIFDSProblem(
+      std::nullptr_t,
+      FieldSensAllocSitesAwareIFDSProblemConfig Config = {}) = delete;
 
   // TODO: Provide a customization-point to provide gen offsets to the
   // edge-functions (generating from zero currently always generates at
   // epsilon!)
 
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+    return makeInitialSeeds(UserProblem->initialSeeds());
+  }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
@@ -239,6 +250,11 @@ public:
     return UserProblem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
   }
 
+  static EdgeFunction<l_t> getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
+                                                d_t PointerOp, d_t ValueOp,
+                                                uint8_t DepthKLimit,
+                                                const llvm::DataLayout &DL);
+
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                           d_t SuccNode) override;
 
@@ -264,8 +280,9 @@ public:
   EdgeFunction<l_t> combine(const EdgeFunction<l_t> &L,
                             const EdgeFunction<l_t> &R) override;
 
+  [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
+
 private:
-  LLVMAliasInfoRef AS;
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   FieldSensAllocSitesAwareIFDSProblemConfig Config{};
 

@@ -328,7 +328,7 @@ void CFLFieldSensEdgeValue::applyTransform(const CFLFieldAccessPath &Txn,
     // Nothing to be done here
     return;
   }
-  if (Paths.size() == 1 && Paths.begin()->empty()) {
+  if (isEpsilon()) {
     Paths.clear();
     Paths.insert(Txn);
     return;
@@ -478,9 +478,9 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
   return OS << " }";
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::initialSeeds()
+auto FieldSensAllocSitesAwareIFDSProblemBase::makeInitialSeeds(
+    const InitialSeeds<n_t, d_t, BinaryDomain> &UserSeeds)
     -> InitialSeeds<n_t, d_t, l_t> {
-  auto UserSeeds = UserProblem->initialSeeds();
   InitialSeeds<n_t, d_t, l_t>::GeneralizedSeeds Ret;
 
   for (const auto &[Inst, Facts] : UserSeeds.getSeeds()) {
@@ -493,6 +493,54 @@ auto FieldSensAllocSitesAwareIFDSProblem::initialSeeds()
   return {std::move(Ret)};
 }
 
+auto FieldSensAllocSitesAwareIFDSProblem::getStoreEdgeFunction(
+    d_t CurrNode, d_t SuccNode, d_t PointerOp, d_t ValueOp, uint8_t DepthKLimit,
+    const llvm::DataLayout &DL) -> EdgeFunction<l_t> {
+  auto [BasePtr, Offset] = getBaseAndOffset(PointerOp, DL);
+
+  // TODO;: How to deal with BasePtr?
+
+  auto [BaseBasePtr,
+        BaseOffset] = [&]() -> std::pair<const llvm::Value *, int32_t> {
+    if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
+      return getBaseAndOffset(
+          llvm::cast<llvm::LoadInst>(BasePtr)->getPointerOperand(), DL);
+    }
+
+    return {nullptr, INT32_MIN};
+  }();
+  if (CurrNode == SuccNode &&
+      (BasePtr == CurrNode || BaseBasePtr == CurrNode)) {
+    // Kill
+
+    CFLFieldAccessPath FieldString{};
+    FieldString.Kills.insert(Offset);
+    return CFLFieldSensEdgeFunction::from(std::move(FieldString), DepthKLimit);
+  }
+
+  if (ValueOp == CurrNode && CurrNode != SuccNode) {
+    // Store
+
+    CFLFieldAccessPath FieldString{};
+    if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
+      // This is a hack, to be more correct with field-insensitive alias
+      // information
+
+      if (BaseBasePtr == SuccNode) {
+        // push before Offset, or after?
+        FieldString.Stores.push_back(BaseOffset);
+      }
+    }
+
+    FieldString.Stores.push_back(Offset);
+
+    return CFLFieldSensEdgeFunction::from(std::move(FieldString), DepthKLimit);
+  }
+
+  // unaffected by the store
+  return EdgeIdentity<l_t>{};
+}
+
 auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     n_t Curr, d_t CurrNode, n_t /*Succ*/, d_t SuccNode) -> EdgeFunction<l_t> {
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
@@ -502,55 +550,9 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
   }
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
-    const auto *PointerOp = Store->getPointerOperand();
-
-    // TODO;: How to deal with BasePtr?
-
-    const auto &DL = IRDB->getModule()->getDataLayout();
-    auto [BasePtr, Offset] = getBaseAndOffset(PointerOp, DL);
-
-    auto [BaseBasePtr,
-          BaseOffset] = [&]() -> std::pair<const llvm::Value *, int32_t> {
-      if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
-        return getBaseAndOffset(
-            llvm::cast<llvm::LoadInst>(BasePtr)->getPointerOperand(), DL);
-      }
-
-      return {nullptr, INT32_MIN};
-    }();
-    if (CurrNode == SuccNode &&
-        (BasePtr == CurrNode || BaseBasePtr == CurrNode)) {
-      // Kill
-
-      CFLFieldAccessPath FieldString{};
-      FieldString.Kills.insert(Offset);
-      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
-                                            DepthKLimit);
-    }
-
-    const auto *ValueOp = Store->getValueOperand();
-    if (ValueOp == CurrNode && CurrNode != SuccNode) {
-      // Store
-
-      CFLFieldAccessPath FieldString{};
-      if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
-        // This is a hack, to be more correct wih field-insensitive alias
-        // information
-
-        if (BaseBasePtr == SuccNode) {
-          // push before Offset, or after?
-          FieldString.Stores.push_back(BaseOffset);
-        }
-      }
-
-      FieldString.Stores.push_back(Offset);
-
-      return CFLFieldSensEdgeFunction::from(std::move(FieldString),
-                                            DepthKLimit);
-    }
-
-    // unaffected by the store
-    return EdgeIdentity<l_t>{};
+    return getStoreEdgeFunction(CurrNode, SuccNode, Store->getPointerOperand(),
+                                Store->getValueOperand(), DepthKLimit,
+                                IRDB->getModule()->getDataLayout());
   }
 
   if (Curr == SuccNode) {
@@ -686,10 +688,22 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
 
     if (FldSensL && FldSensR) {
+      if (FldSensR->Transform.isEpsilon()) {
+        // llvm::errs() << "[EXTEND]: identity transformation!\n";
+        return L;
+      }
 
-      // TODO: Be smarter with copying the transforms:
+      if (FldSensL->Transform.Paths.empty()) {
+        llvm::errs() << "[EXTEND]: Empty prefix!\n";
+        return L;
+      }
+
       auto Txn = FldSensL->Transform;
       Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
+      if (Txn.Paths.empty()) {
+        // llvm::errs() << "[EXTEND]: kill flow\n";
+        return allTopFunction();
+      }
       // TODO: k-limit the number of paths!
       return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
@@ -726,18 +740,28 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
     if (FldSensL) {
       if (FldSensR) {
+        const auto &LPaths = FldSensL->Transform.Paths;
+        const auto &RPaths = FldSensR->Transform.Paths;
+        const auto LeftSz = LPaths.size();
+        const auto RightSz = RPaths.size();
+        const auto LeftSmaller = LeftSz < RightSz;
 
-        const bool LeftSmaller =
-            FldSensL->Transform.Paths.size() < FldSensR->Transform.Paths.size();
+        if (LeftSz && RightSz) {
+          const auto &Larger = LeftSmaller ? RPaths : LPaths;
+          const auto &Smaller = LeftSmaller ? LPaths : RPaths;
 
-        bool Changed = false;
-        auto Union = setUnion(FldSensL->Transform.Paths,
-                              FldSensR->Transform.Paths, &Changed);
+          auto It = Smaller.begin();
+          const auto End = Smaller.end();
+          for (; It != End; ++It) {
+            if (!Larger.contains(*It)) {
+              auto Union = LeftSmaller ? RPaths : LPaths;
+              Union.insert(It, End);
 
-        if (Changed) {
-          // TODO: k-limit the number of paths!
-          return CFLFieldSensEdgeFunction::from(
-              CFLFieldSensEdgeValue{std::move(Union)}, DepthKLimit);
+              // TODO: k-limit the number of paths!
+              return CFLFieldSensEdgeFunction::from(
+                  CFLFieldSensEdgeValue{std::move(Union)}, DepthKLimit);
+            }
+          }
         }
 
         return LeftSmaller ? R : L;
