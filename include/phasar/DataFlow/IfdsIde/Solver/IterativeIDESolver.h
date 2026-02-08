@@ -150,25 +150,23 @@ public:
   IterativeIDESolver(ProblemTy *Problem, const i_t *ICFG) noexcept
       : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
 
-  void solve() {
-    doInitialize();
-
-    performDataflowFactPropagation();
-
-    /// Finished Phase I, now go for Phase II if necessary
-    performValuePropagation();
+  auto solve() & {
+    solveImpl();
+    return getSolverResults();
+  }
+  [[nodiscard]] auto solve() && {
+    solveImpl();
+    return consumeSolverResults();
   }
 
-  [[nodiscard]] IdBasedSolverResults<n_t, d_t, l_t>
-  getSolverResults() const noexcept {
+  [[nodiscard]] auto getSolverResults() const noexcept {
     return IdBasedSolverResults<n_t, d_t, l_t>(this);
   }
 
-  [[nodiscard]] IdBasedSolverResults<n_t, d_t, l_t>
-  consumeSolverResults() noexcept {
-    return IdBasedSolverResults<n_t, d_t, l_t>(
-        std::make_unique<detail::IterativeIDESolverResults<n_t, d_t, l_t>>(
-            std::move(*this)));
+  [[nodiscard]] auto consumeSolverResults() noexcept {
+    return OwningIdBasedSolverResults<n_t, d_t, l_t>(
+        std::make_unique<base_results_t>(
+            std::move(static_cast<base_results_t &&>(*this))));
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
@@ -359,6 +357,15 @@ private:
   auto doFinalize() && {
     doFinalizeImpl();
     return consumeSolverResults();
+  }
+
+  void solveImpl() {
+    doInitialize();
+
+    performDataflowFactPropagation();
+
+    /// Finished Phase I, now go for Phase II if necessary
+    performValuePropagation();
   }
 
   void performDataflowFactPropagation() {
