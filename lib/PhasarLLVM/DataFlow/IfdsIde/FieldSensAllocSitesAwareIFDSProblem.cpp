@@ -2,14 +2,17 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/Union.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/APInt.h"
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Operator.h"
@@ -151,11 +154,13 @@ struct CFLFieldSensEdgeFunction {
     return true;
   }
 
-  if (F.Stores.back() != Offs) {
+  if (F.Stores.back() != Offs &&
+      F.Stores.back() != CFLFieldAccessPath::TopOffset) {
     return false;
   }
 
-  assert(F.Stores.back() == Offs);
+  assert(F.Stores.back() == Offs ||
+         F.Stores.back() == CFLFieldAccessPath::TopOffset);
   F.Offset = 0;
   F.Stores.pop_back();
   // llvm::errs() << "> pop_back\n";
@@ -164,7 +169,11 @@ struct CFLFieldSensEdgeFunction {
 
 [[nodiscard]] auto applyOneGepAndKill(CFLFieldAccessPath &F, GEPEvent Evt,
                                       uint8_t /*DepthKLimit*/) {
-  auto Offs = F.Offset + Evt.Field;
+  auto Offs = addOffsets(F.Offset, Evt.Field);
+  if (Offs == CFLFieldAccessPath::TopOffset) {
+    // We cannot kill Top
+    return true;
+  }
 
   if (F.Stores.empty()) {
     F.Kills.insert(Offs);
@@ -210,7 +219,7 @@ void CFLFieldSensEdgeValue::applyGepAndStore(GEPEvent Evt,
       // TODO: Optimize:
       F.Stores.erase(F.Stores.begin());
     }
-    F.Stores.push_back(std::exchange(F.Offset, 0) + Evt.Field);
+    F.Stores.push_back(addOffsets(std::exchange(F.Offset, 0), Evt.Field));
     Paths.insert(std::move(F));
   }
 
@@ -224,7 +233,7 @@ void CFLFieldSensEdgeValue::applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit) {
   auto Save = std::exchange(Paths, {});
 
   for (const auto &F : Save) {
-    auto Offs = F.Offset + Evt.Field;
+    auto Offs = addOffsets(F.Offset, Evt.Field);
     if (F.Stores.empty()) {
 
       if (F.kills(Offs)) {
@@ -247,7 +256,8 @@ void CFLFieldSensEdgeValue::applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit) {
       continue;
     }
 
-    if (F.Stores.back() != Offs) {
+    if (F.Stores.back() != Offs &&
+        F.Stores.back() != CFLFieldAccessPath::TopOffset) {
       continue;
     }
 
@@ -268,7 +278,7 @@ void CFLFieldSensEdgeValue::applyGepAndKill(GEPEvent Evt) {
   auto Save = std::exchange(Paths, {});
 
   for (const auto &F : Save) {
-    auto Offs = F.Offset + Evt.Field;
+    auto Offs = addOffsets(F.Offset, Evt.Field);
 
     if (F.Stores.empty()) {
       auto FF = F;
@@ -543,6 +553,13 @@ auto FieldSensAllocSitesAwareIFDSProblem::getStoreEdgeFunction(
 
 auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
     n_t Curr, d_t CurrNode, n_t /*Succ*/, d_t SuccNode) -> EdgeFunction<l_t> {
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getNormalEdgeFunction]:");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(Curr));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  CurrNode: " << DToString(CurrNode));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  SuccNode: " << DToString(SuccNode));
+
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
@@ -588,8 +605,15 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 }
 
 auto FieldSensAllocSitesAwareIFDSProblem::getCallEdgeFunction(
-    n_t /*CallSite*/, d_t SrcNode, f_t /*DestinationFunction*/, d_t DestNode)
+    n_t CallSite, d_t SrcNode, f_t /*DestinationFunction*/, d_t DestNode)
     -> EdgeFunction<l_t> {
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getCallEdgeFunction]");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(CallSite));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  CurrNode: " << DToString(SrcNode));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  SuccNode: " << DToString(DestNode));
+
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     // Gen from zero
 
@@ -601,8 +625,15 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallEdgeFunction(
 }
 
 auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
-    n_t /*CallSite*/, f_t /*CalleeFunction*/, n_t /*ExitStmt*/, d_t ExitNode,
+    n_t /*CallSite*/, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
     n_t /*RetSite*/, d_t RetNode) -> EdgeFunction<l_t> {
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getReturnEdgeFunction]");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(ExitStmt));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  CurrNode: " << DToString(ExitNode));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  SuccNode: " << DToString(RetNode));
+
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
     // Gen from zero
 
@@ -615,6 +646,13 @@ auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
 auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
+
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getCallToRetEdgeFunction]");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(CallSite));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  CurrNode: " << DToString(CallNode));
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                       "  SuccNode: " << DToString(RetSiteNode));
 
   if (CallNode == RetSiteNode && Config.KillsAt) {
     if (auto KillOffs = Config.KillsAt(CallSite, CallNode)) {
@@ -638,13 +676,12 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
 auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
     n_t Curr, d_t CurrNode, n_t /*Succ*/, d_t SuccNode) -> EdgeFunction<l_t> {
 
-  PHASAR_LOG_LEVEL_CAT(
-      DEBUG, LogCategory,
-      "[getSummaryEdgeFunction]: Curr: " << llvmIRToString(Curr) << ":");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getSummaryEdgeFunction]");
+  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(Curr));
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                       "  > CurrNode: " << llvmIRToString(CurrNode));
+                       "  CurrNode: " << DToString(CurrNode));
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                       "  > SuccNode: " << llvmIRToString(SuccNode));
+                       "  SuccNode: " << DToString(SuccNode));
 
   if (CurrNode == SuccNode && Config.KillsAt) {
     if (auto KillOffs = Config.KillsAt(Curr, CurrNode)) {
@@ -672,6 +709,31 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
+void klimitPaths(auto &Paths) {
+
+  llvm::SmallDenseMap<CFLFieldAccessPath, llvm::SmallVector<CFLFieldAccessPath>,
+                      2, CFLFieldAccessPathDMI>
+      ToInsert;
+  for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
+    auto It = IIt++;
+    if (!It->Stores.empty()) {
+      CFLFieldAccessPath Approx = *It;
+      Approx.Stores.back() = CFLFieldAccessPath::TopOffset;
+      ToInsert[std::move(Approx)].push_back(*It);
+      Paths.erase(It);
+    }
+  }
+  for (auto &&[Approx, OrigPaths] : ToInsert) {
+    if (OrigPaths.size() > 2) {
+      Paths.insert(Approx);
+    } else {
+      Paths.insert(OrigPaths.begin(), OrigPaths.end());
+    }
+  }
+}
+
+static constexpr ptrdiff_t BreadthKLimit = 5;
+
 auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                                  const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
@@ -694,17 +756,20 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
       }
 
       if (FldSensL->Transform.Paths.empty()) {
-        llvm::errs() << "[EXTEND]: Empty prefix!\n";
+        // llvm::errs() << "[EXTEND]: Empty prefix!\n";
         return L;
       }
 
       auto Txn = FldSensL->Transform;
       Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
-      if (Txn.Paths.empty()) {
-        // llvm::errs() << "[EXTEND]: kill flow\n";
-        return allTopFunction();
+      // if (Txn.Paths.empty()) {
+      //   // llvm::errs() << "[EXTEND]: kill flow\n";
+      //   return allTopFunction();
+      // }
+
+      if (Txn.Paths.size() > BreadthKLimit) {
+        klimitPaths(Txn.Paths);
       }
-      // TODO: k-limit the number of paths!
       return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
 
@@ -714,8 +779,10 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
                              llvm::Twine(to_string(R)));
   }();
 
+  // if (!L.isa<EdgeIdentity<l_t>>() && !R.isa<EdgeIdentity<l_t>>()) {
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
                        "EXTEND " << L << " X " << R << " ==> " << Ret);
+  // }
 
   return Ret;
 }
@@ -752,10 +819,16 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
           auto It = Smaller.begin();
           const auto End = Smaller.end();
+
           for (; It != End; ++It) {
             if (!Larger.contains(*It)) {
               auto Union = LeftSmaller ? RPaths : LPaths;
+
               Union.insert(It, End);
+
+              if (Union.size() > BreadthKLimit) {
+                klimitPaths(Union);
+              }
 
               // TODO: k-limit the number of paths!
               return CFLFieldSensEdgeFunction::from(

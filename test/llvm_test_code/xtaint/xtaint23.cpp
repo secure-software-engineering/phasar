@@ -11,7 +11,7 @@ struct iterator {
 
 int main([[clang::annotate("psr.source")]] int argc, char *argv[]) {
   int arr[10]{};
-  arr[5] = argc;
+  arr[4] = argc;
 
   for (iterator it = {arr}, end = {arr + 10}; it.it != end.it; it.next()) {
     print(*it.it);

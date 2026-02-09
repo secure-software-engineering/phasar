@@ -54,8 +54,13 @@ auto detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl::
 
     const auto &DL = Store->getModule()->getDataLayout();
     const auto *PointerBase = getBase(Store->getPointerOperand(), DL);
-    const auto *ValueBase = getBase(Store->getValueOperand(), DL);
+    const auto *ValueBase = Store->getValueOperand();
     container_type Gen = getReachableAllocationSites(AS, PointerBase, Store);
+
+    // llvm::errs() << "At store " << llvmIRToString(Curr)
+    //              << ": ReachableAllocationSites: " << PrettyPrinter{Gen}
+    //              << '\n';
+
     Gen.insert(ValueBase);
     // auto ValueAllocSites =
     //     getReachableAllocationSites(AS, Store->getValueOperand(), Store);

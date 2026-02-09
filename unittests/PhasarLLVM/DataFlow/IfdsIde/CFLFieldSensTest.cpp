@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/Twine.h"
@@ -148,7 +149,8 @@ protected:
   using TaintSetT = std::set<TestingSrcLocation>;
 
   void run(const llvm::Twine &IRFileName,
-           const std::map<TestingSrcLocation, TaintSetT> &GroundTruth) {
+           const std::map<TestingSrcLocation, TaintSetT> &GroundTruth,
+           bool ShouldDumpResults = false) {
     auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRFileName);
 
     auto GroundTruthEntries =
@@ -198,9 +200,9 @@ protected:
     }
 
     EXPECT_EQ(GroundTruthEntries, ComputedLeaks);
-    // if (HasFailure()) {
-    Solver.dumpResults();
-    // }
+    if (ShouldDumpResults || HasFailure()) {
+      Solver.dumpResults();
+    }
   }
 };
 
@@ -331,20 +333,22 @@ TEST_F(CFLFieldSensTest, Basic_20) {
 
 TEST_F(CFLFieldSensTest, Basic_22) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
-      // TODO
+      {LineColFun{9, 5, "main"}, {LineColFun{9, 11, "main"}}},
   };
 
+  // psr::Logger::initializeStderrLogger(
+  //     psr::SeverityLevel::DEBUG,
+  //     psr::FieldSensAllocSitesAwareIFDSProblem::LogCategory.str());
+
   run({PathToLLFiles + "xtaint22_cpp_dbg.ll"}, GroundTruth);
-  FAIL() << "Not Implemented yet";
 }
 
 TEST_F(CFLFieldSensTest, Basic_23) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
-      // TODO
+      {LineColFun{17, 5, "main"}, {LineColFun{17, 11, "main"}}},
   };
 
   run({PathToLLFiles + "xtaint23_cpp_dbg.ll"}, GroundTruth);
-  FAIL() << "Not Implemented yet";
 }
 
 } // namespace

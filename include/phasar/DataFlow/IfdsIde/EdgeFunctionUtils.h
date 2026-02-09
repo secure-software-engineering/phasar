@@ -39,6 +39,10 @@ template <typename L> struct EdgeIdentity final {
   [[nodiscard]] static EdgeFunction<l_t>
   join(EdgeFunctionRef<EdgeIdentity> This,
        const EdgeFunction<l_t> &OtherFunction);
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, EdgeIdentity) {
+    return OS << "EdgeIdentity";
+  }
 };
 
 template <typename L> struct ConstantEdgeFunction {
@@ -151,6 +155,10 @@ template <typename L> struct AllBottom final {
   {
     return LHS.BottomValue == RHS.BottomValue;
   }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AllBottom) {
+    return OS << "AllBottom";
+  }
 };
 
 template <typename L> struct AllTop final {
@@ -188,6 +196,10 @@ template <typename L> struct AllTop final {
     requires(!HasJoinLatticeTraits<L>)
   {
     return LHS.TopValue == RHS.TopValue;
+  }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AllTop) {
+    return OS << "AllTop";
   }
 };
 
