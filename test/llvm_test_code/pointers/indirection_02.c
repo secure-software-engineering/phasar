@@ -17,5 +17,10 @@ int main() {
   Boar.Next = &Bar;
   Baz.Next = &Boar;
 
-  return (int)Boar.Next;
+  LinkedList *AliasOne = Foo.Next;
+  LinkedList *AliasTwo = Bar.Next;
+  LinkedList *AliasThree = Baz.Next;
+  LinkedList *AliasFour = Boar.Next;
+
+  return 0;
 }

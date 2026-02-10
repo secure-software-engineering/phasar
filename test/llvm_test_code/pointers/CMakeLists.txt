@@ -29,8 +29,20 @@ set(lca_files
   context_12_1.c
   context_13_0.c
   context_13_1.c
+  context_14_0.c
+  context_14_1.c
+  context_14_2.c
   indirection_01.c
   indirection_02.c
+  indirection_03.c
+  indirection_04.c
+  indirection_05.c
+  indirection_06.c
+  indirection_07.c
+  indirection_08.c
+  indirection_09.c
+  indirection_10.c
+  indirection_11.c
 )
 
 set(lca_files_mem2reg

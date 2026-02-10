@@ -8,5 +8,7 @@ int main() {
   LinkedList Foo;
   Foo = (LinkedList){0, &Foo};
 
-  return (int)Foo.Next;
+  LinkedList *Alias = Foo.Next;
+
+  return 0;
 }
