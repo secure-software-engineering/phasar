@@ -65,17 +65,17 @@ template <typename L>
 struct LatticeDomain : public std::variant<Top, L, Bottom> {
   using std::variant<Top, L, Bottom>::variant;
 
-  [[nodiscard]] inline bool isBottom() const noexcept {
+  [[nodiscard]] constexpr bool isBottom() const noexcept {
     return std::holds_alternative<Bottom>(*this);
   }
-  [[nodiscard]] inline bool isTop() const noexcept {
+  [[nodiscard]] constexpr bool isTop() const noexcept {
     return std::holds_alternative<Top>(*this);
   }
 
-  [[nodiscard]] inline L *getValueOrNull() noexcept {
+  [[nodiscard]] constexpr L *getValueOrNull() noexcept {
     return std::get_if<L>(this);
   }
-  [[nodiscard]] inline const L *getValueOrNull() const noexcept {
+  [[nodiscard]] constexpr const L *getValueOrNull() const noexcept {
     return std::get_if<L>(this);
   }
 
@@ -91,11 +91,11 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
     return hash_value(std::get<L>(LD));
   }
 
-  [[nodiscard]] inline L &assertGetValue() noexcept {
+  [[nodiscard]] constexpr L &assertGetValue() noexcept {
     assert(std::holds_alternative<L>(*this));
     return std::get<L>(*this);
   }
-  [[nodiscard]] inline const L &assertGetValue() const noexcept {
+  [[nodiscard]] constexpr const L &assertGetValue() const noexcept {
     assert(std::holds_alternative<L>(*this));
     return std::get<L>(*this);
   }
@@ -128,8 +128,8 @@ inline std::ostream &operator<<(std::ostream &OS, const LatticeDomain<L> &LD) {
 }
 
 template <typename L>
-inline bool operator==(const LatticeDomain<L> &Lhs,
-                       const LatticeDomain<L> &Rhs) {
+constexpr bool operator==(const LatticeDomain<L> &Lhs,
+                          const LatticeDomain<L> &Rhs) {
   if (Lhs.index() != Rhs.index()) {
     return false;
   }
@@ -142,42 +142,27 @@ inline bool operator==(const LatticeDomain<L> &Lhs,
 
 template <typename L, typename LL>
   requires AreEqualityComparable<LL, L>
-inline bool operator==(const LL &Lhs, const LatticeDomain<L> &Rhs) {
-  if (auto RVal = Rhs.getValueOrNull()) {
-    return Lhs == *RVal;
+constexpr bool operator==(const LatticeDomain<L> &Lhs, const LL &Rhs) {
+  if (auto LVal = Lhs.getValueOrNull()) {
+    return *LVal == Rhs;
   }
   return false;
 }
 
-template <typename L, typename LL>
-  requires AreEqualityComparable<LL, L>
-inline bool operator==(const LatticeDomain<L> &Lhs, const LL &Rhs) {
-  return Rhs == Lhs;
-}
-
 template <typename L>
-inline bool operator==(const LatticeDomain<L> &Lhs, Bottom /*Rhs*/) noexcept {
+constexpr bool operator==(const LatticeDomain<L> &Lhs,
+                          Bottom /*Rhs*/) noexcept {
   return Lhs.isBottom();
 }
 
 template <typename L>
-inline bool operator==(const LatticeDomain<L> &Lhs, Top /*Rhs*/) noexcept {
+constexpr bool operator==(const LatticeDomain<L> &Lhs, Top /*Rhs*/) noexcept {
   return Lhs.isTop();
 }
 
 template <typename L>
-inline bool operator==(Bottom /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
-  return Rhs.isBottom();
-}
-
-template <typename L>
-inline bool operator==(Top /*Lhs*/, const LatticeDomain<L> &Rhs) noexcept {
-  return Rhs.isTop();
-}
-
-template <typename L>
-inline bool operator<(const LatticeDomain<L> &Lhs,
-                      const LatticeDomain<L> &Rhs) {
+constexpr bool operator<(const LatticeDomain<L> &Lhs,
+                         const LatticeDomain<L> &Rhs) {
   /// Top < (Lhs::L < Rhs::L) < Bottom
   if (Rhs.isTop()) {
     return false;
@@ -202,8 +187,8 @@ template <typename L> struct JoinLatticeTraits<LatticeDomain<L>> {
   using l_t = L;
   static constexpr Bottom bottom() noexcept { return {}; }
   static constexpr Top top() noexcept { return {}; }
-  static LatticeDomain<L> join(ByConstRef<LatticeDomain<l_t>> LHS,
-                               ByConstRef<LatticeDomain<l_t>> RHS) {
+  static constexpr LatticeDomain<L> join(ByConstRef<LatticeDomain<l_t>> LHS,
+                                         ByConstRef<LatticeDomain<l_t>> RHS) {
     // Top < (Lhs::l_t < Rhs::l_t) < Bottom
     if (LHS.isTop() || LHS == RHS) {
       return RHS;
@@ -225,7 +210,7 @@ template <typename L>
 struct NonTopBotValue<LatticeDomain<L>> {
   using type = L;
 
-  static L unwrap(LatticeDomain<L> Value) noexcept(
+  constexpr static L unwrap(LatticeDomain<L> Value) noexcept(
       std::is_nothrow_move_constructible_v<L>) {
     return std::get<L>(std::move(Value));
   }
@@ -235,7 +220,7 @@ struct NonTopBotValue<LatticeDomain<L>> {
 
 namespace std {
 template <typename L> struct hash<psr::LatticeDomain<L>> {
-  size_t operator()(const psr::LatticeDomain<L> &LD) noexcept {
+  constexpr size_t operator()(const psr::LatticeDomain<L> &LD) noexcept {
     if (LD.isBottom()) {
       return SIZE_MAX;
     }
