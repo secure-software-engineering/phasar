@@ -20,10 +20,10 @@ public:
 };
 
 int main() {
-  Foo First;
-  Bar Second;
-  Baz Third;
-  Boar Fourth;
+  Foo First{};
+  Bar Second{};
+  Baz Third{};
+  Boar Fourth{};
 
   int x = First.Func();
   int y = Second.Func();

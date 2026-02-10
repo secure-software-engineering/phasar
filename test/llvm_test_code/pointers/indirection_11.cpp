@@ -25,11 +25,11 @@ public:
 };
 
 int main() {
-  Foo First;
-  Bar Second;
-  Baz Third;
-  Boar Fourth;
-  Far Fifth;
+  Foo First{};
+  Bar Second{};
+  Baz Third{};
+  Boar Fourth{};
+  Far Fifth{};
 
   int x = First.Func();
   int y = Second.Func();

@@ -10,8 +10,8 @@ public:
 };
 
 int main() {
-  Foo First;
-  Bar Second;
+  Foo First{};
+  Bar Second{};
 
   int x = First.Func();
   int y = Second.Func();

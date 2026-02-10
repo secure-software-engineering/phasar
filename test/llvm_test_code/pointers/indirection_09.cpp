@@ -15,9 +15,9 @@ public:
 };
 
 int main() {
-  Foo First;
-  Bar Second;
-  Baz Third;
+  Foo First{};
+  Bar Second{};
+  Baz Third{};
 
   int x = First.Func();
   int y = Second.Func();
