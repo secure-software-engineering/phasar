@@ -18,6 +18,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -37,7 +39,7 @@ namespace psr {
 
 class LLVMBasedCFG;
 class LLVMBasedICFG;
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 
 struct IntraMonoSolverTestAnalysisDomain : public LLVMAnalysisDomainDefault {
   using mono_container_t = BitVectorSet<LLVMAnalysisDomainDefault::d_t>;
@@ -54,8 +56,8 @@ public:
   using i_t = IntraMonoSolverTestAnalysisDomain::i_t;
   using mono_container_t = IntraMonoSolverTestAnalysisDomain::mono_container_t;
 
-  IntraMonoSolverTest(const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                      const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
+  IntraMonoSolverTest(const LLVMProjectIRDB *IRDB, const LLVMBasedCFG *CF,
+                      LLVMAliasInfoRef PT,
                       std::vector<std::string> EntryPoints = {});
 
   ~IntraMonoSolverTest() override = default;

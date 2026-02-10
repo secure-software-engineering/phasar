@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
@@ -22,7 +23,6 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -33,6 +33,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
+#include <concepts>
 #include <functional>
 #include <memory>
 #include <set>
@@ -40,9 +41,6 @@
 #include <type_traits>
 
 namespace psr {
-
-class LLVMBasedICFG;
-template <typename N, typename D, typename L> class SolverResults;
 
 struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
   using d_t = AbstractMemoryLocation;
@@ -52,6 +50,8 @@ struct IDEExtendedTaintAnalysisDomain : public LLVMAnalysisDomainDefault {
 };
 namespace XTaint {
 
+/// \brief An IDE-based taint analysis that uses k-limited field-access paths to
+/// achieve field sensitivity
 class IDEExtendedTaintAnalysis
     : public IDETabulationProblem<IDEExtendedTaintAnalysisDomain>,
       public AnalysisBase {
@@ -122,10 +122,9 @@ private:
                                  const llvm::Value *ValueOp,
                                  const llvm::Instruction *Store);
 
-  template <typename CallBack, typename = std::enable_if_t<std::is_invocable_v<
-                                   CallBack, const llvm::Value *>>>
   void forEachAliasOf(AliasInfoRef<v_t, n_t>::AliasSetPtrTy PTS,
-                      const llvm::Value *Of, CallBack &&CB) {
+                      const llvm::Value *Of,
+                      std::invocable<const llvm::Value *> auto &&CB) {
     if (!HasPreciseAliasInfo) {
       auto OfFF = makeFlowFact(Of);
       for (const auto *Alias : *PTS) {
@@ -153,8 +152,6 @@ private:
     }
   }
 
-  static const llvm::Value *getVAListTagOrNull(const llvm::Function *DestFun);
-
   void populateWithMayAliases(SourceConfigTy &Facts);
 
   bool isMustAlias(const SanitizerConfigTy &Facts, d_t CurrNod);
@@ -170,7 +167,7 @@ private:
                                    SourceConfigTy &&SourceConfig,
                                    SinkConfigTy &&SinkConfig);
 
-  void doPostProcessing(const SolverResults<n_t, d_t, l_t> &SR);
+  void doPostProcessing(GenericSolverResults<n_t, d_t, l_t> SR);
 
 public:
   /// Constructor. If EntryPoints is empty, use the TaintAPI functions as
@@ -250,7 +247,7 @@ public:
 
   // Printing functions
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
 private:
@@ -289,13 +286,13 @@ public:
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  const LeakMap_t &getAllLeaks(const SolverResults<n_t, d_t, l_t> &SR) &;
+  const LeakMap_t &getAllLeaks(GenericSolverResults<n_t, d_t, l_t> SR) &;
 
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may not be sanitized.
   ///
   /// This function involves a post-processing step the first time it is called.
-  LeakMap_t getAllLeaks(const SolverResults<n_t, d_t, l_t> &SR) &&;
+  LeakMap_t getAllLeaks(GenericSolverResults<n_t, d_t, l_t> SR) &&;
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
   /// may or may not be sanitized.
   ///

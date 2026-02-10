@@ -10,9 +10,7 @@
 #define PHASAR_UTILS_DEBUGOUTPUT_H
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/TypeTraits.h"
 
-#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/raw_ostream.h"
@@ -24,6 +22,9 @@
 
 namespace psr {
 namespace detail {
+
+/// \file This file contains many useful ways of printing information for
+/// debugging purposes.
 
 template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data);
 

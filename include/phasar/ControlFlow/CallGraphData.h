@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CALLGRAPHDATA_H
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
@@ -18,8 +19,12 @@
 #include <vector>
 
 namespace psr {
+
+/// A data structure used for storing, serializing and deserializing call-graph
+/// information.
 struct CallGraphData {
-  // Mangled FunName --> [CS-IDs]
+
+  /// Mangled FunName --> [CS-IDs]
   std::unordered_map<std::string, std::vector<uint32_t>> FToFunctionVertexTy{};
 
   CallGraphData() noexcept = default;

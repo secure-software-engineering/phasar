@@ -17,18 +17,21 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
 #include "llvm/IR/Value.h"
@@ -40,7 +43,6 @@
 #include <memory>
 #include <mutex>
 
-using namespace std;
 using namespace psr;
 
 bool psr::isIntegerLikeType(const llvm::Type *T) noexcept {
@@ -67,9 +69,14 @@ bool psr::isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
 }
 
 bool psr::isHeapAllocatingFunction(const llvm::Function *Fun) noexcept {
-  return llvm::StringSwitch<bool>(Fun->getName())
-      .Cases("_Znwm", "_Znam", "_ZnwPv", "malloc", "calloc", "realloc", true)
-      .Default(false);
+  auto FunName = Fun->getName();
+
+  if (FunName == "realloc") {
+    // For backwards compatibility. We should treat realloc specially.
+    return true;
+  }
+
+  return isHeapAllocatingFunction(FunName);
 }
 
 // For C-style polymorphism we need to check whether a callee candidate would
@@ -155,6 +162,9 @@ std::string psr::llvmIRToString(const llvm::Value *V) {
   if (!V) {
     return "<null>";
   }
+  if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
+    return "fun @" + F->getName().str();
+  }
 
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
@@ -201,7 +211,9 @@ std::string psr::llvmIRToShortString(const llvm::Value *V) {
       I && !I->getType()->isVoidTy()) {
     V->printAsOperand(RSO, true, getModuleSlotTrackerFor(V));
   } else if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
-    RSO << F->getName();
+    RSO << "fun @" << F->getName();
+  } else if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    RSO << "glob @" << Glob->getName();
   } else {
     V->print(RSO, getModuleSlotTrackerFor(V));
   }
@@ -227,11 +239,54 @@ std::string psr::llvmTypeToString(const llvm::Type *Ty, bool Shorten) {
   return IRBuffer;
 }
 
+std::string psr::llvmTypeToString(const llvm::DIType *Ty, bool Shorten) {
+  if (!Ty) {
+    return "<null>";
+  }
+
+  std::string Ret;
+
+  if (Shorten) {
+    Ret = Ty->getName().str();
+    if (!Ret.empty()) {
+      // Try to get a fully-qualified name
+
+      const auto *Scope = Ty->getScope();
+      while (llvm::isa_and_nonnull<llvm::DINamespace, llvm::DISubprogram,
+                                   llvm::DIType>(Scope)) {
+        // XXX: Optimize this
+        Ret = Scope->getName().str().append("::").append(Ret);
+        Scope = Scope->getScope();
+      }
+      return Ret;
+    }
+  }
+
+  llvm::raw_string_ostream RSO(Ret);
+  Ty->print(RSO);
+  return Ret;
+}
+
 void psr::dumpIRValue(const llvm::Value *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
 }
 void psr::dumpIRValue(const llvm::Instruction *V) {
   llvm::outs() << llvmIRToString(V) << '\n';
+}
+void psr::dumpIRValue(const llvm::Function *V) {
+  llvm::outs() << llvmIRToString(V) << '\n';
+}
+
+void psr::dumpDIType(const llvm::DIType *Ty) {
+  if (!Ty) {
+    llvm::errs() << "<null>\n";
+  }
+
+  Ty->print(llvm::errs());
+}
+
+void psr::dumpDIType(const llvm::DIDerivedType *Ty) {
+  dumpDIType(static_cast<const llvm::DIType *>(Ty));
 }
 
 std::vector<const llvm::Value *>
@@ -265,9 +320,9 @@ std::string psr::getMetaDataID(const llvm::Value *V) {
           .str();
     }
   } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    string FName = Arg->getParent()->getName().str();
-    string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
-    return string(FName + "." + ArgNr);
+    std::string FName = Arg->getParent()->getName().str();
+    std::string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
+    return FName + "." + ArgNr;
   }
   return "-1";
 }
@@ -312,15 +367,16 @@ const llvm::Instruction *psr::getNthInstruction(const llvm::Function *F,
 }
 
 llvm::SmallVector<const llvm::Instruction *, 2>
-psr::getAllExitPoints(const llvm::Function *F) {
+psr::getAllExitPoints(const llvm::Function *F, bool IncludeResume) {
   llvm::SmallVector<const llvm::Instruction *, 2> Ret;
-  appendAllExitPoints(F, Ret);
+  appendAllExitPoints(F, Ret, IncludeResume);
   return Ret;
 }
 
 void psr::appendAllExitPoints(
     const llvm::Function *F,
-    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints) {
+    llvm::SmallVectorImpl<const llvm::Instruction *> &ExitPoints,
+    bool IncludeResume) {
   if (!F) {
     return;
   }
@@ -330,7 +386,7 @@ void psr::appendAllExitPoints(
     assert(Term && "Invalid IR: Each BasicBlock must have a terminator "
                    "instruction at the end");
     if (llvm::isa<llvm::ReturnInst>(Term) ||
-        llvm::isa<llvm::ResumeInst>(Term)) {
+        (IncludeResume && llvm::isa<llvm::ResumeInst>(Term))) {
       ExitPoints.push_back(Term);
     }
   }
@@ -432,7 +488,7 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   }
   if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     // ZGV is the encoding of "GuardVariable"
-    return GV->getName().startswith("_ZGV");
+    return GV->getName().starts_with("_ZGV");
   }
   return false;
 }
@@ -553,4 +609,52 @@ void ModulesToSlotTracker::deleteMSTForModule(const llvm::Module *M) {
   if (--It->second->RefCount == 0) {
     MToST.erase(It);
   }
+}
+
+const llvm::AllocaInst *psr::getVaListTagOrNull(const llvm::Function &Fun) {
+  if (Fun.isDeclaration()) {
+    return nullptr;
+  }
+  for (const auto &I : llvm::instructions(Fun)) {
+    if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I);
+        Alloca && isVaListAlloca(*Alloca)) {
+      return Alloca;
+    }
+  }
+  return nullptr;
+}
+
+bool psr::isVaListAlloca(const llvm::AllocaInst &Alloc) {
+  // Over-approximate by trying to add the
+  //   alloca [1 x %struct.__va_list_tag], align 16
+  // to the results
+
+  const auto *Ty = Alloc.getAllocatedType();
+  if (Ty->isArrayTy() && Ty->getArrayNumElements() > 0 &&
+      Ty->getArrayElementType()->isStructTy() &&
+      Ty->getArrayElementType()->getStructName() == "struct.__va_list_tag") {
+    return true;
+  }
+
+  // On windows, the alloca just allocates a pointer that is directly used by
+  // the va_start intrinsic.
+  // Note that on linux (where the above __va_list_tag heuristic works), the
+  // alloca is *not* directly used by the va_start intrinsic; there, a gep lays
+  // in between
+  for (const auto &Use : Alloc.uses()) {
+    if (llvm::isa<llvm::VAStartInst>(Use.getUser())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+const llvm::DIType *psr::stripPointerTypes(const llvm::DIType *DITy) {
+  while (const auto *DerivedTy =
+             llvm::dyn_cast_if_present<llvm::DIDerivedType>(DITy)) {
+    // get rid of the pointer
+    DITy = DerivedTy->getBaseType();
+  }
+  return DITy;
 }

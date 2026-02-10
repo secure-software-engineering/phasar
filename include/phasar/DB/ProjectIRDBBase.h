@@ -10,6 +10,7 @@
 #ifndef PHASAR_DB_PROJECTIRDBBASE_H
 #define PHASAR_DB_PROJECTIRDBBASE_H
 
+#include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -24,7 +25,7 @@ template <typename DB> struct ProjectIRDBTraits {
   // using g_t
 };
 
-/// This class owns the IR code of the project under analysis and some
+/// This class owns the IR code of the target being analyzed and some
 /// very important information associated with the IR.
 /// When an object of this class is destroyed it will clean up all IR related
 /// stuff that is stored in it.
@@ -36,7 +37,10 @@ template <typename DB> struct ProjectIRDBTraits {
 ///
 /// \remark XXX Once we have upgraded to C++20, we might want to use a concept
 /// instead...
-template <typename Derived> class ProjectIRDBBase {
+template <typename Derived>
+class LLVM_DEPRECATED(
+    "This CRTP mixin is deprecated in favor of the ProjectIRDB-concept",
+    "Use ProjectIRDB instead") ProjectIRDBBase {
 public:
   using n_t = typename ProjectIRDBTraits<Derived>::n_t;
   using f_t = typename ProjectIRDBTraits<Derived>::f_t;
@@ -63,13 +67,14 @@ public:
     return self().getAllFunctionsImpl();
   }
 
-  // Returns the function's definition if available, its declaration otherwise.
-  [[nodiscard]] f_t getFunction(llvm::StringRef FunctionName) const {
+  // Returns the function if available, nullptr/nullopt otherwise.
+  [[nodiscard]] Nullable<f_t> getFunction(llvm::StringRef FunctionName) const {
     assert(isValid());
     return self().getFunctionImpl(FunctionName);
   }
   /// Returns the function's definition if available, null otherwise.
-  [[nodiscard]] f_t getFunctionDefinition(llvm::StringRef FunctionName) const {
+  [[nodiscard]] Nullable<f_t>
+  getFunctionDefinition(llvm::StringRef FunctionName) const {
     assert(isValid());
     return self().getFunctionDefinitionImpl(FunctionName);
   }
@@ -79,8 +84,17 @@ public:
     return self().hasFunctionImpl(FunctionName);
   }
 
-  /// Returns the global variable's definition if available, null otherwise.
-  [[nodiscard]] g_t
+  /// Returns the global variable if available, nullptr/nullopt
+  /// otherwise.
+  [[nodiscard]] Nullable<g_t>
+  getGlobalVariable(llvm::StringRef GlobalVariableName) const {
+    assert(isValid());
+    return self().getGlobalVariableImpl(GlobalVariableName);
+  }
+
+  /// Returns the global variable's definition if available, nullptr/nullopt
+  /// otherwise.
+  [[nodiscard]] Nullable<g_t>
   getGlobalVariableDefinition(llvm::StringRef GlobalVariableName) const {
     assert(isValid());
     return self().getGlobalVariableDefinitionImpl(GlobalVariableName);
@@ -102,9 +116,9 @@ public:
     return self().getNumFunctionsImpl();
   }
 
-  /// Returns the instruction to the corresponding Id. Returns nullptr, if there
-  /// is no instruction for this Id
-  [[nodiscard]] n_t getInstruction(size_t Id) const {
+  /// Returns the instruction to the corresponding Id. Returns nullptr/nullopt,
+  /// if there is no instruction for this Id
+  [[nodiscard]] Nullable<n_t> getInstruction(size_t Id) const {
     assert(isValid());
     return self().getInstructionImpl(Id);
   }

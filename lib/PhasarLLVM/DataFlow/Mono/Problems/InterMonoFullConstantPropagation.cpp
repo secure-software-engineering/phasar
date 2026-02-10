@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/BitVectorSet.h"
 
@@ -34,13 +34,11 @@ using namespace psr;
 namespace psr {
 
 InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
-    const LLVMProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
+    const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints)
-    : IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT,
-                                       std::move(EntryPoints)),
+    : IntraMonoFullConstantPropagation(IRDB, ICF, PT, std::move(EntryPoints)),
       InterMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
-          IRDB, TH, ICF, PT, EntryPoints) {}
+          IRDB, ICF, PT, EntryPoints) {}
 
 InterMonoFullConstantPropagation::mono_container_t
 InterMonoFullConstantPropagation::merge(

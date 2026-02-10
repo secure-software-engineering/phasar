@@ -4,9 +4,11 @@
 bin/*
 
 # build directories for cmake
-build/
-build_*/
-build-*/
+build*/
+cmake-build*/
+cmake-install*/
+CMakeUserPresets.json
+venv/
 
 # LLVM project
 llvm-project/*
@@ -26,12 +28,12 @@ doc/*
 
 # log/ directory
 log/*
-
-# CMake build dir
-build/*
+**/*/logs/
 
 # MS VS Code
-.vscode/*
+.vscode/
+
+.devcontainer/
 
 # Eclipse
 .cproject
@@ -43,12 +45,15 @@ build/*
 .idea/*
 
 # cache
-.cache/*
+.cache/
 
 ##### ignored files
 
 # ignore all auto-generated LLVM IR code
 *.ll
+!utils/conan/llvm-core/all/test_package/test_function.ll
+!test_package/example.ll
+!test_package_cmake/example.ll
 
 # auto generated test files
 *.test

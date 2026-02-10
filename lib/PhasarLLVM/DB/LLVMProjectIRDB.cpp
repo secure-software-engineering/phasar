@@ -1,76 +1,173 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Macros.h"
 
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/AssemblyAnnotationWriter.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/WithColor.h"
 
 #include <charconv>
+#include <memory>
+#include <system_error>
 
 namespace psr {
 
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(llvm::MemoryBufferRef IRFileContent,
-                                         llvm::LLVMContext &Ctx) noexcept {
+static_assert(ProjectIRDB<LLVMProjectIRDB>);
 
+[[deprecated]]
+static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
+#if LLVM_VERSION_MAJOR >= 15 && LLVM_VERSION_MAJOR < 17
+  if (!Enable) {
+    Ctx.setOpaquePointers(false);
+  }
+#elif LLVM_VERSION_MAJOR < 15
+  if (Enable) {
+    Ctx.enableOpaquePointers();
+  }
+#endif
+}
+
+namespace {
+enum class IRDBParsingError {
+  CouldNotParse = 1,
+  CouldNotVerify = 2,
+};
+
+class IRDBParsingErrorCategory : public std::error_category {
+  [[nodiscard]] const char *name() const noexcept override {
+    return "IRDBParsingError";
+  }
+
+  [[nodiscard]] std::string message(int Value) const override {
+    switch (IRDBParsingError(Value)) {
+    case IRDBParsingError::CouldNotParse:
+      return "Could not parse LLVM IR";
+    case IRDBParsingError::CouldNotVerify:
+      return "Parsed LLVM IR could not be verified";
+    default:
+      return "Unknown error while parsing IRDB";
+    }
+  }
+};
+
+PSR_CONSTINIT IRDBParsingErrorCategory IRDBParsingErrorCat{};
+
+std::error_code make_error_code(IRDBParsingError Err) noexcept {
+  return {int(Err), IRDBParsingErrorCat};
+}
+} // namespace
+
+} // namespace psr
+
+namespace std {
+template <> struct is_error_code_enum<psr::IRDBParsingError> : true_type {};
+} // namespace std
+
+namespace psr {
+
+llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+LLVMProjectIRDB::getParsedIRModuleOrErr(llvm::MemoryBufferRef IRFileContent,
+                                        llvm::LLVMContext &Ctx) noexcept {
   llvm::SMDiagnostic Diag;
   std::unique_ptr<llvm::Module> M = llvm::parseIR(IRFileContent, Diag, Ctx);
   bool BrokenDebugInfo = false;
   if (M == nullptr) {
     Diag.print(nullptr, llvm::errs());
-    return nullptr;
+    return IRDBParsingError::CouldNotParse;
   }
-  /* Crash in presence of llvm-3.9.1 module (segfault) */
-  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
+
+  if (llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
     PHASAR_LOG_LEVEL(ERROR, IRFileContent.getBufferIdentifier()
                                 << " could not be parsed correctly!");
-    return nullptr;
+    return IRDBParsingError::CouldNotVerify;
   }
   if (BrokenDebugInfo) {
     PHASAR_LOG_LEVEL(WARNING, "Debug info is broken!");
   }
+
   return M;
 }
 
-std::unique_ptr<llvm::Module>
-LLVMProjectIRDB::getParsedIRModuleOrNull(const llvm::Twine &IRFileName,
-                                         llvm::LLVMContext &Ctx) noexcept {
+llvm::ErrorOr<std::unique_ptr<llvm::Module>>
+LLVMProjectIRDB::getParsedIRModuleOrErr(const llvm::Twine &IRFileName,
+                                        llvm::LLVMContext &Ctx) noexcept {
   // Look at LLVM's IRReader.cpp for reference
 
   auto FileOrErr =
       llvm::MemoryBuffer::getFileOrSTDIN(IRFileName, /*IsText=*/true);
   if (std::error_code EC = FileOrErr.getError()) {
-    llvm::SmallString<128> Buf;
-    auto Err = llvm::SMDiagnostic(IRFileName.toStringRef(Buf),
-                                  llvm::SourceMgr::DK_Error,
-                                  "Could not open input file: " + EC.message());
-    Err.print(nullptr, llvm::errs());
-    return nullptr;
+    return FileOrErr.getError();
   }
-  return getParsedIRModuleOrNull(*FileOrErr.get(), Ctx);
+
+  return getParsedIRModuleOrErr(*FileOrErr.get(), Ctx);
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName) {
+llvm::ErrorOr<LLVMProjectIRDB>
+LLVMProjectIRDB::load(const llvm::Twine &IRFileName) {
+  auto Ctx = std::make_unique<llvm::LLVMContext>();
+  auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
+  if (!M) {
+    return M.getError();
+  }
 
-  auto M = getParsedIRModuleOrNull(IRFileName, Ctx);
+  return LLVMProjectIRDB(std::move(*M), std::move(Ctx));
+}
+
+LLVMProjectIRDB LLVMProjectIRDB::loadOrExit(const llvm::Twine &IRFileName,
+                                            int ErrorExitCode) {
+  auto Ret = load(IRFileName);
+  if (!Ret) {
+    llvm::WithColor::error()
+        << "Could not load LLVM-" << LLVM_VERSION_MAJOR << " IR file "
+        << IRFileName << ": " << Ret.getError().message() << '\n';
+    std::exit(ErrorExitCode);
+  }
+
+  return std::move(*Ret);
+}
+
+LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName)
+    : Ctx(new llvm::LLVMContext()) {
+  auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
 
   if (!M) {
     return;
   }
 
-  auto *NonConst = M.get();
-  Mod = std::move(M);
+  auto *NonConst = M->get();
+  Mod = std::move(M.get());
+  ModulesToSlotTracker::setMSTForModule(Mod.get());
+  preprocessModule(NonConst);
+}
+
+LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
+                                 bool EnableOpaquePointers)
+    : Ctx(new llvm::LLVMContext()) {
+  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
+  auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
+
+  if (!M) {
+    llvm::WithColor::error()
+        << "Could not load LLVM-" << LLVM_VERSION_MAJOR << " IR file "
+        << IRFileName << ": " << M.getError().message() << '\n';
+    return;
+  }
+
+  auto *NonConst = M->get();
+  Mod = std::move(M.get());
   ModulesToSlotTracker::setMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
@@ -155,15 +252,39 @@ LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
   }
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf) {
-  llvm::SMDiagnostic Diag;
-  auto M = getParsedIRModuleOrNull(Buf, Ctx);
+LLVMProjectIRDB::LLVMProjectIRDB(std::unique_ptr<llvm::Module> Mod,
+                                 std::unique_ptr<llvm::LLVMContext> Ctx,
+                                 bool DoPreprocessing)
+    : LLVMProjectIRDB(std::move(Mod), DoPreprocessing) {
+  this->Ctx = std::move(Ctx);
+}
+
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf)
+    : Ctx(new llvm::LLVMContext()) {
+  auto M = getParsedIRModuleOrErr(Buf, *Ctx);
   if (!M) {
     return;
   }
 
-  auto *NonConst = M.get();
-  Mod = std::move(M);
+  auto *NonConst = M->get();
+  Mod = std::move(M.get());
+  ModulesToSlotTracker::setMSTForModule(Mod.get());
+  preprocessModule(NonConst);
+}
+LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
+                                 bool EnableOpaquePointers)
+    : Ctx(new llvm::LLVMContext()) {
+  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
+  auto M = getParsedIRModuleOrErr(Buf, *Ctx);
+  if (!M) {
+    llvm::WithColor::error() << "Could not load " << LLVM_VERSION_MAJOR
+                             << " IR buffer: " << Buf.getBufferIdentifier()
+                             << ": " << M.getError().message() << '\n';
+    return;
+  }
+
+  auto *NonConst = M->get();
+  Mod = std::move(M.get());
   ModulesToSlotTracker::setMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
@@ -200,9 +321,15 @@ LLVMProjectIRDB::getFunctionDefinitionImpl(llvm::StringRef FunctionName) const {
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
+LLVMProjectIRDB::getGlobalVariableImpl(
+    llvm::StringRef GlobalVariableName) const {
+  return Mod->getGlobalVariable(GlobalVariableName, true);
+}
+
+[[nodiscard]] const llvm::GlobalVariable *
 LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
     llvm::StringRef GlobalVariableName) const {
-  auto *G = Mod->getGlobalVariable(GlobalVariableName);
+  const auto *G = getGlobalVariable(GlobalVariableName);
   if (G && !G->isDeclaration()) {
     return G;
   }

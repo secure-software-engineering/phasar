@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(PhasarExttoolTest)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -17,10 +16,7 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
-# Old way using phasar_config:
-#   phasar_config(myphasartool)
-
-# New way using target_link_libraries:
+# Link your tool against phasar:
 target_link_libraries(myphasartool phasar::llvm_ifdside)
 
 # If find_package did not specify components:

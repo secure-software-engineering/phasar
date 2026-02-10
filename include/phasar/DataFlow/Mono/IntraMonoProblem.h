@@ -17,8 +17,8 @@
 #ifndef PHASAR_DATAFLOW_MONO_INTRAMONOPROBLEM_H
 #define PHASAR_DATAFLOW_MONO_INTRAMONOPROBLEM_H
 
-#include "phasar/ControlFlow/CFGBase.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/ControlFlow/CFG.h"
+#include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Pointer/AliasInfo.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Soundness.h"
@@ -32,10 +32,15 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
-template <typename T, typename F> class TypeHierarchy;
-template <typename N, typename F> class CFG;
+template <typename T>
+concept MonoAnalysisDomain = IsAnalysisDomain<T> && BidiCFG<typename T::c_t> &&
+                             CFGEdgesProvider<typename T::c_t> &&
+                             requires() { typename T::mono_container_t; };
 
-template <typename AnalysisDomainTy> class IntraMonoProblem {
+/// \brief The analysis problem interface for intraprocedural monotone problems
+/// (solvable by the IntraMonoSolver). Create a subclass from this and override
+/// all pure-virtual functions to create your own mono analysis.
+template <MonoAnalysisDomain AnalysisDomainTy> class IntraMonoProblem {
 public:
   using n_t = typename AnalysisDomainTy::n_t;
   using d_t = typename AnalysisDomainTy::d_t;
@@ -50,24 +55,26 @@ public:
   using ProblemAnalysisDomain = AnalysisDomainTy;
 
 protected:
-  const ProjectIRDBBase<db_t> *IRDB;
-  const TypeHierarchy<t_t, f_t> *TH;
-  const CFGBase<c_t> *CF;
+  const db_t *IRDB;
+  const c_t *CF;
   AliasInfoRef<v_t, n_t> PT;
   std::vector<std::string> EntryPoints;
   [[maybe_unused]] Soundness S = Soundness::Soundy;
 
 public:
-  // denote that a problem does not require a configuration (type/file)
-  // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
-  IntraMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
-                   const TypeHierarchy<t_t, f_t> *TH, const CFGBase<c_t> *CF,
-                   AliasInfoRef<v_t, n_t> PT,
+  /// An intraprocedural monotone problem generated from an intermediate
+  /// representation, a type hierarchy of said representation, a control flow
+  /// graph, points-to information and optionally a vector of entry points.
+  /// @param[in] IRDB A project IR database.
+  /// @param[in] TH A type hierarchy based on the given IRDB.
+  /// @param[in] CF A control flow graph based on the given IRDB.
+  /// @param[in] PT Points-to information based on the given IRDB.
+  /// @param[in] EntryPoints A vector of entry points. Provide at least one.
+  IntraMonoProblem(const db_t *IRDB, const c_t *CF, AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
-      : IRDB(IRDB), TH(TH), CF(CF), PT(PT),
-        EntryPoints(std::move(EntryPoints)) {}
+      : IRDB(IRDB), CF(CF), PT(PT), EntryPoints(std::move(EntryPoints)) {}
 
   virtual ~IntraMonoProblem() = default;
 
@@ -87,15 +94,9 @@ public:
     return EntryPoints;
   }
 
-  [[nodiscard]] const ProjectIRDBBase<db_t> *getProjectIRDB() const {
-    return IRDB;
-  }
+  [[nodiscard]] const db_t *getProjectIRDB() const { return IRDB; }
 
-  [[nodiscard]] const TypeHierarchy<t_t, f_t> *getTypeHierarchy() const {
-    return TH;
-  }
-
-  [[nodiscard]] const CFGBase<c_t> *getCFG() const { return CF; }
+  [[nodiscard]] const c_t *getCFG() const { return CF; }
 
   [[nodiscard]] AliasInfoRef<v_t, n_t> getPointstoInfo() const { return PT; }
 

@@ -26,16 +26,13 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdlib>
 #include <filesystem>
 #include <system_error>
 #include <type_traits>
-
-namespace llvm {
-class DbgInfoIntrinsic;
-} // namespace llvm
 
 namespace psr {
 template <typename Derived, typename AnalysisDomainTy, typename GraphType>
@@ -70,10 +67,14 @@ protected:
   }
 
 public:
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts in FactsRange holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
       typename FactsRangeTy, typename ConfigTy,
-      typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+      is_pathtracingfilter_for_v<NodeRef> Filter = DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagToAll(n_t Inst, FactsRangeTy FactsRange,
                 const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -87,18 +88,9 @@ public:
       if (LLVM_UNLIKELY(!Nod)) {
         llvm::errs() << "Invalid Instruction-FlowFact pair. Only use those "
                         "pairs that are part of the IDE analysis results!\n";
-        llvm::errs() << "Fatal error occurred. Writing ESG to temp file...\n";
-        llvm::errs().flush();
+        llvm::errs() << "Fatal error occurred. Printing ESG ...\n";
 
-        auto FileName = std::string(tmpnam(nullptr)) + "-explicitesg-err.dot";
-
-        {
-          std::error_code EC;
-          llvm::raw_fd_ostream ROS(FileName, EC);
-          ESG.printAsDot(ROS);
-        }
-
-        llvm::errs() << "> ESG written to " << FileName << '\n';
+        ESG.printAsDot(llvm::errs());
         llvm::errs().flush();
 
         abort();
@@ -150,9 +142,14 @@ public:
     return Dag;
   }
 
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
   template <
-      typename ConfigTy, typename L, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+      typename ConfigTy, typename L,
+      is_pathtracingfilter_for_v<NodeRef> Filter = DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, const SolverResults<n_t, d_t, L> &SR,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -162,9 +159,13 @@ public:
     return pathsDagToAll(std::move(Inst), FactsRange, Config, PFilter);
   }
 
-  template <
-      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  /// Reconstruct the combined control- and data-flow paths the lead to the
+  /// given data-flow fact Fact holding right after Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
+  template <typename ConfigTy, is_pathtracingfilter_for_v<NodeRef> Filter =
+                                   DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagTo(n_t Inst, d_t Fact,
              const PathSensitivityConfigBase<ConfigTy> &Config,
@@ -174,9 +175,13 @@ public:
                          PFilter);
   }
 
-  template <
-      typename ConfigTy, typename Filter = DefaultPathTracingFilter,
-      typename = std::enable_if_t<is_pathtracingfilter_for_v<Filter, NodeRef>>>
+  /// Reconstruct the combined control- and data-flow paths the lead to any of
+  /// the given data-flow facts in FactsRange holding at Inst.
+  ///
+  /// The result is given as graph, where cycles are unrolled once in an
+  /// implementation-defined way.
+  template <typename ConfigTy, is_pathtracingfilter_for_v<NodeRef> Filter =
+                                   DefaultPathTracingFilter>
   [[nodiscard]] GraphType
   pathsDagToInLLVMSSA(n_t Inst, d_t Fact,
                       const PathSensitivityConfigBase<ConfigTy> &Config,

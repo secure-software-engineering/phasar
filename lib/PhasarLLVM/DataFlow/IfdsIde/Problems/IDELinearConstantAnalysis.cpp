@@ -18,11 +18,9 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/Hashing.h"
@@ -349,8 +347,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(n_t Curr, n_t /*Succ*/) {
     /// We are extracting the result of a BinaryOpIntrinsic
     /// The first parameter holds the resulting integer if
     /// no error occured during the operation
-    if (const auto *BinIntrinsic =
-            llvm::dyn_cast<llvm::BinaryOpIntrinsic>(Agg)) {
+    if (llvm::isa<llvm::BinaryOpIntrinsic>(Agg)) {
       if (Extract->getType()->isIntegerTy()) {
         return generateFlow(Curr, Agg);
       }
@@ -586,18 +583,18 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 }
 
 void IDELinearConstantAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
+    GenericSolverResults<n_t, d_t, l_t> SR, llvm::raw_ostream &OS) {
   OS << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
   if (!IRDB->debugInfoAvailable()) {
     // Emit only IR code, function name and module info
     OS << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (const auto *F : ICF->getAllFunctions()) {
+    for (const auto *F : IRDB->getAllFunctions()) {
       std::string FName = getFunctionNameFromIR(F);
       OS << "\nFunction: " << FName << "\n----------"
          << std::string(FName.size(), '-') << '\n';
-      for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+      for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
         auto Results = SR.resultsAt(Stmt, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
@@ -639,15 +636,16 @@ void IDELinearConstantAnalysis::stripBottomResults(
 }
 
 IDELinearConstantAnalysis::lca_results_t
-IDELinearConstantAnalysis::getLCAResults(SolverResults<n_t, d_t, l_t> SR) {
+IDELinearConstantAnalysis::getLCAResults(
+    GenericSolverResults<n_t, d_t, l_t> SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   llvm::outs() << "\n==== Computing LCA Results ====\n";
-  for (const auto *F : ICF->getAllFunctions()) {
+  for (const auto *F : IRDB->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
     llvm::outs() << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
-    for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+    for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
       llvm::outs() << "\nIR : " << NToString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping

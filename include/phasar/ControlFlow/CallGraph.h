@@ -19,10 +19,7 @@
 
 #include "llvm/IR/Function.h"
 
-#include "nlohmann/json.hpp"
-
 #include <functional>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -62,30 +59,6 @@ public:
               FunctionGetter GetFunctionFromName,
               InstructionGetter GetInstructionFromId);
 
-  /// A range of all functions that are vertices in the call-graph. The number
-  /// of vertex functions can be retrieved by getNumVertexFunctions().
-  [[nodiscard]] auto getAllVertexFunctions() const noexcept {
-    return llvm::make_first_range(CallersOf);
-  }
-
-  /// A range of all call-sites that are vertices in the call-graph. The number
-  /// of vertex-callsites can be retrived by getNumVertexCallSites().
-  [[nodiscard]] auto getAllVertexCallSites() const noexcept {
-    return llvm::make_first_range(CalleesAt);
-  }
-
-  [[nodiscard]] size_t getNumVertexFunctions() const noexcept {
-    return CallersOf.size();
-  }
-  [[nodiscard]] size_t getNumVertexCallSites() const noexcept {
-    return CalleesAt.size();
-  }
-
-  /// The number of functions within this call-graph
-  [[nodiscard]] size_t size() const noexcept { return getNumVertexFunctions(); }
-
-  [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
-
   template <typename FunctionIdGetter, typename InstIdGetter>
   void printAsJson(llvm::raw_ostream &OS, FunctionIdGetter GetFunctionId,
                    InstIdGetter GetInstructionId) const {
@@ -105,27 +78,6 @@ public:
     CGData.printAsJson(OS);
   }
 
-  /// Creates a JSON representation of this call-graph suitable for presistent
-  /// storage.
-  /// Use the ctor taking a json object for deserialization
-  template <typename FunctionIdGetter, typename InstIdGetter>
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson(FunctionIdGetter GetFunctionId,
-            InstIdGetter GetInstructionId) const {
-    nlohmann::json J;
-
-    for (const auto &[Fun, Callers] : CallersOf) {
-      auto &JCallers = J[std::invoke(GetFunctionId, Fun)];
-
-      for (const auto &CS : *Callers) {
-        JCallers.push_back(std::invoke(GetInstructionId, CS));
-      }
-    }
-
-    return J;
-  }
-
   template <typename FunctionLabelGetter, typename InstParentGetter,
             typename InstLabelGetter>
   void printAsDot(llvm::raw_ostream &OS, FunctionLabelGetter GetFunctionLabel,
@@ -138,7 +90,7 @@ public:
     Fun2Id.reserve(CallersOf.size());
 
     size_t CurrId = 0;
-    for (const auto &Fun : getAllVertexFunctions()) {
+    for (const auto &Fun : this->getAllVertexFunctions()) {
       OS << CurrId << "[label=\"";
       OS.write_escaped(std::invoke(GetFunctionLabel, Fun)) << "\"];\n";
       Fun2Id[Fun] = CurrId++;
@@ -171,6 +123,25 @@ private:
     return {};
   }
 
+  /// A range of all functions that are vertices in the call-graph. The number
+  /// of vertex functions can be retrieved by getNumVertexFunctions().
+  [[nodiscard]] auto getAllVertexFunctionsImpl() const noexcept {
+    return llvm::make_first_range(CallersOf);
+  }
+
+  /// A range of all call-sites that are vertices in the call-graph. The number
+  /// of vertex-callsites can be retrived by getNumVertexCallSites().
+  [[nodiscard]] auto getAllVertexCallSitesImpl() const noexcept {
+    return llvm::make_first_range(CalleesAt);
+  }
+
+  [[nodiscard]] size_t getNumVertexFunctionsImpl() const noexcept {
+    return CallersOf.size();
+  }
+  [[nodiscard]] size_t getNumVertexCallSitesImpl() const noexcept {
+    return CalleesAt.size();
+  }
+
   // ---
 
   StableVector<InstructionVertexTy> InstVertexOwner;
@@ -201,8 +172,7 @@ public:
   [[nodiscard]] FunctionVertexTy *addFunctionVertex(f_t Fun) {
     auto [It, Inserted] = CG.CallersOf.try_emplace(std::move(Fun), nullptr);
     if (Inserted) {
-      auto Cap = CG.FunVertexOwner.capacity();
-      assert(CG.FunVertexOwner.size() < Cap &&
+      assert(CG.FunVertexOwner.size() < CG.FunVertexOwner.capacity() &&
              "Trying to add more than MaxNumFunctions Function Vertices");
       It->second = &CG.FunVertexOwner.emplace_back();
     }
@@ -299,7 +269,7 @@ CallGraph<N, F>::deserialize(const CallGraphData &PrecomputedCG,
                              "Invalid Call-Instruction Id: " << JId);
       }
 
-      CGBuilder.addCallEdge(CS, Fun);
+      CGBuilder.addCallEdge(CS, Fun, CEdges);
     }
   }
   return CGBuilder.consumeCallGraph();

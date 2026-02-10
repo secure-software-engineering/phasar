@@ -12,15 +12,21 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/Domain/AnalysisDomain.h"
-#include "phasar/Domain/BinaryDomain.h"
 
 #include <set>
 #include <string>
 
 namespace psr {
 
-template <typename AnalysisDomainTy,
+/// \brief The analysis problem interface for IFDS problems (solvable by the
+/// IFDSSolver). Create a subclass from this and override all pure-virtual
+/// functions to create your own IFDS analysis.
+///
+/// For more information on how to write an IFDS analysis, see [Writing an IFDS
+/// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IFDS-analysis)
+template <IfdsAnalysisDomain AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IFDSTabulationProblem
     : public IDETabulationProblem<WithBinaryValueDomain<AnalysisDomainTy>,
@@ -39,10 +45,28 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
-  explicit IFDSTabulationProblem(const ProjectIRDBBase<db_t> *IRDB,
+  /// Takes an IR database (IRDB) and collects information from it to create a
+  /// tabulation problem.
+  /// @param[in] IRDB The project IR database, that holds the code under
+  /// analysis
+  /// @param[in] EntryPoints The (mangled) names of all entry functions of the
+  /// target being analyzed, given as a vector of strings. An example would
+  /// simply be `{"main"}`. To set every function as entry point, pass
+  /// `"__ALL__"`
+  /// @param[in] ZeroValue Provides the special tautological zero value (aka.
+  /// Λ).
+  /// \endlink.
+  explicit IFDSTabulationProblem(const db_t *IRDB,
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}
+
+  IFDSTabulationProblem(IFDSTabulationProblem &&) noexcept = default;
+  IFDSTabulationProblem &operator=(IFDSTabulationProblem &&) noexcept = default;
+
+  IFDSTabulationProblem(const IFDSTabulationProblem &) = delete;
+  IFDSTabulationProblem &operator=(const IFDSTabulationProblem &) = delete;
+
   ~IFDSTabulationProblem() override = default;
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,

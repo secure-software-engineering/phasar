@@ -105,16 +105,19 @@ public:
     }
 
     Iterator(const Iterator &) noexcept = default;
-    template <bool C, typename = std::enable_if_t<!C && IsConst>>
-    Iterator(const Iterator<C> &Other) noexcept
+
+    Iterator(const Iterator<false> &Other) noexcept
+      requires IsConst
         : It(Other.It), ItEnd(Other.ItEnd), Outer(Other.Outer),
           OuterEnd(Other.OuterEnd), Total(Other.Total), Pos(Other.Pos) {}
 
     ~Iterator() = default;
 
     Iterator &operator=(const Iterator &) noexcept = default;
-    template <bool C, typename = std::enable_if_t<!C && IsConst>>
-    Iterator &operator=(const Iterator<C> &Other) noexcept {
+
+    Iterator &operator=(const Iterator<false> &Other) noexcept
+      requires IsConst
+    {
       new (this) Iterator(Other);
       return *this;
     }
@@ -320,11 +323,19 @@ public:
     /// In theory, we could allocate as many blocks as necessary, such that the
     /// accumulated size of them is exactly SIZE_MAX+1, but this will already
     /// overflow the Size field and we still need to store the blocks and the
-    /// other metadata somewhere, such that we will never be able to allocate
-    /// the last block (with size SIZE_MAX/2). So, the maximum number of
+    /// other metadata somewhere, so we will never be able to allocate
+    /// the last block (with size SIZE_MAX/2). Hence, the maximum number of
     /// elements will be SIZE_MAX/2;
     return (SIZE_MAX / 2) / sizeof(T);
   };
+
+  [[nodiscard]] size_t capacity() const noexcept {
+    return llvm::NextPowerOf2(std::max(InitialCapacity, size()));
+  }
+
+  [[nodiscard]] size_t getApproxSizeInBytes() const noexcept {
+    return capacity() * sizeof(T) + Blocks.capacity_in_bytes();
+  }
 
   [[nodiscard]] T &front() noexcept {
     assert(!empty() && "Do not call front() on an empty StableVector!");

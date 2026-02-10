@@ -26,7 +26,7 @@ function(add_phasar_unittest test_name)
   target_link_libraries(${test}
     PRIVATE
       phasar
-      gtest
+      GTest::gtest
   )
 
   add_test(NAME "${test}"
@@ -35,12 +35,103 @@ function(add_phasar_unittest test_name)
   )
   set_tests_properties("${test}" PROPERTIES LABELS "all")
   set(CTEST_OUTPUT_ON_FAILURE ON)
+
+  if (CODE_COVERAGE)
+    target_code_coverage(${test} AUTO ALL)
+  endif()
+endfunction()
+
+function(validate_binary_version result item)
+  message(STATUS "  - validate_binary_version of \"${item}\"")
+  execute_process(
+    COMMAND "${item}" --version
+    OUTPUT_VARIABLE output
+    ERROR_VARIABLE error
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  string(REGEX MATCH " version ${PHASAR_LLVM_VERSION}\\." match "${output}")
+  if (match)
+    set(${result} TRUE PARENT_SCOPE)
+  else()
+    set(${result} FALSE PARENT_SCOPE)
+  endif()
 endfunction()
 
 function(generate_ll_file)
   set(options MEM2REG DEBUG O1 O2 O3)
   set(testfile FILE)
   cmake_parse_arguments(GEN_LL "${options}" "${testfile}" "" ${ARGN})
+
+  if (NOT clang)
+    # Conan deps are available in in PATH
+    set(default_llvm "${LLVM_TOOLS_BINARY_DIR}" )
+    set(fallback_llvm "${Clang_INCLUDE_DIR}/../bin" "${LLVM_INCLUDE_DIR}/../bin")
+    set(user_compiled_llvm "/usr/local/llvm-${PHASAR_LLVM_VERSION}/bin")
+    set(package_manager_llvm "/usr/lib/llvm-${PHASAR_LLVM_VERSION}/bin/")
+    foreach(hint ${default_llvm} ${fallback_llvm} ${user_compiled_llvm} ${package_manager_llvm})
+      if ("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.20")
+        cmake_path(NORMAL_PATH hint OUTPUT_VARIABLE hint)
+      endif()
+      list(APPEND binary_hint_paths "${hint}")
+    endforeach()
+    message(STATUS "HINTS to find clang/clang++/opt: ${binary_hint_paths}")
+
+    if ("${CMAKE_VERSION}" VERSION_LESS "3.25") # VALIDATOR requires it
+      message(WARNING "I would prefer CMake >= 3.25 but I will try my best to resolve deps.")
+      find_program(clang REQUIRED
+        NAMES clang-${PHASAR_LLVM_VERSION} clang
+        HINTS ${binary_hint_paths})
+      find_program(clangcpp REQUIRED
+        NAMES clang++-${PHASAR_LLVM_VERSION} clang++
+        HINTS ${binary_hint_paths})
+      find_program(opt REQUIRED
+        NAMES opt-${PHASAR_LLVM_VERSION} opt
+        HINTS ${binary_hint_paths})
+
+      set(IS_VALID_VERSION "")
+      validate_binary_version(IS_VALID_VERSION "${clang}")
+      if (NOT "${IS_VALID_VERSION}")
+        set(clang "")
+      endif()
+      validate_binary_version(IS_VALID_VERSION "${clangcpp}")
+      if (NOT "${IS_VALID_VERSION}")
+        set(clangcpp "")
+      endif()
+      validate_binary_version(IS_VALID_VERSION "${opt}")
+      if (NOT "${IS_VALID_VERSION}")
+        set(opt "")
+      endif()
+    else()
+      find_program(clang REQUIRED
+        NAMES clang-${PHASAR_LLVM_VERSION} clang
+        HINTS ${binary_hint_paths}
+        VALIDATOR validate_binary_version)
+      find_program(clangcpp REQUIRED
+        NAMES clang++-${PHASAR_LLVM_VERSION} clang++
+        HINTS ${binary_hint_paths}
+        VALIDATOR validate_binary_version)
+      find_program(opt REQUIRED
+        NAMES opt-${PHASAR_LLVM_VERSION} opt
+        HINTS ${binary_hint_paths}
+        VALIDATOR validate_binary_version)
+    endif()
+    if ("${clang}" STREQUAL "")
+      message(FATAL_ERROR "Couldn't find clang in version ${PHASAR_LLVM_VERSION}")
+    else()
+      message(STATUS "found clang binary in \"${clang}\"")
+    endif()
+    if ("${clangcpp}" STREQUAL "")
+      message(FATAL_ERROR "Couldn't find clang++ in version ${PHASAR_LLVM_VERSION}")
+    else()
+      message(STATUS "found clang++ binary in \"${clangcpp}\"")
+    endif()
+    if ("${opt}" STREQUAL "")
+      message(FATAL_ERROR "Couldn't find opt in version ${PHASAR_LLVM_VERSION}")
+    else()
+      message(STATUS "found opt binary in \"${opt}\"")
+    endif()
+  endif()
 
   # get file extension
   get_filename_component(test_code_file_ext ${GEN_LL_FILE} EXT)
@@ -76,13 +167,6 @@ function(generate_ll_file)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S -w)
   set(GEN_CMD_COMMENT "[LL]")
 
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-    list(APPEND GEN_CXX_FLAGS -Xclang -no-opaque-pointers)
-  endif()
-  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
-    list(APPEND GEN_C_FLAGS -Xclang -no-opaque-pointers)
-  endif()
-
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
     list(APPEND GEN_C_FLAGS -Xclang -disable-O0-optnone)
@@ -117,18 +201,18 @@ function(generate_ll_file)
 
   # define .ll file generation command
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
+    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${clangcpp})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
+    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${clang})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
 
   if(GEN_LL_MEM2REG)
-    add_custom_command(
+      add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S -opaque-pointers=0 ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} ${opt} -p mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM
@@ -161,7 +245,7 @@ endmacro(add_phasar_executable)
 
 function(add_phasar_library name)
   set(PHASAR_LIB_OPTIONS SHARED STATIC MODULE INTERFACE)
-  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES)
+  set(PHASAR_LIB_MULTIVAL LLVM_LINK_COMPONENTS LINKS LINK_PUBLIC LINK_PRIVATE FILES MODULE_FILES)
   cmake_parse_arguments(PHASAR_LIB "${PHASAR_LIB_OPTIONS}" "" "${PHASAR_LIB_MULTIVAL}" ${ARGN})
   set(srcs ${PHASAR_LIB_UNPARSED_ARGUMENTS})
   list(APPEND srcs ${PHASAR_LIB_FILES})
@@ -195,7 +279,29 @@ function(add_phasar_library name)
     EXPORT_NAME ${component_name}
   )
 
-  target_compile_features(${name} PUBLIC cxx_std_17)
+  target_compile_features(${name} PUBLIC cxx_std_20)
+
+  set(install_module)
+  if(PHASAR_LIB_MODULE_FILES)
+    if(PHASAR_BUILD_MODULES)
+      target_sources(${name} PUBLIC
+        FILE_SET cxx_modules
+        TYPE CXX_MODULES
+        FILES ${PHASAR_LIB_MODULE_FILES}
+      )
+
+      target_compile_features(${name} PUBLIC cxx_std_20)
+
+      set(install_module FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    elseif(NOT srcs)
+      # Add dummy src to prevent cmake error
+      set(dummy_src "${CMAKE_CURRENT_BINARY_DIR}/${name}_dummysrc.cpp")
+      if(NOT EXISTS "${dummy_src}")
+        file(WRITE "${dummy_src}" "")
+      endif()
+      target_sources(${name} PRIVATE "${dummy_src}")
+    endif()
+  endif()
 
   if(LLVM_COMMON_DEPENDS)
     add_dependencies(${name} ${LLVM_COMMON_DEPENDS})
@@ -236,20 +342,26 @@ function(add_phasar_library name)
       EXPORT LLVMExports
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+      ${install_module}
     )
   else()
     install(TARGETS ${name}
       EXPORT PhasarExports
-
       # NOTE: Library, archive and runtime destination are automatically set by
       # GNUInstallDirs which is included in the top-level CMakeLists.txt
+
+      ${install_module}
     )
   endif()
 
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
+
+  if (CODE_COVERAGE)
+    target_code_coverage(${name} AUTO ALL)
+  endif()
 endfunction(add_phasar_library)
 
-macro(subdirlist result curdir)
+function(subdirlist result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
 
@@ -259,5 +371,5 @@ macro(subdirlist result curdir)
     endif()
   endforeach()
 
-  set(${result} ${dirlist})
-endmacro(subdirlist)
+  set(${result} ${dirlist} PARENT_SCOPE)
+endfunction(subdirlist)

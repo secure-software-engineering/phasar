@@ -155,12 +155,6 @@ private:
 #define PHASAR_LOG_LEVEL(level, message) (void)0
 #endif
 
-/**
- * Initializes the logger.
- */
-[[deprecated("Please use the new initialize*Logger() family instead")]] void
-initializeLogger(bool UseLogger, const std::string &LogFile = "");
-
 } // namespace psr
 
 #endif

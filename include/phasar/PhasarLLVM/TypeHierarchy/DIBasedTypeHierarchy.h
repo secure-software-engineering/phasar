@@ -14,11 +14,9 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/TypeHierarchy/TypeHierarchy.h"
 
-#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/Casting.h"
 
@@ -27,13 +25,35 @@
 namespace psr {
 class LLVMProjectIRDB;
 
+/// \brief Represents the type hierarchy of the target program.
+///
+/// \note This class only works, if the target program's IR was generated with
+/// debug information. Pass `-g` to the compiler to achieve this.
 class DIBasedTypeHierarchy
     : public TypeHierarchy<const llvm::DIType *, const llvm::Function *> {
 public:
   using ClassType = const llvm::DIType *;
   using f_t = const llvm::Function *;
 
+  static inline constexpr llvm::StringLiteral StructPrefix = "struct.";
+  static inline constexpr llvm::StringLiteral ClassPrefix = "class.";
+  static inline constexpr llvm::StringLiteral VTablePrefix = "_ZTV";
+  static inline constexpr llvm::StringLiteral VTablePrefixDemang =
+      "vtable for ";
+  static inline constexpr llvm::StringLiteral PureVirtualCallName =
+      "__cxa_pure_virtual";
+
+  /// \brief Creates a type hierarchy based on an intermediate representation
+  /// database.
+  /// \param[in] IRDB The IR database of which the type hierarchy will be based
+  /// upon. This MUST contain debug information for the algorithm to work!
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB &IRDB);
+
+  /// \brief Loads an already computed type hierarchy.
+  /// \param[in] IRDB The IR database of the type hierarchy.
+  /// \param[in] SerializedData The already existing type hierarchy, given by
+  /// the appropiate class DIBasedTypeHierarchyData, which contains all
+  /// neccesary information.
   explicit DIBasedTypeHierarchy(const LLVMProjectIRDB *IRDB,
                                 const DIBasedTypeHierarchyData &SerializedData);
   ~DIBasedTypeHierarchy() override = default;
@@ -67,12 +87,16 @@ public:
 
   [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
-  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+  [[nodiscard]] static llvm::StringRef typeName(ClassType Type) {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
       auto Ident = CompTy->getIdentifier();
       return Ident.empty() ? CompTy->getName() : Ident;
     }
     return Type->getName();
+  }
+
+  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+    return typeName(Type);
   }
 
   [[nodiscard]] size_t size() const noexcept override {
@@ -84,20 +108,12 @@ public:
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const override;
 
-  /**
-   * 	@brief Prints the class hierarchy to an ostream in dot format.
-   * 	@param OS outputstream
-   */
+  /// \brief Prints the class hierarchy to an ostream in dot format.
+  /// \param OS outputstream
   void printAsDot(llvm::raw_ostream &OS = llvm::outs()) const;
 
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const override;
-
-  /**
-   * @brief Prints the class hierarchy to an ostream in json format.
-   * @param an outputstream
-   */
+  /// \brief Prints the class hierarchy to an ostream in JSON format.
+  /// \param OS outputstream
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const override;
 
 private:

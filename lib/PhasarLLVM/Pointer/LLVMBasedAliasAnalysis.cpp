@@ -7,11 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/Pointer/LLVMBasedAliasAnalysis.h"
+#include "LLVMBasedAliasAnalysis.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AliasAnalysisView.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
+#include "phasar/Pointer/AliasResult.h"
 
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallVector.h"
@@ -38,91 +40,34 @@ using namespace psr;
 
 namespace psr {
 
-struct LLVMBasedAliasAnalysis::Impl {
-  llvm::PassBuilder PB{};
-  llvm::FunctionAnalysisManager FAM{};
-  llvm::FunctionPassManager FPM{};
-};
-
-static void printResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
-                         const llvm::Value *V2, const llvm::Module *M) {
-  if (P) {
-    std::string O1;
-
-    std::string O2;
-    {
-      llvm::raw_string_ostream OS1(O1);
-
-      llvm::raw_string_ostream OS2(O2);
-      V1->printAsOperand(OS1, true, M);
-      V2->printAsOperand(OS2, true, M);
-    }
-
-    if (O2 < O1) {
-      std::swap(O1, O2);
-    }
-    llvm::errs() << "  " << AR << ":\t" << O1 << ", " << O2 << "\n";
-  }
-}
-
-static inline void printModRefResults(const char *Msg, bool P,
-                                      const llvm::Instruction *I,
-                                      const llvm::Value *Ptr,
-                                      const llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ":  Ptr: ";
-    Ptr->printAsOperand(llvm::errs(), true, M);
-    llvm::errs() << "\t<->" << *I << '\n';
-  }
-}
-
-static inline void printModRefResults(const char *Msg, bool P,
-                                      const llvm::CallBase *CallA,
-                                      const llvm::CallBase *CallB,
-                                      const llvm::Module * /*M*/) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ": " << *CallA << " <-> " << *CallB << '\n';
-  }
-}
-
-static inline void printLoadStoreResults(llvm::AliasResult AR, bool P,
-                                         const llvm::Value *V1,
-                                         const llvm::Value *V2,
-                                         const llvm::Module * /*M*/) {
-  if (P) {
-    llvm::errs() << "  " << AR << ": " << *V1 << " <-> " << *V2 << '\n';
-  }
-}
-
 bool LLVMBasedAliasAnalysis::hasAliasInfo(const llvm::Function &Fun) const {
   return AAInfos.find(&Fun) != AAInfos.end();
 }
 
 void LLVMBasedAliasAnalysis::computeAliasInfo(llvm::Function &Fun) {
-  assert(PImpl != nullptr);
-  llvm::PreservedAnalyses PA = PImpl->FPM.run(Fun, PImpl->FAM);
-  llvm::AAResults &AAR = PImpl->FAM.getResult<llvm::AAManager>(Fun);
+  // llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
+  llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
 
-void LLVMBasedAliasAnalysis::erase(llvm::Function *F) noexcept {
+void LLVMBasedAliasAnalysis::doErase(llvm::Function *F) noexcept {
   // after we clear all stuff, we need to set it up for the next function-wise
   // analysis
   AAInfos.erase(F);
-  PImpl->FAM.clear(*F, F->getName());
+  FAM.clear(*F, F->getName());
 }
 
-void LLVMBasedAliasAnalysis::clear() noexcept {
+void LLVMBasedAliasAnalysis::doClear() noexcept {
   AAInfos.clear();
-  PImpl->FAM.clear();
+  FAM.clear();
 }
 
 LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
                                                bool UseLazyEvaluation,
                                                AliasAnalysisType PATy)
-    : PImpl(new Impl{}), PATy(PATy) {
+    : AliasAnalysisView(PATy) {
 
-  PImpl->FAM.registerPass([&] {
+  FAM.registerPass([&] {
     llvm::AAManager AA;
     switch (PATy) {
     case AliasAnalysisType::CFLAnders:
@@ -136,6 +81,7 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
     default:
       break;
     }
+
     // Note: The order of the alias analyses is important. See LLVM's source
     // code for reference (e.g. registerAAAnalyses() in
     // llvm/CodeGen/CodeGenPassBuilder.h)
@@ -145,7 +91,13 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
     AA.registerFunctionAnalysis<llvm::BasicAA>();
     return AA;
   });
-  PImpl->PB.registerFunctionAnalyses(PImpl->FAM);
+
+  PB.registerFunctionAnalyses(FAM);
+  if (PATy == AliasAnalysisType::CFLAnders) {
+    FAM.registerPass([] { return llvm::CFLAndersAA(); });
+  } else if (PATy == AliasAnalysisType::CFLSteens) {
+    FAM.registerPass([] { return llvm::CFLSteensAA(); });
+  }
 
   if (!UseLazyEvaluation) {
     for (auto &F : *IRDB.getModule()) {
@@ -158,264 +110,66 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
 
 LLVMBasedAliasAnalysis::~LLVMBasedAliasAnalysis() = default;
 
-void LLVMBasedAliasAnalysis::print(llvm::raw_ostream &OS) const {
-  OS << "Points-to Info:\n";
-  for (const auto &[Fn, AA] : AAInfos) {
-    bool PrintAll = true;
-    bool PrintNoAlias = true;
-    bool PrintMayAlias = true;
-    bool PrintPartialAlias = true;
-    bool PrintMustAlias = true;
-    bool EvalAAMD = true;
-    bool PrintNoModRef = true;
-    bool PrintMod = true;
-    bool PrintRef = true;
-    bool PrintModRef = true;
-    bool PrintMust = true;
-    bool PrintMustMod = true;
-    bool PrintMustRef = true;
-    bool PrintMustModRef = true;
+static AliasResult translateAAResult(llvm::AliasResult Res) noexcept {
+  switch (Res) {
+  case llvm::AliasResult::NoAlias:
+    return AliasResult::NoAlias;
+  case llvm::AliasResult::MayAlias:
+    return AliasResult::MayAlias;
+  case llvm::AliasResult::PartialAlias:
+    return AliasResult::PartialAlias;
+  case llvm::AliasResult::MustAlias:
+    return AliasResult::MustAlias;
+  }
+}
 
-    // taken from llvm/Analysis/AliasAnalysisEvaluator.cpp
-    const llvm::DataLayout &DL = Fn->getParent()->getDataLayout();
+static llvm::Type *getPointeeTypeOrNull(const llvm::Value *Ptr) {
+  assert(Ptr->getType()->isPointerTy());
 
-    llvm::SetVector<const llvm::Value *> Pointers;
-    llvm::SmallSetVector<const llvm::CallBase *, 16> Calls;
-    llvm::SetVector<const llvm::Value *> Loads;
-    llvm::SetVector<const llvm::Value *> Stores;
+  if (!Ptr->getType()->isOpaquePointerTy()) {
+    return Ptr->getType()->getNonOpaquePointerElementType();
+  }
 
-    for (const auto &I : Fn->args()) {
-      if (I.getType()->isPointerTy()) { // Add all pointer arguments.
-        Pointers.insert(&I);
-      }
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Ptr)) {
+    if (auto *Ty = Arg->getParamByValType()) {
+      return Ty;
     }
-
-    for (llvm::const_inst_iterator I = inst_begin(*Fn), E = inst_end(*Fn);
-         I != E; ++I) {
-      if (I->getType()->isPointerTy()) { // Add all pointer instructions.
-        Pointers.insert(&*I);
-      }
-      if (EvalAAMD && llvm::isa<llvm::LoadInst>(&*I)) {
-        Loads.insert(&*I);
-      }
-      if (EvalAAMD && llvm::isa<llvm::StoreInst>(&*I)) {
-        Stores.insert(&*I);
-      }
-      const llvm::Instruction &Inst = *I;
-      if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(&Inst)) {
-        llvm::Value *Callee = Call->getCalledOperand();
-        // Skip actual functions for direct function calls.
-        if (!llvm::isa<llvm::Function>(Callee) &&
-            isInterestingPointer(Callee)) {
-          Pointers.insert(Callee);
-        }
-        // Consider formals.
-        for (const llvm::Use &DataOp : Call->data_ops()) {
-          if (isInterestingPointer(DataOp)) {
-            Pointers.insert(DataOp);
-          }
-        }
-        Calls.insert(Call);
-      } else {
-        // Consider all operands.
-        for (llvm::Instruction::const_op_iterator OI = Inst.op_begin(),
-                                                  OE = Inst.op_end();
-             OI != OE; ++OI) {
-          if (isInterestingPointer(*OI)) {
-            Pointers.insert(*OI);
-          }
-        }
-      }
-    }
-
-    if (PrintAll || PrintNoAlias || PrintMayAlias || PrintPartialAlias ||
-        PrintMustAlias || PrintNoModRef || PrintMod || PrintRef ||
-        PrintModRef) {
-      OS << "Function: " << Fn->getName() << ": " << Pointers.size()
-         << " pointers, " << Calls.size() << " call sites\n";
-    }
-
-    // iterate over the worklist, and run the full (n^2)/2 disambiguations
-    for (auto I1 = Pointers.begin(), E = Pointers.end(); I1 != E; ++I1) {
-      auto I1Size = llvm::LocationSize::beforeOrAfterPointer();
-      llvm::Type *I1ElTy =
-          !(*I1)->getType()->isOpaquePointerTy()
-              ? (*I1)->getType()->getNonOpaquePointerElementType()
-              : nullptr;
-      if (!I1ElTy && I1ElTy->isSized()) {
-        I1Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I1ElTy));
-      }
-      for (auto I2 = Pointers.begin(); I2 != I1; ++I2) {
-        auto I2Size = llvm::LocationSize::beforeOrAfterPointer();
-        llvm::Type *I2ElTy =
-            !(*I2)->getType()->isOpaquePointerTy()
-                ? (*I2)->getType()->getNonOpaquePointerElementType()
-                : nullptr;
-        if (I2ElTy && I2ElTy->isSized()) {
-          I2Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I2ElTy));
-        }
-        llvm::AliasResult AR = AA->alias(*I1, I1Size, *I2, I2Size);
-        switch (AR) {
-        case llvm::AliasResult::NoAlias:
-          printResults(AR, PrintNoAlias, *I1, *I2, Fn->getParent());
-          break;
-        case llvm::AliasResult::MayAlias:
-          printResults(AR, PrintMayAlias, *I1, *I2, Fn->getParent());
-          break;
-        case llvm::AliasResult::PartialAlias:
-          printResults(AR, PrintPartialAlias, *I1, *I2, Fn->getParent());
-          break;
-        case llvm::AliasResult::MustAlias:
-          printResults(AR, PrintMustAlias, *I1, *I2, Fn->getParent());
-          break;
-        }
-      }
-    }
-
-    if (EvalAAMD) {
-      // iterate over all pairs of load, store
-      for (const llvm::Value *Load : Loads) {
-        for (const llvm::Value *Store : Stores) {
-          llvm::AliasResult AR = AA->alias(
-              llvm::MemoryLocation::get(llvm::cast<llvm::LoadInst>(Load)),
-              llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(Store)));
-          switch (AR) {
-          case llvm::AliasResult::NoAlias:
-            printLoadStoreResults(AR, PrintNoAlias, Load, Store,
-                                  Fn->getParent());
-            break;
-          case llvm::AliasResult::MayAlias:
-            printLoadStoreResults(AR, PrintMayAlias, Load, Store,
-                                  Fn->getParent());
-            break;
-          case llvm::AliasResult::PartialAlias:
-            printLoadStoreResults(AR, PrintPartialAlias, Load, Store,
-                                  Fn->getParent());
-            break;
-          case llvm::AliasResult::MustAlias:
-            printLoadStoreResults(AR, PrintMustAlias, Load, Store,
-                                  Fn->getParent());
-            break;
-          }
-        }
-      }
-
-      // iterate over all pairs of store, store
-      for (auto I1 = Stores.begin(), E = Stores.end(); I1 != E; ++I1) {
-        for (auto I2 = Stores.begin(); I2 != I1; ++I2) {
-          llvm::AliasResult AR = AA->alias(
-              llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I1)),
-              llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I2)));
-          switch (AR) {
-          case llvm::AliasResult::NoAlias:
-            printLoadStoreResults(AR, PrintNoAlias, *I1, *I2, Fn->getParent());
-            break;
-          case llvm::AliasResult::MayAlias:
-            printLoadStoreResults(AR, PrintMayAlias, *I1, *I2, Fn->getParent());
-            break;
-          case llvm::AliasResult::PartialAlias:
-            printLoadStoreResults(AR, PrintPartialAlias, *I1, *I2,
-                                  Fn->getParent());
-            break;
-          case llvm::AliasResult::MustAlias:
-            printLoadStoreResults(AR, PrintMustAlias, *I1, *I2,
-                                  Fn->getParent());
-            break;
-          }
-        }
-      }
-    }
-
-    // Mod/ref alias analysis: compare all pairs of calls and values
-    for (const llvm::CallBase *Call : Calls) {
-      for (const auto *Pointer : Pointers) {
-        auto Size = llvm::LocationSize::beforeOrAfterPointer();
-        llvm::Type *ElTy =
-            !Pointer->getType()->isOpaquePointerTy()
-                ? Pointer->getType()->getNonOpaquePointerElementType()
-                : nullptr;
-        if (ElTy && ElTy->isSized()) {
-          Size = llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy));
-        }
-
-        switch (AA->getModRefInfo(Call, Pointer, Size)) {
-        case llvm::ModRefInfo::NoModRef:
-          printModRefResults("NoModRef", PrintNoModRef, Call, Pointer,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::Mod:
-          printModRefResults("Just Mod", PrintMod, Call, Pointer,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::Ref:
-          printModRefResults("Just Ref", PrintRef, Call, Pointer,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::ModRef:
-          printModRefResults("Both ModRef", PrintModRef, Call, Pointer,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::Must:
-          printModRefResults("Must", PrintMust, Call, Pointer, Fn->getParent());
-          break;
-        case llvm::ModRefInfo::MustMod:
-          printModRefResults("Just Mod (MustAlias)", PrintMustMod, Call,
-                             Pointer, Fn->getParent());
-          break;
-        case llvm::ModRefInfo::MustRef:
-          printModRefResults("Just Ref (MustAlias)", PrintMustRef, Call,
-                             Pointer, Fn->getParent());
-          break;
-        case llvm::ModRefInfo::MustModRef:
-          printModRefResults("Both ModRef (MustAlias)", PrintMustModRef, Call,
-                             Pointer, Fn->getParent());
-          break;
-        }
-      }
-    }
-
-    // Mod/ref alias analysis: compare all pairs of calls
-    for (const llvm::CallBase *CallA : Calls) {
-      for (const llvm::CallBase *CallB : Calls) {
-        if (CallA == CallB) {
-          continue;
-        }
-        switch (AA->getModRefInfo(CallA, CallB)) {
-        case llvm::ModRefInfo::NoModRef:
-          printModRefResults("NoModRef", PrintNoModRef, CallA, CallB,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::Mod:
-          printModRefResults("Just Mod", PrintMod, CallA, CallB,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::Ref:
-          printModRefResults("Just Ref", PrintRef, CallA, CallB,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::ModRef:
-          printModRefResults("Both ModRef", PrintModRef, CallA, CallB,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::Must:
-          printModRefResults("Must", PrintMust, CallA, CallB, Fn->getParent());
-          break;
-        case llvm::ModRefInfo::MustMod:
-          printModRefResults("Just Mod (MustAlias)", PrintMustMod, CallA, CallB,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::MustRef:
-          printModRefResults("Just Ref (MustAlias)", PrintMustRef, CallA, CallB,
-                             Fn->getParent());
-          break;
-        case llvm::ModRefInfo::MustModRef:
-          printModRefResults("Both ModRef (MustAlias)", PrintMustModRef, CallA,
-                             CallB, Fn->getParent());
-          break;
-        }
-      }
+    if (auto *Ty = Arg->getParamStructRetType()) {
+      return Ty;
     }
   }
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Ptr)) {
+    return Alloca->getAllocatedType();
+  }
+  return nullptr;
+}
+
+AliasResult LLVMBasedAliasAnalysis::aliasImpl(llvm::AAResults *AA,
+                                              const llvm::Value *V,
+                                              const llvm::Value *Rep,
+                                              const llvm::DataLayout &DL) {
+
+  assert(V->getType()->isPointerTy());
+  assert(Rep->getType()->isPointerTy());
+
+  auto *ElTy = getPointeeTypeOrNull(V);
+  auto *RepElTy = getPointeeTypeOrNull(Rep);
+
+  auto VSize = ElTy && ElTy->isSized()
+                   ? llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy))
+                   : llvm::LocationSize::precise(1);
+
+  auto RepSize = RepElTy && RepElTy->isSized()
+                     ? llvm::LocationSize::precise(DL.getTypeStoreSize(RepElTy))
+                     : llvm::LocationSize::precise(1);
+
+  return translateAAResult(AA->alias(V, VSize, Rep, RepSize));
+}
+
+std::unique_ptr<AliasAnalysisView> AliasAnalysisView::createLLVMBasedAnalysis(
+    LLVMProjectIRDB &IRDB, bool UseLazyEvaluation, AliasAnalysisType PATy) {
+  return std::make_unique<LLVMBasedAliasAnalysis>(IRDB, UseLazyEvaluation,
+                                                  PATy);
 }
 
 } // namespace psr

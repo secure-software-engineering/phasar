@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -26,11 +26,10 @@
 namespace psr {
 
 InterMonoSolverTest::InterMonoSolverTest(const LLVMProjectIRDB *IRDB,
-                                         const LLVMTypeHierarchy *TH,
                                          const LLVMBasedICFG *ICF,
                                          LLVMAliasInfoRef PT,
                                          std::vector<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, TH, ICF, PT,
+    : InterMonoProblem<InterMonoSolverTestDomain>(IRDB, ICF, PT,
                                                   std::move(EntryPoints)) {}
 
 InterMonoSolverTest::mono_container_t
@@ -95,7 +94,7 @@ InterMonoSolverTest::initialSeeds() {
   std::unordered_map<InterMonoSolverTest::n_t,
                      InterMonoSolverTest::mono_container_t>
       Seeds;
-  InterMonoSolverTest::f_t Main = ICF->getFunction("main");
+  InterMonoSolverTest::f_t Main = IRDB->getFunction("main");
   for (const auto *StartPoint : ICF->getStartPointsOf(Main)) {
     Seeds.insert({StartPoint, allTop()});
   }

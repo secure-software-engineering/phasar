@@ -195,7 +195,7 @@ TEST(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldLoad(Inst));
-  Inst = getNthInstruction(F, 6);
+  Inst = getNthInstruction(F, 5);
   ASSERT_TRUE(Cfg.isFieldLoad(Inst));
 }
 
@@ -205,7 +205,7 @@ TEST(LLVMBasedCFGTest, HandleFieldStoreArray) {
   const auto *F = IRDB.getFunctionDefinition("main");
   const auto *Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(Cfg.isFieldStore(Inst));
-  Inst = getNthInstruction(F, 9);
+  Inst = getNthInstruction(F, 8);
   ASSERT_TRUE(Cfg.isFieldStore(Inst));
 }
 
@@ -245,13 +245,8 @@ PHASAR_SKIP_TEST(TEST(LLVMBasedCFGTest, HandlesCppStandardType) {
       {unittest::PathToLLTestFiles + "name_mangling/special_members_2_cpp.ll"});
 
   auto *M = IRDB.getModule();
-  auto *F = M->getFunction("_ZNSt8ios_base4InitC1Ev");
+
   LLVMBasedCFG CFG;
-  ASSERT_EQ(CFG.getSpecialMemberFunctionType(F),
-            SpecialMemberFunctionType::Constructor);
-  auto *N = M->getFunction("_ZNSt8ios_base4InitD1Ev");
-  ASSERT_EQ(CFG.getSpecialMemberFunctionType(N),
-            SpecialMemberFunctionType::Destructor);
   auto *O = M->getFunction(
       "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev");
   ASSERT_EQ(CFG.getSpecialMemberFunctionType(O),

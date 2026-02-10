@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSUNINITIALIZEDVARIABLES_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <map>
@@ -40,8 +42,6 @@ public:
   IFDSUninitializedVariables(const LLVMProjectIRDB *IRDB,
                              std::vector<std::string> EntryPoints = {"main"});
 
-  ~IFDSUninitializedVariables() override = default;
-
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
@@ -62,7 +62,7 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &Results,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> Results,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
   [[nodiscard]] const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;

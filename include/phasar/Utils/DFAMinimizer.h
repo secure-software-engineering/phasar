@@ -20,13 +20,9 @@
 
 namespace psr {
 
-template <typename GraphTy>
+template <is_graph GraphTy>
 [[nodiscard]] std::decay_t<GraphTy>
-createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
-#if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
-#endif
-{
+createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq) {
   using traits_t = GraphTraits<GraphTy>;
   using vertex_t = typename traits_t::vertex_t;
 
@@ -83,12 +79,8 @@ createEquivalentGraphFrom(GraphTy &&G, const llvm::IntEqClasses &Eq)
   return Ret;
 }
 
-template <typename GraphTy>
-[[nodiscard]] llvm::IntEqClasses minimizeGraph(const GraphTy &G)
-#if __cplusplus >= 202002L
-    requires is_graph<GraphTy>
-#endif
-{
+template <is_graph GraphTy>
+[[nodiscard]] llvm::IntEqClasses minimizeGraph(const GraphTy &G) {
 
   using traits_t = GraphTraits<GraphTy>;
   using vertex_t = typename traits_t::vertex_t;

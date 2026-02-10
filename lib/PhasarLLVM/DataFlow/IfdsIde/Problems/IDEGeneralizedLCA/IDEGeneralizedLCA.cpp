@@ -30,6 +30,7 @@
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
@@ -60,7 +61,7 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     const auto *ValueOp = Store->getValueOperand();
     if (isConstant(ValueOp)) {
       // llvm::outs() << "==> constant store" << std::endl;
-      return lambdaFlow([=](IDEGeneralizedLCA::d_t Source)
+      return lambdaFlow([this, PointerOp](IDEGeneralizedLCA::d_t Source)
                             -> std::set<IDEGeneralizedLCA::d_t> {
         // llvm::outs() << "##> normal lambdaFlow for: " <<
         // llvmIRToString(curr)
@@ -130,7 +131,8 @@ IDEGeneralizedLCA::getNormalFlowFunction(IDEGeneralizedLCA::n_t Curr,
     bool NoneConst = !LeftConst && !RightConst;
 
     return lambdaFlow(
-        [=](IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
+        [this, Lhs, Rhs, BothConst, NoneConst, Curr](
+            IDEGeneralizedLCA::d_t Source) -> std::set<IDEGeneralizedLCA::d_t> {
           if (Source == Lhs || Source == Rhs ||
               ((BothConst || NoneConst) && isZeroValue(Source))) {
             return {Source, Curr};
@@ -262,7 +264,7 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::getNormalEdgeFunction(
   PHASAR_LOG_LEVEL(DEBUG, "(D) Succ Node :   " << DToString(SuccNode));
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
-      isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
+      isEntryPoint(IRDB->getFunctionOf(Curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
     PHASAR_LOG_LEVEL(DEBUG, "Case: Intialize global variable at entry point.");
     PHASAR_LOG_LEVEL(DEBUG, ' ');
@@ -424,21 +426,20 @@ IDEGeneralizedLCA::getCallToRetEdgeFunction(IDEGeneralizedLCA::n_t CallSite,
     // found correct place and time
     if (CallNode == getZeroValue() && RetSiteNode == CS->getArgOperand(0)) {
       // find string literal that is used to initialize the string
-      if (auto *User = llvm::dyn_cast<llvm::User>(CS->getArgOperand(1))) {
-        if (auto *GV =
-                llvm::dyn_cast<llvm::GlobalVariable>(User->getOperand(0))) {
-          if (!GV->hasInitializer()) {
-            // in this case we don't know the initial value statically
-            // return ALLBOTTOM;
-            return AllBottom<l_t>{};
-          }
-          if (auto *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(
-                  GV->getInitializer())) {
-            if (CDA->isCString()) {
-              // here we statically know the string literal the std::string is
-              // initialized with
-              return GenConstant{l_t({EdgeValue(CDA->getAsCString().str())})};
-            }
+      const auto *Arg1 = CS->getArgOperand(1)->stripPointerCastsAndAliases();
+
+      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(Arg1)) {
+        if (!GV->hasInitializer()) {
+          // in this case we don't know the initial value statically
+          // return ALLBOTTOM;
+          return AllBottom<l_t>{};
+        }
+        if (const auto *CDA =
+                llvm::dyn_cast<llvm::ConstantDataArray>(GV->getInitializer())) {
+          if (CDA->isCString()) {
+            // here we statically know the string literal the std::string is
+            // initialized with
+            return GenConstant{l_t({EdgeValue(CDA->getAsCString().str())})};
           }
         }
       }
@@ -501,8 +502,9 @@ EdgeFunction<IDEGeneralizedLCA::l_t> IDEGeneralizedLCA::allTopFunction() {
 }*/
 
 void IDEGeneralizedLCA::emitTextReport(
-    const SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
-                        IDEGeneralizedLCA::l_t> &SR,
+    GenericSolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
+                         IDEGeneralizedLCA::l_t>
+        SR,
     llvm::raw_ostream &Os) {
 
   Os << "\n====================== IDE-Linear-Constant-Analysis Report "
@@ -511,11 +513,11 @@ void IDEGeneralizedLCA::emitTextReport(
     // Emit only IR code, function name and module info
     Os << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (const auto *F : ICF->getAllFunctions()) {
+    for (const auto *F : IRDB->getAllFunctions()) {
       std::string FName = getFunctionNameFromIR(F);
       Os << "\nFunction: " << FName << "\n----------"
          << std::string(FName.size(), '-') << '\n';
-      for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+      for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
         auto Results = SR.resultsAt(Stmt, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
@@ -557,17 +559,17 @@ void IDEGeneralizedLCA::stripBottomResults(
 }
 
 IDEGeneralizedLCA::lca_results_t IDEGeneralizedLCA::getLCAResults(
-    SolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
-                  IDEGeneralizedLCA::l_t>
+    GenericSolverResults<IDEGeneralizedLCA::n_t, IDEGeneralizedLCA::d_t,
+                         IDEGeneralizedLCA::l_t>
         SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   llvm::outs() << "\n==== Computing LCA Results ====\n";
-  for (const auto *F : ICF->getAllFunctions()) {
+  for (const auto *F : IRDB->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
     llvm::outs() << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
-    for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+    for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
       llvm::outs() << "\nIR : " << NToString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping

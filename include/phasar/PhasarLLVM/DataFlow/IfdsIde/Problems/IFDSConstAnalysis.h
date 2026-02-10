@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
@@ -30,9 +32,6 @@ class Value;
 
 namespace psr {
 
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
-
 /**
  * This IFDS analysis will compute possibly mutable memory
  * locations (stack and heap). LLVM's virtual register
@@ -48,8 +47,6 @@ class IFDSConstAnalysis
 public:
   IFDSConstAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     std::vector<std::string> EntryPoints = {"main"});
-
-  ~IFDSConstAnalysis() override = default;
 
   /**
    * If the current instruction is a store instruction, the memory locations's
@@ -144,7 +141,7 @@ public:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, BinaryDomain> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override;
 
   /**

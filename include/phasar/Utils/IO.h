@@ -22,11 +22,14 @@
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBuffer.h"
 
-#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 #include <optional>
 
 namespace psr {
+
+/// \file This file contains functions for reading in text files and json files
+/// and provides error handling capabilities as well, if needed.
 
 [[nodiscard]] llvm::ErrorOr<std::string>
 readTextFileOrErr(const llvm::Twine &Path);

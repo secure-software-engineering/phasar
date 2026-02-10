@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMZEROVALUE_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMZEROVALUE_H
 
+#include "phasar/Utils/Fn.h"
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/GlobalVariable.h"
 
@@ -28,15 +30,17 @@ class Value;
 
 namespace psr {
 
-/**
- * This class may be used to represent the special zero value for IFDS
- * and IDE problems. The LLVMZeroValue is implemented as a singleton.
- */
+/// \brief This class may be used to represent the special zero value (aka. Λ)
+/// for IFDS and IDE problems. The LLVMZeroValue is implemented as a singleton.
+///
 class LLVMZeroValue : public llvm::GlobalVariable {
 private:
   LLVMZeroValue(llvm::Module &Mod);
 
   static constexpr llvm::StringLiteral LLVMZeroValueInternalName = "zero_value";
+  static bool isZeroValueImpl(const llvm::Value *V) noexcept {
+    return V == getInstance();
+  }
 
 public:
   LLVMZeroValue(const LLVMZeroValue &Z) = delete;
@@ -49,13 +53,18 @@ public:
     return LLVMZeroValueInternalName;
   }
 
-  // Do not specify a destructor (at all)!
-  static const LLVMZeroValue *getInstance();
+  /// Gets the singleton instance of the special zero value (aka. Λ).
+  [[nodiscard]] static const LLVMZeroValue *getInstance();
 
+  /// Checks, whether the given llvm::Value * is the special zero-value (aka.
+  /// Λ).
+  ///
+  /// You can use this as follows:
+  /// \code
+  /// return strongUpdateStore(Store, LLVMZeroValue::isLLVMZeroValue);
+  /// \endcode
   // NOLINTNEXTLINE(readability-identifier-naming)
-  static constexpr auto isLLVMZeroValue = [](const llvm::Value *V) noexcept {
-    return V == getInstance();
-  };
+  static constexpr auto isLLVMZeroValue = fn<isZeroValueImpl>;
 };
 } // namespace psr
 

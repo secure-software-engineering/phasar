@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_MONO_PROBLEMS_INTRAMONOUNINITVARIABLES_H
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
@@ -28,7 +30,7 @@ class StructType;
 
 namespace psr {
 
-class LLVMTypeHierarchy;
+class DIBasedTypeHierarchy;
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 
@@ -47,8 +49,7 @@ public:
   using i_t = IntraMonoUninitVariablesDomain::i_t;
   using mono_container_t = IntraMonoUninitVariablesDomain::mono_container_t;
 
-  IntraMonoUninitVariables(const LLVMProjectIRDB *IRDB,
-                           const LLVMTypeHierarchy *TH, const LLVMBasedCFG *CF,
+  IntraMonoUninitVariables(const LLVMProjectIRDB *IRDB, const LLVMBasedCFG *CF,
                            LLVMAliasInfoRef PT,
                            std::vector<std::string> EntryPoints = {});
 

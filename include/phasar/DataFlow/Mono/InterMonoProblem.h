@@ -17,7 +17,7 @@
 #ifndef PHASAR_DATAFLOW_MONO_INTERMONOPROBLEM_H
 #define PHASAR_DATAFLOW_MONO_INTERMONOPROBLEM_H
 
-#include "phasar/ControlFlow/ICFGBase.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Pointer/AliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -28,10 +28,16 @@
 
 namespace psr {
 
-template <typename T, typename F> class TypeHierarchy;
-template <typename N, typename F> class ICFG;
+template <typename T>
+concept InterMonoAnalysisDomain = MonoAnalysisDomain<T> && requires() {
+  typename T::i_t;
+  requires ICFG<typename T::i_t>;
+};
 
-template <typename AnalysisDomainTy>
+/// \brief The analysis problem interface for interprocedural monotone problems
+/// (solvable by the InterMonoSolver). Create a subclass from this and override
+/// all pure-virtual functions to create your own inter-mono analysis.
+template <InterMonoAnalysisDomain AnalysisDomainTy>
 class InterMonoProblem : public IntraMonoProblem<AnalysisDomainTy> {
 public:
   using n_t = typename AnalysisDomainTy::n_t;
@@ -47,15 +53,18 @@ protected:
   const i_t *ICF;
 
 public:
-  InterMonoProblem(const ProjectIRDBBase<db_t> *IRDB,
-                   const TypeHierarchy<t_t, f_t> *TH, const i_t *ICF,
-                   AliasInfoRef<v_t, n_t> PT,
+  /// An interprocedural monotone problem generated from an intermediate
+  /// representation, a type hierarchy of said representation, a control flow
+  /// graph, points-to information and optionally a vector of entry points.
+  /// @param[in] IRDB A project IR database.
+  /// @param[in] TH A type hierarchy based on the given IRDB.
+  /// @param[in] CF A control flow graph based on the given IRDB.
+  /// @param[in] PT Points-to information based on the given IRDB.
+  /// @param[in] EntryPoints A vector of entry points. Provide at least one.
+  InterMonoProblem(const db_t *IRDB, const i_t *ICF, AliasInfoRef<v_t, n_t> PT,
                    std::vector<std::string> EntryPoints = {})
-      : IntraMonoProblem<AnalysisDomainTy>(IRDB, TH, ICF, PT, EntryPoints),
-        ICF(ICF) {
-    static_assert(is_icfg_v<i_t, AnalysisDomainTy>,
-                  "Type parameter i_t must implement the ICFG interface!");
-  }
+      : IntraMonoProblem<AnalysisDomainTy>(IRDB, ICF, PT, EntryPoints),
+        ICF(ICF) {}
 
   ~InterMonoProblem() override = default;
   InterMonoProblem(const InterMonoProblem &Other) = delete;

@@ -32,7 +32,7 @@
 #include "phasar/PhasarLLVM/DataFlow/Mono/Problems/IntraMonoSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarPass/Options.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -62,7 +62,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   }
   // set up the call-graph algorithm to be used
   CallGraphAnalysisType CGTy = toCallGraphAnalysisType(CallGraphAnalysis);
-  LLVMTypeHierarchy H(DB);
+  DIBasedTypeHierarchy H(DB);
   LLVMAliasSet PT(&DB);
   // LLVMBasedCFG CFG;
   LLVMBasedICFG I(&DB, CGTy, EntryPoints, &H, &PT);
@@ -82,14 +82,14 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
       LLVMIDETestSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "intra-mono-solvertest") {
-    IntraMonoSolverTest Intra(&DB, &H, &I, &PT, EntryPoints);
+    IntraMonoSolverTest Intra(&DB, &I, &PT, EntryPoints);
     IntraMonoSolver Solver(Intra);
     Solver.solve();
     if (DumpResults) {
       Solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
-    InterMonoSolverTest Inter(&DB, &H, &I, &PT, EntryPoints);
+    InterMonoSolverTest Inter(&DB, &I, &PT, EntryPoints);
     InterMonoSolver_P<InterMonoSolverTest, 3> Solver(Inter);
     Solver.solve();
     if (DumpResults) {

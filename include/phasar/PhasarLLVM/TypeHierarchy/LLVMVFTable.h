@@ -13,8 +13,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTableData.h"
 #include "phasar/TypeHierarchy/VFTable.h"
 
-#include "nlohmann/json.hpp"
-
 #include <vector>
 
 namespace llvm {
@@ -23,6 +21,7 @@ class ConstantStruct;
 } // namespace llvm
 
 namespace psr {
+class DIBasedTypeHierarchy;
 
 /**
  * 	@brief Represents a virtual method table.
@@ -31,8 +30,8 @@ namespace psr {
  * 	virtual method table matters.
  */
 class LLVMVFTable : public VFTable<const llvm::Function *> {
+
 private:
-  friend class LLVMTypeHierarchy;
   friend class DIBasedTypeHierarchy;
   std::vector<const llvm::Function *> VFT;
 
@@ -70,34 +69,30 @@ public:
 
   void print(llvm::raw_ostream &OS) const override;
 
-  [[nodiscard]] [[deprecated(
-      "Please use printAsJson() instead")]] nlohmann::json
-  getAsJson() const override;
-
   [[nodiscard]] LLVMVFTableData getVFTableData() const;
 
   void printAsJson(llvm::raw_ostream &OS) const override;
 
-  [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() {
+  [[nodiscard]] std::vector<const llvm::Function *>::iterator begin() noexcept {
     return VFT.begin();
   }
 
   [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
-  begin() const {
+  begin() const noexcept {
     return VFT.begin();
   };
 
-  [[nodiscard]] std::vector<const llvm::Function *>::iterator end() {
+  [[nodiscard]] std::vector<const llvm::Function *>::iterator end() noexcept {
     return VFT.end();
   };
 
   [[nodiscard]] std::vector<const llvm::Function *>::const_iterator
-  end() const {
+  end() const noexcept {
     return VFT.end();
   };
 
   [[nodiscard]] static std::vector<const llvm::Function *>
-  getVFVectorFromIRVTable(const llvm::ConstantStruct &);
+  getVFVectorFromIRVTable(const llvm::ConstantStruct &VT, uint32_t Index = 0);
 };
 
 } // namespace psr

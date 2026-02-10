@@ -191,20 +191,6 @@ bool EdgeValue::isString() const { return VariantType == String; }
 
 EdgeValue::Type EdgeValue::getKind() const { return VariantType; }
 
-EdgeValue::operator bool() {
-  switch (VariantType) {
-  case Integer:
-    return !std::get<llvm::APInt>(ValVariant).isNullValue();
-  case FloatingPoint:
-    return std::get<llvm::APFloat>(ValVariant).isNonZero();
-  case String:
-    return !std::get<std::string>(ValVariant).empty();
-  default:
-    break;
-  }
-  return false;
-}
-
 bool operator==(const EdgeValue &Lhs, const EdgeValue &Rhs) {
   if (Lhs.VariantType != Rhs.VariantType) {
     return false;

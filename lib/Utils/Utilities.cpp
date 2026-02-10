@@ -12,10 +12,9 @@
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/DerivedTypes.h"
-
-#include "boost/algorithm/string/find.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -43,51 +42,36 @@ bool isConstructor(llvm::StringRef MangledName) {
   // see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling
 
   // This version will not work in some edge cases
-  auto Constructor = boost::algorithm::find_last(MangledName, "C2E");
 
-  if (Constructor.begin() != Constructor.end()) {
+  auto Constructor = MangledName.rfind("C2E");
+  if (Constructor != llvm::StringRef::npos) {
     return true;
   }
 
-  Constructor = boost::algorithm::find_last(MangledName, "C1E");
-
-  if (Constructor.begin() != Constructor.end()) {
+  Constructor = MangledName.rfind("C1E");
+  if (Constructor != llvm::StringRef::npos) {
     return true;
   }
 
-  Constructor = boost::algorithm::find_last(MangledName, "C2E");
-
-  if (Constructor.begin() != Constructor.end()) {
+  Constructor = MangledName.rfind("C3E");
+  if (Constructor != llvm::StringRef::npos) {
     return true;
   }
 
   return false;
 }
 
-const llvm::Type *legacy::stripPointer(const llvm::Type *Pointer) {
-  const auto *Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
-  while (Next) {
-    assert(!Next->isOpaquePointerTy() &&
-           "Don't call stripPointer, when analyzing IR that uses opaque "
-           "pointers!");
-    Pointer = Next->getNonOpaquePointerElementType();
-    Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
-  }
-
-  return Pointer;
-}
-
 bool isMangled(llvm::StringRef Name) {
   // See llvm/Demangle/Demangle.cpp
-  if (Name.startswith("_Z") || Name.startswith("___Z")) {
+  if (Name.starts_with("_Z") || Name.starts_with("___Z")) {
     // Itanium ABI
     return true;
   }
-  if (Name.startswith("_R")) {
+  if (Name.starts_with("_R")) {
     // Rust ABI
     return true;
   }
-  if (Name.startswith("_D")) {
+  if (Name.starts_with("_D")) {
     // D ABI
     return true;
   }

@@ -18,19 +18,15 @@ namespace psr {
 enum class TaintCategory;
 
 struct FunctionData {
-  FunctionData() noexcept = default;
-
   std::string Name;
   TaintCategory ReturnCat{};
-  std::vector<uint32_t> SourceValues;
-  std::vector<uint32_t> SinkValues;
-  std::vector<uint32_t> SanitizerValues;
+  std::vector<uint32_t> SourceValues{};
+  std::vector<uint32_t> SinkValues{};
+  std::vector<uint32_t> SanitizerValues{};
   bool HasAllSinkParam = false;
 };
 
 struct VariableData {
-  VariableData() noexcept = default;
-
   size_t Line{};
   std::string Name;
   std::string Scope;

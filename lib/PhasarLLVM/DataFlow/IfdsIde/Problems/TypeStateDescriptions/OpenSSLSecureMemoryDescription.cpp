@@ -110,7 +110,7 @@ OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::getNextState(
 }
 
 std::string OpenSSLSecureMemoryDescription::getTypeNameOfInterest() const {
-  return "i8"; // NOT SURE WHAT TO DO WITH THIS
+  return {};
 }
 
 set<int>
@@ -156,10 +156,6 @@ OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::bottom() const {
 
 OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::top() const {
   return OpenSSLSecureMemoryState::TOP;
-}
-
-OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::start() const {
-  return OpenSSLSecureMemoryState::ALLOCATED;
 }
 
 OpenSSLSecureMemoryState OpenSSLSecureMemoryDescription::uninit() const {

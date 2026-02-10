@@ -13,7 +13,6 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/IR/Constant.h"
@@ -30,7 +29,6 @@
 #include <set>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 namespace psr {
 
@@ -55,9 +53,8 @@ namespace psr {
 /// enable strong updates.
 ///
 template <typename D = const llvm::Value *, typename Container = std::set<D>,
-          typename Fn = TrueFn, typename DCtor = DefaultConstruct<D>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
+          typename Fn = TrueFn, typename DCtor = DefaultConstruct<D>>
+  requires std::is_invocable_r_v<bool, Fn, const llvm::Value *>
 auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
                                Fn &&PropagateArgs = {},
                                bool PropagateGlobals = true,
@@ -130,9 +127,8 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
 ///
 /// \note Unlike the old version, this one is only meant for forward-analyses
 template <typename D = const llvm::Value *, typename Container = std::set<D>,
-          typename Fn = std::equal_to<D>, typename DCtor = DefaultConstruct<D>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, Fn, const llvm::Value *, D>>>
+          typename Fn = std::equal_to<D>, typename DCtor = DefaultConstruct<D>>
+  requires std::is_invocable_r_v<bool, Fn, const llvm::Value *, D>
 FlowFunctionPtrType<D, Container>
 mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                  Fn &&PropagateArgumentWithSource = {},
@@ -195,26 +191,8 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
           std::any_of(
               ArgIt, ArgEnd,
               std::bind(std::ref(PropArg), std::placeholders::_1, Source))) {
-        // Over-approximate by trying to add the
-        //   alloca [1 x %struct.__va_list_tag], align 16
-        // to the results
-        // find the allocated %struct.__va_list_tag and generate it
-
-        for (const auto &BB : *DestFun) {
-          for (const auto &I : BB) {
-            if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-              if (Alloc->getAllocatedType()->isArrayTy() &&
-                  Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-                  Alloc->getAllocatedType()
-                      ->getArrayElementType()
-                      ->isStructTy() &&
-                  Alloc->getAllocatedType()
-                          ->getArrayElementType()
-                          ->getStructName() == "struct.__va_list_tag") {
-                Res.insert(std::invoke(FactConstructor, Alloc));
-              }
-            }
-          }
+        if (const auto *VaListAlloca = getVaListTagOrNull(*DestFun)) {
+          Res.insert(std::invoke(FactConstructor, VaListAlloca));
         }
       }
 
@@ -256,10 +234,9 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 template <
     typename D = const llvm::Value *, typename Container = std::set<D>,
     typename FnParam = std::equal_to<D>, typename FnRet = std::equal_to<D>,
-    typename DCtor = DefaultConstruct<D>, typename PostProcessFn = IgnoreArgs,
-    typename = std::enable_if_t<
-        std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
-        std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>>>
+    typename DCtor = DefaultConstruct<D>, typename PostProcessFn = IgnoreArgs>
+  requires(std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
+           std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>)
 FlowFunctionPtrType<D, Container> mapFactsToCaller(
     const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
     FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
@@ -308,24 +285,10 @@ FlowFunctionPtrType<D, Container> mapFactsToCaller(
       }
 
       if (ArgIt != ArgEnd) {
-        // Over-approximate by trying to add the
-        //   alloca [1 x %struct.__va_list_tag], align 16
-        // to the results
-        // find the allocated %struct.__va_list_tag and generate it
-
-        for (const auto &I : llvm::instructions(DestFun)) {
-          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-            const auto *AllocTy = Alloc->getAllocatedType();
-            if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
-                AllocTy->getArrayElementType()->isStructTy() &&
-                AllocTy->getArrayElementType()->getStructName() ==
-                    "struct.__va_list_tag") {
-              if (std::invoke(PropArg, Alloc, Source)) {
-                std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
-                               FactConstructor);
-                break;
-              }
-            }
+        if (const auto *VaListAlloca = getVaListTagOrNull(*DestFun)) {
+          if (std::invoke(PropArg, VaListAlloca, Source)) {
+            std::transform(ArgIt, ArgEnd, std::inserter(Res, Res.end()),
+                           FactConstructor);
           }
         }
       }
@@ -370,9 +333,8 @@ FlowFunctionPtrType<D, Container> mapFactsToCaller(
 ///   f(b) = {},
 ///   f(x) = {x, b} if pred(x) else {x}.
 ///
-template <typename Fn, typename Container = std::set<const llvm::Value *>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
+template <typename Fn, typename Container = std::set<const llvm::Value *>>
+  requires std::is_invocable_r_v<bool, Fn, const llvm::Value *>
 FlowFunctionPtrType<const llvm::Value *, Container>
 strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
   // Here we cheat a bit and "look through" the GetElementPtrInst to the

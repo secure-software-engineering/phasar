@@ -17,6 +17,7 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMSolverResults.h"
@@ -29,6 +30,7 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Twine.h"
@@ -956,17 +958,6 @@ public:
 
     [[nodiscard]] bool isConstant() const noexcept { return true; }
 
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                         const IIAAKillOrReplaceEF &EF) {
-      OS << "EF: (IIAAKillOrReplaceEF)<->";
-      if (EF.isKillAll()) {
-        OS << "(KillAll";
-      } else {
-        IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
-      }
-      return OS << ")";
-    }
-
     [[nodiscard]] bool isKillAll() const noexcept {
       if (auto *RSet = std::get_if<BitVectorSet<e_t>>(&Replacement)) {
         return RSet->empty();
@@ -979,6 +970,20 @@ public:
       return hash_value(EF.Replacement);
     }
   };
+
+  // Note: Having this operator a friend of the IDEInstInteractionAnalysisT
+  // (instead of IIAAKillOrReplaceEF) is required for gcc; otherwise, it cannot
+  // call the protected function printEdgeFactImpl.
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAKillOrReplaceEF &EF) {
+    OS << "EF: (IIAAKillOrReplaceEF)<->";
+    if (EF.isKillAll()) {
+      OS << "(KillAll";
+    } else {
+      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Replacement);
+    }
+    return OS << ")";
+  }
 
   // Edge function that adds the given labels to existing labels
   // add all labels provided by Data.
@@ -994,18 +999,21 @@ public:
       return Data == Other.Data;
     }
 
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                         const IIAAAddLabelsEF &EF) {
-      OS << "EF: (IIAAAddLabelsEF: ";
-      IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
-      return OS << ")";
-    }
-
     // NOLINTNEXTLINE(readability-identifier-naming) -- needed for ADL
     friend llvm::hash_code hash_value(const IIAAAddLabelsEF &EF) {
       return hash_value(EF.Data);
     }
   };
+
+  // Note: Having this operator a friend of the IDEInstInteractionAnalysisT
+  // (instead of IIAAAddLabelsEF) is required for gcc; otherwise, it cannot
+  // call the protected function printEdgeFactImpl.
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IIAAAddLabelsEF &EF) {
+    OS << "EF: (IIAAAddLabelsEF: ";
+    IDEInstInteractionAnalysisT::printEdgeFactImpl(OS, EF.Data);
+    return OS << ")";
+  }
 
   const auto &getData(const EdgeFunction<l_t> &EF) {
     if (const auto *AddLabels = llvm::dyn_cast<IIAAAddLabelsEF>(EF)) {
@@ -1077,7 +1085,7 @@ public:
     }
   }
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs()) override {
     OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
           "======================\n";
@@ -1085,11 +1093,11 @@ public:
     //   // Emit only IR code, function name and module info
     //   OS << "\nWARNING: No Debug Info available - emiting results without "
     //         "source code mapping!\n";
-    for (const auto *f : this->ICF->getAllFunctions()) {
+    for (const auto *f : this->IRDB->getAllFunctions()) {
       std::string FunName = getFunctionNameFromIR(f);
       OS << "\nFunction: " << FunName << "\n----------"
          << std::string(FunName.size(), '-') << '\n';
-      for (const auto *Inst : this->ICF->getAllInstructionsOf(f)) {
+      for (const auto *Inst : this->IRDB->getAllInstructionsOf(f)) {
         auto Results = SR.resultsAt(Inst, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
@@ -1113,7 +1121,7 @@ public:
   /// Computes all variables where a result set has been computed using the
   /// edge functions (and respective value domain).
   inline std::unordered_set<d_t>
-  getAllVariables(const SolverResults<n_t, d_t, l_t> & /* Solution */) const {
+  getAllVariables(GenericSolverResults<n_t, d_t, l_t> /* Solution */) const {
     std::unordered_set<d_t> Variables;
     // collect all variables that are available
     const llvm::Module *M = this->IRDB->getModule();
@@ -1138,7 +1146,7 @@ public:
   /// Computes all variables for which an empty set has been computed using the
   /// edge functions (and respective value domain).
   inline std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
-      const SolverResults<n_t, d_t, l_t> &Solution) const {
+      GenericSolverResults<n_t, d_t, l_t> Solution) const {
     return removeVariablesWithoutEmptySetValue(Solution,
                                                getAllVariables(Solution));
   }
@@ -1156,18 +1164,8 @@ protected:
     } else {
       auto LSet = std::get<BitVectorSet<e_t>>(EdgeFact);
       OS << "(set size: " << LSet.size() << ") values: ";
-      if constexpr (std::is_same_v<e_t, vara::Taint *>) {
-        for (const auto &LElem : LSet) {
-          std::string IRBuffer;
-          llvm::raw_string_ostream RSO(IRBuffer);
-          LElem->print(RSO);
-          RSO.flush();
-          OS << IRBuffer << ", ";
-        }
-      } else {
-        for (const auto &LElem : LSet) {
-          OS << LElem << ", ";
-        }
+      for (const auto &LElem : LSet) {
+        OS << LToString(LElem) << ", ";
       }
     }
   }
@@ -1188,33 +1186,29 @@ private:
   /// Filters out all variables that had a non-empty set during edge functions
   /// computations.
   inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
-      const SolverResults<n_t, d_t, l_t> &Solution,
+      GenericSolverResults<n_t, d_t, l_t> Solution,
       std::unordered_set<d_t> Variables) const {
     // Check the solver results and remove all variables for which a
     // non-empty set has been computed
-    auto Results = Solution.getAllResultEntries();
-    for (const auto &Result : Results) {
+    // auto Results = Solution.getAllResultEntries();
+    Solution.foreachResultEntry([&Variables](const auto &Result) {
       // We do not care for the concrete instruction at which data-flow facts
-      // hold, instead we just wish to find out if a variable has been generated
-      // at some point. Therefore, we only care for the variables and their
-      // associated values and ignore at which point a variable may holds as a
-      // data-flow fact.
-      const auto &Variable = Result.getColumnKey();
-      const auto &Value = Result.getValue();
+      // hold, instead we just wish to find out if a variable has been
+      // generated at some point. Therefore, we only care for the variables
+      // and their associated values and ignore at which point a variable may
+      // holds as a data-flow fact.
+      const d_t &Variable = std::get<1>(Result);
+      const l_t &Value = std::get<2>(Result);
       // skip result entry if variable is not in the set of all variables
-      if (Variables.find(Variable) == Variables.end()) {
-        continue;
+      if (!Variables.count(Variable)) {
+        return;
       }
-      // skip result entry if the computed value is not of type BitVectorSet
-      if (!std::holds_alternative<BitVectorSet<e_t>>(Value)) {
-        continue;
-      }
-      // remove variable from result set if a non-empty that has been computed
-      auto &Values = std::get<BitVectorSet<e_t>>(Value);
-      if (!Values.empty()) {
+      if (const auto *Values = Value.getValueOrNull();
+          Values && !Values->empty()) {
         Variables.erase(Variable);
       }
-    }
+    });
+
     return Variables;
   }
 
@@ -1232,5 +1226,37 @@ private:
 using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;
 
 } // namespace psr
+
+// Compatibility with llvm::DenseMap/DenseSet:
+namespace llvm {
+template <> struct DenseMapInfo<psr::IDEIIAFlowFact> {
+  static psr::IDEIIAFlowFact getEmptyKey() {
+    return psr::IDEIIAFlowFact(
+        DenseMapInfo<const llvm::Value *>::getEmptyKey());
+  }
+  static psr::IDEIIAFlowFact getTombstoneKey() {
+    return psr::IDEIIAFlowFact(
+        DenseMapInfo<const llvm::Value *>::getTombstoneKey());
+  }
+  static bool isEqual(const psr::IDEIIAFlowFact &L,
+                      const psr::IDEIIAFlowFact &R) {
+    const auto *Empty = DenseMapInfo<const llvm::Value *>::getEmptyKey();
+    const auto *TS = DenseMapInfo<const llvm::Value *>::getTombstoneKey();
+    if (L.getBase() == Empty) {
+      return R.getBase() == Empty;
+    }
+    if (L.getBase() == TS) {
+      return R.getBase() == TS;
+    }
+    if (R.getBase() == Empty || R.getBase() == TS) {
+      return false;
+    }
+    return L == R;
+  }
+  static unsigned getHashValue(const psr::IDEIIAFlowFact &FF) {
+    return std::hash<psr::IDEIIAFlowFact>{}(FF);
+  }
+};
+} // namespace llvm
 
 #endif

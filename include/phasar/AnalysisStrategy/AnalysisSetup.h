@@ -10,13 +10,12 @@
 #ifndef PHASAR_ANALYSISSTRATEGY_ANALYSISSETUP_H
 #define PHASAR_ANALYSISSTRATEGY_ANALYSISSETUP_H
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
-
 namespace psr {
+class LLVMAliasSet;
+class LLVMBasedICFG;
+class DIBasedTypeHierarchy;
 
-// Indicates that an analysis does not need a special configuration (file).
+/// Indicates that an analysis does not need a special configuration (file).
 struct HasNoConfigurationType {};
 
 struct AnalysisSetup {
@@ -29,7 +28,7 @@ struct AnalysisSetup {
 struct DefaultAnalysisSetup : AnalysisSetup {
   using PointerAnalysisTy = LLVMAliasSet;
   using CallGraphAnalysisTy = LLVMBasedICFG;
-  using TypeHierarchyTy = LLVMTypeHierarchy;
+  using TypeHierarchyTy = DIBasedTypeHierarchy;
 };
 
 } // namespace psr

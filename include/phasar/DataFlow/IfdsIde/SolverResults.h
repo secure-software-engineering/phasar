@@ -22,6 +22,7 @@
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Table.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include <set>
@@ -46,11 +47,22 @@ public:
   using d_t = D;
   using l_t = L;
 
+  /// Returns the result that the IDE analysis computed for the fact Node right
+  /// after the statement Stmt.
+  ///
+  /// A default-constructed l_t, if no analysis result was computed at this
+  /// point.
   [[nodiscard]] ByConstRef<l_t> resultAt(ByConstRef<n_t> Stmt,
                                          ByConstRef<d_t> Node) const {
     return self().Results.get(Stmt, Node);
   }
 
+  /// Returns the results that the IDE analysis computed right after the
+  /// statement Stmt.
+  ///
+  /// \param Stmt The statement, where the analysis results are requested
+  /// \param StripZero Whether the special zero value should be stripped from
+  /// the result.
   [[nodiscard]] std::unordered_map<d_t, l_t> resultsAt(ByConstRef<n_t> Stmt,
                                                        bool StripZero) const {
     std::unordered_map<d_t, l_t> Result = self().Results.row(Stmt);
@@ -60,17 +72,35 @@ public:
     return Result;
   }
 
+  /// Returns the results that the IDE analysis computed right after the
+  /// statement Stmt.
+  ///
+  /// Does not strip the special zero value from the result.
   [[nodiscard]] const std::unordered_map<d_t, l_t> &
   resultsAt(ByConstRef<n_t> Stmt) const {
     return self().Results.row(Stmt);
   }
 
+  /// The internal representation of this SolverResults object.
+  [[nodiscard]] const auto &rowMapView() const {
+    return self().Results.rowMapView();
+  }
+
+  /// Whether the analysis has computed any results for the statement Stmt.
+  [[nodiscard]] bool containsNode(ByConstRef<N> Stmt) const {
+    return self().Results.containsRow(Stmt);
+  }
+
+  /// Similar to resultsAt(ByConstRef<N>).
+  [[nodiscard]] const auto &row(ByConstRef<N> Stmt) const {
+    return self().Results.row(Stmt);
+  }
+
   // this function only exists for IFDS problems which use BinaryDomain as their
   // value domain L
-  template <typename ValueDomain = l_t,
-            typename = typename std::enable_if_t<
-                std::is_same_v<ValueDomain, BinaryDomain>>>
-  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const {
+  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const
+    requires std::is_same_v<l_t, BinaryDomain>
+  {
     std::set<D> KeySet;
     const auto &ResultMap = self().Results.row(Stmt);
     for (const auto &[FlowFact, Val] : ResultMap) {
@@ -94,13 +124,10 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
-                     llvm::Instruction>,
-      std::unordered_map<d_t, l_t>>
+  [[nodiscard]] std::unordered_map<d_t, l_t>
   resultsAtInLLVMSSA(ByConstRef<n_t> Stmt, bool AllowOverapproximation = false,
-                     bool StripZero = false) const;
+                     bool StripZero = false) const
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>;
 
   /// Returns the L-type result at the given statement for the given data-flow
   /// fact while respecting LLVM's SSA semantics.
@@ -117,18 +144,16 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
-                     llvm::Instruction>,
-      l_t>
-  resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
-                    bool AllowOverapproximation = false) const;
+  [[nodiscard]] l_t resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
+                                      bool AllowOverapproximation = false) const
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>;
 
   [[nodiscard]] std::vector<typename Table<n_t, d_t, l_t>::Cell>
   getAllResultEntries() const {
     return self().Results.cellVec();
   }
+
+  [[nodiscard]] size_t size() const noexcept { return self().Results.size(); }
 
   template <typename ICFGTy>
   void dumpResults(const ICFGTy &ICF,
@@ -180,6 +205,15 @@ public:
     STOP_TIMER("DFA IDE Result Dumping", Full);
   }
 
+  template <typename HandlerFn>
+  void foreachResultEntry(HandlerFn Handler) const {
+    for (const auto &[Row, RowMap] : rowMapView()) {
+      for (const auto &[Col, Val] : RowMap) {
+        std::invoke(Handler, std::make_tuple(Row, Col, Val));
+      }
+    }
+  }
+
 private:
   [[nodiscard]] const Derived &self() const noexcept {
     static_assert(std::is_base_of_v<SolverResultsBase, Derived>);
@@ -224,12 +258,12 @@ public:
                       D ZV) noexcept(std::is_nothrow_move_constructible_v<D>)
       : Results(std::move(ResTab)), ZV(std::move(ZV)) {}
 
-  [[nodiscard]] SolverResults<N, D, L> get() const &noexcept {
+  [[nodiscard]] SolverResults<N, D, L> get() const & noexcept {
     return {Results, ZV};
   }
   SolverResults<N, D, L> get() && = delete;
 
-  [[nodiscard]] operator SolverResults<N, D, L>() const &noexcept {
+  [[nodiscard]] operator SolverResults<N, D, L>() const & noexcept {
     return get();
   }
 

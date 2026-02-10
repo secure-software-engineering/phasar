@@ -10,11 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMALIASSETDATA_H
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMALIASSETDATA_H
 
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <string>
 
 namespace psr {
+
+/// A data structure used for storing, serializing and deserializing a
+/// LLVMAliasSet
 struct LLVMAliasSetData {
   std::vector<std::vector<std::string>> AliasSets;
   std::vector<std::string> AnalyzedFunctions;

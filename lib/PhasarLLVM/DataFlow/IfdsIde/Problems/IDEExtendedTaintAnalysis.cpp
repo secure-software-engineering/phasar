@@ -18,7 +18,6 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/PointsToInfo.h"
@@ -301,7 +300,7 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
   }
 
   bool HasVarargs = Call->arg_size() > DestFun->arg_size();
-  const auto *const VA = HasVarargs ? getVAListTagOrNull(DestFun) : nullptr;
+  const auto *const VA = HasVarargs ? getVaListTagOrNull(*DestFun) : nullptr;
 
   return lambdaFlow([this, Call, DestFun, VA](d_t Source) -> std::set<d_t> {
     if (isZeroValue(Source)) {
@@ -350,36 +349,13 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
         /// padding for now.
       }
       Offs +=
-          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedSize());
+          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedValue());
     }
 #ifdef XTAINT_DIAGNOSTICS
     allTaintedValues.insert(ret.begin(), ret.end());
 #endif
     return Ret;
   });
-}
-
-const llvm::Value *
-IDEExtendedTaintAnalysis::getVAListTagOrNull(const llvm::Function *DestFun) {
-  // Copied from IDELinearConstantAnalysis:
-  // Over-approximate by trying to add the
-  //   alloca [1 x %struct.__va_list_tag], align 16
-  // to the results
-  // find the allocated %struct.__va_list_tag and generate it
-  for (auto It = llvm::inst_begin(DestFun), End = llvm::inst_end(DestFun);
-       It != End; ++It) {
-    if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&*It)) {
-      if (Alloc->getAllocatedType()->isArrayTy() &&
-          Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
-          Alloc->getAllocatedType()->getArrayElementType()->isStructTy() &&
-          Alloc->getAllocatedType()->getArrayElementType()->getStructName() ==
-              "struct.__va_list_tag") {
-        return Alloc;
-      }
-    }
-  }
-  // Maybe the va_list is unused in the function body
-  return nullptr;
 }
 
 IDEExtendedTaintAnalysis::FlowFunctionPtrType
@@ -746,7 +722,8 @@ auto IDEExtendedTaintAnalysis::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 // Printing functions:
 
 void IDEExtendedTaintAnalysis::emitTextReport(
-    const SolverResults<n_t, d_t, l_t> &SR, llvm::raw_ostream &OS) {
+    GenericSolverResults<n_t, d_t, l_t> SR, llvm::raw_ostream &OS) {
+  OS << "===== IDEExtendedTaintAnalysis-Results =====\n";
 
   if (!PostProcessed) {
     doPostProcessing(SR);
@@ -754,12 +731,12 @@ void IDEExtendedTaintAnalysis::emitTextReport(
 
   for (auto &[Inst, LeakSet] : Leaks) {
     for (const auto &Leak : LeakSet) {
-      Printer->onResult(Inst, makeFlowFact(Leak), Top{},
-                        DataFlowAnalysisType::IDEExtendedTaintAnalysis);
+      onResult(Inst, makeFlowFact(Leak), Top{},
+               DataFlowAnalysisType::IDEExtendedTaintAnalysis);
     }
   }
 
-  Printer->onFinalize();
+  Printer->onFinalize(OS);
 }
 
 // Helpers:
@@ -834,7 +811,7 @@ IDEExtendedTaintAnalysis::getApproxLoadFrom(const llvm::Value *V) const {
 }
 
 void IDEExtendedTaintAnalysis::doPostProcessing(
-    const SolverResults<n_t, d_t, l_t> &SR) {
+    GenericSolverResults<n_t, d_t, l_t> SR) {
   PostProcessed = true;
   llvm::SmallVector<const llvm::Instruction *> RemInst;
   for (auto &[Inst, PotentialLeaks] : Leaks) {
@@ -894,7 +871,7 @@ void IDEExtendedTaintAnalysis::doPostProcessing(
 }
 
 const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
-    const SolverResults<n_t, d_t, l_t> &SR) & {
+    GenericSolverResults<n_t, d_t, l_t> SR) & {
   if (!PostProcessed) {
     doPostProcessing(SR);
   }
@@ -902,7 +879,7 @@ const LeakMap_t &IDEExtendedTaintAnalysis::getAllLeaks(
 }
 
 LeakMap_t IDEExtendedTaintAnalysis::getAllLeaks(
-    const SolverResults<n_t, d_t, l_t> &SR) && {
+    GenericSolverResults<n_t, d_t, l_t> SR) && {
   if (!PostProcessed) {
     doPostProcessing(SR);
   }

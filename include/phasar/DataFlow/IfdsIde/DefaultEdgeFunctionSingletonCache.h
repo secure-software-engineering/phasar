@@ -22,41 +22,38 @@ namespace psr {
 /// hash_value(const EdgeFunctionTy&).
 ///
 /// This cache is *not* thread-safe.
-template <typename EdgeFunctionTy, typename = void>
-class DefaultEdgeFunctionSingletonCache
+template <typename EdgeFunctionTy, typename L>
+class DefaultEdgeFunctionSingletonCacheImpl
     : public EdgeFunctionSingletonCache<EdgeFunctionTy> {
 public:
-  DefaultEdgeFunctionSingletonCache() noexcept = default;
+  DefaultEdgeFunctionSingletonCacheImpl() noexcept = default;
 
-  DefaultEdgeFunctionSingletonCache(const DefaultEdgeFunctionSingletonCache &) =
-      delete;
-  DefaultEdgeFunctionSingletonCache &
-  operator=(const DefaultEdgeFunctionSingletonCache &) = delete;
+  DefaultEdgeFunctionSingletonCacheImpl(
+      const DefaultEdgeFunctionSingletonCacheImpl &) = delete;
+  DefaultEdgeFunctionSingletonCacheImpl &
+  operator=(const DefaultEdgeFunctionSingletonCacheImpl &) = delete;
 
-  DefaultEdgeFunctionSingletonCache(
-      DefaultEdgeFunctionSingletonCache &&) noexcept = default;
-  DefaultEdgeFunctionSingletonCache &
-  operator=(DefaultEdgeFunctionSingletonCache &&) noexcept = delete;
-  ~DefaultEdgeFunctionSingletonCache() override = default;
+  DefaultEdgeFunctionSingletonCacheImpl(
+      DefaultEdgeFunctionSingletonCacheImpl &&) noexcept = default;
+  DefaultEdgeFunctionSingletonCacheImpl &
+  operator=(DefaultEdgeFunctionSingletonCacheImpl &&) noexcept = delete;
+  ~DefaultEdgeFunctionSingletonCacheImpl() override = default;
 
   [[nodiscard]] const void *
-  lookup(ByConstRef<EdgeFunctionTy> EF) const noexcept override {
+  lookup(const EdgeFunctionTy &EF) const noexcept override {
     return Cache.lookup(&EF);
   }
 
   void insert(const EdgeFunctionTy *EF, const void *Mem) override {
     assert(EF != nullptr);
-    auto [It, Inserted] = Cache.try_emplace(EF, Mem);
+    [[maybe_unused]] auto [It, Inserted] = Cache.try_emplace(EF, Mem);
     assert(Inserted);
   }
 
-  void erase(ByConstRef<EdgeFunctionTy> EF) noexcept override {
-    Cache.erase(&EF);
-  }
+  void erase(const EdgeFunctionTy &EF) noexcept override { Cache.erase(&EF); }
 
   template <typename... ArgTys>
-  [[nodiscard]] EdgeFunction<typename EdgeFunctionTy::l_t>
-  createEdgeFunction(ArgTys &&...Args) {
+  [[nodiscard]] EdgeFunction<L> createEdgeFunction(ArgTys &&...Args) {
     return CachedEdgeFunction<EdgeFunctionTy>{
         EdgeFunctionTy{std::forward<ArgTys>(Args)...}, this};
   }
@@ -93,18 +90,27 @@ private:
 };
 
 template <typename EdgeFunctionTy>
-class DefaultEdgeFunctionSingletonCache<
-    EdgeFunctionTy,
-    std::enable_if_t<EdgeFunctionBase::IsSOOCandidate<EdgeFunctionTy>>> {
+class DefaultEdgeFunctionSingletonCache
+    : public DefaultEdgeFunctionSingletonCacheImpl<
+          EdgeFunctionTy, typename EdgeFunctionTy::l_t> {
+public:
+  using DefaultEdgeFunctionSingletonCacheImpl<
+      EdgeFunctionTy,
+      typename EdgeFunctionTy::l_t>::DefaultEdgeFunctionSingletonCacheImpl;
+};
+
+template <typename EdgeFunctionTy>
+  requires EdgeFunctionBase::IsSOOCandidate<EdgeFunctionTy>
+class DefaultEdgeFunctionSingletonCache<EdgeFunctionTy> {
 public:
   [[nodiscard]] const void *
-  lookup(ByConstRef<EdgeFunctionTy> /*EF*/) const noexcept override {
+  lookup(const EdgeFunctionTy & /*EF*/) const noexcept override {
     return nullptr;
   }
   void insert(const EdgeFunctionTy * /*EF*/, const void * /*Mem*/) override {
     assert(false && "We should never go here");
   }
-  void erase(ByConstRef<EdgeFunctionTy> /*EF*/) noexcept override {
+  void erase(const EdgeFunctionTy & /*EF*/) noexcept override {
     assert(false && "We should never go here");
   }
   [[nodiscard]] EdgeFunction<typename EdgeFunctionTy::l_t>

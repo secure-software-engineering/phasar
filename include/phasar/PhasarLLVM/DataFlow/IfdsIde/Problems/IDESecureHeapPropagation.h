@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
@@ -61,8 +63,6 @@ public:
   IDESecureHeapPropagation(const LLVMProjectIRDB *IRDB,
                            std::vector<std::string> EntryPoints = {"main"});
 
-  ~IDESecureHeapPropagation() override = default;
-
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
   FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFunc) override;
@@ -105,7 +105,7 @@ public:
                                            n_t RetSite,
                                            d_t RetSiteNode) override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS) override;
 };
 

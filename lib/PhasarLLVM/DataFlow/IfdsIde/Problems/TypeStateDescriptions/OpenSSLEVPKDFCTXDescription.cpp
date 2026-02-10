@@ -11,8 +11,6 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Value.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <set>
@@ -125,7 +123,7 @@ OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::getNextState(
 }
 
 std::string OpenSSLEVPKDFCTXDescription::getTypeNameOfInterest() const {
-  return "struct.evp_kdf_ctx_st";
+  return "evp_kdf_ctx_st";
 }
 
 std::set<int>
@@ -184,10 +182,6 @@ OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::top() const {
 
 OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::uninit() const {
   return OpenSSLEVPKDFCTXState::UNINIT;
-}
-
-OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::start() const {
-  return OpenSSLEVPKDFCTXState::CTX_ATTACHED;
 }
 
 OpenSSLEVPKDFCTXState OpenSSLEVPKDFCTXDescription::error() const {

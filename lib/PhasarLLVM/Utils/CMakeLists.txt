@@ -12,4 +12,7 @@ add_phasar_library(phasar_llvm_utils
     Support
     BitWriter
     Demangle
+
+  MODULE_FILES
+    Utils.cppm
 )
