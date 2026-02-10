@@ -5638,6 +5638,70 @@ UnionFindAAResult {
   doAnalysisAndCompareResults("context_13_1_c_dbg.ll", GT, IndAABuilder);
 }
 
+TEST(IndirectionSensUnionFindAATest, Context14_0) {
+  /*
+  ValueCompressor: {
+  #0:
+    %Func.addr = alloca ptr, align 8, !psr.id !24 | ID: 1
+  #1:
+    ptr %Func | ID: callback.0
+  #2:
+    %0 = load ptr, ptr %Func.addr, align 8, !dbg !29, !psr.id !30 | ID: 4
+  #3:
+    %retval = alloca i32, align 4, !psr.id !36 | ID: 7
+  #4:
+    %FuncPtr = alloca ptr, align 8, !psr.id !37 | ID: 8
+  #5:
+    %Zero = alloca i32, align 4, !psr.id !38 | ID: 9
+  #6:
+    fun @ret0
+  #7:
+    %0 = load ptr, ptr %FuncPtr, align 8, !dbg !47, !psr.id !48 | ID: 14
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <>
+  #2: <>
+  #3: <>
+  #4: <>
+  #5: <1, 2, 6, 7>
+  #6: <>
+  #7: <>
+  #8: <>
+  #9: <>
+  #10: <3>
+  #11: <>
+  #12: <>
+  #13: <>
+  #14: <>
+  #15: <4>
+  #16: <>
+  #17: <>
+  #18: <>
+  #19: <>
+  #20: <5>
+  #21: <>
+  #22: <>
+  #23: <>
+  #24: <>
+}
+  */
+  GTMap GT{{LineColFunOp{.Line = 7,
+                         .Col = 0,
+                         .InFunction = "main",
+                         .OpCode = llvm::Instruction::Alloca},
+            {LineColFunOp{.Line = 7,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 6,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}}};
+
+  doAnalysisAndCompareResults("context_14_0_c_dbg.ll", GT, IndAABuilder);
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {

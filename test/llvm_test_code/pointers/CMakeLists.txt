@@ -39,10 +39,10 @@ set(lca_files
   indirection_05.c
   indirection_06.c
   indirection_07.c
-  indirection_08.c
-  indirection_09.c
-  indirection_10.c
-  indirection_11.c
+  indirection_08.cpp
+  indirection_09.cpp
+  indirection_10.cpp
+  indirection_11.cpp
 )
 
 set(lca_files_mem2reg
