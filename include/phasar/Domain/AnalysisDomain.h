@@ -10,9 +10,28 @@
 #ifndef PHASAR_DOMAIN_ANALYSISDOMAIN_H
 #define PHASAR_DOMAIN_ANALYSISDOMAIN_H
 
+#include "phasar/ControlFlow/CFG.h"
+#include "phasar/Domain/IRDomain.h"
+
 #include <type_traits>
 
 namespace psr {
+
+/// Minimum requirements of an analysis domain. Analyses may add extra
+/// requirements.
+template <typename T>
+concept IsAnalysisDomain = IRDomain<T> && requires() {
+  typename T::ir_t;
+  requires IRDomain<typename T::ir_t>;
+  requires std::same_as<typename T::n_t, typename T::ir_t::n_t>;
+  requires std::same_as<typename T::f_t, typename T::ir_t::f_t>;
+  requires std::same_as<typename T::v_t, typename T::ir_t::v_t>;
+  requires std::same_as<typename T::t_t, typename T::ir_t::t_t>;
+  requires std::same_as<typename T::db_t, typename T::ir_t::db_t>;
+
+  typename T::c_t;
+  requires CFG<typename T::c_t>;
+};
 
 /// AnalysisDomain - This class should be specialized by different static
 /// analyses types... which is why the default version declares all analysis
@@ -30,6 +49,8 @@ namespace psr {
 /// conduct an analysis but not correctly set, it will statically report an
 /// error and ask for the missing piece of information.
 struct AnalysisDomain {
+  /// Program IR
+  using ir_t = void;
   /// Data-flow fact --- Specifies the type of an individual data-flow fact that
   /// is propagated through the program under analysis.
   using d_t = void;

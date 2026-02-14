@@ -1,8 +1,6 @@
 module;
 
-#include "phasar/Domain/AnalysisDomain.h"
-#include "phasar/Domain/BinaryDomain.h"
-#include "phasar/Domain/LatticeDomain.h"
+#include "phasar/Domain.h"
 
 export module phasar.domain;
 
@@ -14,6 +12,7 @@ using psr::operator<<;
 using psr::operator==;
 using psr::operator<;
 using psr::Bottom;
+using psr::IRDomain;
 using psr::JoinLatticeTraits;
 using psr::LatticeDomain;
 using psr::NonTopBotValue;

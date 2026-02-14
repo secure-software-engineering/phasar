@@ -145,7 +145,7 @@ concept is_variant_v = is_variant<T>::value; // NOLINT
 
 template <typename T>
 // NOLINTNEXTLINE
-concept is_string_like_v = std::is_convertible_v<T, std::string_view>;
+concept is_string_like_v = std::is_convertible_v<T &, std::string_view>;
 
 template <template <typename> typename Base, typename Derived>
 concept is_crtp_base_of_v =
