@@ -41,33 +41,29 @@ int main(int Argc, char *Argv[]) {
   // Solver.solve();
 
   // Have more control over the solving process:
-  if (Solver.initialize()) {
-    int i = 0;
+  Solver.initialize();
+  int i = 0;
 
-    // Perform the next 10 analysis steps, while we still have some
-    while (Solver.nextN(10)) {
-      // Perform some intermediate task *during* the solving process.
-      // We could also interrupt the solver at any time and continue later.
-      llvm::outs() << "\b\b" << Spinner[i] << ' ';
-      i = (i + 1) % std::size(Spinner);
+  // Perform the next 10 analysis steps, while we still have some
+  while (Solver.nextN(10)) {
+    // Perform some intermediate task *during* the solving process.
+    // We could also interrupt the solver at any time and continue later.
+    llvm::outs() << "\b\b" << Spinner[i] << ' ';
+    i = (i + 1) % std::size(Spinner);
 
-      // Wait a bit, such that we have time to see the beautiful animation for
-      // our tiny example target programs:
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(100ms);
-    }
-
-    // In contrast to the IFDSSolver, finalize may take some time with IDE.
-    // It will still be significantly faster than the above loop.
-    Solver.finalize();
-    llvm::outs() << "\nSolving finished\n";
+    // Wait a bit, such that we have time to see the beautiful animation for
+    // our tiny example target programs:
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(100ms);
   }
 
-  // Accessing the results:
-  auto Results = Solver.getSolverResults();
+  // In contrast to the IFDSSolver, finalize may take some time with IDE.
+  // It will still be significantly faster than the above loop.
+  auto Results = Solver.finalize();
+  llvm::outs() << "\nSolving finished\n";
 
   // After we have solved the LCAProblem, we can now inspect the detected
-  // constants. Instead of manually looping, will now use
-  // the Solver to dump the whole raw IDE results:
-  Solver.dumpResults();
+  // constants. Instead of manually looping, will now dump the whole raw IDE
+  // results:
+  Results.dumpResults(ICFG);
 }
