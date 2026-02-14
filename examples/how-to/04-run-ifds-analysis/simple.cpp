@@ -55,6 +55,8 @@ int main(int Argc, char *Argv[]) {
 
   // Solving the TaintProblem. This may take some time, depending on the size of
   // the ICFG
+  // Note: solveIFDSProblem() returns the raw SolverResults, but we don't use
+  // them here...
   psr::solveIFDSProblem(TaintProblem, ICFG);
 
   // After we have solved the TaintProblem, we can now inspect the detected

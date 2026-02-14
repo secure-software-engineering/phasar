@@ -44,30 +44,29 @@ int main(int Argc, char *Argv[]) {
   psr::IFDSSolver Solver(&TaintProblem, &ICFG);
 
   // The simple solution. You don't really need an explicit solver for this:
-  // Solver.solve();
+  // auto Results = Solver.solve();
 
   // Have more control over the solving process:
-  if (Solver.initialize()) {
-    int i = 0;
+  Solver.initialize();
+  int i = 0;
 
-    // Perform the next 10 analysis steps, while we still have some
-    while (Solver.nextN(10)) {
-      // Perform some intermediate task *during* the solving process.
-      // We could also interrupt the solver at any time and continue later.
-      llvm::outs() << "\b\b" << Spinner[i] << ' ';
-      i = (i + 1) % std::size(Spinner);
+  // Perform the next 10 analysis steps, while we still have some work items
+  while (Solver.nextN(10)) {
+    // Perform some intermediate task *during* the solving process.
+    // We could also interrupt the solver at any time and continue later.
+    llvm::outs() << "\b\b" << Spinner[i] << ' ';
+    i = (i + 1) % std::size(Spinner);
 
-      // Wait a bit, such that we have time to see the beautiful animation for
-      // our tiny example target programs:
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(100ms);
-    }
-
-    Solver.finalize();
-    llvm::outs() << "\nSolving finished\n";
+    // Wait a bit, such that we have time to see the beautiful animation for
+    // our tiny example target programs:
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(100ms);
   }
 
-  // Here, we could loop over TaintProblem.Leaks. Instead, we will now use
-  // the Solver to dump the whole raw IFDS results:
-  Solver.dumpResults();
+  auto Results = Solver.finalize();
+  llvm::outs() << "\nSolving finished\n";
+
+  // Here, we could loop over TaintProblem.Leaks. Instead, we will now use dump
+  // the whole raw IFDS results:
+  Results.dumpResults(ICFG);
 }
