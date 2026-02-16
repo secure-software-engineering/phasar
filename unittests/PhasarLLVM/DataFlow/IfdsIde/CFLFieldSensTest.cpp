@@ -186,17 +186,16 @@ protected:
 
       const auto &Res = Results.resultAt(LeakInst, LeakFact);
       if (const auto *FieldStrings = Res.getValueOrNull()) {
-        if (llvm::all_of(FieldStrings->Paths,
-                         [](const auto &F) { return !F.empty(); })) {
+        if (FieldStrings->Paths.empty()) {
           llvm::errs() << "> Erase leak at " << psr::llvmIRToString(LeakInst)
                        << "; because leaking fact "
                        << psr::llvmIRToShortString(LeakFact)
-                       << " has non-empty field-string: " << Res << '\n';
+                       << " has empty set of access-paths: " << Res << '\n';
           TaintProblem.Leaks.erase(It);
-        } else {
-          ComputedLeaks[LeakInst].insert(LeakFact);
+          continue;
         }
       }
+      ComputedLeaks[LeakInst].insert(LeakFact);
     }
 
     EXPECT_EQ(GroundTruthEntries, ComputedLeaks);
@@ -323,10 +322,8 @@ TEST_F(CFLFieldSensTest, Basic_18) {
 TEST_F(CFLFieldSensTest, Basic_20) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{12, 3, "main"}, {LineColFun{6, 7, "main"}}},
-      // {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
+      {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
   };
-  // Gt[24] = {"23"}; // no leak here, because above we define the semantics to
-  // exclude deep taints!
 
   run({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, GroundTruth);
 }

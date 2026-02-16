@@ -709,7 +709,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-void klimitPaths(auto &Paths) {
+static void klimitPaths(auto &Paths) {
 
   llvm::SmallDenseMap<CFLFieldAccessPath, llvm::SmallVector<CFLFieldAccessPath>,
                       2, CFLFieldAccessPathDMI>
@@ -740,10 +740,6 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
   auto Ret = [&]() -> EdgeFunction<l_t> {
     if (auto DfltCompose = psr::defaultComposeOrNull(L, R)) {
       return DfltCompose;
-    }
-
-    if (R.isa<AllBottom<l_t>>()) {
-      return R;
     }
 
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
@@ -791,15 +787,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
                                                   const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
   auto Ret = [&]() -> EdgeFunction<l_t> {
-    if (llvm::isa<AllBottom<l_t>>(R) || llvm::isa<AllTop<l_t>>(L)) {
-      return R;
-    }
-    if (llvm::isa<AllTop<l_t>>(R) || llvm::isa<AllBottom<l_t>>(L)) {
-      return L;
-    }
-
-    if (llvm::isa<EdgeIdentity<l_t>>(L) && llvm::isa<EdgeIdentity<l_t>>(R)) {
-      return L;
+    if (auto Dflt = defaultJoinOrNullNoId(L, R)) {
+      return Dflt;
     }
 
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
@@ -822,15 +811,13 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
           for (; It != End; ++It) {
             if (!Larger.contains(*It)) {
-              auto Union = LeftSmaller ? RPaths : LPaths;
-
+              auto Union = Larger;
               Union.insert(It, End);
 
               if (Union.size() > BreadthKLimit) {
                 klimitPaths(Union);
               }
 
-              // TODO: k-limit the number of paths!
               return CFLFieldSensEdgeFunction::from(
                   CFLFieldSensEdgeValue{std::move(Union)}, DepthKLimit);
             }
@@ -858,6 +845,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
       Txn.Paths.insert(CFLFieldAccessPath{});
       return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
+
+    llvm::errs() << "COMBINE " << L << " X " << R << " ==> AllBottom\n";
 
     return AllBottom<l_t>{};
   }();

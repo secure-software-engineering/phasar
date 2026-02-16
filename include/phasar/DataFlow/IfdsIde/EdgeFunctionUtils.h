@@ -204,7 +204,7 @@ template <typename L> struct AllTop final {
 };
 
 template <typename L, typename ConcreteEF>
-EdgeFunction<L>
+inline EdgeFunction<L>
 defaultComposeOrNull(EdgeFunctionRef<ConcreteEF> This,
                      const EdgeFunction<L> &SecondFunction) noexcept {
   if (llvm::isa<EdgeIdentity<L>>(SecondFunction)) {
@@ -217,7 +217,7 @@ defaultComposeOrNull(EdgeFunctionRef<ConcreteEF> This,
 }
 
 template <typename L>
-EdgeFunction<L>
+inline EdgeFunction<L>
 defaultComposeOrNull(const EdgeFunction<L> &This,
                      const EdgeFunction<L> &SecondFunction) noexcept {
   if (llvm::isa<EdgeIdentity<L>>(SecondFunction)) {
@@ -400,8 +400,8 @@ template <typename L, uint8_t N> struct JoinEdgeFunction {
 /// Joining with EdgeIdentity will overapproximate to (AllBottom if N==0, else
 /// JoinEdgeFunction).
 template <typename L, uint8_t N = 0, typename ConcreteEF>
-EdgeFunction<L> defaultJoinOrNull(EdgeFunctionRef<ConcreteEF> This,
-                                  const EdgeFunction<L> &OtherFunction) {
+inline EdgeFunction<L> defaultJoinOrNull(EdgeFunctionRef<ConcreteEF> This,
+                                         const EdgeFunction<L> &OtherFunction) {
   if (llvm::isa<AllBottom<L>>(OtherFunction)) {
     return OtherFunction;
   }
@@ -419,8 +419,8 @@ EdgeFunction<L> defaultJoinOrNull(EdgeFunctionRef<ConcreteEF> This,
 }
 
 template <typename L, uint8_t N = 0>
-EdgeFunction<L> defaultJoinOrNull(const EdgeFunction<L> &This,
-                                  const EdgeFunction<L> &OtherFunction) {
+inline EdgeFunction<L> defaultJoinOrNull(const EdgeFunction<L> &This,
+                                         const EdgeFunction<L> &OtherFunction) {
   if (llvm::isa<AllBottom<L>>(OtherFunction) || llvm::isa<AllTop<L>>(This)) {
     return OtherFunction;
   }
@@ -435,6 +435,23 @@ EdgeFunction<L> defaultJoinOrNull(const EdgeFunction<L> &This,
       return AllBottom<L>{};
     }
   }
+  return nullptr;
+}
+
+/// Similar to defaultJoinOrNull(), but does not handle This==OtherFunction and
+/// EdgeIdentity.
+template <typename L>
+inline EdgeFunction<L>
+defaultJoinOrNullNoId(const EdgeFunction<L> &This,
+                      const EdgeFunction<L> &OtherFunction) {
+  if (llvm::isa<AllBottom<L>>(OtherFunction) || llvm::isa<AllTop<L>>(This)) {
+    return OtherFunction;
+  }
+  if (llvm::isa<AllTop<L>>(OtherFunction) || llvm::isa<AllBottom<L>>(This) ||
+      OtherFunction.referenceEquals(This)) {
+    return This;
+  }
+
   return nullptr;
 }
 
