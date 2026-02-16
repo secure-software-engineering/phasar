@@ -88,10 +88,8 @@ void doAnalysisAndCompareResults(
                                         {"main"}, TH, VTP);
 
   ValueCompressor<PAGVariable> VC;
-  auto AA = AABuilder(IRDB, BaseCG);
-
   UnionFindAAResult auto Results =
-      computeUnionFindAARaw(IRDB, std::move(AA), &VC);
+      computeUnionFindAARaw(IRDB, AABuilder(IRDB, BaseCG), &VC);
 
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
     const auto PtrId = asId(VC, IRDB, PtrVar);
@@ -175,6 +173,15 @@ constexpr auto BotAABuilder = [](const auto &IRDB, const auto &CG) {
 
   static_assert(pag::PBStrategy<decltype(Ret)>);
   return Ret;
+};
+
+constexpr auto TracingBuilder = [](auto &&Builder) {
+  return [Builder = PSR_FWD(Builder)](const auto &IRDB, const auto &CG) {
+    return pag::PBStrategyCombinator{
+        std::invoke(Builder, IRDB, CG),
+        pag::TracingPBStrategy{},
+    };
+  };
 };
 
 TEST(CtxSensUnionFindAATest, Basic01) {

@@ -14,6 +14,7 @@
 #include <memory>
 #include <optional>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 namespace psr {
@@ -92,11 +93,14 @@ struct Edge : public std::variant<Assign, Gep, Call, Return, Load, Store,
   }
 };
 
-template <typename T>
-concept CanOnAddEdge =
+template <typename T, typename N>
+concept CanOnAddEdgeN =
     requires(T &Strategy, ValueId From, ValueId To, pag::Edge E) {
-      Strategy.onAddEdge(From, To, E, Nullable<typename T::n_t>{});
+      Strategy.onAddEdge(From, To, E, Nullable<N>{});
     };
+
+template <typename T>
+concept CanOnAddEdge = CanOnAddEdgeN<T, typename T::n_t>;
 
 template <typename T>
 concept CanWithCalleesOfCallAt =
@@ -131,11 +135,15 @@ concept CanGetNumPossibleValues =
       } noexcept -> std::convertible_to<size_t>;
     };
 
-template <PBStrategy FirstT, CanOnAddEdge SecondT>
-  requires(std::same_as<typename FirstT::n_t, typename SecondT::n_t> &&
-           std::same_as<typename FirstT::v_t, typename SecondT::v_t> &&
-           std::same_as<typename FirstT::f_t, typename SecondT::f_t> &&
-           std::same_as<typename FirstT::db_t, typename SecondT::db_t>)
+template <typename T>
+concept CanConsumeAAResults =
+    requires(T Strategy) { std::move(Strategy).consumeAAResults(size_t(0)); };
+
+template <PBStrategy FirstT, CanOnAddEdgeN<typename FirstT::n_t> SecondT>
+// requires(std::same_as<typename FirstT::n_t, typename SecondT::n_t> &&
+//          std::same_as<typename FirstT::v_t, typename SecondT::v_t> &&
+//          std::same_as<typename FirstT::f_t, typename SecondT::f_t> &&
+//          std::same_as<typename FirstT::db_t, typename SecondT::db_t>)
 struct PBStrategyCombinator {
   using n_t = typename FirstT::n_t;
   using v_t = typename FirstT::v_t;
@@ -184,6 +192,12 @@ struct PBStrategyCombinator {
       First.withCalleesOfCallAt(CS, WithCallee);
     }
   }
+
+  constexpr auto consumeAAResults(size_t NumVars) &&
+    requires(CanConsumeAAResults<FirstT> && !CanConsumeAAResults<SecondT>)
+  {
+    return std::move(First).consumeAAResults(NumVars);
+  }
 };
 
 template <CanOnAddEdge FirstT, PBStrategyBase SecondT>
@@ -207,6 +221,31 @@ struct PBMixin : public FirstT {
   withCalleesOfCallAt(ByConstRef<n_t> CS,
                       llvm::function_ref<void(f_t)> WithCallee) const {
     Second.withCalleesOfCallAt(CS, WithCallee);
+  }
+};
+
+struct TracingPBStrategy {
+  bool Engaged = true;
+
+  TracingPBStrategy() { llvm::errs() << "digraph PAG {\n"; }
+  ~TracingPBStrategy() {
+    if (Engaged) {
+      llvm::errs() << "}\n";
+    }
+  }
+
+  constexpr TracingPBStrategy(TracingPBStrategy &&Other) noexcept
+      : Engaged(std::exchange(Other.Engaged, false)) {}
+  constexpr TracingPBStrategy &operator=(TracingPBStrategy &&Other) noexcept {
+    Engaged = std::exchange(Other.Engaged, false);
+    return *this;
+  }
+
+  void onAddEdge(ValueId From, ValueId To, Edge E,
+                 const auto & /*AtInstruction*/) const {
+    llvm::errs() << "  " << uint32_t(From) << "->" << uint32_t(To)
+                 << "[label=\"";
+    llvm::errs().write_escaped(to_string(E)) << "\"];\n";
   }
 };
 
