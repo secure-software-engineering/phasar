@@ -11,10 +11,10 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="classpsr_1_1InitialSeeds.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="classpsr_1_1InitialSeeds.html" target="_top" xlink:title="Represent the starting points of the analysis.">
 <polygon fill="white" stroke="#666666" points="103,-30 0,-30 0,0 103,0 103,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">psr::InitialSeeds&lt;</text>
-<text text-anchor="middle" x="51.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00"> n_t, d_t, l_t &gt;</text>
+<text text-anchor="middle" x="51.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00"> N, D, L &gt;</text>
 </a>
 </g>
 </g>

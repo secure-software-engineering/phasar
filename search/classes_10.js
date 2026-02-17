@@ -10,6 +10,5 @@ var searchData=
   ['resolver_7',['Resolver',['../classpsr_1_1Resolver.html',1,'psr']]],
   ['return_8',['Return',['../structpsr_1_1vta_1_1Return.html',1,'psr::vta']]],
   ['returnvalue_9',['ReturnValue',['../structpsr_1_1library__summary_1_1ReturnValue.html',1,'psr::library_summary']]],
-  ['rowview_10',['RowView',['../classpsr_1_1IdBasedSolverResults_1_1RowView.html',1,'psr::IdBasedSolverResults']]],
-  ['rtaresolver_11',['RTAResolver',['../classpsr_1_1RTAResolver.html',1,'psr']]]
+  ['rtaresolver_10',['RTAResolver',['../classpsr_1_1RTAResolver.html',1,'psr']]]
 ];

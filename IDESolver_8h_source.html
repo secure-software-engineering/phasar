@@ -1986,7 +1986,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l01791" name="l01791"></a><span class="lineno"> 1791</span><span class="comment"></span> </div>
 <div class="line"><a id="l01792" name="l01792"></a><span class="lineno"> 1792</span><span class="comment">  /// -- InteractiveIDESolverMixin implementation</span></div>
 <div class="line"><a id="l01793" name="l01793"></a><span class="lineno"> 1793</span><span class="comment"></span> </div>
-<div class="line"><a id="l01794" name="l01794"></a><span class="lineno"> 1794</span>  <span class="keywordtype">bool</span> doInitialize() {</div>
+<div class="line"><a id="l01794" name="l01794"></a><span class="lineno"> 1794</span>  <span class="keywordtype">void</span> doInitialize() {</div>
 <div class="line"><a id="l01795" name="l01795"></a><span class="lineno"> 1795</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a7bc401a8ebfca67c379efcbd471d96e4">PAMM_GET_INSTANCE</a>;</div>
 <div class="line"><a id="l01796" name="l01796"></a><span class="lineno"> 1796</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a952cebeef376eb205a615df93de102f7">REG_COUNTER</a>(<span class="stringliteral">&quot;Gen facts&quot;</span>, 0, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">Core</a>);</div>
 <div class="line"><a id="l01797" name="l01797"></a><span class="lineno"> 1797</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a952cebeef376eb205a615df93de102f7">REG_COUNTER</a>(<span class="stringliteral">&quot;Kill facts&quot;</span>, 0, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">Core</a>);</div>
@@ -2015,144 +2015,146 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l01820" name="l01820"></a><span class="lineno"> 1820</span> </div>
 <div class="line"><a id="l01821" name="l01821"></a><span class="lineno"> 1821</span>    <span class="comment">// We start our analysis and construct exploded supergraph</span></div>
 <div class="line"><a id="l01822" name="l01822"></a><span class="lineno"> 1822</span>    <a class="code hl_function" href="classpsr_1_1IDESolver.html#a869b7642440f69d190de1dd85a2eb380">submitInitialSeeds</a>();</div>
-<div class="line"><a id="l01823" name="l01823"></a><span class="lineno"> 1823</span>    <span class="keywordflow">return</span> !WorkList.empty();</div>
-<div class="line"><a id="l01824" name="l01824"></a><span class="lineno"> 1824</span>  }</div>
-<div class="line"><a id="l01825" name="l01825"></a><span class="lineno"> 1825</span> </div>
-<div class="line"><a id="l01826" name="l01826"></a><span class="lineno"> 1826</span>  <span class="keywordtype">bool</span> doNext() {</div>
-<div class="line"><a id="l01827" name="l01827"></a><span class="lineno"> 1827</span>    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">assert</a>(!WorkList.empty());</div>
-<div class="line"><a id="l01828" name="l01828"></a><span class="lineno"> 1828</span>    <span class="keyword">auto</span> [<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Edge</a>, EF] = std::move(WorkList.back());</div>
-<div class="line"><a id="l01829" name="l01829"></a><span class="lineno"> 1829</span>    WorkList.pop_back();</div>
-<div class="line"><a id="l01830" name="l01830"></a><span class="lineno"> 1830</span> </div>
-<div class="line"><a id="l01831" name="l01831"></a><span class="lineno"> 1831</span>    <span class="keyword">auto</span> [<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SourceVal</a>, Target, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TargetVal</a>] = <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Edge</a>.consume();</div>
-<div class="line"><a id="l01832" name="l01832"></a><span class="lineno"> 1832</span>    <a class="code hl_function" href="classpsr_1_1IDESolver.html#aab9adebcd318c3d0109ca928d67ed504">propagate</a>(std::move(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SourceVal</a>), std::move(Target), std::move(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TargetVal</a>),</div>
-<div class="line"><a id="l01833" name="l01833"></a><span class="lineno"> 1833</span>              std::move(EF));</div>
-<div class="line"><a id="l01834" name="l01834"></a><span class="lineno"> 1834</span> </div>
-<div class="line"><a id="l01835" name="l01835"></a><span class="lineno"> 1835</span>    <span class="keywordflow">return</span> !WorkList.empty();</div>
-<div class="line"><a id="l01836" name="l01836"></a><span class="lineno"> 1836</span>  }</div>
-<div class="line"><a id="l01837" name="l01837"></a><span class="lineno"> 1837</span> </div>
-<div class="line"><a id="l01838" name="l01838"></a><span class="lineno"> 1838</span>  <span class="keywordtype">void</span> finalizeInternal() {</div>
-<div class="line"><a id="l01839" name="l01839"></a><span class="lineno"> 1839</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a7bc401a8ebfca67c379efcbd471d96e4">PAMM_GET_INSTANCE</a>;</div>
-<div class="line"><a id="l01840" name="l01840"></a><span class="lineno"> 1840</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a624f036bd2a8836408830fbf741a5198">STOP_TIMER</a>(<span class="stringliteral">&quot;DFA Phase I&quot;</span>, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">Full</a>);</div>
-<div class="line"><a id="l01841" name="l01841"></a><span class="lineno"> 1841</span>    <a class="code hl_define" href="Logger_8h.html#a40c6862bd120daca544a5078fc1fa0f4">PHASAR_LOG_LEVEL</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">INFO</a>, <span class="stringliteral">&quot;[info]: IDE Phase I completed&quot;</span>);</div>
-<div class="line"><a id="l01842" name="l01842"></a><span class="lineno"> 1842</span> </div>
-<div class="line"><a id="l01843" name="l01843"></a><span class="lineno"> 1843</span>    <span class="keywordflow">if</span> (SolverConfig.<a class="code hl_function" href="structpsr_1_1IFDSIDESolverConfig.html#a4eb21742d31ff90d790b2f0ff886b060">computeValues</a>()) {</div>
-<div class="line"><a id="l01844" name="l01844"></a><span class="lineno"> 1844</span>      <a class="code hl_define" href="PAMMMacros_8h.html#abe819560799f0050f845c7f342d02d44">START_TIMER</a>(<span class="stringliteral">&quot;DFA Phase II&quot;</span>, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">Full</a>);</div>
-<div class="line"><a id="l01845" name="l01845"></a><span class="lineno"> 1845</span>      <span class="comment">// Computing the final values for the edge functions</span></div>
-<div class="line"><a id="l01846" name="l01846"></a><span class="lineno"> 1846</span>      <a class="code hl_define" href="Logger_8h.html#a40c6862bd120daca544a5078fc1fa0f4">PHASAR_LOG_LEVEL</a>(</div>
-<div class="line"><a id="l01847" name="l01847"></a><span class="lineno"> 1847</span>          <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">INFO</a>, <span class="stringliteral">&quot;Compute the final values according to the edge functions&quot;</span>);</div>
-<div class="line"><a id="l01848" name="l01848"></a><span class="lineno"> 1848</span>      <a class="code hl_function" href="classpsr_1_1IDESolver.html#ad2840fb5a1235cc8f5f8dfd20a320e29">computeValues</a>();</div>
-<div class="line"><a id="l01849" name="l01849"></a><span class="lineno"> 1849</span>      <a class="code hl_define" href="PAMMMacros_8h.html#a624f036bd2a8836408830fbf741a5198">STOP_TIMER</a>(<span class="stringliteral">&quot;DFA Phase II&quot;</span>, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">Full</a>);</div>
-<div class="line"><a id="l01850" name="l01850"></a><span class="lineno"> 1850</span>    }</div>
-<div class="line"><a id="l01851" name="l01851"></a><span class="lineno"> 1851</span> </div>
-<div class="line"><a id="l01852" name="l01852"></a><span class="lineno"> 1852</span>    <a class="code hl_define" href="Logger_8h.html#a40c6862bd120daca544a5078fc1fa0f4">PHASAR_LOG_LEVEL</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">INFO</a>, <span class="stringliteral">&quot;Problem solved&quot;</span>);</div>
-<div class="line"><a id="l01853" name="l01853"></a><span class="lineno"> 1853</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (PAMM_CURR_SEV_LEVEL &gt;= <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">PAMM_SEVERITY_LEVEL::Core</a>) {</div>
-<div class="line"><a id="l01854" name="l01854"></a><span class="lineno"> 1854</span>      <a class="code hl_function" href="classpsr_1_1IDESolver.html#abeca8e9ddb81f74a289e1fddfb17d36e">computeAndPrintStatistics</a>();</div>
-<div class="line"><a id="l01855" name="l01855"></a><span class="lineno"> 1855</span>    }</div>
-<div class="line"><a id="l01856" name="l01856"></a><span class="lineno"> 1856</span>    <span class="keywordflow">if</span> (SolverConfig.<a class="code hl_function" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">emitESG</a>()) {</div>
-<div class="line"><a id="l01857" name="l01857"></a><span class="lineno"> 1857</span>      <a class="code hl_function" href="classpsr_1_1IDESolver.html#a565592dbde7c5c7a40d0d7b61f1933d8">emitESGAsDot</a>();</div>
-<div class="line"><a id="l01858" name="l01858"></a><span class="lineno"> 1858</span>    }</div>
-<div class="line"><a id="l01859" name="l01859"></a><span class="lineno"> 1859</span>  }</div>
-<div class="line"><a id="l01860" name="l01860"></a><span class="lineno"> 1860</span> </div>
-<div class="line"><a id="l01861" name="l01861"></a><span class="lineno"> 1861</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SolverResults&lt;n_t, d_t, l_t&gt;</a> doFinalize() &amp; {</div>
-<div class="line"><a id="l01862" name="l01862"></a><span class="lineno"> 1862</span>    finalizeInternal();</div>
-<div class="line"><a id="l01863" name="l01863"></a><span class="lineno"> 1863</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="classpsr_1_1IDESolver.html#a101bbb52c274eebf56264c0f29be5390">getSolverResults</a>();</div>
-<div class="line"><a id="l01864" name="l01864"></a><span class="lineno"> 1864</span>  }</div>
-<div class="line"><a id="l01865" name="l01865"></a><span class="lineno"> 1865</span> </div>
-<div class="line"><a id="l01866" name="l01866"></a><span class="lineno"> 1866</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OwningSolverResults&lt;n_t, d_t, l_t&gt;</a> doFinalize() &amp;&amp; {</div>
-<div class="line"><a id="l01867" name="l01867"></a><span class="lineno"> 1867</span>    finalizeInternal();</div>
-<div class="line"><a id="l01868" name="l01868"></a><span class="lineno"> 1868</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="classpsr_1_1IDESolver.html#acd3fac3668f42e1d021d435d823f0ec4">consumeSolverResults</a>();</div>
-<div class="line"><a id="l01869" name="l01869"></a><span class="lineno"> 1869</span>  }</div>
-<div class="line"><a id="l01870" name="l01870"></a><span class="lineno"> 1870</span><span class="comment"></span> </div>
-<div class="line"><a id="l01871" name="l01871"></a><span class="lineno"> 1871</span><span class="comment">  /// -- Data members</span></div>
+<div class="line"><a id="l01823" name="l01823"></a><span class="lineno"> 1823</span>  }</div>
+<div class="line"><a id="l01824" name="l01824"></a><span class="lineno"> 1824</span> </div>
+<div class="line"><a id="l01825" name="l01825"></a><span class="lineno"> 1825</span>  <span class="keywordtype">bool</span> doNext() {</div>
+<div class="line"><a id="l01826" name="l01826"></a><span class="lineno"> 1826</span>    <span class="keywordflow">if</span> (WorkList.empty()) {</div>
+<div class="line"><a id="l01827" name="l01827"></a><span class="lineno"> 1827</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01828" name="l01828"></a><span class="lineno"> 1828</span>    }</div>
+<div class="line"><a id="l01829" name="l01829"></a><span class="lineno"> 1829</span> </div>
+<div class="line"><a id="l01830" name="l01830"></a><span class="lineno"> 1830</span>    <span class="keyword">auto</span> [<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Edge</a>, EF] = std::move(WorkList.back());</div>
+<div class="line"><a id="l01831" name="l01831"></a><span class="lineno"> 1831</span>    WorkList.pop_back();</div>
+<div class="line"><a id="l01832" name="l01832"></a><span class="lineno"> 1832</span> </div>
+<div class="line"><a id="l01833" name="l01833"></a><span class="lineno"> 1833</span>    <span class="keyword">auto</span> [<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SourceVal</a>, Target, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TargetVal</a>] = <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Edge</a>.consume();</div>
+<div class="line"><a id="l01834" name="l01834"></a><span class="lineno"> 1834</span>    <a class="code hl_function" href="classpsr_1_1IDESolver.html#aab9adebcd318c3d0109ca928d67ed504">propagate</a>(std::move(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SourceVal</a>), std::move(Target), std::move(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TargetVal</a>),</div>
+<div class="line"><a id="l01835" name="l01835"></a><span class="lineno"> 1835</span>              std::move(EF));</div>
+<div class="line"><a id="l01836" name="l01836"></a><span class="lineno"> 1836</span> </div>
+<div class="line"><a id="l01837" name="l01837"></a><span class="lineno"> 1837</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l01838" name="l01838"></a><span class="lineno"> 1838</span>  }</div>
+<div class="line"><a id="l01839" name="l01839"></a><span class="lineno"> 1839</span> </div>
+<div class="line"><a id="l01840" name="l01840"></a><span class="lineno"> 1840</span>  <span class="keywordtype">void</span> finalizeInternal() {</div>
+<div class="line"><a id="l01841" name="l01841"></a><span class="lineno"> 1841</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a7bc401a8ebfca67c379efcbd471d96e4">PAMM_GET_INSTANCE</a>;</div>
+<div class="line"><a id="l01842" name="l01842"></a><span class="lineno"> 1842</span>    <a class="code hl_define" href="PAMMMacros_8h.html#a624f036bd2a8836408830fbf741a5198">STOP_TIMER</a>(<span class="stringliteral">&quot;DFA Phase I&quot;</span>, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">Full</a>);</div>
+<div class="line"><a id="l01843" name="l01843"></a><span class="lineno"> 1843</span>    <a class="code hl_define" href="Logger_8h.html#a40c6862bd120daca544a5078fc1fa0f4">PHASAR_LOG_LEVEL</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">INFO</a>, <span class="stringliteral">&quot;[info]: IDE Phase I completed&quot;</span>);</div>
+<div class="line"><a id="l01844" name="l01844"></a><span class="lineno"> 1844</span> </div>
+<div class="line"><a id="l01845" name="l01845"></a><span class="lineno"> 1845</span>    <span class="keywordflow">if</span> (SolverConfig.<a class="code hl_function" href="structpsr_1_1IFDSIDESolverConfig.html#a4eb21742d31ff90d790b2f0ff886b060">computeValues</a>()) {</div>
+<div class="line"><a id="l01846" name="l01846"></a><span class="lineno"> 1846</span>      <a class="code hl_define" href="PAMMMacros_8h.html#abe819560799f0050f845c7f342d02d44">START_TIMER</a>(<span class="stringliteral">&quot;DFA Phase II&quot;</span>, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">Full</a>);</div>
+<div class="line"><a id="l01847" name="l01847"></a><span class="lineno"> 1847</span>      <span class="comment">// Computing the final values for the edge functions</span></div>
+<div class="line"><a id="l01848" name="l01848"></a><span class="lineno"> 1848</span>      <a class="code hl_define" href="Logger_8h.html#a40c6862bd120daca544a5078fc1fa0f4">PHASAR_LOG_LEVEL</a>(</div>
+<div class="line"><a id="l01849" name="l01849"></a><span class="lineno"> 1849</span>          <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">INFO</a>, <span class="stringliteral">&quot;Compute the final values according to the edge functions&quot;</span>);</div>
+<div class="line"><a id="l01850" name="l01850"></a><span class="lineno"> 1850</span>      <a class="code hl_function" href="classpsr_1_1IDESolver.html#ad2840fb5a1235cc8f5f8dfd20a320e29">computeValues</a>();</div>
+<div class="line"><a id="l01851" name="l01851"></a><span class="lineno"> 1851</span>      <a class="code hl_define" href="PAMMMacros_8h.html#a624f036bd2a8836408830fbf741a5198">STOP_TIMER</a>(<span class="stringliteral">&quot;DFA Phase II&quot;</span>, <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">Full</a>);</div>
+<div class="line"><a id="l01852" name="l01852"></a><span class="lineno"> 1852</span>    }</div>
+<div class="line"><a id="l01853" name="l01853"></a><span class="lineno"> 1853</span> </div>
+<div class="line"><a id="l01854" name="l01854"></a><span class="lineno"> 1854</span>    <a class="code hl_define" href="Logger_8h.html#a40c6862bd120daca544a5078fc1fa0f4">PHASAR_LOG_LEVEL</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">INFO</a>, <span class="stringliteral">&quot;Problem solved&quot;</span>);</div>
+<div class="line"><a id="l01855" name="l01855"></a><span class="lineno"> 1855</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (PAMM_CURR_SEV_LEVEL &gt;= <a class="code hl_enumvalue" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">PAMM_SEVERITY_LEVEL::Core</a>) {</div>
+<div class="line"><a id="l01856" name="l01856"></a><span class="lineno"> 1856</span>      <a class="code hl_function" href="classpsr_1_1IDESolver.html#abeca8e9ddb81f74a289e1fddfb17d36e">computeAndPrintStatistics</a>();</div>
+<div class="line"><a id="l01857" name="l01857"></a><span class="lineno"> 1857</span>    }</div>
+<div class="line"><a id="l01858" name="l01858"></a><span class="lineno"> 1858</span>    <span class="keywordflow">if</span> (SolverConfig.<a class="code hl_function" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">emitESG</a>()) {</div>
+<div class="line"><a id="l01859" name="l01859"></a><span class="lineno"> 1859</span>      <a class="code hl_function" href="classpsr_1_1IDESolver.html#a565592dbde7c5c7a40d0d7b61f1933d8">emitESGAsDot</a>();</div>
+<div class="line"><a id="l01860" name="l01860"></a><span class="lineno"> 1860</span>    }</div>
+<div class="line"><a id="l01861" name="l01861"></a><span class="lineno"> 1861</span>  }</div>
+<div class="line"><a id="l01862" name="l01862"></a><span class="lineno"> 1862</span> </div>
+<div class="line"><a id="l01863" name="l01863"></a><span class="lineno"> 1863</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SolverResults&lt;n_t, d_t, l_t&gt;</a> doFinalize() &amp; {</div>
+<div class="line"><a id="l01864" name="l01864"></a><span class="lineno"> 1864</span>    finalizeInternal();</div>
+<div class="line"><a id="l01865" name="l01865"></a><span class="lineno"> 1865</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="classpsr_1_1IDESolver.html#a101bbb52c274eebf56264c0f29be5390">getSolverResults</a>();</div>
+<div class="line"><a id="l01866" name="l01866"></a><span class="lineno"> 1866</span>  }</div>
+<div class="line"><a id="l01867" name="l01867"></a><span class="lineno"> 1867</span> </div>
+<div class="line"><a id="l01868" name="l01868"></a><span class="lineno"> 1868</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OwningSolverResults&lt;n_t, d_t, l_t&gt;</a> doFinalize() &amp;&amp; {</div>
+<div class="line"><a id="l01869" name="l01869"></a><span class="lineno"> 1869</span>    finalizeInternal();</div>
+<div class="line"><a id="l01870" name="l01870"></a><span class="lineno"> 1870</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="classpsr_1_1IDESolver.html#acd3fac3668f42e1d021d435d823f0ec4">consumeSolverResults</a>();</div>
+<div class="line"><a id="l01871" name="l01871"></a><span class="lineno"> 1871</span>  }</div>
 <div class="line"><a id="l01872" name="l01872"></a><span class="lineno"> 1872</span><span class="comment"></span> </div>
-<div class="line"><a id="l01873" name="l01873"></a><span class="lineno"> 1873</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDETabulationProblem&lt;AnalysisDomainTy, Container&gt;</a> &amp;IDEProblem;</div>
-<div class="line"><a id="l01874" name="l01874"></a><span class="lineno"> 1874</span>  <a class="code hl_typedef" href="classpsr_1_1IDESolver.html#a57c41432f2b79d5c150958e1f827631c">d_t</a> ZeroValue;</div>
-<div class="line"><a id="l01875" name="l01875"></a><span class="lineno"> 1875</span>  <span class="keyword">const</span> <a class="code hl_typedef" href="classpsr_1_1IDESolver.html#aa098d9dbedd5a9113ceeb67a88298fae">i_t</a> *ICF;</div>
-<div class="line"><a id="l01876" name="l01876"></a><span class="lineno"> 1876</span>  <span class="keyword">const</span> <span class="keywordtype">void</span> *SVFG;</div>
-<div class="line"><a id="l01877" name="l01877"></a><span class="lineno"> 1877</span>  IFDSIDESolverConfig &amp;SolverConfig;</div>
-<div class="line"><a id="l01878" name="l01878"></a><span class="lineno"> 1878</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Nullable&lt;n_t&gt;</a> (*NextUserOrNullCB)(<span class="keyword">const</span> <span class="keywordtype">void</span> *, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;f_t&gt;</a>,</div>
-<div class="line"><a id="l01879" name="l01879"></a><span class="lineno"> 1879</span>                                    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;d_t&gt;</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;n_t&gt;</a>) = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l01880" name="l01880"></a><span class="lineno"> 1880</span> </div>
-<div class="line"><a id="l01881" name="l01881"></a><span class="lineno"> 1881</span>  std::vector&lt;std::pair&lt;PathEdge&lt;n_t, d_t&gt;, EdgeFunction&lt;l_t&gt;&gt;&gt; WorkList;</div>
-<div class="line"><a id="l01882" name="l01882"></a><span class="lineno"> 1882</span>  std::vector&lt;std::pair&lt;n_t, d_t&gt;&gt; ValuePropWL;</div>
-<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"> 1883</span> </div>
-<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>  <span class="keywordtype">size_t</span> PathEdgeCount = 0;</div>
+<div class="line"><a id="l01873" name="l01873"></a><span class="lineno"> 1873</span><span class="comment">  /// -- Data members</span></div>
+<div class="line"><a id="l01874" name="l01874"></a><span class="lineno"> 1874</span><span class="comment"></span> </div>
+<div class="line"><a id="l01875" name="l01875"></a><span class="lineno"> 1875</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDETabulationProblem&lt;AnalysisDomainTy, Container&gt;</a> &amp;IDEProblem;</div>
+<div class="line"><a id="l01876" name="l01876"></a><span class="lineno"> 1876</span>  <a class="code hl_typedef" href="classpsr_1_1IDESolver.html#a57c41432f2b79d5c150958e1f827631c">d_t</a> ZeroValue;</div>
+<div class="line"><a id="l01877" name="l01877"></a><span class="lineno"> 1877</span>  <span class="keyword">const</span> <a class="code hl_typedef" href="classpsr_1_1IDESolver.html#aa098d9dbedd5a9113ceeb67a88298fae">i_t</a> *ICF;</div>
+<div class="line"><a id="l01878" name="l01878"></a><span class="lineno"> 1878</span>  <span class="keyword">const</span> <span class="keywordtype">void</span> *SVFG;</div>
+<div class="line"><a id="l01879" name="l01879"></a><span class="lineno"> 1879</span>  IFDSIDESolverConfig &amp;SolverConfig;</div>
+<div class="line"><a id="l01880" name="l01880"></a><span class="lineno"> 1880</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Nullable&lt;n_t&gt;</a> (*NextUserOrNullCB)(<span class="keyword">const</span> <span class="keywordtype">void</span> *, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;f_t&gt;</a>,</div>
+<div class="line"><a id="l01881" name="l01881"></a><span class="lineno"> 1881</span>                                    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;d_t&gt;</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;n_t&gt;</a>) = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l01882" name="l01882"></a><span class="lineno"> 1882</span> </div>
+<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"> 1883</span>  std::vector&lt;std::pair&lt;PathEdge&lt;n_t, d_t&gt;, EdgeFunction&lt;l_t&gt;&gt;&gt; WorkList;</div>
+<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>  std::vector&lt;std::pair&lt;n_t, d_t&gt;&gt; ValuePropWL;</div>
 <div class="line"><a id="l01885" name="l01885"></a><span class="lineno"> 1885</span> </div>
-<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FlowEdgeFunctionCache&lt;AnalysisDomainTy, Container&gt;</a> CachedFlowEdgeFunctions;</div>
+<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span>  <span class="keywordtype">size_t</span> PathEdgeCount = 0;</div>
 <div class="line"><a id="l01887" name="l01887"></a><span class="lineno"> 1887</span> </div>
-<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"> 1888</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, n_t, std::map&lt;d_t, Container&gt;</a>&gt; ComputedIntraPathEdges;</div>
+<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"> 1888</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FlowEdgeFunctionCache&lt;AnalysisDomainTy, Container&gt;</a> CachedFlowEdgeFunctions;</div>
 <div class="line"><a id="l01889" name="l01889"></a><span class="lineno"> 1889</span> </div>
-<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"> 1890</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, n_t, std::map&lt;d_t, Container&gt;</a>&gt; ComputedInterPathEdges;</div>
+<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"> 1890</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, n_t, std::map&lt;d_t, Container&gt;</a>&gt; ComputedIntraPathEdges;</div>
 <div class="line"><a id="l01891" name="l01891"></a><span class="lineno"> 1891</span> </div>
-<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span>  EdgeFunction&lt;l_t&gt; AllTop;</div>
+<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, n_t, std::map&lt;d_t, Container&gt;</a>&gt; ComputedInterPathEdges;</div>
 <div class="line"><a id="l01893" name="l01893"></a><span class="lineno"> 1893</span> </div>
-<div class="line"><a id="l01894" name="l01894"></a><span class="lineno"> 1894</span>  std::shared_ptr&lt;JumpFunctions&lt;AnalysisDomainTy, Container&gt;&gt; JumpFn;</div>
+<div class="line"><a id="l01894" name="l01894"></a><span class="lineno"> 1894</span>  EdgeFunction&lt;l_t&gt; AllTop;</div>
 <div class="line"><a id="l01895" name="l01895"></a><span class="lineno"> 1895</span> </div>
-<div class="line"><a id="l01896" name="l01896"></a><span class="lineno"> 1896</span>  std::map&lt;std::tuple&lt;n_t, d_t, n_t, d_t&gt;, std::vector&lt;EdgeFunction&lt;l_t&gt;&gt;&gt;</div>
-<div class="line"><a id="l01897" name="l01897"></a><span class="lineno"> 1897</span>      IntermediateEdgeFunctions;</div>
-<div class="line"><a id="l01898" name="l01898"></a><span class="lineno"> 1898</span> </div>
-<div class="line"><a id="l01899" name="l01899"></a><span class="lineno"> 1899</span>  <span class="comment">// stores summaries that were queried before they were computed</span></div>
-<div class="line"><a id="l01900" name="l01900"></a><span class="lineno"> 1900</span>  <span class="comment">// see CC 2010 paper by Naeem, Lhotak and Rodriguez</span></div>
-<div class="line"><a id="l01901" name="l01901"></a><span class="lineno"> 1901</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, d_t, Table&lt;n_t, d_t, EdgeFunction&lt;l_t&gt;</a>&gt;&gt; EndsummaryTab;</div>
-<div class="line"><a id="l01902" name="l01902"></a><span class="lineno"> 1902</span> </div>
-<div class="line"><a id="l01903" name="l01903"></a><span class="lineno"> 1903</span>  <span class="comment">// edges going along calls</span></div>
-<div class="line"><a id="l01904" name="l01904"></a><span class="lineno"> 1904</span>  <span class="comment">// see CC 2010 paper by Naeem, Lhotak and Rodriguez</span></div>
-<div class="line"><a id="l01905" name="l01905"></a><span class="lineno"> 1905</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, d_t, std::map&lt;n_t, Container&gt;</a>&gt; IncomingTab;</div>
-<div class="line"><a id="l01906" name="l01906"></a><span class="lineno"> 1906</span> </div>
-<div class="line"><a id="l01907" name="l01907"></a><span class="lineno"> 1907</span>  <span class="comment">// stores the return sites (inside callers) to which we have unbalanced</span></div>
-<div class="line"><a id="l01908" name="l01908"></a><span class="lineno"> 1908</span>  <span class="comment">// returns if SolverConfig.followReturnPastSeeds is enabled</span></div>
-<div class="line"><a id="l01909" name="l01909"></a><span class="lineno"> 1909</span>  std::set&lt;n_t&gt; UnbalancedRetSites;</div>
-<div class="line"><a id="l01910" name="l01910"></a><span class="lineno"> 1910</span> </div>
-<div class="line"><a id="l01911" name="l01911"></a><span class="lineno"> 1911</span>  InitialSeeds&lt;n_t, d_t, l_t&gt; Seeds;</div>
+<div class="line"><a id="l01896" name="l01896"></a><span class="lineno"> 1896</span>  std::shared_ptr&lt;JumpFunctions&lt;AnalysisDomainTy, Container&gt;&gt; JumpFn;</div>
+<div class="line"><a id="l01897" name="l01897"></a><span class="lineno"> 1897</span> </div>
+<div class="line"><a id="l01898" name="l01898"></a><span class="lineno"> 1898</span>  std::map&lt;std::tuple&lt;n_t, d_t, n_t, d_t&gt;, std::vector&lt;EdgeFunction&lt;l_t&gt;&gt;&gt;</div>
+<div class="line"><a id="l01899" name="l01899"></a><span class="lineno"> 1899</span>      IntermediateEdgeFunctions;</div>
+<div class="line"><a id="l01900" name="l01900"></a><span class="lineno"> 1900</span> </div>
+<div class="line"><a id="l01901" name="l01901"></a><span class="lineno"> 1901</span>  <span class="comment">// stores summaries that were queried before they were computed</span></div>
+<div class="line"><a id="l01902" name="l01902"></a><span class="lineno"> 1902</span>  <span class="comment">// see CC 2010 paper by Naeem, Lhotak and Rodriguez</span></div>
+<div class="line"><a id="l01903" name="l01903"></a><span class="lineno"> 1903</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, d_t, Table&lt;n_t, d_t, EdgeFunction&lt;l_t&gt;</a>&gt;&gt; EndsummaryTab;</div>
+<div class="line"><a id="l01904" name="l01904"></a><span class="lineno"> 1904</span> </div>
+<div class="line"><a id="l01905" name="l01905"></a><span class="lineno"> 1905</span>  <span class="comment">// edges going along calls</span></div>
+<div class="line"><a id="l01906" name="l01906"></a><span class="lineno"> 1906</span>  <span class="comment">// see CC 2010 paper by Naeem, Lhotak and Rodriguez</span></div>
+<div class="line"><a id="l01907" name="l01907"></a><span class="lineno"> 1907</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Table&lt;n_t, d_t, std::map&lt;n_t, Container&gt;</a>&gt; IncomingTab;</div>
+<div class="line"><a id="l01908" name="l01908"></a><span class="lineno"> 1908</span> </div>
+<div class="line"><a id="l01909" name="l01909"></a><span class="lineno"> 1909</span>  <span class="comment">// stores the return sites (inside callers) to which we have unbalanced</span></div>
+<div class="line"><a id="l01910" name="l01910"></a><span class="lineno"> 1910</span>  <span class="comment">// returns if SolverConfig.followReturnPastSeeds is enabled</span></div>
+<div class="line"><a id="l01911" name="l01911"></a><span class="lineno"> 1911</span>  std::set&lt;n_t&gt; UnbalancedRetSites;</div>
 <div class="line"><a id="l01912" name="l01912"></a><span class="lineno"> 1912</span> </div>
-<div class="line"><a id="l01913" name="l01913"></a><span class="lineno"> 1913</span>  Table&lt;n_t, d_t, l_t&gt; ValTab;</div>
+<div class="line"><a id="l01913" name="l01913"></a><span class="lineno"> 1913</span>  InitialSeeds&lt;n_t, d_t, l_t&gt; Seeds;</div>
 <div class="line"><a id="l01914" name="l01914"></a><span class="lineno"> 1914</span> </div>
-<div class="line"><a id="l01915" name="l01915"></a><span class="lineno"> 1915</span>  std::map&lt;std::pair&lt;n_t, d_t&gt;, <span class="keywordtype">size_t</span>&gt; FSummaryReuse;</div>
-<div class="line"><a id="l01916" name="l01916"></a><span class="lineno"> 1916</span>};</div>
+<div class="line"><a id="l01915" name="l01915"></a><span class="lineno"> 1915</span>  Table&lt;n_t, d_t, l_t&gt; ValTab;</div>
+<div class="line"><a id="l01916" name="l01916"></a><span class="lineno"> 1916</span> </div>
+<div class="line"><a id="l01917" name="l01917"></a><span class="lineno"> 1917</span>  std::map&lt;std::pair&lt;n_t, d_t&gt;, <span class="keywordtype">size_t</span>&gt; FSummaryReuse;</div>
+<div class="line"><a id="l01918" name="l01918"></a><span class="lineno"> 1918</span>};</div>
 </div>
-<div class="line"><a id="l01917" name="l01917"></a><span class="lineno"> 1917</span> </div>
-<div class="line"><a id="l01918" name="l01918"></a><span class="lineno"> 1918</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> AnalysisDomainTy, <span class="keyword">typename</span> Container&gt;</div>
-<div class="foldopen" id="foldopen01919" data-start="{" data-end="}">
-<div class="line"><a id="l01919" name="l01919"></a><span class="lineno"><a class="line" href="namespacepsr.html#a530d2e2d679e94d4a7ffc87f2e99eb54"> 1919</a></span>llvm::raw_ostream &amp;</div>
-<div class="line"><a id="l01920" name="l01920"></a><span class="lineno"> 1920</span><a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS,</div>
-<div class="line"><a id="l01921" name="l01921"></a><span class="lineno"> 1921</span>           <span class="keyword">const</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDESolver&lt;AnalysisDomainTy, Container&gt;</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>) {</div>
-<div class="line"><a id="l01922" name="l01922"></a><span class="lineno"> 1922</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>.dumpResults(OS);</div>
-<div class="line"><a id="l01923" name="l01923"></a><span class="lineno"> 1923</span>  <span class="keywordflow">return</span> OS;</div>
-<div class="line"><a id="l01924" name="l01924"></a><span class="lineno"> 1924</span>}</div>
+<div class="line"><a id="l01919" name="l01919"></a><span class="lineno"> 1919</span> </div>
+<div class="line"><a id="l01920" name="l01920"></a><span class="lineno"> 1920</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> AnalysisDomainTy, <span class="keyword">typename</span> Container&gt;</div>
+<div class="foldopen" id="foldopen01921" data-start="{" data-end="}">
+<div class="line"><a id="l01921" name="l01921"></a><span class="lineno"><a class="line" href="namespacepsr.html#a530d2e2d679e94d4a7ffc87f2e99eb54"> 1921</a></span>llvm::raw_ostream &amp;</div>
+<div class="line"><a id="l01922" name="l01922"></a><span class="lineno"> 1922</span><a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS,</div>
+<div class="line"><a id="l01923" name="l01923"></a><span class="lineno"> 1923</span>           <span class="keyword">const</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDESolver&lt;AnalysisDomainTy, Container&gt;</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>) {</div>
+<div class="line"><a id="l01924" name="l01924"></a><span class="lineno"> 1924</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>.dumpResults(OS);</div>
+<div class="line"><a id="l01925" name="l01925"></a><span class="lineno"> 1925</span>  <span class="keywordflow">return</span> OS;</div>
+<div class="line"><a id="l01926" name="l01926"></a><span class="lineno"> 1926</span>}</div>
 </div>
-<div class="line"><a id="l01925" name="l01925"></a><span class="lineno"> 1925</span> </div>
-<div class="line"><a id="l01926" name="l01926"></a><span class="lineno"> 1926</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Problem, <span class="keyword">typename</span> ICF&gt;</div>
-<div class="line"><a id="l01927" name="l01927"></a><span class="lineno"><a class="line" href="namespacepsr.html#ad0a44a029f4f8adc2b33dcbc412be502"> 1927</a></span><a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>(Problem &amp;, ICF *)</div>
-<div class="line"><a id="l01928" name="l01928"></a><span class="lineno"> 1928</span>    -&gt; <a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt;<span class="keyword">typename</span> Problem::ProblemAnalysisDomain,</div>
-<div class="line"><a id="l01929" name="l01929"></a><span class="lineno"> 1929</span>                 <span class="keyword">typename</span> Problem::container_type&gt;;</div>
-<div class="line"><a id="l01930" name="l01930"></a><span class="lineno"> 1930</span> </div>
-<div class="line"><a id="l01931" name="l01931"></a><span class="lineno"> 1931</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Problem, <span class="keyword">typename</span> ICF&gt;</div>
-<div class="line"><a id="l01932" name="l01932"></a><span class="lineno"><a class="line" href="namespacepsr.html#a7005017d7af01ae06051f5bed0a206cc"> 1932</a></span><a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>(Problem *, ICF *)</div>
-<div class="line"><a id="l01933" name="l01933"></a><span class="lineno"> 1933</span>    -&gt; <a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt;<span class="keyword">typename</span> Problem::ProblemAnalysisDomain,</div>
-<div class="line"><a id="l01934" name="l01934"></a><span class="lineno"> 1934</span>                 <span class="keyword">typename</span> Problem::container_type&gt;;</div>
-<div class="line"><a id="l01935" name="l01935"></a><span class="lineno"> 1935</span> </div>
-<div class="line"><a id="l01936" name="l01936"></a><span class="lineno"> 1936</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Problem&gt;</div>
-<div class="line"><a id="l01937" name="l01937"></a><span class="lineno"><a class="line" href="namespacepsr.html#a98d4627a8f5c7605a451fd77a2b47722"> 1937</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#a98d4627a8f5c7605a451fd77a2b47722">IDESolver_P</a> = <a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt;<span class="keyword">typename</span> Problem::ProblemAnalysisDomain,</div>
-<div class="line"><a id="l01938" name="l01938"></a><span class="lineno"> 1938</span>                              <span class="keyword">typename</span> Problem::container_type&gt;;</div>
-<div class="line"><a id="l01939" name="l01939"></a><span class="lineno"> 1939</span> </div>
-<div class="line"><a id="l01940" name="l01940"></a><span class="lineno"> 1940</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> AnalysisDomainTy, <span class="keyword">typename</span> Container&gt;</div>
-<div class="line"><a id="l01941" name="l01941"></a><span class="lineno"> 1941</span><a class="code hl_class" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt;<span class="keyword">typename</span> AnalysisDomainTy::n_t,</div>
-<div class="line"><a id="l01942" name="l01942"></a><span class="lineno"> 1942</span>                    <span class="keyword">typename</span> AnalysisDomainTy::d_t,</div>
-<div class="line"><a id="l01943" name="l01943"></a><span class="lineno"> 1943</span>                    <span class="keyword">typename</span> AnalysisDomainTy::l_t&gt;</div>
-<div class="foldopen" id="foldopen01944" data-start="{" data-end="}">
-<div class="line"><a id="l01944" name="l01944"></a><span class="lineno"><a class="line" href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486"> 1944</a></span><a class="code hl_function" href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486">solveIDEProblem</a>(</div>
-<div class="line"><a id="l01945" name="l01945"></a><span class="lineno"> 1945</span>    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDETabulationProblem&lt;AnalysisDomainTy, Container&gt;</a> &amp;Problem,</div>
-<div class="line"><a id="l01946" name="l01946"></a><span class="lineno"> 1946</span>    <span class="keyword">const</span> std::convertible_to&lt;const typename AnalysisDomainTy::i_t &amp;&gt; <span class="keyword">auto</span></div>
-<div class="line"><a id="l01947" name="l01947"></a><span class="lineno"> 1947</span>        &amp;ICF) {</div>
-<div class="line"><a id="l01948" name="l01948"></a><span class="lineno"> 1948</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDESolver&lt;AnalysisDomainTy, Container&gt;</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>(&amp;Problem, &amp;ICF);</div>
-<div class="line"><a id="l01949" name="l01949"></a><span class="lineno"> 1949</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>.solve();</div>
-<div class="line"><a id="l01950" name="l01950"></a><span class="lineno"> 1950</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>.consumeSolverResults();</div>
-<div class="line"><a id="l01951" name="l01951"></a><span class="lineno"> 1951</span>}</div>
+<div class="line"><a id="l01927" name="l01927"></a><span class="lineno"> 1927</span> </div>
+<div class="line"><a id="l01928" name="l01928"></a><span class="lineno"> 1928</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Problem, <span class="keyword">typename</span> ICF&gt;</div>
+<div class="line"><a id="l01929" name="l01929"></a><span class="lineno"><a class="line" href="namespacepsr.html#ad0a44a029f4f8adc2b33dcbc412be502"> 1929</a></span><a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>(Problem &amp;, ICF *)</div>
+<div class="line"><a id="l01930" name="l01930"></a><span class="lineno"> 1930</span>    -&gt; <a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt;<span class="keyword">typename</span> Problem::ProblemAnalysisDomain,</div>
+<div class="line"><a id="l01931" name="l01931"></a><span class="lineno"> 1931</span>                 <span class="keyword">typename</span> Problem::container_type&gt;;</div>
+<div class="line"><a id="l01932" name="l01932"></a><span class="lineno"> 1932</span> </div>
+<div class="line"><a id="l01933" name="l01933"></a><span class="lineno"> 1933</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Problem, <span class="keyword">typename</span> ICF&gt;</div>
+<div class="line"><a id="l01934" name="l01934"></a><span class="lineno"><a class="line" href="namespacepsr.html#a7005017d7af01ae06051f5bed0a206cc"> 1934</a></span><a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>(Problem *, ICF *)</div>
+<div class="line"><a id="l01935" name="l01935"></a><span class="lineno"> 1935</span>    -&gt; <a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt;<span class="keyword">typename</span> Problem::ProblemAnalysisDomain,</div>
+<div class="line"><a id="l01936" name="l01936"></a><span class="lineno"> 1936</span>                 <span class="keyword">typename</span> Problem::container_type&gt;;</div>
+<div class="line"><a id="l01937" name="l01937"></a><span class="lineno"> 1937</span> </div>
+<div class="line"><a id="l01938" name="l01938"></a><span class="lineno"> 1938</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Problem&gt;</div>
+<div class="line"><a id="l01939" name="l01939"></a><span class="lineno"><a class="line" href="namespacepsr.html#a98d4627a8f5c7605a451fd77a2b47722"> 1939</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespacepsr.html#a98d4627a8f5c7605a451fd77a2b47722">IDESolver_P</a> = <a class="code hl_class" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt;<span class="keyword">typename</span> Problem::ProblemAnalysisDomain,</div>
+<div class="line"><a id="l01940" name="l01940"></a><span class="lineno"> 1940</span>                              <span class="keyword">typename</span> Problem::container_type&gt;;</div>
+<div class="line"><a id="l01941" name="l01941"></a><span class="lineno"> 1941</span> </div>
+<div class="line"><a id="l01942" name="l01942"></a><span class="lineno"> 1942</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> AnalysisDomainTy, <span class="keyword">typename</span> Container&gt;</div>
+<div class="line"><a id="l01943" name="l01943"></a><span class="lineno"> 1943</span><a class="code hl_class" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt;<span class="keyword">typename</span> AnalysisDomainTy::n_t,</div>
+<div class="line"><a id="l01944" name="l01944"></a><span class="lineno"> 1944</span>                    <span class="keyword">typename</span> AnalysisDomainTy::d_t,</div>
+<div class="line"><a id="l01945" name="l01945"></a><span class="lineno"> 1945</span>                    <span class="keyword">typename</span> AnalysisDomainTy::l_t&gt;</div>
+<div class="foldopen" id="foldopen01946" data-start="{" data-end="}">
+<div class="line"><a id="l01946" name="l01946"></a><span class="lineno"><a class="line" href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486"> 1946</a></span><a class="code hl_function" href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486">solveIDEProblem</a>(</div>
+<div class="line"><a id="l01947" name="l01947"></a><span class="lineno"> 1947</span>    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDETabulationProblem&lt;AnalysisDomainTy, Container&gt;</a> &amp;Problem,</div>
+<div class="line"><a id="l01948" name="l01948"></a><span class="lineno"> 1948</span>    <span class="keyword">const</span> std::convertible_to&lt;const typename AnalysisDomainTy::i_t &amp;&gt; <span class="keyword">auto</span></div>
+<div class="line"><a id="l01949" name="l01949"></a><span class="lineno"> 1949</span>        &amp;ICF) {</div>
+<div class="line"><a id="l01950" name="l01950"></a><span class="lineno"> 1950</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IDESolver&lt;AnalysisDomainTy, Container&gt;</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>(&amp;Problem, &amp;ICF);</div>
+<div class="line"><a id="l01951" name="l01951"></a><span class="lineno"> 1951</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>.solve();</div>
+<div class="line"><a id="l01952" name="l01952"></a><span class="lineno"> 1952</span>  <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>.consumeSolverResults();</div>
+<div class="line"><a id="l01953" name="l01953"></a><span class="lineno"> 1953</span>}</div>
 </div>
-<div class="line"><a id="l01952" name="l01952"></a><span class="lineno"> 1952</span> </div>
-<div class="line"><a id="l01953" name="l01953"></a><span class="lineno"> 1953</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l01954" name="l01954"></a><span class="lineno"> 1954</span> </div>
-<div class="line"><a id="l01955" name="l01955"></a><span class="lineno"> 1955</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01955" name="l01955"></a><span class="lineno"> 1955</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l01956" name="l01956"></a><span class="lineno"> 1956</span> </div>
+<div class="line"><a id="l01957" name="l01957"></a><span class="lineno"> 1957</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aAnalysisDomain_8h_html"><div class="ttname"><a href="AnalysisDomain_8h.html">AnalysisDomain.h</a></div></div>
 <div class="ttc" id="aAverage_8h_html"><div class="ttname"><a href="Average_8h.html">Average.h</a></div></div>
 <div class="ttc" id="aByRef_8h_html"><div class="ttname"><a href="ByRef_8h.html">ByRef.h</a></div></div>
@@ -2291,7 +2293,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153"><div class="ttname"><a href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">psr::PAMM_SEVERITY_LEVEL::Core</a></div><div class="ttdeci">@ Core</div></div>
 <div class="ttc" id="anamespacepsr_html_a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75"><div class="ttname"><a href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::PAMM_SEVERITY_LEVEL::Full</a></div><div class="ttdeci">@ Full</div></div>
 <div class="ttc" id="anamespacepsr_html_a44202ae7e19e7ae3bd454149976c364a"><div class="ttname"><a href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">psr::to_string</a></div><div class="ttdeci">std::string to_string(BinaryDomain B)</div></div>
-<div class="ttc" id="anamespacepsr_html_a4ec24497f714fa19eae981150f8a2486"><div class="ttname"><a href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486">psr::solveIDEProblem</a></div><div class="ttdeci">OwningSolverResults&lt; typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t, typename AnalysisDomainTy::l_t &gt; solveIDEProblem(IDETabulationProblem&lt; AnalysisDomainTy, Container &gt; &amp;Problem, const std::convertible_to&lt; const typename AnalysisDomainTy::i_t &amp; &gt; auto &amp;ICF)</div><div class="ttdef"><b>Definition</b> <a href="IDESolver_8h_source.html#l01944">IDESolver.h:1944</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a4ec24497f714fa19eae981150f8a2486"><div class="ttname"><a href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486">psr::solveIDEProblem</a></div><div class="ttdeci">OwningSolverResults&lt; typename AnalysisDomainTy::n_t, typename AnalysisDomainTy::d_t, typename AnalysisDomainTy::l_t &gt; solveIDEProblem(IDETabulationProblem&lt; AnalysisDomainTy, Container &gt; &amp;Problem, const std::convertible_to&lt; const typename AnalysisDomainTy::i_t &amp; &gt; auto &amp;ICF)</div><div class="ttdef"><b>Definition</b> <a href="IDESolver_8h_source.html#l01946">IDESolver.h:1946</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a5462787d6bd41739c36e66d99f2aee6a"><div class="ttname"><a href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString</a></div><div class="ttdeci">std::string DToString(const AbstractMemoryLocation &amp;AML)</div></div>
 <div class="ttc" id="anamespacepsr_html_a7ae4682925592184eb9c8b37ccda386d"><div class="ttname"><a href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">psr::unwrapNullable</a></div><div class="ttdeci">constexpr T unwrapNullable(T &amp;&amp;Val) noexcept</div><div class="ttdef"><b>Definition</b> <a href="Nullable_8h_source.html#l00026">Nullable.h:26</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710b"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710b">psr::ESGEdgeKind</a></div><div class="ttdeci">ESGEdgeKind</div><div class="ttdef"><b>Definition</b> <a href="ESGEdgeKind_8h_source.html#l00014">ESGEdgeKind.h:14</a></div></div>
@@ -2302,7 +2304,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">psr::ESGEdgeKind::Call</a></div><div class="ttdeci">@ Call</div></div>
 <div class="ttc" id="anamespacepsr_html_a8d0886fed3b61a4324c1c8d5d156bf03"><div class="ttname"><a href="namespacepsr.html#a8d0886fed3b61a4324c1c8d5d156bf03">psr::NToString</a></div><div class="ttdeci">decltype(auto) NToString(const N &amp;Node)</div><div class="ttdef"><b>Definition</b> <a href="Printer_8h_source.html#l00055">Printer.h:55</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a98d4627a8f5c7605a451fd77a2b47722"><div class="ttname"><a href="namespacepsr.html#a98d4627a8f5c7605a451fd77a2b47722">psr::IDESolver_P</a></div><div class="ttdeci">IDESolver&lt; typename Problem::ProblemAnalysisDomain, typename Problem::container_type &gt; IDESolver_P</div><div class="ttdef"><b>Definition</b> <a href="IDESolver_8h_source.html#l01937">IDESolver.h:1938</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a98d4627a8f5c7605a451fd77a2b47722"><div class="ttname"><a href="namespacepsr.html#a98d4627a8f5c7605a451fd77a2b47722">psr::IDESolver_P</a></div><div class="ttdeci">IDESolver&lt; typename Problem::ProblemAnalysisDomain, typename Problem::container_type &gt; IDESolver_P</div><div class="ttdef"><b>Definition</b> <a href="IDESolver_8h_source.html#l01939">IDESolver.h:1940</a></div></div>
 <div class="ttc" id="anamespacepsr_html_aaf51d0e816794e17404d95f3c3f773ea"><div class="ttname"><a href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">psr::operator&lt;&lt;</a></div><div class="ttdeci">llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, AnalysisStrategy S)</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ac1657d444b8f6ddfe706d149969f200f"><div class="ttname"><a href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString</a></div><div class="ttdeci">std::string LToString(const IDEFeatureTaintEdgeFact &amp;EdgeFact)</div></div>
@@ -2322,7 +2324,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 2 2026 17:52:06 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Feb 17 2026 17:24:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
