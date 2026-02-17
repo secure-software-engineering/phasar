@@ -42,7 +42,6 @@ set(lca_files
   indirection_08.cpp
   indirection_09.cpp
   indirection_10.cpp
-  indirection_11.cpp
 )
 
 set(lca_files_mem2reg

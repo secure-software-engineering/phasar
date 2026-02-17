@@ -6,29 +6,23 @@ public:
 
 class Bar : public Foo {
 public:
+  Foo *FooPtr;
   int Func() override { return 1; };
 };
 
 class Baz : public Bar {
 public:
-  int Func() override { return 2; };
-};
-
-class Boar : public Baz {
-public:
-  int Func() override { return 3; };
+  Foo *FooPtr;
+  int Func() override { return FooPtr->Func(); };
 };
 
 int main() {
   Foo First{};
   Bar Second{};
-  Baz Third{};
-  Boar Fourth{};
 
-  int x = First.Func();
-  int y = Second.Func();
-  int z = Third.Func();
-  int a = Fourth.Func();
+  Foo &SecondAlias = Second;
+
+  SecondAlias.Func();
 
   return 0;
 }

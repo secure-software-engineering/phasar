@@ -3,7 +3,6 @@ int Func() { return 1; }
 
 int main() {
   int (*FuncPtr)();
-
   int (**FuncPtr2)();
 
   FuncPtr = &Func;

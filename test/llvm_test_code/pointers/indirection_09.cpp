@@ -1,3 +1,4 @@
+bool Bool = true;
 
 class Foo {
 public:
@@ -19,9 +20,7 @@ int main() {
   Bar Second{};
   Baz Third{};
 
-  int x = First.Func();
-  int y = Second.Func();
-  int z = Third.Func();
+  Foo &FooRef = Bool ? Second : Third;
 
-  return 0;
+  return FooRef.Func();
 }

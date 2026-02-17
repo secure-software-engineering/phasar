@@ -13,8 +13,9 @@ int main() {
   Foo First{};
   Bar Second{};
 
-  int x = First.Func();
-  int y = Second.Func();
+  Foo &SecondAlias = Second;
+
+  SecondAlias.Func();
 
   return 0;
 }

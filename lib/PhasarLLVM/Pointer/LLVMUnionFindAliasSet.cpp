@@ -141,7 +141,8 @@ struct [[clang::internal_linkage]] LLVMUnionFindAliasSet::UnionFindAAResultModel
 
 LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
                                              Config Cfg,
-                                             ValueCompressor<PAGVariable> *VC) {
+                                             ValueCompressor<PAGVariable> *VC)
+    : Cfg(Cfg) {
   MaybeUniquePtr<ValueCompressor<PAGVariable>> VCOwn = VC;
   if (!VC) {
     VCOwn = std::make_unique<ValueCompressor<PAGVariable>>();

@@ -178,6 +178,13 @@ constexpr auto BotAABuilder = [](const auto &IRDB, const auto &CG) {
 };
 
 TEST(CtxSensUnionFindAATest, Basic01) {
+  /*
+LLVMUnionFindAliasSet(global, botctx-ind-sens) {
+  #0: {0, 2}
+  #1: {1}
+  #2: {0, 2}
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 3,
                             .Col = 0,
                             .InFunction = "main",
@@ -196,6 +203,15 @@ TEST(CtxSensUnionFindAATest, Basic01) {
 }
 
 TEST(CtxSensUnionFindAATest, Basic02) {
+  /*
+LLVMUnionFindAliasSet(global, botctx-ind-sens) {
+  #0: {0, 1, 3, 4}
+  #1: {0, 1, 3, 4}
+  #2: {2}
+  #3: {0, 1, 3, 4}
+  #4: {0, 1, 3, 4}
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 3,
                             .Col = 0,
                             .InFunction = "main",
@@ -205,20 +221,54 @@ TEST(CtxSensUnionFindAATest, Basic02) {
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 6,
+                   LineColFunOp{.Line = 4,
                                 .Col = 0,
                                 .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 6,
+                                .Col = 4,
+                                .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
-               }}};
+                   LineColFunOp{.Line = 6,
+                                .Col = 5,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
+               }},
+              {LineColFunOp{.Line = 5,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 5,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("basic_02_c_dbg.ll", GT, ContextAABuilder);
 }
 
 TEST(CtxSensUnionFindAATest, Basic03) {
   /*
+  LLVMUnionFindAliasSet(global, botctx-ind-sens) {
+  #0: {0}
+  #1: {1}
+  #2: {2, 3}
+  #3: {2, 3}
+}
+  */
+  GTMap GT = {{LineColFunOp{.Line = 5,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 5,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
-  Note: only relevant lines were pasted here
+  doAnalysisAndCompareResults("basic_03_c_dbg.ll", GT, ContextAABuilder);
+}
 
+TEST(CtxSensUnionFindAATest, Basic04) {
+  /*
   ValueCompressor:
   #1:
     @"_ZTIZ4mainE3$_0" = internal constant { ptr, ptr } { ptr getelementptr
@@ -229,95 +279,31 @@ TEST(CtxSensUnionFindAATest, Basic03) {
   #46:
     %3 = extractvalue { ptr, i32 } %2, 0, !dbg !538, !psr.id !550 | ID: 76
 
-  --- ---
-
-  #1: <6, 10, 21, 22, 24, 56, 58, 88>
-  #11: <8, 15, 31, 33, 160, 161, 163, 181, 183, 209>
-  #46: <46, 47, 59, 141, 184, 253>
-
-  --- for #1: <6, 10, 21, 22, 24, 56, 58, 88> ---
-
-  #6:
-    %ref.tmp = alloca %class.anon, align 1, !psr.id !402 | ID: 6
-  #10:
-    ptr %__f | ID: _ZNSt8functionIFivEEC2IZ4mainE3$_0vEEOT_.1
-  #21:
-    %1 = load ptr, ptr %__f.addr, align 8, !dbg !448, !psr.id !451 | ID: 29
-    %2 = load ptr, ptr %__f.addr, align 8, !dbg !459, !psr.id !460 | ID: 33
-  #22:
-    ptr %0 | ID:
-  _ZNSt14_Function_base13_Base_managerIZ4mainE3$_0E21_M_not_empty_functionIS1_EEbRKT_.0
-  #24:
-    ptr %__f | ID:
-  _ZNSt14_Function_base13_Base_managerIZ4mainE3$_0E15_M_init_functorIS1_EEvRSt9_Any_dataOT_.1
-  #56:
-    %1 = load ptr, ptr %__f.addr, align 8, !dbg !647, !psr.id !648 | ID: 103
-  #58:
-    ptr %__f | ID:
-  _ZNSt14_Function_base13_Base_managerIZ4mainE3$_0E9_M_createIS1_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE.1
-  #88:
-    %2 = load ptr, ptr %__f.addr, align 8, !dbg !752, !psr.id !753 | ID: 154
-
-  --- for #11: <8, 15, 31, 33, 160, 161, 163, 181, 183, 209> ---
-
-  #8:
-    %ref.tmp1 = alloca %class.anon.0, align 1, !psr.id !404 | ID: 8
-  #15:
-    ptr %__f | ID:
-  _ZNSt8functionIFivEEaSIZ4mainE3$_1EENSt9enable_ifIXsrNS1_9_CallableIT_NS4_IXntsr7is_sameINSt9remove_cvINSt16remove_referenceIS6_E4typeEE4typeES1_EE5valueESt5decayIS6_EE4type4typeESt15__invoke_resultIRSH_JEEEE5valueERS1_E4typeEOS6_.1
-  #31:
-    %0 = load ptr, ptr %__f.addr, align 8, !dbg !500, !psr.id !501 | ID: 49
-  #33:
-    ptr %__f | ID: _ZNSt8functionIFivEEC2IZ4mainE3$_1vEEOT_.1
-  #160:
-    %1 = load ptr, ptr %__f.addr, align 8, !dbg !1063, !psr.id !1066 | ID: 300
-    %2 = load ptr, ptr %__f.addr, align 8, !dbg !1074, !psr.id !1075 | ID: 304
-  #161:
-    ptr %0 | ID:
-  _ZNSt14_Function_base13_Base_managerIZ4mainE3$_1E21_M_not_empty_functionIS1_EEbRKT_.0
-  #163:
-    ptr %__f | ID:
-  _ZNSt14_Function_base13_Base_managerIZ4mainE3$_1E15_M_init_functorIS1_EEvRSt9_Any_dataOT_.1
-  #181:
-    %1 = load ptr, ptr %__f.addr, align 8, !dbg !1170, !psr.id !1171 | ID: 344
-  #183:
-    ptr %__f | ID:
-  _ZNSt14_Function_base13_Base_managerIZ4mainE3$_1E9_M_createIS1_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE.1
-  #209:
-    %2 = load ptr, ptr %__f.addr, align 8, !dbg !1275, !psr.id !1276 | ID: 395
-
-  --- for #46: <46, 47, 59, 141, 184, 253> ---
-
-  #46:
-    %3 = extractvalue { ptr, i32 } %2, 0, !dbg !538, !psr.id !550 | ID: 76
-  #47:
-    ptr %0 | ID: __clang_call_terminate.0
-  #59:
-    %3 = extractvalue { ptr, i32 } %2, 0, !dbg !649, !psr.id !654 | ID: 107
-  #141:
-    %3 = extractvalue { ptr, i32 } %2, 0, !dbg !976, !psr.id !981 | ID: 259
-  #184:
-    %3 = extractvalue { ptr, i32 } %2, 0, !dbg !1172, !psr.id !1177 | ID: 348
-  #253:
-    %3 = extractvalue { ptr, i32 } %2, 0, !dbg !1458, !psr.id !1463 | ID: 482
-
+LLVMUnionFindAliasSet(global, botctx-ind-sens) {
+  #0: {0}
+  #1: {1, 3, 4, 5}
+  #2: {2}
+  #3: {1, 3, 4, 5}
+  #4: {1, 3, 4, 5}
+  #5: {1, 3, 4, 5}
+}
   */
-  GTMap GT = {{LineColFunOp{.Line = 4,
+  GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
-                   LineColFunOp{.Line = 4,
+                   LineColFunOp{.Line = 5,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
                    LineColFunOp{.Line = 6,
                                 .Col = 0,
                                 .InFunction = "main",
-                                .OpCode = llvm::Instruction::Load},
+                                .OpCode = llvm::Instruction::Alloca},
                }}};
 
-  doAnalysisAndCompareResults("basic_03_c_dbg.ll", GT, ContextAABuilder);
+  doAnalysisAndCompareResults("basic_04_c_dbg.ll", GT, ContextAABuilder);
 }
 
 TEST(CtxSensUnionFindAATest, Context01) {
@@ -1117,9 +1103,909 @@ TEST(CtxSensUnionFindAATest, Context13_1) {
   doAnalysisAndCompareResults("context_13_1_c_dbg.ll", GT, ContextAABuilder);
 }
 
-// TODO: Add more context tests
+TEST(CtxSensUnionFindAATest, Indirection01) {
+  GTMap GT = {{LineColFunOp{.Line = 8,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 8,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Load}}},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_01_c_dbg.ll", GT, ContextAABuilder);
+}
 
-// TODO: Add tests for IndirectionSensUnionFindAA
+TEST(CtxSensUnionFindAATest, Indirection02) {
+  GTMap GT = {{LineColFunOp{.Line = 8,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 8,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 14,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 15,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 15,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 20,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 21,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 22,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_02_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection03) {
+  GTMap GT = {{LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 15,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 15,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 18,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 18,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 19,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 19,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 21,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 22,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 24,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 24,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_03_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection04) {
+  GTMap GT = {{LineColFunOp{.Line = 18,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 18,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 20,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 22,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 25,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 25,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 26,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 26,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 27,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 27,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 29,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 29,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 30,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 30,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 31,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 31,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 32,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 32,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 33,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 34,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 34,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_04_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection05) {
+  GTMap GT = {{LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 25,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 25,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 27,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 27,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 29,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 29,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 32,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 32,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 33,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 34,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 34,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 35,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 35,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 37,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 37,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 38,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 38,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 39,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 39,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 40,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 40,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 41,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 41,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 42,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 42,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 43,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 43,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 44,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 44,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_05_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection06) {
+  GTMap GT = {{LineColFunOp{.Line = 28,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 28,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 30,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 30,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 32,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 32,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 34,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 34,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 36,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 36,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 39,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 39,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 40,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 40,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 41,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 41,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 42,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 42,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 43,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 43,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 45,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 45,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 46,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 46,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 47,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 47,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 48,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 48,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 49,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 49,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 50,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 50,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 51,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 51,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 52,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 52,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 53,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 53,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 54,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 54,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_06_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection07) {
+  GTMap GT = {{LineColFunOp{.Line = 33,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 35,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 35,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 37,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 37,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 39,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 39,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 41,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 41,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 43,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 43,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 46,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 46,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 47,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 47,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 48,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 48,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 49,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 49,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 50,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 50,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 51,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 51,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 53,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 53,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 54,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 54,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 55,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 55,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 56,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 56,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 57,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 57,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 58,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 58,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 59,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 59,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 60,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 60,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 61,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 61,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 62,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 62,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 63,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 63,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 64,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 64,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_07_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection08) {
+  GTMap GT = {{LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 16,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 16,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_08_cpp_dbg.ll", GT,
+                              ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection09) {
+  GTMap GT = {{LineColFunOp{.Line = 19,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 19,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_09_cpp_dbg.ll", GT,
+                              ContextAABuilder);
+}
+
+TEST(CtxSensUnionFindAATest, Indirection10) {
+  GTMap GT = {{LineColFunOp{.Line = 20,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_10_cpp_dbg.ll", GT,
+                              ContextAABuilder);
+}
+
+TEST(BotUnionFindAATest, Basic01) {
+  /*
+
+  */
+  GTMap GT = {{LineColFunOp{.Line = 4,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 4,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+
+  doAnalysisAndCompareResults("basic_01_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(BotUnionFindAATest, Basic02) {
+  /*
+
+  */
+  GTMap GT = {{LineColFunOp{.Line = 4,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 4,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+
+  doAnalysisAndCompareResults("basic_02_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(BotUnionFindAATest, Basic03) {
+  /*
+
+  */
+  GTMap GT = {{LineColFunOp{.Line = 5,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 5,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+
+  doAnalysisAndCompareResults("basic_03_c_dbg.ll", GT, ContextAABuilder);
+}
+
+TEST(BotUnionFindAATest, Basic04) {
+  /*
+   */
+  GTMap GT = {{LineColFunOp{.Line = 5,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {
+                   LineColFunOp{.Line = 5,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+                   LineColFunOp{.Line = 6,
+                                .Col = 0,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Alloca},
+               }}};
+
+  doAnalysisAndCompareResults("basic_04_c_dbg.ll", GT, ContextAABuilder);
+}
 
 TEST(BotUnionFindAATest, Context01) {
   GTMap GT = {
@@ -1903,6 +2789,842 @@ TEST(BotUnionFindAATest, Context13_1) {
   doAnalysisAndCompareResults("context_13_1_c_dbg.ll", GT, BotAABuilder);
 }
 
+TEST(BotUnionFindAATest, Indirection01) {
+  GTMap GT = {{LineColFunOp{.Line = 8,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 8,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Load}}},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_01_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection02) {
+  GTMap GT = {{LineColFunOp{.Line = 8,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 8,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 11,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 14,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 15,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 15,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 20,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 21,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 22,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_02_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection03) {
+  GTMap GT = {{LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 15,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 15,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 18,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 18,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 19,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 19,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 21,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 22,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 24,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 24,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_03_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection04) {
+  GTMap GT = {{LineColFunOp{.Line = 18,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 18,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 20,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 22,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 22,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 25,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 25,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 26,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 26,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 27,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 27,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 29,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 29,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 30,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 30,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 31,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 31,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 32,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 32,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 33,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 34,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 34,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_04_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection05) {
+  GTMap GT = {{LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 25,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 25,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 27,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 27,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 29,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 29,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 32,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 32,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 33,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 34,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 34,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 35,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 35,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 37,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 37,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 38,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 38,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 39,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 39,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 40,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 40,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 41,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 41,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 42,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 42,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 43,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 43,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 44,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 44,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_05_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection06) {
+  GTMap GT = {{LineColFunOp{.Line = 28,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 28,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 30,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 30,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 32,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 32,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 34,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 34,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 36,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 36,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 39,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 39,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 40,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 40,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 41,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 41,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 42,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 42,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 43,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 43,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 45,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 45,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 46,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 46,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 47,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 47,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 48,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 48,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 49,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 49,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 50,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 50,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 51,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 51,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 52,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 52,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 53,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 53,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 54,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 54,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_06_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection07) {
+  GTMap GT = {{LineColFunOp{.Line = 33,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 33,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 35,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 35,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 37,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 37,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 39,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 39,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 41,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 41,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 43,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 43,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 46,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 46,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 47,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 47,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 48,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 48,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 49,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 49,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 50,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 50,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 51,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 51,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 53,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 53,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 54,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 54,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 55,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 55,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 56,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 56,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 57,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 57,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 58,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 58,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 59,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 59,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 60,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 60,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 61,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 61,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 62,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 62,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 63,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 63,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 64,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 64,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_07_c_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection08) {
+  GTMap GT = {{LineColFunOp{.Line = 13,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 13,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 14,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 16,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 16,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_08_cpp_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection09) {
+  GTMap GT = {{LineColFunOp{.Line = 19,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 19,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_09_cpp_dbg.ll", GT, BotAABuilder);
+}
+
+TEST(BotUnionFindAATest, Indirection10) {
+  GTMap GT = {{LineColFunOp{.Line = 19,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 19,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 20,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 21,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 23,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+  doAnalysisAndCompareResults("indirection_10_cpp_dbg.ll", GT, BotAABuilder);
+}
+
 // IndirectionSensUnionFindAA Tests
 
 TEST(IndirectionSensUnionFindAATest, Basic01) {
@@ -1968,38 +3690,32 @@ TEST(IndirectionSensUnionFindAATest, Basic02) {
 }
 
 TEST(IndirectionSensUnionFindAATest, Basic03) {
-  GTMap GT = {{LineColFunOp{.Line = 4,
+  GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {
-                   LineColFunOp{.Line = 4,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 6,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Load},
-               }}};
+               {LineColFunOp{.Line = 5,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("basic_03_c_dbg.ll", GT, IndAABuilder);
 }
 
 TEST(IndirectionSensUnionFindAATest, Basic04) {
-  GTMap GT = {{LineColFunOp{.Line = 4,
+  GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
-                   LineColFunOp{.Line = 4,
+                   LineColFunOp{.Line = 5,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
                    LineColFunOp{.Line = 6,
                                 .Col = 0,
                                 .InFunction = "main",
-                                .OpCode = llvm::Instruction::Load},
+                                .OpCode = llvm::Instruction::Alloca},
                }}};
 
   doAnalysisAndCompareResults("basic_04_c_dbg.ll", GT, IndAABuilder);
@@ -7302,7 +9018,7 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
 
 TEST(IndirectionSensUnionFindAATest, Indirection08) {
   /*
-ValueCompressor: {
+  ValueCompressor: {
   #0:
     @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
 x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
@@ -7326,86 +9042,80 @@ align 1, !psr.id !6 | ID: 6 #9:
     @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
 | ID: 5 #10: %retval = alloca i32, align 4, !psr.id !24 | ID: 8 #11: %First =
 alloca %class.Foo, align 8, !psr.id !25 | ID: 9 #12: %Second = alloca
-%class.Bar, align 8, !psr.id !26 | ID: 10 #13: %x = alloca i32, align 4, !psr.id
-!27 | ID: 11 #14: %y = alloca i32, align 4, !psr.id !28 | ID: 12 #15: ptr %this
-| ID: _ZN3FooC2Ev.0 #16: ptr %this | ID: _ZN3BarC2Ev.0 #17: ptr %this | ID:
-_ZN3Foo4FuncEv.0 #18: ptr %this | ID: _ZN3Bar4FuncEv.0 #19: %this.addr = alloca
-ptr, align 8, !psr.id !74 | ID: 27 #20: %this1 = load ptr, ptr %this.addr, align
-8, !psr.id !80 | ID: 30 #21: %this.addr = alloca ptr, align 8, !psr.id !88 | ID:
-33 #22: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !94 | ID: 36 #23:
-    %this.addr = alloca ptr, align 8, !psr.id !100 | ID: 40
+%class.Bar, align 8, !psr.id !26 | ID: 10 #13: %SecondAlias = alloca ptr, align
+8, !psr.id !27 | ID: 11 #14: ptr %this | ID: _ZN3FooC2Ev.0 #15: ptr %this | ID:
+_ZN3BarC2Ev.0 #16: %0 = load ptr, ptr %SecondAlias, align 8, !dbg !60, !psr.id
+!61 | ID: 21 #17: %vtable = load ptr, ptr %0, align 8, !dbg !62, !psr.id !63 |
+ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg !62, !psr.id
+!64 | ID: 23 #18: %1 = load ptr, ptr %vfn, align 8, !dbg !62, !psr.id !65 | ID:
+24 #19: ptr %this | ID: _ZN3Foo4FuncEv.0 #20: ptr %this | ID: _ZN3Bar4FuncEv.0
+  #21:
+    %this.addr = alloca ptr, align 8, !psr.id !73 | ID: 27
+  #22:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !79 | ID: 30
+  #23:
+    %this.addr = alloca ptr, align 8, !psr.id !87 | ID: 33
   #24:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !105 | ID: 43
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !93 | ID: 36
   #25:
-    %this.addr = alloca ptr, align 8, !psr.id !109 | ID: 45
+    %this.addr = alloca ptr, align 8, !psr.id !99 | ID: 40
   #26:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !114 | ID: 48
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !104 | ID: 43
+  #27:
+    %this.addr = alloca ptr, align 8, !psr.id !108 | ID: 45
+  #28:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !113 | ID: 48
 }
-LLVMUnionFindAliasSet(global, botctx-ind-sens) {
-  #0: {0, 5}
-  #1: {1, 2, 3, 4, 6, 7, 8, 9}
-  #2: {1, 2, 3, 4, 6, 7, 8, 9}
-  #3: {1, 2, 3, 4, 6, 7, 8, 9}
-  #4: {1, 2, 3, 4, 6, 7, 8, 9}
-  #5: {0, 5}
-  #6: {1, 2, 3, 4, 6, 7, 8, 9}
-  #7: {1, 2, 3, 4, 6, 7, 8, 9}
-  #8: {1, 2, 3, 4, 6, 7, 8, 9}
-  #9: {1, 2, 3, 4, 6, 7, 8, 9}
+
+LLVMUnionFindAliasSet(global, ind-sens) {
+  #0: {0, 5, 17}
+  #1: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #2: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #3: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #4: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #5: {0, 5, 17}
+  #6: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #7: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #8: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #9: {1, 2, 3, 4, 6, 7, 8, 9, 18}
   #10: {10}
-  #11: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
-  #12: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
+  #11: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #12: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
   #13: {13}
-  #14: {14}
-  #15: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
-  #16: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
-  #17: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
-  #18: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
-  #19: {19}
-  #20: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
+  #14: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #15: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #16: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #17: {0, 5, 17}
+  #18: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #19: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #20: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
   #21: {21}
-  #22: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
+  #22: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
   #23: {23}
-  #24: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
+  #24: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
   #25: {25}
-  #26: {11, 12, 15, 16, 17, 18, 20, 22, 24, 26}
+  #26: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #27: {27}
+  #28: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
 }
   */
   GTMap GT{{LineColFunOp{.Line = 13,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {
-                LineColFunOp{.Line = 13,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 14,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 16,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 17,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-            }},
+            {LineColFunOp{.Line = 13,
+                          .Col = 7,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 14,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}},
            {LineColFunOp{.Line = 16,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
             {LineColFunOp{.Line = 16,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 17,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 17,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}}};
@@ -7419,159 +9129,124 @@ ValueCompressor: {
   #0:
     @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
 x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
-!psr.id !0 | ID: 0 #1:
+!psr.id !8 | ID: 1 #1:
     @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr getelementptr
 inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64 2), ptr @_ZTS3Foo
-}, comdat, align 8, !psr.id !3 | ID: 3 #2: fun @_ZN3Foo4FuncEv #3:
+}, comdat, align 8, !psr.id !11 | ID: 4 #2: fun @_ZN3Foo4FuncEv #3:
     @_ZTS3Foo = linkonce_odr dso_local constant [5 x i8] c"3Foo\00", comdat,
-align 1, !psr.id !2 | ID: 2 #4:
-    @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !1 |
-ID: 1 #5:
+align 1, !psr.id !10 | ID: 3 #4:
+    @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !9 |
+ID: 2 #5:
     @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
 x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
-!psr.id !4 | ID: 4 #6:
+!psr.id !12 | ID: 5 #6:
     @_ZTI3Bar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
 getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !7 | ID: 7 #7: fun
+2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !15 | ID: 8 #7: fun
 @_ZN3Bar4FuncEv #8:
     @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
-align 1, !psr.id !6 | ID: 6 #9:
-    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
-| ID: 5 #10:
+align 1, !psr.id !14 | ID: 7 #9:
+    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !13
+| ID: 6 #10:
     @_ZTV3Baz = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
 x ptr] [ptr null, ptr @_ZTI3Baz, ptr @_ZN3Baz4FuncEv] }, comdat, align 8,
-!psr.id !8 | ID: 8 #11:
+!psr.id !16 | ID: 9 #11:
     @_ZTI3Baz = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
 getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Baz, ptr @_ZTI3Bar }, comdat, align 8, !psr.id !10 | ID: 10 #12:
+2), ptr @_ZTS3Baz, ptr @_ZTI3Bar }, comdat, align 8, !psr.id !18 | ID: 11 #12:
     fun @_ZN3Baz4FuncEv
   #13:
     @_ZTS3Baz = linkonce_odr dso_local constant [5 x i8] c"3Baz\00", comdat,
-align 1, !psr.id !9 | ID: 9 #14: %retval = alloca i32, align 4, !psr.id !27 |
-ID: 11 #15: %First = alloca %class.Foo, align 8, !psr.id !28 | ID: 12 #16:
-    %Second = alloca %class.Bar, align 8, !psr.id !29 | ID: 13
+align 1, !psr.id !17 | ID: 10 #14: %retval = alloca i32, align 4, !psr.id !32 |
+ID: 12 #15: %First = alloca %class.Foo, align 8, !psr.id !33 | ID: 13 #16:
+    %Second = alloca %class.Bar, align 8, !psr.id !34 | ID: 14
   #17:
-    %Third = alloca %class.Baz, align 8, !psr.id !30 | ID: 14
+    %Third = alloca %class.Baz, align 8, !psr.id !35 | ID: 15
   #18:
-    %x = alloca i32, align 4, !psr.id !31 | ID: 15
+    %FooRef = alloca ptr, align 8, !psr.id !36 | ID: 16
   #19:
-    %y = alloca i32, align 4, !psr.id !32 | ID: 16
-  #20:
-    %z = alloca i32, align 4, !psr.id !33 | ID: 17
-  #21:
     ptr %this | ID: _ZN3FooC2Ev.0
-  #22:
+  #20:
     ptr %this | ID: _ZN3BarC2Ev.0
-  #23:
+  #21:
     ptr %this | ID: _ZN3BazC2Ev.0
-  #24:
-    ptr %this | ID: _ZN3Foo4FuncEv.0
-  #25:
-    ptr %this | ID: _ZN3Bar4FuncEv.0
-  #26:
-    ptr %this | ID: _ZN3Baz4FuncEv.0
-  #27:
-    %this.addr = alloca ptr, align 8, !psr.id !94 | ID: 35
-  #28:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !100 | ID: 38
-  #29:
-    %this.addr = alloca ptr, align 8, !psr.id !108 | ID: 41
-  #30:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !114 | ID: 44
-  #31:
-    %this.addr = alloca ptr, align 8, !psr.id !123 | ID: 48
-  #32:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !129 | ID: 51
-  #33:
-    %this.addr = alloca ptr, align 8, !psr.id !135 | ID: 55
-  #34:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !140 | ID: 58
-  #35:
-    %this.addr = alloca ptr, align 8, !psr.id !144 | ID: 60
-  #36:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !149 | ID: 63
-  #37:
-    %this.addr = alloca ptr, align 8, !psr.id !153 | ID: 65
-  #38:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !158 | ID: 68
+  #22:
+    %cond-lvalue = phi ptr [ %Second, %cond.true ], [ %Third, %cond.false ],
+!dbg !80, !psr.id !86 | ID: 33 #23: %1 = load ptr, ptr %FooRef, align 8, !dbg
+!88, !psr.id !89 | ID: 35 #24: %vtable = load ptr, ptr %1, align 8, !dbg !90,
+!psr.id !91 | ID: 36 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg
+!90, !psr.id !92 | ID: 37 #25: %2 = load ptr, ptr %vfn, align 8, !dbg !90,
+!psr.id !93 | ID: 38 #26: ptr %this | ID: _ZN3Foo4FuncEv.0 #27: ptr %this | ID:
+_ZN3Bar4FuncEv.0 #28: ptr %this | ID: _ZN3Baz4FuncEv.0 #29: %this.addr = alloca
+ptr, align 8, !psr.id !101 | ID: 41 #30: %this1 = load ptr, ptr %this.addr,
+align 8, !psr.id !107 | ID: 44 #31: %this.addr = alloca ptr, align 8, !psr.id
+!115 | ID: 47 #32: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !121 |
+ID: 50 #33: %this.addr = alloca ptr, align 8, !psr.id !130 | ID: 54 #34: %this1
+= load ptr, ptr %this.addr, align 8, !psr.id !136 | ID: 57 #35: %this.addr =
+alloca ptr, align 8, !psr.id !142 | ID: 61 #36: %this1 = load ptr, ptr
+%this.addr, align 8, !psr.id !147 | ID: 64 #37: %this.addr = alloca ptr, align
+8, !psr.id !151 | ID: 66 #38: %this1 = load ptr, ptr %this.addr, align 8,
+!psr.id !156 | ID: 69 #39: %this.addr = alloca ptr, align 8, !psr.id !160 | ID:
+71 #40: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !165 | ID: 74
 }
-LLVMUnionFindAliasSet(global, botctx-ind-sens) {
-  #0: {0, 5, 10}
-  #1: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #2: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #3: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #4: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #5: {0, 5, 10}
-  #6: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #7: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #8: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #9: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #10: {0, 5, 10}
-  #11: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #12: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
-  #13: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13}
+
+LLVMUnionFindAliasSet(global, ind-sens) {
+  #0: {0, 5, 10, 24}
+  #1: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #2: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #3: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #4: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #5: {0, 5, 10, 24}
+  #6: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #7: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #8: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #9: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #10: {0, 5, 10, 24}
+  #11: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #12: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #13: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
   #14: {14}
-  #15: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #16: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #17: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #15: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #16: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #17: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
   #18: {18}
-  #19: {19}
-  #20: {20}
-  #21: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #22: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #23: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #24: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #25: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #26: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
-  #27: {27}
-  #28: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #19: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #20: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #21: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #22: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #23: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #24: {0, 5, 10, 24}
+  #25: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
+  #26: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #27: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #28: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
   #29: {29}
-  #30: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #30: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
   #31: {31}
-  #32: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #32: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
   #33: {33}
-  #34: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #34: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
   #35: {35}
-  #36: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #36: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
   #37: {37}
-  #38: {15, 16, 17, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34, 36, 38}
+  #38: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+  #39: {39}
+  #40: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
 }
   */
-  GTMap GT{{LineColFunOp{.Line = 18,
+  GTMap GT{{LineColFunOp{.Line = 19,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {
-                LineColFunOp{.Line = 18,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 19,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 20,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 22,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 23,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 24,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-            }},
-           {LineColFunOp{.Line = 22,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 22,
+            {LineColFunOp{.Line = 19,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 20,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 21,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}},
@@ -7582,14 +9257,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
             {LineColFunOp{.Line = 23,
                           .Col = 0,
                           .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 24,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 24,
-                          .Col = 0,
-                          .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("indirection_09_cpp_dbg.ll", GT, IndAABuilder);
@@ -7597,7 +9264,7 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
 
 TEST(IndirectionSensUnionFindAATest, Indirection10) {
   /*
-ValueCompressor: {
+  ValueCompressor: {
   #0:
     @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
 x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
@@ -7619,497 +9286,86 @@ getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
     @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
 align 1, !psr.id !6 | ID: 6 #9:
     @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
-| ID: 5 #10:
-    @_ZTV3Baz = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Baz, ptr @_ZN3Baz4FuncEv] }, comdat, align 8,
-!psr.id !8 | ID: 8 #11:
-    @_ZTI3Baz = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Baz, ptr @_ZTI3Bar }, comdat, align 8, !psr.id !10 | ID: 10 #12:
-    fun @_ZN3Baz4FuncEv
-  #13:
-    @_ZTS3Baz = linkonce_odr dso_local constant [5 x i8] c"3Baz\00", comdat,
-align 1, !psr.id !9 | ID: 9 #14:
-    @_ZTV4Boar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI4Boar, ptr @_ZN4Boar4FuncEv] }, comdat, align 8,
-!psr.id !11 | ID: 11 #15:
-    @_ZTI4Boar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS4Boar, ptr @_ZTI3Baz }, comdat, align 8, !psr.id !13 | ID: 13 #16:
-    fun @_ZN4Boar4FuncEv
-  #17:
-    @_ZTS4Boar = linkonce_odr dso_local constant [6 x i8] c"4Boar\00", comdat,
-align 1, !psr.id !12 | ID: 12 #18: %retval = alloca i32, align 4, !psr.id !30 |
-ID: 14 #19: %First = alloca %class.Foo, align 8, !psr.id !31 | ID: 15 #20:
-    %Second = alloca %class.Bar, align 8, !psr.id !32 | ID: 16
+| ID: 5 #10: %retval = alloca i32, align 4, !psr.id !24 | ID: 8 #11: %First =
+alloca %class.Foo, align 8, !psr.id !25 | ID: 9 #12: %Second = alloca
+%class.Bar, align 8, !psr.id !26 | ID: 10 #13: %SecondAlias = alloca ptr, align
+8, !psr.id !27 | ID: 11 #14: ptr %this | ID: _ZN3FooC2Ev.0 #15: ptr %this | ID:
+_ZN3BarC2Ev.0 #16: %0 = load ptr, ptr %SecondAlias, align 8, !dbg !62, !psr.id
+!63 | ID: 21 #17: %vtable = load ptr, ptr %0, align 8, !dbg !64, !psr.id !65 |
+ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg !64, !psr.id
+!66 | ID: 23 #18: %1 = load ptr, ptr %vfn, align 8, !dbg !64, !psr.id !67 | ID:
+24 #19: ptr %this | ID: _ZN3Bar4FuncEv.0 #20: ptr %this | ID: _ZN3Foo4FuncEv.0
   #21:
-    %Third = alloca %class.Baz, align 8, !psr.id !33 | ID: 17
+    %this.addr = alloca ptr, align 8, !psr.id !75 | ID: 27
   #22:
-    %Fourth = alloca %class.Boar, align 8, !psr.id !34 | ID: 18
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !80 | ID: 30
   #23:
-    %x = alloca i32, align 4, !psr.id !35 | ID: 19
+    %this.addr = alloca ptr, align 8, !psr.id !88 | ID: 33
   #24:
-    %y = alloca i32, align 4, !psr.id !36 | ID: 20
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !94 | ID: 36
   #25:
-    %z = alloca i32, align 4, !psr.id !37 | ID: 21
+    %this.addr = alloca ptr, align 8, !psr.id !100 | ID: 40
   #26:
-    %a = alloca i32, align 4, !psr.id !38 | ID: 22
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !105 | ID: 43
   #27:
-    ptr %this | ID: _ZN3FooC2Ev.0
+    %this.addr = alloca ptr, align 8, !psr.id !109 | ID: 45
   #28:
-    ptr %this | ID: _ZN3BarC2Ev.0
-  #29:
-    ptr %this | ID: _ZN3BazC2Ev.0
-  #30:
-    ptr %this | ID: _ZN4BoarC2Ev.0
-  #31:
-    ptr %this | ID: _ZN3Foo4FuncEv.0
-  #32:
-    ptr %this | ID: _ZN3Bar4FuncEv.0
-  #33:
-    ptr %this | ID: _ZN3Baz4FuncEv.0
-  #34:
-    ptr %this | ID: _ZN4Boar4FuncEv.0
-  #35:
-    %this.addr = alloca ptr, align 8, !psr.id !120 | ID: 49
-  #36:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !126 | ID: 52
-  #37:
-    %this.addr = alloca ptr, align 8, !psr.id !134 | ID: 55
-  #38:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !140 | ID: 58
-  #39:
-    %this.addr = alloca ptr, align 8, !psr.id !149 | ID: 62
-  #40:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !155 | ID: 65
-  #41:
-    %this.addr = alloca ptr, align 8, !psr.id !164 | ID: 69
-  #42:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !170 | ID: 72
-  #43:
-    %this.addr = alloca ptr, align 8, !psr.id !176 | ID: 76
-  #44:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !181 | ID: 79
-  #45:
-    %this.addr = alloca ptr, align 8, !psr.id !185 | ID: 81
-  #46:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !190 | ID: 84
-  #47:
-    %this.addr = alloca ptr, align 8, !psr.id !194 | ID: 86
-  #48:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !199 | ID: 89
-  #49:
-    %this.addr = alloca ptr, align 8, !psr.id !203 | ID: 91
-  #50:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !208 | ID: 94
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !114 | ID: 48
 }
-LLVMUnionFindAliasSet(global, botctx-ind-sens) {
-  #0: {0, 5, 10, 14}
-  #1: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #2: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #3: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #4: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #5: {0, 5, 10, 14}
-  #6: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #7: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #8: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #9: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #10: {0, 5, 10, 14}
-  #11: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #12: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #13: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #14: {0, 5, 10, 14}
-  #15: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #16: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #17: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17}
-  #18: {18}
-  #19: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46,
-48, 50} #20: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42,
-44, 46, 48, 50} #21: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38,
-40, 42, 44, 46, 48, 50} #22: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34,
-36, 38, 40, 42, 44, 46, 48, 50} #23: {23} #24: {24} #25: {25} #26: {26} #27:
-{19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50}
-  #28: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46,
-48, 50} #29: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42,
-44, 46, 48, 50} #30: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38,
-40, 42, 44, 46, 48, 50} #31: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34,
-36, 38, 40, 42, 44, 46, 48, 50} #32: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32,
-33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #33: {19, 20, 21, 22, 27, 28, 29, 30,
-31, 32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #34: {19, 20, 21, 22, 27, 28,
-29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #35: {35} #36: {19, 20,
-21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #37:
-{37} #38: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44,
-46, 48, 50} #39: {39} #40: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36,
-38, 40, 42, 44, 46, 48, 50} #41: {41} #42: {19, 20, 21, 22, 27, 28, 29, 30, 31,
-32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #43: {43} #44: {19, 20, 21, 22, 27,
-28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #45: {45} #46: {19,
-20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44, 46, 48, 50} #47:
-{47} #48: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 44,
-46, 48, 50} #49: {49} #50: {19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 36,
-38, 40, 42, 44, 46, 48, 50}
+LLVMUnionFindAliasSet(global, ind-sens) {
+  #0: {0, 5, 17}
+  #1: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #2: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #3: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #4: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #5: {0, 5, 17}
+  #6: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #7: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #8: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #9: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #10: {10}
+  #11: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #12: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #13: {13}
+  #14: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #15: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #16: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #17: {0, 5, 17}
+  #18: {1, 2, 3, 4, 6, 7, 8, 9, 18}
+  #19: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #20: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #21: {21}
+  #22: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #23: {23}
+  #24: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #25: {25}
+  #26: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+  #27: {27}
+  #28: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
 }
   */
-  GTMap GT{{LineColFunOp{.Line = 23,
+  GTMap GT{{LineColFunOp{.Line = 20,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {
-                LineColFunOp{.Line = 23,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 24,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 25,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 26,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 28,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 29,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 30,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 31,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-            }},
-           {LineColFunOp{.Line = 28,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 28,
+            {LineColFunOp{.Line = 20,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 21,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 29,
+           {LineColFunOp{.Line = 23,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 29,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 30,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 30,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 31,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 31,
+            {LineColFunOp{.Line = 23,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("indirection_10_cpp_dbg.ll", GT, IndAABuilder);
-}
-
-TEST(IndirectionSensUnionFindAATest, Indirection11) {
-  /*
-ValueCompressor: {
-  #0:
-    @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
-!psr.id !0 | ID: 0 #1:
-    @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr getelementptr
-inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64 2), ptr @_ZTS3Foo
-}, comdat, align 8, !psr.id !3 | ID: 3 #2: fun @_ZN3Foo4FuncEv #3:
-    @_ZTS3Foo = linkonce_odr dso_local constant [5 x i8] c"3Foo\00", comdat,
-align 1, !psr.id !2 | ID: 2 #4:
-    @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !1 |
-ID: 1 #5:
-    @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
-!psr.id !4 | ID: 4 #6:
-    @_ZTI3Bar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !7 | ID: 7 #7: fun
-@_ZN3Bar4FuncEv #8:
-    @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
-align 1, !psr.id !6 | ID: 6 #9:
-    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
-| ID: 5 #10:
-    @_ZTV3Baz = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Baz, ptr @_ZN3Baz4FuncEv] }, comdat, align 8,
-!psr.id !8 | ID: 8 #11:
-    @_ZTI3Baz = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Baz, ptr @_ZTI3Bar }, comdat, align 8, !psr.id !10 | ID: 10 #12:
-    fun @_ZN3Baz4FuncEv
-  #13:
-    @_ZTS3Baz = linkonce_odr dso_local constant [5 x i8] c"3Baz\00", comdat,
-align 1, !psr.id !9 | ID: 9 #14:
-    @_ZTV4Boar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI4Boar, ptr @_ZN4Boar4FuncEv] }, comdat, align 8,
-!psr.id !11 | ID: 11 #15:
-    @_ZTI4Boar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS4Boar, ptr @_ZTI3Baz }, comdat, align 8, !psr.id !13 | ID: 13 #16:
-    fun @_ZN4Boar4FuncEv
-  #17:
-    @_ZTS4Boar = linkonce_odr dso_local constant [6 x i8] c"4Boar\00", comdat,
-align 1, !psr.id !12 | ID: 12 #18:
-    @_ZTV3Far = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Far, ptr @_ZN3Far4FuncEv] }, comdat, align 8,
-!psr.id !14 | ID: 14 #19:
-    @_ZTI3Far = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Far, ptr @_ZTI4Boar }, comdat, align 8, !psr.id !16 | ID: 16 #20:
-    fun @_ZN3Far4FuncEv
-  #21:
-    @_ZTS3Far = linkonce_odr dso_local constant [5 x i8] c"3Far\00", comdat,
-align 1, !psr.id !15 | ID: 15 #22: %retval = alloca i32, align 4, !psr.id !33 |
-ID: 17 #23: %First = alloca %class.Foo, align 8, !psr.id !34 | ID: 18 #24:
-    %Second = alloca %class.Bar, align 8, !psr.id !35 | ID: 19
-  #25:
-    %Third = alloca %class.Baz, align 8, !psr.id !36 | ID: 20
-  #26:
-    %Fourth = alloca %class.Boar, align 8, !psr.id !37 | ID: 21
-  #27:
-    %Fifth = alloca %class.Far, align 8, !psr.id !38 | ID: 22
-  #28:
-    %x = alloca i32, align 4, !psr.id !39 | ID: 23
-  #29:
-    %y = alloca i32, align 4, !psr.id !40 | ID: 24
-  #30:
-    %z = alloca i32, align 4, !psr.id !41 | ID: 25
-  #31:
-    %a = alloca i32, align 4, !psr.id !42 | ID: 26
-  #32:
-    %b = alloca i32, align 4, !psr.id !43 | ID: 27
-  #33:
-    ptr %this | ID: _ZN3FooC2Ev.0
-  #34:
-    ptr %this | ID: _ZN3BarC2Ev.0
-  #35:
-    ptr %this | ID: _ZN3BazC2Ev.0
-  #36:
-    ptr %this | ID: _ZN4BoarC2Ev.0
-  #37:
-    ptr %this | ID: _ZN3FarC2Ev.0
-  #38:
-    ptr %this | ID: _ZN3Foo4FuncEv.0
-  #39:
-    ptr %this | ID: _ZN3Bar4FuncEv.0
-  #40:
-    ptr %this | ID: _ZN3Baz4FuncEv.0
-  #41:
-    ptr %this | ID: _ZN4Boar4FuncEv.0
-  #42:
-    ptr %this | ID: _ZN3Far4FuncEv.0
-  #43:
-    %this.addr = alloca ptr, align 8, !psr.id !143 | ID: 60
-  #44:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !149 | ID: 63
-  #45:
-    %this.addr = alloca ptr, align 8, !psr.id !157 | ID: 66
-  #46:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !163 | ID: 69
-  #47:
-    %this.addr = alloca ptr, align 8, !psr.id !172 | ID: 73
-  #48:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !178 | ID: 76
-  #49:
-    %this.addr = alloca ptr, align 8, !psr.id !187 | ID: 80
-  #50:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !193 | ID: 83
-  #51:
-    %this.addr = alloca ptr, align 8, !psr.id !202 | ID: 87
-  #52:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !208 | ID: 90
-  #53:
-    %this.addr = alloca ptr, align 8, !psr.id !214 | ID: 94
-  #54:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !219 | ID: 97
-  #55:
-    %this.addr = alloca ptr, align 8, !psr.id !223 | ID: 99
-  #56:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !228 | ID: 102
-  #57:
-    %this.addr = alloca ptr, align 8, !psr.id !232 | ID: 104
-  #58:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !237 | ID: 107
-  #59:
-    %this.addr = alloca ptr, align 8, !psr.id !241 | ID: 109
-  #60:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !246 | ID: 112
-  #61:
-    %this.addr = alloca ptr, align 8, !psr.id !250 | ID: 114
-  #62:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !255 | ID: 117
-}
-LLVMUnionFindAliasSet(global, botctx-ind-sens) {
-  #0: {0, 5, 10, 14, 18}
-  #1: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #2: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #3: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #4: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #5: {0, 5, 10, 14, 18}
-  #6: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #7: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #8: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #9: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #10: {0, 5, 10, 14, 18}
-  #11: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #12: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #13: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #14: {0, 5, 10, 14, 18}
-  #15: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #16: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #17: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #18: {0, 5, 10, 14, 18}
-  #19: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #20: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #21: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21}
-  #22: {22}
-  #23: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48,
-50, 52, 54, 56, 58, 60, 62} #24: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38,
-39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #25: {23, 24, 25, 26,
-27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60,
-62} #26: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46,
-48, 50, 52, 54, 56, 58, 60, 62} #27: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37,
-38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #28: {28} #29: {29}
-  #30: {30}
-  #31: {31}
-  #32: {32}
-  #33: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48,
-50, 52, 54, 56, 58, 60, 62} #34: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38,
-39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #35: {23, 24, 25, 26,
-27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60,
-62} #36: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46,
-48, 50, 52, 54, 56, 58, 60, 62} #37: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37,
-38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #38: {23, 24, 25,
-26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58,
-60, 62} #39: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44,
-46, 48, 50, 52, 54, 56, 58, 60, 62} #40: {23, 24, 25, 26, 27, 33, 34, 35, 36,
-37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #41: {23, 24,
-25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56,
-58, 60, 62} #42: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
-44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #43: {43} #44: {23, 24, 25, 26, 27, 33,
-34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #45:
-{45} #46: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46,
-48, 50, 52, 54, 56, 58, 60, 62} #47: {47} #48: {23, 24, 25, 26, 27, 33, 34, 35,
-36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #49: {49}
-  #50: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48,
-50, 52, 54, 56, 58, 60, 62} #51: {51} #52: {23, 24, 25, 26, 27, 33, 34, 35, 36,
-37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #53: {53} #54:
-{23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52,
-54, 56, 58, 60, 62} #55: {55} #56: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38,
-39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #57: {57} #58: {23, 24,
-25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56,
-58, 60, 62} #59: {59} #60: {23, 24, 25, 26, 27, 33, 34, 35, 36, 37, 38, 39, 40,
-41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62} #61: {61} #62: {23, 24, 25, 26,
-27, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60,
-62}
-}
-  */
-  GTMap GT{{LineColFunOp{.Line = 28,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {
-                LineColFunOp{.Line = 28,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 29,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 30,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 31,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 32,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 34,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 35,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 36,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 37,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-                LineColFunOp{.Line = 38,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call},
-            }},
-           {LineColFunOp{.Line = 34,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 34,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 35,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 35,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 36,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 36,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 37,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 37,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
-           {LineColFunOp{.Line = 38,
-                         .Col = 0,
-                         .InFunction = "main",
-                         .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 38,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}}};
-
-  doAnalysisAndCompareResults("indirection_11_cpp_dbg.ll", GT, IndAABuilder);
 }
 
 } // namespace
