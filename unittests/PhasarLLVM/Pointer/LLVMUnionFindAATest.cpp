@@ -94,6 +94,19 @@ void doAnalysisAndCompareResults(
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
     const auto PtrId = asId(VC, IRDB, PtrVar);
     const auto ExpectedAliasIds = asIdBased(VC, IRDB, ExpectedAliasVars);
+    const RawAliasSet<ValueId> &ComputedAliasIds =
+        Results.getRawAliasSet(PtrId);
+
+    ComputedAliasIds.foreach ([&](ValueId VId) {
+      llvm::outs() << "PtrVar: " << PtrVar
+                   << " - stringifyVal(VC, VId): " << stringifyVal(VC, VId)
+                   << "\n";
+    });
+  }
+
+  for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
+    const auto PtrId = asId(VC, IRDB, PtrVar);
+    const auto ExpectedAliasIds = asIdBased(VC, IRDB, ExpectedAliasVars);
 
     const RawAliasSet<ValueId> &ComputedAliasIds =
         Results.getRawAliasSet(PtrId);
@@ -1947,9 +1960,32 @@ TEST(CtxSensUnionFindAATest, Indirection10) {
 
 TEST(BotUnionFindAATest, Basic01) {
   /*
-
+ValueCompressor: {
+  #0:
+    %i = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %p = alloca ptr, align 8, !psr.id !17 | ID: 1
+  #2:
+    %0 = load ptr, ptr %p, align 8, !dbg !26, !psr.id !27 | ID: 5
+}
+UnionFindAAResult {
+  #0: <0, 2>
+  #1: <1>
+}
   */
-  GTMap GT = {{LineColFunOp{.Line = 4,
+  GTMap GT = {{LineColFunOp{.Line = 3,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 3,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 5,
+                             .Col = 4,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Load}}},
+              {LineColFunOp{.Line = 4,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
@@ -1963,13 +1999,49 @@ TEST(BotUnionFindAATest, Basic01) {
 
 TEST(BotUnionFindAATest, Basic02) {
   /*
-
+ValueCompressor: {
+  #0:
+    %i = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %p = alloca ptr, align 8, !psr.id !17 | ID: 1
+  #2:
+    %q = alloca ptr, align 8, !psr.id !18 | ID: 2
+  #3:
+    %0 = load ptr, ptr %q, align 8, !dbg !32, !psr.id !33 | ID: 8
+  #4:
+    %1 = load ptr, ptr %0, align 8, !dbg !34, !psr.id !35 | ID: 9
+}
+UnionFindAAResult {
+  #0: <0, 1, 3, 4>
+  #1: <2>
+}
+  TODO: ask fabian why #1: <1> and #2: <2> are not here
   */
-  GTMap GT = {{LineColFunOp{.Line = 4,
+  GTMap GT = {{LineColFunOp{.Line = 3,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {LineColFunOp{.Line = 4,
+               {LineColFunOp{.Line = 3,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 4,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 6,
+                             .Col = 5,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Load}}},
+              {LineColFunOp{.Line = 4,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 3,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 4,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca}}}};
@@ -1995,21 +2067,45 @@ TEST(BotUnionFindAATest, Basic03) {
 
 TEST(BotUnionFindAATest, Basic04) {
   /*
+
+ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !19 | ID: 1
+  #1:
+    %FuncPtr = alloca ptr, align 8, !psr.id !20 | ID: 2
+  #2:
+    %FuncPtr2 = alloca ptr, align 8, !psr.id !21 | ID: 3
+  #3:
+    fun @Func
+  #4:
+    %0 = load ptr, ptr %FuncPtr2, align 8, !dbg !37, !psr.id !38 | ID: 9
+  #5:
+    %1 = load ptr, ptr %0, align 8, !dbg !39, !psr.id !40 | ID: 10
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 3, 4, 5>
+  #2: <2>
+}
+
+TODO: ask fabian how to get { fun @Func }
    */
   GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {
-                   LineColFunOp{.Line = 5,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 6,
-                                .Col = 0,
-                                .InFunction = "main",
-                                .OpCode = llvm::Instruction::Alloca},
-               }}};
+               {LineColFunOp{.Line = 5,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}},
+              {LineColFunOp{.Line = 6,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Alloca},
+               {LineColFunOp{.Line = 6,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("basic_04_c_dbg.ll", GT, ContextAABuilder);
 }
@@ -7701,12 +7797,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
   #13: {1, 3, 6, 11, 12, 13, 14}
   #14: {1, 3, 6, 11, 12, 13, 14}
 }
-
-  TODO: ask Fabian if the output of the analysis is correct here/what the GT
-should look like. Unittest fails, but I think GT should be correct.
-Also, is it necessary to include the Bar alloca (+ the others) as a stand-alone
-with the same aliases as Foo?
-}
   */
   GTMap GT{{LineColFunOp{.Line = 8,
                          .Col = 0,
@@ -7718,10 +7808,6 @@ with the same aliases as Foo?
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
                 LineColFunOp{.Line = 11,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 14,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
@@ -7847,18 +7933,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                          .OpCode = llvm::Instruction::Alloca},
             {
                 LineColFunOp{.Line = 13,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 15,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 18,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 19,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
@@ -8010,35 +8084,7 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 20,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 22,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 25,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 26,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 27,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
                 LineColFunOp{.Line = 29,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 30,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 31,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
@@ -8047,10 +8093,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
                 LineColFunOp{.Line = 33,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 34,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
@@ -8225,34 +8267,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 25,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 27,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 29,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 32,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 33,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 34,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 35,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
                 LineColFunOp{.Line = 37,
                              .Col = 0,
                              .InFunction = "main",
@@ -8261,27 +8275,7 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 39,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 40,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
                 LineColFunOp{.Line = 41,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 42,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 43,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 44,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
@@ -8499,42 +8493,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 30,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 32,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 34,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 36,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 39,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 40,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 41,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 42,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 43,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
                 LineColFunOp{.Line = 45,
                              .Col = 0,
                              .InFunction = "main",
@@ -8543,35 +8501,11 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 47,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 48,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 49,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
                 LineColFunOp{.Line = 50,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
                 LineColFunOp{.Line = 51,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 52,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 53,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 54,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
@@ -8820,6 +8754,9 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
   #41: {7, 35, 41}
   #42: {9, 36, 42}
 }
+
+  TODO: ask Fabian about the Bar alloca here. Is this correct?
+
   */
   GTMap GT{{LineColFunOp{.Line = 33,
                          .Col = 0,
@@ -8831,46 +8768,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
                 LineColFunOp{.Line = 35,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 37,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 39,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 41,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 43,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 46,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 47,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 48,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 49,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 50,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 51,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
@@ -8886,18 +8783,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 56,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 57,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 58,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
                 LineColFunOp{.Line = 59,
                              .Col = 0,
                              .InFunction = "main",
@@ -8907,18 +8792,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
                 LineColFunOp{.Line = 61,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 62,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 63,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load},
-                LineColFunOp{.Line = 64,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Load},
