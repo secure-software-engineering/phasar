@@ -276,6 +276,16 @@ public:
   }
 };
 
+/// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
+/// field-sensitive. Just wrap your IFDS problem with
+/// FieldSensAllocSitesAwareIFDSProblem and use the IterativeIDESolver instead
+/// of the IFDSSolver.
+///
+/// The only thing to change in your usual IFDS problem is not to kill data-flow
+/// facts when only parts of the fields should be killed. This is now handled by
+/// the FieldSensAllocSitesAwareIFDSProblem. For that, provide a
+/// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
+/// implementation.
 class FieldSensAllocSitesAwareIFDSProblem
     : public FieldSensAllocSitesAwareIFDSProblemBase,
       public IDETabulationProblem<
