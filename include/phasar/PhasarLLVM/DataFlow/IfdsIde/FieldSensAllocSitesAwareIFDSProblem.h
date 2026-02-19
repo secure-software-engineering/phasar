@@ -14,17 +14,18 @@
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Domain/LatticeDomain.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMBasePointerAliasSet.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/TypedVector.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/FunctionExtras.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -36,15 +37,6 @@ namespace psr {
 /// \file Implements field-sensitivity after the paper "Boosting the performance
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
 /// et al. <https://doi.org/10.1145/3689804>
-
-struct StoreEvent {};
-struct LoadEvent {};
-
-struct KillEvent {};
-
-struct GEPEvent {
-  int32_t Field;
-};
 
 enum class CFLFieldStringNodeId : uint32_t {
   None = 0,
@@ -60,6 +52,11 @@ struct CFLFieldStringNode {
 
   [[nodiscard]] constexpr bool
   operator==(const CFLFieldStringNode &) const noexcept = default;
+
+  friend llvm::hash_code hash_value(CFLFieldStringNode Nod) {
+    return llvm::DenseMapInfo<std::pair<uint32_t, int32_t>>::getHashValue(
+        {uint32_t(Nod.Next), Nod.Offset});
+  }
 };
 
 } // namespace psr
@@ -67,17 +64,18 @@ struct CFLFieldStringNode {
 namespace llvm {
 template <> struct DenseMapInfo<psr::CFLFieldStringNode> {
   static constexpr psr::CFLFieldStringNode getEmptyKey() noexcept {
-    return {psr::CFLFieldStringNodeId(UINT32_MAX), 0};
+    return {.Next = psr::CFLFieldStringNodeId(UINT32_MAX), .Offset = INT32_MAX};
   }
   static constexpr psr::CFLFieldStringNode getTombstoneKey() noexcept {
-    return {psr::CFLFieldStringNodeId(UINT32_MAX - 1), 0};
+    return {.Next = psr::CFLFieldStringNodeId(UINT32_MAX - 1),
+            .Offset = INT32_MAX};
   }
   static constexpr bool isEqual(psr::CFLFieldStringNode L,
                                 psr::CFLFieldStringNode R) noexcept {
     return L == R;
   }
-  static llvm::hash_code getHashValue(psr::CFLFieldStringNode Nod) {
-    return llvm::hash_combine(Nod.Next, Nod.Offset);
+  static auto getHashValue(psr::CFLFieldStringNode Nod) {
+    return hash_value(Nod);
   }
 };
 } // namespace llvm
@@ -86,12 +84,7 @@ namespace psr {
 
 class CFLFieldStringManager {
 public:
-  CFLFieldStringManager() {
-    // Sentinel
-    NodeCompressor.insertDummy(
-        CFLFieldStringNode{CFLFieldStringNodeId::None, 0});
-    Depth.push_back(0);
-  }
+  CFLFieldStringManager();
 
   [[nodiscard]] CFLFieldStringNodeId intern(CFLFieldStringNode Nod) {
     auto [Id, Inserted] = NodeCompressor.insert(Nod);
@@ -133,9 +126,9 @@ private:
 struct CFLFieldAccessPath {
   static constexpr int32_t TopOffset = INT32_MIN;
 
-  CFLFieldStringNodeId Loads;
-  CFLFieldStringNodeId Stores;
-  llvm::SmallDenseSet<int32_t, 2> Kills;
+  CFLFieldStringNodeId Loads{};
+  CFLFieldStringNodeId Stores{};
+  llvm::SmallDenseSet<int32_t, 2> Kills{};
   // Add an offset for pending GEPs; INT32_MIN is Top
   int32_t Offset = {0};
   int32_t EmptyTombstone = 0;
@@ -149,7 +142,7 @@ struct CFLFieldAccessPath {
     return Off != TopOffset && Kills.contains(Off);
   }
 
-  [[nodiscard]] bool
+  [[nodiscard]] constexpr bool
   operator==(const CFLFieldAccessPath &Other) const noexcept {
     return EmptyTombstone == Other.EmptyTombstone && Loads == Other.Loads &&
            Stores == Other.Stores && Kills == Other.Kills;
@@ -199,14 +192,6 @@ struct CFLFieldSensEdgeValue {
 
   static constexpr llvm::StringLiteral LogCategory = "CFLFieldSensEdgeValue";
 
-  // void applyStore(uint8_t DepthKLimit);
-  // void applyGepAndStore(GEPEvent Evt, uint8_t DepthKLimit);
-  // void applyLoad(uint8_t DepthKLimit);
-  // void applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit);
-  // void applyKill();
-  // void applyGepAndKill(GEPEvent Evt);
-  // void applyGep(GEPEvent Evt);
-  void applyTransform(const CFLFieldAccessPath &Txn, uint8_t DepthKLimit);
   void applyTransforms(const CFLFieldSensEdgeValue &Txns, uint8_t DepthKLimit);
 
   bool operator==(const CFLFieldSensEdgeValue &Other) const noexcept {
@@ -228,6 +213,26 @@ struct CFLFieldSensEdgeValue {
   [[nodiscard]] bool isEpsilon() const {
     return Paths.size() == 1 && Paths.begin()->empty();
   }
+
+  [[nodiscard]] static CFLFieldSensEdgeValue
+  epsilon(CFLFieldStringManager *Mgr) {
+    CFLFieldSensEdgeValue Ret{.Mgr = &assertNotNull(Mgr), .Paths = {}};
+    Ret.Paths.insert({}); // Not using initializer_list to prevent copying
+    return Ret;
+  }
+
+  [[nodiscard]] friend auto join(const CFLFieldSensEdgeValue &L,
+                                 const CFLFieldSensEdgeValue &R) {
+    assert(L.Mgr == R.Mgr);
+    assert(L.Mgr != nullptr);
+    const bool LeftSmaller = L.Paths.size() < R.Paths.size();
+    auto Ret = LeftSmaller ? R : L;
+    const auto &Smaller = LeftSmaller ? L : R;
+    Ret.Paths.insert(Smaller.Paths.begin(), Smaller.Paths.end());
+    // XXX: k-limit num-paths: This may not be necessary, as join() is only
+    // called from IDE-Phase-II
+    return Ret;
+  }
 };
 
 template <typename AnalysisDomainTy>
@@ -238,7 +243,7 @@ struct CFLFieldSensAnalysisDomain : AnalysisDomainTy {
 struct FieldSensAllocSitesAwareIFDSProblemConfig
     : LLVMIFDSAnalysisDomainDefault {
   llvm::unique_function<std::optional<int32_t>(n_t Curr, d_t CurrNode)> KillsAt;
-  // TODO: more
+  // XXX: more
 };
 
 class FieldSensAllocSitesAwareIFDSProblemBase
@@ -291,16 +296,14 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
-  /// Constructs an IDETabulationProblem with the usual arguments + alias
-  /// information.
-  ///
-  /// \note It is useful to use an instance of FilteredAliasSet for the alias
-  /// information to lower suprious aliases
+  /// Constructs an IDETabulationProblem with the usual arguments, forwarded
+  /// from UserProblem
   explicit FieldSensAllocSitesAwareIFDSProblem(
       IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem,
       FieldSensAllocSitesAwareIFDSProblemConfig Config =
           {}) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : Base(UserProblem->getProjectIRDB(), UserProblem->getEntryPoints(),
+      : Base(assertNotNull(UserProblem).getProjectIRDB(),
+             assertNotNull(UserProblem).getEntryPoints(),
              UserProblem->getZeroValue()),
         UserProblem(UserProblem), Config(std::move(Config)) {}
 

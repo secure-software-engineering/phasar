@@ -120,6 +120,12 @@ concept has_adl_to_string_v = requires(const T &Val) {
 };
 
 template <typename T>
+concept has_adl_join = requires(const T &Val) {
+  // TODO: Add psr::join-variant, once we have a fallback!
+  { join(Val, Val) } -> std::convertible_to<T>;
+};
+
+template <typename T>
 concept has_erase_iterator_v = requires(
     T &Val, typename std::remove_cvref_t<T>::iterator It) { Val.erase(It); };
 
@@ -204,10 +210,9 @@ template <typename T, typename Enable = void>
 struct [[deprecated("getAsJson should not be used anymore. Use printAsJson "
                     "instead")]] has_getAsJson : std::false_type {}; // NOLINT
 template <typename T>
-struct [[deprecated(
-    "getAsJson should not be used anymore. Use printAsJson "
-    "instead")]] has_getAsJson<T, std::void_t<decltype(std::declval<const T>()
-                                                           .getAsJson())>>
+struct [[deprecated("getAsJson should not be used anymore. Use printAsJson "
+                    "instead")]]
+has_getAsJson<T, std::void_t<decltype(std::declval<const T>().getAsJson())>>
     : std::true_type {}; // NOLINT
 
 struct TrueFn {
@@ -250,6 +255,13 @@ template <has_adl_to_string_v T>
 [[nodiscard]] decltype(auto) adl_to_string(const T &Val) {
   using std::to_string;
   return to_string(Val);
+}
+
+template <has_adl_join T>
+[[nodiscard]] decltype(auto) adl_join(const T &L,
+                                      const std::type_identity_t<T> &R) {
+  // using psr::join; // TODO: Enable, once we have a generic psr::join!
+  return join(L, R);
 }
 
 struct IdentityFn {

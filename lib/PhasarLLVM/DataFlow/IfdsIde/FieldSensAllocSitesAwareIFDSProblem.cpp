@@ -3,6 +3,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Logger.h"
@@ -30,6 +31,13 @@
 #include <utility>
 
 using namespace psr;
+
+CFLFieldStringManager::CFLFieldStringManager() {
+  // Sentinel
+  NodeCompressor.insertDummy(
+      CFLFieldStringNode{.Next = CFLFieldStringNodeId::None, .Offset = 0});
+  Depth.push_back(0);
+}
 
 llvm::SmallVector<int32_t>
 CFLFieldStringManager::getFullFieldString(CFLFieldStringNodeId NId) const {
@@ -73,7 +81,7 @@ constexpr static int32_t addOffsets(int32_t L, int32_t R) noexcept {
 struct CFLFieldSensEdgeFunction {
   using l_t = LatticeDomain<CFLFieldSensEdgeValue>;
   [[clang::require_explicit_initialization]] CFLFieldSensEdgeValue Transform;
-  uint8_t DepthKLimit{};
+  [[clang::require_explicit_initialization]] uint8_t DepthKLimit{};
 
   [[nodiscard]] l_t computeTarget(l_t Source) const {
     Source.onValue(fn<&CFLFieldSensEdgeValue::applyTransforms>, Transform,
@@ -116,7 +124,7 @@ struct CFLFieldSensEdgeFunction {
                                  uint8_t DepthKLimit) {
     // Avoid initializer-list as it prevents moving
     auto Ret = CFLFieldSensEdgeFunction{
-        .Transform = {&Mgr, {}},
+        .Transform = {.Mgr = &Mgr, .Paths = {}},
         .DepthKLimit = DepthKLimit,
     };
     Ret.Transform.Paths.insert(std::move(Txn));
@@ -125,12 +133,10 @@ struct CFLFieldSensEdgeFunction {
 
   [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit,
                                         CFLFieldStringManager &Mgr) {
-    auto Ret = CFLFieldSensEdgeFunction{
-        .Transform = {&Mgr, {}},
+    return CFLFieldSensEdgeFunction{
+        .Transform = CFLFieldSensEdgeValue::epsilon(&Mgr),
         .DepthKLimit = DepthKLimit,
     };
-    Ret.Transform.Paths.insert(CFLFieldAccessPath{});
-    return Ret;
   }
 };
 
@@ -148,7 +154,7 @@ struct CFLFieldSensEdgeFunction {
 
 // Returns whether to retain F
 [[nodiscard]] auto applyOneGepAndStore(CFLFieldStringManager &Mgr,
-                                       CFLFieldAccessPath &F, GEPEvent Evt,
+                                       CFLFieldAccessPath &F, int32_t Field,
                                        uint8_t DepthKLimit) {
   if (Mgr.depth(F.Stores) == DepthKLimit) {
     // TODO: Optimize:
@@ -156,15 +162,15 @@ struct CFLFieldSensEdgeFunction {
     Full.erase(Full.begin());
     F.Stores = Mgr.fromFullFieldString(Full);
   }
-  F.Stores = Mgr.prepend(std::exchange(F.Offset, 0) + Evt.Field, F.Stores);
+  F.Stores = Mgr.prepend(std::exchange(F.Offset, 0) + Field, F.Stores);
   return std::true_type{};
 }
 
 // Returns whether to retain F
 [[nodiscard]] auto applyOneGepAndLoad(CFLFieldStringManager &Mgr,
-                                      CFLFieldAccessPath &F, GEPEvent Evt,
+                                      CFLFieldAccessPath &F, int32_t Field,
                                       uint8_t DepthKLimit) {
-  auto Offs = F.Offset + Evt.Field;
+  auto Offs = F.Offset + Field;
   if (F.Stores == psr::CFLFieldStringNodeId::None) {
 
     if (F.kills(Offs)) {
@@ -200,9 +206,9 @@ struct CFLFieldSensEdgeFunction {
 }
 
 [[nodiscard]] auto applyOneGepAndKill(CFLFieldStringManager &Mgr,
-                                      CFLFieldAccessPath &F, GEPEvent Evt,
+                                      CFLFieldAccessPath &F, int32_t Field,
                                       uint8_t /*DepthKLimit*/) {
-  auto Offs = addOffsets(F.Offset, Evt.Field);
+  auto Offs = addOffsets(F.Offset, Field);
   if (Offs == CFLFieldAccessPath::TopOffset) {
     // We cannot kill Top
     return true;
@@ -231,193 +237,62 @@ struct CFLFieldSensEdgeFunction {
 }
 
 [[nodiscard]] auto applyOneGep(CFLFieldStringManager &Mgr,
-                               CFLFieldAccessPath &F, GEPEvent Evt,
+                               CFLFieldAccessPath &F, int32_t Field,
                                uint8_t /*DepthKLimit*/) {
   if (F.Stores == psr::CFLFieldStringNodeId::None) {
-    F.Offset = addOffsets(F.Offset, Evt.Field);
+    F.Offset = addOffsets(F.Offset, Field);
   } else {
     auto StoresHead = Mgr[F.Stores];
     F.Stores =
-        Mgr.prepend(addOffsets(StoresHead.Offset, -Evt.Field), StoresHead.Next);
+        Mgr.prepend(addOffsets(StoresHead.Offset, -Field), StoresHead.Next);
   }
   return std::true_type{};
 }
 
-} // namespace
+void applyTransform(CFLFieldSensEdgeValue &EV, const CFLFieldAccessPath &Txn,
+                    uint8_t DepthKLimit) {
 
-// void CFLFieldSensEdgeValue::applyGepAndStore(GEPEvent Evt,
-//                                              uint8_t DepthKLimit) {
-//   auto Save = std::exchange(Paths, {});
-//   Paths.reserve(Save.size());
-
-//   for (auto F : Save) {
-//     // TODO: Check, whether we can safely exchange Offset with 0 here!
-
-//     if (F.Stores.size() == DepthKLimit) {
-//       // TODO: Optimize:
-//       F.Stores.erase(F.Stores.begin());
-//     }
-//     F.Stores.push_back(addOffsets(std::exchange(F.Offset, 0), Evt.Field));
-//     Paths.insert(std::move(F));
-//   }
-
-//   // TODO: What if Paths is empty? Or can't that happen?
-//   // --> Does not happen, as long as the fact is not killed in all paths
-// }
-
-// void CFLFieldSensEdgeValue::applyGepAndLoad(GEPEvent Evt, uint8_t
-// DepthKLimit) {
-//   llvm::errs() << "[applyGepAndLoad]: " << *this << " + " << Evt.Field <<
-//   "\n";
-
-//   auto Save = std::exchange(Paths, {});
-
-//   for (const auto &F : Save) {
-//     auto Offs = addOffsets(F.Offset, Evt.Field);
-//     if (F.Stores.empty()) {
-
-//       if (F.kills(Offs)) {
-//         continue;
-//       }
-//       auto FF = F;
-//       FF.Offset = 0;
-
-//       // TODO: Is this application of k-limiting correct here?
-//       // cf. Section 4.2.3 "K-Limiting" in the paper
-//       if (F.Loads.size() == DepthKLimit) {
-//         Paths.insert(std::move(FF));
-//         continue;
-//       }
-
-//       FF.Loads.push_back(Offs);
-//       FF.Kills.clear();
-//       Paths.insert(std::move(FF));
-
-//       continue;
-//     }
-
-//     if (F.Stores.back() != Offs &&
-//         F.Stores.back() != CFLFieldAccessPath::TopOffset) {
-//       continue;
-//     }
-
-//     assert(F.Stores.back() == Offs);
-//     auto FF = F;
-//     FF.Offset = 0;
-//     FF.Stores.pop_back();
-//     Paths.insert(std::move(FF));
-//     llvm::errs() << "> pop_back\n";
-//   }
-
-//   llvm::errs() << "=> " << *this << '\n';
-// }
-
-// void CFLFieldSensEdgeValue::applyGepAndKill(GEPEvent Evt) {
-//   llvm::errs() << "[applyGepAndKill]: " << *this << " + " << Evt.Field <<
-//   "\n";
-
-//   auto Save = std::exchange(Paths, {});
-
-//   for (const auto &F : Save) {
-//     auto Offs = addOffsets(F.Offset, Evt.Field);
-
-//     if (F.Stores.empty()) {
-//       auto FF = F;
-//       FF.Kills.insert(Offs);
-//       Paths.insert(std::move(FF));
-//       llvm::errs() << "> add K" << Offs << '\n';
-//       continue;
-//     }
-
-//     if (F.Stores.back() == Offs) {
-//       llvm::errs() << "> Kill ";
-//       llvm::interleave(
-//           F.Stores, llvm::errs(),
-//           [](auto StoreOffs) { llvm::errs() << 'S' << StoreOffs; }, ".");
-//       llvm::errs() << '\n';
-//       continue;
-//     }
-
-//     llvm::errs() << "> Retain ";
-//     llvm::interleave(
-//         F.Stores, llvm::errs(),
-//         [](auto StoreOffs) { llvm::errs() << 'S' << StoreOffs; }, ".");
-//     llvm::errs() << '\n';
-
-//     assert(F.Stores.back() != Offs);
-//     Paths.insert(F);
-//   }
-// }
-
-// void CFLFieldSensEdgeValue::applyGep(GEPEvent Evt) {
-//   auto Save = std::exchange(Paths, {});
-//   Paths.reserve(Save.size());
-
-//   for (auto F : Save) {
-//     if (F.Stores.empty()) {
-//       F.Offset = addOffsets(F.Offset, Evt.Field);
-//     } else {
-//       F.Stores.back() = addOffsets(F.Stores.back(), -Evt.Field);
-//     }
-//     Paths.insert(std::move(F));
-//   }
-// }
-
-// void CFLFieldSensEdgeValue::applyStore(uint8_t DepthKLimit) {
-//   applyGepAndStore(GEPEvent{0}, DepthKLimit);
-// }
-// void CFLFieldSensEdgeValue::applyLoad(uint8_t DepthKLimit) {
-//   applyGepAndLoad(GEPEvent{0}, DepthKLimit);
-// }
-// void CFLFieldSensEdgeValue::applyKill() { //
-//   applyGepAndKill(GEPEvent{0});
-// }
-
-void CFLFieldSensEdgeValue::applyTransform(const CFLFieldAccessPath &Txn,
-                                           uint8_t DepthKLimit) {
-  if (Mgr == nullptr) [[unlikely]] {
-    llvm::report_fatal_error("Mgr is nullptr!");
-  }
-
-  if (Paths.empty() || Txn.empty()) {
+  if (EV.Paths.empty() || Txn.empty()) {
     // Nothing to be done here
     return;
   }
-  if (isEpsilon()) {
-    Paths.clear();
-    Paths.insert(Txn);
+  if (EV.isEpsilon()) {
+    EV.Paths.clear();
+    EV.Paths.insert(Txn);
     return;
   }
-  // llvm::errs() << "[applyTransform]: " << *this << " X " << Txn << '\n';
 
-  auto Save = std::exchange(Paths, {});
-  Paths.reserve(Save.size());
+  auto Save = std::exchange(EV.Paths, {});
+  EV.Paths.reserve(Save.size());
 
   const auto TxnOffset = Txn.Offset;
+
+  /// XXX: Should we save getFullFieldString(Txn.Loads) and
+  /// getFullFieldString(Txn.Stores)? Would it be faster?
 
   for (const auto &F : Save) {
     auto Copy = F;
     bool Retain = [&] {
       if (TxnOffset) {
-        if (!applyOneGep(*Mgr, Copy, GEPEvent{TxnOffset}, DepthKLimit)) {
+        if (!applyOneGep(*EV.Mgr, Copy, TxnOffset, DepthKLimit)) {
           return false;
         }
       }
 
-      for (auto Ld : Mgr->getFullFieldString(Txn.Loads)) {
-        if (!applyOneGepAndLoad(*Mgr, Copy, GEPEvent{Ld}, DepthKLimit)) {
+      for (auto Ld : EV.Mgr->getFullFieldString(Txn.Loads)) {
+        if (!applyOneGepAndLoad(*EV.Mgr, Copy, Ld, DepthKLimit)) {
           return false;
         }
       }
 
       for (auto Kl : Txn.Kills) {
-        if (!applyOneGepAndKill(*Mgr, Copy, GEPEvent{Kl}, DepthKLimit)) {
+        if (!applyOneGepAndKill(*EV.Mgr, Copy, Kl, DepthKLimit)) {
           return false;
         }
       }
 
-      for (auto St : Mgr->getFullFieldString(Txn.Stores)) {
-        if (!applyOneGepAndStore(*Mgr, Copy, GEPEvent{St}, DepthKLimit)) {
+      for (auto St : EV.Mgr->getFullFieldString(Txn.Stores)) {
+        if (!applyOneGepAndStore(*EV.Mgr, Copy, St, DepthKLimit)) {
           return false;
         }
       }
@@ -426,31 +301,18 @@ void CFLFieldSensEdgeValue::applyTransform(const CFLFieldAccessPath &Txn,
     }();
 
     if (Retain) {
-      Paths.insert(std::move(Copy));
+      EV.Paths.insert(std::move(Copy));
     }
   }
-
-  // llvm::errs() << "[applyTransform]: > result: " << *this << '\n';
-
-  // // TODO: Optimize!
-
-  // if (Txn.Offset) {
-  //   applyGep(GEPEvent{Txn.Offset});
-  // }
-
-  // for (auto Ld : Txn.Loads) {
-  //   applyGepAndLoad(GEPEvent{Ld}, DepthKLimit);
-  // }
-  // for (auto Kl : Txn.Kills) {
-  //   applyGepAndKill(GEPEvent{Kl});
-  // }
-  // for (auto St : Txn.Stores) {
-  //   applyGepAndStore(GEPEvent{St}, DepthKLimit);
-  // }
 }
+} // namespace
 
 void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
                                             uint8_t DepthKLimit) {
+  if (Mgr == nullptr) [[unlikely]] {
+    llvm::report_fatal_error("Mgr is nullptr!");
+  }
+
   if (Txns.Paths.empty()) {
     Paths.clear();
     return;
@@ -458,7 +320,7 @@ void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
 
   auto It = Txns.Paths.begin();
   if (Txns.Paths.size() == 1) [[likely]] {
-    applyTransform(*It, DepthKLimit);
+    applyTransform(*this, *It, DepthKLimit);
     return;
   }
 
@@ -468,12 +330,12 @@ void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
   auto End = Txns.Paths.end();
   auto Ret = *this;
 
-  Ret.applyTransform(*It, DepthKLimit);
+  applyTransform(Ret, *It, DepthKLimit);
 
   for (++It; It != End; ++It) {
     if (!It->empty()) {
       auto Tmp = *this;
-      Tmp.applyTransform(*It, DepthKLimit);
+      applyTransform(Tmp, *It, DepthKLimit);
       Ret.Paths.insert(Tmp.Paths.begin(), Tmp.Paths.end());
     } else {
       Ret.Paths.insert(Paths.begin(), Paths.end());
@@ -577,7 +439,7 @@ auto FieldSensAllocSitesAwareIFDSProblemBase::makeInitialSeeds(
   for (const auto &[Inst, Facts] : UserSeeds.getSeeds()) {
     auto &SeedsAtInst = Ret[Inst];
     for (const auto &[Fact, Weight] : Facts) {
-      SeedsAtInst[Fact] = CFLFieldSensEdgeValue{&Mgr, {CFLFieldAccessPath{}}};
+      SeedsAtInst.try_emplace(Fact, CFLFieldSensEdgeValue::epsilon(&Mgr));
     }
   }
 
@@ -904,7 +766,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
               }
 
               return CFLFieldSensEdgeFunction::from(
-                  CFLFieldSensEdgeValue{&Mgr, std::move(Union)}, DepthKLimit);
+                  CFLFieldSensEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
+                  DepthKLimit);
             }
           }
         }

@@ -222,6 +222,14 @@ template <typename L> struct JoinLatticeTraits<LatticeDomain<L>> {
       return LHS;
     }
 
+    if constexpr (has_adl_join<l_t>) {
+      if (auto LhsPtr = LHS.getValueOrNull()) {
+        if (auto RhsPtr = RHS.getValueOrNull()) {
+          return psr::adl_join(*LhsPtr, *RhsPtr);
+        }
+      }
+    }
+
     return Bottom{};
   }
 };
