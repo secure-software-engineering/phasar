@@ -18,6 +18,9 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMBasePointerAliasSet.h"
+#include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FunctionExtras.h"
@@ -26,12 +29,13 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
+#include <type_traits>
 
 namespace psr {
 
 /// \file Implements field-sensitivity after the paper "Boosting the performance
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
-/// et al.
+/// et al. <https://doi.org/10.1145/3689804>
 
 struct StoreEvent {};
 struct LoadEvent {};
@@ -42,18 +46,103 @@ struct GEPEvent {
   int32_t Field;
 };
 
+enum class CFLFieldStringNodeId : uint32_t {
+  None = 0,
+};
+
+[[nodiscard]] inline llvm::hash_code hash_value(CFLFieldStringNodeId NId) {
+  return llvm::hash_value(std::underlying_type_t<CFLFieldStringNodeId>(NId));
+}
+
+struct CFLFieldStringNode {
+  CFLFieldStringNodeId Next{};
+  int32_t Offset{};
+
+  [[nodiscard]] constexpr bool
+  operator==(const CFLFieldStringNode &) const noexcept = default;
+};
+
+} // namespace psr
+
+namespace llvm {
+template <> struct DenseMapInfo<psr::CFLFieldStringNode> {
+  static constexpr psr::CFLFieldStringNode getEmptyKey() noexcept {
+    return {psr::CFLFieldStringNodeId(UINT32_MAX), 0};
+  }
+  static constexpr psr::CFLFieldStringNode getTombstoneKey() noexcept {
+    return {psr::CFLFieldStringNodeId(UINT32_MAX - 1), 0};
+  }
+  static constexpr bool isEqual(psr::CFLFieldStringNode L,
+                                psr::CFLFieldStringNode R) noexcept {
+    return L == R;
+  }
+  static llvm::hash_code getHashValue(psr::CFLFieldStringNode Nod) {
+    return llvm::hash_combine(Nod.Next, Nod.Offset);
+  }
+};
+} // namespace llvm
+
+namespace psr {
+
+class CFLFieldStringManager {
+public:
+  CFLFieldStringManager() {
+    // Sentinel
+    NodeCompressor.insertDummy(
+        CFLFieldStringNode{CFLFieldStringNodeId::None, 0});
+    Depth.push_back(0);
+  }
+
+  [[nodiscard]] CFLFieldStringNodeId intern(CFLFieldStringNode Nod) {
+    auto [Id, Inserted] = NodeCompressor.insert(Nod);
+
+    if (Inserted) {
+      Depth.push_back(Depth[Nod.Next] + 1);
+    }
+
+    return Id;
+  }
+
+  [[nodiscard]] CFLFieldStringNodeId prepend(int32_t Head,
+                                             CFLFieldStringNodeId Tail) {
+    auto Ret = intern(CFLFieldStringNode{.Next = Tail, .Offset = Head});
+    PHASAR_LOG_LEVEL(DEBUG, "[prepend]: " << Head << " :: #" << uint32_t(Tail)
+                                          << " = #" << uint32_t(Ret));
+    return Ret;
+  }
+
+  [[nodiscard]] CFLFieldStringNode operator[](CFLFieldStringNodeId NId) const {
+    return NodeCompressor[NId];
+  }
+
+  [[nodiscard]] llvm::SmallVector<int32_t>
+  getFullFieldString(CFLFieldStringNodeId NId) const;
+
+  [[nodiscard]] CFLFieldStringNodeId
+  fromFullFieldString(llvm::ArrayRef<int32_t> FieldString);
+
+  [[nodiscard]] uint32_t depth(CFLFieldStringNodeId NId) const {
+    return Depth[NId];
+  }
+
+private:
+  Compressor<CFLFieldStringNode, CFLFieldStringNodeId> NodeCompressor{};
+  TypedVector<CFLFieldStringNodeId, uint32_t> Depth{};
+};
+
 struct CFLFieldAccessPath {
   static constexpr int32_t TopOffset = INT32_MIN;
 
-  llvm::SmallVector<int32_t, 4> Loads;
-  llvm::SmallVector<int32_t, 4> Stores;
+  CFLFieldStringNodeId Loads;
+  CFLFieldStringNodeId Stores;
   llvm::SmallDenseSet<int32_t, 2> Kills;
   // Add an offset for pending GEPs; INT32_MIN is Top
   int32_t Offset = {0};
   int32_t EmptyTombstone = 0;
 
   [[nodiscard]] bool empty() const noexcept {
-    return Loads.empty() && Stores.empty() && Kills.empty() && Offset == 0;
+    return Loads == CFLFieldStringNodeId::None &&
+           Stores == CFLFieldStringNodeId::None && Kills.empty() && Offset == 0;
   }
 
   [[nodiscard]] bool kills(int32_t Off) const {
@@ -74,6 +163,8 @@ struct CFLFieldAccessPath {
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const CFLFieldAccessPath &FieldString);
+
+  void print(llvm::raw_ostream &OS, const CFLFieldStringManager &Mgr) const;
 };
 
 struct CFLFieldAccessPathDMI {
@@ -103,21 +194,24 @@ struct CFLFieldAccessPathDMI {
 };
 
 struct CFLFieldSensEdgeValue {
+  [[clang::require_explicit_initialization]] CFLFieldStringManager *Mgr{};
   llvm::SmallDenseSet<CFLFieldAccessPath, 2, CFLFieldAccessPathDMI> Paths;
 
   static constexpr llvm::StringLiteral LogCategory = "CFLFieldSensEdgeValue";
 
-  void applyStore(uint8_t DepthKLimit);
-  void applyGepAndStore(GEPEvent Evt, uint8_t DepthKLimit);
-  void applyLoad(uint8_t DepthKLimit);
-  void applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit);
-  void applyKill();
-  void applyGepAndKill(GEPEvent Evt);
-  void applyGep(GEPEvent Evt);
+  // void applyStore(uint8_t DepthKLimit);
+  // void applyGepAndStore(GEPEvent Evt, uint8_t DepthKLimit);
+  // void applyLoad(uint8_t DepthKLimit);
+  // void applyGepAndLoad(GEPEvent Evt, uint8_t DepthKLimit);
+  // void applyKill();
+  // void applyGepAndKill(GEPEvent Evt);
+  // void applyGep(GEPEvent Evt);
   void applyTransform(const CFLFieldAccessPath &Txn, uint8_t DepthKLimit);
   void applyTransforms(const CFLFieldSensEdgeValue &Txns, uint8_t DepthKLimit);
 
   bool operator==(const CFLFieldSensEdgeValue &Other) const noexcept {
+    assert(Mgr == Other.Mgr);
+    assert(Mgr != nullptr);
     return Paths == Other.Paths;
   }
   bool operator!=(const CFLFieldSensEdgeValue &Other) const noexcept {
@@ -154,7 +248,8 @@ public:
       "FieldSensAllocSitesAwareIFDSProblem";
 
   [[nodiscard]] static InitialSeeds<n_t, d_t, l_t>
-  makeInitialSeeds(const InitialSeeds<n_t, d_t, BinaryDomain> &UserSeeds);
+  makeInitialSeeds(const InitialSeeds<n_t, d_t, BinaryDomain> &UserSeeds,
+                   CFLFieldStringManager &Mgr);
 
   [[nodiscard]] static std::pair<const llvm::Value *, int32_t>
   getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
@@ -218,7 +313,7 @@ public:
   // epsilon!)
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    return makeInitialSeeds(UserProblem->initialSeeds());
+    return makeInitialSeeds(UserProblem->initialSeeds(), Mgr);
   }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
@@ -250,10 +345,10 @@ public:
     return UserProblem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
   }
 
-  static EdgeFunction<l_t> getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
-                                                d_t PointerOp, d_t ValueOp,
-                                                uint8_t DepthKLimit,
-                                                const llvm::DataLayout &DL);
+  EdgeFunction<l_t> getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
+                                         d_t PointerOp, d_t ValueOp,
+                                         uint8_t DepthKLimit,
+                                         const llvm::DataLayout &DL);
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                           d_t SuccNode) override;
@@ -284,6 +379,7 @@ public:
 
 private:
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
+  CFLFieldStringManager Mgr{};
   FieldSensAllocSitesAwareIFDSProblemConfig Config{};
 
   uint8_t DepthKLimit = 5; // Original from the paper
