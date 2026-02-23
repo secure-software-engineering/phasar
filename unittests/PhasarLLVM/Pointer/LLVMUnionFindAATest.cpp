@@ -314,14 +314,19 @@ UnionFindAAResult {
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
                {
+                   FuncByName{.NameOfFunction = "Func"},
                    LineColFunOp{.Line = 5,
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 6,
-                                .Col = 0,
+                   LineColFunOp{.Line = 11,
+                                .Col = 11,
                                 .InFunction = "main",
-                                .OpCode = llvm::Instruction::Alloca},
+                                .OpCode = llvm::Instruction::Load},
+                   LineColFunOp{.Line = 11,
+                                .Col = 12,
+                                .InFunction = "main",
+                                .OpCode = llvm::Instruction::Load},
                }}};
 
   doAnalysisAndCompareResults("basic_04_c_dbg.ll", GT, ContextAABuilder);
@@ -2881,166 +2886,76 @@ TEST(CtxSensUnionFindAATest, Context13_1) {
 }
 
 TEST(CtxSensUnionFindAATest, Context14_0) {
-  /*
-  ValueCompressor: {
-  #0:
-    %Func.addr = alloca ptr, align 8, !psr.id !24 | ID: 1
-  #1:
-    ptr %Func | ID: callback.0
-  #2:
-    %0 = load ptr, ptr %Func.addr, align 8, !dbg !29, !psr.id !30 | ID: 4
-  #3:
-    %retval = alloca i32, align 4, !psr.id !35 | ID: 7
-  #4:
-    %FuncPtr = alloca ptr, align 8, !psr.id !36 | ID: 8
-  #5:
-    %Zero = alloca i32, align 4, !psr.id !37 | ID: 9
-  #6:
-    fun @ret0
-  #7:
-    %0 = load ptr, ptr %FuncPtr, align 8, !dbg !46, !psr.id !47 | ID: 14
-}
-UnionFindAAResult {
-  #0: <0>
-  #1: <1, 2, 6, 7>
-  #2: <3>
-  #3: <4>
-  #4: <5>
-}
-  */
   GTMap GT{{LineColFunOp{.Line = 7,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {
-                // ArgInFun{.Idx = 0, .InFunction = "callback"},
-                // LineColFunOp{.Line = 4,
-                //              .Col = 0,
-                //              .InFunction = "callback",
-                //              .OpCode = llvm::Instruction::Load},
-                // RetVal{.InFunction = "callback"},
-                LineColFunOp{.Line = 7,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                LineColFunOp{.Line = 9,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                // LineColFunOp{.Line = 9,
-                //              .Col = 0,
-                //              .InFunction = "main",
-                //              .OpCode = llvm::Instruction::Load},
-                // LineColFunOp{.Line = 9,
-                //              .Col = 0,
-                //              .InFunction = "main",
-                //              .OpCode = llvm::Instruction::Call}
-            }}};
+            {LineColFunOp{.Line = 7,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_14_0_c_dbg.ll", GT, ContextAABuilder);
 }
 
 TEST(CtxSensUnionFindAATest, Context14_1) {
-  /*
-ValueCompressor: {
-  #0:
-    %Func.addr = alloca ptr, align 8, !psr.id !27 | ID: 2
-  #1:
-    ptr %Func | ID: callback.0
-  #2:
-    %0 = load ptr, ptr %Func.addr, align 8, !dbg !32, !psr.id !33 | ID: 5
-  #3:
-    fun @callback.<ret>
-  #4:
-    %retval = alloca i32, align 4, !psr.id !37 | ID: 7
-  #5:
-    %FuncPtrZero = alloca ptr, align 8, !psr.id !38 | ID: 8
-  #6:
-    %FuncPtrOne = alloca ptr, align 8, !psr.id !39 | ID: 9
-  #7:
-    fun @ret0
-  #8:
-    fun @ret1
-  #9:
-    %call = call ptr @callback(ptr noundef @ret1), !dbg !49, !psr.id !50 | ID:
-15 #10: %call1 = call ptr @callback(ptr noundef @ret0), !dbg !53, !psr.id !54 |
-ID: 17
-}
-UnionFindAAResult {
-  #0: <0>
-  #1: <0>
-  #2: <1, 2, 3, 8, 9>
-  #3: <1, 2, 3, 7, 10>
-  #4: <4>
-  #5: <5>
-  #6: <6>
-}
-  */
   GTMap GT{{LineColFunOp{.Line = 9,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {}}};
+            {LineColFunOp{.Line = 9,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_14_1_c_dbg.ll", GT, ContextAABuilder);
 }
 
 TEST(CtxSensUnionFindAATest, Context14_2) {
-  /*
-ValueCompressor: {
-  #0:
-    %Func.addr = alloca ptr, align 8, !psr.id !30 | ID: 3
-  #1:
-    ptr %Func | ID: callback.0
-  #2:
-    %0 = load ptr, ptr %Func.addr, align 8, !dbg !35, !psr.id !36 | ID: 6
-  #3:
-    fun @callback.<ret>
-  #4:
-    %retval = alloca i32, align 4, !psr.id !40 | ID: 8
-  #5:
-    %FuncPtrZero = alloca ptr, align 8, !psr.id !41 | ID: 9
-  #6:
-    %FuncPtrOne = alloca ptr, align 8, !psr.id !42 | ID: 10
-  #7:
-    %FuncPtrTwo = alloca ptr, align 8, !psr.id !43 | ID: 11
-  #8:
-    fun @ret0
-  #9:
-    fun @ret1
-  #10:
-    fun @ret2
-  #11:
-    %call = call ptr @callback(ptr noundef @ret2), !dbg !57, !psr.id !58 | ID:
-19 #12: %call1 = call ptr @callback(ptr noundef @ret0), !dbg !61, !psr.id !62 |
-ID: 21 #13: %call2 = call ptr @callback(ptr noundef @ret1), !dbg !65, !psr.id
-!66 | ID: 23
-}
-UnionFindAAResult {
-  #0: <0>
-  #1: <0>
-  #2: <0>
-  #3: <1, 2, 3, 10, 11>
-  #4: <1, 2, 3, 8, 12>
-  #5: <1, 2, 3, 9, 13>
-  #6: <4>
-  #7: <5>
-  #8: <6>
-  #9: <7>
-}
-  */
   GTMap GT{{LineColFunOp{.Line = 11,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
             {
-
+                LineColFunOp{.Line = 11,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
             }}};
 
   doAnalysisAndCompareResults("context_14_2_c_dbg.ll", GT, ContextAABuilder);
 }
 
 TEST(CtxSensUnionFindAATest, Indirection01) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedList, align 8, !psr.id !17 | ID: 1
+    %Next1 = getelementptr inbounds %struct._LinkedList, ptr %Foo, i32 0, i32 1,
+!dbg !41, !psr.id !42 | ID: 12 #2:
+    %.compoundliteral = alloca %struct._LinkedList, align 8, !psr.id !18 | ID: 2
+    %Val = getelementptr inbounds %struct._LinkedList, ptr %.compoundliteral,
+i32 0, i32 0, !dbg !30, !psr.id !31 | ID: 6 %Next = getelementptr inbounds
+%struct._LinkedList, ptr %.compoundliteral, i32 0, i32 1, !dbg !30, !psr.id !33
+| ID: 8 #3: %Alias = alloca ptr, align 8, !psr.id !19 | ID: 3 #4: %0 = load ptr,
+ptr %Next1, align 8, !dbg !41, !psr.id !43 | ID: 13
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 4>
+  #2: <3>
+}
+    TODO: ask Fabian about below
+    Failed
+Computed unexpected alias of LineColFunOp { Line: 8; Col: 0; InFunction: main;
+OpCode: alloca }: { %.compoundliteral = alloca %struct._LinkedList, align 8,
+!psr.id !18 | ID: 2, %Val = getelementptr inbounds %struct._LinkedList, ptr
+%.compoundliteral, i32 0, i32 0, !dbg !30, !psr.id !31 | ID: 6, %Next =
+getelementptr inbounds %struct._LinkedList, ptr %.compoundliteral, i32 0, i32 1,
+!dbg !30, !psr.id !33 | ID: 8 }
+  */
   GTMap GT = {{LineColFunOp{.Line = 8,
                             .Col = 0,
                             .InFunction = "main",
@@ -3065,6 +2980,58 @@ TEST(CtxSensUnionFindAATest, Indirection01) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection02) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedList, align 8, !psr.id !17 | ID: 1
+    %Next6 = getelementptr inbounds %struct._LinkedList, ptr %Foo, i32 0, i32 1,
+!dbg !76, !psr.id !77 | ID: 33 #2:
+    %.compoundliteral = alloca %struct._LinkedList, align 8, !psr.id !18 | ID: 2
+    %Val = getelementptr inbounds %struct._LinkedList, ptr %.compoundliteral,
+i32 0, i32 0, !dbg !37, !psr.id !38 | ID: 13 %Next = getelementptr inbounds
+%struct._LinkedList, ptr %.compoundliteral, i32 0, i32 1, !dbg !37, !psr.id !40
+| ID: 15 #3: %Bar = alloca %struct._LinkedList, align 8, !psr.id !19 | ID: 3
+    %Next7 = getelementptr inbounds %struct._LinkedList, ptr %Bar, i32 0, i32 1,
+!dbg !83, !psr.id !84 | ID: 37 #4:
+    %.compoundliteral1 = alloca %struct._LinkedList, align 8, !psr.id !20 | ID:
+4 %Val2 = getelementptr inbounds %struct._LinkedList, ptr %.compoundliteral1,
+i32 0, i32 0, !dbg !47, !psr.id !48 | ID: 19 %Next3 = getelementptr inbounds
+%struct._LinkedList, ptr %.compoundliteral1, i32 0, i32 1, !dbg !47, !psr.id !50
+| ID: 21 #5: %Baz = alloca %struct._LinkedList, align 8, !psr.id !21 | ID: 5
+    %Next5 = getelementptr inbounds %struct._LinkedList, ptr %Baz, i32 0, i32 1,
+!dbg !68, !psr.id !69 | ID: 30 %Next8 = getelementptr inbounds
+%struct._LinkedList, ptr %Baz, i32 0, i32 1, !dbg !90, !psr.id !91 | ID: 41 #6:
+    %Boar = alloca %struct._LinkedList, align 8, !psr.id !22 | ID: 6
+    %Next4 = getelementptr inbounds %struct._LinkedList, ptr %Boar, i32 0, i32
+1, !dbg !64, !psr.id !65 | ID: 28 %Next9 = getelementptr inbounds
+%struct._LinkedList, ptr %Boar, i32 0, i32 1, !dbg !97, !psr.id !98 | ID: 45 #7:
+    %AliasOne = alloca ptr, align 8, !psr.id !23 | ID: 7
+  #8:
+    %AliasTwo = alloca ptr, align 8, !psr.id !24 | ID: 8
+  #9:
+    %AliasThree = alloca ptr, align 8, !psr.id !25 | ID: 9
+  #10:
+    %AliasFour = alloca ptr, align 8, !psr.id !26 | ID: 10
+  #11:
+    %0 = load ptr, ptr %Next6, align 8, !dbg !76, !psr.id !78 | ID: 34
+  #12:
+    %1 = load ptr, ptr %Next7, align 8, !dbg !83, !psr.id !85 | ID: 38
+  #13:
+    %2 = load ptr, ptr %Next8, align 8, !dbg !90, !psr.id !92 | ID: 42
+  #14:
+    %3 = load ptr, ptr %Next9, align 8, !dbg !97, !psr.id !99 | ID: 46
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 3, 4, 5, 6, 11, 12, 13, 14>
+  #2: <7>
+  #3: <8>
+  #4: <9>
+  #5: <10>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 8,
                             .Col = 0,
                             .InFunction = "main",
@@ -3137,6 +3104,55 @@ TEST(CtxSensUnionFindAATest, Indirection02) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection03) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedListOne, align 8, !psr.id !17 | ID: 1
+    %Next4 = getelementptr inbounds %struct._LinkedListOne, ptr %Foo, i32 0, i32
+1, !dbg !73, !psr.id !74 | ID: 29 #2:
+    %.compoundliteral = alloca %struct._LinkedListOne, align 8, !psr.id !18 |
+ID: 2 %Val = getelementptr inbounds %struct._LinkedListOne, ptr
+%.compoundliteral, i32 0, i32 0, !dbg !37, !psr.id !38 | ID: 13 %Next =
+getelementptr inbounds %struct._LinkedListOne, ptr %.compoundliteral, i32 0, i32
+1, !dbg !37, !psr.id !40 | ID: 15 #3: %Bar = alloca %struct._LinkedListTwo,
+align 8, !psr.id !19 | ID: 3 %Next5 = getelementptr inbounds
+%struct._LinkedListTwo, ptr %Bar, i32 0, i32 1, !dbg !80, !psr.id !81 | ID: 33
+  #4:
+    %.compoundliteral1 = alloca %struct._LinkedListTwo, align 8, !psr.id !20 |
+ID: 4 %Val2 = getelementptr inbounds %struct._LinkedListTwo, ptr
+%.compoundliteral1, i32 0, i32 0, !dbg !52, !psr.id !53 | ID: 19 %Next3 =
+getelementptr inbounds %struct._LinkedListTwo, ptr %.compoundliteral1, i32 0,
+i32 1, !dbg !52, !psr.id !55 | ID: 21 #5: %Baz = alloca %struct._LinkedListOne,
+align 8, !psr.id !21 | ID: 5 %Next6 = getelementptr inbounds
+%struct._LinkedListOne, ptr %Baz, i32 0, i32 1, !dbg !87, !psr.id !88 | ID: 37
+  #6:
+    %Boar = alloca %struct._LinkedListTwo, align 8, !psr.id !22 | ID: 6
+    %Next7 = getelementptr inbounds %struct._LinkedListTwo, ptr %Boar, i32 0,
+i32 1, !dbg !94, !psr.id !95 | ID: 41 #7: %AliasOne = alloca ptr, align 8,
+!psr.id !23 | ID: 7 #8: %AliasTwo = alloca ptr, align 8, !psr.id !24 | ID: 8 #9:
+    %AliasThree = alloca ptr, align 8, !psr.id !25 | ID: 9
+  #10:
+    %AliasFour = alloca ptr, align 8, !psr.id !26 | ID: 10
+  #11:
+    %0 = load ptr, ptr %Next4, align 8, !dbg !73, !psr.id !75 | ID: 30
+  #12:
+    %1 = load ptr, ptr %Next5, align 8, !dbg !80, !psr.id !82 | ID: 34
+  #13:
+    %2 = load ptr, ptr %Next6, align 8, !dbg !87, !psr.id !89 | ID: 38
+  #14:
+    %3 = load ptr, ptr %Next7, align 8, !dbg !94, !psr.id !96 | ID: 42
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 3, 4, 5, 6, 11, 12, 13, 14>
+  #2: <7>
+  #3: <8>
+  #4: <9>
+  #5: <10>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 13,
                             .Col = 0,
                             .InFunction = "main",
@@ -3205,6 +3221,77 @@ TEST(CtxSensUnionFindAATest, Indirection03) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection04) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedListOne, align 8, !psr.id !17 | ID: 1
+    %Next10 = getelementptr inbounds %struct._LinkedListOne, ptr %Foo, i32 0,
+i32 1, !dbg !121, !psr.id !122 | ID: 54 #2:
+    %.compoundliteral = alloca %struct._LinkedListOne, align 8, !psr.id !18 |
+ID: 2 %Val = getelementptr inbounds %struct._LinkedListOne, ptr
+%.compoundliteral, i32 0, i32 0, !dbg !42, !psr.id !43 | ID: 18 %Next =
+getelementptr inbounds %struct._LinkedListOne, ptr %.compoundliteral, i32 0, i32
+1, !dbg !42, !psr.id !45 | ID: 20 #3: %Bar = alloca %struct._LinkedListTwo,
+align 8, !psr.id !19 | ID: 3 %Next11 = getelementptr inbounds
+%struct._LinkedListTwo, ptr %Bar, i32 0, i32 1, !dbg !128, !psr.id !129 | ID: 58
+  #4:
+    %.compoundliteral1 = alloca %struct._LinkedListTwo, align 8, !psr.id !20 |
+ID: 4 %Val2 = getelementptr inbounds %struct._LinkedListTwo, ptr
+%.compoundliteral1, i32 0, i32 0, !dbg !57, !psr.id !58 | ID: 24 %Next3 =
+getelementptr inbounds %struct._LinkedListTwo, ptr %.compoundliteral1, i32 0,
+i32 1, !dbg !57, !psr.id !60 | ID: 26 #5: %Baz = alloca
+%struct._LinkedListThree, align 8, !psr.id !21 | ID: 5 %Next12 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Baz, i32 0, i32 1, !dbg !135, !psr.id
+!136 | ID: 62 #6:
+    %.compoundliteral4 = alloca %struct._LinkedListThree, align 8, !psr.id !22 |
+ID: 6 %Val5 = getelementptr inbounds %struct._LinkedListThree, ptr
+%.compoundliteral4, i32 0, i32 0, !dbg !73, !psr.id !74 | ID: 30 %Next6 =
+getelementptr inbounds %struct._LinkedListThree, ptr %.compoundliteral4, i32 0,
+i32 1, !dbg !73, !psr.id !76 | ID: 32 #7: %One = alloca %struct._LinkedListOne,
+align 8, !psr.id !23 | ID: 7 %Next7 = getelementptr inbounds
+%struct._LinkedListOne, ptr %One, i32 0, i32 1, !dbg !99, !psr.id !100 | ID: 42
+  #8:
+    %Two = alloca %struct._LinkedListTwo, align 8, !psr.id !24 | ID: 8
+    %Next8 = getelementptr inbounds %struct._LinkedListTwo, ptr %Two, i32 0, i32
+1, !dbg !106, !psr.id !107 | ID: 46 #9: %Three = alloca
+%struct._LinkedListThree, align 8, !psr.id !25 | ID: 9 %Next9 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Three, i32 0, i32 1, !dbg !114, !psr.id
+!115 | ID: 50 #10: %AliasOne = alloca ptr, align 8, !psr.id !26 | ID: 10 #11:
+    %AliasTwo = alloca ptr, align 8, !psr.id !27 | ID: 11
+  #12:
+    %AliasThree = alloca ptr, align 8, !psr.id !28 | ID: 12
+  #13:
+    %AliasFour = alloca ptr, align 8, !psr.id !29 | ID: 13
+  #14:
+    %AliasFive = alloca ptr, align 8, !psr.id !30 | ID: 14
+  #15:
+    %AliasSix = alloca ptr, align 8, !psr.id !31 | ID: 15
+  #16:
+    %0 = load ptr, ptr %Next7, align 8, !dbg !99, !psr.id !101 | ID: 43
+  #17:
+    %1 = load ptr, ptr %Next8, align 8, !dbg !106, !psr.id !108 | ID: 47
+  #18:
+    %2 = load ptr, ptr %Next9, align 8, !dbg !114, !psr.id !116 | ID: 51
+  #19:
+    %3 = load ptr, ptr %Next10, align 8, !dbg !121, !psr.id !123 | ID: 55
+  #20:
+    %4 = load ptr, ptr %Next11, align 8, !dbg !128, !psr.id !130 | ID: 59
+  #21:
+    %5 = load ptr, ptr %Next12, align 8, !dbg !135, !psr.id !137 | ID: 63
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 3, 4, 5, 6, 7, 8, 9, 16, 17, 18, 19, 20, 21>
+  #2: <10>
+  #3: <11>
+  #4: <12>
+  #5: <13>
+  #6: <14>
+  #7: <15>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 18,
                             .Col = 0,
                             .InFunction = "main",
@@ -3305,6 +3392,95 @@ TEST(CtxSensUnionFindAATest, Indirection04) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection05) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedListOne, align 8, !psr.id !17 | ID: 1
+    %Next14 = getelementptr inbounds %struct._LinkedListOne, ptr %Foo, i32 0,
+i32 1, !dbg !155, !psr.id !156 | ID: 71 #2:
+    %.compoundliteral = alloca %struct._LinkedListOne, align 8, !psr.id !18 |
+ID: 2 %Val = getelementptr inbounds %struct._LinkedListOne, ptr
+%.compoundliteral, i32 0, i32 0, !dbg !47, !psr.id !48 | ID: 23 %Next =
+getelementptr inbounds %struct._LinkedListOne, ptr %.compoundliteral, i32 0, i32
+1, !dbg !47, !psr.id !50 | ID: 25 #3: %Bar = alloca %struct._LinkedListTwo,
+align 8, !psr.id !19 | ID: 3 %Next15 = getelementptr inbounds
+%struct._LinkedListTwo, ptr %Bar, i32 0, i32 1, !dbg !162, !psr.id !163 | ID: 75
+  #4:
+    %.compoundliteral1 = alloca %struct._LinkedListTwo, align 8, !psr.id !20 |
+ID: 4 %Val2 = getelementptr inbounds %struct._LinkedListTwo, ptr
+%.compoundliteral1, i32 0, i32 0, !dbg !62, !psr.id !63 | ID: 29 %Next3 =
+getelementptr inbounds %struct._LinkedListTwo, ptr %.compoundliteral1, i32 0,
+i32 1, !dbg !62, !psr.id !65 | ID: 31 #5: %Baz = alloca
+%struct._LinkedListThree, align 8, !psr.id !21 | ID: 5 %Next16 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Baz, i32 0, i32 1, !dbg !169, !psr.id
+!170 | ID: 79 #6:
+    %.compoundliteral4 = alloca %struct._LinkedListThree, align 8, !psr.id !22 |
+ID: 6 %Val5 = getelementptr inbounds %struct._LinkedListThree, ptr
+%.compoundliteral4, i32 0, i32 0, !dbg !78, !psr.id !79 | ID: 35 %Next6 =
+getelementptr inbounds %struct._LinkedListThree, ptr %.compoundliteral4, i32 0,
+i32 1, !dbg !78, !psr.id !81 | ID: 37 #7: %Boar = alloca
+%struct._LinkedListFour, align 8, !psr.id !23 | ID: 7 %Next17 = getelementptr
+inbounds %struct._LinkedListFour, ptr %Boar, i32 0, i32 1, !dbg !176, !psr.id
+!177 | ID: 83 #8:
+    %.compoundliteral7 = alloca %struct._LinkedListFour, align 8, !psr.id !24 |
+ID: 8 %Val8 = getelementptr inbounds %struct._LinkedListFour, ptr
+%.compoundliteral7, i32 0, i32 0, !dbg !94, !psr.id !95 | ID: 41 %Next9 =
+getelementptr inbounds %struct._LinkedListFour, ptr %.compoundliteral7, i32 0,
+i32 1, !dbg !94, !psr.id !97 | ID: 43 #9: %One = alloca %struct._LinkedListOne,
+align 8, !psr.id !25 | ID: 9 %Next10 = getelementptr inbounds
+%struct._LinkedListOne, ptr %One, i32 0, i32 1, !dbg !125, !psr.id !126 | ID: 55
+  #10:
+    %Two = alloca %struct._LinkedListTwo, align 8, !psr.id !26 | ID: 10
+    %Next11 = getelementptr inbounds %struct._LinkedListTwo, ptr %Two, i32 0,
+i32 1, !dbg !132, !psr.id !133 | ID: 59 #11: %Three = alloca
+%struct._LinkedListThree, align 8, !psr.id !27 | ID: 11 %Next12 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Three, i32 0, i32 1, !dbg !140, !psr.id
+!141 | ID: 63 #12: %Four = alloca %struct._LinkedListFour, align 8, !psr.id !28
+| ID: 12 %Next13 = getelementptr inbounds %struct._LinkedListFour, ptr %Four,
+i32 0, i32 1, !dbg !148, !psr.id !149 | ID: 67 #13: %AliasOne = alloca ptr,
+align 8, !psr.id !29 | ID: 13 #14: %AliasTwo = alloca ptr, align 8, !psr.id !30
+| ID: 14 #15: %AliasThree = alloca ptr, align 8, !psr.id !31 | ID: 15 #16:
+    %AliasFour = alloca ptr, align 8, !psr.id !32 | ID: 16
+  #17:
+    %AliasFive = alloca ptr, align 8, !psr.id !33 | ID: 17
+  #18:
+    %AliasSix = alloca ptr, align 8, !psr.id !34 | ID: 18
+  #19:
+    %AliasSeven = alloca ptr, align 8, !psr.id !35 | ID: 19
+  #20:
+    %AliasEight = alloca ptr, align 8, !psr.id !36 | ID: 20
+  #21:
+    %0 = load ptr, ptr %Next10, align 8, !dbg !125, !psr.id !127 | ID: 56
+  #22:
+    %1 = load ptr, ptr %Next11, align 8, !dbg !132, !psr.id !134 | ID: 60
+  #23:
+    %2 = load ptr, ptr %Next12, align 8, !dbg !140, !psr.id !142 | ID: 64
+  #24:
+    %3 = load ptr, ptr %Next13, align 8, !dbg !148, !psr.id !150 | ID: 68
+  #25:
+    %4 = load ptr, ptr %Next14, align 8, !dbg !155, !psr.id !157 | ID: 72
+  #26:
+    %5 = load ptr, ptr %Next15, align 8, !dbg !162, !psr.id !164 | ID: 76
+  #27:
+    %6 = load ptr, ptr %Next16, align 8, !dbg !169, !psr.id !171 | ID: 80
+  #28:
+    %7 = load ptr, ptr %Next17, align 8, !dbg !176, !psr.id !178 | ID: 84
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 27, 28>
+  #2: <13>
+  #3: <14>
+  #4: <15>
+  #5: <16>
+  #6: <17>
+  #7: <18>
+  #8: <19>
+  #9: <20>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 23,
                             .Col = 0,
                             .InFunction = "main",
@@ -3437,6 +3613,109 @@ TEST(CtxSensUnionFindAATest, Indirection05) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection06) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedListOne, align 8, !psr.id !17 | ID: 1
+    %Next18 = getelementptr inbounds %struct._LinkedListOne, ptr %Foo, i32 0,
+i32 1, !dbg !189, !psr.id !190 | ID: 88 #2:
+    %.compoundliteral = alloca %struct._LinkedListOne, align 8, !psr.id !18 |
+ID: 2 %Val = getelementptr inbounds %struct._LinkedListOne, ptr
+%.compoundliteral, i32 0, i32 0, !dbg !52, !psr.id !53 | ID: 28 %Next =
+getelementptr inbounds %struct._LinkedListOne, ptr %.compoundliteral, i32 0, i32
+1, !dbg !52, !psr.id !55 | ID: 30 #3: %Bar = alloca %struct._LinkedListTwo,
+align 8, !psr.id !19 | ID: 3 %Next19 = getelementptr inbounds
+%struct._LinkedListTwo, ptr %Bar, i32 0, i32 1, !dbg !196, !psr.id !197 | ID: 92
+  #4:
+    %.compoundliteral1 = alloca %struct._LinkedListTwo, align 8, !psr.id !20 |
+ID: 4 %Val2 = getelementptr inbounds %struct._LinkedListTwo, ptr
+%.compoundliteral1, i32 0, i32 0, !dbg !67, !psr.id !68 | ID: 34 %Next3 =
+getelementptr inbounds %struct._LinkedListTwo, ptr %.compoundliteral1, i32 0,
+i32 1, !dbg !67, !psr.id !70 | ID: 36 #5: %Baz = alloca
+%struct._LinkedListThree, align 8, !psr.id !21 | ID: 5 %Next20 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Baz, i32 0, i32 1, !dbg !203, !psr.id
+!204 | ID: 96 #6:
+    %.compoundliteral4 = alloca %struct._LinkedListThree, align 8, !psr.id !22 |
+ID: 6 %Val5 = getelementptr inbounds %struct._LinkedListThree, ptr
+%.compoundliteral4, i32 0, i32 0, !dbg !83, !psr.id !84 | ID: 40 %Next6 =
+getelementptr inbounds %struct._LinkedListThree, ptr %.compoundliteral4, i32 0,
+i32 1, !dbg !83, !psr.id !86 | ID: 42 #7: %Boar = alloca
+%struct._LinkedListFour, align 8, !psr.id !23 | ID: 7 %Next21 = getelementptr
+inbounds %struct._LinkedListFour, ptr %Boar, i32 0, i32 1, !dbg !210, !psr.id
+!211 | ID: 100 #8:
+    %.compoundliteral7 = alloca %struct._LinkedListFour, align 8, !psr.id !24 |
+ID: 8 %Val8 = getelementptr inbounds %struct._LinkedListFour, ptr
+%.compoundliteral7, i32 0, i32 0, !dbg !99, !psr.id !100 | ID: 46 %Next9 =
+getelementptr inbounds %struct._LinkedListFour, ptr %.compoundliteral7, i32 0,
+i32 1, !dbg !99, !psr.id !102 | ID: 48 #9: %Far = alloca
+%struct._LinkedListFive, align 8, !psr.id !25 | ID: 9 %Next22 = getelementptr
+inbounds %struct._LinkedListFive, ptr %Far, i32 0, i32 1, !dbg !217, !psr.id
+!218 | ID: 104 #10:
+    %.compoundliteral10 = alloca %struct._LinkedListFive, align 8, !psr.id !26 |
+ID: 10 %Val11 = getelementptr inbounds %struct._LinkedListFive, ptr
+%.compoundliteral10, i32 0, i32 0, !dbg !115, !psr.id !116 | ID: 52 %Next12 =
+getelementptr inbounds %struct._LinkedListFive, ptr %.compoundliteral10, i32 0,
+i32 1, !dbg !115, !psr.id !118 | ID: 54 #11: %One = alloca
+%struct._LinkedListOne, align 8, !psr.id !27 | ID: 11 %Next13 = getelementptr
+inbounds %struct._LinkedListOne, ptr %One, i32 0, i32 1, !dbg !151, !psr.id !152
+| ID: 68 #12: %Two = alloca %struct._LinkedListTwo, align 8, !psr.id !28 | ID:
+12 %Next14 = getelementptr inbounds %struct._LinkedListTwo, ptr %Two, i32 0, i32
+1, !dbg !158, !psr.id !159 | ID: 72 #13: %Three = alloca
+%struct._LinkedListThree, align 8, !psr.id !29 | ID: 13 %Next15 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Three, i32 0, i32 1, !dbg !166, !psr.id
+!167 | ID: 76 #14: %Four = alloca %struct._LinkedListFour, align 8, !psr.id !30
+| ID: 14 %Next16 = getelementptr inbounds %struct._LinkedListFour, ptr %Four,
+i32 0, i32 1, !dbg !174, !psr.id !175 | ID: 80 #15: %Five = alloca
+%struct._LinkedListFive, align 8, !psr.id !31 | ID: 15 %Next17 = getelementptr
+inbounds %struct._LinkedListFive, ptr %Five, i32 0, i32 1, !dbg !182, !psr.id
+!183 | ID: 84 #16: %AliasOne = alloca ptr, align 8, !psr.id !32 | ID: 16 #17:
+    %AliasTwo = alloca ptr, align 8, !psr.id !33 | ID: 17
+  #18:
+    %AliasThree = alloca ptr, align 8, !psr.id !34 | ID: 18
+  #19:
+    %AliasFour = alloca ptr, align 8, !psr.id !35 | ID: 19
+  #20:
+    %AliasFive = alloca ptr, align 8, !psr.id !36 | ID: 20
+  #21:
+    %AliasSix = alloca ptr, align 8, !psr.id !37 | ID: 21
+  #22:
+    %AliasSeven = alloca ptr, align 8, !psr.id !38 | ID: 22
+  #23:
+    %AliasEight = alloca ptr, align 8, !psr.id !39 | ID: 23
+  #24:
+    %AliasNine = alloca ptr, align 8, !psr.id !40 | ID: 24
+  #25:
+    %AliasTen = alloca ptr, align 8, !psr.id !41 | ID: 25
+  #26:
+    %0 = load ptr, ptr %Next13, align 8, !dbg !151, !psr.id !153 | ID: 69
+  #27:
+    %1 = load ptr, ptr %Next14, align 8, !dbg !158, !psr.id !160 | ID: 73
+  #28:
+    %2 = load ptr, ptr %Next15, align 8, !dbg !166, !psr.id !168 | ID: 77
+  #29:
+    %3 = load ptr, ptr %Next16, align 8, !dbg !174, !psr.id !176 | ID: 81
+  #30:
+    %4 = load ptr, ptr %Next17, align 8, !dbg !182, !psr.id !184 | ID: 85
+  #31:
+    %5 = load ptr, ptr %Next18, align 8, !dbg !189, !psr.id !191 | ID: 89
+  #32:
+    %6 = load ptr, ptr %Next19, align 8, !dbg !196, !psr.id !198 | ID: 93
+  #33:
+    %7 = load ptr, ptr %Next20, align 8, !dbg !203, !psr.id !205 | ID: 97
+  #34:
+    %8 = load ptr, ptr %Next21, align 8, !dbg !210, !psr.id !212 | ID: 101
+  #35:
+    %9 = load ptr, ptr %Next22, align 8, !dbg !217, !psr.id !219 | ID: 105
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 26, 27, 28, 29, 30,
+31, 32, 33, 34, 35> #2: <16> #3: <17> #4: <18> #5: <19> #6: <20> #7: <21> #8:
+<22> #9: <23> #10: <24> #11: <25>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 28,
                             .Col = 0,
                             .InFunction = "main",
@@ -3601,6 +3880,127 @@ TEST(CtxSensUnionFindAATest, Indirection06) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection07) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedListOne, align 8, !psr.id !17 | ID: 1
+    %Next22 = getelementptr inbounds %struct._LinkedListOne, ptr %Foo, i32 0,
+i32 1, !dbg !223, !psr.id !224 | ID: 105 #2:
+    %.compoundliteral = alloca %struct._LinkedListOne, align 8, !psr.id !18 |
+ID: 2 %Val = getelementptr inbounds %struct._LinkedListOne, ptr
+%.compoundliteral, i32 0, i32 0, !dbg !57, !psr.id !58 | ID: 33 %Next =
+getelementptr inbounds %struct._LinkedListOne, ptr %.compoundliteral, i32 0, i32
+1, !dbg !57, !psr.id !60 | ID: 35 #3: %Bar = alloca %struct._LinkedListTwo,
+align 8, !psr.id !19 | ID: 3 %Next23 = getelementptr inbounds
+%struct._LinkedListTwo, ptr %Bar, i32 0, i32 1, !dbg !230, !psr.id !231 | ID:
+109 #4:
+    %.compoundliteral1 = alloca %struct._LinkedListTwo, align 8, !psr.id !20 |
+ID: 4 %Val2 = getelementptr inbounds %struct._LinkedListTwo, ptr
+%.compoundliteral1, i32 0, i32 0, !dbg !72, !psr.id !73 | ID: 39 %Next3 =
+getelementptr inbounds %struct._LinkedListTwo, ptr %.compoundliteral1, i32 0,
+i32 1, !dbg !72, !psr.id !75 | ID: 41 #5: %Baz = alloca
+%struct._LinkedListThree, align 8, !psr.id !21 | ID: 5 %Next24 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Baz, i32 0, i32 1, !dbg !237, !psr.id
+!238 | ID: 113 #6:
+    %.compoundliteral4 = alloca %struct._LinkedListThree, align 8, !psr.id !22 |
+ID: 6 %Val5 = getelementptr inbounds %struct._LinkedListThree, ptr
+%.compoundliteral4, i32 0, i32 0, !dbg !88, !psr.id !89 | ID: 45 %Next6 =
+getelementptr inbounds %struct._LinkedListThree, ptr %.compoundliteral4, i32 0,
+i32 1, !dbg !88, !psr.id !91 | ID: 47 #7: %Boar = alloca
+%struct._LinkedListFour, align 8, !psr.id !23 | ID: 7 %Next25 = getelementptr
+inbounds %struct._LinkedListFour, ptr %Boar, i32 0, i32 1, !dbg !244, !psr.id
+!245 | ID: 117 #8:
+    %.compoundliteral7 = alloca %struct._LinkedListFour, align 8, !psr.id !24 |
+ID: 8 %Val8 = getelementptr inbounds %struct._LinkedListFour, ptr
+%.compoundliteral7, i32 0, i32 0, !dbg !104, !psr.id !105 | ID: 51 %Next9 =
+getelementptr inbounds %struct._LinkedListFour, ptr %.compoundliteral7, i32 0,
+i32 1, !dbg !104, !psr.id !107 | ID: 53 #9: %Far = alloca
+%struct._LinkedListFive, align 8, !psr.id !25 | ID: 9 %Next26 = getelementptr
+inbounds %struct._LinkedListFive, ptr %Far, i32 0, i32 1, !dbg !251, !psr.id
+!252 | ID: 121 #10:
+    %.compoundliteral10 = alloca %struct._LinkedListFive, align 8, !psr.id !26 |
+ID: 10 %Val11 = getelementptr inbounds %struct._LinkedListFive, ptr
+%.compoundliteral10, i32 0, i32 0, !dbg !120, !psr.id !121 | ID: 57 %Next12 =
+getelementptr inbounds %struct._LinkedListFive, ptr %.compoundliteral10, i32 0,
+i32 1, !dbg !120, !psr.id !123 | ID: 59 #11: %Faz = alloca
+%struct._LinkedListSix, align 8, !psr.id !27 | ID: 11 %Next27 = getelementptr
+inbounds %struct._LinkedListSix, ptr %Faz, i32 0, i32 1, !dbg !258, !psr.id !259
+| ID: 125 #12:
+    %.compoundliteral13 = alloca %struct._LinkedListSix, align 8, !psr.id !28 |
+ID: 12 %Val14 = getelementptr inbounds %struct._LinkedListSix, ptr
+%.compoundliteral13, i32 0, i32 0, !dbg !136, !psr.id !137 | ID: 63 %Next15 =
+getelementptr inbounds %struct._LinkedListSix, ptr %.compoundliteral13, i32 0,
+i32 1, !dbg !136, !psr.id !139 | ID: 65 #13: %One = alloca
+%struct._LinkedListOne, align 8, !psr.id !29 | ID: 13 %Next16 = getelementptr
+inbounds %struct._LinkedListOne, ptr %One, i32 0, i32 1, !dbg !177, !psr.id !178
+| ID: 81 #14: %Two = alloca %struct._LinkedListTwo, align 8, !psr.id !30 | ID:
+14 %Next17 = getelementptr inbounds %struct._LinkedListTwo, ptr %Two, i32 0, i32
+1, !dbg !184, !psr.id !185 | ID: 85 #15: %Three = alloca
+%struct._LinkedListThree, align 8, !psr.id !31 | ID: 15 %Next18 = getelementptr
+inbounds %struct._LinkedListThree, ptr %Three, i32 0, i32 1, !dbg !192, !psr.id
+!193 | ID: 89 #16: %Four = alloca %struct._LinkedListFour, align 8, !psr.id !32
+| ID: 16 %Next19 = getelementptr inbounds %struct._LinkedListFour, ptr %Four,
+i32 0, i32 1, !dbg !200, !psr.id !201 | ID: 93 #17: %Five = alloca
+%struct._LinkedListFive, align 8, !psr.id !33 | ID: 17 %Next20 = getelementptr
+inbounds %struct._LinkedListFive, ptr %Five, i32 0, i32 1, !dbg !208, !psr.id
+!209 | ID: 97 #18: %Six = alloca %struct._LinkedListSix, align 8, !psr.id !34 |
+ID: 18 %Next21 = getelementptr inbounds %struct._LinkedListSix, ptr %Six, i32 0,
+i32 1, !dbg !216, !psr.id !217 | ID: 101 #19: %AliasOne = alloca ptr, align 8,
+!psr.id !35 | ID: 19 #20: %AliasTwo = alloca ptr, align 8, !psr.id !36 | ID: 20
+  #21:
+    %AliasThree = alloca ptr, align 8, !psr.id !37 | ID: 21
+  #22:
+    %AliasFour = alloca ptr, align 8, !psr.id !38 | ID: 22
+  #23:
+    %AliasFive = alloca ptr, align 8, !psr.id !39 | ID: 23
+  #24:
+    %AliasSix = alloca ptr, align 8, !psr.id !40 | ID: 24
+  #25:
+    %AliasSeven = alloca ptr, align 8, !psr.id !41 | ID: 25
+  #26:
+    %AliasEight = alloca ptr, align 8, !psr.id !42 | ID: 26
+  #27:
+    %AliasNine = alloca ptr, align 8, !psr.id !43 | ID: 27
+  #28:
+    %AliasTen = alloca ptr, align 8, !psr.id !44 | ID: 28
+  #29:
+    %AliasEleven = alloca ptr, align 8, !psr.id !45 | ID: 29
+  #30:
+    %AliasTwelve = alloca ptr, align 8, !psr.id !46 | ID: 30
+  #31:
+    %0 = load ptr, ptr %Next16, align 8, !dbg !177, !psr.id !179 | ID: 82
+  #32:
+    %1 = load ptr, ptr %Next17, align 8, !dbg !184, !psr.id !186 | ID: 86
+  #33:
+    %2 = load ptr, ptr %Next18, align 8, !dbg !192, !psr.id !194 | ID: 90
+  #34:
+    %3 = load ptr, ptr %Next19, align 8, !dbg !200, !psr.id !202 | ID: 94
+  #35:
+    %4 = load ptr, ptr %Next20, align 8, !dbg !208, !psr.id !210 | ID: 98
+  #36:
+    %5 = load ptr, ptr %Next21, align 8, !dbg !216, !psr.id !218 | ID: 102
+  #37:
+    %6 = load ptr, ptr %Next22, align 8, !dbg !223, !psr.id !225 | ID: 106
+  #38:
+    %7 = load ptr, ptr %Next23, align 8, !dbg !230, !psr.id !232 | ID: 110
+  #39:
+    %8 = load ptr, ptr %Next24, align 8, !dbg !237, !psr.id !239 | ID: 114
+  #40:
+    %9 = load ptr, ptr %Next25, align 8, !dbg !244, !psr.id !246 | ID: 118
+  #41:
+    %10 = load ptr, ptr %Next26, align 8, !dbg !251, !psr.id !253 | ID: 122
+  #42:
+    %11 = load ptr, ptr %Next27, align 8, !dbg !258, !psr.id !260 | ID: 126
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 31, 32,
+33, 34, 35, 36, 37, 38, 39, 40, 41, 42> #2: <19> #3: <20> #4: <21> #5: <22> #6:
+<23> #7: <24> #8: <25> #9: <26> #10: <27> #11: <28> #12: <29> #13: <30>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 33,
                             .Col = 0,
                             .InFunction = "main",
@@ -3797,6 +4197,60 @@ TEST(CtxSensUnionFindAATest, Indirection07) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection08) {
+  /*
+  ValueCompressor: {
+  #0:
+    @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
+!psr.id !0 | ID: 0 #1:
+    @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr getelementptr
+inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64 2), ptr @_ZTS3Foo
+}, comdat, align 8, !psr.id !3 | ID: 3 #2: fun @_ZN3Foo4FuncEv #3:
+    @_ZTS3Foo = linkonce_odr dso_local constant [5 x i8] c"3Foo\00", comdat,
+align 1, !psr.id !2 | ID: 2 #4:
+    @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !1 |
+ID: 1 #5:
+    @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
+!psr.id !4 | ID: 4 #6:
+    @_ZTI3Bar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
+getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
+2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !7 | ID: 7 #7: fun
+@_ZN3Bar4FuncEv #8:
+    @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
+align 1, !psr.id !6 | ID: 6 #9:
+    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
+| ID: 5 #10: %retval = alloca i32, align 4, !psr.id !24 | ID: 8 #11: %First =
+alloca %class.Foo, align 8, !psr.id !25 | ID: 9 #12: %Second = alloca
+%class.Bar, align 8, !psr.id !26 | ID: 10 #13: %SecondAlias = alloca ptr, align
+8, !psr.id !27 | ID: 11 #14: ptr %this | ID: _ZN3FooC2Ev.0 #15: ptr %this | ID:
+_ZN3BarC2Ev.0 #16: %0 = load ptr, ptr %SecondAlias, align 8, !dbg !60, !psr.id
+!61 | ID: 21 #17: %vtable = load ptr, ptr %0, align 8, !dbg !62, !psr.id !63 |
+ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg !62, !psr.id
+!64 | ID: 23 #18: %1 = load ptr, ptr %vfn, align 8, !dbg !62, !psr.id !65 | ID:
+24 #19: ptr %this | ID: _ZN3Foo4FuncEv.0 #20: ptr %this | ID: _ZN3Bar4FuncEv.0
+  #21:
+    %this.addr = alloca ptr, align 8, !psr.id !73 | ID: 27
+  #22:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !79 | ID: 30
+  #23:
+    %this.addr = alloca ptr, align 8, !psr.id !87 | ID: 33
+  #24:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !93 | ID: 36
+  #25:
+    %this.addr = alloca ptr, align 8, !psr.id !99 | ID: 40
+  #26:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !104 | ID: 43
+  #27:
+    %this.addr = alloca ptr, align 8, !psr.id !108 | ID: 45
+  #28:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !113 | ID: 48
+}
+UnionFindAAResult {
+  #0: <0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19, 20, 22, 24,
+26, 28> #1: <10> #2: <13> #3: <21> #4: <21> #5: <23> #6: <25> #7: <27>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 13,
                             .Col = 0,
                             .InFunction = "main",
@@ -3822,6 +4276,77 @@ TEST(CtxSensUnionFindAATest, Indirection08) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection09) {
+  /*
+  ValueCompressor: {
+  #0:
+    @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
+!psr.id !8 | ID: 1 #1:
+    @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr getelementptr
+inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64 2), ptr @_ZTS3Foo
+}, comdat, align 8, !psr.id !11 | ID: 4 #2: fun @_ZN3Foo4FuncEv #3:
+    @_ZTS3Foo = linkonce_odr dso_local constant [5 x i8] c"3Foo\00", comdat,
+align 1, !psr.id !10 | ID: 3 #4:
+    @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !9 |
+ID: 2 #5:
+    @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
+!psr.id !12 | ID: 5 #6:
+    @_ZTI3Bar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
+getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
+2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !15 | ID: 8 #7: fun
+@_ZN3Bar4FuncEv #8:
+    @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
+align 1, !psr.id !14 | ID: 7 #9:
+    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !13
+| ID: 6 #10:
+    @_ZTV3Baz = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Baz, ptr @_ZN3Baz4FuncEv] }, comdat, align 8,
+!psr.id !16 | ID: 9 #11:
+    @_ZTI3Baz = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
+getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
+2), ptr @_ZTS3Baz, ptr @_ZTI3Bar }, comdat, align 8, !psr.id !18 | ID: 11 #12:
+    fun @_ZN3Baz4FuncEv
+  #13:
+    @_ZTS3Baz = linkonce_odr dso_local constant [5 x i8] c"3Baz\00", comdat,
+align 1, !psr.id !17 | ID: 10 #14: %retval = alloca i32, align 4, !psr.id !32 |
+ID: 12 #15: %First = alloca %class.Foo, align 8, !psr.id !33 | ID: 13 #16:
+    %Second = alloca %class.Bar, align 8, !psr.id !34 | ID: 14
+  #17:
+    %Third = alloca %class.Baz, align 8, !psr.id !35 | ID: 15
+  #18:
+    %FooRef = alloca ptr, align 8, !psr.id !36 | ID: 16
+  #19:
+    ptr %this | ID: _ZN3FooC2Ev.0
+  #20:
+    ptr %this | ID: _ZN3BarC2Ev.0
+  #21:
+    ptr %this | ID: _ZN3BazC2Ev.0
+  #22:
+    %cond-lvalue = phi ptr [ %Second, %cond.true ], [ %Third, %cond.false ],
+!dbg !80, !psr.id !86 | ID: 33 #23: %1 = load ptr, ptr %FooRef, align 8, !dbg
+!88, !psr.id !89 | ID: 35 #24: %vtable = load ptr, ptr %1, align 8, !dbg !90,
+!psr.id !91 | ID: 36 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg
+!90, !psr.id !92 | ID: 37 #25: %2 = load ptr, ptr %vfn, align 8, !dbg !90,
+!psr.id !93 | ID: 38 #26: ptr %this | ID: _ZN3Bar4FuncEv.0 #27: ptr %this | ID:
+_ZN3Baz4FuncEv.0 #28: ptr %this | ID: _ZN3Foo4FuncEv.0 #29: %this.addr = alloca
+ptr, align 8, !psr.id !101 | ID: 41 #30: %this1 = load ptr, ptr %this.addr,
+align 8, !psr.id !107 | ID: 44 #31: %this.addr = alloca ptr, align 8, !psr.id
+!115 | ID: 47 #32: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !121 |
+ID: 50 #33: %this.addr = alloca ptr, align 8, !psr.id !130 | ID: 54 #34: %this1
+= load ptr, ptr %this.addr, align 8, !psr.id !136 | ID: 57 #35: %this.addr =
+alloca ptr, align 8, !psr.id !142 | ID: 61 #36: %this1 = load ptr, ptr
+%this.addr, align 8, !psr.id !147 | ID: 64 #37: %this.addr = alloca ptr, align
+8, !psr.id !151 | ID: 66 #38: %this1 = load ptr, ptr %this.addr, align 8,
+!psr.id !156 | ID: 69 #39: %this.addr = alloca ptr, align 8, !psr.id !160 | ID:
+71 #40: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !165 | ID: 74
+}
+UnionFindAAResult {
+  #0: <0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 19, 20, 21, 22,
+23, 24, 25, 26, 27, 28, 30, 32, 34, 36, 38, 40> #1: <14> #2: <18> #3: <29> #4:
+<29> #5: <31> #6: <31> #7: <33> #8: <35> #9: <37> #10: <39>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 19,
                             .Col = 0,
                             .InFunction = "main",
@@ -3851,6 +4376,87 @@ TEST(CtxSensUnionFindAATest, Indirection09) {
 }
 
 TEST(CtxSensUnionFindAATest, Indirection10) {
+  /*
+  ValueCompressor: {
+  #0:
+    @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
+!psr.id !0 | ID: 0
+  #1:
+    @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr getelementptr
+inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64 2), ptr @_ZTS3Foo
+}, comdat, align 8, !psr.id !3 | ID: 3
+  #2: fun @_ZN3Foo4FuncEv
+  #3:
+    @_ZTS3Foo = linkonce_odr dso_local constant [5 x i8] c"3Foo\00", comdat,
+align 1, !psr.id !2 | ID: 2
+  #4:
+    @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !1 |
+ID: 1
+  #5:
+    @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
+x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
+!psr.id !4 | ID: 4
+  #6:
+    @_ZTI3Bar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
+getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
+2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !7 | ID: 7
+  #7: fun
+@_ZN3Bar4FuncEv
+  #8:
+    @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
+align 1, !psr.id !6 | ID: 6
+  #9:
+    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
+| ID: 5
+  #10: %retval = alloca i32, align 4, !psr.id !24 | ID: 8
+  #11: %First =
+alloca %class.Foo, align 8, !psr.id !25 | ID: 9
+  #12: %Second = alloca
+%class.Bar, align 8, !psr.id !26 | ID: 10
+  #13: %SecondAlias = alloca ptr, align
+8, !psr.id !27 | ID: 11
+  #14: ptr %this | ID: _ZN3FooC2Ev.0
+  #15: ptr %this | ID:
+_ZN3BarC2Ev.0
+  #16: %0 = load ptr, ptr %SecondAlias, align 8, !dbg !62, !psr.id
+!63 | ID: 21
+  #17: %vtable = load ptr, ptr %0, align 8, !dbg !64, !psr.id !65 |
+ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg !64, !psr.id
+!66 | ID: 23
+  #18: %1 = load ptr, ptr %vfn, align 8, !dbg !64, !psr.id !67 | ID:
+24
+  #19: ptr %this | ID: _ZN3Foo4FuncEv.0
+  #20: ptr %this | ID: _ZN3Bar4FuncEv.0
+  #21:
+    %this.addr = alloca ptr, align 8, !psr.id !75 | ID: 27
+  #22:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !80 | ID: 30
+  #23:
+    %this.addr = alloca ptr, align 8, !psr.id !88 | ID: 33
+  #24:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !94 | ID: 36
+  #25:
+    %this.addr = alloca ptr, align 8, !psr.id !100 | ID: 40
+  #26:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !105 | ID: 43
+  #27:
+    %this.addr = alloca ptr, align 8, !psr.id !109 | ID: 45
+  #28:
+    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !114 | ID: 48
+}
+UnionFindAAResult {
+  #0: <0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19, 20, 22, 24,
+26, 28>
+  #1: <10>
+  #2: <13>
+  #3: <21>
+  #4: <21>
+  #5: <23>
+  #6: <25>
+  #7: <27>
+}
+  */
   GTMap GT = {{LineColFunOp{.Line = 20,
                             .Col = 0,
                             .InFunction = "main",
@@ -4011,7 +4617,8 @@ TODO: ask fabian how to get { fun @Func }
                             .Col = 0,
                             .InFunction = "main",
                             .OpCode = llvm::Instruction::Alloca},
-               {LineColFunOp{.Line = 5,
+               {FuncByName{.NameOfFunction = "Func"},
+                LineColFunOp{.Line = 5,
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca}}},
@@ -4810,6 +5417,32 @@ TEST(BotUnionFindAATest, Context13_1) {
 }
 
 TEST(BotUnionFindAATest, Indirection01) {
+  /*
+  ValueCompressor: {
+  #0:
+    %retval = alloca i32, align 4, !psr.id !16 | ID: 0
+  #1:
+    %Foo = alloca %struct._LinkedList, align 8, !psr.id !17 | ID: 1
+    %Next1 = getelementptr inbounds %struct._LinkedList, ptr %Foo, i32 0, i32 1,
+!dbg !41, !psr.id !42 | ID: 12
+  #2:
+    %.compoundliteral = alloca %struct._LinkedList, align 8, !psr.id !18 | ID: 2
+    %Val = getelementptr inbounds %struct._LinkedList, ptr %.compoundliteral,
+i32 0, i32 0, !dbg !30, !psr.id !31 | ID: 6 %Next = getelementptr inbounds
+%struct._LinkedList, ptr %.compoundliteral, i32 0, i32 1, !dbg !30, !psr.id !33
+| ID: 8
+  #3: %Alias = alloca ptr, align 8, !psr.id !19 | ID: 3
+  #4: %0 = load ptr,
+ptr %Next1, align 8, !dbg !41, !psr.id !43 | ID: 13
+}
+UnionFindAAResult {
+  #0: <0>
+  #1: <1, 2, 4>
+  #2: <3>
+}
+  // TODO: get %.compoundliteral = alloca %struct._LinkedList
+           Same line as Foo alloca, but more obfuscated
+  */
   GTMap GT = {{LineColFunOp{.Line = 8,
                             .Col = 0,
                             .InFunction = "main",
@@ -5732,10 +6365,10 @@ TEST(IndirectionSensUnionFindAATest, Basic04) {
                                 .Col = 0,
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
-                   LineColFunOp{.Line = 6,
+                   LineColFunOp{.Line = 11,
                                 .Col = 0,
                                 .InFunction = "main",
-                                .OpCode = llvm::Instruction::Alloca},
+                                .OpCode = llvm::Instruction::Load},
                }}};
 
   doAnalysisAndCompareResults("basic_04_c_dbg.ll", GT, IndAABuilder);
@@ -9429,10 +10062,6 @@ UnionFindAAResult {
             {LineColFunOp{.Line = 7,
                           .Col = 0,
                           .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca},
-             LineColFunOp{.Line = 6,
-                          .Col = 0,
-                          .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_14_0_c_dbg.ll", GT, IndAABuilder);
@@ -9574,13 +10203,10 @@ UnionFindAAResult {
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {
-                RetVal{.InFunction = "callback"},
-                LineColFunOp{.Line = 11,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-            }}};
+            {LineColFunOp{.Line = 11,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("context_14_2_c_dbg.ll", GT, IndAABuilder);
 }
@@ -10977,8 +11603,8 @@ ID: 12 #15: %First = alloca %class.Foo, align 8, !psr.id !33 | ID: 13 #16:
 !88, !psr.id !89 | ID: 35 #24: %vtable = load ptr, ptr %1, align 8, !dbg !90,
 !psr.id !91 | ID: 36 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg
 !90, !psr.id !92 | ID: 37 #25: %2 = load ptr, ptr %vfn, align 8, !dbg !90,
-!psr.id !93 | ID: 38 #26: ptr %this | ID: _ZN3Foo4FuncEv.0 #27: ptr %this | ID:
-_ZN3Bar4FuncEv.0 #28: ptr %this | ID: _ZN3Baz4FuncEv.0 #29: %this.addr = alloca
+!psr.id !93 | ID: 38 #26: ptr %this | ID: _ZN3Baz4FuncEv.0 #27: ptr %this | ID:
+_ZN3Bar4FuncEv.0 #28: ptr %this | ID: _ZN3Foo4FuncEv.0 #29: %this.addr = alloca
 ptr, align 8, !psr.id !101 | ID: 41 #30: %this1 = load ptr, ptr %this.addr,
 align 8, !psr.id !107 | ID: 44 #31: %this.addr = alloca ptr, align 8, !psr.id
 !115 | ID: 47 #32: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !121 |
@@ -10990,56 +11616,68 @@ alloca ptr, align 8, !psr.id !142 | ID: 61 #36: %this1 = load ptr, ptr
 !psr.id !156 | ID: 69 #39: %this.addr = alloca ptr, align 8, !psr.id !160 | ID:
 71 #40: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !165 | ID: 74
 }
-
-LLVMUnionFindAliasSet(global, ind-sens) {
-  #0: {0, 5, 10, 24}
-  #1: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #2: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #3: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #4: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #5: {0, 5, 10, 24}
-  #6: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #7: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #8: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #9: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #10: {0, 5, 10, 24}
-  #11: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #12: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #13: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #14: {14}
-  #15: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #16: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #17: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #18: {18}
-  #19: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #20: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #21: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #22: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #23: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #24: {0, 5, 10, 24}
-  #25: {1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25}
-  #26: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #27: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #28: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #29: {29}
-  #30: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #31: {31}
-  #32: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #33: {33}
-  #34: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #35: {35}
-  #36: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #37: {37}
-  #38: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
-  #39: {39}
-  #40: {15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40}
+UnionFindAAResult {
+  #0: <0, 5, 10, 24>
+  #1: <1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 25>
+  #2: <14>
+  #3: <>
+  #4: <>
+  #5: <>
+  #6: <>
+  #7: <15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 30, 32, 34, 36, 38, 40>
+  #8: <18>
+  #9: <>
+  #10: <>
+  #11: <>
+  #12: <>
+  #13: <29>
+  #14: <>
+  #15: <>
+  #16: <>
+  #17: <>
+  #18: <31>
+  #19: <>
+  #20: <>
+  #21: <>
+  #22: <>
+  #23: <33>
+  #24: <>
+  #25: <>
+  #26: <>
+  #27: <>
+  #28: <35>
+  #29: <>
+  #30: <>
+  #31: <>
+  #32: <>
+  #33: <37>
+  #34: <>
+  #35: <>
+  #36: <>
+  #37: <>
+  #38: <39>
+  #39: <>
+  #40: <>
+  #41: <>
+  #42: <>
 }
+
+  TODO: ask Fabian about below. My impl doesn't work (commented out):
+  Computed unexpected alias of LineColFunOp { Line: 19; Col: 0; InFunction:
+main; OpCode: alloca }: { %cond-lvalue = phi ptr [ %Second, %cond.true ], [
+%Third, %cond.false ], !dbg !80, !psr.id !86 | ID: 33 }
   */
   GTMap GT{{LineColFunOp{.Line = 19,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 19,
+            {ArgInFun{.Idx = 0, .InFunction = "_ZN3FooC2Ev"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3BarC2Ev"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3BazC2Ev"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3Foo4FuncEv"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3Bar4FuncEv"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3Baz4FuncEv"},
+             LineColFunOp{.Line = 19,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca},
@@ -11055,51 +11693,54 @@ LLVMUnionFindAliasSet(global, ind-sens) {
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 23,
-                          .Col = 0,
-                          .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}}};
+            {
+                LineColFunOp{.Line = 23,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                // LineColFun{.Line = 23, .Col = 17, .InFunction = "main"}
+            }}};
 
   doAnalysisAndCompareResults("indirection_09_cpp_dbg.ll", GT, IndAABuilder);
 }
 
 TEST(IndirectionSensUnionFindAATest, Indirection10) {
   /*
-  ValueCompressor: {
+ValueCompressor: {
   #0:
-    @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
+    @_ZTV3Foo = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } {
+[3 x ptr] [ptr null, ptr @_ZTI3Foo, ptr @_ZN3Foo4FuncEv] }, comdat, align 8,
 !psr.id !0 | ID: 0 #1:
-    @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr getelementptr
-inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64 2), ptr @_ZTS3Foo
+    @_ZTI3Foo = linkonce_odr dso_local constant { ptr, ptr } { ptr
+getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv117__class_type_infoE, i64
+2), ptr @_ZTS3Foo
 }, comdat, align 8, !psr.id !3 | ID: 3 #2: fun @_ZN3Foo4FuncEv #3:
     @_ZTS3Foo = linkonce_odr dso_local constant [5 x i8] c"3Foo\00", comdat,
 align 1, !psr.id !2 | ID: 2 #4:
     @_ZTVN10__cxxabiv117__class_type_infoE = external global ptr, !psr.id !1 |
 ID: 1 #5:
-    @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } { [3
-x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
+    @_ZTV3Bar = linkonce_odr dso_local unnamed_addr constant { [3 x ptr] } {
+[3 x ptr] [ptr null, ptr @_ZTI3Bar, ptr @_ZN3Bar4FuncEv] }, comdat, align 8,
 !psr.id !4 | ID: 4 #6:
     @_ZTI3Bar = linkonce_odr dso_local constant { ptr, ptr, ptr } { ptr
-getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE, i64
-2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !7 | ID: 7 #7: fun
+getelementptr inbounds (ptr, ptr @_ZTVN10__cxxabiv120__si_class_type_infoE,
+i64 2), ptr @_ZTS3Bar, ptr @_ZTI3Foo }, comdat, align 8, !psr.id !7 | ID: 7
+#7: fun
 @_ZN3Bar4FuncEv #8:
     @_ZTS3Bar = linkonce_odr dso_local constant [5 x i8] c"3Bar\00", comdat,
 align 1, !psr.id !6 | ID: 6 #9:
-    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id !5
-| ID: 5 #10: %retval = alloca i32, align 4, !psr.id !24 | ID: 8 #11: %First =
-alloca %class.Foo, align 8, !psr.id !25 | ID: 9 #12: %Second = alloca
-%class.Bar, align 8, !psr.id !26 | ID: 10 #13: %SecondAlias = alloca ptr, align
-8, !psr.id !27 | ID: 11 #14: ptr %this | ID: _ZN3FooC2Ev.0 #15: ptr %this | ID:
-_ZN3BarC2Ev.0 #16: %0 = load ptr, ptr %SecondAlias, align 8, !dbg !62, !psr.id
-!63 | ID: 21 #17: %vtable = load ptr, ptr %0, align 8, !dbg !64, !psr.id !65 |
-ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg !64, !psr.id
-!66 | ID: 23 #18: %1 = load ptr, ptr %vfn, align 8, !dbg !64, !psr.id !67 | ID:
-24 #19: ptr %this | ID: _ZN3Bar4FuncEv.0 #20: ptr %this | ID: _ZN3Foo4FuncEv.0
-  #21:
-    %this.addr = alloca ptr, align 8, !psr.id !75 | ID: 27
-  #22:
-    %this1 = load ptr, ptr %this.addr, align 8, !psr.id !80 | ID: 30
+    @_ZTVN10__cxxabiv120__si_class_type_infoE = external global ptr, !psr.id
+!5 | ID: 5 #10: %retval = alloca i32, align 4, !psr.id !24 | ID: 8 #11: %First
+= alloca %class.Foo, align 8, !psr.id !25 | ID: 9 #12: %Second = alloca
+%class.Bar, align 8, !psr.id !26 | ID: 10 #13: %SecondAlias = alloca ptr,
+align 8, !psr.id !27 | ID: 11 #14: ptr %this | ID: _ZN3FooC2Ev.0 #15: ptr
+%this | ID: _ZN3BarC2Ev.0 #16: %0 = load ptr, ptr %SecondAlias, align 8, !dbg
+!62, !psr.id !63 | ID: 21 #17: %vtable = load ptr, ptr %0, align 8, !dbg !64,
+!psr.id !65 | ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0,
+!dbg !64, !psr.id !66 | ID: 23 #18: %1 = load ptr, ptr %vfn, align 8, !dbg
+!64, !psr.id !67 | ID: 24 #19: ptr %this | ID: _ZN3Foo4FuncEv.0 #20: ptr %this
+| ID: _ZN3Bar4FuncEv.0 #21: %this.addr = alloca ptr, align 8, !psr.id !75 |
+ID: 27 #22: %this1 = load ptr, ptr %this.addr, align 8, !psr.id !80 | ID: 30
   #23:
     %this.addr = alloca ptr, align 8, !psr.id !88 | ID: 33
   #24:
@@ -11113,43 +11754,51 @@ ID: 22 %vfn = getelementptr inbounds ptr, ptr %vtable, i64 0, !dbg !64, !psr.id
   #28:
     %this1 = load ptr, ptr %this.addr, align 8, !psr.id !114 | ID: 48
 }
-LLVMUnionFindAliasSet(global, ind-sens) {
-  #0: {0, 5, 17}
-  #1: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #2: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #3: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #4: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #5: {0, 5, 17}
-  #6: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #7: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #8: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #9: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #10: {10}
-  #11: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #12: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #13: {13}
-  #14: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #15: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #16: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #17: {0, 5, 17}
-  #18: {1, 2, 3, 4, 6, 7, 8, 9, 18}
-  #19: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #20: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #21: {21}
-  #22: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #23: {23}
-  #24: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #25: {25}
-  #26: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
-  #27: {27}
-  #28: {11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28}
+UnionFindAAResult {
+  #0: <0, 5, 17>
+  #1: <1, 2, 3, 4, 6, 7, 8, 9, 18>
+  #2: <10>
+  #3: <>
+  #4: <>
+  #5: <>
+  #6: <>
+  #7: <11, 12, 14, 15, 16, 19, 20, 22, 24, 26, 28>
+  #8: <13>
+  #9: <>
+  #10: <>
+  #11: <>
+  #12: <>
+  #13: <21>
+  #14: <>
+  #15: <>
+  #16: <>
+  #17: <>
+  #18: <23>
+  #19: <>
+  #20: <>
+  #21: <>
+  #22: <>
+  #23: <25>
+  #24: <>
+  #25: <>
+  #26: <>
+  #27: <>
+  #28: <27>
+  #29: <>
+  #30: <>
+  #31: <>
+  #32: <>
 }
   */
   GTMap GT{{LineColFunOp{.Line = 20,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {LineColFunOp{.Line = 20,
+            {ArgInFun{.Idx = 0, .InFunction = "_ZN3FooC2Ev"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3BarC2Ev"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3Foo4FuncEv"},
+             ArgInFun{.Idx = 0, .InFunction = "_ZN3Bar4FuncEv"},
+             LineColFunOp{.Line = 20,
                           .Col = 0,
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca},

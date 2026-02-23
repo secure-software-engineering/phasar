@@ -148,6 +148,7 @@ struct RetVal {
     return std::string("RetVal { InFunction: ") + InFunction.str() + " }";
   }
 };
+
 struct RetStmt {
   llvm::StringRef InFunction;
 
@@ -179,11 +180,26 @@ struct OperandOf {
   }
 };
 
+struct FuncByName {
+  llvm::StringRef NameOfFunction;
+
+  friend bool operator<(FuncByName R1, FuncByName R2) noexcept {
+    return R1.NameOfFunction < R2.NameOfFunction;
+  }
+  friend bool operator==(FuncByName R1, FuncByName R2) noexcept {
+    return R1.NameOfFunction == R2.NameOfFunction;
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("FuncByName { InFunction: ") + NameOfFunction.str() +
+           " }";
+  }
+};
+
 struct TestingSrcLocation
     : public std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                          ArgInFun, RetVal, RetStmt, OperandOf> {
+                          ArgInFun, RetVal, RetStmt, OperandOf, FuncByName> {
   using VarT = std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                            ArgInFun, RetVal, RetStmt, OperandOf>;
+                            ArgInFun, RetVal, RetStmt, OperandOf, FuncByName>;
   using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
@@ -264,6 +280,12 @@ template <> struct hash<psr::unittest::OperandOf> {
   size_t operator()(psr::unittest::OperandOf Op) const noexcept {
     return llvm::hash_combine(Op.OperandIndex,
                               hash<psr::unittest::LineColFunOp>{}(Op.Inst));
+  }
+};
+
+template <> struct hash<psr::unittest::FuncByName> {
+  size_t operator()(psr::unittest::FuncByName FBN) const noexcept {
+    return llvm::hash_value(FBN.NameOfFunction);
   }
 };
 
@@ -398,6 +420,13 @@ testingLocInIR(TestingSrcLocation Loc,
             }
 
             return Inst->getOperand(Op.OperandIndex);
+          },
+          [&](FuncByName FBN) -> llvm::Value const * {
+            if (const auto *Func = GetFunction(FBN.NameOfFunction)) {
+              return Func;
+            }
+            llvm::report_fatal_error("No function with name " +
+                                     FBN.NameOfFunction);
           },
       },
       Loc);
