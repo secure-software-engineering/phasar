@@ -366,9 +366,6 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
     OS << FieldString.Offset << '.';
   }
 
-  // for (auto Ld : FieldString.Loads) {
-  //   OS << 'L' << Ld << '.';
-  // }
   if (FieldString.Loads != CFLFieldStringNodeId::None) {
     OS << "L#" << uint32_t(FieldString.Loads) << '.';
   }
@@ -376,10 +373,6 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
   for (auto Kl : FieldString.Kills) {
     OS << 'K' << Kl << '.';
   }
-
-  // for (auto St : FieldString.Stores) {
-  //   OS << 'S' << St << '.';
-  // }
 
   if (FieldString.Loads != CFLFieldStringNodeId::None) {
     OS << "S#" << uint32_t(FieldString.Loads) << '.';
@@ -694,21 +687,15 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
 
     if (FldSensL && FldSensR) {
       if (FldSensR->Transform.isEpsilon()) {
-        // llvm::errs() << "[EXTEND]: identity transformation!\n";
         return L;
       }
 
       if (FldSensL->Transform.Paths.empty()) {
-        // llvm::errs() << "[EXTEND]: Empty prefix!\n";
         return L;
       }
 
       auto Txn = FldSensL->Transform;
       Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
-      // if (Txn.Paths.empty()) {
-      //   // llvm::errs() << "[EXTEND]: kill flow\n";
-      //   return allTopFunction();
-      // }
 
       if (Txn.Paths.size() > BreadthKLimit) {
         klimitPaths(Txn.Paths, Mgr);
