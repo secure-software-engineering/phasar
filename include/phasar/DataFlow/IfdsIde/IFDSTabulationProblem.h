@@ -12,6 +12,7 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/Domain/AnalysisDomain.h"
 
 #include <set>
@@ -25,7 +26,7 @@ namespace psr {
 ///
 /// For more information on how to write an IFDS analysis, see [Writing an IFDS
 /// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IFDS-analysis)
-template <typename AnalysisDomainTy,
+template <IfdsAnalysisDomain AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IFDSTabulationProblem
     : public IDETabulationProblem<WithBinaryValueDomain<AnalysisDomainTy>,
@@ -55,7 +56,7 @@ public:
   /// @param[in] ZeroValue Provides the special tautological zero value (aka.
   /// Λ).
   /// \endlink.
-  explicit IFDSTabulationProblem(const ProjectIRDBBase<db_t> *IRDB,
+  explicit IFDSTabulationProblem(const db_t *IRDB,
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
       : Base(IRDB, std::move(EntryPoints), std::move(ZeroValue)) {}

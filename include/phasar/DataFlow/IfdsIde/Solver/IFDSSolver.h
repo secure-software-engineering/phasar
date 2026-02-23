@@ -46,11 +46,14 @@ public:
   using n_t = typename AnalysisDomainTy::n_t;
   using i_t = typename AnalysisDomainTy::i_t;
 
-  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy, typename I>
+  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy,
+            std::convertible_to<const i_t &> I>
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
              const I *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
-  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy, typename I>
+
+  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy,
+            std::convertible_to<const i_t &> I>
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
              const I *ICF)
       : IDESolver<WithBinaryValueDomain<AnalysisDomainTy>>(IFDSProblem, ICF) {}
@@ -122,8 +125,10 @@ using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
 template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t, BinaryDomain>
-solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
-                 const typename AnalysisDomainTy::i_t &ICF) {
+solveIFDSProblem(
+    IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
+    const std::convertible_to<const typename AnalysisDomainTy::i_t &> auto
+        &ICF) {
   IFDSSolver<AnalysisDomainTy, Container> Solver(Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();

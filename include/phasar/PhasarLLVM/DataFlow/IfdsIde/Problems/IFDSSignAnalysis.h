@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSSIGNANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include <memory>

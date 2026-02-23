@@ -12,21 +12,29 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Printer.h"
+
+#include "llvm/IR/IntrinsicInst.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+#include <atomic>
 #include <chrono>
 #include <type_traits>
 
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-class IterativeIDESolverTest : public ::testing::Test {
+class IterativeIDESolverTest
+    : public ::testing::TestWithParam<std::string_view> {
 protected:
+  static constexpr auto PathToLlFiles =
+      PHASAR_BUILD_SUBFOLDER("linear_constant/");
+
   template <typename SolverConfigTy = IDESolverConfig>
   void doAnalysis(const llvm::Twine &LlvmFilePath, bool PrintDump = false) {
-    LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles + LlvmFilePath);
+    LLVMProjectIRDB IRDB(PathToLlFiles + LlvmFilePath);
     DIBasedTypeHierarchy TH(IRDB);
     LLVMAliasSet PT(&IRDB);
     LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
@@ -59,14 +67,53 @@ protected:
     checkEquality(OldSolver.getSolverResults(), Solver.getSolverResults(),
                   SolverConfigTy{});
 
-    [[maybe_unused]] GenericSolverResults<
-        const llvm::Instruction *, const llvm::Value *, LatticeDomain<int64_t>>
-        SR = OldSolver.getSolverResults();
+    [[maybe_unused]] GenericSolverResults<const llvm::Instruction *,
+                                          const llvm::Value *,
+                                          LatticeDomain<int64_t>> SR =
+        OldSolver.getSolverResults();
     [[maybe_unused]] GenericSolverResults<
         const llvm::Instruction *, const llvm::Value *,
         std::conditional_t<SolverConfigTy::ComputeValues,
-                           LatticeDomain<int64_t>, BinaryDomain>>
-        SR2 = Solver.getSolverResults();
+                           LatticeDomain<int64_t>, BinaryDomain>> SR2 =
+        Solver.getSolverResults();
+  }
+
+  // Check that the IDESolverAPIMixin works correctly
+  template <typename SolverConfigTy = IDESolverConfig>
+  void doAnalysisWithAPIMixin(const llvm::Twine &LlvmFilePath,
+                              bool PrintDump = false) {
+    LLVMProjectIRDB IRDB(PathToLlFiles + LlvmFilePath);
+    DIBasedTypeHierarchy TH(IRDB);
+    LLVMAliasSet PT(&IRDB);
+    LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT,
+                       Soundness::Soundy, /*IncludeGlobals*/ true);
+
+    IDELinearConstantAnalysis Problem(&IRDB, &ICFG, {"main"});
+    IterativeIDESolver<IDELinearConstantAnalysis, SolverConfigTy> Solver(
+        &Problem, &ICFG);
+
+    auto Start = std::chrono::steady_clock::now();
+    std::atomic_bool Cancel = false;
+    auto _ = Solver.solveWithAsyncCancellation(Cancel);
+    auto End = std::chrono::steady_clock::now();
+    auto NewTime = End - Start;
+    llvm::errs() << "IterativeIDESolver Elapsed:\t" << NewTime.count()
+                 << "ns\n";
+
+    IDESolver OldSolver(&Problem, &ICFG);
+    Start = std::chrono::steady_clock::now();
+    auto OldResults = OldSolver.solve();
+    End = std::chrono::steady_clock::now();
+
+    auto OldTime = End - Start;
+    llvm::errs() << "IDESolver Elapsed:\t\t" << OldTime.count() << "ns\n";
+
+    if (PrintDump) {
+      Solver.dumpResults();
+      OldSolver.dumpResults();
+    }
+
+    checkEquality(OldResults, Solver.consumeSolverResults(), SolverConfigTy{});
   }
 
   struct NonGCIFDSSolverConfig : IFDSSolverConfig {
@@ -77,8 +124,6 @@ protected:
   template <typename SR1, typename SR2>
   void checkEquality(const SR1 &LHS, const SR2 &RHS, IDESolverConfig /*Tag*/) {
     llvm::errs() << "IDE Equality Check\n";
-    EXPECT_EQ(LHS.size(), RHS.size())
-        << "The instructions, where results are computed differ";
 
     for (const auto &[Row, ColVal] : LHS.rowMapView()) {
       EXPECT_TRUE(RHS.containsNode(Row))
@@ -102,6 +147,13 @@ protected:
               << " vs " << It->second;
         }
       }
+    }
+    for (const auto &[Row, ColVal] : RHS.getAllResultEntries()) {
+      if (llvm::isa<llvm::DbgInfoIntrinsic>(Row)) {
+        continue;
+      }
+      EXPECT_TRUE(LHS.containsNode(Row))
+          << "The old results do not contain Node " << NToString(Row);
     }
   }
 
@@ -132,120 +184,96 @@ protected:
 
 }; // Test Fixture
 
-/// --> Using IDESolverConfig
+// Using IDESolverConfig
+TEST_P(IterativeIDESolverTest, IDESolverTestLCA) { doAnalysis(GetParam()); }
 
-TEST_F(IterativeIDESolverTest, IDESolverTestBranch) {
-  doAnalysis("control_flow/branch_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDESolverTestLoop) {
-  doAnalysis("control_flow/loop_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call06) {
-  doAnalysis("linear_constant/call_06_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call07) {
-  doAnalysis("linear_constant/call_07_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call08) {
-  doAnalysis("linear_constant/call_08_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call09) {
-  doAnalysis("linear_constant/call_09_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call10) {
-  doAnalysis("linear_constant/call_10_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call11) {
-  doAnalysis("linear_constant/call_11_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_Call12) {
-  doAnalysis("linear_constant/call_12_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_recursion_01) {
-  doAnalysis("linear_constant/recursion_01_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_recursion_02) {
-  doAnalysis("linear_constant/recursion_02_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_recursion_03) {
-  doAnalysis("linear_constant/recursion_03_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_01) {
-  doAnalysis("linear_constant/global_01_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_02) {
-  doAnalysis("linear_constant/global_02_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_03) {
-  doAnalysis("linear_constant/global_03_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_04) {
-  doAnalysis("linear_constant/global_04_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_05) {
-  doAnalysis("linear_constant/global_05_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_06) {
-  doAnalysis("linear_constant/global_06_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_07) {
-  doAnalysis("linear_constant/global_07_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_08) {
-  doAnalysis("linear_constant/global_08_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_09) {
-  doAnalysis("linear_constant/global_09_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_global_10) {
-  doAnalysis("linear_constant/global_10_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IDELinearConstant_external_fun_01) {
-  doAnalysis("linear_constant/external_fun_cpp.ll");
+TEST_P(IterativeIDESolverTest, IDESolverTestLCAAPIMixin) {
+  doAnalysisWithAPIMixin(GetParam());
 }
 
-/// <-- Using IDESolverConfig
-
-/// --> Using IFDSSolverConfig
-
-TEST_F(IterativeIDESolverTest, IFDSSolverTestBranch) {
-  doAnalysis<IFDSSolverConfig>("control_flow/branch_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSSolverTestLoop) {
-  doAnalysis<IFDSSolverConfig>("control_flow/loop_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call06) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_06_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call07) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_07_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call08) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_08_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call09) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_09_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call10) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_10_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call11) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_11_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_Call12) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/call_12_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_recursion_01) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/recursion_01_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_recursion_02) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/recursion_02_cpp.ll");
-}
-TEST_F(IterativeIDESolverTest, IFDSLinearConstant_recursion_03) {
-  doAnalysis<IFDSSolverConfig>("linear_constant/recursion_03_cpp.ll");
+// Using IFDSSolverConfig
+TEST_P(IterativeIDESolverTest, IFDSSolverTestLCA) {
+  doAnalysis<IFDSSolverConfig>(GetParam());
 }
 
-/// <-- Using IFDSSolverConfig
+TEST_P(IterativeIDESolverTest, IFDSSolverTestLCAAPIMixin) {
+  doAnalysisWithAPIMixin<IFDSSolverConfig>(GetParam());
+}
+
+static constexpr std::string_view LCATestFiles[] = {
+    "basic_01_cpp_dbg.ll",
+    "basic_02_cpp_dbg.ll",
+    "basic_03_cpp_dbg.ll",
+    "basic_04_cpp_dbg.ll",
+    "basic_05_cpp_dbg.ll",
+    "basic_06_cpp_dbg.ll",
+    "basic_07_cpp_dbg.ll",
+    "basic_08_cpp_dbg.ll",
+    "basic_09_cpp_dbg.ll",
+    "basic_10_cpp_dbg.ll",
+    "basic_11_cpp_dbg.ll",
+    "basic_12_cpp_dbg.ll",
+
+    "branch_01_cpp_dbg.ll",
+    "branch_02_cpp_dbg.ll",
+    "branch_03_cpp_dbg.ll",
+    "branch_04_cpp_dbg.ll",
+    "branch_05_cpp_dbg.ll",
+    "branch_06_cpp_dbg.ll",
+    "branch_07_cpp_dbg.ll",
+
+    "while_01_cpp_dbg.ll",
+    "while_02_cpp_dbg.ll",
+    "while_03_cpp_dbg.ll",
+    "while_04_cpp_dbg.ll",
+    "while_05_cpp_dbg.ll",
+    "for_01_cpp_dbg.ll",
+
+    "call_01_cpp_dbg.ll",
+    "call_02_cpp_dbg.ll",
+    "call_03_cpp_dbg.ll",
+    "call_04_cpp_dbg.ll",
+    "call_05_cpp_dbg.ll",
+    "call_06_cpp_dbg.ll",
+    "call_07_cpp_dbg.ll",
+    "call_08_cpp_dbg.ll",
+    "call_09_cpp_dbg.ll",
+    "call_10_cpp_dbg.ll",
+    "call_11_cpp_dbg.ll",
+
+    "recursion_01_cpp_dbg.ll",
+    "recursion_02_cpp_dbg.ll",
+    "recursion_03_cpp_dbg.ll",
+
+    "global_01_cpp_dbg.ll",
+    "global_02_cpp_dbg.ll",
+    "global_03_cpp_dbg.ll",
+    "global_04_cpp_dbg.ll",
+    "global_05_cpp_dbg.ll",
+    "global_06_cpp_dbg.ll",
+    "global_07_cpp_dbg.ll",
+    "global_08_cpp_dbg.ll",
+    "global_09_cpp_dbg.ll",
+    "global_10_cpp_dbg.ll",
+    "global_11_cpp_dbg.ll",
+    "global_12_cpp_dbg.ll",
+    "global_13_cpp_dbg.ll",
+    "global_14_cpp_dbg.ll",
+    "global_15_cpp_dbg.ll",
+    "global_16_cpp_dbg.ll",
+
+    "overflow_add_cpp_dbg.ll",
+    "overflow_sub_cpp_dbg.ll",
+    "overflow_mul_cpp_dbg.ll",
+    "overflow_div_min_by_neg_one_cpp_dbg.ll",
+
+    "ub_division_by_zero_cpp_dbg.ll",
+    "ub_modulo_by_zero_cpp_dbg.ll",
+    "external_fun_cpp.ll",
+};
+
+INSTANTIATE_TEST_SUITE_P(IterativeIDESolverTest, IterativeIDESolverTest,
+                         ::testing::ValuesIn(LCATestFiles));
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

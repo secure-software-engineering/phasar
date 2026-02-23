@@ -14,7 +14,54 @@
 #include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 
+#include <concepts>
+#include <type_traits>
+
 namespace psr {
+
+template <typename T>
+concept IsCallGraph =
+    requires(const T &CG, typename T::n_t Inst, typename T::f_t Fun) {
+      typename T::n_t;
+      typename T::f_t;
+
+      /// Returns an iterable range of all possible callee candidates at the
+      /// given call-site induced by the used call-graph.
+      ///
+      /// NOTE: This function is typically called in a hot part of the analysis
+      /// and should therefore be very fast
+      {
+        CG.getCalleesOfCallAt(Inst)
+      } -> psr::is_iterable_over_v<typename T::f_t>;
+
+      /// Returns an iterable range of all possible call-site candidates that
+      /// may call the given function induced by the used call-graph.
+      { CG.getCallersOf(Fun) } -> psr::is_iterable_over_v<typename T::n_t>;
+
+      /// A range of all functions that are vertices in the call-graph. The
+      /// number of vertex functions can be retrieved by
+      /// getNumVertexFunctions().
+      {
+        CG.getAllVertexFunctions()
+      } -> psr::is_iterable_over_v<typename T::f_t>;
+
+      /// A range of all call-sites that are vertices in the call-graph. The
+      /// number of vertex-callsites can be retrived by getNumVertexCallSites().
+      {
+        CG.getAllVertexCallSites()
+      } -> psr::is_iterable_over_v<typename T::n_t>;
+
+      { CG.getNumVertexFunctions() } -> std::convertible_to<size_t>;
+      { CG.getNumVertexCallSites() } -> std::convertible_to<size_t>;
+
+      /// Same as getNumVertexFunctions()
+      { CG.size() } noexcept -> std::convertible_to<size_t>;
+      { CG.empty() } noexcept -> std::convertible_to<bool>;
+    };
+
+template <typename T>
+concept IsCallGraphRef = IsCallGraph<std::remove_cvref_t<T>>;
+
 template <typename T> struct CGTraits {
   // using n_t
   // using f_t

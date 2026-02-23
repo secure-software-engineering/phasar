@@ -267,7 +267,7 @@ llvm::Function *GlobalCtorsDtorsModel::buildModel(
                             /*argc*/
                             llvm::Type::getInt32Ty(CTX),
                             /*argv*/
-                            llvm::Type::getInt8PtrTy(CTX)->getPointerTo())
+                            llvm::PointerType::get(CTX, 0))
           .getCallee());
 
   auto *EntryBB = llvm::BasicBlock::Create(CTX, "entry", GlobModel);

@@ -1115,11 +1115,11 @@ public:
     //   // Emit only IR code, function name and module info
     //   OS << "\nWARNING: No Debug Info available - emiting results without "
     //         "source code mapping!\n";
-    for (const auto *f : this->ICF->getAllFunctions()) {
+    for (const auto *f : this->IRDB->getAllFunctions()) {
       std::string FunName = getFunctionNameFromIR(f);
       OS << "\nFunction: " << FunName << "\n----------"
          << std::string(FunName.size(), '-') << '\n';
-      for (const auto *Inst : this->ICF->getAllInstructionsOf(f)) {
+      for (const auto *Inst : this->IRDB->getAllInstructionsOf(f)) {
         auto Results = SR.resultsAt(Inst, true);
         stripBottomResults(Results);
         if (!Results.empty()) {

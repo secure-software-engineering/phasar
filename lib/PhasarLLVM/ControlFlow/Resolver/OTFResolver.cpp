@@ -138,7 +138,7 @@ void OTFResolver::resolveVirtualCall(FunctionSetTy &PossibleTargets,
   for (const auto *P : *PTS) {
     if (const auto *PGV = llvm::dyn_cast<llvm::GlobalVariable>(P)) {
       if (PGV->hasName() &&
-          PGV->getName().startswith(DIBasedTypeHierarchy::VTablePrefix) &&
+          PGV->getName().starts_with(DIBasedTypeHierarchy::VTablePrefix) &&
           PGV->hasInitializer()) {
         if (const auto *PCS =
                 llvm::dyn_cast<llvm::ConstantStruct>(PGV->getInitializer())) {

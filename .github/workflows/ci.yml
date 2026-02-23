@@ -70,6 +70,7 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_PHASAR_CLANG=OFF \
             -DPHASAR_USE_Z3=ON \
+            -DPHASAR_BUILD_MODULES=ON \
             -DPHASAR_LLVM_VERSION=${{ matrix.llvm-version }} \
             ${{ matrix.flags }} \
             -G Ninja

@@ -57,6 +57,11 @@ ProblemTy createAnalysisProblem(HelperAnalyses &HA, ArgTys &&...Args) {
     return ProblemTy(&HA.getProjectIRDB(), &HA.getTypeHierarchy(),
                      &HA.getICFG(), &HA.getAliasInfo(),
                      std::forward<ArgTys>(Args)...);
+  } else if constexpr (std::is_constructible_v<
+                           ProblemTy, const LLVMProjectIRDB *,
+                           const LLVMBasedCFG *, LLVMAliasSet *, ArgTys...>) {
+    return ProblemTy(&HA.getProjectIRDB(), &HA.getCFG(), &HA.getAliasInfo(),
+                     std::forward<ArgTys>(Args)...);
   } else {
     static_assert(
         std::is_constructible_v<ProblemTy, HelperAnalyses &, ArgTys...>,

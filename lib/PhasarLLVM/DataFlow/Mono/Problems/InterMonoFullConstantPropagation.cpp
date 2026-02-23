@@ -34,13 +34,11 @@ using namespace psr;
 namespace psr {
 
 InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
-    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
+    const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints)
-    : IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT,
-                                       std::move(EntryPoints)),
+    : IntraMonoFullConstantPropagation(IRDB, ICF, PT, std::move(EntryPoints)),
       InterMonoProblem<IntraMonoFullConstantPropagationAnalysisDomain>(
-          IRDB, TH, ICF, PT, EntryPoints) {}
+          IRDB, ICF, PT, EntryPoints) {}
 
 InterMonoFullConstantPropagation::mono_container_t
 InterMonoFullConstantPropagation::merge(

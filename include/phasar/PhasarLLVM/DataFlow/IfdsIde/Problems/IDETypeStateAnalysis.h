@@ -15,6 +15,7 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
