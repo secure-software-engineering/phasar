@@ -4538,7 +4538,6 @@ UnionFindAAResult {
   #0: <0, 1, 3, 4>
   #1: <2>
 }
-  TODO: ask fabian why #1: <1> and #2: <2> are not here
   */
   GTMap GT = {{LineColFunOp{.Line = 3,
                             .Col = 0,
@@ -4610,8 +4609,6 @@ UnionFindAAResult {
   #1: <1, 3, 4, 5>
   #2: <2>
 }
-
-TODO: ask fabian how to get { fun @Func }
    */
   GTMap GT = {{LineColFunOp{.Line = 5,
                             .Col = 0,
@@ -5440,8 +5437,6 @@ UnionFindAAResult {
   #1: <1, 2, 4>
   #2: <3>
 }
-  // TODO: get %.compoundliteral = alloca %struct._LinkedList
-           Same line as Foo alloca, but more obfuscated
   */
   GTMap GT = {{LineColFunOp{.Line = 8,
                             .Col = 0,
@@ -8250,8 +8245,6 @@ UnionFindAAResult {
   #29: <>
 }
   */
-
-  // TODO: missing other entries. like x and y
 
   GTMap GT{{LineColFunOp{.Line = 12,
                          .Col = 0,
@@ -11143,15 +11136,18 @@ ValueCompressor: {
   #1:
     %Foo = alloca %struct._LinkedListOne, align 8, !psr.id !17 | ID: 1
     %Next22 = getelementptr inbounds %struct._LinkedListOne, ptr %Foo, i32 0,
-i32 1, !dbg !223, !psr.id !224 | ID: 105 #2:
+i32 1, !dbg !223, !psr.id !224 | ID: 105
+  #2:
     %.compoundliteral = alloca %struct._LinkedListOne, align 8, !psr.id !18 |
 ID: 2 %Val = getelementptr inbounds %struct._LinkedListOne, ptr
 %.compoundliteral, i32 0, i32 0, !dbg !57, !psr.id !58 | ID: 33 %Next =
 getelementptr inbounds %struct._LinkedListOne, ptr %.compoundliteral, i32 0, i32
-1, !dbg !57, !psr.id !60 | ID: 35 #3: %Bar = alloca %struct._LinkedListTwo,
+1, !dbg !57, !psr.id !60 | ID: 35
+  #3: %Bar = alloca %struct._LinkedListTwo,
 align 8, !psr.id !19 | ID: 3 %Next23 = getelementptr inbounds
 %struct._LinkedListTwo, ptr %Bar, i32 0, i32 1, !dbg !230, !psr.id !231 | ID:
-109 #4:
+109
+  #4:
     %.compoundliteral1 = alloca %struct._LinkedListTwo, align 8, !psr.id !20 |
 ID: 4 %Val2 = getelementptr inbounds %struct._LinkedListTwo, ptr
 %.compoundliteral1, i32 0, i32 0, !dbg !72, !psr.id !73 | ID: 39 %Next3 =
@@ -11295,9 +11291,6 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
   #41: {7, 35, 41}
   #42: {9, 36, 42}
 }
-
-  TODO: ask Fabian about the Bar alloca here. Is this correct?
-
   */
   GTMap GT{{LineColFunOp{.Line = 33,
                          .Col = 0,
@@ -11308,6 +11301,8 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
+                // TODO: double check. Probably an overapproximation due to a
+                // loop from 1 and 2 in PointerAssignmentGraph
                 LineColFunOp{.Line = 35,
                              .Col = 0,
                              .InFunction = "main",
@@ -11434,7 +11429,8 @@ LLVMUnionFindAliasSet(global, botctx-ind-sens) {
                           .InFunction = "main",
                           .OpCode = llvm::Instruction::Alloca}}}};
 
-  doAnalysisAndCompareResults("indirection_07_c_dbg.ll", GT, IndAABuilder);
+  doAnalysisAndCompareResults("indirection_07_c_dbg.ll", GT,
+                              TracingBuilder(IndAABuilder));
 }
 
 TEST(IndirectionSensUnionFindAATest, Indirection08) {
@@ -11661,11 +11657,6 @@ UnionFindAAResult {
   #41: <>
   #42: <>
 }
-
-  TODO: ask Fabian about below. My impl doesn't work (commented out):
-  Computed unexpected alias of LineColFunOp { Line: 19; Col: 0; InFunction:
-main; OpCode: alloca }: { %cond-lvalue = phi ptr [ %Second, %cond.true ], [
-%Third, %cond.false ], !dbg !80, !psr.id !86 | ID: 33 }
   */
   GTMap GT{{LineColFunOp{.Line = 19,
                          .Col = 0,
@@ -11688,18 +11679,19 @@ main; OpCode: alloca }: { %cond-lvalue = phi ptr [ %Second, %cond.true ], [
              LineColFunOp{.Line = 21,
                           .Col = 0,
                           .InFunction = "main",
-                          .OpCode = llvm::Instruction::Alloca}}},
+                          .OpCode = llvm::Instruction::Alloca},
+             LineColFunOp{.Line = 23,
+                          .Col = 17,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::PHI}}},
            {LineColFunOp{.Line = 23,
                          .Col = 0,
                          .InFunction = "main",
                          .OpCode = llvm::Instruction::Alloca},
-            {
-                LineColFunOp{.Line = 23,
-                             .Col = 0,
-                             .InFunction = "main",
-                             .OpCode = llvm::Instruction::Alloca},
-                // LineColFun{.Line = 23, .Col = 17, .InFunction = "main"}
-            }}};
+            {LineColFunOp{.Line = 23,
+                          .Col = 0,
+                          .InFunction = "main",
+                          .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("indirection_09_cpp_dbg.ll", GT, IndAABuilder);
 }
