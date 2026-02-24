@@ -36,61 +36,63 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace psr {
+namespace psr::cfl_fieldsens {
 
 /// \file Implements field-sensitivity after the paper "Boosting the performance
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
 /// et al. <https://doi.org/10.1145/3689804>
 
-enum class CFLFieldStringNodeId : uint32_t {
+// NOLINTNEXTLINE(performance-enum-size)
+enum class FieldStringNodeId : uint32_t {
   None = 0,
 };
 
-[[nodiscard]] inline llvm::hash_code hash_value(CFLFieldStringNodeId NId) {
-  return llvm::hash_value(std::underlying_type_t<CFLFieldStringNodeId>(NId));
+[[nodiscard]] inline llvm::hash_code hash_value(FieldStringNodeId NId) {
+  return llvm::hash_value(std::underlying_type_t<FieldStringNodeId>(NId));
 }
 
-struct CFLFieldStringNode {
-  CFLFieldStringNodeId Next{};
+struct FieldStringNode {
+  FieldStringNodeId Next{};
   int32_t Offset{};
 
   [[nodiscard]] constexpr bool
-  operator==(const CFLFieldStringNode &) const noexcept = default;
+  operator==(const FieldStringNode &) const noexcept = default;
 
-  friend llvm::hash_code hash_value(CFLFieldStringNode Nod) {
+  friend llvm::hash_code hash_value(FieldStringNode Nod) {
     return llvm::DenseMapInfo<std::pair<uint32_t, int32_t>>::getHashValue(
         {uint32_t(Nod.Next), Nod.Offset});
   }
 };
 
-} // namespace psr
+} // namespace psr::cfl_fieldsens
 
 namespace llvm {
-template <> struct DenseMapInfo<psr::CFLFieldStringNode> {
-  static constexpr psr::CFLFieldStringNode getEmptyKey() noexcept {
-    return {.Next = psr::CFLFieldStringNodeId(UINT32_MAX), .Offset = INT32_MAX};
+template <> struct DenseMapInfo<psr::cfl_fieldsens::FieldStringNode> {
+  using FieldStringNode = psr::cfl_fieldsens::FieldStringNode;
+  using FieldStringNodeId = psr::cfl_fieldsens::FieldStringNodeId;
+
+  static constexpr FieldStringNode getEmptyKey() noexcept {
+    return {.Next = FieldStringNodeId(UINT32_MAX), .Offset = INT32_MAX};
   }
-  static constexpr psr::CFLFieldStringNode getTombstoneKey() noexcept {
-    return {.Next = psr::CFLFieldStringNodeId(UINT32_MAX - 1),
-            .Offset = INT32_MAX};
+  static constexpr FieldStringNode getTombstoneKey() noexcept {
+    return {.Next = FieldStringNodeId(UINT32_MAX - 1), .Offset = INT32_MAX};
   }
-  static constexpr bool isEqual(psr::CFLFieldStringNode L,
-                                psr::CFLFieldStringNode R) noexcept {
+  static constexpr bool isEqual(FieldStringNode L, FieldStringNode R) noexcept {
     return L == R;
   }
-  static auto getHashValue(psr::CFLFieldStringNode Nod) {
-    return hash_value(Nod);
-  }
+  static auto getHashValue(FieldStringNode Nod) { return hash_value(Nod); }
 };
 } // namespace llvm
 
 namespace psr {
 
-class CFLFieldStringManager {
-public:
-  CFLFieldStringManager();
+namespace cfl_fieldsens {
 
-  [[nodiscard]] CFLFieldStringNodeId intern(CFLFieldStringNode Nod) {
+class FieldStringManager {
+public:
+  FieldStringManager();
+
+  [[nodiscard]] FieldStringNodeId intern(FieldStringNode Nod) {
     auto [Id, Inserted] = NodeCompressor.insert(Nod);
 
     if (Inserted) {
@@ -100,46 +102,46 @@ public:
     return Id;
   }
 
-  [[nodiscard]] CFLFieldStringNodeId prepend(int32_t Head,
-                                             CFLFieldStringNodeId Tail) {
-    auto Ret = intern(CFLFieldStringNode{.Next = Tail, .Offset = Head});
+  [[nodiscard]] FieldStringNodeId prepend(int32_t Head,
+                                          FieldStringNodeId Tail) {
+    auto Ret = intern(FieldStringNode{.Next = Tail, .Offset = Head});
     PHASAR_LOG_LEVEL(DEBUG, "[prepend]: " << Head << " :: #" << uint32_t(Tail)
                                           << " = #" << uint32_t(Ret));
     return Ret;
   }
 
-  [[nodiscard]] CFLFieldStringNode operator[](CFLFieldStringNodeId NId) const {
+  [[nodiscard]] FieldStringNode operator[](FieldStringNodeId NId) const {
     return NodeCompressor[NId];
   }
 
   [[nodiscard]] llvm::SmallVector<int32_t>
-  getFullFieldString(CFLFieldStringNodeId NId) const;
+  getFullFieldString(FieldStringNodeId NId) const;
 
-  [[nodiscard]] CFLFieldStringNodeId
+  [[nodiscard]] FieldStringNodeId
   fromFullFieldString(llvm::ArrayRef<int32_t> FieldString);
 
-  [[nodiscard]] uint32_t depth(CFLFieldStringNodeId NId) const {
+  [[nodiscard]] uint32_t depth(FieldStringNodeId NId) const {
     return Depth[NId];
   }
 
 private:
-  Compressor<CFLFieldStringNode, CFLFieldStringNodeId> NodeCompressor{};
-  TypedVector<CFLFieldStringNodeId, uint32_t> Depth{};
+  Compressor<FieldStringNode, FieldStringNodeId> NodeCompressor{};
+  TypedVector<FieldStringNodeId, uint32_t> Depth{};
 };
 
-struct CFLFieldAccessPath {
+struct AccessPath {
   static constexpr int32_t TopOffset = INT32_MIN;
 
-  CFLFieldStringNodeId Loads{};
-  CFLFieldStringNodeId Stores{};
+  FieldStringNodeId Loads{};
+  FieldStringNodeId Stores{};
   llvm::SmallDenseSet<int32_t, 2> Kills{};
   // Add an offset for pending GEPs; INT32_MIN is Top
   int32_t Offset = {0};
   int32_t EmptyTombstone = 0;
 
   [[nodiscard]] bool empty() const noexcept {
-    return Loads == CFLFieldStringNodeId::None &&
-           Stores == CFLFieldStringNodeId::None && Kills.empty() && Offset == 0;
+    return Loads == FieldStringNodeId::None &&
+           Stores == FieldStringNodeId::None && Kills.empty() && Offset == 0;
   }
 
   [[nodiscard]] bool kills(int32_t Off) const {
@@ -147,39 +149,38 @@ struct CFLFieldAccessPath {
   }
 
   [[nodiscard]] constexpr bool
-  operator==(const CFLFieldAccessPath &Other) const noexcept {
+  operator==(const AccessPath &Other) const noexcept {
     return EmptyTombstone == Other.EmptyTombstone && Loads == Other.Loads &&
            Stores == Other.Stores && Kills == Other.Kills;
   }
 
-  bool operator!=(const CFLFieldAccessPath &Other) const noexcept {
+  bool operator!=(const AccessPath &Other) const noexcept {
     return !(*this == Other);
   }
 
-  friend size_t hash_value(const CFLFieldAccessPath &FieldString) noexcept;
+  friend size_t hash_value(const AccessPath &FieldString) noexcept;
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const CFLFieldAccessPath &FieldString);
+                                       const AccessPath &FieldString);
 
-  void print(llvm::raw_ostream &OS, const CFLFieldStringManager &Mgr) const;
+  void print(llvm::raw_ostream &OS, const FieldStringManager &Mgr) const;
 };
 
-struct CFLFieldAccessPathDMI {
-  static CFLFieldAccessPath getEmptyKey() {
-    CFLFieldAccessPath Ret{};
+struct AccessPathDMI {
+  static AccessPath getEmptyKey() {
+    AccessPath Ret{};
     Ret.EmptyTombstone = 1;
     return Ret;
   }
-  static CFLFieldAccessPath getTombstoneKey() {
-    CFLFieldAccessPath Ret{};
+  static AccessPath getTombstoneKey() {
+    AccessPath Ret{};
     Ret.EmptyTombstone = 2;
     return Ret;
   }
-  static auto getHashValue(const CFLFieldAccessPath &FieldString) noexcept {
+  static auto getHashValue(const AccessPath &FieldString) noexcept {
     return hash_value(FieldString);
   }
-  static bool isEqual(const CFLFieldAccessPath &L,
-                      const CFLFieldAccessPath &R) noexcept {
+  static bool isEqual(const AccessPath &L, const AccessPath &R) noexcept {
     if (L.EmptyTombstone != R.EmptyTombstone) {
       return false;
     }
@@ -190,43 +191,43 @@ struct CFLFieldAccessPathDMI {
   }
 };
 
-struct CFLFieldSensEdgeValue {
-  [[clang::require_explicit_initialization]] CFLFieldStringManager *Mgr{};
-  llvm::SmallDenseSet<CFLFieldAccessPath, 2, CFLFieldAccessPathDMI> Paths;
+struct IFDSEdgeValue {
+  [[clang::require_explicit_initialization]] FieldStringManager *Mgr{};
+  llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI> Paths;
 
-  static constexpr llvm::StringLiteral LogCategory = "CFLFieldSensEdgeValue";
+  static constexpr llvm::StringLiteral LogCategory = "IFDSEdgeValue";
 
-  void applyTransforms(const CFLFieldSensEdgeValue &Txns, uint8_t DepthKLimit);
+  void applyTransforms(const IFDSEdgeValue &Txns, uint8_t DepthKLimit);
 
-  bool operator==(const CFLFieldSensEdgeValue &Other) const noexcept {
+  bool operator==(const IFDSEdgeValue &Other) const noexcept {
     assert(Mgr == Other.Mgr);
     assert(Mgr != nullptr);
     return Paths == Other.Paths;
   }
-  bool operator!=(const CFLFieldSensEdgeValue &Other) const noexcept {
+  bool operator!=(const IFDSEdgeValue &Other) const noexcept {
     return !(*this == Other);
   }
 
-  [[nodiscard]] friend auto hash_value(const CFLFieldSensEdgeValue EV) {
+  [[nodiscard]] friend auto hash_value(const IFDSEdgeValue EV) {
     return llvm::hash_combine_range(EV.Paths.begin(), EV.Paths.end());
   }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const CFLFieldSensEdgeValue &EV);
+                                       const IFDSEdgeValue &EV);
 
   [[nodiscard]] bool isEpsilon() const {
     return Paths.size() == 1 && Paths.begin()->empty();
   }
 
-  [[nodiscard]] static CFLFieldSensEdgeValue
-  epsilon(CFLFieldStringManager *Mgr) {
-    CFLFieldSensEdgeValue Ret{.Mgr = &assertNotNull(Mgr), .Paths = {}};
+  [[nodiscard]] static IFDSEdgeValue epsilon(FieldStringManager *Mgr) {
+    IFDSEdgeValue Ret{.Mgr = &assertNotNull(Mgr), .Paths = {}};
     Ret.Paths.insert({}); // Not using initializer_list to prevent copying
     return Ret;
   }
 
-  [[nodiscard]] friend auto join(const CFLFieldSensEdgeValue &L,
-                                 const CFLFieldSensEdgeValue &R) {
+  // To be picked up via ADL by psr::join(LatticeDomain, LatticeDomain)
+  [[nodiscard]] friend auto join(const IFDSEdgeValue &L,
+                                 const IFDSEdgeValue &R) {
     assert(L.Mgr == R.Mgr);
     assert(L.Mgr != nullptr);
     const bool LeftSmaller = L.Paths.size() < R.Paths.size();
@@ -239,46 +240,40 @@ struct CFLFieldSensEdgeValue {
   }
 };
 
-template <typename AnalysisDomainTy>
-struct CFLFieldSensAnalysisDomain : AnalysisDomainTy {
-  using l_t = LatticeDomain<CFLFieldSensEdgeValue>;
+struct IFDSDomain : LLVMIFDSAnalysisDomainDefault {
+  using l_t = LatticeDomain<IFDSEdgeValue>;
 };
 
-struct FieldSensAllocSitesAwareIFDSProblemConfig
-    : LLVMIFDSAnalysisDomainDefault {
+struct IFDSProblemConfig : LLVMIFDSAnalysisDomainDefault {
   llvm::unique_function<std::optional<int32_t>(n_t Curr, d_t CurrNode)> KillsAt;
   // XXX: more
 };
 
-class FieldSensAllocSitesAwareIFDSProblemBase
-    : public CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault> {
-public:
-  static constexpr llvm::StringLiteral LogCategory =
-      "FieldSensAllocSitesAwareIFDSProblem";
+[[nodiscard]] InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t, IFDSDomain::l_t>
+makeInitialSeeds(const InitialSeeds<LLVMIFDSAnalysisDomainDefault::n_t,
+                                    LLVMIFDSAnalysisDomainDefault::d_t,
+                                    BinaryDomain> &UserSeeds,
+                 FieldStringManager &Mgr);
 
-  [[nodiscard]] static InitialSeeds<n_t, d_t, l_t>
-  makeInitialSeeds(const InitialSeeds<n_t, d_t, BinaryDomain> &UserSeeds,
-                   CFLFieldStringManager &Mgr);
+[[nodiscard]] inline std::pair<const llvm::Value *, int32_t>
+getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
+  llvm::APInt Offset(64, 0);
+  int32_t OffsVal = AccessPath::TopOffset;
+  const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
 
-  [[nodiscard]] static std::pair<const llvm::Value *, int32_t>
-  getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
-    llvm::APInt Offset(64, 0);
-    int32_t OffsVal = CFLFieldAccessPath::TopOffset;
-    const auto *Base = V->stripAndAccumulateConstantOffsets(DL, Offset, true);
-
-    if (llvm::isa<llvm::GEPOperator>(Base)) {
-      return {Base->stripPointerCastsAndAliases(),
-              CFLFieldAccessPath::TopOffset};
-    }
-
-    auto RawOffsVal = Offset.getSExtValue();
-    if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
-      OffsVal = int32_t(RawOffsVal);
-    }
-
-    return {Base->stripPointerCastsAndAliases(), OffsVal};
+  if (llvm::isa<llvm::GEPOperator>(Base)) {
+    return {Base->stripPointerCastsAndAliases(), AccessPath::TopOffset};
   }
-};
+
+  auto RawOffsVal = Offset.getSExtValue();
+  if (RawOffsVal <= INT32_MAX && RawOffsVal >= INT32_MIN) {
+    OffsVal = int32_t(RawOffsVal);
+  }
+
+  return {Base->stripPointerCastsAndAliases(), OffsVal};
+}
+
+} // namespace cfl_fieldsens
 
 /// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
 /// field-sensitive. Just wrap your IFDS problem with
@@ -290,16 +285,12 @@ public:
 /// the FieldSensAllocSitesAwareIFDSProblem. For that, provide a
 /// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
 /// implementation.
-class FieldSensAllocSitesAwareIFDSProblem
-    : public FieldSensAllocSitesAwareIFDSProblemBase,
-      public IDETabulationProblem<
-          CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>> {
-  using Base = IDETabulationProblem<
-      CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>>;
+class CFLFieldSensIFDSProblem
+    : public IDETabulationProblem<cfl_fieldsens::IFDSDomain> {
+  using Base = IDETabulationProblem<cfl_fieldsens::IFDSDomain>;
 
-  template <typename ConcreteProblemT>
-  static decltype(FieldSensAllocSitesAwareIFDSProblemConfig::KillsAt)
-  deriveKillsAt(ConcreteProblemT *UserProblem) {
+  static decltype(cfl_fieldsens::IFDSProblemConfig::KillsAt)
+  deriveKillsAt(auto *UserProblem) {
     assert(UserProblem != nullptr);
     if constexpr (requires() {
                     {
@@ -334,38 +325,39 @@ public:
   using typename Base::t_t;
   using typename Base::v_t;
 
+  static constexpr llvm::StringLiteral LogCategory = "CFLFieldSensIFDSProblem";
+
   /// Constructs an IDETabulationProblem with the usual arguments, forwarded
   /// from UserProblem
-  explicit FieldSensAllocSitesAwareIFDSProblem(
+  explicit CFLFieldSensIFDSProblem(
       IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem,
-      FieldSensAllocSitesAwareIFDSProblemConfig
+      cfl_fieldsens::IFDSProblemConfig
           Config) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : Base(assertNotNull(UserProblem).getProjectIRDB(),
              assertNotNull(UserProblem).getEntryPoints(),
              UserProblem->getZeroValue()),
         UserProblem(UserProblem), Config(std::move(Config)) {}
 
-  explicit FieldSensAllocSitesAwareIFDSProblem(
+  explicit CFLFieldSensIFDSProblem(
       proper_subclass_of<
           IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>> auto
           *UserProblem)
-      : FieldSensAllocSitesAwareIFDSProblem(
-            UserProblem, FieldSensAllocSitesAwareIFDSProblemConfig{
-                             .KillsAt = deriveKillsAt(UserProblem),
-                         }) {}
+      : CFLFieldSensIFDSProblem(UserProblem,
+                                cfl_fieldsens::IFDSProblemConfig{
+                                    .KillsAt = deriveKillsAt(UserProblem),
+                                }) {}
 
-  FieldSensAllocSitesAwareIFDSProblem(
-      std::nullptr_t,
-      FieldSensAllocSitesAwareIFDSProblemConfig Config) = delete;
+  CFLFieldSensIFDSProblem(std::nullptr_t,
+                          cfl_fieldsens::IFDSProblemConfig Config) = delete;
 
-  FieldSensAllocSitesAwareIFDSProblem(std::nullptr_t) = delete;
+  CFLFieldSensIFDSProblem(std::nullptr_t) = delete;
 
   // TODO: Provide a customization-point to provide gen offsets to the
   // edge-functions (generating from zero currently always generates at
   // epsilon!)
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
-    return makeInitialSeeds(UserProblem->initialSeeds(), Mgr);
+    return cfl_fieldsens::makeInitialSeeds(UserProblem->initialSeeds(), Mgr);
   }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
@@ -431,8 +423,8 @@ public:
 
 private:
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
-  CFLFieldStringManager Mgr{};
-  FieldSensAllocSitesAwareIFDSProblemConfig Config{};
+  cfl_fieldsens::FieldStringManager Mgr{};
+  cfl_fieldsens::IFDSProblemConfig Config{};
 
   uint8_t DepthKLimit = 5; // Original from the paper
 };

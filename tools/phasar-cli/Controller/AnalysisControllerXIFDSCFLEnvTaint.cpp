@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/FieldSensAllocSitesAwareIFDSProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Utils/IO.h"
@@ -28,7 +28,7 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
       *Data.HA, &Config, Data.EntryPoints, /*TaintMainArgs*/ false,
       /*EnableStrongUpdateStore*/ false);
   auto Printer = UserProblem.consumePrinter();
-  auto FieldSensProblem = FieldSensAllocSitesAwareIFDSProblem(&UserProblem);
+  auto FieldSensProblem = CFLFieldSensIFDSProblem(&UserProblem);
 
   IterativeIDESolver Solver(&FieldSensProblem, &Data.HA->getICFG());
 

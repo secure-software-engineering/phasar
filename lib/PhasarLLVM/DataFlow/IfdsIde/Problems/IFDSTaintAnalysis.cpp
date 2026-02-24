@@ -13,7 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/FieldSensAllocSitesAwareIFDSProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
@@ -571,9 +571,7 @@ IFDSTaintAnalysis::KillsAtFn::operator()(n_t Curr, d_t CurrNode) const {
   const auto &DL = Self->IRDB->getModule()->getDataLayout();
 
   for (const auto *KillFact : Kill) {
-    auto [BasePtr, Offset] =
-        psr::FieldSensAllocSitesAwareIFDSProblemBase::getBaseAndOffset(KillFact,
-                                                                       DL);
+    auto [BasePtr, Offset] = psr::cfl_fieldsens::getBaseAndOffset(KillFact, DL);
     if (BasePtr == CurrNode) {
       return Offset;
     }

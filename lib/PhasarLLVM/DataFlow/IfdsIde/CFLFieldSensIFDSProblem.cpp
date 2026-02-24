@@ -1,4 +1,4 @@
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/FieldSensAllocSitesAwareIFDSProblem.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
@@ -31,18 +31,19 @@
 #include <utility>
 
 using namespace psr;
+using namespace psr::cfl_fieldsens;
 
-CFLFieldStringManager::CFLFieldStringManager() {
+FieldStringManager::FieldStringManager() {
   // Sentinel
   NodeCompressor.insertDummy(
-      CFLFieldStringNode{.Next = CFLFieldStringNodeId::None, .Offset = 0});
+      FieldStringNode{.Next = FieldStringNodeId::None, .Offset = 0});
   Depth.push_back(0);
 }
 
 llvm::SmallVector<int32_t>
-CFLFieldStringManager::getFullFieldString(CFLFieldStringNodeId NId) const {
+FieldStringManager::getFullFieldString(FieldStringNodeId NId) const {
   llvm::SmallVector<int32_t> Ret;
-  while (NId != CFLFieldStringNodeId::None) {
+  while (NId != FieldStringNodeId::None) {
     auto Nod = NodeCompressor[NId];
     Ret.push_back(Nod.Offset);
     NId = Nod.Next;
@@ -51,9 +52,9 @@ CFLFieldStringManager::getFullFieldString(CFLFieldStringNodeId NId) const {
   return Ret;
 }
 
-CFLFieldStringNodeId CFLFieldStringManager::fromFullFieldString(
-    llvm::ArrayRef<int32_t> FieldString) {
-  CFLFieldStringNodeId Ret = CFLFieldStringNodeId::None;
+FieldStringNodeId
+FieldStringManager::fromFullFieldString(llvm::ArrayRef<int32_t> FieldString) {
+  FieldStringNodeId Ret = FieldStringNodeId::None;
   for (const auto &Offset : FieldString) {
     Ret = prepend(Offset, Ret);
   }
@@ -62,30 +63,28 @@ CFLFieldStringNodeId CFLFieldStringManager::fromFullFieldString(
 
 namespace {
 
-using l_t = LatticeDomain<CFLFieldSensEdgeValue>;
+using l_t = LatticeDomain<IFDSEdgeValue>;
 
 constexpr static int32_t addOffsets(int32_t L, int32_t R) noexcept {
-  if (L == CFLFieldAccessPath::TopOffset ||
-      R == CFLFieldAccessPath::TopOffset) {
-    return CFLFieldAccessPath::TopOffset;
+  if (L == AccessPath::TopOffset || R == AccessPath::TopOffset) {
+    return AccessPath::TopOffset;
   }
 
   int32_t Sum{};
   if (llvm::AddOverflow(L, R, Sum)) {
-    return CFLFieldAccessPath::TopOffset;
+    return AccessPath::TopOffset;
   }
 
   return Sum;
 }
 
 struct CFLFieldSensEdgeFunction {
-  using l_t = LatticeDomain<CFLFieldSensEdgeValue>;
-  [[clang::require_explicit_initialization]] CFLFieldSensEdgeValue Transform;
+  using l_t = LatticeDomain<IFDSEdgeValue>;
+  [[clang::require_explicit_initialization]] IFDSEdgeValue Transform;
   [[clang::require_explicit_initialization]] uint8_t DepthKLimit{};
 
   [[nodiscard]] l_t computeTarget(l_t Source) const {
-    Source.onValue(fn<&CFLFieldSensEdgeValue::applyTransforms>, Transform,
-                   DepthKLimit);
+    Source.onValue(fn<&IFDSEdgeValue::applyTransforms>, Transform, DepthKLimit);
     return Source;
   }
 
@@ -111,18 +110,16 @@ struct CFLFieldSensEdgeFunction {
     return OS << "Txn[" << EF.Transform << ']';
   }
 
-  [[nodiscard]] static auto from(CFLFieldSensEdgeValue &&Txn,
-                                 uint8_t DepthKLimit) {
+  [[nodiscard]] static auto from(IFDSEdgeValue &&Txn, uint8_t DepthKLimit) {
     return CFLFieldSensEdgeFunction{
         .Transform = std::move(Txn),
         .DepthKLimit = DepthKLimit,
     };
   }
 
-  [[nodiscard]] static auto from(CFLFieldAccessPath &&Txn,
-                                 CFLFieldStringManager &Mgr,
+  [[nodiscard]] static auto from(AccessPath &&Txn, FieldStringManager &Mgr,
                                  uint8_t DepthKLimit) {
-    // Avoid initializer-list as it prevents moving
+    // Avoid initializer_list as it prevents moving
     auto Ret = CFLFieldSensEdgeFunction{
         .Transform = {.Mgr = &Mgr, .Paths = {}},
         .DepthKLimit = DepthKLimit,
@@ -132,16 +129,16 @@ struct CFLFieldSensEdgeFunction {
   }
 
   [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit,
-                                        CFLFieldStringManager &Mgr) {
+                                        FieldStringManager &Mgr) {
     return CFLFieldSensEdgeFunction{
-        .Transform = CFLFieldSensEdgeValue::epsilon(&Mgr),
+        .Transform = IFDSEdgeValue::epsilon(&Mgr),
         .DepthKLimit = DepthKLimit,
     };
   }
 };
 
-[[nodiscard]] std::string storesToString(const CFLFieldAccessPath &AP,
-                                         const CFLFieldStringManager &Mgr) {
+[[nodiscard]] std::string storesToString(const AccessPath &AP,
+                                         const FieldStringManager &Mgr) {
   std::string Ret;
   llvm::raw_string_ostream ROS(Ret);
 
@@ -153,9 +150,8 @@ struct CFLFieldSensEdgeFunction {
 }
 
 // Returns whether to retain F
-[[nodiscard]] auto applyOneGepAndStore(CFLFieldStringManager &Mgr,
-                                       CFLFieldAccessPath &F, int32_t Field,
-                                       uint8_t DepthKLimit) {
+[[nodiscard]] auto applyOneGepAndStore(FieldStringManager &Mgr, AccessPath &F,
+                                       int32_t Field, uint8_t DepthKLimit) {
   if (Mgr.depth(F.Stores) == DepthKLimit) {
     // TODO: Optimize:
     auto Full = Mgr.getFullFieldString(F.Stores);
@@ -167,11 +163,10 @@ struct CFLFieldSensEdgeFunction {
 }
 
 // Returns whether to retain F
-[[nodiscard]] auto applyOneGepAndLoad(CFLFieldStringManager &Mgr,
-                                      CFLFieldAccessPath &F, int32_t Field,
-                                      uint8_t DepthKLimit) {
+[[nodiscard]] auto applyOneGepAndLoad(FieldStringManager &Mgr, AccessPath &F,
+                                      int32_t Field, uint8_t DepthKLimit) {
   auto Offs = F.Offset + Field;
-  if (F.Stores == psr::CFLFieldStringNodeId::None) {
+  if (F.Stores == FieldStringNodeId::None) {
 
     if (F.kills(Offs)) {
       return false;
@@ -192,54 +187,50 @@ struct CFLFieldSensEdgeFunction {
 
   auto StoresHead = Mgr[F.Stores];
 
-  if (StoresHead.Offset != Offs &&
-      StoresHead.Offset != CFLFieldAccessPath::TopOffset) {
+  if (StoresHead.Offset != Offs && StoresHead.Offset != AccessPath::TopOffset) {
     return false;
   }
 
   assert(StoresHead.Offset == Offs ||
-         StoresHead.Offset == CFLFieldAccessPath::TopOffset);
+         StoresHead.Offset == AccessPath::TopOffset);
   F.Offset = 0;
   F.Stores = StoresHead.Next;
   // llvm::errs() << "> pop_back\n";
   return true;
 }
 
-[[nodiscard]] auto applyOneGepAndKill(CFLFieldStringManager &Mgr,
-                                      CFLFieldAccessPath &F, int32_t Field,
-                                      uint8_t /*DepthKLimit*/) {
+[[nodiscard]] auto applyOneGepAndKill(FieldStringManager &Mgr, AccessPath &F,
+                                      int32_t Field, uint8_t /*DepthKLimit*/) {
   auto Offs = addOffsets(F.Offset, Field);
-  if (Offs == CFLFieldAccessPath::TopOffset) {
+  if (Offs == AccessPath::TopOffset) {
     // We cannot kill Top
     return true;
   }
 
-  if (F.Stores == psr::CFLFieldStringNodeId::None) {
+  if (F.Stores == FieldStringNodeId::None) {
     F.Kills.insert(Offs);
-    PHASAR_LOG_LEVEL_CAT(DEBUG, CFLFieldSensEdgeValue::LogCategory,
-                         "> add K" << Offs);
+    PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory, "> add K" << Offs);
     return true;
   }
 
   auto StoresHead = Mgr[F.Stores];
 
   if (StoresHead.Offset == Offs) {
-    PHASAR_LOG_LEVEL_CAT(DEBUG, CFLFieldSensEdgeValue::LogCategory,
+    PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory,
                          "> Kill " << storesToString(F, Mgr));
     return false;
   }
 
-  PHASAR_LOG_LEVEL_CAT(DEBUG, CFLFieldSensEdgeValue::LogCategory,
+  PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory,
                        "> Retain " << storesToString(F, Mgr));
 
   assert(StoresHead.Offset != Offs);
   return true;
 }
 
-[[nodiscard]] auto applyOneGep(CFLFieldStringManager &Mgr,
-                               CFLFieldAccessPath &F, int32_t Field,
-                               uint8_t /*DepthKLimit*/) {
-  if (F.Stores == psr::CFLFieldStringNodeId::None) {
+[[nodiscard]] auto applyOneGep(FieldStringManager &Mgr, AccessPath &F,
+                               int32_t Field, uint8_t /*DepthKLimit*/) {
+  if (F.Stores == FieldStringNodeId::None) {
     F.Offset = addOffsets(F.Offset, Field);
   } else {
     auto StoresHead = Mgr[F.Stores];
@@ -249,7 +240,7 @@ struct CFLFieldSensEdgeFunction {
   return std::true_type{};
 }
 
-void applyTransform(CFLFieldSensEdgeValue &EV, const CFLFieldAccessPath &Txn,
+void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
                     uint8_t DepthKLimit) {
 
   if (EV.Paths.empty() || Txn.empty()) {
@@ -307,8 +298,8 @@ void applyTransform(CFLFieldSensEdgeValue &EV, const CFLFieldAccessPath &Txn,
 }
 } // namespace
 
-void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
-                                            uint8_t DepthKLimit) {
+void IFDSEdgeValue::applyTransforms(const IFDSEdgeValue &Txns,
+                                    uint8_t DepthKLimit) {
   if (Mgr == nullptr) [[unlikely]] {
     llvm::report_fatal_error("Mgr is nullptr!");
   }
@@ -345,15 +336,16 @@ void CFLFieldSensEdgeValue::applyTransforms(const CFLFieldSensEdgeValue &Txns,
   *this = std::move(Ret);
 }
 
-size_t psr::hash_value(const CFLFieldAccessPath &FieldString) noexcept {
+size_t psr::cfl_fieldsens::hash_value(const AccessPath &FieldString) noexcept {
   // Xor does not care about the order
   auto HCK = std::reduce(FieldString.Kills.begin(), FieldString.Kills.end(), 0,
                          std::bit_xor<>{});
   return llvm::hash_combine(FieldString.Loads, FieldString.Stores, HCK);
 }
 
-llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
-                                   const CFLFieldAccessPath &FieldString) {
+llvm::raw_ostream &
+psr::cfl_fieldsens::operator<<(llvm::raw_ostream &OS,
+                               const AccessPath &FieldString) {
   if (FieldString.empty()) {
     return OS << "ε";
   }
@@ -366,7 +358,7 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
     OS << FieldString.Offset << '.';
   }
 
-  if (FieldString.Loads != CFLFieldStringNodeId::None) {
+  if (FieldString.Loads != FieldStringNodeId::None) {
     OS << "L#" << uint32_t(FieldString.Loads) << '.';
   }
 
@@ -374,15 +366,15 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
     OS << 'K' << Kl << '.';
   }
 
-  if (FieldString.Loads != CFLFieldStringNodeId::None) {
+  if (FieldString.Loads != FieldStringNodeId::None) {
     OS << "S#" << uint32_t(FieldString.Loads) << '.';
   }
 
   return OS;
 }
 
-void CFLFieldAccessPath::print(llvm::raw_ostream &OS,
-                               const CFLFieldStringManager &Mgr) const {
+void AccessPath::print(llvm::raw_ostream &OS,
+                       const FieldStringManager &Mgr) const {
   if (empty()) {
     OS << "ε";
     return;
@@ -409,8 +401,8 @@ void CFLFieldAccessPath::print(llvm::raw_ostream &OS,
   }
 }
 
-llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
-                                   const CFLFieldSensEdgeValue &EV) {
+llvm::raw_ostream &psr::cfl_fieldsens::operator<<(llvm::raw_ostream &OS,
+                                                  const IFDSEdgeValue &EV) {
   assert(EV.Mgr != nullptr);
   if (EV.Paths.size() == 1) {
     EV.Paths.begin()->print(OS, *EV.Mgr);
@@ -424,24 +416,30 @@ llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
   return OS << " }";
 }
 
-auto FieldSensAllocSitesAwareIFDSProblemBase::makeInitialSeeds(
-    const InitialSeeds<n_t, d_t, BinaryDomain> &UserSeeds,
-    CFLFieldStringManager &Mgr) -> InitialSeeds<n_t, d_t, l_t> {
-  InitialSeeds<n_t, d_t, l_t>::GeneralizedSeeds Ret;
+InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t, IFDSDomain::l_t>
+cfl_fieldsens::makeInitialSeeds(
+    const InitialSeeds<LLVMIFDSAnalysisDomainDefault::n_t,
+                       LLVMIFDSAnalysisDomainDefault::d_t, BinaryDomain>
+        &UserSeeds,
+    FieldStringManager &Mgr) {
+  InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t,
+               IFDSDomain::l_t>::GeneralizedSeeds Ret;
 
   for (const auto &[Inst, Facts] : UserSeeds.getSeeds()) {
     auto &SeedsAtInst = Ret[Inst];
     for (const auto &[Fact, Weight] : Facts) {
-      SeedsAtInst.try_emplace(Fact, CFLFieldSensEdgeValue::epsilon(&Mgr));
+      SeedsAtInst.try_emplace(Fact, IFDSEdgeValue::epsilon(&Mgr));
     }
   }
 
   return {std::move(Ret)};
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::getStoreEdgeFunction(
-    d_t CurrNode, d_t SuccNode, d_t PointerOp, d_t ValueOp, uint8_t DepthKLimit,
-    const llvm::DataLayout &DL) -> EdgeFunction<l_t> {
+auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
+                                                   d_t PointerOp, d_t ValueOp,
+                                                   uint8_t DepthKLimit,
+                                                   const llvm::DataLayout &DL)
+    -> EdgeFunction<l_t> {
   auto [BasePtr, Offset] = getBaseAndOffset(PointerOp, DL);
 
   // TODO;: How to deal with BasePtr?
@@ -459,7 +457,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getStoreEdgeFunction(
       (BasePtr == CurrNode || BaseBasePtr == CurrNode)) {
     // Kill
 
-    CFLFieldAccessPath FieldString{};
+    AccessPath FieldString{};
     FieldString.Kills.insert(Offset);
     return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
                                           DepthKLimit);
@@ -468,7 +466,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getStoreEdgeFunction(
   if (ValueOp == CurrNode && CurrNode != SuccNode) {
     // Store
 
-    CFLFieldAccessPath FieldString{};
+    AccessPath FieldString{};
     if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
       // This is a hack, to be more correct with field-insensitive alias
       // information
@@ -489,8 +487,9 @@ auto FieldSensAllocSitesAwareIFDSProblem::getStoreEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
-    n_t Curr, d_t CurrNode, n_t /*Succ*/, d_t SuccNode) -> EdgeFunction<l_t> {
+auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                    n_t /*Succ*/, d_t SuccNode)
+    -> EdgeFunction<l_t> {
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getNormalEdgeFunction]:");
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(Curr));
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
@@ -520,10 +519,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
 
       // TODO;: How to deal with BasePtr?
 
-      CFLFieldAccessPath FieldString{};
+      AccessPath FieldString{};
       FieldString.Loads = Mgr.prepend(Offset, FieldString.Loads);
-      // llvm::errs() << "Handle load: " << llvmIRToString(Load) << '\n';
-      // llvm::errs() << "> CurrNode: " << llvmIRToString(CurrNode) << '\n';
       return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
                                             DepthKLimit);
     }
@@ -532,7 +529,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
       auto OffsVal =
           getBaseAndOffset(Gep, IRDB->getModule()->getDataLayout()).second;
 
-      CFLFieldAccessPath FieldString{};
+      AccessPath FieldString{};
       FieldString.Offset = OffsVal;
       return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
                                             DepthKLimit);
@@ -542,8 +539,9 @@ auto FieldSensAllocSitesAwareIFDSProblem::getNormalEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::getCallEdgeFunction(
-    n_t CallSite, d_t SrcNode, f_t /*DestinationFunction*/, d_t DestNode)
+auto CFLFieldSensIFDSProblem::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                                  f_t /*DestinationFunction*/,
+                                                  d_t DestNode)
     -> EdgeFunction<l_t> {
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getCallEdgeFunction]");
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(CallSite));
@@ -562,7 +560,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
+auto CFLFieldSensIFDSProblem::getReturnEdgeFunction(
     n_t /*CallSite*/, f_t /*CalleeFunction*/, n_t ExitStmt, d_t ExitNode,
     n_t /*RetSite*/, d_t RetNode) -> EdgeFunction<l_t> {
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getReturnEdgeFunction]");
@@ -581,7 +579,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getReturnEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
+auto CFLFieldSensIFDSProblem::getCallToRetEdgeFunction(
     n_t CallSite, d_t CallNode, n_t /*RetSite*/, d_t RetSiteNode,
     llvm::ArrayRef<f_t> /*Callees*/) -> EdgeFunction<l_t> {
 
@@ -611,8 +609,9 @@ auto FieldSensAllocSitesAwareIFDSProblem::getCallToRetEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
-    n_t Curr, d_t CurrNode, n_t /*Succ*/, d_t SuccNode) -> EdgeFunction<l_t> {
+auto CFLFieldSensIFDSProblem::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
+                                                     n_t /*Succ*/, d_t SuccNode)
+    -> EdgeFunction<l_t> {
 
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "[getSummaryEdgeFunction]");
   PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Curr: " << NToString(Curr));
@@ -629,7 +628,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
                                                   << " with offset "
                                                   << *KillOffs);
 
-      CFLFieldAccessPath FieldString{};
+      AccessPath FieldString{};
       FieldString.Kills.insert(*KillOffs);
       return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
                                             DepthKLimit);
@@ -647,18 +646,17 @@ auto FieldSensAllocSitesAwareIFDSProblem::getSummaryEdgeFunction(
   return EdgeIdentity<l_t>{};
 }
 
-static void klimitPaths(auto &Paths, CFLFieldStringManager &Mgr) {
+static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 
-  llvm::SmallDenseMap<CFLFieldAccessPath, llvm::SmallVector<CFLFieldAccessPath>,
-                      2, CFLFieldAccessPathDMI>
+  llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
+                      AccessPathDMI>
       ToInsert;
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
-    if (It->Stores != CFLFieldStringNodeId::None) {
-      CFLFieldAccessPath Approx = *It;
+    if (It->Stores != FieldStringNodeId::None) {
+      AccessPath Approx = *It;
       auto StoresHead = Mgr[Approx.Stores];
-      Approx.Stores =
-          Mgr.prepend(CFLFieldAccessPath::TopOffset, StoresHead.Next);
+      Approx.Stores = Mgr.prepend(AccessPath::TopOffset, StoresHead.Next);
       ToInsert[std::move(Approx)].push_back(*It);
       Paths.erase(It);
     }
@@ -674,8 +672,8 @@ static void klimitPaths(auto &Paths, CFLFieldStringManager &Mgr) {
 
 static constexpr ptrdiff_t BreadthKLimit = 5;
 
-auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
-                                                 const EdgeFunction<l_t> &R)
+auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
+                                     const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
   auto Ret = [&]() -> EdgeFunction<l_t> {
     if (auto DfltCompose = psr::defaultComposeOrNull(L, R)) {
@@ -717,8 +715,8 @@ auto FieldSensAllocSitesAwareIFDSProblem::extend(const EdgeFunction<l_t> &L,
   return Ret;
 }
 
-auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
-                                                  const EdgeFunction<l_t> &R)
+auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
+                                      const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
   auto Ret = [&]() -> EdgeFunction<l_t> {
     if (auto Dflt = defaultJoinOrNullNoId(L, R)) {
@@ -730,6 +728,11 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
     if (FldSensL) {
       if (FldSensR) {
+        // A complicated way of expressing set-union of LPaths and RPaths.
+        // Reason being that we don't want to unnecessarily copy the sets.
+        // Rather, we like ust incrementing the ref-count of L or R if somehow
+        // possible.
+
         const auto &LPaths = FldSensL->Transform.Paths;
         const auto &RPaths = FldSensR->Transform.Paths;
         const auto LeftSz = LPaths.size();
@@ -753,7 +756,7 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
               }
 
               return CFLFieldSensEdgeFunction::from(
-                  CFLFieldSensEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
+                  IFDSEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
                   DepthKLimit);
             }
           }
@@ -763,21 +766,21 @@ auto FieldSensAllocSitesAwareIFDSProblem::combine(const EdgeFunction<l_t> &L,
       }
 
       if (R.isa<EdgeIdentity<l_t>>()) {
-        if (FldSensL->Transform.Paths.contains(CFLFieldAccessPath{})) {
+        if (FldSensL->Transform.Paths.contains(AccessPath{})) {
           return L;
         }
 
         auto Txn = FldSensL->Transform;
-        Txn.Paths.insert(CFLFieldAccessPath{});
+        Txn.Paths.insert(AccessPath{});
         return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
       }
     } else if (FldSensR && L.isa<EdgeIdentity<l_t>>()) {
-      if (FldSensR->Transform.Paths.contains(CFLFieldAccessPath{})) {
+      if (FldSensR->Transform.Paths.contains(AccessPath{})) {
         return R;
       }
 
       auto Txn = FldSensR->Transform;
-      Txn.Paths.insert(CFLFieldAccessPath{});
+      Txn.Paths.insert(AccessPath{});
       return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
 

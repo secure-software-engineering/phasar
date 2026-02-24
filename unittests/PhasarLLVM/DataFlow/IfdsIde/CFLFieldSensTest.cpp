@@ -3,8 +3,8 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAllocSitesAwareIDEProblem.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/FieldSensAllocSitesAwareIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
@@ -82,8 +82,7 @@ public:
 
       for (const auto *KillFact : Kill) {
         auto [BasePtr, Offset] =
-            psr::FieldSensAllocSitesAwareIFDSProblemBase::getBaseAndOffset(
-                KillFact, DL);
+            psr::cfl_fieldsens::getBaseAndOffset(KillFact, DL);
         if (BasePtr == CurrNode) {
           return Offset;
         }
@@ -119,11 +118,11 @@ public:
         return Gen;
       }
 
-      if (Leak.count(Source)) {
+      if (Leak.contains(Source)) {
         Leaks[CS] = Source;
       }
 
-      if (Kill.count(Source)) {
+      if (Kill.contains(Source)) {
         return {};
       }
 
@@ -159,7 +158,7 @@ protected:
     psr::LLVMTaintConfig TC(IRDB);
     ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
 
-    psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(&TaintProblem);
+    psr::CFLFieldSensIFDSProblem FsTaintProblem(&TaintProblem);
 
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                             nullptr, &BaseAS);
