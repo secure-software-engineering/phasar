@@ -34,6 +34,7 @@
 #include <set>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace psr {
 
@@ -120,6 +121,19 @@ public:
     } else {
       Printer = NullAnalysisPrinter<AnalysisDomainTy>::getInstance();
     }
+  }
+
+  [[nodiscard]] constexpr AnalysisPrinterBase<AnalysisDomainTy> &
+  printer() noexcept {
+    assert(Printer != nullptr);
+    return *Printer;
+  }
+
+  [[nodiscard]] constexpr MaybeUniquePtr<AnalysisPrinterBase<AnalysisDomainTy>>
+  consumePrinter() noexcept {
+    assert(Printer != nullptr);
+    return std::exchange(Printer,
+                         NullAnalysisPrinter<AnalysisDomainTy>::getInstance());
   }
 
   /// Checks if the given data-flow fact is the special tautological lambda (or

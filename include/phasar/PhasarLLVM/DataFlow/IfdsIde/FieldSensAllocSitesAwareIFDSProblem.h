@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -31,6 +32,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <concepts>
 #include <cstdint>
 #include <type_traits>
 
@@ -295,6 +297,30 @@ class FieldSensAllocSitesAwareIFDSProblem
   using Base = IDETabulationProblem<
       CFLFieldSensAnalysisDomain<LLVMIFDSAnalysisDomainDefault>>;
 
+  template <typename ConcreteProblemT>
+  static decltype(FieldSensAllocSitesAwareIFDSProblemConfig::KillsAt)
+  deriveKillsAt(ConcreteProblemT *UserProblem) {
+    assert(UserProblem != nullptr);
+    if constexpr (requires() {
+                    {
+                      UserProblem->killsAt()
+                    } -> psr::invocable_r<std::optional<int32_t>, n_t, d_t>;
+                  }) {
+      return UserProblem->killsAt();
+    } else if constexpr (requires() {
+                           {
+                             UserProblem->killsAt()
+                           } -> std::invocable<n_t, d_t>;
+                         }) {
+      // Intentionally leaving an unused variable, so that the compiler emits a
+      // warning here
+      auto KillsAtHasWrongReturnType = UserProblem->killsAt();
+      return nullptr;
+    } else {
+      return nullptr;
+    }
+  }
+
 public:
   using typename Base::container_type;
   using typename Base::d_t;
@@ -312,16 +338,27 @@ public:
   /// from UserProblem
   explicit FieldSensAllocSitesAwareIFDSProblem(
       IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem,
-      FieldSensAllocSitesAwareIFDSProblemConfig Config =
-          {}) noexcept(std::is_nothrow_move_constructible_v<d_t>)
+      FieldSensAllocSitesAwareIFDSProblemConfig
+          Config) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : Base(assertNotNull(UserProblem).getProjectIRDB(),
              assertNotNull(UserProblem).getEntryPoints(),
              UserProblem->getZeroValue()),
         UserProblem(UserProblem), Config(std::move(Config)) {}
 
+  explicit FieldSensAllocSitesAwareIFDSProblem(
+      proper_subclass_of<
+          IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>> auto
+          *UserProblem)
+      : FieldSensAllocSitesAwareIFDSProblem(
+            UserProblem, FieldSensAllocSitesAwareIFDSProblemConfig{
+                             .KillsAt = deriveKillsAt(UserProblem),
+                         }) {}
+
   FieldSensAllocSitesAwareIFDSProblem(
       std::nullptr_t,
-      FieldSensAllocSitesAwareIFDSProblemConfig Config = {}) = delete;
+      FieldSensAllocSitesAwareIFDSProblemConfig Config) = delete;
+
+  FieldSensAllocSitesAwareIFDSProblem(std::nullptr_t) = delete;
 
   // TODO: Provide a customization-point to provide gen offsets to the
   // edge-functions (generating from zero currently always generates at

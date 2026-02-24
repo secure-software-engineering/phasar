@@ -1,5 +1,4 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
-#include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -14,7 +13,6 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instruction.h"
 
@@ -161,10 +159,7 @@ protected:
     psr::LLVMTaintConfig TC(IRDB);
     ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
 
-    psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(
-        &TaintProblem, {
-                           .KillsAt = TaintProblem.killsAt(),
-                       });
+    psr::FieldSensAllocSitesAwareIFDSProblem FsTaintProblem(&TaintProblem);
 
     psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::OTF, {"main"},
                             nullptr, &BaseAS);

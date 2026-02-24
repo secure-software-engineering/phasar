@@ -270,6 +270,14 @@ struct IdentityFn {
   }
 };
 
+template <typename T, typename R, typename... P>
+concept invocable_r = requires(T Val, P... Params) {
+  { std::invoke(PSR_FWD(Val), PSR_FWD(Params)...) } -> std::convertible_to<R>;
+};
+
+template <typename T, typename U>
+concept proper_subclass_of = std::derived_from<T, U> && !std::same_as<T, U>;
+
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 
