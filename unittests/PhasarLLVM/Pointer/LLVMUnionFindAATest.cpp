@@ -72,6 +72,28 @@ asIdBased(const ValueCompressor<PAGVariable> &VC, const LLVMProjectIRDB &IRDB,
   return Ret;
 }
 
+[[nodiscard]] std::string
+stringifyRawAliasSet(const RawAliasSet<ValueId> &Aliases) {
+  std::string Ret;
+  llvm::raw_string_ostream ROS(Ret);
+
+  ROS << '<';
+
+  bool First = true;
+  Aliases.foreach ([&](ValueId VId) {
+    if (First) {
+      First = false;
+    } else {
+      ROS << ", ";
+    }
+
+    ROS << uint32_t(VId);
+  });
+
+  ROS << '>';
+  return Ret;
+}
+
 using GTMap = std::map<unittest::TestingSrcLocation,
                        std::vector<unittest::TestingSrcLocation>>;
 
@@ -140,7 +162,8 @@ void doAnalysisAndCompareResults(
       }
       ADD_FAILURE_AT(Loc.file_name(), Loc.line())
           << "Computed unexpected alias of " << PtrVar << ": "
-          << stringifyVal(VC, VId);
+          << stringifyVal(VC, VId) << "; VId: " << uint32_t(VId)
+          << ", ExpectedIds: " << stringifyRawAliasSet(ExpectedAliasIds);
     });
   }
 
@@ -2967,7 +2990,11 @@ getelementptr inbounds %struct._LinkedList, ptr %.compoundliteral, i32 0, i32 1,
                 LineColFunOp{.Line = 11,
                              .Col = 0,
                              .InFunction = "main",
-                             .OpCode = llvm::Instruction::Load}}},
+                             .OpCode = llvm::Instruction::Load},
+                LineColFunOp{.Line = 9,
+                             .Col = 21,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::GetElementPtr}}},
               {LineColFunOp{.Line = 11,
                             .Col = 0,
                             .InFunction = "main",
