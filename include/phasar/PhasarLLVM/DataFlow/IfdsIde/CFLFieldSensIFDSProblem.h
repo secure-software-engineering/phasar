@@ -89,6 +89,7 @@ namespace psr {
 
 namespace cfl_fieldsens {
 
+/// Interns the Store- and Load field-strings
 class FieldStringManager {
 public:
   FieldStringManager();
@@ -130,6 +131,8 @@ private:
   TypedVector<FieldStringNodeId, uint32_t> Depth{};
 };
 
+/// A single CFL Field-Access String consisting of: gep, loads, kills, and
+/// stores
 struct AccessPath {
   static constexpr int32_t TopOffset = INT32_MIN;
 
@@ -192,6 +195,7 @@ struct AccessPathDMI {
   }
 };
 
+/// An edge-value consisting of a set if CFL field access strings.
 struct IFDSEdgeValue {
   [[clang::require_explicit_initialization]] FieldStringManager *Mgr{};
   llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI> Paths;
@@ -245,17 +249,26 @@ struct IFDSDomain : LLVMIFDSAnalysisDomainDefault {
   using l_t = LatticeDomain<IFDSEdgeValue>;
 };
 
+/// Configures, how the CFLFieldSensIFDSProblem should handle strong updates.
 struct IFDSProblemConfig : LLVMIFDSAnalysisDomainDefault {
+  /// Gives the byte-offset of a kill at <Curr, CurrNode>, if any, else nullopt.
+  ///
+  /// Can be derived automatically, if the user-problem specifies a
+  /// member-function killsAt() that returns such a function object.
   llvm::unique_function<std::optional<int32_t>(n_t Curr, d_t CurrNode)> KillsAt;
   // XXX: more
 };
 
+/// Transforms user-defined seeds from usual IFDS seeds to field-sensitive IFDS
+/// seeds
 [[nodiscard]] InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t, IFDSDomain::l_t>
 makeInitialSeeds(const InitialSeeds<LLVMIFDSAnalysisDomainDefault::n_t,
                                     LLVMIFDSAnalysisDomainDefault::d_t,
                                     BinaryDomain> &UserSeeds,
                  FieldStringManager &Mgr);
 
+/// Utility to strip off potential pointer-arithmetic from V and accumulating
+/// the byte-offset.
 [[nodiscard]] inline std::pair<const llvm::Value *, int32_t>
 getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
   llvm::APInt Offset(64, 0);
@@ -414,6 +427,9 @@ public:
              UserProblem->getZeroValue()),
         UserProblem(UserProblem), Config(std::move(Config)) {}
 
+  /// Constructs an IDETabulationProblem with the usual arguments, forwarded
+  /// from UserProblem and tries to automatically derive the config from
+  /// additional functions specified by UserProblem
   explicit CFLFieldSensIFDSProblem(
       proper_subclass_of<
           IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>> auto
@@ -428,9 +444,9 @@ public:
 
   CFLFieldSensIFDSProblem(std::nullptr_t) = delete;
 
-  // TODO: Provide a customization-point to provide gen offsets to the
-  // edge-functions (generating from zero currently always generates at
-  // epsilon!)
+  // XXX: Perhaps we need a way to provide a customization-point to specify gen
+  // offsets to the edge-functions (generating from zero currently always
+  // generates at epsilon!)
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     return cfl_fieldsens::makeInitialSeeds(UserProblem->initialSeeds(), Mgr);
@@ -495,6 +511,7 @@ public:
   EdgeFunction<l_t> combine(const EdgeFunction<l_t> &L,
                             const EdgeFunction<l_t> &R) override;
 
+  /// The wrapped user-problem
   [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
 
 private:

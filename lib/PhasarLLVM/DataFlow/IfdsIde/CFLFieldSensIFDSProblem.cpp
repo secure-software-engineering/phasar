@@ -257,9 +257,8 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
   EV.Paths.reserve(Save.size());
 
   const auto TxnOffset = Txn.Offset;
-
-  /// XXX: Should we save getFullFieldString(Txn.Loads) and
-  /// getFullFieldString(Txn.Stores)? Would it be faster?
+  const auto TxnLoads = EV.Mgr->getFullFieldString(Txn.Loads);
+  const auto TxnStores = EV.Mgr->getFullFieldString(Txn.Stores);
 
   for (const auto &F : Save) {
     auto Copy = F;
@@ -270,7 +269,7 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
         }
       }
 
-      for (auto Ld : EV.Mgr->getFullFieldString(Txn.Loads)) {
+      for (auto Ld : TxnLoads) {
         if (!applyOneGepAndLoad(*EV.Mgr, Copy, Ld, DepthKLimit)) {
           return false;
         }
@@ -282,7 +281,7 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
         }
       }
 
-      for (auto St : EV.Mgr->getFullFieldString(Txn.Stores)) {
+      for (auto St : TxnStores) {
         if (!applyOneGepAndStore(*EV.Mgr, Copy, St, DepthKLimit)) {
           return false;
         }
@@ -594,7 +593,8 @@ auto CFLFieldSensIFDSProblem::getCallToRetEdgeFunction(
     if (auto KillOffs = Config.KillsAt(CallSite, CallNode)) {
       // Let the summary-FF kill the fact
 
-      // XXX: Can we somehow circumvent calling KillsAt twice?
+      // XXX: Can we somehow circumvent calling KillsAt twice? (once here, once
+      // in getSummaryEdgeFunction())
       return AllTop<l_t>{};
     }
   }
@@ -730,7 +730,7 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
       if (FldSensR) {
         // A complicated way of expressing set-union of LPaths and RPaths.
         // Reason being that we don't want to unnecessarily copy the sets.
-        // Rather, we like ust incrementing the ref-count of L or R if somehow
+        // Rather, we like just incrementing the ref-count of L or R if somehow
         // possible.
 
         const auto &LPaths = FldSensL->Transform.Paths;
