@@ -20,6 +20,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
@@ -271,6 +272,82 @@ getBaseAndOffset(const llvm::Value *V, const llvm::DataLayout &DL) {
   }
 
   return {Base->stripPointerCastsAndAliases(), OffsVal};
+}
+
+/// Checks whether Fact holds at Inst in a field-sensitive way
+template <bool AllowDeepTaints = true, typename ResultsT>
+[[nodiscard]] inline bool holdsFactAt(const ResultsT &Results,
+                                      IFDSDomain::n_t Inst,
+                                      IFDSDomain::d_t Fact) {
+  const IFDSDomain::l_t Bot = Bottom{};
+  const auto &Fields = Results.resultAt(Inst, Fact);
+
+  if (Fields.isTop()) {
+    // Was not computed by the IDE Solver
+    return false;
+  }
+
+  if (const IFDSEdgeValue *FieldStrings = Fields.getValueOrNull()) {
+    if constexpr (!AllowDeepTaints) {
+      // whether Facts itself holds, not whether any fields of it may hold
+      return FieldStrings->isEpsilon();
+    }
+    if (FieldStrings->Paths.empty()) {
+      // has been killed entirely
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/// Given a QueryMap of the form map<n_t, set<d_t>>, calls the Handler for all
+/// inst-fact pairs that hold in a field-sensitive way and filters out all
+/// others.
+///
+/// The Handler may opt into early exit by returning false. Returning void is
+/// permitted.
+template <bool AllowDeepTaints = true, typename ResultsT>
+bool filterFieldSensFacts(
+    const ResultsT &Results, const auto &QueryMap,
+    std::invocable<IFDSDomain::n_t, IFDSDomain::d_t> auto Handler) {
+  const IFDSDomain::l_t Bot = Bottom{};
+
+  for (const auto &[Inst, FactsAtInst] : QueryMap) {
+    const auto &Row = Results.row(Inst);
+    for (const auto &Fact : FactsAtInst) {
+      const auto &Fields = getOr(Row, Fact, Bot);
+
+      if (Fields.isTop()) {
+        // Was not computed by the IDE Solver
+        continue;
+      }
+
+      if (const auto *FieldStrings = Fields.getValueOrNull()) {
+        if (!AllowDeepTaints && !FieldStrings->isEpsilon()) {
+          // Fact does not hold itself, but fields of Fact may hold. In
+          // aggressive mode, we ignore them
+          continue;
+        }
+        if (FieldStrings->Paths.empty()) {
+          // has been killed entirely
+          continue;
+        }
+      }
+
+      if constexpr (std::convertible_to<
+                        std::invoke_result_t<decltype(Handler) &,
+                                             IFDSDomain::n_t, IFDSDomain::d_t>,
+                        bool>) {
+        if (!std::invoke(Handler, Inst, Fact)) {
+          return false;
+        }
+      } else {
+        std::invoke(Handler, Inst, Fact);
+      }
+    }
+  }
+  return true;
 }
 
 } // namespace cfl_fieldsens

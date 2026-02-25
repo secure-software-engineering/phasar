@@ -44,6 +44,10 @@ public:
     using const_iterator = iterator;
     using difference_type = ptrdiff_t;
 
+    using key_type = d_t;
+    using mapped_type = l_t;
+    using value_type = std::pair<d_t, l_t>;
+
     explicit RowView(
         const detail::IterativeIDESolverResults<n_t, d_t, l_t> *Results,
         const row_map_t *Row) noexcept

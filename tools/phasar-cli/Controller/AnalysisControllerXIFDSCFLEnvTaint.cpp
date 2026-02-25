@@ -69,22 +69,14 @@ void controller::executeIFDSCFLEnvTaint(AnalysisController &Data) {
     WithOutStream("/psr-report.txt", [&](llvm::raw_ostream &OS) {
       Printer->onInitialize();
       bool HasResults = false;
-      for (const auto &[Inst, Facts] : UserProblem.Leaks) {
-        for (const auto &Fact : Facts) {
-          const auto &Fields = Results.resultAt(Inst, Fact);
 
-          if (const auto *FieldStrings = Fields.getValueOrNull()) {
-            if (FieldStrings->Paths.empty()) {
-              // filter-out leak
-              continue;
-            }
-          }
+      cfl_fieldsens::filterFieldSensFacts(
+          Results, UserProblem.Leaks, [&](auto Inst, auto Fact) {
+            HasResults = true;
+            Printer->onResult(Inst, Fact,
+                              DataFlowAnalysisType::IFDSCFLEnvTaintAnalysis);
+          });
 
-          HasResults = true;
-          Printer->onResult(Inst, Fact,
-                            DataFlowAnalysisType::IFDSCFLEnvTaintAnalysis);
-        }
-      }
       Printer->onFinalize(OS);
       if (!HasResults) {
         OS << "No leaks found!\n";
