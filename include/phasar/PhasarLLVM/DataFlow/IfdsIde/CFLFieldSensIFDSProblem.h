@@ -279,7 +279,6 @@ template <bool AllowDeepTaints = true, typename ResultsT>
 [[nodiscard]] inline bool holdsFactAt(const ResultsT &Results,
                                       IFDSDomain::n_t Inst,
                                       IFDSDomain::d_t Fact) {
-  const IFDSDomain::l_t Bot = Bottom{};
   const auto &Fields = Results.resultAt(Inst, Fact);
 
   if (Fields.isTop()) {
@@ -311,12 +310,12 @@ template <bool AllowDeepTaints = true, typename ResultsT>
 bool filterFieldSensFacts(
     const ResultsT &Results, const auto &QueryMap,
     std::invocable<IFDSDomain::n_t, IFDSDomain::d_t> auto Handler) {
-  const IFDSDomain::l_t Bot = Bottom{};
+  const IFDSDomain::l_t Top = psr::Top{};
 
   for (const auto &[Inst, FactsAtInst] : QueryMap) {
     const auto &Row = Results.row(Inst);
     for (const auto &Fact : FactsAtInst) {
-      const auto &Fields = getOr(Row, Fact, Bot);
+      const auto &Fields = getOr(Row, Fact, Top);
 
       if (Fields.isTop()) {
         // Was not computed by the IDE Solver
