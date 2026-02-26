@@ -15,7 +15,6 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/DebugOutput.h"
 
@@ -65,9 +64,9 @@ protected:
   using GroundTruthMapTy =
       std::map<TestingSrcLocation, std::map<TestingSrcLocation, int>>;
 
-  [[nodiscard]] static inline auto convertTestingLocationMapMapInIR(
-      const GroundTruthMapTy &Locs,
-      const ProjectIRDBBase<LLVMProjectIRDB> &IRDB) {
+  [[nodiscard]] static inline auto
+  convertTestingLocationMapMapInIR(const GroundTruthMapTy &Locs,
+                                   const LLVMProjectIRDB &IRDB) {
     std::map<const llvm::Instruction *, std::map<const llvm::Value *, int>> Ret;
     llvm::transform(
         Locs, std::inserter(Ret, Ret.end()), [&](const auto &LocAndSet) {

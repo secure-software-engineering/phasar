@@ -6,9 +6,6 @@ add_phasar_library(phasar_config
   LINKS
     phasar_utils
 
-  LINK_PRIVATE
-    ${Boost_LIBRARIES}
-
   LLVM_LINK_COMPONENTS
     Support
 

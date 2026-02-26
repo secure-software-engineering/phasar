@@ -2,7 +2,25 @@
 
 ## development HEAD
 
-*None*
+- `IDESolver::initialize()` does no longer return a `bool`. Now, you are always allowed to call `next()` at least once.
+- `IntraMonoProblem` and `InterMonoProblem`, and all reference-implementations of these problems do not receive a TypeHierarchy-pointer anymore in the ctor.
+- Requiring C++20 instead of C++17
+  - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
+- The `AdjacencyList` struct now now has one more template argument to denote the intege-like `vertex_t` type. It is the second template argument (which previously was the EdgeType). The edge-type is now denoted by the *third* template argument.
+- The `AdjacencyList` switches from using `llvm::NoneType` as empty-node marker to `psr::EmptyType` for forward-compatibility with LLVM-16 that removes `llvm::NoneType`.
+
+- Removed `SpecialSummaries`.
+- Removed `Hexastore` and the corresponding database queries.
+- Removed `LLVMTypeHierarchy` (and `LLVMTypeHierarchyData`), which is superceeded by `DIBasedTypeHierarchy`.
+- Removed `Resolver::preCall()`, `Resolver::postCall()`, and `Resolver::otherInst()`.
+- Removed `TypestateDescription::start()`. Instead apply `TypestateDescription::getNextState()` on `TypestateDescription::uninit()`.
+- Removed `LLVMProjectIRDB::getParsedIRModuleOrNull()`. Use `LLVMProjectIRDB::getParsedIRModuleOrErr()` instead.
+- Removed `DIBasedTypeHierarchy::isVTable()` and `DIBasedTypeHierarchy::removeVTablePrefix()`. Use the corresponding functions from `LLVMVFTableProvider` instead.
+- Removed the CMake variable `PHASAR_HAS_SQLITE` as we removed the dependency on sqlite3.
+- The CMake Option `BUILD_PHASAR_CLANG` is no longer `ON` by default.
+- Removed the dependency to boost:
+  - Removed the boost-related command-line options in `bootstrap.sh`
+  - `InstallAptDependencies.sh` no longer installs boost (so, boost is also no longer built into PhASAR's Docker containers)
 
 ## v2510
 

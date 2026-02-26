@@ -10,12 +10,12 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_DATAFLOW_IFDSIDE_IDETABULATIONPROBLEM_H_
 
-#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/Utils/DefaultAnalysisPrinterSelector.h"
@@ -39,17 +39,16 @@ namespace psr {
 
 struct HasNoConfigurationType;
 
-template <typename AnalysisDomainTy, typename = void> class AllTopFnProvider {
+template <IdeAnalysisDomain AnalysisDomainTy> class AllTopFnProvider {
 public:
   virtual ~AllTopFnProvider() = default;
   /// Returns an edge function that represents the top element of the analysis.
   virtual EdgeFunction<typename AnalysisDomainTy::l_t> allTopFunction() = 0;
 };
 
-template <typename AnalysisDomainTy>
-class AllTopFnProvider<
-    AnalysisDomainTy,
-    std::enable_if_t<HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>>> {
+template <IdeAnalysisDomain AnalysisDomainTy>
+  requires HasJoinLatticeTraits<typename AnalysisDomainTy::l_t>
+class AllTopFnProvider<AnalysisDomainTy> {
 public:
   virtual ~AllTopFnProvider() = default;
   /// Returns an edge function that represents the top element of the analysis.
@@ -64,7 +63,7 @@ public:
 ///
 /// For more information on how to write an IDE analysis, see [Writing an IDE
 /// Analysis](https://github.com/secure-software-engineering/phasar/wiki/Writing-an-IDE-analysis)
-template <typename AnalysisDomainTy,
+template <IdeAnalysisDomain AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IDETabulationProblem : public FlowFunctions<AnalysisDomainTy, Container>,
                              public EdgeFunctions<AnalysisDomainTy>,
@@ -96,7 +95,7 @@ public:
   /// Λ). If not provided here, you must set it via \link initializeZeroValue()
   /// \endlink.
   explicit IDETabulationProblem(
-      const ProjectIRDBBase<db_t> *IRDB, std::vector<std::string> EntryPoints,
+      const db_t *IRDB, std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IRDB(IRDB), EntryPoints(std::move(EntryPoints)),
@@ -176,9 +175,7 @@ public:
   /// the level of soundness is ignored. Otherwise, true.
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
-  [[nodiscard]] const ProjectIRDBBase<db_t> *getProjectIRDB() const noexcept {
-    return IRDB;
-  }
+  [[nodiscard]] const db_t *getProjectIRDB() const noexcept { return IRDB; }
 
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType
@@ -194,21 +191,21 @@ protected:
                       AnalysisType);
   }
 
-  template <typename D = d_t, typename L = l_t>
-  std::enable_if_t<std::is_same_v<L, psr::BinaryDomain>>
-  onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
+  template <typename D = d_t>
+    requires std::is_same_v<l_t, BinaryDomain>
+  void onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
     Printer->onResult(Instr, PSR_FWD(DfFact), AnalysisType);
   }
 
   /// Seeds that just start with ZeroValue and bottomElement() at the starting
   /// points of each EntryPoint function.
   /// Takes the __ALL__ EntryPoint into account.
-  template <
-      typename CC = typename AnalysisDomainTy::c_t,
-      typename = std::enable_if_t<std::is_nothrow_default_constructible_v<CC>>>
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> createDefaultSeeds() {
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> createDefaultSeeds()
+    requires std::is_nothrow_default_constructible_v<
+        typename AnalysisDomainTy::c_t>
+  {
     InitialSeeds<n_t, d_t, l_t> Seeds;
-    CC C{};
+    typename AnalysisDomainTy::c_t C{};
 
     addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
                               this->bottomElement());
@@ -216,7 +213,7 @@ protected:
     return Seeds;
   }
 
-  const ProjectIRDBBase<db_t> *IRDB{};
+  const db_t *IRDB{};
   std::vector<std::string> EntryPoints;
   std::optional<d_t> ZeroValue;
 

@@ -20,5 +20,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h"
 
 #endif // PHASAR_PHASARLLVM_CONTROLFLOW_H

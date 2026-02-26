@@ -20,6 +20,8 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#include <type_traits>
+
 namespace psr::detail {
 
 /// FIXME: This is not entirely correct: Does not skip ignored statements and
@@ -27,13 +29,11 @@ namespace psr::detail {
 /// The right way would be to ask the ICFG, but we don't have a reference to it
 /// here yet (TODO!)
 template <typename Derived, typename N, typename D, typename L>
-template <typename NTy>
 auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
-    ByConstRef<n_t> Stmt, bool AllowOverapproximation, bool StripZero) const ->
-    typename std::enable_if_t<
-        std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
-                       llvm::Instruction>,
-        std::unordered_map<d_t, l_t>> {
+    ByConstRef<n_t> Stmt, bool AllowOverapproximation, bool StripZero) const
+    -> std::unordered_map<d_t, l_t>
+  requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+{
   std::unordered_map<d_t, l_t> Result = [this, Stmt, AllowOverapproximation]() {
     if (Stmt->getType()->isVoidTy()) {
       return self().Results.row(Stmt);
@@ -99,13 +99,11 @@ auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
 }
 
 template <typename Derived, typename N, typename D, typename L>
-template <typename NTy>
+
 auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
-    ByConstRef<n_t> Stmt, d_t Value, bool AllowOverapproximation) const ->
-    typename std::enable_if_t<
-        std::is_same_v<std::decay_t<std::remove_pointer_t<NTy>>,
-                       llvm::Instruction>,
-        l_t> {
+    ByConstRef<n_t> Stmt, d_t Value, bool AllowOverapproximation) const -> l_t
+  requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+{
   if (Stmt->getType()->isVoidTy()) {
     return self().Results.get(Stmt, Value);
   }

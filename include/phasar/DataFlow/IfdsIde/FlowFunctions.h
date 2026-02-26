@@ -83,10 +83,10 @@ template <typename FF> struct IsFlowFunction {
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 template <typename FF>
-PSR_CONCEPT is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
+concept is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
 
 /// Given a flow-function type FF, returns a (smart) pointer type pointing to FF
-template <typename FF, typename = std::enable_if_t<is_flowfunction_v<FF>>>
+template <is_flowfunction_v FF>
 using FlowFunctionPtrTypeOf = std::shared_ptr<FF>;
 
 /// Given a dataflow-fact type and optionally a container-type, returns a
@@ -255,8 +255,8 @@ public:
   ///   f(x) = {v, x}   if p(x) == true
   ///   f(x) = {x}      else.
   /// \endcode
-  template <typename Fn = psr::TrueFn,
-            typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, d_t>>>
+  template <typename Fn = psr::TrueFn>
+    requires std::is_invocable_r_v<bool, Fn, d_t>
   static auto generateFlowIf(d_t FactToGenerate, Fn Predicate) {
     struct GenFlowIf final : public FlowFunction<d_t, container_type> {
       GenFlowIf(d_t GenValue, Fn &&Predicate)
@@ -295,8 +295,7 @@ public:
   ///       v  v  v  v ... \    v ...
   ///       x  w  v1 v2 ... vN  u
   /// \endcode
-  template <typename Range = std::initializer_list<d_t>,
-            typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
+  template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
   static auto generateManyFlows(Range &&FactsToGenerate, d_t From) {
     struct GenMany final : public FlowFunction<d_t, container_type> {
       GenMany(container_type &&GenValues, d_t FromValue)
@@ -363,8 +362,8 @@ public:
   ///   f(x) = {}   if p(x) == true
   ///   f(x) = {x}  else.
   /// \endcode
-  template <typename Fn = psr::TrueFn,
-            typename = std::enable_if_t<std::is_invocable_r_v<bool, Fn, d_t>>>
+  template <typename Fn = psr::TrueFn>
+    requires std::is_invocable_r_v<bool, Fn, d_t>
   static auto killFlowIf(Fn Predicate) {
     struct KillFlowIf final : public FlowFunction<d_t, container_type> {
       KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
@@ -402,8 +401,7 @@ public:
   ///           v                 v
   ///           u  v1  v2 ... vN  w ...
   /// \endcode
-  template <typename Range = std::initializer_list<d_t>,
-            typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
+  template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
   static auto killManyFlows(Range &&FactsToKill) {
     struct KillMany final : public FlowFunction<d_t, container_type> {
       KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
@@ -501,8 +499,7 @@ public:
   ///          v  v  v ... \      ...
   ///       x  w  v1 v2 ... vN  u
   /// \endcode
-  template <typename Range = std::initializer_list<d_t>,
-            typename = std::enable_if_t<is_iterable_over_v<Range, d_t>>>
+  template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
   static auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate,
                                                 d_t From) {
     struct GenManyAndKillAllOthers final
@@ -588,12 +585,11 @@ public:
   /// \code
   ///   f(x) = g(x) u h(x).     (where u denotes set-union)
   /// \endcode
-  template <typename F1, typename F2,
-            typename = std::enable_if_t<
-                std::is_same_v<d_t, typename F2::value_type> &&
-                std::is_same_v<container_type, typename F2::container_type> &&
-                std::is_same_v<typename F1::container_type,
-                               typename F2::container_type>>>
+  template <typename F1, typename F2>
+    requires(std::is_same_v<d_t, typename F2::value_type> &&
+             std::is_same_v<container_type, typename F2::container_type> &&
+             std::is_same_v<typename F1::container_type,
+                            typename F2::container_type>)
   auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
                   FlowFunctionPtrTypeOf<F2> OtherFF) {
     struct UnionFlow final : public FlowFunction<d_t, container_type> {

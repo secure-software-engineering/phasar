@@ -7,7 +7,6 @@
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/DebugOutput.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -35,12 +34,18 @@ protected:
   std::optional<IFDSTaintAnalysis> TaintProblem;
   std::optional<LLVMTaintConfig> TSF;
 
+  static bool isDummySrcFun(llvm::StringRef Name) {
+    return Name == "_Z6sourcev" || Name == "source";
+  }
+  static bool isDummySinkFun(llvm::StringRef Name) {
+    return Name == "_Z4sinki" || Name == "sink";
+  }
   static LLVMTaintConfig getDefaultConfig() {
     auto SourceCB = [](const llvm::Instruction *Inst) {
       std::set<const llvm::Value *> Ret;
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
           Call && Call->getCalledFunction() &&
-          Call->getCalledFunction()->getName() == "_Z6sourcev") {
+          isDummySrcFun(Call->getCalledFunction()->getName())) {
         Ret.insert(Call);
       }
       return Ret;
@@ -49,7 +54,7 @@ protected:
       std::set<const llvm::Value *> Ret;
       if (const auto *Call = llvm::dyn_cast<llvm::CallBase>(Inst);
           Call && Call->getCalledFunction() &&
-          Call->getCalledFunction()->getName() == "_Z4sinki") {
+          isDummySinkFun(Call->getCalledFunction()->getName())) {
         assert(Call->arg_size() > 0);
         Ret.insert(Call->getArgOperand(0));
       }
@@ -190,6 +195,18 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   auto Entry = LineColFun{5, 3, "main"};
   auto Main0 = ArgInFun{0, "main"};
   GroundTruthTy GroundTruth{{Entry, {Main0}}};
+
+  compare(TaintProblem->Leaks, GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, SRetTest_01) {
+  initialize({PathToLlFiles + "dummy_source_sink/sret_c_dbg.ll"});
+  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  TaintSolver.solve();
+
+  auto SinkCall = LineColFun{21, 3, "main"};
+  auto BsdataAt0 = LineColFunOp{21, 8, "main", llvm::Instruction::Load};
+  GroundTruthTy GroundTruth{{SinkCall, {BsdataAt0}}};
 
   compare(TaintProblem->Leaks, GroundTruth);
 }

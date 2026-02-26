@@ -59,30 +59,6 @@ public:
               FunctionGetter GetFunctionFromName,
               InstructionGetter GetInstructionFromId);
 
-  /// A range of all functions that are vertices in the call-graph. The number
-  /// of vertex functions can be retrieved by getNumVertexFunctions().
-  [[nodiscard]] auto getAllVertexFunctions() const noexcept {
-    return llvm::make_first_range(CallersOf);
-  }
-
-  /// A range of all call-sites that are vertices in the call-graph. The number
-  /// of vertex-callsites can be retrived by getNumVertexCallSites().
-  [[nodiscard]] auto getAllVertexCallSites() const noexcept {
-    return llvm::make_first_range(CalleesAt);
-  }
-
-  [[nodiscard]] size_t getNumVertexFunctions() const noexcept {
-    return CallersOf.size();
-  }
-  [[nodiscard]] size_t getNumVertexCallSites() const noexcept {
-    return CalleesAt.size();
-  }
-
-  /// The number of functions within this call-graph
-  [[nodiscard]] size_t size() const noexcept { return getNumVertexFunctions(); }
-
-  [[nodiscard]] bool empty() const noexcept { return CallersOf.empty(); }
-
   template <typename FunctionIdGetter, typename InstIdGetter>
   void printAsJson(llvm::raw_ostream &OS, FunctionIdGetter GetFunctionId,
                    InstIdGetter GetInstructionId) const {
@@ -114,7 +90,7 @@ public:
     Fun2Id.reserve(CallersOf.size());
 
     size_t CurrId = 0;
-    for (const auto &Fun : getAllVertexFunctions()) {
+    for (const auto &Fun : this->getAllVertexFunctions()) {
       OS << CurrId << "[label=\"";
       OS.write_escaped(std::invoke(GetFunctionLabel, Fun)) << "\"];\n";
       Fun2Id[Fun] = CurrId++;
@@ -145,6 +121,25 @@ private:
       return *CallersPtr;
     }
     return {};
+  }
+
+  /// A range of all functions that are vertices in the call-graph. The number
+  /// of vertex functions can be retrieved by getNumVertexFunctions().
+  [[nodiscard]] auto getAllVertexFunctionsImpl() const noexcept {
+    return llvm::make_first_range(CallersOf);
+  }
+
+  /// A range of all call-sites that are vertices in the call-graph. The number
+  /// of vertex-callsites can be retrived by getNumVertexCallSites().
+  [[nodiscard]] auto getAllVertexCallSitesImpl() const noexcept {
+    return llvm::make_first_range(CalleesAt);
+  }
+
+  [[nodiscard]] size_t getNumVertexFunctionsImpl() const noexcept {
+    return CallersOf.size();
+  }
+  [[nodiscard]] size_t getNumVertexCallSitesImpl() const noexcept {
+    return CalleesAt.size();
   }
 
   // ---
@@ -274,7 +269,7 @@ CallGraph<N, F>::deserialize(const CallGraphData &PrecomputedCG,
                              "Invalid Call-Instruction Id: " << JId);
       }
 
-      CGBuilder.addCallEdge(CS, Fun);
+      CGBuilder.addCallEdge(CS, Fun, CEdges);
     }
   }
   return CGBuilder.consumeCallGraph();

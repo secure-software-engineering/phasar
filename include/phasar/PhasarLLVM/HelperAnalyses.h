@@ -15,6 +15,8 @@
 #include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 
+#include "llvm/ADT/Twine.h"
+
 #include <memory>
 #include <optional>
 #include <vector>

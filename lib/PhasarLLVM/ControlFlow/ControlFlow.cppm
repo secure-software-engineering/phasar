@@ -8,6 +8,7 @@ module;
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFGProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFG.h"
@@ -19,6 +20,7 @@ export namespace psr {
 using psr::buildLLVMBasedCallGraph;
 using psr::CFGTraits;
 using psr::CHAResolver;
+using psr::getDefaultEntryPoints;
 using psr::getEntryFunctions;
 using psr::getEntryFunctionsMut;
 using psr::getNonPureVirtualVFTEntry;
@@ -45,4 +47,5 @@ using psr::SparseLLVMBasedCFGProvider;
 using psr::SparseLLVMBasedICFG;
 using psr::SparseLLVMBasedICFGView;
 using psr::valueOf;
+using psr::VTAResolver;
 } // namespace psr

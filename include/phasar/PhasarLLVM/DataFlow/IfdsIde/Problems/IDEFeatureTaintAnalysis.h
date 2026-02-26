@@ -13,7 +13,9 @@
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -22,8 +24,8 @@
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/FunctionExtras.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
+#include "llvm/ADT/bit.h"
 
 #include <cstdint>
 #include <functional>
@@ -36,7 +38,6 @@ class GlobalVariable;
 } // namespace llvm
 
 namespace psr {
-class LLVMProjectIRDB;
 
 struct IDEFeatureTaintEdgeFact {
   llvm::SmallBitVector Taints;
@@ -48,7 +49,7 @@ struct IDEFeatureTaintEdgeFact {
     }
 #endif
 
-    llvm::SmallBitVector Ret(llvm::findLastSet(Bits) + 1);
+    llvm::SmallBitVector Ret(llvm::bit_width(Bits));
     Ret.setBitsInMask((const uint32_t *)&Bits, sizeof(Bits));
     return Ret;
   }
@@ -62,7 +63,7 @@ struct IDEFeatureTaintEdgeFact {
   explicit IDEFeatureTaintEdgeFact() noexcept { Taints.invalid(); }
 
   void unionWith(uintptr_t Facts) {
-    auto RequiredSize = llvm::findLastSet(Facts) + 1;
+    size_t RequiredSize = llvm::bit_width(Facts);
     if (RequiredSize > Taints.size()) {
       Taints.resize(RequiredSize);
     }
@@ -241,13 +242,13 @@ public:
             createGenerateTaints(std::forward<EdgeFactGenerator>(EFGen))),
         Printer(createEdgeFactPrinter<EdgeFactGenerator>()) {}
 
-  template <typename EdgeFactGenerator,
-            typename = std::enable_if_t<!std::is_same_v<
-                FeatureTaintGenerator, std::decay_t<EdgeFactGenerator>>>>
+  template <typename EdgeFactGenerator>
+    requires(
+        !std::is_same_v<FeatureTaintGenerator, std::decay_t<EdgeFactGenerator>>)
   FeatureTaintGenerator(EdgeFactGenerator &&EFGen)
       : FeatureTaintGenerator(
             [EFGen](InstOrGlobal IG) {
-              return !llvm::empty(std::invoke(EFGen, IG));
+              return !std::empty(std::invoke(EFGen, IG));
             },
             std::forward<EdgeFactGenerator>(EFGen)) {}
 

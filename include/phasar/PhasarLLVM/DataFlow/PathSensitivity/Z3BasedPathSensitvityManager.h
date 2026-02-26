@@ -67,9 +67,9 @@ protected:
 ///
 /// Filters out paths that are considered infeasible by the Z3
 /// constraint solver.
-template <typename AnalysisDomainTy,
-          typename = std::enable_if_t<std::is_same_v<
-              typename AnalysisDomainTy::n_t, const llvm::Instruction *>>>
+template <typename AnalysisDomainTy>
+  requires std::is_same_v<typename AnalysisDomainTy::n_t,
+                          const llvm::Instruction *>
 class Z3BasedPathSensitivityManager
     : public Z3BasedPathSensitivityManagerBase,
       public PathSensitivityManagerMixin<

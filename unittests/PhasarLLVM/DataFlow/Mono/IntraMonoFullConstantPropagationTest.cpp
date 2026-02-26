@@ -16,7 +16,6 @@
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
@@ -69,7 +68,7 @@ protected:
       for (const auto &[Fact, Value] : ResultSet) {
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
-        if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
+        if (FactRef.starts_with("%" + std::get<2>(Truth) + " ")) {
           llvm::outs() << "Checking variable: " << FactStr << '\n';
           ResultNotEmpty = true;
           EXPECT_EQ(std::get<3>(Truth), Value);

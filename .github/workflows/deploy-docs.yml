@@ -28,8 +28,8 @@ jobs:
       - name: Build Doxygen Docs
         shell: bash
         env:
-          CXX: clang++-15
-          CC: clang-15
+          CXX: clang++-16
+          CC: clang-16
         run: |
            cmake -S . -B build -DPHASAR_BUILD_DOC=ON
            cmake --build ./build --target doc_doxygen

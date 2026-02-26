@@ -10,6 +10,7 @@
 #ifndef PHASAR_CONTROLFLOW_CFGBASE_H
 #define PHASAR_CONTROLFLOW_CFGBASE_H
 
+#include "phasar/ControlFlow/CFG.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/CRTPUtils.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -139,10 +140,9 @@ public:
 
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-PSR_CONCEPT is_cfg_v =
-    is_crtp_base_of_v<CFGBase, ICF> &&
-    std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
-    std::is_same_v<typename ICF::f_t, typename Domain::f_t>;
+concept is_cfg_v = BidiCFG<ICF> && CFGDump<ICF> && CFGEdgesProvider<ICF> &&
+                   std::same_as<typename ICF::n_t, typename Domain::n_t> &&
+                   std::same_as<typename ICF::f_t, typename Domain::f_t>;
 
 } // namespace psr
 

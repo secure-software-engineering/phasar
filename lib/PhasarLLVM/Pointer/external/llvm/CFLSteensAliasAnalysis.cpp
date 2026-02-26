@@ -34,10 +34,9 @@
 // run on. Realistically, this likely isn't a problem until we allow
 // FunctionPasses to run concurrently.
 
-#include "llvm/Analysis/CFLSteensAliasAnalysis.h"
+#include "CFLSteensAliasAnalysis.h"
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/Constants.h"
@@ -168,7 +167,7 @@ CFLSteensAAResult::FunctionInfo::FunctionInfo(
     assert(RetVal != nullptr);
     assert(RetVal->getType()->isPointerTy());
     auto RetInfo = Sets.find(InstantiatedValue{RetVal, 0});
-    if (RetInfo.hasValue())
+    if (RetInfo.has_value())
       AddToRetParamRelations(0, RetInfo->Index);
   }
 
@@ -177,7 +176,7 @@ CFLSteensAAResult::FunctionInfo::FunctionInfo(
   for (auto &Param : Fn.args()) {
     if (Param.getType()->isPointerTy()) {
       auto ParamInfo = Sets.find(InstantiatedValue{&Param, 0});
-      if (ParamInfo.hasValue())
+      if (ParamInfo.has_value())
         AddToRetParamRelations(I + 1, ParamInfo->Index);
     }
     ++I;
@@ -228,7 +227,8 @@ CFLSteensAAResult::FunctionInfo CFLSteensAAResult::buildSetsFrom(Function *Fn) {
 }
 
 void CFLSteensAAResult::scan(Function *Fn) {
-  auto InsertPair = Cache.insert(std::make_pair(Fn, Optional<FunctionInfo>()));
+  auto InsertPair =
+      Cache.insert(std::make_pair(Fn, std::optional<FunctionInfo>()));
   (void)InsertPair;
   assert(InsertPair.second &&
          "Trying to scan a function that has already been cached");
@@ -246,21 +246,21 @@ void CFLSteensAAResult::evict(Function *Fn) { Cache.erase(Fn); }
 
 /// Ensures that the given function is available in the cache, and returns the
 /// entry.
-const Optional<CFLSteensAAResult::FunctionInfo> &
+const std::optional<CFLSteensAAResult::FunctionInfo> &
 CFLSteensAAResult::ensureCached(Function *Fn) {
   auto Iter = Cache.find(Fn);
   if (Iter == Cache.end()) {
     scan(Fn);
     Iter = Cache.find(Fn);
     assert(Iter != Cache.end());
-    assert(Iter->second.hasValue());
+    assert(Iter->second.has_value());
   }
   return Iter->second;
 }
 
 const AliasSummary *CFLSteensAAResult::getAliasSummary(Function &Fn) {
   auto &FunInfo = ensureCached(&Fn);
-  if (FunInfo.hasValue())
+  if (FunInfo.has_value())
     return &FunInfo->getAliasSummary();
   else
     return nullptr;
@@ -296,15 +296,15 @@ AliasResult CFLSteensAAResult::query(const MemoryLocation &LocA,
 
   assert(Fn != nullptr);
   auto &MaybeInfo = ensureCached(Fn);
-  assert(MaybeInfo.hasValue());
+  assert(MaybeInfo.has_value());
 
   auto &Sets = MaybeInfo->getStratifiedSets();
   auto MaybeA = Sets.find(InstantiatedValue{ValA, 0});
-  if (!MaybeA.hasValue())
+  if (!MaybeA.has_value())
     return AliasResult::MayAlias;
 
   auto MaybeB = Sets.find(InstantiatedValue{ValB, 0});
-  if (!MaybeB.hasValue())
+  if (!MaybeB.has_value())
     return AliasResult::MayAlias;
 
   auto SetA = *MaybeA;
@@ -340,28 +340,4 @@ CFLSteensAAResult CFLSteensAA::run(Function &F, FunctionAnalysisManager &AM) {
     return AM.getResult<TargetLibraryAnalysis>(F);
   };
   return CFLSteensAAResult(GetTLI);
-}
-
-char CFLSteensAAWrapperPass::ID = 0;
-INITIALIZE_PASS(CFLSteensAAWrapperPass, "cfl-steens-aa",
-                "Unification-Based CFL Alias Analysis", false, true)
-
-ImmutablePass *llvm::createCFLSteensAAWrapperPass() {
-  return new CFLSteensAAWrapperPass();
-}
-
-CFLSteensAAWrapperPass::CFLSteensAAWrapperPass() : ImmutablePass(ID) {
-  initializeCFLSteensAAWrapperPassPass(*PassRegistry::getPassRegistry());
-}
-
-void CFLSteensAAWrapperPass::initializePass() {
-  auto GetTLI = [this](Function &F) -> const TargetLibraryInfo & {
-    return this->getAnalysis<TargetLibraryInfoWrapperPass>().getTLI(F);
-  };
-  Result.reset(new CFLSteensAAResult(GetTLI));
-}
-
-void CFLSteensAAWrapperPass::getAnalysisUsage(AnalysisUsage &AU) const {
-  AU.setPreservesAll();
-  AU.addRequired<TargetLibraryInfoWrapperPass>();
 }

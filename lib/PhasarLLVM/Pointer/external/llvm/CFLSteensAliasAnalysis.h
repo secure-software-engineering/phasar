@@ -15,13 +15,13 @@
 #define LLVM_ANALYSIS_CFLSTEENSALIASANALYSIS_H
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/Optional.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Analysis/CFLAliasAnalysisUtils.h"
 #include "llvm/Analysis/MemoryLocation.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
+
+#include "CFLAliasAnalysisUtils.h"
 
 #include <forward_list>
 #include <memory>
@@ -37,9 +37,7 @@ struct AliasSummary;
 
 } // end namespace cflaa
 
-class CFLSteensAAResult : public AAResultBase<CFLSteensAAResult> {
-  friend AAResultBase<CFLSteensAAResult>;
-
+class CFLSteensAAResult : public AAResultBase {
   class FunctionInfo;
 
 public:
@@ -63,7 +61,7 @@ public:
 
   /// Ensures that the given function is available in the cache.
   /// Returns the appropriate entry from the cache.
-  const Optional<FunctionInfo> &ensureCached(Function *Fn);
+  const std::optional<FunctionInfo> &ensureCached(Function *Fn);
 
   /// Get the alias summary for the given function
   /// Return nullptr if the summary is not found or not available
@@ -72,7 +70,7 @@ public:
   AliasResult query(const MemoryLocation &LocA, const MemoryLocation &LocB);
 
   AliasResult alias(const MemoryLocation &LocA, const MemoryLocation &LocB,
-                    AAQueryInfo &AAQI) {
+                    AAQueryInfo &AAQI, const Instruction *CtxI) {
     if (LocA.Ptr == LocB.Ptr)
       return AliasResult::MustAlias;
 
@@ -82,11 +80,11 @@ public:
     // ConstantExpr, but every query needs to have at least one Value tied to a
     // Function, and neither GlobalValues nor ConstantExprs are.
     if (isa<Constant>(LocA.Ptr) && isa<Constant>(LocB.Ptr))
-      return AAResultBase::alias(LocA, LocB, AAQI);
+      return AAResultBase::alias(LocA, LocB, AAQI, CtxI);
 
     AliasResult QueryResult = query(LocA, LocB);
     if (QueryResult == AliasResult::MayAlias)
-      return AAResultBase::alias(LocA, LocB, AAQI);
+      return AAResultBase::alias(LocA, LocB, AAQI, CtxI);
 
     return QueryResult;
   }
@@ -99,7 +97,7 @@ private:
   /// in the cache as an Optional without a value. This way, if we
   /// have any kind of recursion, it is discernable from a function
   /// that simply has empty sets.
-  DenseMap<Function *, Optional<FunctionInfo>> Cache;
+  DenseMap<Function *, std::optional<FunctionInfo>> Cache;
   std::forward_list<cflaa::FunctionHandle<CFLSteensAAResult>> Handles;
 
   FunctionInfo buildSetsFrom(Function *F);
@@ -119,26 +117,6 @@ public:
 
   CFLSteensAAResult run(Function &F, FunctionAnalysisManager &AM);
 };
-
-/// Legacy wrapper pass to provide the CFLSteensAAResult object.
-class CFLSteensAAWrapperPass : public ImmutablePass {
-  std::unique_ptr<CFLSteensAAResult> Result;
-
-public:
-  static char ID;
-
-  CFLSteensAAWrapperPass();
-
-  CFLSteensAAResult &getResult() { return *Result; }
-  const CFLSteensAAResult &getResult() const { return *Result; }
-
-  void initializePass() override;
-  void getAnalysisUsage(AnalysisUsage &AU) const override;
-};
-
-// createCFLSteensAAWrapperPass - This pass implements a set-based approach to
-// alias analysis.
-ImmutablePass *createCFLSteensAAWrapperPass();
 
 } // end namespace llvm
 

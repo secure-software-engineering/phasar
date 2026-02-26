@@ -18,6 +18,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_JUMPFUNCTIONS_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
@@ -35,7 +36,7 @@ namespace psr {
 
 // Forward declare the IDETabulationProblem as we require its toString
 // functionality.
-template <typename AnalysisDomainTy, typename Container>
+template <IdeAnalysisDomain AnalysisDomainTy, typename Container>
 class IDETabulationProblem;
 
 template <typename AnalysisDomainTy, typename Container> class JumpFunctions {

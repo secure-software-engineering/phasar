@@ -18,61 +18,51 @@
 
 #include "llvm/ADT/STLFunctionalExtras.h"
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
 namespace psr {
 namespace detail {
-template <typename T, typename = void>
-struct IsPointsToIterator : std::false_type {};
 
 template <typename T>
-struct IsPointsToIterator<
-    T, std::void_t<decltype(std::declval<const T &>().forallPointeesOf(
-           std::declval<typename T::o_t>(), std::declval<typename T::n_t>(),
-           std::declval<llvm::function_ref<void(typename T::o_t)>>()))>>
-    : std::true_type {};
+concept HasMayPointsTo =
+    requires(const T &PI, typename T::o_t Obj, typename T::n_t Inst) {
+      { PI.mayPointsTo(Obj, Obj, Inst) } -> std::convertible_to<bool>;
+    };
 
-template <typename T, typename = bool>
-struct HasMayPointsTo : std::false_type {};
 template <typename T>
-struct HasMayPointsTo<T, decltype(std::declval<const T &>().mayPointsTo(
-                             std::declval<typename T::o_t>(),
-                             std::declval<typename T::o_t>(),
-                             std::declval<typename T::n_t>()))>
-    : std::true_type {};
+concept HasGetPointsToSet =
+    requires(const T &PI, typename T::o_t Obj, typename T::n_t Inst) {
+      PI.getPointsToSet(Obj, Inst);
+    };
 
-template <typename T, typename = void>
-struct HasGetPointsToSet : std::false_type {};
 template <typename T>
-struct HasGetPointsToSet<T, decltype(std::declval<const T &>().getPointsToSet(
-                                std::declval<typename T::o_t>(),
-                                std::declval<typename T::n_t>()))>
-    : std::true_type {};
+concept HasAsAbstractObject = requires(const T &PI, typename T::v_t Ptr) {
+  { PI.asAbstractObject(Ptr) } -> std::convertible_to<typename T::o_t>;
+};
 
-template <typename T, typename = void>
-struct HasAsAbstractObject : std::false_type {};
 template <typename T>
-struct HasAsAbstractObject<T,
-                           decltype(std::declval<const T &>().asAbstractObject(
-                               std::declval<typename T::v_t>()))>
-    : std::true_type {};
+concept HasReachableAllocationSites =
+    requires(T &PI, typename T::v_t Ptr, typename T::n_t Inst) {
+      PI.getReachableAllocationSites(Ptr, bool(), Inst);
+      {
+        PI.isInReachableAllocationSites(Ptr, Ptr, bool(), Inst)
+      } -> std::convertible_to<bool>;
+    };
 
-template <typename T, typename = void>
-struct HasReachableAllocationSites : std::false_type {};
-template <typename T>
-struct HasReachableAllocationSites<
-    T, std::void_t<decltype(std::declval<T &>().getReachableAllocationSites(
-                       std::declval<typename T::v_t>(), true,
-                       std::declval<typename T::n_t>())),
-                   decltype(std::declval<T &>().isInReachableAllocationSites(
-                       std::declval<typename T::v_t>(),
-                       std::declval<typename T::v_t>(), true,
-                       std::declval<typename T::n_t>()))>> : std::true_type {};
+template <typename ConcretePTA, typename V, typename O, typename N>
+concept IsMatchingPTA = std::is_same_v<V, typename ConcretePTA::v_t> &&
+                        std::is_same_v<O, typename ConcretePTA::o_t> &&
+                        std::is_same_v<N, typename ConcretePTA::n_t>;
 } // namespace detail
 
 template <typename T>
-PSR_CONCEPT IsPointsToIterator = detail::IsPointsToIterator<T>::value;
+concept IsPointsToIterator =
+    requires(const T &PI, typename T::o_t Obj, typename T::n_t Inst,
+             llvm::function_ref<void(typename T::o_t)> Callback) {
+      PI.forallPointeesOf(Obj, Inst, Callback);
+    };
 
 /// A type-erased reference to any object implementing the IsPointsToIterator
 /// interface. Use this, if your alias-aware analysis just needs
@@ -100,44 +90,33 @@ public:
     void (*Destroy)(const void *) noexcept; // Useful for the owning variant
   };
 
-  template <
-      typename ConcretePTA,
-      std::enable_if_t<!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
-                       std::is_same_v<v_t, typename ConcretePTA::v_t> &&
-                       std::is_same_v<o_t, typename ConcretePTA::o_t> &&
-                       std::is_same_v<n_t, typename ConcretePTA::n_t> &&
-                       !detail::HasReachableAllocationSites<ConcretePTA>::value>
-          * = nullptr>
+  template <detail::IsMatchingPTA<v_t, o_t, n_t> ConcretePTA>
+    requires(!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
+             !detail::HasReachableAllocationSites<ConcretePTA>)
   constexpr PointsToIteratorRef(const ConcretePTA *PT) noexcept
       : PT(getOpaquePtr(psr::assertNotNull(PT))), VT(&VTableFor<ConcretePTA>) {
     static_assert(IsPointsToIterator<PointsToIteratorRef>);
   }
 
-  template <
-      typename ConcretePTA,
-      std::enable_if_t<!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
-                       std::is_same_v<v_t, typename ConcretePTA::v_t> &&
-                       std::is_same_v<v_t, o_t> &&
-                       std::is_same_v<n_t, typename ConcretePTA::n_t> &&
-                       !std::is_const_v<ConcretePTA> && // Need non-const API
-                       detail::HasReachableAllocationSites<ConcretePTA>::value>
-          * = nullptr>
+  template <typename ConcretePTA>
+    requires(!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
+             std::is_same_v<v_t, typename ConcretePTA::v_t> &&
+             std::is_same_v<v_t, o_t> &&
+             std::is_same_v<n_t, typename ConcretePTA::n_t> &&
+             !std::is_const_v<ConcretePTA> && // Need non-const API
+             detail::HasReachableAllocationSites<ConcretePTA>)
   constexpr PointsToIteratorRef(ConcretePTA *PT) noexcept
       : PT(getOpaquePtr(psr::assertNotNull(PT))),
         VT(&ReachableAllocSitesVTFor<ConcretePTA>) {
     static_assert(IsPointsToIterator<PointsToIteratorRef>);
   }
 
-  template <typename ConcretePTA,
-            typename = std::enable_if_t<
-                !std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
-                std::is_same_v<v_t, typename ConcretePTA::v_t> &&
-                std::is_same_v<o_t, typename ConcretePTA::o_t> &&
-                std::is_same_v<n_t, typename ConcretePTA::n_t> &&
-                CanSSO<ConcretePTA>>>
+  template <detail::IsMatchingPTA<v_t, o_t, n_t> ConcretePTA>
+    requires(!std::is_base_of_v<PointsToIteratorRef, ConcretePTA> &&
+             CanSSO<ConcretePTA>)
   constexpr PointsToIteratorRef(ConcretePTA PT) noexcept
       : PT(getOpaquePtr(PT)), VT(&VTableFor<ConcretePTA>) {
-    static_assert(detail::IsPointsToIterator<PointsToIteratorRef>::value);
+    static_assert(IsPointsToIterator<PointsToIteratorRef>);
   }
 
   constexpr explicit PointsToIteratorRef(const void *PT,
@@ -181,12 +160,12 @@ private:
   template <typename ConcretePTA>
   static o_t asAbstractObjectThunk(const void *PT,
                                    ByConstRef<v_t> Pointer) noexcept {
-    if constexpr (detail::HasAsAbstractObject<ConcretePTA>::value) {
+    if constexpr (detail::HasAsAbstractObject<ConcretePTA>) {
       return fromOpaquePtr<ConcretePTA>(PT)->asAbstractObject(Pointer);
     } else if constexpr (std::is_convertible_v<v_t, o_t>) {
       return Pointer;
     } else {
-      static_assert(detail::HasAsAbstractObject<ConcretePTA>::value);
+      static_assert(detail::HasAsAbstractObject<ConcretePTA>);
     }
   }
 
@@ -230,9 +209,9 @@ private:
   static bool mayPointsToThunk(const void *PT, ByConstRef<o_t> Pointer,
                                ByConstRef<o_t> Obj, ByConstRef<n_t> At) {
     const auto *CPT = fromOpaquePtr<ConcretePTA>(PT);
-    if constexpr (detail::HasMayPointsTo<ConcretePTA>::value) {
+    if constexpr (detail::HasMayPointsTo<ConcretePTA>) {
       return CPT->mayPointsTo(Pointer, Obj, At);
-    } else if constexpr (detail::HasGetPointsToSet<ConcretePTA>::value) {
+    } else if constexpr (detail::HasGetPointsToSet<ConcretePTA>) {
       auto &&PointsToSet = CPT->getPointsToSet(Pointer, At);
       // The PointsToSet can be a set or a pointer to a set
       auto *PointsToSetPtr = getPointerFrom(PointsToSet);
@@ -332,15 +311,15 @@ public:
     }
   }
 
-  template <typename ConcretePTA, typename... ArgTys,
-            std::enable_if_t<!base_t::template CanSSO<ConcretePTA>>>
+  template <typename ConcretePTA, typename... ArgTys>
+    requires(!base_t::template CanSSO<ConcretePTA>)
   constexpr explicit PointsToIterator(
       std::in_place_type_t<ConcretePTA> /*unused*/, ArgTys &&...Args)
       : PointsToIterator(
             std::make_unique<ConcretePTA>(std::forward<ArgTys>(Args)...)) {}
 
-  template <typename ConcretePTA, typename... ArgTys,
-            std::enable_if_t<base_t::template CanSSO<ConcretePTA>>>
+  template <typename ConcretePTA, typename... ArgTys>
+    requires(base_t::template CanSSO<ConcretePTA>)
   constexpr explicit PointsToIterator(
       std::in_place_type_t<ConcretePTA> /*unused*/, ArgTys &&...Args)
       : base_t([&] {

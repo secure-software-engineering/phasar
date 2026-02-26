@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
@@ -35,39 +36,15 @@ namespace psr {
 template <typename L> class EdgeFunction;
 template <typename EF> class EdgeFunctionRef;
 
-#if __cplusplus < 202002L
-
-namespace detail {
-template <typename T, typename = void>
-struct IsEdgeFunction : std::false_type {};
 template <typename T>
-struct IsEdgeFunction<
-    T, std::void_t<
-           typename T::l_t,
-           decltype(std::declval<const T &>().computeTarget(
-               std::declval<typename T::l_t>())),
-           decltype(T::compose(std::declval<EdgeFunctionRef<T>>(),
-                               std::declval<EdgeFunction<typename T::l_t>>())),
-           decltype(T::join(std::declval<EdgeFunctionRef<T>>(),
-                            std::declval<EdgeFunction<typename T::l_t>>()))>>
-    : std::true_type {};
-
-} // namespace detail
-template <typename T>
-static constexpr bool IsEdgeFunction = detail::IsEdgeFunction<T>::value;
-
-#else
-// clang-format off
-template <typename T>
-concept IsEdgeFunction = requires(const T &EF, const EdgeFunction<typename T::l_t>& TEEF, EdgeFunctionRef<T> CEF, typename T::l_t Src) {
-  typename T::l_t;
-  {EF.computeTarget(Src)}   -> std::convertible_to<typename T::l_t>;
-  {T::compose(CEF, TEEF)}  -> std::same_as<EdgeFunction<typename T::l_t>>;
-  {T::join(CEF, TEEF)}     -> std::same_as<EdgeFunction<typename T::l_t>>;
-};
-// clang-format on
-
-#endif
+concept IsEdgeFunction =
+    requires(const T &EF, const EdgeFunction<typename T::l_t> &TEEF,
+             EdgeFunctionRef<T> CEF, typename T::l_t Src) {
+      typename T::l_t;
+      { EF.computeTarget(Src) } -> std::convertible_to<typename T::l_t>;
+      { T::compose(CEF, TEEF) } -> std::same_as<EdgeFunction<typename T::l_t>>;
+      { T::join(CEF, TEEF) } -> std::same_as<EdgeFunction<typename T::l_t>>;
+    };
 
 enum class EdgeFunctionAllocationPolicy {
   SmallObjectOptimized,
@@ -231,8 +208,8 @@ public:
 
   /// Implicit-conversion constructor from EdgeFunctionRef. Increments the
   /// ref-count if not small-object optimized
-  template <typename ConcreteEF, typename = std::enable_if_t<!std::is_same_v<
-                                     EdgeFunction, std::decay_t<ConcreteEF>>>>
+  template <typename ConcreteEF>
+    requires(!std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>>)
   EdgeFunction(EdgeFunctionRef<ConcreteEF> CEF) noexcept
       : EdgeFunction(CEF.Instance,
                      {&VTableFor<ConcreteEF>, [CEF] {
@@ -249,10 +226,8 @@ public:
   /// Conversion-constructor from any edge function (that satisfies the
   /// IsEdgeFunction trait). Stores a type-erased copy of CEF and allocates
   /// space for it on the heap if small-object-optimization cannot be applied.
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
+  template <IsEdgeFunction ConcreteEF>
+    requires(!std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>>)
   EdgeFunction(ConcreteEF &&CEF) noexcept(
       IsSOOCandidate<std::decay_t<ConcreteEF>>)
       : EdgeFunction(std::in_place_type<std::decay_t<ConcreteEF>>,
@@ -263,7 +238,7 @@ public:
   /// for it on the heap if small-object-optimization cannot be applied.
   /// No extra copy- or move construction/assignment is performed. Use this ctor
   /// if even moving is expensive.
-  template <typename ConcreteEF, typename... ArgTys>
+  template <IsEdgeFunction ConcreteEF, typename... ArgTys>
   explicit EdgeFunction(
       std::in_place_type_t<ConcreteEF> /*unused*/,
       ArgTys &&...Args) noexcept(IsSOOCandidate<std::decay_t<ConcreteEF>> &&
@@ -297,9 +272,8 @@ public:
   /// automatically removes the edge function from EF.Cache. Hence, make sure
   /// that EF.Cache lives at least as long as the last edge function cached in
   /// it.
-  template <typename ConcreteEF, typename = std::enable_if_t<
-                                     IsEdgeFunction<ConcreteEF> &&
-                                     std::is_move_constructible_v<ConcreteEF>>>
+  template <IsEdgeFunction ConcreteEF>
+    requires std::is_move_constructible_v<ConcreteEF>
   EdgeFunction(CachedEdgeFunction<ConcreteEF> EF)
       : EdgeFunction(
             [&EF] {
@@ -438,14 +412,19 @@ public:
            LHS.VTAndHeapAlloc.getPointer()->equals(LHS.EF, RHS.EF);
   }
 
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] bool equals(EdgeFunctionRef<ConcreteEF> Other) const noexcept {
-    // NOTE: Workaround issue in g++ that does not allow transitive friends: If
-    // putting this code in the operator== below, we cannot access
-    // Other.Instance, although it is friended...
+  template <IsEdgeFunction ConcreteEF>
+    requires(!std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>>)
+  [[nodiscard]] PSR_DEPRECATED(
+      "With C++20, we do not need this helper anymore, use operator== instead",
+      "operator==") bool equals(EdgeFunctionRef<ConcreteEF> Other)
+      const noexcept {
+    return *this == Other;
+  }
+
+  template <IsEdgeFunction ConcreteEF>
+    requires(!std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>>)
+  [[nodiscard]] bool
+  operator==(EdgeFunctionRef<ConcreteEF> Other) const noexcept {
     if (!isa<ConcreteEF>()) {
       return false;
     }
@@ -459,61 +438,9 @@ public:
     }
   }
 
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool operator==(EdgeFunctionRef<ConcreteEF> LHS,
-                                       const EdgeFunction &RHS) noexcept {
-    return RHS.equals(LHS);
-  }
-
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool
-  operator==(const EdgeFunction<L> &LHS,
-             EdgeFunctionRef<ConcreteEF> RHS) noexcept {
-    return RHS == LHS;
-  }
   [[nodiscard]] friend bool operator==(const EdgeFunction &EF,
                                        std::nullptr_t) noexcept {
     return EF.VTAndHeapAlloc.getOpaqueValue() == nullptr;
-  }
-  [[nodiscard]] friend bool operator==(std::nullptr_t,
-                                       const EdgeFunction &EF) noexcept {
-    return EF.VTAndHeapAlloc.getOpaqueValue() == nullptr;
-  }
-  [[nodiscard]] friend bool operator!=(const EdgeFunction &LHS,
-                                       const EdgeFunction &RHS) noexcept {
-    return !(LHS == RHS);
-  }
-  [[nodiscard]] friend bool operator!=(const EdgeFunction &EF,
-                                       std::nullptr_t) noexcept {
-    return !(EF == nullptr);
-  }
-  [[nodiscard]] friend bool operator!=(std::nullptr_t,
-                                       const EdgeFunction &EF) noexcept {
-    return !(EF == nullptr);
-  }
-
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool operator!=(EdgeFunctionRef<ConcreteEF> LHS,
-                                       const EdgeFunction<L> &RHS) noexcept {
-    return !(LHS == RHS);
-  }
-  template <typename ConcreteEF,
-            typename = std::enable_if_t<
-                !std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>> &&
-                IsEdgeFunction<ConcreteEF>>>
-  [[nodiscard]] friend bool
-  operator!=(const EdgeFunction<L> &LHS,
-             EdgeFunctionRef<ConcreteEF> RHS) noexcept {
-    return !(LHS == RHS);
   }
 
   /// Printing function. Based on llvm::raw_ostream
@@ -570,7 +497,7 @@ public:
   /// for all x,y in l_t it holds: computeTarget(x) == computeTarget(y).
   ///
   /// Allows for better optimizations in compose and join and should be
-  /// provided, whehever this knowledge is available.
+  /// provided, whenever this knowledge is available.
   [[nodiscard]] bool isConstant() const noexcept {
     assert(isValid() && "isConstant() called on nullptr!");
     return VTAndHeapAlloc.getPointer()->isConstant(EF);
@@ -580,7 +507,7 @@ public:
     return VTAndHeapAlloc.getOpaqueValue();
   }
 
-  /// Performs a null-check. True, iff thie edge function is not null.
+  /// Performs a null-check. True, iff this edge function is not null.
   [[nodiscard]] explicit operator bool() const noexcept { return isValid(); }
 
   /// Performs a runtime-typecheck. True, if the concrete type of the held edge
@@ -836,53 +763,6 @@ template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
   }
 };
 
-// LLVM is currently overhauling its casting system. Use the new variant once
-// possible!
-#if LLVM_VERSION_MAJOR < 15
-
-template <typename To, typename L>
-struct isa_impl_cl<To, const psr::EdgeFunction<L>> {
-  static inline bool doit(const psr::EdgeFunction<L> &Val) noexcept {
-    assert(Val && "isa<> used on a null pointer");
-    return Val.template isa<std::decay_t<To>>();
-  }
-};
-
-template <typename To, typename L>
-struct cast_retty_impl<To, const psr::EdgeFunction<L>> {
-  using ret_type = const To *;
-};
-
-template <typename To, typename L>
-struct cast_retty_impl<To, psr::EdgeFunction<L>>
-    : cast_retty_impl<To, const psr::EdgeFunction<L>> {};
-
-template <class To, class L>
-struct cast_convert_val<To, const psr::EdgeFunction<L>,
-                        const psr::EdgeFunction<L>> {
-  static typename cast_retty<To, psr::EdgeFunction<L>>::ret_type
-  doit(const psr::EdgeFunction<L> &Val) noexcept {
-    return Val.template cast<To>();
-  }
-};
-template <class To, class L>
-struct cast_convert_val<To, psr::EdgeFunction<L>, psr::EdgeFunction<L>>
-    : cast_convert_val<To, const psr::EdgeFunction<L>,
-                       const psr::EdgeFunction<L>> {};
-
-template <typename To, typename L>
-[[nodiscard]] inline typename cast_retty<To, psr::EdgeFunction<L>>::ret_type
-dyn_cast_or_null(const psr::EdgeFunction<L> &EF) noexcept { // NOLINT
-  return (EF && isa<To>(EF)) ? cast<To>(EF) : nullptr;
-}
-
-template <typename To, typename L>
-[[nodiscard]] inline typename cast_retty<To, psr::EdgeFunction<L>>::ret_type
-cast_or_null(const psr::EdgeFunction<L> &EF) noexcept { // NOLINT
-  return EF ? cast<To>(EF) : nullptr;
-}
-#else
-
 template <typename To, typename L>
 struct CastIsPossible<To, psr::EdgeFunction<L>> {
   static inline bool isPossible(const psr::EdgeFunction<L> &EF) noexcept {
@@ -907,7 +787,6 @@ struct CastInfo<To, const psr::EdgeFunction<L>>
                                           CastInfo<To, psr::EdgeFunction<L>>> {
 };
 
-#endif
 } // namespace llvm
 
 #endif // PHASAR_DATAFLOW_IFDSIDE_EDGEFUNCTION_H

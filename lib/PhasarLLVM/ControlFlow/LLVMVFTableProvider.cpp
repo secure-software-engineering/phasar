@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/MapUtils.h"
 
 #include "llvm/ADT/StringRef.h"
@@ -25,20 +26,18 @@ static std::string getTypeName(const llvm::DIType *DITy) {
   auto TypeName = [DITy] {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
       if (auto Ident = CompTy->getIdentifier(); !Ident.empty()) {
-        return Ident;
+        // In LLVM 17 demangle() takes a StringRef
+        return llvm::demangle(Ident.str());
       }
     }
-    return DITy->getName();
+    return llvmTypeToString(DITy, true);
   }();
 
-  // In LLVM 17 demangle() takes a StringRef
-  auto Ret = llvm::demangle(TypeName.str());
-
-  if (llvm::StringRef(Ret).startswith(TSPrefixDemang)) {
-    Ret.erase(0, TSPrefixDemang.size());
+  if (llvm::StringRef(TypeName).starts_with(TSPrefixDemang)) {
+    TypeName.erase(0, TSPrefixDemang.size());
   }
 
-  return Ret;
+  return TypeName;
 }
 
 static void insertVirtualFunctions(
@@ -169,10 +168,10 @@ LLVMVFTableProvider::getVTableIndexInHierarchy(
 
 llvm::StringRef
 LLVMVFTableProvider::removeVTablePrefix(llvm::StringRef GlobName) noexcept {
-  if (GlobName.startswith(VTablePrefixDemang)) {
+  if (GlobName.starts_with(VTablePrefixDemang)) {
     return GlobName.drop_front(VTablePrefixDemang.size());
   }
-  if (GlobName.startswith(VTablePrefix)) {
+  if (GlobName.starts_with(VTablePrefix)) {
     return GlobName.drop_front(VTablePrefix.size());
   }
   return GlobName;
@@ -180,5 +179,10 @@ LLVMVFTableProvider::removeVTablePrefix(llvm::StringRef GlobName) noexcept {
 
 /// Supercedes DIBasedTypeHierarchy::isVTable() + removeVTablePrefix
 bool LLVMVFTableProvider::isVTable(llvm::StringRef MangledVarName) {
-  return MangledVarName.startswith(VTablePrefix);
+  if (MangledVarName.starts_with(VTablePrefix)) {
+    return true;
+  }
+  // In LLVM 17 demangle() takes a StringRef
+  auto Demang = llvm::demangle(MangledVarName.str());
+  return llvm::StringRef(Demang).starts_with(VTablePrefixDemang);
 }

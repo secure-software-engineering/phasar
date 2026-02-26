@@ -45,7 +45,7 @@ bool LLVMBasedAliasAnalysis::hasAliasInfo(const llvm::Function &Fun) const {
 }
 
 void LLVMBasedAliasAnalysis::computeAliasInfo(llvm::Function &Fun) {
-  llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
+  // llvm::PreservedAnalyses PA = FPM.run(Fun, FAM);
   llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(Fun);
   AAInfos.insert(std::make_pair(&Fun, &AAR));
 }
@@ -81,6 +81,7 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
     default:
       break;
     }
+
     // Note: The order of the alias analyses is important. See LLVM's source
     // code for reference (e.g. registerAAAnalyses() in
     // llvm/CodeGen/CodeGenPassBuilder.h)
@@ -90,7 +91,13 @@ LLVMBasedAliasAnalysis::LLVMBasedAliasAnalysis(LLVMProjectIRDB &IRDB,
     AA.registerFunctionAnalysis<llvm::BasicAA>();
     return AA;
   });
+
   PB.registerFunctionAnalyses(FAM);
+  if (PATy == AliasAnalysisType::CFLAnders) {
+    FAM.registerPass([] { return llvm::CFLAndersAA(); });
+  } else if (PATy == AliasAnalysisType::CFLSteens) {
+    FAM.registerPass([] { return llvm::CFLSteensAA(); });
+  }
 
   if (!UseLazyEvaluation) {
     for (auto &F : *IRDB.getModule()) {

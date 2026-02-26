@@ -25,6 +25,7 @@
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
@@ -487,7 +488,7 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   }
   if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     // ZGV is the encoding of "GuardVariable"
-    return GV->getName().startswith("_ZGV");
+    return GV->getName().starts_with("_ZGV");
   }
   return false;
 }

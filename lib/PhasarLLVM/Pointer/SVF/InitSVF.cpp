@@ -12,10 +12,12 @@ static psr::EmptyType initializeSVFImpl() {
   char EmptyStr[] = "";
   char NoAliasCheck[] = "-alias-check=false";
   char NoStat[] = "-stat=false";
+  char Extapi[] = "-extapi=" PHASAR_SVF_INSTALL_LIBDIR "/extapi.bc";
   char *MockArgv[] = {
       EmptyStr,
       NoAliasCheck,
       NoStat,
+      Extapi,
   };
   OptionBase::parseOptions(std::size(MockArgv), MockArgv, "", "");
 
@@ -33,14 +35,8 @@ void psr::initializeSVF() {
   (void)SVFInitialized;
 }
 
-SVF::SVFModule *psr::initSVFModule(psr::LLVMProjectIRDB &IRDB) {
+void psr::initSVFModule(psr::LLVMProjectIRDB &IRDB) {
   psr::initializeSVF();
 
-  auto *Mod = SVF::LLVMModuleSet::buildSVFModule(*IRDB.getModule());
-  if (!Mod) {
-    throw std::runtime_error(
-        "SVF failed to create an SVFModule from an llvm::Module!");
-  }
-
-  return Mod;
+  SVF::LLVMModuleSet::buildSVFModule(*IRDB.getModule());
 }

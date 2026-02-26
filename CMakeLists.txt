@@ -23,14 +23,14 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
 endif()
 
+set(PHASAR_VERSION 2510)
 if (NOT PHASAR_IN_TREE)
   project (phasar
     LANGUAGES C CXX
     DESCRIPTION "A LLVM-based static analysis framework."
-    VERSION 2510
+    VERSION ${PHASAR_VERSION}
   )
 endif ()
-set(PHASAR_VERSION ${PROJECT_VERSION})
 
 # NOTE: When we require cmake >= 3.21, we can use PROJECT_IS_TOP_LEVEL instead
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -245,10 +245,18 @@ endif()
 set(PHASAR_DEPS_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/phasar/deps)
 
 # Filesystem
-if (LLVM_ENABLE_LIBCXX)
-  set(PHASAR_STD_FILESYSTEM c++fs)
-else()
-  set(PHASAR_STD_FILESYSTEM stdc++fs)
+
+# Check if the underlying toolchain has a default std filesystem header
+include(CheckIncludeFileCXX)
+check_include_file_cxx(filesystem HAS_FILESYSTEM_HEADER)
+
+if (NOT HAS_FILESYSTEM_HEADER)
+  # If no file system exists, link a filesystem explicitly
+  if (LLVM_ENABLE_LIBCXX)
+    set(PHASAR_STD_FILESYSTEM c++fs)
+  else()
+    set(PHASAR_STD_FILESYSTEM stdc++fs)
+  endif()
 endif()
 
 # Config
@@ -264,17 +272,46 @@ endif()
 # Threads
 find_package(Threads)
 
-# Boost
-find_package(Boost 1.65.1 COMPONENTS graph REQUIRED CONFIG)
-
 # Disable clang-tidy for the external projects
 set(CMAKE_CXX_CLANG_TIDY "")
 
 # Nlohmann JSON
-
 include(add_nlohmann_json)
 add_nlohmann_json()
 add_json_schema_validator()
+
+# Coverage
+if (CODE_COVERAGE)
+  set(CODE_COVERAGE_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/code-coverage.cmake")
+  file(DOWNLOAD "https://raw.githubusercontent.com/StableCoder/cmake-scripts/refs/tags/25.08/code-coverage.cmake" "${CODE_COVERAGE_SCRIPT}"
+    EXPECTED_HASH SHA256=cad4dd2bdf944f77627687e0298debc8341bfdeffaf949937f319c7c4ff3fdaf
+    TLS_VERIFY ON
+    STATUS CODE_COVERAGE_SCRIPT_DOWNLOAD_STATUS
+  )
+  message(STATUS "Download code-coverage.cmake: ${CODE_COVERAGE_SCRIPT_DOWNLOAD_STATUS}")
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    string(REGEX MATCH "^[0-9]+" COMPILER_VERSION_MAJOR "${CMAKE_CXX_COMPILER_VERSION}")
+    message(STATUS "Clang major version: ${COMPILER_VERSION_MAJOR}")
+    set(LLVM_TOOL_VERSION_SUFFIX "-${COMPILER_VERSION_MAJOR}")
+  endif()
+
+  # pre-populate these cmake variables as we require specific versions:
+  find_program(LLVM_COV_PATH "llvm-cov${LLVM_TOOL_VERSION_SUFFIX}" REQUIRED)
+  find_program(LLVM_PROFDATA_PATH "llvm-profdata${LLVM_TOOL_VERSION_SUFFIX}" REQUIRED)
+  message(STATUS "Found llvm-cov: ${LLVM_COV_PATH}")
+  message(STATUS "Found llvm-profdata: ${LLVM_PROFDATA_PATH}")
+
+  include("${CODE_COVERAGE_SCRIPT}")
+
+  find_program(cxxfilt "c++filt" QUIET)
+  if (cxxfilt)
+    set(DEMANGLER_OPTIONS LLVM_COV_HTML_OPTIONS "-Xdemangler=${cxxfilt}")
+  endif()
+
+  set(COV_FILEPATH_FILTER "(usr/*|external/|unittests/)")
+  add_code_coverage_all_targets(EXCLUDE ${COV_FILEPATH_FILTER} ${DEMANGLER_OPTIONS})
+endif()
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -294,20 +331,11 @@ else()
   set(GTEST_INCLUDE_DIR "${LLVM_MAIN_SRC_DIR}/utils/unittest/googletest/include")
 endif()
 
-# SQL
-find_package(SQLite3)
-if(SQLite3_FOUND)
-  set(PHASAR_HAS_SQLITE ON)
-else()
-  set(PHASAR_HAS_SQLITE OFF)
-endif()
-
 option(USE_LLVM_FAT_LIB  "Link against libLLVM.so instead of the individual LLVM libraries if possible (default is OFF; always on if BUILD_SHARED_LIBS is ON)" OFF)
 
 # LLVM
-if (NOT PHASAR_LLVM_VERSION)
-  set(PHASAR_LLVM_VERSION 15)
-endif()
+set(PHASAR_LLVM_VERSION 16 CACHE STRING "The LLVM major-version that PhASAR should use")
+
 include(add_llvm)
 add_llvm()
 
@@ -328,29 +356,34 @@ if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
 else()
   if(PHASAR_USE_Z3)
-    # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
-    # as it lacks some functionality (such as z3::expr::simplify()) that we require
+    if (TARGET z3::libz3)
+      # When including SVF, it also tries to find z3, but in addition to LLVM's search it already creates a target: z3::libz3.
+      # Reuse it here:
+      if(NOT TARGET z3)
+        add_library(z3 ALIAS z3::libz3)
+      endif()
+    else()
+      # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
+      set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS "")
+      find_package(Z3 REQUIRED)
+      set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
 
-    # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
-    set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS "")
-    find_package(Z3 4.7.1 REQUIRED)
-    set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
-
-    if(Z3_FOUND)
-      if (NOT TARGET z3)
-        add_library(z3 IMPORTED SHARED)
-        set_property(TARGET z3 PROPERTY
-                IMPORTED_LOCATION ${Z3_LIBRARIES})
-        set_property(TARGET z3 PROPERTY
-                INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+      if(Z3_FOUND)
+        if (NOT TARGET z3)
+          add_library(z3 IMPORTED SHARED)
+          set_target_properties(z3 PROPERTIES
+            IMPORTED_LOCATION ${Z3_LIBRARIES}
+            INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR}
+          )
+        endif()
       endif()
     endif()
   endif()
 endif()
 
 # Clang
-option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is ON)" ON)
+option(BUILD_PHASAR_CLANG "Build the phasar_clang library (default is OFF)" OFF)
 if(BUILD_PHASAR_CLANG)
   add_clang()
 endif()

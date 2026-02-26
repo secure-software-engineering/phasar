@@ -15,8 +15,9 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev"] ]
-        build: [ Debug, Release, DebugLibdeps ]
+        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev clang-tools-19"] ]
+        build: [ Debug, Release, DebugLibdeps, DebugCov ]
+        llvm-version: [ 16, 17 ]
         include:
           - build: Debug
             cmake_build_type: Debug
@@ -27,11 +28,17 @@ jobs:
           - build: DebugLibdeps
             cmake_build_type: Debug
             flags: -DPHASAR_DEBUG_LIBDEPS=ON -DBUILD_SHARED_LIBS=ON
+          - build: DebugCov
+            cmake_build_type: Debug
+            flags: -DCODE_COVERAGE=ON
+            extra_dependencies: llvm-19 # For coverage
         exclude:
           - os: ubuntu-24.04-arm
             build: Debug
           - os: ubuntu-24.04-arm
             build: DebugLibdeps
+          - os: ubuntu-24.04-arm
+            build: DebugCov
 
     continue-on-error: false
     steps:
@@ -41,10 +48,15 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: ccache  # This should always come after the actions/checkout step.
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.build }}
+
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --noninteractive tzdata ${{ matrix.compiler[2] }}
+          ./utils/InstallAptDependencies.sh --llvm-version ${{ matrix.llvm-version }} --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
@@ -54,8 +66,12 @@ jobs:
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_PHASAR_CLANG=OFF \
             -DPHASAR_USE_Z3=ON \
+            -DPHASAR_BUILD_MODULES=ON \
+            -DPHASAR_LLVM_VERSION=${{ matrix.llvm-version }} \
             ${{ matrix.flags }} \
             -G Ninja
           ninja -C build
@@ -77,3 +93,18 @@ jobs:
           cd ./examples/how-to
           cmake -S . -B build -Dphasar_ROOT="$PHASAR_ROOT_DIR/INSTALL"
           cmake --build ./build --target run_sample_programs
+
+      - name: Check test coverage and generate HTML report
+        if: matrix.build == 'DebugCov'
+        shell: bash
+        run: |
+          cmake --build ./build --target ccov-all
+
+      - name: Upload coverage HTML report artifact
+        if: matrix.build == 'DebugCov'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phasar-coverage-report-llvm-${{ matrix.llvm-version }}
+          path: ./build/ccov/all-merged/
+          if-no-files-found: error
+          retention-days: 7

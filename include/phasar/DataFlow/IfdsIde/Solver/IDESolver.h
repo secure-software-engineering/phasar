@@ -44,6 +44,7 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -53,6 +54,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include <concepts>
 #include <map>
 #include <memory>
 #include <set>
@@ -86,7 +88,7 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  template <typename I>
+  template <std::convertible_to<const i_t &> I>
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
             const I *ICF)
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
@@ -98,11 +100,7 @@ public:
     assert(ICF != nullptr);
 
     if constexpr (has_getSparseCFG_v<I, d_t>) {
-      NextUserOrNullCB = [](const void *SVFG, ByConstRef<f_t> Fun,
-                            ByConstRef<d_t> d3, ByConstRef<n_t> n) {
-        auto &&SCFG = static_cast<const I *>(SVFG)->getSparseCFG(Fun, d3);
-        return SCFG.nextUserOrNull(n);
-      };
+      NextUserOrNullCB = &nextUserOrNullThunk<I>;
     }
   }
 
@@ -168,10 +166,9 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>, l_t>
-  resultAtInLLVMSSA(NTy Stmt, d_t Value) {
+  [[nodiscard]] l_t resultAtInLLVMSSA(n_t Stmt, d_t Value)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     return getSolverResults().resultAtInLLVMSSA(Stmt, Value);
   }
 
@@ -198,11 +195,11 @@ public:
   /// This result accessor function returns the results at the successor
   /// instruction(s) reflecting that the expression on the left-hand side holds
   /// if the expression on the right-hand side holds.
-  template <typename NTy = n_t>
-  [[nodiscard]] typename std::enable_if_t<
-      std::is_same_v<std::remove_reference_t<NTy>, llvm::Instruction *>,
-      std::unordered_map<d_t, l_t>>
-  resultsAtInLLVMSSA(NTy Stmt, bool StripZero = false) {
+  [[nodiscard]]
+  std::unordered_map<d_t, l_t> resultsAtInLLVMSSA(n_t Stmt,
+                                                  bool StripZero = false)
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>
+  {
     return getSolverResults().resultsAtInLLVMSSA(Stmt, StripZero);
   }
 
@@ -1775,6 +1772,13 @@ public:
   }
 
 private:
+  template <typename I>
+  static auto nextUserOrNullThunk(const void *SVFG, ByConstRef<f_t> Fun,
+                                  ByConstRef<d_t> d3, ByConstRef<n_t> n) {
+    auto &&SCFG = static_cast<const I *>(SVFG)->getSparseCFG(Fun, d3);
+    return SCFG.nextUserOrNull(n);
+  };
+
   /// @brief: Allows less-than comparison based on the statement ID.
   struct StmtLess {
     const i_t *ICF;
@@ -1787,7 +1791,7 @@ private:
 
   /// -- InteractiveIDESolverMixin implementation
 
-  bool doInitialize() {
+  void doInitialize() {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Gen facts", 0, Core);
     REG_COUNTER("Kill facts", 0, Core);
@@ -1816,11 +1820,13 @@ private:
 
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
-    return !WorkList.empty();
   }
 
   bool doNext() {
-    assert(!WorkList.empty());
+    if (WorkList.empty()) {
+      return false;
+    }
+
     auto [Edge, EF] = std::move(WorkList.back());
     WorkList.pop_back();
 
@@ -1828,7 +1834,7 @@ private:
     propagate(std::move(SourceVal), std::move(Target), std::move(TargetVal),
               std::move(EF));
 
-    return !WorkList.empty();
+    return true;
   }
 
   void finalizeInternal() {
@@ -1937,8 +1943,10 @@ template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t,
                     typename AnalysisDomainTy::l_t>
-solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-                const typename AnalysisDomainTy::i_t &ICF) {
+solveIDEProblem(
+    IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+    const std::convertible_to<const typename AnalysisDomainTy::i_t &> auto
+        &ICF) {
   IDESolver<AnalysisDomainTy, Container> Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();

@@ -405,7 +405,7 @@ template <typename CFLAA> class CFLGraphBuilder {
         auto &RetParamRelations = Summary->RetParamRelations;
         for (auto &Relation : RetParamRelations) {
           auto IRelation = instantiateExternalRelation(Relation, Call);
-          if (IRelation.hasValue()) {
+          if (IRelation.has_value()) {
             Graph.addNode(IRelation->From);
             Graph.addNode(IRelation->To);
             Graph.addEdge(IRelation->From, IRelation->To);
@@ -415,7 +415,7 @@ template <typename CFLAA> class CFLGraphBuilder {
         auto &RetParamAttributes = Summary->RetParamAttributes;
         for (auto &Attribute : RetParamAttributes) {
           auto IAttr = instantiateExternalAttribute(Attribute, Call);
-          if (IAttr.hasValue())
+          if (IAttr.has_value())
             Graph.addNode(IAttr->IValue, IAttr->Attr);
         }
       }
@@ -649,8 +649,8 @@ template <typename CFLAA> class CFLGraphBuilder {
   void buildGraphFrom(Function &Fn) {
     GetEdgesVisitor Visitor(*this, Fn.getParent()->getDataLayout());
 
-    for (auto &Bb : Fn.getBasicBlockList())
-      for (auto &Inst : Bb.getInstList())
+    for (auto &Bb : Fn)
+      for (auto &Inst : Bb)
         addInstructionToGraph(Visitor, Inst);
 
     for (auto &Arg : Fn.args())

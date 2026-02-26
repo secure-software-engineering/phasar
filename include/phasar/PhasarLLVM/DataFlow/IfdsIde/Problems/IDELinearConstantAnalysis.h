@@ -12,6 +12,8 @@
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -34,9 +36,6 @@ struct IDELinearConstantAnalysisDomain : public LLVMAnalysisDomainDefault {
   // int64_t corresponds to llvm's type of constant integer
   using l_t = LatticeDomain<int64_t>;
 };
-
-class LLVMBasedICFG;
-class LLVMTypeHierarchy;
 
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class IDELinearConstantAnalysis

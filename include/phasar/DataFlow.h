@@ -27,7 +27,6 @@
 #include "phasar/DataFlow/IfdsIde/Solver/PathAwareIDESolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/PathEdge.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
-#include "phasar/DataFlow/IfdsIde/SpecialSummaries.h"
 #include "phasar/DataFlow/Mono/Contexts/CallStringCTX.h"
 #include "phasar/DataFlow/Mono/InterMonoProblem.h"
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"

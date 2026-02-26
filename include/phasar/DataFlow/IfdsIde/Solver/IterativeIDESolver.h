@@ -6,6 +6,7 @@
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowFunctionCache.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IdBasedSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverBase.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverResults.h"
@@ -65,7 +66,12 @@ class IterativeIDESolver
       public IterativeIDESolverBase<
           StaticSolverConfigTy,
           typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-              typename ProblemTy::ProblemAnalysisDomain::l_t>> {
+              typename ProblemTy::ProblemAnalysisDomain::l_t>>,
+      public IDESolverAPIMixin<
+          IterativeIDESolver<ProblemTy, StaticSolverConfigTy>> {
+
+  friend IDESolverAPIMixin<IterativeIDESolver<ProblemTy, StaticSolverConfigTy>>;
+
 public:
   using domain_t = typename ProblemTy::ProblemAnalysisDomain;
   using d_t = typename domain_t::d_t;
@@ -144,45 +150,23 @@ public:
   IterativeIDESolver(ProblemTy *Problem, const i_t *ICFG) noexcept
       : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
 
-  void solve() {
-    const auto NumInsts = Problem.getProjectIRDB()->getNumInstructions();
-    const auto NumFuns = Problem.getProjectIRDB()->getNumFunctions();
-
-    NodeCompressor =
-        NodeCompressorTraits<n_t>::create(Problem.getProjectIRDB());
-
-    JumpFunctions.reserve(NumInsts);
-    this->base_results_t::ValTab.reserve(NumInsts);
-
-    /// Initial size of 64 is too much for jump functions per instruction; 16
-    /// should be better:
-    for (size_t I = 0; I != NumInsts; ++I) {
-      JumpFunctions.emplace_back();
-      this->base_results_t::ValTab.emplace_back().reserve(16);
-    }
-    if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
-      RefCountPerFunction = llvm::OwningArrayRef<size_t>(NumFuns);
-      std::uninitialized_fill_n(RefCountPerFunction.data(),
-                                RefCountPerFunction.size(), 0);
-      CandidateFunctionsForGC.resize(NumFuns);
-    }
-
-    NodeCompressor.reserve(NumInsts);
-    FactCompressor.reserve(NumInsts);
-    FunCompressor.reserve(NumFuns);
-    FECache.reserve(NumInsts, ICFG.getNumCallSites(), NumFuns);
-    /// Make sure, that the Zero-flowfact always has the ID 0
-    FactCompressor.getOrInsert(Problem.getZeroValue());
-
-    performDataflowFactPropagation();
-
-    /// Finished Phase I, now go for Phase II if necessary
-    performValuePropagation();
+  auto solve() & {
+    solveImpl();
+    return getSolverResults();
+  }
+  [[nodiscard]] auto solve() && {
+    solveImpl();
+    return consumeSolverResults();
   }
 
-  [[nodiscard]] IdBasedSolverResults<n_t, d_t, l_t>
-  getSolverResults() const noexcept {
+  [[nodiscard]] auto getSolverResults() const noexcept {
     return IdBasedSolverResults<n_t, d_t, l_t>(this);
+  }
+
+  [[nodiscard]] auto consumeSolverResults() noexcept {
+    return OwningIdBasedSolverResults<n_t, d_t, l_t>(
+        std::make_unique<base_results_t>(
+            std::move(static_cast<base_results_t &&>(*this))));
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
@@ -236,52 +220,56 @@ public:
     OS << '\n';
   }
 
-  template <bool B = EnableStatistics, typename = std::enable_if_t<B>>
-  [[nodiscard]] IterativeIDESolverStats getStats() const noexcept {
+  [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
+    requires EnableStatistics
+  {
     return *this;
   }
 
-  template <bool B = EnableStatistics, typename = std::enable_if_t<B>>
-  void dumpStats(llvm::raw_ostream &OS = llvm::outs()) const {
+  void dumpStats(llvm::raw_ostream &OS = llvm::outs()) const
+    requires EnableStatistics
+  {
     OS << getStats();
   }
 
 private:
-  void performDataflowFactPropagation() {
+  void doInitialize() {
+    const auto NumInsts = Problem.getProjectIRDB()->getNumInstructions();
+    const auto NumFuns = Problem.getProjectIRDB()->getNumFunctions();
+
+    NodeCompressor =
+        NodeCompressorTraits<n_t>::create(Problem.getProjectIRDB());
+
+    JumpFunctions.reserve(NumInsts);
+    this->base_results_t::ValTab.reserve(NumInsts);
+
+    /// Initial size of 64 is too much for jump functions per instruction; 16
+    /// should be better:
+    for (size_t I = 0; I != NumInsts; ++I) {
+      JumpFunctions.emplace_back();
+      this->base_results_t::ValTab.emplace_back().reserve(16);
+    }
+    if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
+      RefCountPerFunction = llvm::OwningArrayRef<size_t>(NumFuns);
+      std::uninitialized_fill_n(RefCountPerFunction.data(),
+                                RefCountPerFunction.size(), 0);
+      CandidateFunctionsForGC.resize(NumFuns);
+    }
+
+    NodeCompressor.reserve(NumInsts);
+    FactCompressor.reserve(NumInsts);
+    FunCompressor.reserve(NumFuns);
+    FECache.reserve(NumInsts, ICFG.getNumCallSites(), NumFuns);
+    /// Make sure, that the Zero-flowfact always has the ID 0
+    FactCompressor.getOrInsert(Problem.getZeroValue());
+
     submitInitialSeeds();
+  }
 
-    std::atomic_bool Finished = true;
-    do {
-      /// NOTE: Have a separate function on the worklist to process it, to
-      /// allow for easier integration with task-pools
-      WorkList.processEntriesUntilEmpty([this, &Finished](PropagationJob Job) {
-        /// propagate only handles intra-edges as of now - add separate
-        /// functionality to handle inter-edges as well
-        propagate(Job.AtInstruction, Job.SourceFact, Job.PropagatedFact,
-                  std::move(Job.SourceEF));
-        bool Dummy = true;
-        Finished.compare_exchange_strong(
-            Dummy, false, std::memory_order_release, std::memory_order_relaxed);
-      });
-
-#ifndef NDEBUG
-      // Sanity checks
-      if (llvm::any_of(RefCountPerFunction, [](auto RC) { return RC != 0; })) {
-        llvm::report_fatal_error(
-            "Worklist.empty() does not imply Function ref-counts==0 ?");
-      }
-
-      if (!WorkList.empty()) {
-        llvm::report_fatal_error(
-            "Worklist should be empty after processing all items");
-      }
-#endif // NDEBUG
-
-      assert(WorkList.empty() &&
-             "Worklist should be empty after processing all items");
-
+  bool doNext() {
+    std::optional Job = WorkList.pop();
+    if (!Job) [[unlikely]] {
       processInterJobs();
-
       if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
         /// CAUTION: The functions from the CallWL also need to be considered
         /// live! We therefore need to be careful when applying this GC in a
@@ -290,8 +278,19 @@ private:
         runGC();
       }
 
-    } while (Finished.exchange(true, std::memory_order_acq_rel) == false);
+      Job = WorkList.pop();
+      if (!Job) {
+        return false;
+      }
+    }
 
+    propagate(Job->AtInstruction, Job->SourceFact, Job->PropagatedFact,
+              std::move(Job->SourceEF));
+
+    return true;
+  }
+
+  void finalizePhase1() {
     if constexpr (EnableStatistics) {
       this->FEStats = FECache.getStats();
       this->NumAllInterPropagations = AllInterPropagations.size();
@@ -342,6 +341,79 @@ private:
     SourceFactAndFuncToInterJob.clear();
     WorkList.clear();
     CallWL.clear();
+  }
+
+  void doFinalizeImpl() {
+    finalizePhase1();
+    /// Finished Phase I, now go for Phase II if necessary
+    performValuePropagation();
+  }
+
+  auto doFinalize() & {
+    doFinalizeImpl();
+    return getSolverResults();
+  }
+
+  auto doFinalize() && {
+    doFinalizeImpl();
+    return consumeSolverResults();
+  }
+
+  void solveImpl() {
+    doInitialize();
+
+    performDataflowFactPropagation();
+
+    /// Finished Phase I, now go for Phase II if necessary
+    performValuePropagation();
+  }
+
+  void performDataflowFactPropagation() {
+    // submitInitialSeeds();
+
+    std::atomic_bool Finished = true;
+    do {
+      /// NOTE: Have a separate function on the worklist to process it, to
+      /// allow for easier integration with task-pools
+      WorkList.processEntriesUntilEmpty([this, &Finished](PropagationJob Job) {
+        /// propagate only handles intra-edges as of now - add separate
+        /// functionality to handle inter-edges as well
+        propagate(Job.AtInstruction, Job.SourceFact, Job.PropagatedFact,
+                  std::move(Job.SourceEF));
+        bool Dummy = true;
+        Finished.compare_exchange_strong(
+            Dummy, false, std::memory_order_release, std::memory_order_relaxed);
+      });
+
+#ifndef NDEBUG
+      // Sanity checks
+      if (llvm::any_of(RefCountPerFunction, [](auto RC) { return RC != 0; })) {
+        llvm::report_fatal_error(
+            "Worklist.empty() does not imply Function ref-counts==0 ?");
+      }
+
+      if (!WorkList.empty()) {
+        llvm::report_fatal_error(
+            "Worklist should be empty after processing all items");
+      }
+#endif // NDEBUG
+
+      assert(WorkList.empty() &&
+             "Worklist should be empty after processing all items");
+
+      processInterJobs();
+
+      if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
+        /// CAUTION: The functions from the CallWL also need to be considered
+        /// live! We therefore need to be careful when applying this GC in a
+        /// multithreaded environment
+
+        runGC();
+      }
+
+    } while (Finished.exchange(true, std::memory_order_acq_rel) == false);
+
+    finalizePhase1();
   }
 
   void performValuePropagation() {
@@ -442,11 +514,11 @@ private:
     }
   }
 
-  template <bool CV = ComputeValues>
-  std::enable_if_t<CV, bool>
-  storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                           uint32_t SourceFact, uint32_t LocalFact,
-                           uint32_t FunId, EdgeFunctionPtrType LocalEF) {
+  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
+                                uint32_t SourceFact, uint32_t LocalFact,
+                                uint32_t FunId, EdgeFunctionPtrType LocalEF)
+    requires ComputeValues
+  {
     auto &EF = JumpFns.getOrCreate(combineIds(SourceFact, LocalFact));
     if (!EF) {
       EF = std::move(LocalEF);
@@ -492,11 +564,12 @@ private:
     }
     return false;
   }
-  template <bool CV = ComputeValues>
-  std::enable_if_t<!CV, bool>
-  storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                           uint32_t SourceFact, uint32_t LocalFact,
-                           uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/) {
+
+  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
+                                uint32_t SourceFact, uint32_t LocalFact,
+                                uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/)
+    requires(!ComputeValues)
+  {
     if (JumpFns.insert(combineIds(SourceFact, LocalFact)).second) {
       WorkList.emplace(PropagationJob{{}, SuccId, SourceFact, LocalFact});
 
@@ -521,10 +594,10 @@ private:
     return false;
   }
 
-  template <bool EST = UseEndSummaryTab, bool CV = ComputeValues>
-  std::enable_if_t<EST && CV> storeSummary(SummaryEdges_JF1 &JumpFns,
-                                           uint32_t LocalFact,
-                                           EdgeFunctionPtrType LocalEF) {
+  void storeSummary(SummaryEdges_JF1 &JumpFns, uint32_t LocalFact,
+                    EdgeFunctionPtrType LocalEF)
+    requires(UseEndSummaryTab && ComputeValues)
+  {
     auto &EF = JumpFns[LocalFact];
     if (!EF) {
       EF = std::move(LocalEF);
@@ -550,10 +623,10 @@ private:
     }
   }
 
-  template <bool EST = UseEndSummaryTab, bool CV = ComputeValues>
-  std::enable_if_t<EST && !CV> storeSummary(SummaryEdges_JF1 &JumpFns,
-                                            uint32_t LocalFact,
-                                            EdgeFunctionPtrType /*LocalEF*/) {
+  void storeSummary(SummaryEdges_JF1 &JumpFns, uint32_t LocalFact,
+                    EdgeFunctionPtrType /*LocalEF*/)
+    requires(UseEndSummaryTab && !ComputeValues)
+  {
     if (JumpFns.insert({LocalFact, {}}).second) {
       if constexpr (EnableStatistics) {
         this->NumPathEdges++;
@@ -569,7 +642,7 @@ private:
 
     auto AtInstruction = NodeCompressor[AtInstructionId];
 
-    auto FunId = [=] {
+    auto FunId = [&] {
       if constexpr (EnableJumpFunctionGC != JumpFunctionGCMode::Disabled) {
 
         auto Ret = FunCompressor.getOrInsert(ICFG.getFunctionOf(AtInstruction));
@@ -1039,8 +1112,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void submitInitialValues() {
+  void submitInitialValues()
+    requires ComputeValues
+  {
     auto Seeds = Problem.initialSeeds();
     for (const auto &[Inst, SeedMap] : Seeds.getSeeds()) {
       auto InstId = NodeCompressor.getOrInsert(Inst);
@@ -1052,8 +1126,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void propagateValue(uint32_t SPId, uint32_t FactId, l_t Val) {
+  void propagateValue(uint32_t SPId, uint32_t FactId, l_t Val)
+    requires ComputeValues
+  {
 
     /// TODO: Unbalanced return-sites
 
@@ -1130,8 +1205,9 @@ private:
     }
   }
 
-  template <bool B = ComputeValues, typename = std::enable_if_t<B>>
-  void computeValues(uint32_t SPId) {
+  void computeValues(uint32_t SPId)
+    requires ComputeValues
+  {
     auto SP = NodeCompressor[SPId];
     auto Fun = ICFG.getFunctionOf(SP);
 

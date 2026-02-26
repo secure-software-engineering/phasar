@@ -37,8 +37,8 @@ public:
   /// lifetime. Probably that can be mitigated with use of std::launder, but for
   /// now, we don't need this complexity
 
-  template <typename T, typename = std::enable_if_t<!std::is_same_v<
-                            GenericSolverResults, std::decay_t<T>>>>
+  template <typename T>
+    requires(!std::is_same_v<GenericSolverResults, std::decay_t<T>>)
   GenericSolverResults(const T &SR) noexcept : VT(&VtableFor<std::decay_t<T>>) {
     using type = std::decay_t<T>;
 
@@ -72,9 +72,9 @@ public:
     return VT->ResultsAt(Buffer.data(), Stmt, StripZero);
   }
 
-  template <typename LL = L,
-            typename = std::enable_if_t<std::is_same_v<LL, BinaryDomain>>>
-  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const {
+  [[nodiscard]] std::set<d_t> ifdsResultsAt(ByConstRef<n_t> Stmt) const
+    requires std::is_same_v<L, BinaryDomain>
+  {
     assert(VT != nullptr);
     assert(VT->IfdsResultsAt != nullptr);
     return VT->IfdsResultsAt(Buffer.data(), Stmt);
@@ -89,21 +89,22 @@ public:
     return VT->ContainsNode(Buffer.data(), Stmt);
   }
 
-  template <typename NN = N, typename = std::enable_if_t<
-                                 std::is_same_v<NN, const llvm::Instruction *>>>
+  // TODO: Sync with LLVMSolverResults.h
   [[nodiscard]] l_t resultAtInLLVMSSA(const llvm::Instruction *Stmt,
-                                      ByConstRef<d_t> Node) const {
+                                      ByConstRef<d_t> Node) const
+    requires std::is_same_v<N, const llvm::Instruction *>
+  {
     if (const auto *Next = Stmt->getNextNode()) {
       return resultAt(Next, Node);
     }
     return resultAt(Stmt, Node);
   }
 
-  template <typename NN = N, typename = std::enable_if_t<
-                                 std::is_same_v<NN, const llvm::Instruction *>>>
   [[nodiscard]] std::unordered_map<d_t, l_t>
   resultsAtInLLVMSSA(const llvm::Instruction *Stmt,
-                     bool StripZero = false) const {
+                     bool StripZero = false) const
+    requires std::is_same_v<N, const llvm::Instruction *>
+  {
     if (const auto *Next = Stmt->getNextNode()) {
       return resultsAt(Next, StripZero);
     }

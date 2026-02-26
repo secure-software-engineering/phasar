@@ -19,6 +19,8 @@
 
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -81,7 +83,6 @@ private:
 
 public:
   IntraMonoFullConstantPropagation(const LLVMProjectIRDB *IRDB,
-                                   const DIBasedTypeHierarchy *TH,
                                    const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
                                    std::vector<std::string> EntryPoints = {});
 

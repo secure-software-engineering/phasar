@@ -79,8 +79,8 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &S) {
 /// requirements, although the performance is probably higher for small
 /// elements that are trivially copyable.
 template <typename ContainerTy, typename OtherContainerTy>
-std::enable_if_t<!has_erase_iterator_v<ContainerTy>>
-intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
+  requires(!has_erase_iterator_v<ContainerTy>)
+void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   static_assert(std::is_same_v<typename ContainerTy::value_type,
                                typename OtherContainerTy::value_type>,
                 "The containers Src and Dest must be compatible");
@@ -124,9 +124,8 @@ intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   }
 }
 
-template <typename ContainerTy, typename OtherContainerTy>
-std::enable_if_t<has_erase_iterator_v<ContainerTy>>
-intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
+template <has_erase_iterator_v ContainerTy, typename OtherContainerTy>
+void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
   static_assert(std::is_same_v<typename ContainerTy::value_type,
                                typename OtherContainerTy::value_type>,
                 "The containers Src and Dest must be compatible");
@@ -276,7 +275,7 @@ struct identity {
   }
 };
 
-template <typename T, typename = std::enable_if_t<is_llvm_printable_v<T>>>
+template <is_llvm_printable_v T>
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::optional<T> &Opt) {
   if (Opt) {
@@ -289,8 +288,8 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
 }
 
 template <typename T>
-LLVM_ATTRIBUTE_ALWAYS_INLINE std::enable_if_t<!std::is_pointer_v<T>, T &>
-assertNotNull(T &Value) {
+  requires(!std::is_pointer_v<T>)
+LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
   return Value;
 }
 

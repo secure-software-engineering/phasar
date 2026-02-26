@@ -609,8 +609,7 @@ auto LLVMPathConstraints::getGEPInstAsZ3(const llvm::GetElementPtrInst *GEP)
         .first->second;
   }
   // some other pointer, we can treat those as integers
-  if (const auto *PointerTy =
-          llvm::dyn_cast<llvm::PointerType>(GEP->getPointerOperandType())) {
+  if (llvm::isa<llvm::PointerType>(GEP->getPointerOperandType())) {
     auto PointerConst = Z3Ctx->bv_const(Name.c_str(), 64);
     return Z3Expr.try_emplace(GEP, ConstraintAndVariables{PointerConst, {GEP}})
         .first->second;

@@ -18,7 +18,6 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/KillIfSanitizedEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/TransferEdgeFunction.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/PointsToInfo.h"
@@ -350,7 +349,7 @@ IDEExtendedTaintAnalysis::getCallFlowFunction(n_t CallStmt, f_t DestFun) {
         /// padding for now.
       }
       Offs +=
-          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedSize());
+          ptrdiff_t(DL.getTypeAllocSize(It->get()->getType()).getFixedValue());
     }
 #ifdef XTAINT_DIAGNOSTICS
     allTaintedValues.insert(ret.begin(), ret.end());

@@ -42,10 +42,9 @@ class BasicBlockOrdering {
       getDom; // NOLINT
 
 public:
-  template <
-      typename DTA,
-      typename = std::enable_if_t<!std::is_same_v<
-          BasicBlockOrdering, std::remove_reference_t<std::decay_t<DTA>>>>>
+  template <typename DTA>
+    requires(!std::is_same_v<BasicBlockOrdering,
+                             std::remove_reference_t<std::decay_t<DTA>>>)
   explicit BasicBlockOrdering(DTA &&Dta) : getDom(std::forward<DTA>(Dta)) {}
 
   bool mustComeBefore(const llvm::Instruction *LHS,

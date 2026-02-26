@@ -37,10 +37,9 @@ public:
     return Alias(Context, V, Rep, DL);
   }
 
-  template <
-      typename T, typename AliasFn,
-      typename = std::enable_if_t<std::is_empty_v<AliasFn> &&
-                                  std::is_default_constructible_v<AliasFn>>>
+  template <typename T, typename AliasFn>
+    requires(std::is_empty_v<AliasFn> &&
+             std::is_default_constructible_v<AliasFn>)
   constexpr FunctionAliasView(T *Context, AliasFn /*Alias*/) noexcept
       : Context(Context), Alias(&callAlias<T, AliasFn>) {}
 

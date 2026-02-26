@@ -46,7 +46,7 @@ public:
 
   void insert(const EdgeFunctionTy *EF, const void *Mem) override {
     assert(EF != nullptr);
-    auto [It, Inserted] = Cache.try_emplace(EF, Mem);
+    [[maybe_unused]] auto [It, Inserted] = Cache.try_emplace(EF, Mem);
     assert(Inserted);
   }
 
@@ -89,7 +89,7 @@ private:
   llvm::DenseMap<const EdgeFunctionTy *, const void *, DSI> Cache;
 };
 
-template <typename EdgeFunctionTy, typename = void>
+template <typename EdgeFunctionTy>
 class DefaultEdgeFunctionSingletonCache
     : public DefaultEdgeFunctionSingletonCacheImpl<
           EdgeFunctionTy, typename EdgeFunctionTy::l_t> {
@@ -100,9 +100,8 @@ public:
 };
 
 template <typename EdgeFunctionTy>
-class DefaultEdgeFunctionSingletonCache<
-    EdgeFunctionTy,
-    std::enable_if_t<EdgeFunctionBase::IsSOOCandidate<EdgeFunctionTy>>> {
+  requires EdgeFunctionBase::IsSOOCandidate<EdgeFunctionTy>
+class DefaultEdgeFunctionSingletonCache<EdgeFunctionTy> {
 public:
   [[nodiscard]] const void *
   lookup(const EdgeFunctionTy & /*EF*/) const noexcept override {

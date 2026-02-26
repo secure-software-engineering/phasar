@@ -18,6 +18,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
@@ -29,10 +30,10 @@ namespace psr {
 
 VarAnnotation::VarAnnotation(const llvm::CallBase *AnnotationCall) noexcept
     : AnnotationCall(AnnotationCall) {
-  auto *Callee = AnnotationCall->getCalledFunction();
+  [[maybe_unused]] auto *Callee = AnnotationCall->getCalledFunction();
   assert(Callee && Callee->hasName() &&
-         (Callee->getName() == "llvm.var.annotation" ||
-          Callee->getName().startswith("llvm.ptr.annotation")));
+         (Callee->getName().starts_with("llvm.var.annotation") ||
+          Callee->getName().starts_with("llvm.ptr.annotation")));
 }
 
 const llvm::Value *VarAnnotation::getValue() const {

@@ -359,7 +359,7 @@ void LLVMAliasSet::addPointer(FunctionAliasView AA, const llvm::DataLayout &DL,
         Reps[ToMerge[0]]->getType()};
     llvm::SmallVector<unsigned> ToRemove;
 
-    for (auto Idx : llvm::makeArrayRef(ToMerge).slice(1)) {
+    for (auto Idx : llvm::ArrayRef(ToMerge).slice(1)) {
       mergeAliasSets(PTS, AliasSets[Reps[Idx]]);
       if (auto [Unused, Inserted] = OccurringTypes.insert(Reps[Idx]->getType());
           !Inserted) {

@@ -29,10 +29,9 @@ using namespace psr;
 namespace psr {
 
 IntraMonoUninitVariables::IntraMonoUninitVariables(
-    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchy *TH,
-    const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
+    const LLVMProjectIRDB *IRDB, const LLVMBasedCFG *CF, LLVMAliasInfoRef PT,
     std::vector<std::string> EntryPoints)
-    : IntraMonoProblem<IntraMonoUninitVariablesDomain>(IRDB, TH, CF, PT,
+    : IntraMonoProblem<IntraMonoUninitVariablesDomain>(IRDB, CF, PT,
                                                        std::move(EntryPoints)) {
 }
 

@@ -1,5 +1,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
 
@@ -65,4 +66,15 @@ psr::getEntryFunctionsMut(LLVMProjectIRDB &IRDB,
     }
   }
   return UserEntryPointFns;
+}
+
+std::vector<std::string>
+psr::getDefaultEntryPoints(const LLVMProjectIRDB &IRDB) {
+  if (IRDB.getFunctionDefinition(GlobalCtorsDtorsModel::ModelName)) {
+    return {GlobalCtorsDtorsModel::DtorModelName.str()};
+  }
+  if (IRDB.getFunctionDefinition("main")) {
+    return {"main"};
+  }
+  return {"__ALL__"};
 }

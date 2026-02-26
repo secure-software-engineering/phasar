@@ -53,9 +53,8 @@ namespace psr {
 /// enable strong updates.
 ///
 template <typename D = const llvm::Value *, typename Container = std::set<D>,
-          typename Fn = TrueFn, typename DCtor = DefaultConstruct<D>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
+          typename Fn = TrueFn, typename DCtor = DefaultConstruct<D>>
+  requires std::is_invocable_r_v<bool, Fn, const llvm::Value *>
 auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
                                Fn &&PropagateArgs = {},
                                bool PropagateGlobals = true,
@@ -128,9 +127,8 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
 ///
 /// \note Unlike the old version, this one is only meant for forward-analyses
 template <typename D = const llvm::Value *, typename Container = std::set<D>,
-          typename Fn = std::equal_to<D>, typename DCtor = DefaultConstruct<D>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, Fn, const llvm::Value *, D>>>
+          typename Fn = std::equal_to<D>, typename DCtor = DefaultConstruct<D>>
+  requires std::is_invocable_r_v<bool, Fn, const llvm::Value *, D>
 FlowFunctionPtrType<D, Container>
 mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
                  Fn &&PropagateArgumentWithSource = {},
@@ -236,10 +234,9 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
 template <
     typename D = const llvm::Value *, typename Container = std::set<D>,
     typename FnParam = std::equal_to<D>, typename FnRet = std::equal_to<D>,
-    typename DCtor = DefaultConstruct<D>, typename PostProcessFn = IgnoreArgs,
-    typename = std::enable_if_t<
-        std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
-        std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>>>
+    typename DCtor = DefaultConstruct<D>, typename PostProcessFn = IgnoreArgs>
+  requires(std::is_invocable_r_v<bool, FnParam, const llvm::Value *, D> &&
+           std::is_invocable_r_v<bool, FnRet, const llvm::Value *, D>)
 FlowFunctionPtrType<D, Container> mapFactsToCaller(
     const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst,
     FnParam &&PropagateParameter = {}, FnRet &&PropagateRet = {},
@@ -336,9 +333,8 @@ FlowFunctionPtrType<D, Container> mapFactsToCaller(
 ///   f(b) = {},
 ///   f(x) = {x, b} if pred(x) else {x}.
 ///
-template <typename Fn, typename Container = std::set<const llvm::Value *>,
-          typename = std::enable_if_t<
-              std::is_invocable_r_v<bool, Fn, const llvm::Value *>>>
+template <typename Fn, typename Container = std::set<const llvm::Value *>>
+  requires std::is_invocable_r_v<bool, Fn, const llvm::Value *>
 FlowFunctionPtrType<const llvm::Value *, Container>
 strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
   // Here we cheat a bit and "look through" the GetElementPtrInst to the

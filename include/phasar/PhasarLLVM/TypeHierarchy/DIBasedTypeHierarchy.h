@@ -58,11 +58,6 @@ public:
                                 const DIBasedTypeHierarchyData &SerializedData);
   ~DIBasedTypeHierarchy() override = default;
 
-  [[deprecated("Use LLVMVFTableProvider::isVTable() instead")]]
-  static bool isVTable(llvm::StringRef VarName);
-  [[deprecated("Use LLVMVFTableProvider::removeVTablePrefix() instead")]]
-  static std::string removeVTablePrefix(llvm::StringRef VarName);
-
   [[nodiscard]] bool hasType(ClassType Type) const override {
     return TypeToVertex.count(Type);
   }
@@ -92,12 +87,16 @@ public:
 
   [[nodiscard]] const auto &getAllVTables() const noexcept { return VTables; }
 
-  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+  [[nodiscard]] static llvm::StringRef typeName(ClassType Type) {
     if (const auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(Type)) {
       auto Ident = CompTy->getIdentifier();
       return Ident.empty() ? CompTy->getName() : Ident;
     }
     return Type->getName();
+  }
+
+  [[nodiscard]] llvm::StringRef getTypeName(ClassType Type) const override {
+    return typeName(Type);
   }
 
   [[nodiscard]] size_t size() const noexcept override {

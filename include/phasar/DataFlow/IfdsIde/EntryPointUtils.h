@@ -10,8 +10,8 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_ENTRYPOINTUTILS_H
 #define PHASAR_DATAFLOW_IFDSIDE_ENTRYPOINTUTILS_H
 
-#include "phasar/ControlFlow/CFGBase.h"
-#include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/ControlFlow/CFG.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Domain/BinaryDomain.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -22,8 +22,8 @@
 namespace psr {
 
 namespace detail {
-template <typename EntryRange, typename C, typename HandlerFn>
-void forallStartingPoints(const EntryRange &EntryPoints, const CFGBase<C> &CFG,
+template <typename EntryRange, CFG C, typename HandlerFn>
+void forallStartingPoints(const EntryRange &EntryPoints, const C &CFG,
                           HandlerFn Handler) {
   for (const auto &EntryPointFn : EntryPoints) {
     if constexpr (std::is_convertible_v<std::decay_t<decltype(EntryPointFn)>,
@@ -38,10 +38,9 @@ void forallStartingPoints(const EntryRange &EntryPoints, const CFGBase<C> &CFG,
   }
 }
 
-template <typename EntryRange, typename C, typename ICFGorIRDB,
-          typename HandlerFn>
+template <typename EntryRange, CFG C, typename ICFGorIRDB, typename HandlerFn>
 void forallStartingPoints(const EntryRange &EntryPoints, const ICFGorIRDB *ICDB,
-                          const CFGBase<C> &CFG, HandlerFn Handler) {
+                          const C &CFG, HandlerFn Handler) {
 
   if (llvm::hasSingleElement(EntryPoints) &&
       *llvm::adl_begin(EntryPoints) == "__ALL__") {
@@ -57,10 +56,9 @@ void forallStartingPoints(const EntryRange &EntryPoints, const ICFGorIRDB *ICDB,
 
 } // namespace detail
 
-template <typename EntryRange, typename C, typename DB, typename HandlerFn>
-void forallStartingPoints(const EntryRange &EntryPoints,
-                          const ProjectIRDBBase<DB> *IRDB,
-                          const CFGBase<C> &CFG, HandlerFn Handler) {
+template <typename EntryRange, CFG C, ProjectIRDB DB, typename HandlerFn>
+void forallStartingPoints(const EntryRange &EntryPoints, const DB *IRDB,
+                          const C &CFG, HandlerFn Handler) {
   return detail::forallStartingPoints(EntryPoints, IRDB, CFG,
                                       std::move(Handler));
 }
@@ -71,14 +69,13 @@ void forallStartingPoints(const EntryRange &EntryPoints, const I *ICF,
   detail::forallStartingPoints(EntryPoints, ICF, *ICF, std::move(Handler));
 }
 
-template <typename EntryRange, typename C, typename DB, typename SeedsT,
+template <typename EntryRange, CFG C, ProjectIRDB DB, typename SeedsT,
           typename D, typename L>
-std::enable_if_t<std::is_convertible_v<L, typename SeedsT::l_t> &&
-                 std::is_convertible_v<D, typename SeedsT::d_t>>
-addSeedsForStartingPoints(const EntryRange &EntryPoints,
-                          const ProjectIRDBBase<DB> *IRDB,
-                          const CFGBase<C> &CFG, SeedsT &Seeds,
-                          const D &ZeroValue, const L &BottomValue) {
+  requires(std::is_convertible_v<L, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const DB *IRDB,
+                               const C &CFG, SeedsT &Seeds, const D &ZeroValue,
+                               const L &BottomValue) {
   forallStartingPoints(EntryPoints, IRDB, CFG,
                        [&Seeds, &ZeroValue, &BottomValue](const auto &SP) {
                          Seeds.addSeed(SP, ZeroValue, BottomValue);
@@ -87,11 +84,11 @@ addSeedsForStartingPoints(const EntryRange &EntryPoints,
 
 template <typename EntryRange, typename I, typename SeedsT, typename D,
           typename L>
-std::enable_if_t<std::is_convertible_v<L, typename SeedsT::l_t> &&
-                 std::is_convertible_v<D, typename SeedsT::d_t>>
-addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
-                          SeedsT &Seeds, const D &ZeroValue,
-                          const L &BottomValue) {
+  requires(std::is_convertible_v<L, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
+                               SeedsT &Seeds, const D &ZeroValue,
+                               const L &BottomValue) {
   forallStartingPoints(EntryPoints, ICF,
                        [&Seeds, &ZeroValue, &BottomValue](const auto &SP) {
                          Seeds.addSeed(SP, ZeroValue, BottomValue);
@@ -99,24 +96,23 @@ addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
 }
 
 /// Simplification for IFDS, passing BinaryDomain::BOTTOM as L
-template <typename EntryRange, typename C, typename DB, typename SeedsT,
+template <typename EntryRange, CFG C, ProjectIRDB DB, typename SeedsT,
           typename D>
-std::enable_if_t<std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
-                 std::is_convertible_v<D, typename SeedsT::d_t>>
-addSeedsForStartingPoints(const EntryRange &EntryPoints,
-                          const ProjectIRDBBase<DB> *IRDB,
-                          const CFGBase<C> &CFG, SeedsT &Seeds,
-                          const D &ZeroValue) {
+  requires(std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const DB *IRDB,
+                               const C &CFG, SeedsT &Seeds,
+                               const D &ZeroValue) {
   addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, ZeroValue,
                             BinaryDomain::BOTTOM);
 }
 
 /// Simplification for IFDS, passing BinaryDomain::BOTTOM as L
 template <typename EntryRange, typename I, typename SeedsT, typename D>
-std::enable_if_t<std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
-                 std::is_convertible_v<D, typename SeedsT::d_t>>
-addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
-                          SeedsT &Seeds, const D &ZeroValue) {
+  requires(std::is_same_v<BinaryDomain, typename SeedsT::l_t> &&
+           std::is_convertible_v<D, typename SeedsT::d_t>)
+void addSeedsForStartingPoints(const EntryRange &EntryPoints, const I *ICF,
+                               SeedsT &Seeds, const D &ZeroValue) {
   addSeedsForStartingPoints(EntryPoints, ICF, Seeds, ZeroValue,
                             BinaryDomain::BOTTOM);
 }
