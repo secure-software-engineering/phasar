@@ -1791,7 +1791,7 @@ private:
 
   /// -- InteractiveIDESolverMixin implementation
 
-  bool doInitialize() {
+  void doInitialize() {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Gen facts", 0, Core);
     REG_COUNTER("Kill facts", 0, Core);
@@ -1820,11 +1820,13 @@ private:
 
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
-    return !WorkList.empty();
   }
 
   bool doNext() {
-    assert(!WorkList.empty());
+    if (WorkList.empty()) {
+      return false;
+    }
+
     auto [Edge, EF] = std::move(WorkList.back());
     WorkList.pop_back();
 
@@ -1832,7 +1834,7 @@ private:
     propagate(std::move(SourceVal), std::move(Target), std::move(TargetVal),
               std::move(EF));
 
-    return !WorkList.empty();
+    return true;
   }
 
   void finalizeInternal() {

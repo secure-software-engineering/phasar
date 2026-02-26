@@ -2,6 +2,7 @@
 
 ## development HEAD
 
+- `IDESolver::initialize()` does no longer return a `bool`. Now, you are always allowed to call `next()` at least once.
 - `IntraMonoProblem` and `InterMonoProblem`, and all reference-implementations of these problems do not receive a TypeHierarchy-pointer anymore in the ctor.
 - Requiring C++20 instead of C++17
   - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
