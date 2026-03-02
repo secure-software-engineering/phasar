@@ -547,6 +547,17 @@ public:
     return this->template isa<ConcreteEF>() ? getPtr<ConcreteEF>(EF) : nullptr;
   }
 
+  template <typename ConcreteEF>
+  [[nodiscard]] std::optional<EdgeFunctionRef<ConcreteEF>>
+  asRef() const noexcept {
+    if (isa<ConcreteEF>()) {
+      return EdgeFunctionRef<ConcreteEF>(
+          EF, getAllocationPolicy() == AllocationPolicy::CustomHeapAllocated);
+    }
+
+    return std::nullopt;
+  }
+
   // -- misc
 
   /// True, iff this edge function is not small-object-optimized and thus its
@@ -738,17 +749,17 @@ private:
 namespace llvm {
 
 template <typename L> struct DenseMapInfo<psr::EdgeFunction<L>> {
-  static inline auto getEmptyKey() noexcept {
+  static auto getEmptyKey() noexcept {
     return psr::EdgeFunction<L>::getEmptyKey();
   }
-  static inline auto getTombstoneKey() noexcept {
+  static auto getTombstoneKey() noexcept {
     return psr::EdgeFunction<L>::getTombstoneKey();
   }
-  static inline auto getHashValue(const psr::EdgeFunction<L> &EF) noexcept {
+  static auto getHashValue(const psr::EdgeFunction<L> &EF) noexcept {
     return EF.getHashCode();
   }
-  static inline auto isEqual(const psr::EdgeFunction<L> &EF1,
-                             const psr::EdgeFunction<L> &EF2) noexcept {
+  static auto isEqual(const psr::EdgeFunction<L> &EF1,
+                      const psr::EdgeFunction<L> &EF2) noexcept {
     if (EF1.referenceEquals(EF2)) {
       return true;
     }

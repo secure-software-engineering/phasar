@@ -173,7 +173,7 @@ template <typename L> struct AllTop final {
   [[nodiscard]] static EdgeFunction<l_t>
   compose(EdgeFunctionRef<AllTop> This,
           const EdgeFunction<l_t> &SecondFunction) {
-    return llvm::isa<EdgeIdentity<l_t>>(SecondFunction) ? This : SecondFunction;
+    return SecondFunction.isConstant() ? SecondFunction : This;
   }
 
   [[nodiscard]] static EdgeFunction<l_t>
@@ -211,13 +211,16 @@ defaultComposeOrNull(const EdgeFunction<L> &This,
   if (llvm::isa<EdgeIdentity<L>>(SecondFunction)) {
     return This;
   }
-  if (SecondFunction.isConstant() || llvm::isa<AllTop<L>>(This) ||
-      llvm::isa<EdgeIdentity<L>>(This)) {
+  if (SecondFunction.isConstant() || llvm::isa<EdgeIdentity<L>>(This)) {
     return SecondFunction;
   }
-  if (llvm::isa<AllBottom<L>>(This)) {
+  if (llvm::isa<AllTop<L>>(This)) {
     return This;
   }
+  if (auto BotEF = This.template asRef<AllBottom<L>>()) {
+    return AllBottom<L>::compose(*BotEF, SecondFunction);
+  }
+
   return nullptr;
 }
 
@@ -471,12 +474,10 @@ ConstantEdgeFunction<L>::compose(EdgeFunctionRef<ConcreteEF> This,
 
   if constexpr (AreEqualityComparable<decltype(JLattice::top()), L>) {
     if (JLattice::top() == ConstVal) {
-      /// TODO: Can this ever happen?
       return AllTop<L>{};
     }
   } else {
     if (L(JLattice::top()) == ConstVal) {
-      /// TODO: Can this ever happen?
       return AllTop<L>{};
     }
   }
@@ -505,7 +506,7 @@ ConstantEdgeFunction<L>::join(EdgeFunctionRef<ConcreteEF> This,
     return OtherFunction.joinWith(This);
   }
 
-  auto OtherVal = OtherFunction.computeTarget(JLattice::top());
+  auto OtherVal = OtherFunction.computeTarget(JLattice::bottom());
   auto JoinedVal = JLattice::join(This->Value, OtherVal);
 
   if constexpr (AreEqualityComparable<decltype(JLattice::bottom()), l_t>) {
