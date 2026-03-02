@@ -96,6 +96,19 @@ operator<<(llvm::raw_ostream &OS, ByConstRef<ConstantEdgeFunction<L>> Id) {
   return OS;
 }
 
+template <typename L>
+  requires(is_std_hashable_v<typename NonTopBotValue<L>::type> ||
+           is_llvm_hashable_v<typename NonTopBotValue<L>::type>)
+[[nodiscard]] auto hash_value(const ConstantEdgeFunction<L> &CEF) noexcept {
+  using value_type = typename ConstantEdgeFunction<L>::value_type;
+  if constexpr (is_std_hashable_v<value_type>) {
+    return std::hash<value_type>{}(CEF.Value);
+  } else {
+    using llvm::hash_value;
+    return hash_value(CEF.Value);
+  }
+}
+
 template <typename L> struct AllBottom final {
   using l_t = L;
   using JLattice = JoinLatticeTraits<L>;
@@ -277,6 +290,11 @@ template <typename L> struct EdgeFunctionComposer {
 };
 
 static_assert(HasDepth<EdgeFunctionComposer<int>>);
+
+template <typename L>
+auto hash_value(const EdgeFunctionComposer<L> &EFC) noexcept {
+  return llvm::hash_combine(EFC.First, EFC.Second);
+}
 
 template <typename L, uint8_t N> struct JoinEdgeFunction {
   using l_t = L;

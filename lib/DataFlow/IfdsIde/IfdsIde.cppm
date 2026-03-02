@@ -46,7 +46,6 @@ using psr::addSeedsForStartingPoints;
 using psr::AllTopFnProvider;
 using psr::checkSREquality;
 using psr::Compressor;
-using psr::ConstantEdgeFunction;
 using psr::defaultJoinOrNull;
 using psr::DefaultMapKeyCompressor;
 using psr::EdgeFunctionCache;
