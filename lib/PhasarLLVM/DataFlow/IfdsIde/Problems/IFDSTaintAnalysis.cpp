@@ -33,6 +33,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <utility>
@@ -514,7 +515,10 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 auto IFDSTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
   PHASAR_LOG_LEVEL(DEBUG, "IFDSTaintAnalysis::initialSeeds()");
 
-  InitialSeeds<n_t, d_t, l_t> Seeds;
+  // Instructions are generated from zero on-the-fly, but args must be generated
+  // explicitly as seeds
+  InitialSeeds<n_t, d_t, l_t> Seeds =
+      Config->makeInitialSeeds(LLVMTaintConfig::SeedConfig::Arguments);
 
   LLVMBasedCFG C;
   addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
@@ -530,6 +534,13 @@ auto IFDSTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
         Seeds.addSeed(SP, &Arg);
       }
     }
+  }
+
+  if (Seeds.empty()) {
+    llvm::WithColor::warning()
+        << "No initial seeds specified, skip the analysis. "
+           "Please specify an entrypoint function or in the "
+           "TaintConfig a source llvm::Instruction*\n";
   }
 
   return Seeds;

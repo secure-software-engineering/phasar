@@ -41,6 +41,13 @@ public:
   using TaintDescriptionCallBackTy =
       llvm::unique_function<std::set<v_t>(n_t) const>;
 
+  enum class [[clang::flag_enum]] SeedConfig {
+    Arguments = 1,
+    Instructions = 2,
+
+    All = Arguments | Instructions,
+  };
+
   void registerSourceCallBack(TaintDescriptionCallBackTy CB) noexcept {
     SourceCallBack = std::move(CB);
   }
@@ -124,8 +131,9 @@ public:
     return self().getCategoryImpl(std::move(Val));
   }
 
-  [[nodiscard]] std::map<n_t, std::set<v_t>> makeInitialSeeds() const {
-    return self().makeInitialSeedsImpl();
+  [[nodiscard]] std::map<n_t, std::set<v_t>>
+  makeInitialSeeds(SeedConfig Conf = SeedConfig::All) const {
+    return self().makeInitialSeedsImpl(Conf);
   }
 
   void print(llvm::raw_ostream &OS = llvm::outs()) const {
