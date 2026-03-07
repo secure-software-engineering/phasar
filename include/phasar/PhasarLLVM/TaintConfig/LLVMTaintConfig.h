@@ -87,7 +87,7 @@ private:
 
   [[nodiscard]] std::map<const llvm::Instruction *,
                          std::set<const llvm::Value *>>
-  makeInitialSeedsImpl() const;
+  makeInitialSeedsImpl(SeedConfig Conf) const;
 
   void printImpl(llvm::raw_ostream &OS) const;
 

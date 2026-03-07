@@ -14,6 +14,7 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallVector.h"
@@ -457,17 +458,21 @@ TaintCategory LLVMTaintConfig::getCategoryImpl(const llvm::Value *V) const {
 }
 
 std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
-LLVMTaintConfig::makeInitialSeedsImpl() const {
+LLVMTaintConfig::makeInitialSeedsImpl(SeedConfig Conf) const {
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
       InitialSeeds;
   for (const auto *SourceValue : SourceValues) {
     if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(SourceValue)) {
-      InitialSeeds[Inst].insert(Inst);
+      if (hasFlag(Conf, SeedConfig::Instructions)) {
+        InitialSeeds[Inst].insert(Inst);
+      }
     } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(SourceValue);
                Arg && !Arg->getParent()->isDeclaration()) {
-      LLVMBasedCFG C;
-      for (const auto *SP : C.getStartPointsOf(Arg->getParent())) {
-        InitialSeeds[SP].insert(Arg);
+      if (hasFlag(Conf, SeedConfig::Arguments)) {
+        LLVMBasedCFG C;
+        for (const auto *SP : C.getStartPointsOf(Arg->getParent())) {
+          InitialSeeds[SP].insert(Arg);
+        }
       }
     }
   }
