@@ -28,13 +28,13 @@ public:
   class RowView {
     struct Transformator {
       const detail::IterativeIDESolverResults<n_t, d_t, l_t> *Results{};
-      mutable std::optional<std::pair<d_t, l_t>> Cache{};
 
-      const std::pair<d_t, l_t> &
+      // --v Needed for llvm::mapped_iterator
+      // NOLINTNEXTLINE(readability-const-return-type)
+      const std::pair<const d_t &, const l_t &>
       operator()(ByConstRef<typename row_map_t::value_type> Entry) const {
-        Cache = std::make_pair(Results->FactCompressor[Entry.first],
-                               Results->ValCompressor[Entry.second]);
-        return *Cache;
+        return {Results->FactCompressor[Entry.first],
+                Results->ValCompressor[Entry.second]};
       }
     };
 
