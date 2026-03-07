@@ -695,6 +695,10 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
       auto Txn = FldSensL->Transform;
       Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
 
+      if (Txn.Paths.empty()) {
+        return AllTop<l_t>{};
+      }
+
       if (Txn.Paths.size() > BreadthKLimit) {
         klimitPaths(Txn.Paths, Mgr);
       }
