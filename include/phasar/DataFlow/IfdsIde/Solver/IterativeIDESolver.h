@@ -519,6 +519,13 @@ private:
                                 uint32_t FunId, EdgeFunctionPtrType LocalEF)
     requires ComputeValues
   {
+
+    if (llvm::isa<AllTop<l_t>>(LocalEF)) {
+      // Don't store the default edge-function, which essentially denotes a
+      // killed fact
+      return false;
+    }
+
     auto &EF = JumpFns.getOrCreate(combineIds(SourceFact, LocalFact));
     if (!EF) {
       EF = std::move(LocalEF);
