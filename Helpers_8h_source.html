@@ -132,8 +132,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">/// fast migration to memory-management schemes other than std::shared_ptr</span></div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FlowFunctionTy</a>, <span class="keyword">typename</span>... <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>&gt;</div>
 <div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="namespacepsr_1_1XTaint.html#a9c6eafc05330b4042660e72836a8054a">   42</a></span><span class="keyword">inline</span> std::shared_ptr&lt;FlowFunctionTy&gt; <a class="code hl_function" href="namespacepsr_1_1XTaint.html#a9c6eafc05330b4042660e72836a8054a">makeFF</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a> &amp;&amp;...<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Arguments</a>) {</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">return</span> std::make_shared&lt;FlowFunctionTy&gt;(std::forward&lt;Args&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Arguments</a>)...);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="namespacepsr_1_1XTaint.html#a9c6eafc05330b4042660e72836a8054a">   42</a></span><span class="keyword">inline</span> std::shared_ptr&lt;FlowFunctionTy&gt; <a class="code hl_function" href="namespacepsr_1_1XTaint.html#a9c6eafc05330b4042660e72836a8054a">makeFF</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a> &amp;&amp;...Arguments) {</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">return</span> std::make_shared&lt;FlowFunctionTy&gt;(std::forward&lt;Args&gt;(Arguments)...);</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>}</div>
 </div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
@@ -151,7 +151,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 7 2026 13:54:10 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Mar 7 2026 16:49:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
