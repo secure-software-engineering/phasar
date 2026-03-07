@@ -177,6 +177,9 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1EdgeFunction.html">
 <tr class="memitem:a3405624e238fbba444ee6de1f0a2c52a" id="r_a3405624e238fbba444ee6de1f0a2c52a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; </td></tr>
 <tr class="memitem:a3405624e238fbba444ee6de1f0a2c52a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a3405624e238fbba444ee6de1f0a2c52a">dyn_cast</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a3405624e238fbba444ee6de1f0a2c52a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa83e2289ef66f01348ba7ff21acc4f3" id="r_aaa83e2289ef66f01348ba7ff21acc4f3"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; </td></tr>
+<tr class="memitem:aaa83e2289ef66f01348ba7ff21acc4f3"><td class="memTemplItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#aaa83e2289ef66f01348ba7ff21acc4f3">asRef</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:aaa83e2289ef66f01348ba7ff21acc4f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4facf373bf9ea38f548a95c7cd9d8f5" id="r_ad4facf373bf9ea38f548a95c7cd9d8f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#ad4facf373bf9ea38f548a95c7cd9d8f5">isRefCounted</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:ad4facf373bf9ea38f548a95c7cd9d8f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a916ca35111dce4a324d0d95758d5fcbf" id="r_a916ca35111dce4a324d0d95758d5fcbf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1EdgeFunction.html#a916ca35111dce4a324d0d95758d5fcbf">isCached</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
@@ -553,6 +556,37 @@ requires std::is_move_constructible_v&lt;<a class="el" href="namespacepsr.html#a
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aaa83e2289ef66f01348ba7ff21acc4f3" name="aaa83e2289ef66f01348ba7ff21acc4f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa83e2289ef66f01348ba7ff21acc4f3">&#9670;&#160;</a></span>asRef()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConcreteEF</a> &gt; &gt; <a class="el" href="classpsr_1_1EdgeFunction.html">psr::EdgeFunction</a>&lt; L &gt;::asRef </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00552">552</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+
+</div>
+</div>
 <a id="ab7b1e741b138c4398274cd79dd124dd8" name="ab7b1e741b138c4398274cd79dd124dd8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab7b1e741b138c4398274cd79dd124dd8">&#9670;&#160;</a></span>cast()</h2>
 
@@ -660,7 +694,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00328">328</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00240">psr::EdgeFunctionComposer&lt; L &gt;::compose()</a>, and <a class="el" href="SemiRing_8h_source.html#l00022">psr::SemiRing&lt; AnalysisDomainTy &gt;::extend()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00256">psr::EdgeFunctionComposer&lt; L &gt;::compose()</a>, and <a class="el" href="SemiRing_8h_source.html#l00022">psr::SemiRing&lt; AnalysisDomainTy &gt;::extend()</a>.</p>
 
 </div>
 </div>
@@ -696,7 +730,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00117">psr::AllBottom&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00447">psr::ConstantEdgeFunction&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00227">psr::EdgeFunctionComposer&lt; L &gt;::computeTarget()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00490">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00130">psr::AllBottom&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00468">psr::ConstantEdgeFunction&lt; L &gt;::compose()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00243">psr::EdgeFunctionComposer&lt; L &gt;::computeTarget()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00509">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>.</p>
 
 </div>
 </div>
@@ -725,9 +759,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00601">601</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00612">612</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00266">psr::EdgeFunctionComposer&lt; L &gt;::depth()</a>, and <a class="el" href="IDESolver_8h_source.html#l00278">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00282">psr::EdgeFunctionComposer&lt; L &gt;::depth()</a>, and <a class="el" href="IDESolver_8h_source.html#l00278">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
 
 </div>
 </div>
@@ -789,7 +823,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00567">567</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00578">578</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00278">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
 
@@ -824,7 +858,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Gets the cache where this edge function is being cached in. If this edge function is not cached (i.e., <a class="el" href="classpsr_1_1EdgeFunction.html#a916ca35111dce4a324d0d95758d5fcbf">isCached()</a> returns false), returns nullptr. Assumes that the held edge function is <em>exactly</em> of type ConcreteEF. In debug builds, asserts isa&lt;ConcreteEF&gt;.</p>
 <p>Use with caution! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00583">583</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00594">594</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -853,9 +887,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00610">610</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00621">621</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00741">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getEmptyKey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00752">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getEmptyKey()</a>.</p>
 
 </div>
 </div>
@@ -884,7 +918,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00592">592</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00603">603</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -914,7 +948,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Gets an opaque identifier for this edge function. Only meant for comparisons of object-identity. Do not dereference! </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00573">573</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00584">584</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -943,9 +977,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00616">616</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00627">627</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00744">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getTombstoneKey()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EdgeFunction_8h_source.html#l00755">llvm::DenseMapInfo&lt; psr::EdgeFunction&lt; L &gt; &gt;::getTombstoneKey()</a>.</p>
 
 </div>
 </div>
@@ -1009,7 +1043,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>True, iff this edge function is cached in a <a class="el" href="classpsr_1_1EdgeFunctionSingletonCache.html">EdgeFunctionSingletonCache</a>.</p>
 <p>False for small-object-optimized- and null-EF. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00563">563</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00574">574</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1042,6 +1076,8 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00501">501</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="EdgeFunctionUtils_8h_source.html#l00187">psr::AllTop&lt; L &gt;::compose()</a>.</p>
+
 </div>
 </div>
 <a id="ad4facf373bf9ea38f548a95c7cd9d8f5" name="ad4facf373bf9ea38f548a95c7cd9d8f5"></a>
@@ -1071,7 +1107,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>True, iff this edge function is not small-object-optimized and thus its lifetime is managed by ref-counting.</p>
 <p>False for null-EF. </p>
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00556">556</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00567">567</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1177,7 +1213,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00365">365</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="SemiRing_8h_source.html#l00027">psr::SemiRing&lt; AnalysisDomainTy &gt;::combine()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00490">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00430">psr::EdgeIdentity&lt; L &gt;::join()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="SemiRing_8h_source.html#l00027">psr::SemiRing&lt; AnalysisDomainTy &gt;::combine()</a>, <a class="el" href="EdgeFunctionUtils_8h_source.html#l00509">psr::ConstantEdgeFunction&lt; L &gt;::join()</a>, and <a class="el" href="EdgeFunctionUtils_8h_source.html#l00451">psr::EdgeIdentity&lt; L &gt;::join()</a>.</p>
 
 </div>
 </div>
@@ -1439,7 +1475,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00606">606</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunction_8h_source.html#l00617">617</a> of file <a class="el" href="EdgeFunction_8h_source.html">EdgeFunction.h</a>.</p>
 
 </div>
 </div>
@@ -1730,7 +1766,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Feb 17 2026 17:24:34 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Mar 7 2026 13:54:10 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
