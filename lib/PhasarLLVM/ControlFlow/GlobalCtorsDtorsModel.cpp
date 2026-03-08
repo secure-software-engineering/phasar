@@ -380,8 +380,9 @@ bool GlobalCtorsDtorsModel::isPhasarGenerated(
   if (F.hasName()) {
     llvm::StringRef FunctionName = F.getName();
     return llvm::StringSwitch<bool>(FunctionName)
-        .Cases(ModelName, DtorModelName, DtorsCallerName, UserEntrySelectorName,
-               true)
+        .Cases(
+            {ModelName, DtorModelName, DtorsCallerName, UserEntrySelectorName},
+            true)
         .Default(false);
   }
 

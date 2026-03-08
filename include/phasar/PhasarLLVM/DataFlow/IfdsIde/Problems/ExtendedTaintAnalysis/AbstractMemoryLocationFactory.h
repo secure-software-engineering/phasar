@@ -43,6 +43,14 @@ private:
       static Block *create(Block *Next, size_t NumPointerEntries);
       static void destroy(Block *Blck, size_t NumPointerEntries);
 
+      void **data() noexcept {
+        return this->getTrailingObjects
+#if LLVM_VERSION_MAJOR <= 20
+            <void *>
+#endif
+            ();
+      }
+
     private:
       Block(Block *Next);
     };

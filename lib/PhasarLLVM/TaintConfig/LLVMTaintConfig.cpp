@@ -140,7 +140,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
     DIF.processModule(*M);
     for (const auto &Ty : DIF.types()) {
       if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-          Ty->getName().equals(VarDesc.Scope)) {
+          Ty->getName() == VarDesc.Scope) {
         for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
           StructConfigMap.insert(
               std::pair<const llvm::Type *, const std::string>(LlvmStructTy,
@@ -158,7 +158,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
         if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
           const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
           // matching line number with for Allocas
-          if (LocalVar->getName().equals(VarDesc.Name) &&
+          if (LocalVar->getName() == VarDesc.Name &&
               LocalVar->getLine() == VarDesc.Line) {
             addTaintCategory(DbgDeclare->getAddress(), VarDesc.Cat);
           }
@@ -172,7 +172,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
               // using substr to cover the edge case in which same variable
               // name is present as a local variable and also as a struct
               // member variable. (Ex. JsonConfig/fun_member_02.cpp)
-              if (Gep->getName().substr(0, VarName.size()).equals(VarName)) {
+              if (Gep->getName().substr(0, VarName.size()) == VarName) {
                 addTaintCategory(Gep, VarDesc.Cat);
               }
             }

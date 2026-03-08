@@ -374,13 +374,23 @@ unsigned int psr::getColumnFromIR(const llvm::Value *V) {
 
 std::pair<unsigned, unsigned> psr::getLineAndColFromIR(const llvm::Value *V) {
   // Argument and Instruction
-  if (auto *DILoc = getDILocation(V)) {
-    return {DILoc->getLine(), DILoc->getColumn()};
-  }
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (const auto &DbgLoc = I->getDebugLoc()) {
+      return {DbgLoc.getLine(), DbgLoc.getCol()};
+    }
+    if (I->hasDbgRecords()) {
+      for (const auto &DbgRecord : I->getDbgRecordRange()) {
+        if (const auto &DbgLoc = DbgRecord.getDebugLoc()) {
+          return {DbgLoc.getLine(), DbgLoc.getCol()};
+        }
+      }
+    }
     if (const auto *DIFun = I->getFunction()->getSubprogram()) {
       return {DIFun->getLine(), 0};
     }
+  }
+  if (auto *DILoc = getDILocation(V)) {
+    return {DILoc->getLine(), DILoc->getColumn()};
   }
   if (auto *DISubpr = getDISubprogram(V)) { // Function
     return {DISubpr->getLine(), 0};

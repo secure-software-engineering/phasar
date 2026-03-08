@@ -40,15 +40,14 @@ auto AbstractMemoryLocationFactoryBase::Allocator::Block::create(
 
   new (Ret) Block(Next);
 
-  __asan_poison_memory_region(Ret->getTrailingObjects<void *>(),
-                              NumPointerEntries * sizeof(void *));
+  __asan_poison_memory_region(Ret->data(), NumPointerEntries * sizeof(void *));
 
   return Ret;
 }
 
 void AbstractMemoryLocationFactoryBase::Allocator::Block::destroy(
     Block *Blck, [[maybe_unused]] size_t NumPointerEntries) {
-  __asan_unpoison_memory_region(Blck->getTrailingObjects<void *>(),
+  __asan_unpoison_memory_region(Blck->data(),
                                 NumPointerEntries * sizeof(void *));
   ::operator delete[](Blck,
                       std::align_val_t{alignof(AbstractMemoryLocationImpl)});
@@ -63,7 +62,7 @@ AbstractMemoryLocationFactoryBase::Allocator::Allocator(
   const auto NumPointersPerInitialBlock =
       (MinNumPointersPerAML + 3) * InitialCapacity;
   Root = Block::create(nullptr, NumPointersPerInitialBlock);
-  Pos = Root->getTrailingObjects<void *>();
+  Pos = Root->data();
   End = Pos + NumPointersPerInitialBlock;
 }
 
@@ -112,7 +111,7 @@ AbstractMemoryLocationFactoryBase::Allocator::create(
 
   if (End - Curr < ptrdiff_t(NumPointersRequired)) {
     Root = Rt = Block::create(Rt, NumPointersPerBlock);
-    Pos = Curr = Rt->getTrailingObjects<void *>();
+    Pos = Curr = Rt->data();
     End = Curr + NumPointersPerBlock;
   }
 

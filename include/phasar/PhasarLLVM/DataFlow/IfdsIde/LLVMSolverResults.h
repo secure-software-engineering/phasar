@@ -41,9 +41,11 @@ auto SolverResultsBase<Derived, N, D, L>::resultsAtInLLVMSSA(
     if (!Stmt->getNextNode()) {
       auto GetStartRow = [this](const llvm::BasicBlock *BB) -> decltype(auto) {
         const auto *First = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
         if (llvm::isa<llvm::DbgInfoIntrinsic>(First)) {
           First = First->getNextNonDebugInstruction();
         }
+#endif
         return self().Results.row(First);
       };
 
@@ -111,9 +113,11 @@ auto SolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
     auto GetStartVal = [this,
                         &Value](const llvm::BasicBlock *BB) -> decltype(auto) {
       const auto *First = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
       if (llvm::isa<llvm::DbgInfoIntrinsic>(First)) {
         First = First->getNextNonDebugInstruction();
       }
+#endif
       return self().Results.get(First, Value);
     };
 
