@@ -310,6 +310,8 @@ TEST(LLVMBasedCFGTest, HandleFunctionsContainingCodesInName) {
             SpecialMemberFunctionType::None);
 }
 
+#if LLVM_VERSION_MAJOR <= 18
+
 TEST(LLVMBasedCFGTest, IgnoreSingleDbgInstructionsInSuccessors) {
   LLVMBasedCFG Cfg;
   LLVMProjectIRDB IRDB1({unittest::PathToLLTestFiles +
@@ -423,6 +425,9 @@ TEST(LLVMBasedCFGTest, IgnoreMultiSubsequentDbgInstructionsInControlFlowEdges) {
     }
   }
 }
+#else
+// TODO: Create alternative test cases if necessary
+#endif
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
