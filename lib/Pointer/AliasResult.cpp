@@ -35,3 +35,16 @@ psr::AliasResult psr::toAliasResult(llvm::StringRef S) {
 llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS, AliasResult AR) {
   return OS << toString(AR);
 }
+
+llvm::StringRef psr::to_string(AliasResult Res) noexcept {
+  switch (Res) {
+  case AliasResult::NoAlias:
+    return "NoAlias";
+  case AliasResult::MustAlias:
+    return "MustAlias";
+  case AliasResult::MayAlias:
+    return "MayAlias";
+  }
+  llvm_unreachable(
+      "All AliasResult kinds should be handled by the switch above");
+}

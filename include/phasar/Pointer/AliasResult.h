@@ -21,6 +21,7 @@ enum class AliasResult {
 };
 
 std::string toString(AliasResult AR);
+[[nodiscard]] llvm::StringRef to_string(AliasResult Res) noexcept;
 
 AliasResult toAliasResult(llvm::StringRef S);
 

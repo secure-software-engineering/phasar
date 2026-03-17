@@ -176,6 +176,13 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
     if (Var1 == Var2) {
       return true;
     }
+
+    if (!Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)) {
+      llvm::errs()
+          << "ERROR: !Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)\n";
+      return false;
+    }
+
     auto Rep1 = Var2Rep[Var1];
     auto Rep2 = Var2Rep[Var2];
     return Rep1 == Rep2;
@@ -206,6 +213,11 @@ struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
     }
 
     // Note: K is mostly small (1 or 2), so below loop should be very cheap
+    if (!Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)) {
+      llvm::errs()
+          << "ERROR: !Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)\n";
+      return false;
+    }
     const auto &Reps1 = Var2Rep[Var1];
     const auto &Reps2 = Var2Rep[Var2];
     for (ObjectRepId R1 : Reps1) {
