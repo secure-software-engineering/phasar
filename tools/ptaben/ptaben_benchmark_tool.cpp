@@ -7,14 +7,11 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
-#include "phasar/Pointer/BottomupUnionFindAA.h"
-#include "phasar/Pointer/UnionFindAA.h"
 #include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/FileUtils.hpp"
 
@@ -32,32 +29,35 @@
 
 namespace cl = llvm::cl;
 
+static cl::OptionCategory PTABenCat("PTABen Benhchmark Tool");
+
 static cl::opt<std::string> IRPath(cl::Positional, cl::Required,
-                                   cl::desc("ptaben-ir-directory"));
+                                   cl::desc("ptaben-ir-directory"),
+                                   cl::cat(PTABenCat));
 static cl::opt<std::string>
     QueryTablePath("queries-table",
                    cl::desc("The Output-Path to the queries table"),
-                   cl::init("queries.csv"));
+                   cl::init("queries.csv"), cl::cat(PTABenCat));
 static cl::opt<std::string>
     AndersTablePath("anders-table",
                     cl::desc("The Output-Path to the anders output table"),
-                    cl::init("anders-results.csv"));
+                    cl::init("anders-results.csv"), cl::cat(PTABenCat));
 static cl::opt<std::string>
     SteensTablePath("steens-table",
                     cl::desc("The Output-Path to the steens output table"),
-                    cl::init("steens-results.csv"));
+                    cl::init("steens-results.csv"), cl::cat(PTABenCat));
 static cl::opt<std::string>
     CtxTablePath("ctx-table",
                  cl::desc("The Output-Path to the ctx output table"),
-                 cl::init("ctx-results.csv"));
+                 cl::init("ctx-results.csv"), cl::cat(PTABenCat));
 static cl::opt<std::string>
     BotTablePath("bot-table",
                  cl::desc("The Output-Path to the bot output table"),
-                 cl::init("bot-results.csv"));
+                 cl::init("bot-results.csv"), cl::cat(PTABenCat));
 static cl::opt<std::string>
     IndTablePath("ind-table",
                  cl::desc("The Output-Path to the ind output table"),
-                 cl::init("ind-results.csv"));
+                 cl::init("ind-results.csv"), cl::cat(PTABenCat));
 
 static psr::AliasResult
 checkLLVMQueryLoc(psr::LLVMAliasInfoRef ComputedAliasResult,
@@ -118,6 +118,7 @@ static auto openFileOrExit(llvm::StringRef Filepath) {
 }
 
 int main(int Argc, char *Argv[]) {
+  cl::HideUnrelatedOptions(PTABenCat);
   cl::ParseCommandLineOptions(Argc, Argv);
 
   auto QFile = openFileOrExit(QueryTablePath);
