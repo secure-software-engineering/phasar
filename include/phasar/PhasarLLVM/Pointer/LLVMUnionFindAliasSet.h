@@ -1,5 +1,6 @@
 #pragma once
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToUtils.h"
@@ -52,12 +53,15 @@ public:
     AnalysisLocality ALocality = AnalysisLocality::Global;
   };
 
-  explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB, Config Cfg,
+  explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
+                                 const LLVMBasedCallGraph &BaseCG, Config Cfg,
                                  ValueCompressor<PAGVariable> *VC);
-  explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB, Config Cfg)
-      : LLVMUnionFindAliasSet(IRDB, Cfg, nullptr) {}
-  explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB)
-      : LLVMUnionFindAliasSet(IRDB, Config{}, nullptr) {}
+  explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
+                                 const LLVMBasedCallGraph &BaseCG, Config Cfg)
+      : LLVMUnionFindAliasSet(IRDB, BaseCG, Cfg, nullptr) {}
+  explicit LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
+                                 const LLVMBasedCallGraph &BaseCG)
+      : LLVMUnionFindAliasSet(IRDB, BaseCG, Config{}, nullptr) {}
 
   [[nodiscard]] constexpr std::true_type isInterProcedural() const noexcept {
     return {};

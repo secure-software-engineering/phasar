@@ -1,6 +1,9 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
@@ -75,8 +78,13 @@ LLVMAliasInfoRef HelperAnalyses::getAliasInfo() {
     if (PrecomputedPTS.has_value()) {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), *PrecomputedPTS);
     } else if (PTATy == AliasAnalysisType::UnionFind) {
+      auto &IRDB = getProjectIRDB();
+      auto VTP = LLVMVFTableProvider(IRDB);
+      auto Res = RTAResolver(&IRDB, &VTP, &getTypeHierarchy());
+      const auto BaseCG = buildLLVMBasedCallGraph(
+          IRDB, Res, getEntryFunctions(IRDB, EntryPoints));
       PT = std::make_unique<LLVMUnionFindAliasSet>(
-          &getProjectIRDB(),
+          &getProjectIRDB(), BaseCG,
           LLVMUnionFindAliasSet::Config{
               .AType = UFAATy,
               .ALocality = LLVMUnionFindAliasSet::AnalysisLocality::Global,

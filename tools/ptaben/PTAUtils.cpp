@@ -1,8 +1,7 @@
-#include "phasar/Utils/PTAUtils.hpp"
+#include "PTAUtils.h"
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/AliasResult.h"
-#include "phasar/Utils/AliasQueryType.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/InstIterator.h"
@@ -12,28 +11,32 @@
 #include "llvm/Support/SHA256.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "AliasQueryType.h"
+
 #include <cstdint>
 
-bool psr::isSoundResult(const QueryResult &QR) noexcept {
+using namespace psr;
+
+bool ptaben::isSoundResult(const QueryResult &QR) noexcept {
   auto Res = QR.Result;
   auto ExpectedRes = getExpectedAliasResult(QR.QueryType);
 
   return Res == ExpectedRes || Res == AliasResult::MayAlias;
 }
 
-llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
-                                   const QueryResult &Result) {
+llvm::raw_ostream &ptaben::operator<<(llvm::raw_ostream &OS,
+                                      const QueryResult &Result) {
   OS << "Query at " << psr::llvmIRToString(Result.Inst) << " expected "
      << to_string(Result.QueryType) << ", but got " << to_string(Result.Result);
   return OS;
 }
 
-llvm::raw_ostream &psr::operator<<(llvm::raw_ostream &OS,
-                                   const QueryLocation &Result) {
+llvm::raw_ostream &ptaben::operator<<(llvm::raw_ostream &OS,
+                                      const QueryLocation &Result) {
   return OS << "Query at " << psr::llvmIRToString(Result.Inst);
 }
 
-static psr::QueryId getQueryId(llvm::StringRef FileName, uint32_t SeqNo) {
+static ptaben::QueryId getQueryId(llvm::StringRef FileName, uint32_t SeqNo) {
   llvm::SHA256 Hasher;
   Hasher.update(FileName);
 
@@ -49,10 +52,10 @@ static psr::QueryId getQueryId(llvm::StringRef FileName, uint32_t SeqNo) {
   auto QId = llvm::support::endian::read64(Hash.data(),
                                            llvm::support::endianness::little);
 
-  return psr::QueryId(QId);
+  return ptaben::QueryId(QId);
 }
 
-void psr::findAllQueryLocations(
+void ptaben::findAllQueryLocations(
     const llvm::Module &Mod, llvm::SmallVectorImpl<QueryLocation> &Locs,
     llvm::SmallVectorImpl<QuerySrcCodeLocation> *SrcLocs) {
   const auto &FilePath = Mod.getSourceFileName();
@@ -77,39 +80,47 @@ void psr::findAllQueryLocations(
   }
 }
 
-bool psr::verifyAnalysisResult(AliasResult Res, const QueryLocation &QueryLoc) {
+bool ptaben::verifyAnalysisResult(AliasResult Res,
+                                  const QueryLocation &QueryLoc) {
   switch (QueryLoc.QueryType) {
-  case psr::AliasQueryType::EXPECTEDFAILMAYALIAS:
-    if (Res != psr::AliasResult::MayAlias)
+    using enum ptaben::AliasQueryType;
+  case EXPECTEDFAILMAYALIAS:
+    if (Res != psr::AliasResult::MayAlias) {
       llvm::outs() << "[INFO]: Failed EXPECTEDFAIL_MAYALIAS at" << QueryLoc
                    << '\n';
+    }
     return true;
-  case psr::AliasQueryType::PARTIALALIAS:
+  case PARTIALALIAS:
     // We don't support partial alias. Use may alias instead.
     [[fallthrough]];
-  case psr::AliasQueryType::MAYALIAS:
-    if (Res == psr::AliasResult::MayAlias)
+  case MAYALIAS:
+    if (Res == psr::AliasResult::MayAlias) {
       return true;
+    }
     break;
 
-  case psr::AliasQueryType::EXPECTEDFAILMUSTALIAS:
-    if (Res != psr::AliasResult::MustAlias)
+  case EXPECTEDFAILMUSTALIAS:
+    if (Res != psr::AliasResult::MustAlias) {
       llvm::outs() << "[INFO]: Failed EXPECTEDFAIL_MUSTALIAS at" << QueryLoc
                    << '\n';
+    }
     return true;
-  case psr::AliasQueryType::MUSTALIAS:
-    if (Res == psr::AliasResult::MustAlias)
+  case MUSTALIAS:
+    if (Res == psr::AliasResult::MustAlias) {
       return true;
+    }
     break;
 
-  case psr::AliasQueryType::EXPECTEDFAILNOALIAS:
-    if (Res != psr::AliasResult::NoAlias)
+  case EXPECTEDFAILNOALIAS:
+    if (Res != psr::AliasResult::NoAlias) {
       llvm::outs() << "[INFO]: Failed EXPECTEDFAIL_NOALIAS at" << QueryLoc
                    << '\n';
+    }
     return true;
-  case psr::AliasQueryType::NOALIAS:
-    if (Res == psr::AliasResult::NoAlias)
+  case NOALIAS:
+    if (Res == psr::AliasResult::NoAlias) {
       return true;
+    }
     break;
   }
 

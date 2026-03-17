@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace psr {
+namespace psr::ptaben {
 enum class [[clang::enum_extensibility(open)]] QueryId : uint64_t {};
 
-} // namespace psr
+} // namespace psr::ptaben

@@ -1,19 +1,20 @@
-#include "phasar/Utils/AliasQueryType.h"
+#include "AliasQueryType.h"
 
 #include "phasar/Pointer/AliasResult.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <array>
 
-#include <llvm/ADT/StringRef.h>
+using namespace psr;
 
-llvm::StringRef psr::to_string(AliasQueryType QueryType) noexcept {
+llvm::StringRef ptaben::to_string(AliasQueryType QueryType) noexcept {
   switch (QueryType) {
 #define ALIAS_QUERY_TYPE(NAME)                                                 \
   case AliasQueryType::NAME:                                                   \
     return #NAME;
-#include "phasar/Utils/AliasQueryType.inc"
+#include "AliasQueryType.inc"
   }
   llvm_unreachable(
       "All AliasQueryType variants should be handled in the switch above");
@@ -21,20 +22,20 @@ llvm::StringRef psr::to_string(AliasQueryType QueryType) noexcept {
 
 static constexpr size_t NumQueryTypes = 0
 #define ALIAS_QUERY_TYPE(NAME) +1
-#include "phasar/Utils/AliasQueryType.inc"
+#include "AliasQueryType.inc"
     ;
 
 struct NamedQuery {
   llvm::StringRef Name{};
-  psr::AliasQueryType QueryType{};
+  ptaben::AliasQueryType QueryType{};
 };
 
 static constexpr std::array<NamedQuery, NumQueryTypes>
 getSortedQueryTypes() noexcept {
   using namespace psr;
   std::array<NamedQuery, NumQueryTypes> AllQueries = {{
-#define ALIAS_QUERY_TYPE(NAME) {#NAME, AliasQueryType::NAME},
-#include "phasar/Utils/AliasQueryType.inc"
+#define ALIAS_QUERY_TYPE(NAME) {#NAME, ptaben::AliasQueryType::NAME},
+#include "AliasQueryType.inc"
   }};
 
   // std::sort is not constexpr
@@ -52,7 +53,7 @@ getSortedQueryTypes() noexcept {
   return AllQueries;
 }
 
-auto psr::parseAliasQueryType(llvm::StringRef Str) noexcept
+auto ptaben::parseAliasQueryType(llvm::StringRef Str) noexcept
     -> std::optional<AliasQueryType> {
   static constexpr auto AllQueries = getSortedQueryTypes();
 
@@ -65,7 +66,7 @@ auto psr::parseAliasQueryType(llvm::StringRef Str) noexcept
   return std::nullopt;
 }
 
-auto psr::getExpectedAliasResult(AliasQueryType QT) noexcept -> AliasResult {
+auto ptaben::getExpectedAliasResult(AliasQueryType QT) noexcept -> AliasResult {
   switch (QT) {
   case AliasQueryType::MAYALIAS:
   case AliasQueryType::EXPECTEDFAILMAYALIAS:

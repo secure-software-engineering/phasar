@@ -1,11 +1,13 @@
 #pragma once
 
+#include "phasar/Pointer/AliasResult.h"
+
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/FileSystem.h"
 
-#include "QueryLocation.hpp"
+#include "QueryLocation.h"
 
 #include <functional>
 #include <type_traits>
@@ -17,10 +19,7 @@ class Instruction;
 class raw_ostream;
 } // namespace llvm
 
-namespace psr {
-enum class AliasQueryType;
-enum class AliasResult;
-
+namespace psr::ptaben {
 struct QueryResult : QueryLocation {
   AliasResult Result{};
 };
@@ -76,4 +75,4 @@ checkDir(const llvm::Twine &DirName,
     llvm::errs() << "[ERROR]: " << EC.message() << '\n';
   }
 }
-} // namespace psr
+} // namespace psr::ptaben

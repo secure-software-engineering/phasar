@@ -1,9 +1,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
-#include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
@@ -140,6 +138,7 @@ struct [[clang::internal_linkage]] LLVMUnionFindAliasSet::UnionFindAAResultModel
 };
 
 LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
+                                             const LLVMBasedCallGraph &BaseCG,
                                              Config Cfg,
                                              ValueCompressor<PAGVariable> *VC)
     : Cfg(Cfg) {
@@ -147,12 +146,6 @@ LLVMUnionFindAliasSet::LLVMUnionFindAliasSet(const LLVMProjectIRDB *IRDB,
   if (!VC) {
     VCOwn = std::make_unique<ValueCompressor<PAGVariable>>();
   }
-
-  auto VTP = LLVMVFTableProvider(*IRDB);
-  auto TH = DIBasedTypeHierarchy(*IRDB);
-  auto Res = RTAResolver(IRDB, &VTP, &TH);
-  const auto BaseCG = buildLLVMBasedCallGraph(
-      *IRDB, Res, getEntryFunctions(*IRDB, getDefaultEntryPoints(*IRDB)));
 
   auto MakeAAResModel =
       [&, IRDB, Cfg, VCOwn = std::move(VCOwn)](

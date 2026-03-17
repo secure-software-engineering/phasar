@@ -1,8 +1,8 @@
-#include "phasar/Utils/AliasQueryType.h"
-#include "phasar/Utils/PTAUtils.hpp"
-#include "phasar/Utils/QuerySer.hpp"
+#include "AliasQueryType.h"
+#include "PTAUtils.h"
+#include "QuerySer.h"
 
-using namespace psr;
+using namespace psr::ptaben;
 
 QuerySerializer::QuerySerializer(llvm::raw_ostream *OS) : OS(OS) {
   assert(OS != nullptr);

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "phasar/Utils/PTAResult.hpp"
-
 #include "llvm/Support/raw_ostream.h"
 
-namespace psr {
+#include "PTAResult.h"
+
+namespace psr::ptaben {
 class ResultCollector {
 public:
   explicit ResultCollector(llvm::raw_ostream *OS, llvm::StringRef ResultName);
@@ -14,4 +14,4 @@ public:
 private:
   llvm::raw_ostream *OS{};
 };
-}; // namespace psr
+}; // namespace psr::ptaben

@@ -4,9 +4,9 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-#include "QueryId.hpp"
+#include "QueryId.h"
 
-namespace psr {
+namespace psr::ptaben {
 
 struct PTAResult {
   QueryId Query{};
@@ -15,4 +15,4 @@ struct PTAResult {
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, PTAResult Res);
 
-} // namespace psr
+} // namespace psr::ptaben

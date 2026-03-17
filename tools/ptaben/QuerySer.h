@@ -2,9 +2,11 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-namespace psr {
-struct QueryLocation;
-struct QuerySrcCodeLocation;
+#include "PTAUtils.h"
+#include "QueryLocation.h"
+
+namespace psr::ptaben {
+
 class QuerySerializer {
 public:
   explicit QuerySerializer(llvm::raw_ostream *OS);
@@ -15,4 +17,4 @@ public:
 private:
   llvm::raw_ostream *OS{};
 };
-} // namespace psr
+} // namespace psr::ptaben

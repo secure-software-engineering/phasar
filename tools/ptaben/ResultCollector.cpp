@@ -1,6 +1,6 @@
-#include "phasar/Utils/ResultsCollector.hpp"
+#include "ResultsCollector.h"
 
-using namespace psr;
+using namespace psr::ptaben;
 
 ResultCollector::ResultCollector(llvm::raw_ostream *OS,
                                  llvm::StringRef ResultName)
