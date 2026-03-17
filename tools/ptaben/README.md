@@ -7,7 +7,7 @@ Just provide the path to that folder to `tools/ptaben/ptaben`. It will run the a
 
 ## Supported Analyses
 
-Currently, the benhcmark tool supports the following analyses:
+Currently, the benchmark tool supports the following analyses:
 
 - LLVM's CFLAndersen analysis, wrapped into `psr::LLVMAliasSet`
 - LLVM's CFLSteensgaard analysis, wrapped into `psr::LLVMAliasSet`
