@@ -1,7 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,41,212,81"/>
-<area shape="rect" id="Node000001" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="289,5,429,45"/>
-<area shape="poly" id="edge158_Node000000_Node000001" title=" " alt="" coords="225,42,288,33,289,38,226,47"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="260,70,457,125"/>
-<area shape="poly" id="edge159_Node000000_Node000002" title=" " alt="" coords="226,76,260,81,260,86,225,81"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,5,212,45"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1AliasInfoRef.html" title="A type&#45;erased reference to any object implementing the IsAliasInfo interface. Use this,..." alt="" coords="260,5,400,45"/>
+<area shape="poly" id="edge169_Node000000_Node000001" title=" " alt="" coords="226,23,260,23,260,28,226,28"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1AliasInfo.html" title="Similar to AliasInfoRef, but exclusively owns the held reference. Use this, if you need to decide dyn..." alt="" coords="448,13,612,38"/>
+<area shape="poly" id="edge170_Node000001_Node000002" title=" " alt="" coords="414,23,448,23,448,28,414,28"/>
 </map>

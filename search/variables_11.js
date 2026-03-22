@@ -33,8 +33,9 @@ var searchData=
   ['stmtid_30',['StmtId',['../structpsr_1_1DOTNode.html#a5a12cde2848d1c9bcbf3cf36b122ce81',1,'psr::DOTNode']]],
   ['stmts_31',['Stmts',['../structpsr_1_1DOTFunctionSubGraph.html#a376bdd3be630d2c6b387e1149a041cf1',1,'psr::DOTFunctionSubGraph']]],
   ['storeinstructions_32',['StoreInstructions',['../structpsr_1_1GeneralStatistics.html#a8ba4865ba4d250ca25518a51e136aebd',1,'psr::GeneralStatistics']]],
-  ['structprefix_33',['StructPrefix',['../classpsr_1_1DIBasedTypeHierarchy.html#a9ac7b45c48972fab31b3808667cbd063',1,'psr::DIBasedTypeHierarchy']]],
-  ['summaryefcachecumulsize_34',['SummaryEFCacheCumulSize',['../structpsr_1_1EdgeFunctionCacheStats.html#a6f7a62f1b1d43b621e9bd3aa833bb972',1,'psr::EdgeFunctionCacheStats']]],
-  ['summaryffcachesize_35',['SummaryFFCacheSize',['../structpsr_1_1FlowFunctionCacheStats.html#a9849b06b2fa32de134db5557cdc2ca60',1,'psr::FlowFunctionCacheStats']]],
-  ['switches_36',['Switches',['../structpsr_1_1GeneralStatistics.html#a79f0a15b58c73941891c9ba0ee87d1ea',1,'psr::GeneralStatistics']]]
+  ['stores_33',['Stores',['../structpsr_1_1cfl__fieldsens_1_1AccessPath.html#a1b96f5470372728fba5427c958095cde',1,'psr::cfl_fieldsens::AccessPath']]],
+  ['structprefix_34',['StructPrefix',['../classpsr_1_1DIBasedTypeHierarchy.html#a9ac7b45c48972fab31b3808667cbd063',1,'psr::DIBasedTypeHierarchy']]],
+  ['summaryefcachecumulsize_35',['SummaryEFCacheCumulSize',['../structpsr_1_1EdgeFunctionCacheStats.html#a6f7a62f1b1d43b621e9bd3aa833bb972',1,'psr::EdgeFunctionCacheStats']]],
+  ['summaryffcachesize_36',['SummaryFFCacheSize',['../structpsr_1_1FlowFunctionCacheStats.html#a9849b06b2fa32de134db5557cdc2ca60',1,'psr::FlowFunctionCacheStats']]],
+  ['switches_37',['Switches',['../structpsr_1_1GeneralStatistics.html#a79f0a15b58c73941891c9ba0ee87d1ea',1,'psr::GeneralStatistics']]]
 ];

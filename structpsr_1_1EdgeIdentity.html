@@ -86,6 +86,7 @@ $(function() {
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="structpsr_1_1EdgeIdentity-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">psr::EdgeIdentity&lt; L &gt; Struct Template Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
 </div><!--header-->
@@ -109,6 +110,11 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:aef8e18cb6257189d050b1dd96fe7c538"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa84c1fcd263bde0f0449b413ac6ad68" id="r_afa84c1fcd263bde0f0449b413ac6ad68"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; <a class="el" href="structpsr_1_1EdgeIdentity.html#ae2405152943e45cda38a1902845b9404">l_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1EdgeIdentity.html#afa84c1fcd263bde0f0449b413ac6ad68">join</a> (<a class="el" href="classpsr_1_1EdgeFunctionRef.html">EdgeFunctionRef</a>&lt; <a class="el" href="structpsr_1_1EdgeIdentity.html">EdgeIdentity</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">This</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1EdgeFunction.html">EdgeFunction</a>&lt; <a class="el" href="structpsr_1_1EdgeIdentity.html#ae2405152943e45cda38a1902845b9404">l_t</a> &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OtherFunction</a>)</td></tr>
 <tr class="separator:afa84c1fcd263bde0f0449b413ac6ad68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a6240bb0f9216d549055fe2129c7f5185" id="r_a6240bb0f9216d549055fe2129c7f5185"><td class="memItemLeft" align="right" valign="top">llvm::raw_ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1EdgeIdentity.html#a6240bb0f9216d549055fe2129c7f5185">operator&lt;&lt;</a> (llvm::raw_ostream &amp;OS, <a class="el" href="structpsr_1_1EdgeIdentity.html">EdgeIdentity</a>)</td></tr>
+<tr class="separator:a6240bb0f9216d549055fe2129c7f5185"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L&gt;<br />
@@ -242,9 +248,50 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EdgeFunctionUtils_8h_source.html#l00451">451</a> of file <a class="el" href="EdgeFunctionUtils_8h_source.html">EdgeFunctionUtils.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EdgeFunctionUtils_8h_source.html#l00480">480</a> of file <a class="el" href="EdgeFunctionUtils_8h_source.html">EdgeFunctionUtils.h</a>.</p>
 
 <p class="reference">References <a class="el" href="EdgeFunction_8h_source.html#l00365">psr::EdgeFunction&lt; L &gt;::joinWith()</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
+<a id="a6240bb0f9216d549055fe2129c7f5185" name="a6240bb0f9216d549055fe2129c7f5185"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6240bb0f9216d549055fe2129c7f5185">&#9670;&#160;</a></span>operator&lt;&lt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">llvm::raw_ostream &amp; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
+          <td class="paramname"><em>OS</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1EdgeIdentity.html">EdgeIdentity</a>&lt; L &gt;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="EdgeFunctionUtils_8h_source.html#l00043">43</a> of file <a class="el" href="EdgeFunctionUtils_8h_source.html">EdgeFunctionUtils.h</a>.</p>
 
 </div>
 </div>
@@ -254,7 +301,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 7 2026 16:49:59 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Mar 22 2026 15:05:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

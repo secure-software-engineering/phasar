@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$unionpsr_1_1IterativeIDESolverBase_1_1ValueComputationJob.html" title=" " alt="" coords="5,5,281,60"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1IntraMonoProblem.html" title=" " alt="" coords="5,5,273,45"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1IntraMonoUninitVariables.html" title=" " alt="" coords="321,13,536,38"/>
+<area shape="poly" id="edge287_Node000000_Node000001" title=" " alt="" coords="287,23,321,23,321,28,287,28"/>
 </map>

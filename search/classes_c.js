@@ -13,6 +13,7 @@ var searchData=
   ['maybeuniqueptr_3c_20psr_3a_3allvmpathconstraints_2c_20true_20_3e_10',['MaybeUniquePtr&lt; psr::LLVMPathConstraints, true &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
   ['maybeuniqueptr_3c_20psr_3a_3aresolver_20_3e_11',['MaybeUniquePtr&lt; psr::Resolver &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
   ['maybeuniqueptr_3c_20z3_3a_3acontext_20_3e_12',['MaybeUniquePtr&lt; z3::context &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
-  ['modulestoslottracker_13',['ModulesToSlotTracker',['../classpsr_1_1ModulesToSlotTracker.html',1,'psr']]],
-  ['modulewiseanalysis_14',['ModuleWiseAnalysis',['../classpsr_1_1ModuleWiseAnalysis.html',1,'psr']]]
+  ['memorylocationallocator_13',['MemoryLocationAllocator',['../classpsr_1_1MemoryLocationAllocator.html',1,'psr']]],
+  ['modulestoslottracker_14',['ModulesToSlotTracker',['../classpsr_1_1ModulesToSlotTracker.html',1,'psr']]],
+  ['modulewiseanalysis_15',['ModuleWiseAnalysis',['../classpsr_1_1ModuleWiseAnalysis.html',1,'psr']]]
 ];

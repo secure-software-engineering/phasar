@@ -1,9 +1,11 @@
 <map id="psr::Compressor&lt; T, IdT &gt;" name="psr::Compressor&lt; T, IdT &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,160,102"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="375,5,550,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,55,183,45,282,28,375,19,375,25,283,33,185,50,148,60"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="381,55,544,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,79,381,79,381,85,174,85"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="349,134,576,174"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,104,185,114,268,130,349,141,349,147,267,136,183,119,148,109"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,102,160,142"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="423,5,598,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,92,150,73,183,58,244,40,307,28,423,17,423,22,308,34,245,46,185,63,152,78,123,96"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="429,55,592,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,110,184,109,429,86,429,92,184,114,174,115"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="413,133,608,188"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,144,184,153,243,160,303,164,413,164,413,169,303,169,243,166,184,158,146,149"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1Compressor.html" title=" " alt="" coords="397,213,624,253"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="113,150,146,178,185,201,237,218,292,228,346,234,397,236,397,241,346,239,291,234,236,223,183,206,143,182,109,154"/>
 </map>

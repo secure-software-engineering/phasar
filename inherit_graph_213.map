@@ -1,3 +1,25 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structpsr_1_1IgnoreArgs.html" title=" " alt="" coords="5,5,125,31"/>
+<area shape="rect" id="Node000000" href="$classpsr_1_1IDESolverAPIMixin.html" title=" " alt="" coords="107,205,278,245"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="428,5,712,75"/>
+<area shape="poly" id="edge266_Node000000_Node000001" title=" " alt="" coords="233,195,320,141,427,84,455,72,458,77,429,89,323,145,236,200"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="458,99,682,154"/>
+<area shape="poly" id="edge267_Node000000_Node000002" title=" " alt="" coords="283,199,464,151,465,157,284,204"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="431,178,709,233"/>
+<area shape="poly" id="edge268_Node000000_Node000003" title=" " alt="" coords="291,217,430,210,431,215,292,223"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="466,257,674,311"/>
+<area shape="poly" id="edge269_Node000000_Node000004" title=" " alt="" coords="292,238,466,265,465,271,291,243"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1IDESolver.html" title=" " alt="" coords="479,336,661,376"/>
+<area shape="poly" id="edge270_Node000000_Node000005" title=" " alt="" coords="292,242,338,256,381,276,396,288,406,299,415,310,429,320,479,339,477,344,427,325,411,314,402,303,393,292,379,281,336,261,290,247"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1IterativeIDESolver.html" title=" " alt="" coords="439,400,701,440"/>
+<area shape="poly" id="edge273_Node000000_Node000008" title=" " alt="" coords="292,234,339,250,382,277,394,291,401,305,406,333,411,361,418,373,430,386,447,398,444,402,426,390,414,377,406,362,401,334,396,307,390,293,378,281,337,255,291,239"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1IFDSSolver.html" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv...." alt="" coords="786,304,977,344"/>
+<area shape="poly" id="edge271_Node000005_Node000006" title=" " alt="" coords="675,343,785,331,786,336,675,348"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1PathAwareIDESolver.html" title=" " alt="" coords="760,368,1003,408"/>
+<area shape="poly" id="edge272_Node000005_Node000007" title=" " alt="" coords="675,364,760,373,760,378,675,369"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1IterativeIDESolverBase.html" title=" " alt="" coords="93,291,293,346"/>
+<area shape="poly" id="edge274_Node000009_Node000008" title=" " alt="" coords="307,334,381,356,405,371,429,386,464,397,462,402,427,390,403,376,379,361,305,339"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="5,371,380,469"/>
+<area shape="poly" id="edge275_Node000010_Node000008" title=" " alt="" coords="394,417,439,417,439,423,394,423"/>
+<area shape="rect" id="Node000011" href="$structpsr_1_1SolverStatsSelector.html" title=" " alt="" coords="104,494,281,549"/>
+<area shape="poly" id="edge276_Node000011_Node000008" title=" " alt="" coords="294,499,379,479,511,438,513,443,381,484,296,504"/>
 </map>

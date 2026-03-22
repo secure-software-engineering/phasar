@@ -1,5 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classProjectIRDBBase.html" title=" " alt="" coords="5,5,136,31"/>
-<area shape="rect" id="Node000001" href="$classpsr_1_1LLVMProjectIRDB.html" title="Project IR Database that manages a LLVM IR module." alt="" coords="184,5,345,31"/>
-<area shape="poly" id="edge23_Node000000_Node000001" title=" " alt="" coords="150,15,184,15,184,21,150,21"/>
+<area shape="rect" id="Node000000" href="$structllvm_1_1simplify__type_3_01psr_1_1IDEIIAFlowFact_01_4.html" title=" " alt="" coords="5,5,181,45"/>
 </map>

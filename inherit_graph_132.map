@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structpsr_1_1DOTFactSubGraph.html" title=" " alt="" coords="5,5,172,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,264,60"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1OwningIdBasedSolverResults.html" title=" " alt="" coords="312,13,504,53"/>
+<area shape="poly" id="edge226_Node000000_Node000001" title=" " alt="" coords="278,30,312,30,312,35,278,35"/>
 </map>

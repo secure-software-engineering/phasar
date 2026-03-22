@@ -1,43 +1,45 @@
 <map id="psr::IFDSTabulationProblem&lt; AnalysisDomainTy, Container &gt;" name="psr::IFDSTabulationProblem&lt; AnalysisDomainTy, Container &gt;">
-<area shape="rect" id="Node000001" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from..." alt="" coords="1252,206,1495,246"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1IFDSTabulationProblem.html" title=" " alt="" coords="1781,86,2021,126"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1475,200,1811,123,1812,129,1476,205"/>
-<area shape="rect" id="Node000012" href="$classpsr_1_1IFDSTabulationProblem.html" title=" " alt="" coords="1765,237,2036,277"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1509,231,1765,246,1765,251,1508,236"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="960,206,1203,246"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1217,223,1252,223,1252,229,1217,229"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="699,63,860,117"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="874,113,912,128,988,166,1051,204,1048,208,985,171,910,132,872,118"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="396,63,599,117"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="612,87,698,87,698,93,612,93"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="5,70,208,110"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="222,87,396,87,396,93,222,93"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="693,142,865,182"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="879,180,987,203,986,209,878,186"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="685,206,873,246"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="887,223,960,223,960,229,887,229"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="648,271,911,296"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="860,265,975,243,976,249,861,271"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="693,321,865,361"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="878,315,910,305,981,275,1042,244,1044,249,983,279,912,310,879,320"/>
+<area shape="rect" id="Node000001" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from..." alt="" coords="1252,246,1495,286"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1IFDSTabulationProblem.html" title=" " alt="" coords="1781,106,2021,146"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1462,240,1824,143,1825,149,1464,245"/>
+<area shape="rect" id="Node000012" href="$classpsr_1_1IFDSTabulationProblem.html" title=" " alt="" coords="1765,277,2036,317"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1509,271,1765,286,1765,291,1508,276"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t..." alt="" coords="960,246,1203,286"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1217,263,1252,263,1252,269,1217,269"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1FlowFunctions.html" title=" " alt="" coords="699,103,860,157"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="874,153,912,168,988,206,1051,244,1048,248,985,211,910,172,872,158"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="396,103,599,157"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="612,127,698,127,698,133,612,133"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1FlowFunctionTemplates.html" title=" " alt="" coords="5,110,208,150"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="222,127,396,127,396,133,222,133"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1EdgeFunctions.html" title=" " alt="" coords="693,182,865,222"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="879,220,987,243,986,249,878,226"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="685,246,873,286"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="887,263,960,263,960,269,887,269"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1SemiRing.html" title=" " alt="" coords="648,311,911,336"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="860,305,975,283,976,289,861,311"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1AllTopFnProvider_3_01AnalysisDomainTy_01_4.html" title=" " alt="" coords="693,361,865,401"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="878,355,910,345,981,315,1042,284,1044,289,983,319,912,350,879,360"/>
 <area shape="rect" id="Node000011" href="$classpsr_1_1DefaultAliasAwareIFDSProblem.html" title=" " alt="" coords="2085,5,2340,31"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1961,79,2020,57,2085,39,2139,28,2140,33,2086,45,2022,63,1963,84"/>
-<area shape="rect" id="Node000013" href="$classpsr_1_1DefaultNoAliasIFDSProblem.html" title=" " alt="" coords="2097,55,2329,80"/>
-<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="1933,226,2034,136,2057,111,2068,101,2084,90,2117,78,2119,83,2087,95,2071,105,2061,115,2038,140,1937,230"/>
-<area shape="rect" id="Node000014" href="$classpsr_1_1DefaultReachableAllocationSitesIFDSProblem.html" title=" " alt="" coords="2097,105,2328,145"/>
-<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="1944,227,2009,190,2084,154,2120,142,2122,147,2086,159,2011,194,1946,232"/>
-<area shape="rect" id="Node000015" href="$classpsr_1_1IFDSConstAnalysis.html" title="Computes all possibly mutable memory locations." alt="" coords="2127,169,2299,195"/>
-<area shape="poly" id="edge14_Node000012_Node000015" title=" " alt="" coords="1982,230,2085,203,2139,192,2140,197,2086,209,1983,235"/>
-<area shape="rect" id="Node000016" href="$classpsr_1_1IFDSProtoAnalysis.html" title=" " alt="" coords="2128,219,2297,244"/>
-<area shape="poly" id="edge15_Node000012_Node000016" title=" " alt="" coords="2050,242,2128,236,2128,241,2050,247"/>
-<area shape="rect" id="Node000017" href="$classpsr_1_1IFDSSignAnalysis.html" title=" " alt="" coords="2131,268,2294,293"/>
-<area shape="poly" id="edge16_Node000012_Node000017" title=" " alt="" coords="2050,265,2131,272,2131,277,2049,271"/>
-<area shape="rect" id="Node000018" href="$classpsr_1_1IFDSSolverTest.html" title=" " alt="" coords="2139,317,2286,343"/>
-<area shape="poly" id="edge17_Node000012_Node000018" title=" " alt="" coords="1988,278,2086,302,2145,315,2144,320,2085,307,1987,283"/>
-<area shape="rect" id="Node000019" href="$classpsr_1_1IFDSTaintAnalysis.html" title=" " alt="" coords="2129,367,2296,392"/>
-<area shape="poly" id="edge18_Node000012_Node000019" title=" " alt="" coords="1945,282,2010,319,2086,353,2130,365,2128,370,2084,358,2008,324,1943,286"/>
-<area shape="rect" id="Node000020" href="$classpsr_1_1IFDSTypeAnalysis.html" title=" " alt="" coords="2130,416,2295,441"/>
-<area shape="poly" id="edge19_Node000012_Node000020" title=" " alt="" coords="1932,285,1999,346,2041,377,2086,402,2130,417,2129,422,2084,407,2038,381,1995,350,1928,289"/>
-<area shape="rect" id="Node000021" href="$classpsr_1_1IFDSUninitializedVariables.html" title=" " alt="" coords="2101,465,2324,491"/>
-<area shape="poly" id="edge20_Node000012_Node000021" title=" " alt="" coords="1924,287,1952,326,1989,371,2035,415,2087,452,2113,463,2111,468,2084,456,2031,419,1985,375,1947,329,1920,290"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1951,97,2014,68,2085,41,2133,28,2135,33,2086,46,2016,73,1953,102"/>
+<area shape="rect" id="Node000013" href="$classpsr_1_1DefaultAllocSitesAwareIFDSProblem.html" title=" " alt="" coords="2111,55,2314,95"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="1929,265,2084,105,2110,93,2112,98,2087,110,1933,268"/>
+<area shape="rect" id="Node000014" href="$classpsr_1_1DefaultNoAliasIFDSProblem.html" title=" " alt="" coords="2097,120,2329,145"/>
+<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="1930,265,1997,209,2039,180,2084,156,2121,143,2123,148,2086,160,2042,184,2000,213,1933,269"/>
+<area shape="rect" id="Node000015" href="$classpsr_1_1DefaultReachableAllocationSitesIFDSProblem.html" title=" " alt="" coords="2097,170,2328,210"/>
+<area shape="poly" id="edge14_Node000012_Node000015" title=" " alt="" coords="1958,269,2084,219,2125,207,2127,213,2086,225,1960,274"/>
+<area shape="rect" id="Node000016" href="$classpsr_1_1IFDSConstAnalysis.html" title="Computes all possibly mutable memory locations." alt="" coords="2127,235,2299,260"/>
+<area shape="poly" id="edge15_Node000012_Node000016" title=" " alt="" coords="2041,272,2131,257,2132,263,2041,277"/>
+<area shape="rect" id="Node000017" href="$classpsr_1_1IFDSProtoAnalysis.html" title=" " alt="" coords="2128,284,2297,309"/>
+<area shape="poly" id="edge16_Node000012_Node000017" title=" " alt="" coords="2050,294,2128,294,2128,299,2050,299"/>
+<area shape="rect" id="Node000018" href="$classpsr_1_1IFDSSignAnalysis.html" title=" " alt="" coords="2131,333,2294,359"/>
+<area shape="poly" id="edge17_Node000012_Node000018" title=" " alt="" coords="2041,316,2132,331,2131,336,2041,321"/>
+<area shape="rect" id="Node000019" href="$classpsr_1_1IFDSSolverTest.html" title=" " alt="" coords="2139,383,2286,408"/>
+<area shape="poly" id="edge18_Node000012_Node000019" title=" " alt="" coords="1958,320,2019,345,2086,369,2139,381,2138,387,2085,374,2017,350,1956,325"/>
+<area shape="rect" id="Node000020" href="$classpsr_1_1IFDSTaintAnalysis.html" title=" " alt="" coords="2129,432,2296,457"/>
+<area shape="poly" id="edge19_Node000012_Node000020" title=" " alt="" coords="1937,324,2004,373,2044,398,2086,418,2130,431,2128,437,2084,423,2042,402,2001,377,1934,328"/>
+<area shape="rect" id="Node000021" href="$classpsr_1_1IFDSTypeAnalysis.html" title=" " alt="" coords="2130,481,2295,507"/>
+<area shape="poly" id="edge20_Node000012_Node000021" title=" " alt="" coords="1928,326,1956,360,1994,399,2038,437,2086,468,2131,483,2129,488,2084,472,2035,441,1990,403,1952,364,1924,330"/>
+<area shape="rect" id="Node000022" href="$classpsr_1_1IFDSUninitializedVariables.html" title=" " alt="" coords="2101,531,2324,556"/>
+<area shape="poly" id="edge21_Node000012_Node000022" title=" " alt="" coords="1921,328,1948,372,1985,424,2032,475,2058,498,2087,517,2111,528,2109,533,2084,522,2055,502,2028,479,1981,427,1943,375,1917,331"/>
 </map>
