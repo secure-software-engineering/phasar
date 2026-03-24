@@ -58,6 +58,14 @@ static cl::opt<std::string>
     IndTablePath("ind-table",
                  cl::desc("The Output-Path to the ind output table"),
                  cl::init("ind-results.csv"), cl::cat(PTABenCat));
+static cl::opt<std::string>
+    CtxIndTablePath("ctx-ind-table",
+                    cl::desc("The Output-Path to the ctx-ind output table"),
+                    cl::init("ctx-ind-results.csv"), cl::cat(PTABenCat));
+static cl::opt<std::string> BotCtxIndTablePath(
+    "bot-ctx-ind-table",
+    cl::desc("The Output-Path to the bot-ctx-ind output table"),
+    cl::init("bot-ctx-ind-results.csv"), cl::cat(PTABenCat));
 
 static psr::AliasResult
 checkLLVMQueryLoc(psr::LLVMAliasInfoRef ComputedAliasResult,
@@ -127,6 +135,8 @@ int main(int Argc, char *Argv[]) {
   auto CtxFile = openFileOrExit(CtxTablePath);
   auto BotFile = openFileOrExit(BotTablePath);
   auto IndFile = openFileOrExit(IndTablePath);
+  auto CtxIndFile = openFileOrExit(CtxIndTablePath);
+  auto BotCtxIndFile = openFileOrExit(BotCtxIndTablePath);
 
   psr::ptaben::QuerySerializer QSer(QFile.get());
   psr::ptaben::ResultCollector AndersSer(AndersFile.get(), "AndersResult");
@@ -134,6 +144,9 @@ int main(int Argc, char *Argv[]) {
   psr::ptaben::ResultCollector CtxSer(CtxFile.get(), "CtxResult");
   psr::ptaben::ResultCollector BotSer(BotFile.get(), "BotResult");
   psr::ptaben::ResultCollector IndSer(IndFile.get(), "IndResult");
+  psr::ptaben::ResultCollector CtxIndSer(CtxIndFile.get(), "CtxIndResult");
+  psr::ptaben::ResultCollector BotCtxIndSer(BotCtxIndFile.get(),
+                                            "BotCtxIndResult");
 
   llvm::SmallVector<std::string, 4> Failures;
   psr::ptaben::checkDir(IRPath, Failures, [&](llvm::StringRef FileName) {
@@ -176,6 +189,10 @@ int main(int Argc, char *Argv[]) {
                                   UnionFindAliasAnalysisType::BotCtxSens);
     performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, IndSer,
                                   UnionFindAliasAnalysisType::IndSens);
+    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, CtxIndSer,
+                                  UnionFindAliasAnalysisType::CtxIndSens);
+    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, BotCtxIndSer,
+                                  UnionFindAliasAnalysisType::BotCtxIndSens);
 
     return true;
   });

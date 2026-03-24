@@ -14,5 +14,14 @@ Currently, the benchmark tool supports the following analyses:
 - PhASAR's context-sensitive union-find analysis (same as if passing `--alias-analysis=union-find --union-find-aa=ctx-sens` to `phasar-cli`)
 - PhASAR's indirection-sensitive union-find analysis (same as if passing `--alias-analysis=union-find --union-find-aa=ind-sens` to `phasar-cli`)
 - PhASAR's bottom-up context-sensitive union-find analysis (same as if passing `--alias-analysis=union-find --union-find-aa=botctx-sens` to `phasar-cli`)
+- PhASAR's context-sensitive indirection-sensitive union-find analysis (same as if passing `--alias-analysis=union-find --union-find-aa=ctx-ind-sens` to `phasar-cli`)
+- PhASAR's bottom-up context-sensitive indirection-sensitive union-find analysis (same as if passing `--alias-analysis=union-find --union-find-aa=botctx-ind-sens` to `phasar-cli`)
 
 Of course, you can extend this tool and provide your own analyses here.
+
+## Results
+          | anders | steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens | overall
+----------+--------+--------+----------+----------+----------+--------------+------------------+---------
+precision | 0.712  | 0.709  | 0.803    | 0.800    | 0.681    | 0.803        | 0.800            | 0.754
+recall    | 0.961  | 0.975  | 0.929    | 0.667    | 0.960    | 0.929        | 0.667            | 0.861
+f1score   | 0.818  | 0.821  | 0.862    | 0.728    | 0.796    | 0.862        | 0.728            | 0.804
