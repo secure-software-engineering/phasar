@@ -29,7 +29,8 @@ namespace psr {
 using std::type_identity;
 using std::type_identity_t;
 
-/// \file TODO: We should stick to one naming convention here and not mix
+/// \file
+/// TODO: We should stick to one naming convention here and not mix
 /// CamelCase with lower_case!
 
 // NOLINTBEGIN(readability-identifier-naming)

@@ -39,7 +39,8 @@ class DILocation;
 
 namespace psr {
 
-/// \file This file contains useful structs and functions to get and store
+/// \file
+/// This file contains useful structs and functions to get and store
 /// information about the source code or the intermediate representation of the
 /// target being analyzed.
 
