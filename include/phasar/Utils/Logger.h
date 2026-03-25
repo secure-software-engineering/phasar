@@ -143,12 +143,15 @@ private:
 #else
 #define IS_LOG_ENABLED false
 #define IF_LOG_ENABLED_BOOL(condition, computation)                            \
-  {}
+  {                                                                            \
+  }
 #define IF_LOG_ENABLED(computation)                                            \
-  {}
+  {                                                                            \
+  }
 #define IS_LOG_LEVEL_ENABLED(level) false
 #define IF_LOG_LEVEL_ENABLED(level, computation)                               \
-  {}
+  {                                                                            \
+  }
 #define PHASAR_LOG(computation) (void)0
 #define PHASAR_LOG_CAT(cat, message) (void)0
 #define PHASAR_LOG_LEVEL_CAT(level, cat, message) (void)0
