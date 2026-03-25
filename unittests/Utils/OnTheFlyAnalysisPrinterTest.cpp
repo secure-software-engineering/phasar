@@ -23,7 +23,7 @@ class GroundTruthCollector
 public:
   // constructor init Groundtruth in each fixture
   GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
-      : GroundTruth(GroundTruth){};
+      : GroundTruth(GroundTruth) {};
 
   void findAndRemove(int LeakId, const std::string &LeakedFactId) {
 

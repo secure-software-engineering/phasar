@@ -267,13 +267,13 @@ public:
   }
 
   [[nodiscard]] const std::unordered_map<R, std::unordered_map<C, V>> &
-  rowMap() const &noexcept {
+  rowMap() const & noexcept {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
     return Tab;
   }
   [[nodiscard]] std::unordered_map<R, std::unordered_map<C, V>> &&
-  rowMap() &&noexcept {
+  rowMap() && noexcept {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
     return std::move(Tab);
