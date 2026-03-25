@@ -15,7 +15,7 @@ var searchData=
   ['phasarllvm_2eh_12',['PhasarLLVM.h',['../PhasarLLVM_8h.html',1,'']]],
   ['phasarpass_2eh_13',['phasarpass.h',['../PhasarPass_2PhasarPass_8h.html',1,'(Global Namespace)'],['../PhasarPass_8h.html',1,'(Global Namespace)']]],
   ['phasarprinterpass_2eh_14',['PhasarPrinterPass.h',['../PhasarPrinterPass_8h.html',1,'']]],
-  ['pointer_2eh_15',['pointer.h',['../PhasarLLVM_2Pointer_8h.html',1,'(Global Namespace)'],['../Pointer_8h.html',1,'(Global Namespace)']]],
+  ['pointer_2eh_15',['pointer.h',['../Pointer_8h.html',1,'(Global Namespace)'],['../PhasarLLVM_2Pointer_8h.html',1,'(Global Namespace)']]],
   ['pointerutils_2eh_16',['PointerUtils.h',['../PointerUtils_8h.html',1,'']]],
   ['pointstoinfo_2eh_17',['PointsToInfo.h',['../PointsToInfo_8h.html',1,'']]],
   ['pointstoinfobase_2eh_18',['PointsToInfoBase.h',['../PointsToInfoBase_8h.html',1,'']]],
