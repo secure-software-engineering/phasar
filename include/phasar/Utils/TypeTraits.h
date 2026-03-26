@@ -300,7 +300,8 @@ template <typename ArgT> struct DummyFn {
 /// Falls back to std::is_trivially_copyable_v on other compilers.
 template <typename T>
 inline constexpr bool IsTriviallyRelocatable =
-#if defined(__has_builtin) && __has_builtin(__builtin_is_cpp_trivially_relocatable)
+#if defined(__has_builtin) &&                                                  \
+    __has_builtin(__builtin_is_cpp_trivially_relocatable)
     __builtin_is_cpp_trivially_relocatable(T);
 #elif defined(__has_builtin) && __has_builtin(__is_trivially_relocatable)
     __is_trivially_relocatable(T);
