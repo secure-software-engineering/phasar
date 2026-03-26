@@ -293,6 +293,21 @@ template <typename ArgT> struct DummyFn {
   void operator()(ArgT Arg) const noexcept {}
 };
 
+/// True if T can be relocated by copying its bytes (e.g. via memcpy) without
+/// invoking the move constructor or destructor on the source. Uses Clang's
+/// builtin trait when available (P1144 / P2786), which covers types like
+/// std::unique_ptr that are trivially relocatable but not trivially copyable.
+/// Falls back to std::is_trivially_copyable_v on other compilers.
+template <typename T>
+inline constexpr bool IsTriviallyRelocatable =
+#if defined(__has_builtin) && __has_builtin(__builtin_is_cpp_trivially_relocatable)
+    __builtin_is_cpp_trivially_relocatable(T);
+#elif defined(__has_builtin) && __has_builtin(__is_trivially_relocatable)
+    __is_trivially_relocatable(T);
+#else
+    std::is_trivially_copyable_v<T>;
+#endif
+
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr
 

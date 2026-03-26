@@ -4,7 +4,6 @@
 #include "phasar/Pointer/CallingContextConstructor.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
 #include "phasar/Pointer/RawAliasSet.h"
-#include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/Logger.h"
@@ -19,6 +18,7 @@
 #include "phasar/Utils/UnionFind.h"
 #include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
+#include "phasar/Utils/ValueIdMap.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
@@ -101,8 +101,7 @@ template <UnionFindAAResult AAResT, bool ShouldCacheMayAlias = true>
 class CachedUnionFindAAResult {
 public:
   explicit CachedUnionFindAAResult(AAResT &&AARes) : AARes(std::move(AARes)) {
-    Var2AliasVars.resize(this->AARes.size());
-    ComputedAliasSetFor.reserve(this->AARes.size());
+    Cache.reserve(this->AARes.size());
   }
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
@@ -110,10 +109,11 @@ public:
   [[nodiscard]] constexpr size_t size() const noexcept { return AARes.size(); }
 
   [[nodiscard]] const RawAliasSet<ValueId> &getRawAliasSet(ValueId Var) const {
-    if (ComputedAliasSetFor.tryInsert(Var)) [[unlikely]] {
-      Var2AliasVars[Var] = AARes.getRawAliasSet(Var);
+    auto [It, Inserted] = Cache.try_emplace(Var);
+    if (Inserted) [[unlikely]] {
+      It->second = AARes.getRawAliasSet(Var);
     }
-    return Var2AliasVars[Var];
+    return It->second;
   }
 
   [[nodiscard]] bool mayAlias(ValueId Var1, ValueId Var2) const {
@@ -125,9 +125,7 @@ public:
   }
 
 private:
-  // TODO: Combine Var2AliasVars+ComputedAliasSetFor into a ValueIdMap!
-  mutable TypedVector<ValueId, RawAliasSet<ValueId>> Var2AliasVars;
-  mutable BitSet<ValueId> ComputedAliasSetFor{};
+  mutable ValueIdMap<ValueId, RawAliasSet<ValueId>> Cache;
 
   [[no_unique_address]] AAResT AARes;
 };
