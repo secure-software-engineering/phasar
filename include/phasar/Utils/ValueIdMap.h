@@ -36,17 +36,18 @@ namespace psr {
 /// entire value array.
 ///
 /// Reallocation moves all live entries via their move constructors and then
-/// destroys the originals in one pass. Move constructors are assumed to be
-/// nothrow; the new storage allocation is protected by unique_ptr RAII.
+/// destroys the originals in one pass. **Move constructors are assumed to be
+/// nothrow**.
 ///
 /// The copy constructor provides the basic exception guarantee: if copying any
 /// value throws, already-copied values are destroyed and the allocation is
-/// freed. For nothrow-copy-constructible types the tracking overhead is
-/// eliminated at compile time.
+/// freed.
 ///
 /// Iterator and reference validity follows the same rules as std::vector:
 /// insertions that exceed the current capacity invalidate all iterators and
 /// references.
+///
+/// \remarks Partially implemented by Claude Sonnet 4.6
 ///
 /// \tparam IdT    Key type. Must satisfy SmallIdType (fits in uint32_t,
 ///                losslessly convertible to/from size_t).
