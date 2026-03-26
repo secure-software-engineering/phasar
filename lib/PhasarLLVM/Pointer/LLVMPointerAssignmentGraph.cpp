@@ -182,8 +182,6 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void addEdge(LLVMPBStrategyRef Strategy, ValueId From, ValueId To, Edge E,
                const llvm::Instruction *AtInstruction) {
-    // llvm::errs() << "[addEdge]: " << int(From) << "->" << int(To)
-    //              << " :: " << to_string(E) << '\n';
     if (!E.isa<Store, StorePOI>()) {
       eraseFromSimpleStoreLoad(Strategy, To);
     } else if (OnlyIncomingStoresAndOutgoingLoads.contains(To)) {
@@ -238,8 +236,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void initializeFunctions(const LLVMProjectIRDB &IRDB,
                            LLVMPBStrategyRef Strategy) {
-    // TODO: Use LibrarySummary here
-    // TODO: Skip functions that have been proven unreachable previously
+    // XXX: Skip functions that have been proven unreachable previously
 
     for (const auto *Fun : IRDB.getAllFunctions()) {
       if (!Fun->isDeclaration()) {
@@ -251,7 +248,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
 
   void initializeFun(LLVMPBStrategyRef Strategy, const llvm::Function &Fun) {
-    // TODO: RPO Order to profit from OTF-merged values
+    // XXX: RPO Order to profit from OTF-merged values
     for (const auto &BB : Fun) {
       propagateBB(Strategy, BB);
     }

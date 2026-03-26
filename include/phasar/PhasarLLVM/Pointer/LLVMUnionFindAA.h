@@ -120,7 +120,7 @@ struct LLVMUnionFindAliasIteratorMixin {
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      // TODO: Check exactly the conditions for must alias!
+      // XXX: Check exactly the conditions for must alias!
       return !llvm::isa<llvm::LoadInst>(Ptr1) &&
                      !llvm::isa<llvm::LoadInst>(Ptr2)
                  ? AliasResult::MustAlias
@@ -240,7 +240,7 @@ public:
   [[nodiscard]] bool
   mayAlias(ValueId ValId1, ValueId ValId2,
            const llvm::Instruction * /*AtInstruction*/ = nullptr) const {
-    // TODO: Should we filter by AtInstruction-context here as well?
+    // XXX: Should we filter by AtInstruction-context here as well?
     return AARes.mayAlias(ValId1, ValId2);
   }
 
@@ -250,7 +250,7 @@ public:
     auto ValId1 = self().VC->getOrNull(Ptr1);
     auto ValId2 = self().VC->getOrNull(Ptr2);
 
-    // TODO: Should we filter by AtInstruction-context here as well?
+    // XXX: Should we filter by AtInstruction-context here as well?
     return ValId1 && ValId2 && AARes.mayAlias(*ValId1, *ValId2);
   }
 
@@ -263,7 +263,7 @@ public:
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      // TODO: Check exactly the conditions for must alias!
+      // XXX: Check exactly the conditions for must alias!
       return !llvm::isa<llvm::LoadInst>(Ptr1) &&
                      !llvm::isa<llvm::LoadInst>(Ptr2)
                  ? AliasResult::MustAlias

@@ -94,13 +94,6 @@ void doAnalysisAndCompareResults(
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
     const auto PtrId = asId(VC, IRDB, PtrVar);
     const auto ExpectedAliasIds = asIdBased(VC, IRDB, ExpectedAliasVars);
-    const RawAliasSet<ValueId> &ComputedAliasIds =
-        Results.getRawAliasSet(PtrId);
-  }
-
-  for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
-    const auto PtrId = asId(VC, IRDB, PtrVar);
-    const auto ExpectedAliasIds = asIdBased(VC, IRDB, ExpectedAliasVars);
 
     const RawAliasSet<ValueId> &ComputedAliasIds =
         Results.getRawAliasSet(PtrId);
@@ -7089,8 +7082,6 @@ TEST(IndirectionSensUnionFindAATest, Indirection07) {
                              .Col = 0,
                              .InFunction = "main",
                              .OpCode = llvm::Instruction::Alloca},
-                // TODO: double check. Probably an overapproximation due to a
-                // loop from 1 and 2 in PointerAssignmentGraph
                 LineColFunOp{.Line = 35,
                              .Col = 0,
                              .InFunction = "main",

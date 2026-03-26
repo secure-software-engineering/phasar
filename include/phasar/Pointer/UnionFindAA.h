@@ -7,6 +7,7 @@
 #include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
@@ -178,8 +179,6 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
     }
 
     if (!Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)) {
-      llvm::errs()
-          << "ERROR: !Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)\n";
       return false;
     }
 
@@ -214,8 +213,6 @@ struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
 
     // Note: K is mostly small (1 or 2), so below loop should be very cheap
     if (!Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)) {
-      llvm::errs()
-          << "ERROR: !Var2Rep.inbounds(Var1) || !Var2Rep.inbounds(Var2)\n";
       return false;
     }
     const auto &Reps1 = Var2Rep[Var1];
@@ -268,7 +265,7 @@ struct BasicUnionFindAA {
     Result.Var2Rep.resize(NumVars, InvalidRep);
 
     for (auto VId : iota<ValueId>(NumVars)) {
-      // TODO: Skip only-ret val-ids
+      // XXX: We should skip only-ret val-ids
       auto ObjId = std::invoke(Var2Obj, VId);
       auto Rep = Equiv[ObjId];
       assert(Result.Var2Rep[VId] == InvalidRep &&
@@ -306,9 +303,6 @@ public:
 
   void onAddEdge(ValueId From, ValueId To, pag::Edge E,
                  Nullable<n_t> CallSite) {
-    // llvm::errs() << "[CtxAA][onAddEdge]: From: " << int(From)
-    //              << ", To: " << int(To) << ", E: " << to_string(E)
-    //              << ", At: " << llvmIRToString(CallSite) << '\n';
     E.apply(Overloaded{
         [&, this, CallSite](pag::Call) {
           for (const auto &[ArgCtxId, FromObj] : Var2Obj[From]) {
@@ -380,7 +374,7 @@ public:
     Result.Var2Rep.resize(NumVars);
 
     for (const auto &[ValId, Objects] : Var2Obj.enumerate()) {
-      // TODO: Skip only-ret val-ids
+      // XXX: We should skip only-ret val-ids
 
       for (const auto &[_, Obj] : Objects) {
         auto Rep = Equiv[Obj];
@@ -389,8 +383,8 @@ public:
         }
       }
       if (Objects.empty()) {
-        llvm::errs() << "Warning: Empty Objects-set for Var#" << uint32_t(ValId)
-                     << '\n';
+        PHASAR_LOG_LEVEL_CAT(WARNING, "CallingContextSensUnionFindAA",
+                             "Empty Objects-set for Var#" << uint32_t(ValId));
       }
     }
 
@@ -509,11 +503,9 @@ public:
     Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {
       return IndObjectId(Obj + size_t(Depth));
     });
-    // TODO: For some values, we can already see that depth>=2 does not make
+    // XXX: For some values, we can already see that depth>=2 does not make
     // sense, so we could exit the below loop early
     for (auto Depth : iota<IndDepth>(K)) {
-      // Var2Obj[VId].push_back(IndObjectId(Obj));
-      // Obj++;
       Obj2Var.emplace_back(VId, Depth);
     }
   }
