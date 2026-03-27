@@ -22,9 +22,13 @@
 #include <cstdint>
 
 namespace psr {
+/// A K-limited call-string context.  Stores the \p K most recent call-sites
+/// that led to the current execution point (index 0 = most recent).  The
+/// default \p K = 1 gives a 1-call-site context (CFA/k-CFA style).
 template <typename N, unsigned K = 1> struct CallingContext {
   using n_t = N;
 
+  /// The K most recent call-sites; index 0 is the most recent.
   std::array<n_t, K> Callers{};
 
   [[nodiscard]] friend auto hash_value(const CallingContext &CC) {
@@ -80,6 +84,17 @@ PHASAR_STRONG_TYPEDEF(psr, uint32_t, CallingContextId, None = 0);
 
 namespace psr {
 
+/// Manages the set of calling contexts encountered for a given analysis and
+/// maps them to dense sequential \c CallingContextId values.
+///
+/// Used by \c CallingContextSensUnionFindAA to enumerate all call-string
+/// prefixes of length ≤ K for each function.  Contexts are interned in a
+/// \c Compressor; \c CallingContextId::None (id 0) always represents the
+/// "no calling context" (top-level / uncalled) entry.
+///
+/// \tparam N  Node type (call-site).
+/// \tparam F  Function type.
+/// \tparam K  Maximum call-string depth (must be in [1, 9]).
 template <typename N, typename F, unsigned K = 1>
 class CallingContextConstructor {
 public:
@@ -95,6 +110,9 @@ public:
     CC2Id.getOrInsert(CallingContext<n_t, K>{});
   }
 
+  /// Enumerates all call-string prefixes of length ≤ K that lead to \p Fun
+  /// and invokes \p CCVisitor(firstCallSite, contextId) for each one.
+  /// If \p Fun has no callers (or K is exhausted), the "None" context is used.
   template <typename DBTy>
   void visitAllCallingContexts(
       const llvm::Function *Fun, const CallGraph<n_t, f_t> &CG,
@@ -104,6 +122,8 @@ public:
     visitAllCallingContextsImpl<0>(Fun, CG, IRDB, CCVisitor, Ctx);
   }
 
+  /// Enumerates all calling contexts that include \p Call as their most recent
+  /// call-site and invokes \p CCVisitor(contextId) for each one.
   template <typename DBTy>
   void visitContextsAtCall(ByConstRef<n_t> Call, const CallGraph<n_t, f_t> &CG,
                            const ProjectIRDBBase<DBTy> &IRDB,

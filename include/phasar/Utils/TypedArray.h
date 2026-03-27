@@ -19,9 +19,17 @@
 
 namespace psr {
 
+/// Tag type for the generator constructor of \c TypedArray.
 struct generate_tag_t {};
+/// Tag value passed to the \c TypedArray generator constructor.
 inline constexpr generate_tag_t generate_tag{};
 
+/// Fixed-size array indexed by a strongly-typed id \p IdT instead of
+/// \c size_t.
+///
+/// \tparam IdT    Index type.  Must satisfy \c IdType (fits in \c size_t).
+/// \tparam ValueT Element type.
+/// \tparam N      Compile-time size.
 template <IdType IdT, typename ValueT, unsigned N>
 class TypedArray : public std::array<ValueT, N> {
   using Base = std::array<ValueT, N>;

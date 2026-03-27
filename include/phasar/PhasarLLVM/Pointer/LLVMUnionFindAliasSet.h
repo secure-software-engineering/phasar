@@ -41,6 +41,19 @@ template <>
 struct AliasInfoTraits<LLVMUnionFindAliasSet>
     : DefaultAATraits<const llvm::Value *, const llvm::Instruction *> {};
 
+/// Concrete \c IsAliasInfo implementation backed by a union-find alias
+/// analysis.
+///
+/// Constructed once from an \c LLVMProjectIRDB and a call graph; the chosen
+/// analysis variant is determined by \c Config.  Alias sets are materialized
+/// lazily on first query and cached per \c ValueId in \c AliasSets.
+///
+/// \note When \c AnalysisLocality::FunctionLocal is selected, alias sets are
+///   filtered to variables visible in the function that contains the query
+///   instruction.  The per-\c ValueId cache does **not** account for the
+///   instruction context, so the first caller's function wins — do not mix
+///   queries to local pointers from different functions for the same value in
+///   local mode.
 class LLVMUnionFindAliasSet
     : public AnalysisPropertiesMixin<LLVMUnionFindAliasSet> {
 public:
@@ -51,14 +64,22 @@ public:
   using AliasSetPtrTy = traits_t::AliasSetPtrTy;
   using AllocationSiteSetPtrTy = traits_t::AllocationSiteSetPtrTy;
 
+  /// Whether alias sets are reported globally or filtered to the function
+  /// containing the query instruction.
   enum class AnalysisLocality : uint8_t {
+    /// All aliases across all functions are reported.
     Global,
+    /// Aliases are intersected with variables visible in the querying function
+    /// (globals + function-local values).
     FunctionLocal,
   };
 
   struct Config {
+    /// The specific union-find analysis variant to run (default:
+    /// \c BotCtxIndSens — bottom-up, context- and indirection-sensitive).
     UnionFindAliasAnalysisType AType =
         UnionFindAliasAnalysisType::BotCtxIndSens;
+    /// Controls whether alias sets are scoped to the querying function.
     AnalysisLocality ALocality = AnalysisLocality::Global;
   };
 

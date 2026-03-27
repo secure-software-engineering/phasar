@@ -35,6 +35,9 @@ extern template class CallingContextSensUnionFindAA<LLVMPAGDomain>;
 extern template class IndirectionSensUnionFindAA<LLVMPAGDomain>;
 extern template class BottomupUnionFindAA<LLVMPAGDomain>;
 
+/// Returns a \c ValueId handler suitable for \c RawAliasSet::foreach() that
+/// maps each alias \c ValueId back to all of its underlying \c llvm::Value*
+/// (via \p VC), forwarding non-null values to \p Callback.
 constexpr std::invocable<ValueId> auto
 llvmUnionFindAliasHandler(const ValueCompressor<PAGVariable> &VC,
                           std::invocable<const llvm::Value *> auto Callback) {
@@ -67,6 +70,18 @@ private:
 };
 } // namespace pag
 
+/// CRTP mixin that adds the LLVM alias-iterator interface to a class that
+/// holds a \c UnionFindAAResult and a \c ValueCompressor<PAGVariable>.
+///
+/// Provides \c forallAliasesOf(), \c mayAlias(), and \c alias() overloads
+/// accepting both \c llvm::Value* and \c ValueId arguments.  Results are
+/// reported as \c llvm::Value* via the stored \c ValueCompressor.
+///
+/// The derived class must expose a \c VC member (pointer to a
+/// \c ValueCompressor<PAGVariable>).
+///
+/// \tparam Derived The CRTP derived class.
+/// \tparam AAResT  A type satisfying \c UnionFindAAResult.
 template <typename Derived, typename AAResT>
   requires UnionFindAAResult<std::remove_cvref_t<AAResT>>
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
@@ -178,6 +193,15 @@ protected:
 };
 } // namespace detail
 
+/// CRTP mixin adding a function-local view on top of a global
+/// \c UnionFindAAResult.
+///
+/// Extends \c LLVMUnionFindAliasIteratorMixin with \c forallAliasesOf()
+/// overloads that accept an \c llvm::Function* or \c llvm::Instruction*
+/// context.  When a non-null context is provided, alias sets are intersected
+/// with the set of variables that are visible in that function (globals plus
+/// locals defined in that function), giving a function-local result even
+/// though the underlying analysis is interprocedural.
 template <typename Derived, typename AAResT>
 class LLVMLocalUnionFindAliasIteratorMixin
     : public detail::LLVMLocalUnionFindAliasIteratorBase {
@@ -309,6 +333,17 @@ private:
   NonNullPtr<const ValueCompressor<PAGVariable>> VC;
 };
 
+/// Low-level entry point: builds the PAG for \p IRDB using the given
+/// \p AnalysisT strategy, and returns the raw alias-analysis result (not
+/// wrapped in an \c LLVMUnionFindAliasIterator).
+///
+/// \param IRDB   The project to analyze.
+/// \param Ana    A \c PBStrategy instance (e.g., \c BasicUnionFindAA,
+///               \c BottomupUnionFindAA).  Taken by forwarding reference and
+///               consumed when results are extracted.
+/// \param VC     Optional pre-populated \c ValueCompressor.  A new one is
+///               allocated if null.
+/// \param Impl   PAG builder implementation (default: \c LLVMPAGBuilder).
 template <pag::PBStrategy AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>
@@ -361,6 +396,15 @@ computeBotCtxIndSensUnionFindAARaw(
     const LLVMProjectIRDB &IRDB, const LLVMBasedCallGraph &CG,
     MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
 
+/// Builds the PAG and returns a \c LLVMUnionFindAliasIterator (owns the \c
+/// ValueCompressor and the raw result) that implements the \c
+/// IsLLVMAliasIterator concept.
+///
+/// \param IRDB   The project to analyze.
+/// \param Ana    A \c PBStrategy instance. Consumed when results are extracted.
+/// \param VC     Optional pre-populated \c ValueCompressor. A new one is
+///               allocated if null; the iterator takes ownership.
+/// \param Impl   PAG builder implementation (default: \c LLVMPAGBuilder).
 template <pag::PBStrategy AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>

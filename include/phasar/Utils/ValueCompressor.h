@@ -66,6 +66,9 @@ public:
     return Var2Id;
   }
 
+  /// Inserts \p Var and assigns it a fresh \c ValueId, or returns the existing
+  /// id if \p Var was already present.
+  /// \returns {id, true} on first insertion; {id, false} if already present.
   std::pair<ValueId, bool> insert(ByConstRef<T> Var) {
     auto [It, Inserted] = Var2Id.try_emplace(Var, ValueId(Id2Vars.size()));
     if (Inserted) {
@@ -74,6 +77,10 @@ public:
     return {It->second, Inserted};
   }
 
+  /// Registers \p Var as an additional name for the existing \p Id (aliasing).
+  /// \p Id must already exist.  If \p Var already maps to some id, this is a
+  /// no-op and returns \c false; otherwise the mapping is added and \c true is
+  /// returned.
   bool addAlias(ByConstRef<T> Var, ValueId Id) {
     assert(Id2Vars.inbounds(Id) &&
            "Can only add an alias to an already existing Id!");
@@ -84,6 +91,8 @@ public:
     return false;
   }
 
+  /// Allocates a fresh \c ValueId with no associated variable (a placeholder
+  /// or sentinel slot).
   [[nodiscard]] ValueId addDummy() {
     auto Ret = ValueId(Id2Vars.size());
     Id2Vars.emplace_back();

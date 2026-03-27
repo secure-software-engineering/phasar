@@ -29,19 +29,31 @@
 namespace psr {
 
 namespace pag {
+/// Direct pointer assignment: `To = From`.
 struct Assign {};
+/// GEP (field-access) edge. \p Offset holds the byte offset when statically
+/// known; \c std::nullopt for non-constant GEPs.
 struct Gep {
   std::optional<int16_t> Offset;
 };
+/// Passing an argument at a call site. \p ArgNo is the 0-based parameter index.
 struct Call {
   uint16_t ArgNo;
 };
+/// Return value flows from callee to caller call-site.
 struct Return {};
+/// Load of a pointer: `To = *From`.
 struct Load {};
+/// Store of a non-aliased pointer: `*To = From`.
 struct Store {};
+/// Store of a potentially aliased pointer: `*To = From`.
 struct StorePOI {};
+/// Block-copy of aggregate memory (e.g., memcpy/memmove): all pointer fields
+/// inside the source are assumed to flow to the corresponding fields of the
+/// destination.
 struct Copy {};
 
+/// Tagged union of all PAG edge kinds, see above.
 struct Edge : public std::variant<Assign, Gep, Call, Return, Load, Store,
                                   StorePOI, Copy> {
   using Base =
@@ -117,6 +129,9 @@ concept CanWithCalleesOfCallAt =
       CStrategy.withCalleesOfCallAt(Inst, [](typename T::f_t Callee) {});
     };
 
+/// Minimal requirements for a PAG-builder strategy: analysis-domain type
+/// members plus \c withCalleesOfCallAt.  Does not require \c onAddEdge; use
+/// \c PBStrategy for the full requirement set.
 template <typename T>
 concept PBStrategyBase =
     CanWithCalleesOfCallAt<T> &&
@@ -136,6 +151,8 @@ concept CanOnAddValue = requires(T &Strategy, const T::v_t &Var) {
   Strategy.onAddValue(Var, ValueId{});
 };
 
+/// A PAG-strategy that can provide a capacity hint for the
+/// number of PAG nodes (used to pre-allocate internal buffers).
 template <typename T>
 concept CanGetNumPossibleValues =
     requires(const T &CStrategy, const T::db_t &IRDB) {
@@ -148,6 +165,12 @@ template <typename T>
 concept CanConsumeAAResults =
     requires(T Strategy) { std::move(Strategy).consumeAAResults(size_t(0)); };
 
+/// Fans out every PAG-builder callback to two independent strategies.
+/// \p FirstT must be a full \c PBStrategy; \p SecondT only needs to satisfy
+/// \c CanOnAddEdge (it borrows the \c withCalleesOfCallAt and analysis-domain
+/// types from \p FirstT).
+///
+/// Useful for intersecting alias analyses.
 template <PBStrategy FirstT, CanOnAddEdgeN<typename FirstT::n_t> SecondT>
 // requires(std::same_as<typename FirstT::n_t, typename SecondT::n_t> &&
 //          std::same_as<typename FirstT::v_t, typename SecondT::v_t> &&
@@ -211,6 +234,14 @@ struct PBStrategyCombinator {
       }
 };
 
+/// Upgrades a \c CanOnAddEdge type to a full \c PBStrategy by mixing in the
+/// analysis-domain types and \c withCalleesOfCallAt from a separate
+/// \c PBStrategyBase.  Typical use: wrap an edge-listener (e.g., a union-find
+/// accumulator) that does not own a call-graph with a call-graph provider.
+///
+/// \tparam FirstT  The edge-listener. Must satisfy \c CanOnAddEdge.
+/// \tparam SecondT The call-graph / domain provider. Must satisfy
+///                 \c PBStrategyBase.
 template <CanOnAddEdge FirstT, PBStrategyBase SecondT>
 struct PBMixin : public FirstT {
   using n_t = typename SecondT::n_t;
@@ -235,6 +266,10 @@ struct PBMixin : public FirstT {
   }
 };
 
+/// Debug-only PAG-builder strategy that emits the PAG as a Graphviz DOT
+/// digraph to \c llvm::errs().  The opening \c "digraph PAG {" is printed in
+/// the constructor and the closing brace in the destructor (move-construction
+/// transfers ownership, preventing a double-close).
 struct TracingPBStrategy {
   bool Engaged = true;
 

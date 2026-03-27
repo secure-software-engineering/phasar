@@ -17,6 +17,9 @@
 
 namespace psr {
 
+/// Concept for alias-set containers used inside the union-find analyses.
+/// The container must support set insertion, membership test, bitwise
+/// union/intersection/difference, a \c foreach() visitor, and comparison.
 template <typename ASet>
 concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
                                  typename ASet::value_type ValId) {
@@ -42,6 +45,13 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
   { ConstSet.size() } noexcept -> std::convertible_to<size_t>;
 };
 
+/// Sparse bit-set used to represent alias sets in union-find analyses.
+///
+/// Currently backed by \c llvm::SparseBitVector for compact storage when ids
+/// are scattered in a large range and dense storage when ids are clustered.
+/// Satisfies \c IsRawAliasSet.
+///
+/// \tparam IdT Integer-like id type (e.g., \c ValueId).
 template <SmallIdType IdT> class RawAliasSet {
 public:
   using value_type = IdT;

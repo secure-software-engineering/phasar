@@ -40,6 +40,25 @@ struct BottomupUnionFindAABase {
   static constexpr llvm::StringLiteral LogCategory = "BottomupUnionFindAA";
 };
 
+/// SCC-based, bottom-up union-find alias analysis.
+///
+/// Interprocedural Steensgaard-style analysis with summary propagation along
+/// the SCC DAG of the call graph.
+///
+/// When \p SoundnessFlag is \c Soundness::Soundy (default), a top-down pass
+/// propagates parameter aliasing information back to callers for soundness.
+/// Set it to \c Soundness::Unsound to skip this pass and trade precision for
+/// speed.
+///
+/// Intra-SCC Call/Return edges (mutual recursion) are handled
+/// context-insensitively.
+///
+/// Implements \c pag::PBStrategy. After \c buildPAG() completes, call
+/// \c consumeAAResults() to obtain a \c BasicUnionFindAAResult.
+///
+/// \tparam AnalysisDomainT The analysis domain, e.g., \c LLVMPAGDomain.
+/// \tparam SoundnessFlag   Controls whether the top-down parameter-aliasing
+///                         pass is performed.
 template <typename AnalysisDomainT, Soundness SoundnessFlag = Soundness::Soundy>
 class BottomupUnionFindAA : BottomupUnionFindAABase {
   struct ParamInfo {

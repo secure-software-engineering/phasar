@@ -91,13 +91,28 @@ struct PAGVariable : public llvm::PointerIntPair<const llvm::Value *, 1, bool> {
 
 [[nodiscard]] std::string to_string(PAGVariable Var);
 
+/// Analysis domain for LLVM-IR pointer-assignment graphs.
+/// Uses \c PAGVariable as the variable type and the standard LLVM instruction /
+/// function / project-IRDB types from \c LLVMAnalysisDomainDefault.
 struct LLVMPAGDomain : LLVMAnalysisDomainDefault {
   using v_t = PAGVariable;
 };
 
+/// Concrete \c PAGBuilder for LLVM IR.
+///
+/// Traverses all functions in the given \c LLVMProjectIRDB and emits PAG
+/// nodes and edges to the provided \c PBStrategyRef.
+///
+/// Achieves basic field sensitivity by handlking constant GEPs in an ad-hoc
+/// manner.
+///
+/// An optional \c LLVMFunctionDataFlowFacts object can be supplied to apply
+/// pre-computed library summaries at potentially declaration-only calls.
 class LLVMPAGBuilder : public PAGBuilder<LLVMPAGDomain> {
 public:
   constexpr LLVMPAGBuilder() noexcept = default;
+  /// \param MLSum Pre-computed library summary facts. If non-null, callee
+  ///   analysis for matched library functions is replaced by these summaries.
   constexpr LLVMPAGBuilder(
       const library_summary::LLVMFunctionDataFlowFacts *MLSum) noexcept
       : MLSum(MLSum) {}

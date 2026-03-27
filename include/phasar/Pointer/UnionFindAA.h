@@ -79,6 +79,10 @@ struct UnionFindAAResultIntersection {
   [[no_unique_address]] SecondT Second;
 };
 
+/// Specialization of \c PBStrategyCombinator for two union-find analyses whose
+/// results should be intersected for better precision.  Both analyses must
+/// operate on the same analysis domain. After \c buildPAG() completes, call
+/// \c consumeAAResults() to obtain a \c UnionFindAAResultIntersection.
 template <pag::PBStrategy FirstT, pag::CanOnAddEdge SecondT>
   requires(std::same_as<typename FirstT::n_t, typename SecondT::n_t> &&
            std::same_as<typename FirstT::v_t, typename SecondT::v_t> &&
@@ -104,8 +108,17 @@ template <typename FirstT, typename SecondT>
 UnionFindAACombinator(FirstT, SecondT)
     -> UnionFindAACombinator<FirstT, SecondT>;
 
-/// Lazy caching of union-find alias-analysis results. This class is *not*
-/// thread-safe!
+/// Lazy cache that wraps any \c UnionFindAAResult and memoises
+/// \c getRawAliasSet() results in a \c ValueIdMap.
+///
+/// Not thread-safe. Each unique \p ValueId is computed at most once on first
+/// access.
+///
+/// \tparam ShouldCacheMayAlias  When \c true (default), \c mayAlias() is
+///   answered via the cached alias sets (one set look-up).  When \c false,
+///   \c mayAlias() is forwarded directly to the underlying result without
+///   materializing a set, which can be faster for analyses whose
+///   \c mayAlias() implementation is already O(1).
 template <UnionFindAAResult AAResT, bool ShouldCacheMayAlias = true>
 class CachedUnionFindAAResult {
 public:
@@ -156,17 +169,25 @@ struct UnionFindAliasIterator {
   }
 };
 
-/// Common base-class of union-find alias-analysis results.
+/// Common storage for union-find alias-analysis results: a \c BackwardView
+/// that maps each equivalence-class representative (\c ObjectRepId) to the
+/// set of all \c ValueId members in that class.
 struct UnionFindAAResultBase {
+  /// Opaque id for equivalence-class representatives after \c compress().
   enum class ObjectRepId : uint32_t {};
 
+  /// Maps each \c ObjectRepId (equivalence class) to the set of \c ValueId
+  /// members it contains.
   TypedVector<ObjectRepId, RawAliasSet<ValueId>> BackwardView;
 
   void dump(llvm::raw_ostream &OS = llvm::errs(), uint32_t Indent = 0) const;
 };
 
-/// Basic implementation of union-find alias-analysis results.
+/// Alias-analysis result for flow- and context-insensitive union-find
+/// analyses.  Each \c ValueId maps to exactly one \c ObjectRepId
+/// (its equivalence-class representative).
 struct BasicUnionFindAAResult : UnionFindAAResultBase {
+  /// Maps each \c ValueId to its equivalence-class representative.
   TypedVector<ValueId, ObjectRepId> Var2Rep;
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
@@ -195,9 +216,14 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
   }
 };
 
-/// Union-find alias-analysis results for an analysis that achieves (partial)
-/// calling-context sensitivity through heap cloning.
+/// Alias-analysis result for calling-context-sensitive union-find analyses.
+///
+/// A single \c ValueId can belong to multiple equivalence classes (one per
+/// calling context it was cloned into), so \c Var2Rep holds a small vector
+/// of \c ObjectRepId values per variable.
 struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
+  /// Maps each \c ValueId to the set of equivalence-class representatives it
+  /// belongs to (one per calling context).
   TypedVector<ValueId, llvm::SmallVector<ObjectRepId, 2>> Var2Rep{};
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return false; }
