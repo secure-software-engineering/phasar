@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Fabian Schiebel, bulletspace and others
+ *     Fabian Schiebel, bulletSpace and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMFUNCTIONDATAFLOWFACTS_H

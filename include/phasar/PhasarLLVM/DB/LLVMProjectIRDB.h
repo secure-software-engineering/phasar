@@ -18,6 +18,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -38,7 +39,10 @@ template <> struct ProjectIRDBTraits<LLVMProjectIRDB> {
 };
 
 /// \brief Project IR Database that manages a LLVM IR module.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
+#pragma GCC diagnostic pop
   friend ProjectIRDBBase;
 
 public:
@@ -141,6 +145,31 @@ public:
   /// llvm::Module that is managed by the IRDB. insertFunction should not be
   /// called twice for the same function. Use with care!
   void insertFunction(llvm::Function *F, bool DoPreprocessing = true);
+
+  /// Returns the function that contains the given instruction Inst.
+  ///
+  /// \remark This function should eventually replace
+  /// LLVMBasedCFG::getFunctionOf()
+  [[nodiscard]] f_t getFunctionOf(n_t Inst) const {
+    return Inst ? Inst->getFunction() : nullptr;
+  }
+
+  /// Returns an iterable range of all instructions of the given function that
+  /// are part of the control-flow graph.
+  ///
+  /// \remark This function should eventually replace
+  /// LLVMBasedCFG::getAllInstructionsOf()
+  [[nodiscard]] auto getAllInstructionsOf(f_t Fun) const {
+    return llvm::map_range(llvm::instructions(Fun),
+                           Ref2PointerConverter<llvm::Instruction>{});
+  }
+
+  /// Returns a range of all global variables (and global constants, e.g, string
+  /// literals) in the managed module
+  [[nodiscard]] auto getAllGlobals() const {
+    return llvm::map_range(std::as_const(*Mod).globals(),
+                           Ref2PointerConverter<llvm::GlobalVariable>{});
+  }
 
   explicit operator bool() const noexcept { return isValid(); }
 

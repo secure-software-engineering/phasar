@@ -140,6 +140,12 @@ concept has_adl_to_string_v = requires(const T &Val) {
 };
 
 template <typename T>
+concept has_adl_join = requires(const T &Val) {
+  // TODO: Add psr::join-variant, once we have a fallback!
+  { join(Val, Val) } -> std::convertible_to<T>;
+};
+
+template <typename T>
 concept has_erase_iterator_v = requires(
     T &Val, typename std::remove_cvref_t<T>::iterator It) { Val.erase(It); };
 
@@ -165,7 +171,7 @@ concept is_variant_v = is_variant<T>::value; // NOLINT
 
 template <typename T>
 // NOLINTNEXTLINE
-concept is_string_like_v = std::is_convertible_v<T, std::string_view>;
+concept is_string_like_v = std::is_convertible_v<T &, std::string_view>;
 
 template <template <typename> typename Base, typename Derived>
 concept is_crtp_base_of_v =
@@ -283,6 +289,13 @@ template <has_adl_to_string_v T>
   return to_string(Val);
 }
 
+template <has_adl_join T>
+[[nodiscard]] decltype(auto) adl_join(const T &L,
+                                      const std::type_identity_t<T> &R) {
+  // using psr::join; // TODO: Enable, once we have a generic psr::join!
+  return join(L, R);
+}
+
 struct IdentityFn {
   template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<decltype(Val)>(Val);
@@ -308,6 +321,14 @@ inline constexpr bool IsTriviallyRelocatable =
 #else
     std::is_trivially_copyable_v<T>;
 #endif
+
+template <typename T, typename R, typename... P>
+concept invocable_r = requires(T Val, P... Params) {
+  { std::invoke(PSR_FWD(Val), PSR_FWD(Params)...) } -> std::convertible_to<R>;
+};
+
+template <typename T, typename U>
+concept proper_subclass_of = std::derived_from<T, U> && !std::same_as<T, U>;
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

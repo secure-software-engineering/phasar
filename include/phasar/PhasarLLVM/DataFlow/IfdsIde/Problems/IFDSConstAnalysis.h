@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 
@@ -29,8 +31,6 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-
-class LLVMBasedICFG;
 
 /**
  * This IFDS analysis will compute possibly mutable memory

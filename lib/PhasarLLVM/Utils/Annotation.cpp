@@ -33,7 +33,7 @@ VarAnnotation::VarAnnotation(const llvm::CallBase *AnnotationCall) noexcept
   [[maybe_unused]] auto *Callee = AnnotationCall->getCalledFunction();
   assert(Callee && Callee->hasName() &&
          (Callee->getName().starts_with("llvm.var.annotation") ||
-          Callee->getName().startswith("llvm.ptr.annotation")));
+          Callee->getName().starts_with("llvm.ptr.annotation")));
 }
 
 const llvm::Value *VarAnnotation::getValue() const {

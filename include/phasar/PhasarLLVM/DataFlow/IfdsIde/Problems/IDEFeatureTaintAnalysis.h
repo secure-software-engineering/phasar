@@ -13,7 +13,9 @@
 #include "phasar/DataFlow/IfdsIde/DefaultEdgeFunctionSingletonCache.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -36,7 +38,6 @@ class GlobalVariable;
 } // namespace llvm
 
 namespace psr {
-class LLVMProjectIRDB;
 
 struct IDEFeatureTaintEdgeFact {
   llvm::SmallBitVector Taints;

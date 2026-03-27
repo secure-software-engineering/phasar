@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Fabian Schiebel, mxHuber and others
+ *     Fabian Schiebel, Maximilian Huber and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDENOALIASINFOTABULATIONPROBLEM_H
@@ -13,6 +13,8 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 
 namespace llvm {

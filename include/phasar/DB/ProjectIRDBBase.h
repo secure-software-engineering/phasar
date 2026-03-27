@@ -38,7 +38,10 @@ template <typename DB> struct ProjectIRDBTraits {
 ///
 /// \remark XXX Once we have upgraded to C++20, we might want to use a concept
 /// instead...
-template <typename Derived> class ProjectIRDBBase {
+template <typename Derived>
+class LLVM_DEPRECATED(
+    "This CRTP mixin is deprecated in favor of the ProjectIRDB-concept",
+    "Use ProjectIRDB instead") ProjectIRDBBase {
 public:
   using n_t = typename ProjectIRDBTraits<Derived>::n_t;
   using f_t = typename ProjectIRDBTraits<Derived>::f_t;
@@ -89,7 +92,7 @@ public:
     return self().getFunctionOfImpl(Inst);
   }
 
-  /// Returns the global variable's definition if available, nullptr/nullopt
+  /// Returns the global variable if available, nullptr/nullopt
   /// otherwise.
   [[nodiscard]] Nullable<g_t>
   getGlobalVariable(llvm::StringRef GlobalVariableName) const {

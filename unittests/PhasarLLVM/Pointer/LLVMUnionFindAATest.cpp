@@ -175,7 +175,7 @@ constexpr auto BotAABuilder = [](const auto &IRDB, const auto &CG) {
   return Ret;
 };
 
-constexpr auto TracingBuilder = [](auto &&Builder) {
+[[maybe_unused]] constexpr auto TracingBuilder = [](auto &&Builder) {
   return [Builder = PSR_FWD(Builder)](const auto &IRDB, const auto &CG) {
     return pag::PBStrategyCombinator{
         std::invoke(Builder, IRDB, CG),

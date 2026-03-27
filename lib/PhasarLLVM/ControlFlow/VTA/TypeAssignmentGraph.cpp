@@ -201,8 +201,8 @@ static void addGlobals(const LLVMProjectIRDB &IRDB, TypeAssignmentGraph &TAG) {
       continue;
     }
     auto GlobName = Glob.getName();
-    if (GlobName.startswith("_ZTV") || GlobName.startswith("_ZTI") ||
-        GlobName.startswith("_ZTS")) {
+    if (GlobName.starts_with("_ZTV") || GlobName.starts_with("_ZTI") ||
+        GlobName.starts_with("_ZTS")) {
       continue;
     }
 

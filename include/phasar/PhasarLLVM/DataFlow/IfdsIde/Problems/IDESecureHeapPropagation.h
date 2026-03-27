@@ -11,6 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDESECUREHEAPPROPAGATION_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 

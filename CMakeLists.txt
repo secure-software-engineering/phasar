@@ -356,22 +356,27 @@ if(PHASAR_IN_TREE)
   set (PHASAR_USE_Z3 OFF)
 else()
   if(PHASAR_USE_Z3)
-    # This z3-version is the same version LLVM requires; however, we cannot just use Z3 via the LLVM interface
-    # as it lacks some functionality (such as z3::expr::simplify()) that we require
+    if (TARGET z3::libz3)
+      # When including SVF, it also tries to find z3, but in addition to LLVM's search it already creates a target: z3::libz3.
+      # Reuse it here:
+      if(NOT TARGET z3)
+        add_library(z3 ALIAS z3::libz3)
+      endif()
+    else()
+      # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
+      set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS "")
+      find_package(Z3 REQUIRED)
+      set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
 
-    # FindZ3.cmake by llvm tries to compile a snippet with Z3 which crashes on arm with sanitizers enabled
-    set(SAFE_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS "")
-    find_package(Z3 4.7.1 REQUIRED)
-    set(CMAKE_CXX_FLAGS "${SAFE_CMAKE_CXX_FLAGS}")
-
-    if(Z3_FOUND)
-      if (NOT TARGET z3)
-        add_library(z3 IMPORTED SHARED)
-        set_property(TARGET z3 PROPERTY
-                IMPORTED_LOCATION ${Z3_LIBRARIES})
-        set_property(TARGET z3 PROPERTY
-                INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR})
+      if(Z3_FOUND)
+        if (NOT TARGET z3)
+          add_library(z3 IMPORTED SHARED)
+          set_target_properties(z3 PROPERTIES
+            IMPORTED_LOCATION ${Z3_LIBRARIES}
+            INTERFACE_INCLUDE_DIRECTORIES ${Z3_INCLUDE_DIR}
+          )
+        endif()
       endif()
     endif()
   endif()

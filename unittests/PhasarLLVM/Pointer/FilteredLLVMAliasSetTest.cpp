@@ -72,7 +72,7 @@ TEST_P(TaintAnalysis, LeaksWithAndWithoutAliasFilteringEqual) {
   LLVMBasedICFG ICF(&IRDB, CallGraphAnalysisType::OTF, EntryPoints, nullptr,
                     &AS);
 
-  auto TSF = llvm::StringRef(GetParam()).startswith("double_free")
+  auto TSF = llvm::StringRef(GetParam()).starts_with("double_free")
                  ? getDoubleFreeConfig()
                  : getDefaultConfig();
 

@@ -30,6 +30,7 @@
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/WithColor.h"
 
 #include <algorithm>
 #include <type_traits>
@@ -54,9 +55,10 @@ IDEExtendedTaintAnalysis::initialSeeds() {
                             this->base_t::getZeroValue(), bottomElement());
 
   if (Seeds.empty()) {
-    llvm::errs() << "WARNING: No initial seeds specified, skip the analysis. "
-                    "Please specify an entrypoint function or in the "
-                    "TaintConfig a source llvm::Instruction*\n";
+    llvm::WithColor::warning()
+        << "No initial seeds specified, skip the analysis. "
+           "Please specify an entrypoint function or in the "
+           "TaintConfig a source llvm::Instruction*\n";
   }
 
   return Seeds;

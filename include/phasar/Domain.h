@@ -12,6 +12,7 @@
 
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Domain/BinaryDomain.h"
+#include "phasar/Domain/IRDomain.h"
 #include "phasar/Domain/LatticeDomain.h"
 
 #endif // PHASAR_DOMAIN_H

@@ -31,10 +31,9 @@
 namespace psr {
 
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
-    const LLVMProjectIRDB *IRDB, const DIBasedTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
+    const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF, LLVMAliasInfoRef PT,
     const LLVMTaintConfig &Config, std::vector<std::string> EntryPoints)
-    : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, TH, ICF, PT,
+    : InterMonoProblem<InterMonoTaintAnalysisDomain>(IRDB, ICF, PT,
                                                      std::move(EntryPoints)),
       Config(Config) {}
 
@@ -169,7 +168,7 @@ std::unordered_map<InterMonoTaintAnalysis::n_t,
                    InterMonoTaintAnalysis::mono_container_t>
 InterMonoTaintAnalysis::initialSeeds() {
   PHASAR_LOG_LEVEL(DEBUG, "InterMonoTaintAnalysis::initialSeeds()");
-  const llvm::Function *Main = ICF->getFunction("main");
+  const llvm::Function *Main = IRDB->getFunction("main");
   std::unordered_map<InterMonoTaintAnalysis::n_t,
                      InterMonoTaintAnalysis::mono_container_t>
       Seeds;

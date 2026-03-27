@@ -9,6 +9,7 @@ module;
 #include "phasar/DataFlow/IfdsIde/GenericFlowFunction.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCacheNG.h"
@@ -36,6 +37,8 @@ using psr::EdgeFunctions;
 using psr::EdgeFunctionSingletonCache;
 using psr::EdgeFunctionStats;
 using psr::EdgeIdentity;
+using psr::IdeAnalysisDomain;
+using psr::IfdsAnalysisDomain;
 using psr::IsEdgeFunction;
 using psr::operator==;
 using psr::operator<<;
@@ -43,7 +46,6 @@ using psr::addSeedsForStartingPoints;
 using psr::AllTopFnProvider;
 using psr::checkSREquality;
 using psr::Compressor;
-using psr::ConstantEdgeFunction;
 using psr::defaultJoinOrNull;
 using psr::DefaultMapKeyCompressor;
 using psr::EdgeFunctionCache;

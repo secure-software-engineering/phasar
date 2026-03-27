@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
@@ -23,6 +24,8 @@
 #include <system_error>
 
 namespace psr {
+
+static_assert(ProjectIRDB<LLVMProjectIRDB>);
 
 [[deprecated]]
 static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {

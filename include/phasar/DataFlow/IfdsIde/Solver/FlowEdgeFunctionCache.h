@@ -292,8 +292,8 @@ public:
 
         PHASAR_LOG_LEVEL(DEBUG, "(N) Call Site : " << NToString(CallSite));
         PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite));
-        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
-                                                          : Callees) {
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : ");
+        for (auto callee : Callees) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << FToString(callee));
         };);
     auto Key = std::tie(CallSite, RetSite);
@@ -462,8 +462,8 @@ public:
 
         PHASAR_LOG_LEVEL(DEBUG, "(N) Ret Site  : " << NToString(RetSite));
         PHASAR_LOG_LEVEL(DEBUG, "(D) Ret Node  : " << DToString(RetSiteNode));
-        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : "); for (auto callee
-                                                          : Callees) {
+        PHASAR_LOG_LEVEL(DEBUG, "(F) Callee's  : ");
+        for (auto callee : Callees) {
           PHASAR_LOG_LEVEL(DEBUG, "  " << FToString(callee));
         });
 

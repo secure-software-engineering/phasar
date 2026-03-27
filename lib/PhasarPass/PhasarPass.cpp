@@ -82,14 +82,14 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
       LLVMIDETestSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "intra-mono-solvertest") {
-    IntraMonoSolverTest Intra(&DB, &H, &I, &PT, EntryPoints);
+    IntraMonoSolverTest Intra(&DB, &I, &PT, EntryPoints);
     IntraMonoSolver Solver(Intra);
     Solver.solve();
     if (DumpResults) {
       Solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
-    InterMonoSolverTest Inter(&DB, &H, &I, &PT, EntryPoints);
+    InterMonoSolverTest Inter(&DB, &I, &PT, EntryPoints);
     InterMonoSolver_P<InterMonoSolverTest, 3> Solver(Inter);
     Solver.solve();
     if (DumpResults) {

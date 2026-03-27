@@ -10,7 +10,7 @@
  *****************************************************************************/
 
 #include "phasar/ControlFlow/CallGraph.h"
-#include "phasar/DB/ProjectIRDBBase.h"
+#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/StrongTypeDef.h"
@@ -19,6 +19,7 @@
 #include "llvm/ADT/Hashing.h"
 
 #include <array>
+#include <concepts>
 #include <cstdint>
 
 namespace psr {
@@ -113,10 +114,11 @@ public:
   /// Enumerates all call-string prefixes of length ≤ K that lead to \p Fun
   /// and invokes \p CCVisitor(firstCallSite, contextId) for each one.
   /// If \p Fun has no callers (or K is exhausted), the "None" context is used.
-  template <typename DBTy>
+  template <ProjectIRDB DBTy>
+    requires(std::same_as<typename DBTy::f_t, f_t> &&
+             std::same_as<typename DBTy::n_t, n_t>)
   void visitAllCallingContexts(
-      const llvm::Function *Fun, const CallGraph<n_t, f_t> &CG,
-      const ProjectIRDBBase<DBTy> &IRDB,
+      ByConstRef<f_t> Fun, const CallGraph<n_t, f_t> &CG, const DBTy &IRDB,
       std::invocable<n_t, CallingContextId> auto CCVisitor) {
     CallingContext<n_t, K> Ctx{};
     visitAllCallingContextsImpl<0>(Fun, CG, IRDB, CCVisitor, Ctx);
@@ -124,9 +126,11 @@ public:
 
   /// Enumerates all calling contexts that include \p Call as their most recent
   /// call-site and invokes \p CCVisitor(contextId) for each one.
-  template <typename DBTy>
+  template <ProjectIRDB DBTy>
+    requires(std::same_as<typename DBTy::f_t, f_t> &&
+             std::same_as<typename DBTy::n_t, n_t>)
   void visitContextsAtCall(ByConstRef<n_t> Call, const CallGraph<n_t, f_t> &CG,
-                           const ProjectIRDBBase<DBTy> &IRDB,
+                           const DBTy &IRDB,
                            std::invocable<CallingContextId> auto CCVisitor) {
     CallingContext<n_t, K> Ctx{};
     Ctx.Callers[0] = Call;
@@ -151,8 +155,7 @@ public:
 private:
   template <unsigned Idx, typename DBTy>
   void visitAllCallingContextsImpl(
-      ByConstRef<f_t> Fun, const CallGraph<n_t, f_t> &CG,
-      const ProjectIRDBBase<DBTy> &IRDB,
+      ByConstRef<f_t> Fun, const CallGraph<n_t, f_t> &CG, const DBTy &IRDB,
       std::invocable<n_t, CallingContextId> auto &&CCVisitor,
       CallingContext<n_t, K> &CurrCtx) {
     // TODO: Improve this algorithm

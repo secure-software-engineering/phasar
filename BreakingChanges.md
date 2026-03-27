@@ -4,6 +4,8 @@
 
 - The function `HelperAnalyses::getAliasInfo()` no longer returns a `LLVMAliasSet &`, but a `LLVMAliasInfoRef`.
 - The location of the library summary `FunctionDataFlowFacts` and `LLVMFunctionDataFlowFacts` has moved to `phasar/Utils/` and `phasar/PhasarLLVM/Utils`, respectively.
+- `IDESolver::initialize()` does no longer return a `bool`. Now, you are always allowed to call `next()` at least once.
+- `IntraMonoProblem` and `InterMonoProblem`, and all reference-implementations of these problems do not receive a TypeHierarchy-pointer anymore in the ctor.
 - Requiring C++20 instead of C++17
   - Type-traits and other templates that are specialized now use `requires` instead of `enable_if`, wherever possible. This may reduce the number of (defaulted) template parameters in some cases.
 - The `AdjacencyList` struct now now has one more template argument to denote the intege-like `vertex_t` type. It is the second template argument (which previously was the EdgeType). The edge-type is now denoted by the *third* template argument.

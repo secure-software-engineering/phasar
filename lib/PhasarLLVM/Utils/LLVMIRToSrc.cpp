@@ -458,8 +458,8 @@ bool SourceCodeInfo::equivalentWith(const SourceCodeInfo &Other) const {
   }
 
   return llvm::StringRef(Other.SourceCodeFilename)
-      .endswith(llvm::StringRef(SourceCodeFilename)
-                    .slice(Pos + 1, llvm::StringRef::npos));
+      .ends_with(llvm::StringRef(SourceCodeFilename)
+                     .slice(Pos + 1, llvm::StringRef::npos));
 }
 
 void psr::from_json(const nlohmann::json &J, SourceCodeInfo &Info) {

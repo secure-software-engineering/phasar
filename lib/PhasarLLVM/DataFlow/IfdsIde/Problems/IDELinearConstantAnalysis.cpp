@@ -66,17 +66,9 @@ struct LCAEdgeFunctionComposer : EdgeFunctionComposer<l_t> {
   }
 };
 
-auto hash_value(const LCAEdgeFunctionComposer &EF) noexcept {
-  return llvm::hash_combine(EF.First, EF.Second);
-}
-
 static_assert(is_llvm_hashable_v<LCAEdgeFunctionComposer>);
 
-struct GenConstant : ConstantEdgeFunction<l_t> {};
-
-llvm::hash_code hash_value(const GenConstant &EF) noexcept {
-  return llvm::hash_value(EF.Value);
-}
+using GenConstant = ConstantEdgeFunction<l_t>;
 
 using TTT = decltype(hash_value(std::declval<GenConstant>()));
 static_assert(is_llvm_hashable_v<GenConstant>);
@@ -590,11 +582,11 @@ void IDELinearConstantAnalysis::emitTextReport(
     // Emit only IR code, function name and module info
     OS << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (const auto *F : ICF->getAllFunctions()) {
+    for (const auto *F : IRDB->getAllFunctions()) {
       std::string FName = getFunctionNameFromIR(F);
       OS << "\nFunction: " << FName << "\n----------"
          << std::string(FName.size(), '-') << '\n';
-      for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+      for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
         auto Results = SR.resultsAt(Stmt, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
@@ -640,12 +632,12 @@ IDELinearConstantAnalysis::getLCAResults(
     GenericSolverResults<n_t, d_t, l_t> SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   llvm::outs() << "\n==== Computing LCA Results ====\n";
-  for (const auto *F : ICF->getAllFunctions()) {
+  for (const auto *F : IRDB->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
     llvm::outs() << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
-    for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
+    for (const auto *Stmt : IRDB->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
       llvm::outs() << "\nIR : " << NToString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping

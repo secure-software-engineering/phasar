@@ -6,16 +6,22 @@
 #include "Util/GeneralType.h"
 
 namespace psr {
+
+[[nodiscard]] inline const llvm::Value *
+svfVarToLLVMOrNull(const SVF::SVFVar *Var, SVF::LLVMModuleSet &ModSet) {
+  if (ModSet.hasLLVMValue(Var)) {
+    return ModSet.getLLVMValue(Var);
+  }
+
+  return nullptr;
+}
+
 [[nodiscard]] inline const llvm::Value *
 pointerNodeToLLVMOrNull(SVF::NodeID Nod, SVF::LLVMModuleSet &ModSet,
                         SVF::SVFIR &PAG) {
 
   if (const SVF::SVFVar *Var = PAG.getGNode(Nod)) {
-    if (const auto *Val = Var->getValue()) {
-      if (const auto *LLVMVal = ModSet.getLLVMValue(Val)) {
-        return LLVMVal;
-      }
-    }
+    return svfVarToLLVMOrNull(Var, ModSet);
   }
   return nullptr;
 }
@@ -23,27 +29,16 @@ pointerNodeToLLVMOrNull(SVF::NodeID Nod, SVF::LLVMModuleSet &ModSet,
 [[nodiscard]] inline const llvm::Value *
 objectNodeToLLVMOrNull(SVF::NodeID Nod, SVF::LLVMModuleSet &ModSet,
                        SVF::SVFIR &PAG) {
-  if (const SVF::MemObj *Mem = PAG.getObject(Nod)) {
-    if (const auto *Val = Mem->getValue()) {
-      if (const auto *LLVMVal = ModSet.getLLVMValue(Val)) {
-        return LLVMVal;
-      }
-    }
-  }
-  return nullptr;
+  return pointerNodeToLLVMOrNull(Nod, ModSet, PAG);
 }
 
 [[nodiscard]] inline SVF::NodeID getNodeId(const llvm::Value *Pointer,
-                                           SVF::LLVMModuleSet &ModSet,
-                                           SVF::SVFIR &PAG) {
-  auto *Nod = ModSet.getSVFValue(Pointer);
-  return PAG.getValueNode(Nod);
+                                           SVF::LLVMModuleSet &ModSet) {
+  return ModSet.getValueNode(Pointer);
 }
 [[nodiscard]] inline SVF::NodeID getObjNodeId(const llvm::Value *Obj,
-                                              SVF::LLVMModuleSet &ModSet,
-                                              SVF::SVFIR &PAG) {
-  auto *Nod = ModSet.getSVFValue(Obj);
-  return PAG.getObjectNode(Nod);
+                                              SVF::LLVMModuleSet &ModSet) {
+  return ModSet.getObjectNode(Obj);
 }
 
 } // namespace psr
