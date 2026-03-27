@@ -21,29 +21,36 @@ template <typename T>
 concept MonoIFDSAnalysisDomain = IsAnalysisDomain<T>;
 
 template <typename T>
-concept MonoIFDSProblem =
-    requires(T &Problem,
-             DataFlowEnvironment<typename T::ProblemAnalysisDomain::d_t> &InOut,
-             typename T::ProblemAnalysisDomain::n_t Inst,
-             const typename T::ProblemAnalysisDomain::n_t &Fact,
-             const typename T::ProblemAnalysisDomain::f_t &Fun) {
-      typename T::ProblemAnalysisDomain;
-      requires MonoIFDSAnalysisDomain<typename T::ProblemAnalysisDomain>;
+concept MonoIFDSProblem = requires(
+    T &Problem,
+    DataFlowEnvironment<typename T::ProblemAnalysisDomain::d_t> &InOut,
+    typename T::ProblemAnalysisDomain::n_t Inst,
+    const typename T::ProblemAnalysisDomain::n_t &Fact,
+    const typename T::ProblemAnalysisDomain::f_t &Fun) {
+  typename T::ProblemAnalysisDomain;
+  requires MonoIFDSAnalysisDomain<typename T::ProblemAnalysisDomain>;
 
-      Problem.normalFlow(InOut, Inst);
-      Problem.callToRetFlow(InOut, Inst);
-      {
-        Problem.returnFlow(Inst, Fact)
-      } -> psr::is_iterable_over_v<typename T::ProblemAnalysisDomain::d_t>;
+  Problem.normalFlow(InOut, Inst);
+  Problem.callToRetFlow(InOut, Inst);
+  {
+    Problem.returnFlow(Inst, Fact)
+  } -> psr::is_iterable_over_v<typename T::ProblemAnalysisDomain::d_t>;
 
-      {
-        Problem.invReturnFlow(Inst, Fact)
-      } -> psr::is_iterable_over_v<typename T::ProblemAnalysisDomain::d_t>;
+  {
+    Problem.invReturnFlow(Inst, Fact)
+  } -> psr::is_iterable_over_v<typename T::ProblemAnalysisDomain::d_t>;
 
-      {
-        Problem.getZeroValue()
-      } -> std::convertible_to<typename T::ProblemAnalysisDomain::d_t>;
+  {
+    Problem.getZeroValue()
+  } -> std::convertible_to<typename T::ProblemAnalysisDomain::d_t>;
 
-      Problem.initialSeeds(InOut, Fun);
-    };
+  Problem.initialSeeds(InOut, Fun);
+
+  Problem.generateTaintsAtCall(
+      Inst, Fun, [](const typename T::ProblemAnalysisDomain::d_t & GenFact) {});
+  Problem.leakTaintsAtCall(
+      Inst, Fun,
+      [](const typename T::ProblemAnalysisDomain::d_t & LeakFact) {});
+  Problem.onResult(Inst, Fact);
+};
 } // namespace psr::monoifds

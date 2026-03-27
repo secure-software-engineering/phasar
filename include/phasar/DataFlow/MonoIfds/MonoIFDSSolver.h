@@ -58,8 +58,8 @@ public:
     return *this;
   }
 
-  MonoIFDSSolver
-  setFunctionCompressor(const FunctionCompressor *Functions) & noexcept {
+  MonoIFDSSolver setFunctionCompressor(
+      const Compressor<f_t, FunctionId> *Functions) & noexcept {
     this->Functions = Functions;
     return *this;
   }
@@ -524,7 +524,7 @@ private:
 
       auto CalleeId = Functions.get(CalleeFun);
       applySummary(IState, std::as_const(LocalState), CollectedSummary,
-                   CalleeFun, CalleeId, Inst, CurrFunId);
+                   CalleeId, Inst, CurrFunId);
     }
     if (CSInfo.CanCTR) {
       Problem->callToRetFlow(LocalState, Inst);
@@ -533,13 +533,161 @@ private:
     mergeStates(LocalState, std::move(CollectedSummary));
   }
 
-  // TODO: applySummary
-  // TODO: handleCallSrcSinksAndMayRecurse
-  // TODO: tryMergeStates, mergeStates
-  // TODO: rescheduleCallsAtExit
-  // TODO: reportOrPropagateLeak
+  void applySummary(IntermediateState &IState,
+                    const DataFlowEnvironment<d_t> &In,
+                    DataFlowEnvironment<d_t> &LocalState, FunctionId CalleeId,
+                    n_t Inst, FunctionId CurrFunId) {
+    const auto &Sum = Summaries[CalleeId];
+    Mapper M(Sum.SourceFactIds.size());
 
-  // TODO: Add srcsink-config to MonoIFDSProblem
+    for (const auto &[SumFact, SumSrc] : Sum.EndSummary) {
+      auto &&RetFacts = Problem->returnFlow(Inst, SumFact);
+      if (RetFacts.empty()) {
+        continue;
+      }
+
+      const auto &RetSrcFacts =
+          M.getAllSrcFactsFor(*this, In, Sum, SumSrc, Inst);
+      if (RetSrcFacts.empty()) {
+        continue;
+      }
+
+      for (const auto *RetFact : RetFacts) {
+        LocalState[RetFact].insertAllOf(RetSrcFacts);
+      }
+    }
+
+    if (CalleeId != CurrFunId) { // Prevent self-insertion
+      for (const auto &[CalleeLeak, LeakSrc] : Sum.LeakIf) {
+        const auto &CSSrc = M.getAllSrcFactsFor(*this, In, Sum, LeakSrc, Inst);
+        reportOrPropagateLeak(IState, CurrFunId, CalleeLeak.first,
+                              CalleeLeak.second, CSSrc);
+      }
+    }
+  }
+
+  struct CallSiteInfo {
+    bool MayRecurse = false;
+    bool CanCTR = false;
+  };
+
+  [[nodiscard]] CallSiteInfo handleCallSrcSinksAndMayRecurse(
+      IntermediateState &IState, DataFlowEnvironment<d_t> &LocalState,
+      const auto &Callees, FunctionId CurrFunId, ByConstRef<n_t> Inst) {
+
+    const auto &SCCs = *this->SCCs;
+    const auto CurrSCC = IState.CurrSCC;
+
+    bool MayRecurse = false;
+    bool CanCTR = !Callees.empty();
+    for (f_t CalleeFun : Callees) {
+      if (ICF->getStartPointsOf(CalleeFun).empty()) {
+        CanCTR = false;
+      }
+
+      auto CalleeId = Functions.get(CalleeFun);
+      auto CalleeSCC = SCCs.SCCOfNode[CalleeId];
+      if (CalleeSCC == CurrSCC) {
+        MayRecurse = true;
+        IState.Incoming[CalleeFun].insert(Inst);
+      }
+
+      Problem->leakTaintsAtCall(Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
+        if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
+          reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact, *LeakSrc);
+        }
+      });
+
+      // Generate taints from zero:
+      Problem->generateTaintsAtCall(
+          Inst, CalleeFun, [&](ByConstRef<d_t> GenFact) {
+            // Note: Assume, this gets called for all relevant aliases as well
+            LocalState[GenFact].insert(SourceFactId(0));
+          });
+    }
+
+    return {
+        .MayRecurse = MayRecurse,
+        .CanCTR = CanCTR,
+    };
+  }
+
+  void rescheduleCallsAtExit(IntermediateState &IState, auto &Driver,
+                             FunctionId CurrFunId) {
+    const auto &Fun = (*Functions)[CurrFunId];
+    const auto EnableEnvVersioning = Config.EnableEnvVersioning;
+
+    for (const auto &CS : getOrDefault(IState.Incoming, Fun)) {
+      if (auto CallerId = Functions->getOrNull(CS->getFunction())) {
+        // Driver.push(CS);
+        if (EnableEnvVersioning) {
+          IState.PathEdges[CS].Version++;
+        }
+
+        Driver.push(CS);
+      }
+    }
+  }
+
+  void reportOrPropagateLeak(IntermediateState &IState, FunctionId CurrFunId,
+                             n_t LeakInst, d_t LeakFact, SourceFactSet From) {
+    // The zero fact has always Id 0!
+    if (From.tryErase(SourceFactId(0))) {
+      if (Leaks[LeakInst].insert(LeakFact).second) {
+        Problem->onResult(LeakInst, LeakFact);
+      }
+    }
+
+    auto &CurrSum = Summaries[CurrFunId];
+
+    bool New =
+        CurrSum.LeakIf[{LeakInst, LeakFact}].tryMergeWith(std::move(From));
+
+    if (New && IState.InRecursion) {
+      IState.HasNewLeaks.insert(CurrFunId);
+    }
+  }
+
+  static void mergeStates(DataFlowEnvironment<d_t> &Into,
+                          DataFlowEnvironment<d_t> &&From) {
+    if (Into.empty()) {
+      if (&Into != &From) {
+        Into = std::move(From);
+      }
+
+      return;
+    }
+
+    if (Into.size() < From.size()) {
+      std::swap(Into, From);
+    }
+
+    for (auto &[TgtFact, SrcFactIds] : From) {
+      auto [It, Inserted] = Into.try_emplace(TgtFact, std::move(SrcFactIds));
+      if (!Inserted) {
+        It->second.insertAllOf(std::move(SrcFactIds));
+      }
+    }
+  }
+
+  [[nodiscard]] static bool
+  tryMergeStates(DataFlowEnvironment<d_t> &Into,
+                 const DataFlowEnvironment<d_t> &From) {
+    // TODO Handle phis
+
+    if (Into.empty()) {
+      Into = From;
+      return !From.empty();
+    }
+
+    bool Changed = false;
+    for (const auto &[TgtFact, SrcFactIds] : From) {
+      auto [It, Inserted] = Into.try_emplace(TgtFact, SrcFactIds);
+      Changed |= Inserted || It->second.tryMergeWith(SrcFactIds);
+    }
+
+    return Changed;
+  }
 
   // -- data members
 
@@ -553,7 +701,7 @@ private:
   std::pmr::unsynchronized_pool_resource PoolRes{&MBufRes};
 
   MaybeUniquePtr<const SCCHolder<FunctionId>> SCCs{};
-  MaybeUniquePtr<const FunctionCompressor> Functions{};
+  MaybeUniquePtr<const Compressor<f_t, FunctionId>> Functions{};
   MaybeUniquePtr<const UsedGlobalsHolder<v_t>> UsedGlobals{};
 
   // --- global analysis state
