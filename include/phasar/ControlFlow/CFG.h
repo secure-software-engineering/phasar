@@ -8,6 +8,7 @@
  *****************************************************************************/
 #pragma once
 
+#include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/Support/raw_ostream.h"
@@ -86,5 +87,13 @@ concept CFGEdgesProvider = requires(const T &CF, typename T::f_t Fun) {
   {
     CF.getAllControlFlowEdges(Fun)
   } -> psr::is_iterable_over_v<std::pair<typename T::n_t, typename T::n_t>>;
+};
+
+template <typename T>
+concept IsBlockAwareControlFlow = requires(const T &CF, typename T::n_t Inst) {
+  {
+    CF.getUniqueSuccessor(Inst)
+  } -> std::convertible_to<Nullable<typename T::n_t>>;
+  { CF.hasUniquePredecessor(Inst) } -> std::convertible_to<bool>;
 };
 } // namespace psr
