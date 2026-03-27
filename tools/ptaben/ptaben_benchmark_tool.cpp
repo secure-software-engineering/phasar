@@ -13,7 +13,7 @@
 #include "phasar/Pointer/AliasAnalysisType.h"
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/UnionFindAliasAnalysisType.h"
-#include "phasar/Utils/FileUtils.hpp"
+#include "phasar/Utils/IO.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"

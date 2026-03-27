@@ -262,14 +262,28 @@ bool isGuardVariable(const llvm::Value *V);
  */
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
+[[nodiscard]] inline bool
+definitelyContainsNoPointerFast(const llvm::Type *Ty) noexcept {
+  return Ty->isIntOrIntVectorTy() || Ty->isFloatingPointTy() ||
+         Ty->isFPOrFPVectorTy() || Ty->isVoidTy();
+}
+
+namespace detail {
+bool definitelyContainsNoPointerImpl(const llvm::Type *Ty) noexcept;
+} // namespace detail
+
 /// Approximates, whether the given LLVM type may not contain a pointer.
 /// This check is designed to be extremely lightweight and is therefore not very
 /// precise.
 ///
 /// \returns True, iff it can be proven that Ty does *not* contain a pointer
-[[nodiscard]] inline bool definitelyContainsNoPointer(const llvm::Type *Ty) {
-  return Ty->isIntOrIntVectorTy() || Ty->isFloatingPointTy() ||
-         Ty->isFPOrFPVectorTy() || Ty->isVoidTy();
+[[nodiscard]] inline bool
+definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
+  if (definitelyContainsNoPointerFast(Ty)) {
+    return true;
+  }
+
+  return detail::definitelyContainsNoPointerImpl(Ty);
 }
 /// Approximates, whether the given LLVM value may not contain a pointer.
 /// This check is designed to be extremely lightweight and is therefore not very

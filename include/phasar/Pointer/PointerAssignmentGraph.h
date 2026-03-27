@@ -1,5 +1,14 @@
 #pragma once
 
+/******************************************************************************
+ * Copyright (c) 2026 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/Nullable.h"
@@ -175,17 +184,20 @@ struct PBStrategyCombinator {
     requires(CanGetNumPossibleValues<FirstT> ||
              CanGetNumPossibleValues<SecondT>)
   {
-    if constexpr (CanGetNumPossibleValues<SecondT>) {
-      return Second.getNumPossibleValues(IRDB);
-    }
-    if constexpr (CanGetNumPossibleValues<FirstT>) {
-      return First.getNumPossibleValues(IRDB);
-    }
+    const auto Retrieve = [&IRDB]<typename S>(const S &Strategy) {
+      if constexpr (CanGetNumPossibleValues<S>) {
+        return Strategy.getNumPossibleValues(IRDB);
+      }
+      return 0;
+    };
+
+    return std::max(Retrieve(First), Retrieve(Second));
   }
 
   constexpr void
   withCalleesOfCallAt(ByConstRef<n_t> CS,
                       llvm::function_ref<void(f_t)> WithCallee) const {
+    // We assume, both are on the same call-graph.
     if constexpr (CanWithCalleesOfCallAt<SecondT>) {
       Second.withCalleesOfCallAt(CS, WithCallee);
     } else {
@@ -194,10 +206,9 @@ struct PBStrategyCombinator {
   }
 
   constexpr auto consumeAAResults(size_t NumVars) &&
-    requires(CanConsumeAAResults<FirstT> && !CanConsumeAAResults<SecondT>)
-  {
-    return std::move(First).consumeAAResults(NumVars);
-  }
+      requires(CanConsumeAAResults<FirstT> && !CanConsumeAAResults<SecondT>) {
+        return std::move(First).consumeAAResults(NumVars);
+      }
 };
 
 template <CanOnAddEdge FirstT, PBStrategyBase SecondT>

@@ -73,10 +73,6 @@ struct GlobalCache {
       return Vec;
     }
 
-    if (!llvm::isa<llvm::ConstantAggregate>(Const)) {
-      return {};
-    }
-
     // TODO: Get rid of the recursion
 
     if (const auto *Arr = llvm::dyn_cast<llvm::ConstantAggregate>(Const)) {
@@ -256,6 +252,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void addDelayedEdges(LLVMPBStrategyRef Strategy) {
     OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto VId) {
+      // TODO: Is this condition correct?
       const bool NeedsStoreSafetyFallback =
           OutgoingLoads[VId].empty() &&
           llvm::any_of(VC.id2vars(VId), [](PAGVariable Var) {
@@ -330,6 +327,14 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
     if (const auto *Select = llvm::dyn_cast<llvm::SelectInst>(&I)) {
       return handleSelect(Strategy, Select);
+    }
+
+    if (const auto *EV = llvm::dyn_cast<llvm::ExtractValueInst>(&I)) {
+      return handleExtractValue(Strategy, EV);
+    }
+
+    if (const auto *IV = llvm::dyn_cast<llvm::InsertValueInst>(&I)) {
+      return handleInsertValue(Strategy, IV);
     }
   }
 
@@ -413,7 +418,9 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     auto OperandObj = getVariable(Op, Strategy);
 
     if (llvm::isa<llvm::GEPOperator>(Cast)) {
-      if (const auto *LocalGeps = psr::getOrNull(this->LocalGeps, Cast)) {
+      // accumulate all known offsets, since we have seen a non-constant GEP on
+      // this pointer-op:
+      if (const auto *LocalGeps = psr::getOrNull(this->LocalGeps, Op)) {
         for (auto [_, Gep] : *LocalGeps) {
           addEdge(Strategy, OperandObj, Gep, Assign{}, nullptr);
         }
@@ -451,6 +458,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
           // Do not add an edge! Geps should be decoupled!
           return;
         }
+
+        // fallthrough -- non-constant GEP
       }
 
       handleCastImpl(Strategy, Gep, PointerOp);
@@ -486,7 +495,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     const bool HasLibrarySummary = MLSum.mapFunctionSummary(
         Callee, [&](uint32_t ParamIdx, library_summary::DataFlowFact Dest,
                     pag::Edge E) {
-          if (ParamIdx > Args.size()) {
+          if (ParamIdx >= Args.size()) {
             return;
           }
           const auto HandleArgs = [&](ValueId DestVal) {
@@ -496,6 +505,10 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
           };
           if (const auto *DestParam =
                   Dest.dyn_cast<library_summary::Parameter>()) {
+            if (DestParam->Index >= Args.size()) {
+              // safety fallback if library-summary is wrong
+              return;
+            }
             for (const auto &DestVal : Args[DestParam->Index]) {
               HandleArgs(DestVal);
             }
@@ -621,8 +634,42 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
     if (!definitelyContainsNoPointer(FalseVal)) {
       handleOperand(FalseVal, [&](const auto *FalseOp) {
-        auto TrueObj = getVariable(FalseOp, Strategy);
-        addEdge(Strategy, TrueObj, SelectObj, Assign{}, Select);
+        auto FalseObj = getVariable(FalseOp, Strategy);
+        addEdge(Strategy, FalseObj, SelectObj, Assign{}, Select);
+      });
+    }
+  }
+
+  void handleExtractValue(LLVMPBStrategyRef Strategy,
+                          const llvm::ExtractValueInst *EV) {
+    if (definitelyContainsNoPointer(EV)) {
+      return;
+    }
+
+    auto ResultObj = getVariable(EV, Strategy);
+    handleOperand(EV->getAggregateOperand(), [&](const auto *AggOp) {
+      auto AggObj = getVariable(AggOp, Strategy);
+      addEdge(Strategy, AggObj, ResultObj, Assign{}, EV);
+    });
+  }
+
+  void handleInsertValue(LLVMPBStrategyRef Strategy,
+                         const llvm::InsertValueInst *IV) {
+    if (definitelyContainsNoPointer(IV)) {
+      return;
+    }
+
+    auto ResultObj = getVariable(IV, Strategy);
+    if (!definitelyContainsNoPointer(IV->getAggregateOperand())) {
+      handleOperand(IV->getAggregateOperand(), [&](const auto *AggOp) {
+        auto AggObj = getVariable(AggOp, Strategy);
+        addEdge(Strategy, AggObj, ResultObj, Assign{}, IV);
+      });
+    }
+    if (!definitelyContainsNoPointer(IV->getInsertedValueOperand())) {
+      handleOperand(IV->getInsertedValueOperand(), [&](const auto *ValOp) {
+        auto ValObj = getVariable(ValOp, Strategy);
+        addEdge(Strategy, ValObj, ResultObj, Assign{}, IV);
       });
     }
   }

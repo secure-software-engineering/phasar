@@ -17,6 +17,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Fn.h"
 #include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -579,6 +580,20 @@ bool psr::isStaticVariableLazyInitializationBranch(
         }
       }
     }
+  }
+
+  return false;
+}
+
+[[nodiscard]] bool
+psr::detail::definitelyContainsNoPointerImpl(const llvm::Type *Ty) noexcept {
+  if (const auto *Arr = llvm::dyn_cast<llvm::ArrayType>(Ty)) {
+    return definitelyContainsNoPointerFast(Arr->getElementType());
+  }
+
+  if (const auto *Struct = llvm::dyn_cast<llvm::StructType>(Ty)) {
+    return llvm::all_of(Struct->elements(),
+                        fn<definitelyContainsNoPointerFast>);
   }
 
   return false;

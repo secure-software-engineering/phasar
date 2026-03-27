@@ -1,5 +1,14 @@
 #pragma once
 
+/******************************************************************************
+ * Copyright (c) 2026 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/StrongTypeDef.h"
 #include "phasar/Utils/TypedVector.h"
@@ -95,7 +104,7 @@ public:
   }
 
   [[nodiscard]] size_t size() const noexcept { return Id2Vars.size(); }
-  [[nodiscard]] size_t empty() const noexcept { return Id2Vars.empty(); }
+  [[nodiscard]] bool empty() const noexcept { return Id2Vars.empty(); }
 
 private:
   llvm::DenseMap<T, ValueId> Var2Id;

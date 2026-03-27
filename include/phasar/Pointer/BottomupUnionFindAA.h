@@ -1,5 +1,14 @@
 #pragma once
 
+/******************************************************************************
+ * Copyright (c) 2026 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
@@ -92,6 +101,7 @@ public:
         IdsForSum[ToSCC].insert(To);
         return;
       }
+      // fallthrough -- intra-SCC edges are context-insensitive
     } else if (E.isa<pag::Return>()) {
       auto FromSCC = SCCOfVal[From];
       auto ToSCC = SCCOfVal[To];
@@ -104,7 +114,7 @@ public:
         IdsForSum[FromSCC].insert(From);
         return;
       }
-      return;
+      // fallthrough -- intra-SCC edges are context-insensitive
     }
 
     Base.onAddEdge(From, To, E, CallSite);
