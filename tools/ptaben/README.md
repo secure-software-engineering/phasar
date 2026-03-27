@@ -19,9 +19,10 @@ Currently, the benchmark tool supports the following analyses:
 
 Of course, you can extend this tool and provide your own analyses here.
 
-## Results
-|           | anders | steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens | overall |
-|-----------|--------|--------|----------|----------|----------|--------------|------------------|---------|
-| precision | 0.712  | 0.709  | 0.803    | 0.800    | 0.681    | 0.803        | 0.800            | 0.754   |
-| recall    | 0.961  | 0.975  | 0.929    | 0.667    | 0.960    | 0.929        | 0.667            | 0.861   |
-| f1score   | 0.818  | 0.821  | 0.862    | 0.728    | 0.796    | 0.862        | 0.728            | 0.804   |
+## Preliminary Results
+
+|           | anders | steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens |
+|-----------|--------|--------|----------|----------|----------|--------------|------------------|
+| precision | 0.712  | 0.709  | 0.803    | 0.800    | 0.681    | 0.803        | 0.800            |
+| recall    | 0.961  | 0.975  | 0.929    | 0.667    | 0.960    | 0.929        | 0.667            |
+| f1score   | 0.818  | 0.821  | 0.862    | 0.728    | 0.796    | 0.862        | 0.728            |
