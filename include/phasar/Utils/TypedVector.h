@@ -118,13 +118,13 @@ public:
   drop_front(size_t Offs) && noexcept = delete;
 
   [[nodiscard]] auto enumerate() const noexcept {
-    return llvm::map_range(llvm::enumerate(Vec), [](const auto &IndexAndVal) {
+    return llvm::map_range(llvm::enumerate(Vec), [](auto &&IndexAndVal) {
       return std::pair<IdT, ByConstRef<ValueT>>{IdT(IndexAndVal.index()),
                                                 IndexAndVal.value()};
     });
   }
   [[nodiscard]] auto enumerate() noexcept {
-    return llvm::map_range(llvm::enumerate(Vec), [](auto &IndexAndVal) {
+    return llvm::map_range(llvm::enumerate(Vec), [](auto &&IndexAndVal) {
       return std::pair<IdT, ValueT &>{IdT(IndexAndVal.index()),
                                       IndexAndVal.value()};
     });
