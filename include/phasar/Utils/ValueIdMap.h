@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
-#include <new>
+#include <memory_resource>
 #include <optional>
 #include <stdexcept>
 #include <type_traits>
@@ -31,30 +31,26 @@ namespace psr {
 ///
 /// Models a subset of the std::unordered_map / llvm::DenseMap interface for
 /// keys that are dense unsigned integer ids (e.g. enum classes over uint32_t).
-/// Entries are stored in flat aligned storage; only explicitly inserted entries
-/// are ever constructed — there is no upfront default-construction of the
-/// entire value array.
+/// Entries are stored in a flat array of uninitialized ValueT storage;
+/// only explicitly inserted entries are ever constructed — there is no upfront
+/// default-construction of the entire value array.
 ///
 /// Reallocation moves all live entries via their move constructors and then
 /// destroys the originals in one pass. **Move constructors are assumed to be
 /// nothrow**.
 ///
-/// The copy constructor provides the basic exception guarantee: if copying any
-/// value throws, already-copied values are destroyed and the allocation is
-/// freed.
-///
-/// Iterator and reference validity follows the same rules as std::vector:
-/// insertions that exceed the current capacity invalidate all iterators and
-/// references.
-///
 /// \remarks Partially implemented by Claude Sonnet 4.6
 ///
-/// \tparam IdT    Key type. Must satisfy SmallIdType (fits in uint32_t,
-///                losslessly convertible to/from size_t).
-/// \tparam ValueT Mapped value type.
-// operator= takes Other by value -- handles both copy, and move cases
-// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
-template <SmallIdType IdT, typename ValueT> class ValueIdMap {
+/// \tparam IdT       Key type. Must satisfy SmallIdType (fits in uint32_t,
+///                   losslessly convertible to/from size_t).
+/// \tparam ValueT    Mapped value type.
+/// \tparam Allocator Allocator whose value_type is ValueT.
+///                   Defaults to std::allocator<ValueT>.
+template <SmallIdType IdT, typename ValueT,
+          typename Allocator = std::allocator<ValueT>>
+class ValueIdMap {
+  using AllocTraits = std::allocator_traits<Allocator>;
+
 public:
   // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -62,6 +58,7 @@ public:
   using mapped_type = ValueT;
   using value_type = std::pair<const IdT, ValueT>;
   using size_type = size_t;
+  using allocator_type = Allocator;
 
   // ── Iterators ──────────────────────────────────────────────────────────────
 
@@ -85,7 +82,7 @@ public:
         : Map(Other.Map), CurrentKey(Other.CurrentKey) {}
 
     constexpr reference operator*() const noexcept {
-      return {*CurrentKey, *Map->slotPtr(*CurrentKey)};
+      return {*CurrentKey, *Map->slot(*CurrentKey)};
     }
 
     /// Arrow proxy enabling `it->first` and `it->second`.
@@ -127,50 +124,160 @@ public:
 
   // ── Constructors / destructor ──────────────────────────────────────────────
 
-  constexpr ValueIdMap() noexcept = default;
+  /// Default constructor. The allocator is value-initialised.
+  ValueIdMap() noexcept(std::is_nothrow_default_constructible_v<Allocator>) =
+      default;
+
+  /// Constructs an empty map with the given allocator.
+  constexpr explicit ValueIdMap(const allocator_type &A) noexcept(
+      std::is_nothrow_copy_constructible_v<Allocator>)
+      : Alloc(A) {}
 
   /// Pre-allocates storage for \p InitialCapacity entries without constructing
   /// any values.
-  explicit ValueIdMap(size_t InitialCapacity)
-      : Capacity(InitialCapacity),
-        Slots(InitialCapacity ? new Slot[InitialCapacity] : nullptr) {
+  explicit ValueIdMap(size_t InitialCapacity,
+                      const allocator_type &A = allocator_type{})
+      : Alloc(A), Capacity(InitialCapacity),
+        Slots(InitialCapacity ? AllocTraits::allocate(Alloc, InitialCapacity)
+                              : nullptr) {
     IsSet.reserve(InitialCapacity);
   }
 
+  /// Copy constructor. The allocator is obtained via
+  /// allocator_traits::select_on_container_copy_construction.
   ValueIdMap(const ValueIdMap &Other)
-      : IsSet(Other.IsSet), Capacity(Other.Capacity) {
+      : ValueIdMap(Other, AllocTraits::select_on_container_copy_construction(
+                              Other.Alloc)) {}
+
+  /// Copy constructor with explicit allocator.
+  ValueIdMap(const ValueIdMap &Other, const allocator_type &A)
+      : Alloc(A), IsSet(Other.IsSet), Capacity(Other.Capacity) {
     if (!Capacity) {
       return;
     }
-    std::unique_ptr<Slot[]> NewSlots(new Slot[Capacity]);
-    Other.IsSet.foreach ([&](IdT Key) {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      ::new (NewSlots[size_t(Key)].Data) ValueT(*Other.slotPtr(Key));
-    });
-    Slots = NewSlots.release();
+    Slots = AllocTraits::allocate(Alloc, Capacity);
+    try {
+      Other.IsSet.foreach ([&](IdT Key) {
+        AllocTraits::construct(Alloc, slot(Key), *Other.slot(Key));
+      });
+    } catch (...) {
+      freeStorage();
+      IsSet.clear();
+      throw;
+    }
   }
 
+  /// Move constructor. The allocator is move-constructed from \p Other.
   ValueIdMap(ValueIdMap &&Other) noexcept
-      : IsSet(std::move(Other.IsSet)),
+      : Alloc(std::move(Other.Alloc)), IsSet(std::move(Other.IsSet)),
         Capacity(std::exchange(Other.Capacity, 0)),
         Slots(std::exchange(Other.Slots, nullptr)) {}
 
-  ValueIdMap &operator=(ValueIdMap Other) {
-    swap(Other);
+  /// Move constructor with explicit allocator.
+  ///
+  /// If the supplied allocator compares equal to Other's allocator the
+  /// storage is stolen in O(1); otherwise each live element is move-constructed
+  /// individually using the supplied allocator.
+  ValueIdMap(ValueIdMap &&Other, const allocator_type &A) : Alloc(A) {
+    if (Alloc == Other.Alloc) {
+      stealFrom(Other);
+    } else {
+      // Allocators differ: move elements individually into fresh storage.
+      IsSet = Other.IsSet;
+      if (Other.Capacity) {
+        Capacity = Other.Capacity;
+        Slots = AllocTraits::allocate(Alloc, Capacity);
+        Other.IsSet.foreach ([&](IdT Key) {
+          ValueT *Src = Other.slot(Key);
+          AllocTraits::construct(Alloc, slot(Key), std::move(*Src));
+          AllocTraits::destroy(Other.Alloc, Src);
+        });
+        Other.IsSet.clear();
+        Other.freeStorage();
+      }
+    }
+  }
+
+  /// Copy assignment. Propagates the allocator when
+  /// allocator_traits::propagate_on_container_copy_assignment is true.
+  ValueIdMap &operator=(const ValueIdMap &Other) {
+    if (this == &Other) {
+      return *this;
+    }
+    clear();
+    if constexpr (AllocTraits::propagate_on_container_copy_assignment::value) {
+      if (Alloc != Other.Alloc) {
+        freeStorage();
+        Alloc = Other.Alloc;
+      }
+    }
+    reallocAtLeast(Other.Capacity);
+    IsSet = Other.IsSet;
+    Other.IsSet.foreach ([&](IdT Key) {
+      AllocTraits::construct(Alloc, slot(Key), *Other.slot(Key));
+    });
+    return *this;
+  }
+
+  /// Move assignment. Propagates the allocator when
+  /// allocator_traits::propagate_on_container_move_assignment is true.
+  ValueIdMap &operator=(ValueIdMap &&Other) noexcept(
+      AllocTraits::propagate_on_container_move_assignment::value ||
+      AllocTraits::is_always_equal::value) {
+    if (this == &Other) {
+      return *this;
+    }
+    clear();
+    if constexpr (AllocTraits::propagate_on_container_move_assignment::value) {
+      freeStorage();
+      Alloc = std::move(Other.Alloc);
+      stealFrom(Other);
+    } else if (Alloc == Other.Alloc) {
+      freeStorage();
+      stealFrom(Other);
+    } else {
+      // Unequal allocators, no propagation: move elements individually.
+      reallocAtLeast(Other.Capacity);
+      IsSet = Other.IsSet;
+      Other.IsSet.foreach ([&](IdT Key) {
+        ValueT *Src = Other.slot(Key);
+        AllocTraits::construct(Alloc, slot(Key), std::move(*Src));
+        AllocTraits::destroy(Other.Alloc, Src);
+      });
+      Other.IsSet.clear();
+      Other.freeStorage();
+    }
     return *this;
   }
 
   ~ValueIdMap() {
     clear();
-    delete[] Slots;
+    freeStorage();
   }
 
-  constexpr void swap(ValueIdMap &Other) noexcept {
+  /// Returns the allocator associated with this container.
+  // NOLINTNEXTLINE(readability-identifier-naming) -- STL API name
+  [[nodiscard]] constexpr allocator_type get_allocator() const noexcept {
+    return Alloc;
+  }
+
+  /// Swap. Propagates allocators when
+  /// allocator_traits::propagate_on_container_swap is true; otherwise the
+  /// behaviour is undefined if the two allocators are not equal (per the
+  /// AllocatorAwareContainer requirement).
+  void swap(ValueIdMap &Other) noexcept(
+      (!AllocTraits::propagate_on_container_swap::value ||
+       std::is_nothrow_swappable_v<Allocator>) &&
+      std::is_nothrow_swappable_v<BitSet<IdT>>) {
+    if constexpr (AllocTraits::propagate_on_container_swap::value) {
+      std::swap(Alloc, Other.Alloc);
+    }
     std::swap(Slots, Other.Slots);
     std::swap(Capacity, Other.Capacity);
     std::swap(IsSet, Other.IsSet);
   }
-  friend constexpr void swap(ValueIdMap &Lhs, ValueIdMap &Rhs) noexcept {
+  friend void swap(ValueIdMap &Lhs,
+                   ValueIdMap &Rhs) noexcept(noexcept(Lhs.swap(Rhs))) {
     Lhs.swap(Rhs);
   }
 
@@ -206,17 +313,17 @@ public:
 
   /// Returns a reference to the value for \p Key.
   /// \throws std::out_of_range if \p Key is not present.
-  [[nodiscard]] ValueT &at(IdT Key) {
+  [[nodiscard]] constexpr ValueT &at(IdT Key) {
     if (!contains(Key)) {
       throw std::out_of_range("ValueIdMap::at: key not found");
     }
-    return *slotPtr(Key);
+    return *slot(Key);
   }
-  [[nodiscard]] const ValueT &at(IdT Key) const {
+  [[nodiscard]] constexpr const ValueT &at(IdT Key) const {
     if (!contains(Key)) {
       throw std::out_of_range("ValueIdMap::at: key not found");
     }
-    return *slotPtr(Key);
+    return *slot(Key);
   }
 
   // ── Element access ─────────────────────────────────────────────────────────
@@ -237,9 +344,7 @@ public:
     } else if (IsSet.contains(Key)) {
       return {iterator(this, Key), false};
     }
-
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    ::new (Slots[size_t(Key)].Data) ValueT(PSR_FWD(Args)...);
+    AllocTraits::construct(Alloc, slot(Key), PSR_FWD(Args)...);
     IsSet.insert(Key);
     return {iterator(this, Key), true};
   }
@@ -253,7 +358,7 @@ public:
   // NOLINTNEXTLINE(readability-identifier-naming) -- STL API name
   std::pair<iterator, bool> insert_or_assign(IdT Key, M &&Obj) {
     if (IsSet.contains(Key)) {
-      *slotPtr(Key) = std::forward<M>(Obj);
+      *slot(Key) = std::forward<M>(Obj);
       return {iterator(this, Key), false};
     }
     return try_emplace(Key, std::forward<M>(Obj));
@@ -264,7 +369,7 @@ public:
     if (!IsSet.tryErase(Key)) {
       return false;
     }
-    slotPtr(Key)->~ValueT();
+    AllocTraits::destroy(Alloc, slot(Key));
     return true;
   }
 
@@ -274,14 +379,14 @@ public:
     IdT Key = It->first;
     ++It;
     IsSet.erase(Key);
-    slotPtr(Key)->~ValueT();
+    AllocTraits::destroy(Alloc, slot(Key));
     return It;
   }
 
   /// Destroys all present entries without releasing the allocated storage.
   void clear() noexcept {
     if constexpr (!std::is_trivially_destructible_v<ValueT>) {
-      IsSet.foreach ([&](IdT Key) { slotPtr(Key)->~ValueT(); });
+      IsSet.foreach ([&](IdT Key) { AllocTraits::destroy(Alloc, slot(Key)); });
     }
     IsSet.clear();
   }
@@ -306,66 +411,95 @@ public:
   [[nodiscard]] constexpr const_iterator cend() const noexcept { return end(); }
 
 private:
-  // ── Private types ──────────────────────────────────────────────────────────
-
-  // Holds raw bytes of the right size and alignment for one ValueT.
-  // No ValueT object lives here until explicitly placement-new'd.
-  struct alignas(ValueT) Slot {
-    std::byte Data[sizeof(ValueT)];
-  };
-
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  [[nodiscard]] ValueT *slotPtr(IdT Key) noexcept {
+  [[nodiscard]] constexpr ValueT *slot(IdT Key) noexcept {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    return std::launder(reinterpret_cast<ValueT *>(Slots[size_t(Key)].Data));
+    return Slots + size_t(Key);
   }
-  [[nodiscard]] const ValueT *slotPtr(IdT Key) const noexcept {
-    return std::launder(
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        reinterpret_cast<const ValueT *>(Slots[size_t(Key)].Data));
+  [[nodiscard]] constexpr const ValueT *slot(IdT Key) const noexcept {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    return Slots + size_t(Key);
   }
 
   [[nodiscard]] constexpr bool inbounds(IdT Key) const noexcept {
     return size_t(Key) < Capacity;
   }
 
+  /// Frees current storage and allocates a fresh array of \p N elements.
+  /// No-op if N <= Capacity.
+  constexpr void reallocAtLeast(size_t N) {
+    if (N > Capacity) {
+      freeStorage();
+      Slots = AllocTraits::allocate(Alloc, N);
+      Capacity = N;
+    }
+  }
+
+  /// Deallocates the storage array if non-null and resets Slots/Capacity.
+  constexpr void freeStorage() noexcept {
+    if (Slots) {
+      AllocTraits::deallocate(Alloc, Slots, Capacity);
+      Slots = nullptr;
+      Capacity = 0;
+    }
+  }
+
+  /// Takes ownership of Other's storage (Other must have been cleared first).
+  void stealFrom(ValueIdMap &Other) noexcept {
+    IsSet = std::move(Other.IsSet);
+    Capacity = std::exchange(Other.Capacity, 0);
+    Slots = std::exchange(Other.Slots, nullptr);
+  }
+
   void grow(size_t NewCap) {
     assert(NewCap > Capacity);
-    std::unique_ptr<Slot[]> New(new Slot[NewCap]);
+    ValueT *New = AllocTraits::allocate(Alloc, NewCap);
 
     if constexpr (IsTriviallyRelocatable<ValueT>) {
       // Trivially relocatable: a flat memcpy of all used slots suffices.
       // Uninitialized slots contain indeterminate bytes, which is safe to copy.
-      // No per-slot construction or destruction is needed.
+      // No per-element construction or destruction is needed.
       if (Slots) {
-        memcpy(New.get(), Slots, Capacity * sizeof(Slot));
+        memcpy(New, Slots, Capacity * sizeof(ValueT));
       }
     } else {
       // Move-construct each live entry into new storage and destroy the
       // original in one pass. Assumes nothrow move construction; types with
       // throwing moves are not supported.
       IsSet.foreach ([&](IdT Key) {
-        ValueT *Src = slotPtr(Key);
-        ::new (New[size_t(Key)].Data) ValueT(std::move(
-            *Src)); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        Src->~ValueT();
+        ValueT *Src = slot(Key);
+        AllocTraits::construct(Alloc, New + size_t(Key), // NOLINT
+                               std::move(*Src));
+        AllocTraits::destroy(Alloc, Src);
       });
     }
 
-    delete[] Slots;
-    Slots = New.release();
+    if (Slots) {
+      AllocTraits::deallocate(Alloc, Slots, Capacity);
+    }
+    Slots = New;
     Capacity = NewCap;
   }
 
   // ── Data members ───────────────────────────────────────────────────────────
 
-  // IsSet must be declared first so that if its copy constructor throws during
-  // ValueIdMap's copy constructor, Slots has not yet been allocated.
+  // Alloc must be declared first so it is available for deallocation when
+  // other members are destroyed. [[no_unique_address]] enables the empty-base
+  // optimisation for stateless allocators such as std::allocator.
+  [[no_unique_address]] Allocator Alloc{};
+  // IsSet must be declared before Slots so that if its copy constructor throws
+  // during ValueIdMap's copy constructor, Slots has not yet been allocated.
   BitSet<IdT> IsSet;
   size_t Capacity = 0;
-  Slot *Slots = nullptr;
+  ValueT *Slots = nullptr;
 };
+
+namespace pmr {
+template <SmallIdType IdT, typename ValueT>
+using ValueIdMap =
+    psr::ValueIdMap<IdT, ValueT, std::pmr::polymorphic_allocator<ValueT>>;
+} // namespace pmr
 
 } // namespace psr
 
