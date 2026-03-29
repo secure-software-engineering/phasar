@@ -1,7 +1,6 @@
 module;
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAliasAwareIDEProblem.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocationFactory.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AllSanitized.h"
@@ -106,7 +105,6 @@ using psr::JoinLatticeTraits;
 using psr::to_string;
 using psr::operator<<;
 using psr::CSTDFILEIOTypeStateDescription;
-using psr::getLibCSummary;
 using psr::IDETypeStateAnalysis;
 using psr::OpenSSLEVPKDFCTXDescription;
 using psr::OpenSSLEVPKDFCTXState;
@@ -124,15 +122,6 @@ using psr::TypeStateDescriptionBase;
 export namespace std {
 using std::hash;
 } // namespace std
-
-export namespace psr::library_summary {
-using psr::library_summary::DataFlowFact;
-using psr::library_summary::FunctionDataFlowFacts;
-using psr::library_summary::LLVMFunctionDataFlowFacts;
-using psr::library_summary::Parameter;
-using psr::library_summary::readFromFDFF;
-using psr::library_summary::ReturnValue;
-} // namespace psr::library_summary
 
 export namespace llvm {
 using llvm::DenseMapInfo;

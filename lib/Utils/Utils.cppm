@@ -20,11 +20,13 @@ module;
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/EquivalenceClassMap.h"
 #include "phasar/Utils/ErrorHandling.h"
+#include "phasar/Utils/FunctionDataFlowFacts.h"
 #include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/InitPhasar.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
@@ -168,6 +170,7 @@ using psr::DummyUnorderedTable1d;
 using psr::ElementType;
 using psr::FalseFn;
 using psr::forward_like;
+using psr::getLibCSummary;
 using psr::has_adl_to_string_v;
 using psr::has_erase_iterator_v;
 using psr::has_getAsJson;
@@ -221,3 +224,10 @@ using psr::UnorderedTable1d;
 using psr::variant_idx;
 
 } // namespace psr
+
+export namespace psr::library_summary {
+using psr::library_summary::DataFlowFact;
+using psr::library_summary::FunctionDataFlowFacts;
+using psr::library_summary::Parameter;
+using psr::library_summary::ReturnValue;
+} // namespace psr::library_summary

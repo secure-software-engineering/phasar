@@ -5,6 +5,7 @@ module;
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
+#include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMSourceManager.h"
@@ -74,3 +75,8 @@ using psr::SourceCodeInfo;
 using psr::SourceMgrPrinter;
 using psr::to_json;
 } // namespace psr
+
+export namespace psr::library_summary {
+using psr::library_summary::LLVMFunctionDataFlowFacts;
+using psr::library_summary::readFromFDFF;
+} // namespace psr::library_summary
