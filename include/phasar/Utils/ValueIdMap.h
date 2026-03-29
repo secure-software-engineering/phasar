@@ -17,6 +17,8 @@
 #include <cassert>
 #include <cstddef>
 #include <cstring>
+#include <initializer_list>
+#include <limits>
 #include <memory>
 #include <memory_resource>
 #include <optional>
@@ -58,7 +60,12 @@ public:
   using mapped_type = ValueT;
   using value_type = std::pair<const IdT, ValueT>;
   using size_type = size_t;
+  using difference_type = ptrdiff_t;
   using allocator_type = Allocator;
+  using reference = value_type &;
+  using const_reference = const value_type &;
+  using pointer = value_type *;
+  using const_pointer = const value_type *;
 
   // ── Iterators ──────────────────────────────────────────────────────────────
 
@@ -143,6 +150,32 @@ public:
     IsSet.reserve(InitialCapacity);
   }
 
+  /// Constructs from an initializer list. \p V need not equal \p ValueT;
+  /// any type constructible to \p ValueT is accepted, avoiding an
+  /// intermediate copy (e.g. string literals when ValueT is std::string).
+  /// Duplicate keys are silently dropped (first occurrence wins).
+  template <typename V = ValueT>
+    requires std::is_constructible_v<ValueT, const V &>
+  ValueIdMap(std::initializer_list<std::pair<const IdT, V>> Init,
+             const allocator_type &A = allocator_type{})
+      : ValueIdMap(Init.begin(), Init.end(), A) {}
+
+  /// Constructs from an iterator range \p [First, Last).
+  /// Duplicate keys are silently dropped (first occurrence wins).
+  template <typename InputIt>
+  ValueIdMap(InputIt First, InputIt Last,
+             const allocator_type &A = allocator_type{})
+      : ValueIdMap(A) {
+    if constexpr (std::is_base_of_v<std::random_access_iterator_tag,
+                                    typename std::iterator_traits<
+                                        InputIt>::iterator_category>) {
+      reserve(static_cast<size_t>(std::distance(First, Last)));
+    }
+    for (; First != Last; ++First) {
+      try_emplace(First->first, First->second);
+    }
+  }
+
   /// Copy constructor. The allocator is obtained via
   /// allocator_traits::select_on_container_copy_construction.
   ValueIdMap(const ValueIdMap &Other)
@@ -219,6 +252,19 @@ public:
     return *this;
   }
 
+  /// Replaces the contents with those of \p Init.
+  /// Duplicate keys are silently dropped (first occurrence wins).
+  template <typename V = ValueT>
+    requires std::is_constructible_v<ValueT, const V &>
+  ValueIdMap &operator=(std::initializer_list<std::pair<const IdT, V>> Init) {
+    clear();
+    reserve(Init.size());
+    for (auto &&[Key, Val] : Init) {
+      try_emplace(Key, Val);
+    }
+    return *this;
+  }
+
   /// Move assignment. Propagates the allocator when
   /// allocator_traits::propagate_on_container_move_assignment is true.
   ValueIdMap &operator=(ValueIdMap &&Other) noexcept(
@@ -281,6 +327,20 @@ public:
     Lhs.swap(Rhs);
   }
 
+  friend bool operator==(const ValueIdMap &Lhs, const ValueIdMap &Rhs) noexcept(
+      noexcept(std::declval<const ValueT &>() ==
+               std::declval<const ValueT &>())) {
+    if (Lhs.IsSet != Rhs.IsSet) {
+      return false;
+    }
+    for (auto [Key, Val] : Lhs) {
+      if (*Rhs.slot(Key) != Val) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // ── Capacity ───────────────────────────────────────────────────────────────
 
   /// Ensures storage for at least \p N entries without constructing any values.
@@ -294,6 +354,14 @@ public:
   /// Returns the number of entries currently present.
   [[nodiscard]] constexpr size_t size() const noexcept { return IsSet.size(); }
   [[nodiscard]] constexpr bool empty() const noexcept { return IsSet.empty(); }
+  /// Returns the maximum number of elements the container can hold.
+  /// Capped at INT_MAX because llvm::BitVector (which backs BitSet) uses
+  /// an int-sized bit count internally.
+  // NOLINTNEXTLINE(readability-identifier-naming) -- STL API name
+  [[nodiscard]] constexpr size_type max_size() const noexcept {
+    return std::min(AllocTraits::max_size(Alloc),
+                    size_type(std::numeric_limits<int>::max()));
+  }
 
   // ── Lookup ─────────────────────────────────────────────────────────────────
 
@@ -375,12 +443,12 @@ public:
 
   /// Removes the entry pointed to by \p It and returns an iterator to the
   /// next entry.
-  iterator erase(iterator It) noexcept {
+  iterator erase(const_iterator It) noexcept {
     IdT Key = It->first;
     ++It;
     IsSet.erase(Key);
     AllocTraits::destroy(Alloc, slot(Key));
-    return It;
+    return iterator(this, It.CurrentKey);
   }
 
   /// Destroys all present entries without releasing the allocated storage.
