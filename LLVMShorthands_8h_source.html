@@ -176,14 +176,14 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156">   84</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156">llvmIRToString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="comment"></span> </div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="comment">/**</span></div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span><span class="comment"> * @brief Similar to llvmIRToString, but removes the metadata from the output as</span></div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="comment"> * they are not always stable. Prefer this function over llvmIRToString, if you</span></div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="comment"> * are comparing the string representations of LLVM iR instructions.</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span><span class="comment"> * @brief Similar to llvmIRToString(), but removes the metadata from the output</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="comment"> * as they are not always stable. Prefer this function over llvmIRToString, if</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="comment"> * you are comparing the string representations of LLVM iR instructions.</span></div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="comment"> */</span></div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno"><a class="line" href="namespacepsr.html#afa271ea71c6edccb37b9201077e3cf87">   91</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] std::string <a class="code hl_function" href="namespacepsr.html#afa271ea71c6edccb37b9201077e3cf87">llvmIRToStableString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="comment"></span> </div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="comment">/**</span></div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="comment"> * @brief Same as @link(llvmIRToString) but tries to shorten the</span></div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="comment"> * @brief Same as llvmIRToString() but tries to shorten the</span></div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="comment"> *        resulting string</span></div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="comment"> */</span></div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="namespacepsr.html#a65b1a3f47f49d3a5f77ae7914d313d58">   97</a></span>std::string <a class="code hl_function" href="namespacepsr.html#a65b1a3f47f49d3a5f77ae7914d313d58">llvmIRToShortString</a>(<span class="keyword">const</span> llvm::Value *V);</div>
@@ -221,7 +221,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="comment"> * Only Instructions and GlobalVariables have &#39;real&#39; ID&#39;s, i.e. annotated meta</span></div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="comment"> * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore,</span></div>
 <div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span><span class="comment"> * a formal arguments ID will look like this:</span></div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="comment"> *    &lt;function_name&gt;.&lt;#argument&gt;</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="comment"> *    `&lt;function_name&gt;.&lt;#argument&gt;`</span></div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="comment"> *</span></div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span><span class="comment"> * ZeroValue will have -1 as ID by default.</span></div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span><span class="comment"> *</span></div>
@@ -255,7 +255,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span><span class="comment"> *</span></div>
 <div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span><span class="comment"> * @brief Returns the n-th LLVM Argument of a given LLVM Function.</span></div>
 <div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span><span class="comment"> * @param F Function to retrieve the Arguments from.</span></div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="comment"> * @param argNo Argument number.</span></div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="comment"> * @param ArgNo Argument number.</span></div>
 <div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="comment"> * @return LLVM Argument or nullptr, if argNo invalid.</span></div>
 <div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="comment"> */</span></div>
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="namespacepsr.html#aaff8a0f98112e2e5cd752acff6847ed1">  167</a></span><span class="keyword">const</span> llvm::Argument *<a class="code hl_function" href="namespacepsr.html#aaff8a0f98112e2e5cd752acff6847ed1">getNthFunctionArgument</a>(<span class="keyword">const</span> llvm::Function *F,</div>
@@ -266,7 +266,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span><span class="comment"> *</span></div>
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="comment"> * @brief Returns the n-th LLVM Instruction of a given LLVM Function.</span></div>
 <div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span><span class="comment"> * @param F Function to retrieve the Instruction from.</span></div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span><span class="comment"> * @param instNo Instruction number.</span></div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span><span class="comment"> * @param Idx Instruction number.</span></div>
 <div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span><span class="comment"> * @return LLVM Instruction or nullptr, if instNo invalid.</span></div>
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span><span class="comment"> */</span></div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno"><a class="line" href="namespacepsr.html#a3313efbbf7f61001daeca2b17f80fd52">  178</a></span><span class="keyword">const</span> llvm::Instruction *<a class="code hl_function" href="namespacepsr.html#a3313efbbf7f61001daeca2b17f80fd52">getNthInstruction</a>(<span class="keyword">const</span> llvm::Function *F,</div>
@@ -281,7 +281,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span><span class="comment"> * @brief Returns the n-th LLVM Termination Instruction of a given LLVM</span></div>
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span><span class="comment"> * Function.</span></div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span><span class="comment"> * @param F Function to retrieve the Termination Instruction from.</span></div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span><span class="comment"> * @param termInstNo Termination Instruction number.</span></div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span><span class="comment"> * @param TermInstNo Termination Instruction number.</span></div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span><span class="comment"> * @return LLVM Instruction or nullptr, if termInstNo invalid.</span></div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span><span class="comment"> */</span></div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno"><a class="line" href="namespacepsr.html#a21f775f95c3257c7bbdf27a16cc9c41e">  193</a></span><span class="keyword">const</span> llvm::Instruction *<a class="code hl_function" href="namespacepsr.html#a21f775f95c3257c7bbdf27a16cc9c41e">getNthTermInstruction</a>(<span class="keyword">const</span> llvm::Function *F,</div>
@@ -293,7 +293,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span><span class="comment"> * @brief Returns the n-th LLVM Store Instruction of a given LLVM</span></div>
 <div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="comment"> * Function.</span></div>
 <div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span><span class="comment"> * @param F Function to retrieve the Store Instruction from.</span></div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span><span class="comment"> * @param termInstNo Store Instruction number.</span></div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span><span class="comment"> * @param TermInstNo Store Instruction number.</span></div>
 <div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span><span class="comment"> * @return LLVM Store Instruction or nullptr, if stoNo invalid.</span></div>
 <div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span><span class="comment"> */</span></div>
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno"><a class="line" href="namespacepsr.html#a88ee4a4b17eec3b20f141c08c4280aeb">  205</a></span><span class="keyword">const</span> llvm::StoreInst *<a class="code hl_function" href="namespacepsr.html#a88ee4a4b17eec3b20f141c08c4280aeb">getNthStoreInstruction</a>(<span class="keyword">const</span> llvm::Function *F,</div>
@@ -324,7 +324,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span><span class="comment">/**</span></div>
 <div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span><span class="comment"> * @brief Computes a hash value for a given LLVM Module.</span></div>
 <div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span><span class="comment"> * @param M LLVM Module.</span></div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span><span class="comment"> * @param considerIdentifier If true, module identifier will be considered for</span></div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span><span class="comment"> * @param ConsiderIdentifier If true, module identifier will be considered for</span></div>
 <div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span><span class="comment"> * hash computation.</span></div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span><span class="comment"> * @return Hash value.</span></div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span><span class="comment"> */</span></div>
@@ -411,7 +411,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_a45ff01c901f1df19fc82368272fe7ebf"><div class="ttname"><a href="namespacepsr.html#a45ff01c901f1df19fc82368272fe7ebf">psr::dumpIRValue</a></div><div class="ttdeci">LLVM_DUMP_METHOD void dumpIRValue(const llvm::Value *V)</div></div>
 <div class="ttc" id="anamespacepsr_html_a53ecb3ad5dfbb3431e4d94ed70855e2b"><div class="ttname"><a href="namespacepsr.html#a53ecb3ad5dfbb3431e4d94ed70855e2b">psr::getMetaDataID</a></div><div class="ttdeci">std::string getMetaDataID(const llvm::Value *V)</div><div class="ttdoc">Returns the ID of a given LLVM Value.</div></div>
 <div class="ttc" id="anamespacepsr_html_a601e47a65e380b31e9a59541d8940161"><div class="ttname"><a href="namespacepsr.html#a601e47a65e380b31e9a59541d8940161">psr::isGuardVariable</a></div><div class="ttdeci">bool isGuardVariable(const llvm::Value *V)</div><div class="ttdoc">True, iff V is the compiler-generated guard variable for the thread-safe initialization of function-l...</div></div>
-<div class="ttc" id="anamespacepsr_html_a65b1a3f47f49d3a5f77ae7914d313d58"><div class="ttname"><a href="namespacepsr.html#a65b1a3f47f49d3a5f77ae7914d313d58">psr::llvmIRToShortString</a></div><div class="ttdeci">std::string llvmIRToShortString(const llvm::Value *V)</div><div class="ttdoc">Same as llvmIRToString) but tries to shorten the resulting string.</div></div>
+<div class="ttc" id="anamespacepsr_html_a65b1a3f47f49d3a5f77ae7914d313d58"><div class="ttname"><a href="namespacepsr.html#a65b1a3f47f49d3a5f77ae7914d313d58">psr::llvmIRToShortString</a></div><div class="ttdeci">std::string llvmIRToShortString(const llvm::Value *V)</div><div class="ttdoc">Same as llvmIRToString() but tries to shorten the resulting string.</div></div>
 <div class="ttc" id="anamespacepsr_html_a6a4bd7eefc1589f506cef4a405c4473a"><div class="ttname"><a href="namespacepsr.html#a6a4bd7eefc1589f506cef4a405c4473a">psr::appendAllExitPoints</a></div><div class="ttdeci">void appendAllExitPoints(const llvm::Function *F, llvm::SmallVectorImpl&lt; const llvm::Instruction * &gt; &amp;ExitPoints, bool IncludeResume=true)</div></div>
 <div class="ttc" id="anamespacepsr_html_a6f244e5fa59b79b3b8eecc6d6e63466f"><div class="ttname"><a href="namespacepsr.html#a6f244e5fa59b79b3b8eecc6d6e63466f">psr::globalValuesUsedinFunction</a></div><div class="ttdeci">std::vector&lt; const llvm::Value * &gt; globalValuesUsedinFunction(const llvm::Function *F)</div><div class="ttdoc">Returns all LLVM Global Values that are used in the given LLVM Function.</div></div>
 <div class="ttc" id="anamespacepsr_html_a760f1365adfeb898b503d6bbfe646712"><div class="ttname"><a href="namespacepsr.html#a760f1365adfeb898b503d6bbfe646712">psr::isAllocaInstOrHeapAllocaFunction</a></div><div class="ttdeci">bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept</div><div class="ttdoc">Checks if the given LLVM Value is either a alloca instruction or a heap allocation function,...</div></div>
@@ -431,13 +431,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_add2ca8f87302c219ef604b98440bd214"><div class="ttname"><a href="namespacepsr.html#add2ca8f87302c219ef604b98440bd214">psr::getFunctionArgumentNr</a></div><div class="ttdeci">int getFunctionArgumentNr(const llvm::Argument *Arg)</div><div class="ttdoc">Returns position of a formal function argument.</div></div>
 <div class="ttc" id="anamespacepsr_html_ae79cc3c5f8695869f8527475bddc1c82"><div class="ttname"><a href="namespacepsr.html#ae79cc3c5f8695869f8527475bddc1c82">psr::isStaticVariableLazyInitializationBranch</a></div><div class="ttdeci">bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst)</div><div class="ttdoc">True, iff V is the compiler-generated branch that leads to the lazy initialization of a function-loca...</div></div>
 <div class="ttc" id="anamespacepsr_html_af61d0c31860bf7b59fec9e727b4da235"><div class="ttname"><a href="namespacepsr.html#af61d0c31860bf7b59fec9e727b4da235">psr::isVaListAlloca</a></div><div class="ttdeci">bool isVaListAlloca(const llvm::AllocaInst &amp;Alloc)</div></div>
-<div class="ttc" id="anamespacepsr_html_afa271ea71c6edccb37b9201077e3cf87"><div class="ttname"><a href="namespacepsr.html#afa271ea71c6edccb37b9201077e3cf87">psr::llvmIRToStableString</a></div><div class="ttdeci">std::string llvmIRToStableString(const llvm::Value *V)</div><div class="ttdoc">Similar to llvmIRToString, but removes the metadata from the output as they are not always stable....</div></div>
+<div class="ttc" id="anamespacepsr_html_afa271ea71c6edccb37b9201077e3cf87"><div class="ttname"><a href="namespacepsr.html#afa271ea71c6edccb37b9201077e3cf87">psr::llvmIRToStableString</a></div><div class="ttdeci">std::string llvmIRToStableString(const llvm::Value *V)</div><div class="ttdoc">Similar to llvmIRToString(), but removes the metadata from the output as they are not always stable....</div></div>
 <div class="ttc" id="astructpsr_1_1LLVMValueIDLess_html"><div class="ttname"><a href="structpsr_1_1LLVMValueIDLess.html">psr::LLVMValueIDLess</a></div><div class="ttdoc">Does less-than comparison based on the annotated ID.</div><div class="ttdef"><b>Definition</b> <a href="LLVMShorthands_8h_source.html#l00148">LLVMShorthands.h:148</a></div></div>
 <div class="ttc" id="astructpsr_1_1LLVMValueIDLess_html_aa7c3e04919f8cea124119cc38772df7d"><div class="ttname"><a href="structpsr_1_1LLVMValueIDLess.html#aa7c3e04919f8cea124119cc38772df7d">psr::LLVMValueIDLess::operator()</a></div><div class="ttdeci">bool operator()(const llvm::Value *Lhs, const llvm::Value *Rhs) const</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Mar 25 2026 17:17:44 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Mar 29 2026 18:02:30 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
