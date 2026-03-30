@@ -39,7 +39,8 @@
 
 namespace psr::cfl_fieldsens {
 
-/// \file Implements field-sensitivity after the paper "Boosting the performance
+/// \file
+/// Implements field-sensitivity after the paper "Boosting the performance
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
 /// et al. <https://doi.org/10.1145/3689804>
 
