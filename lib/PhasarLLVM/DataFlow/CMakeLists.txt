@@ -1,6 +1,7 @@
 add_subdirectory(IfdsIde)
 add_subdirectory(Mono)
 add_subdirectory(PathSensitivity)
+add_subdirectory(MonoIfds)
 
 add_phasar_library(phasar_llvm_dataflow
   LINKS

@@ -10,19 +10,22 @@
  *****************************************************************************/
 
 #include "phasar/ControlFlow/ControlFlowOrder.h"
+#include "phasar/Utils/ByRef.h"
+
+#include "llvm/ADT/BitVector.h"
 
 namespace psr::monoifds {
-/// LooSee SootUp's
+/// See SootUp's
 /// [UniversePriorityQueue](https://github.com/soot-oss/SootUp/blob/develop/sootup.analysis.intraprocedural/src/main/java/sootup/analysis/intraprocedural/UniverseSortedPriorityQueue.java)
 template <typename ItemT> class TopoFixpointDriver {
 public:
   TopoFixpointDriver() noexcept = default;
 
-  TopoFixpointDriver(ControlFlowOrder &&CFO) : CFO(std::move(CFO)) {
+  TopoFixpointDriver(ControlFlowOrder<ItemT> &&CFO) : CFO(std::move(CFO)) {
     WorkList.resize(this->CFO.Order.size());
   }
 
-  void push(ItemT Item) {
+  void push(ByConstRef<ItemT> Item) {
     auto IId = CFO.Order.get(Item);
     WorkList.set(uint32_t(IId));
 
@@ -36,7 +39,7 @@ public:
       return std::nullopt;
     }
 
-    auto IId = ControlFlowOrder::CFGOrderId(Max);
+    auto IId = ControlFlowOrder<ItemT>::CFGOrderId(Max);
     Max = WorkList.find_prev(Max);
     return CFO.Order[IId];
   }
@@ -52,7 +55,7 @@ public:
   [[nodiscard]] constexpr const auto &getCFO() const noexcept { return CFO; }
 
 private:
-  ControlFlowOrder CFO;
+  ControlFlowOrder<ItemT> CFO;
   llvm::BitVector WorkList;
   int Max = -1;
 };

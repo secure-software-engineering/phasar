@@ -60,6 +60,10 @@ concept CFG = requires(const T &CF, typename T::n_t Inst, typename T::f_t Fun) {
   requires InstructionClassifier<T>;
 };
 
+template <typename T, typename N, typename F>
+concept CFGOf = CFG<T> && std::same_as<N, typename T::n_t> &&
+                std::same_as<F, typename T::f_t>;
+
 template <typename T>
 concept BidiCFG =
     CFG<T> && requires(const T &CF, typename T::n_t Inst, typename T::f_t Fun) {

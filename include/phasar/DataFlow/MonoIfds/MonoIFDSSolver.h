@@ -24,14 +24,13 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/TypedVector.h"
-#include "phasar/Utils/UsedGlobalsHolder.h"
+
+#include "llvm/Support/Compiler.h"
 
 #include <concepts>
 #include <memory_resource>
 #include <unordered_map>
 #include <utility>
-
-#include <llvm-16/llvm/Support/Compiler.h>
 
 namespace psr::monoifds {
 
@@ -64,12 +63,6 @@ public:
     return *this;
   }
 
-  MonoIFDSSolver &
-  setUsedGlobals(const UsedGlobalsHolder<v_t> *UsedGlobals) & noexcept {
-    this->UsedGlobals = UsedGlobals;
-    return *this;
-  }
-
   void solve();
 
 private:
@@ -88,24 +81,20 @@ private:
   };
 
   struct IntermediateState {
+    typename ProblemT::LocalAnalysis LocalProblem;
     node_hash_map<n_t, DataFlowEnvironment<d_t>> PathEdges;
     node_hash_map<f_t, llvm::SmallDenseSet<n_t>> Incoming;
 
     llvm::SmallDenseSet<FunctionId> HasNewLeaks;
     llvm::SmallDenseSet<FunctionId> HasNewSummary;
 
-    std::reference_wrapper<
-        const llvm::SmallDenseSet<const llvm::GlobalVariable *>>
-        PermittedGlobals;
     SCCId<FunctionId> CurrSCC;
     bool InRecursion;
 
-    IntermediateState(std::pmr::memory_resource *MRes,
-                      const UsedGlobalsHolder<v_t> &UsedGlobals,
+    IntermediateState(ProblemT *Problem, std::pmr::memory_resource *MRes,
                       SCCId<FunctionId> CurrSCC, bool InRecursion)
-        : PathEdges(MRes), Incoming(MRes),
-          PermittedGlobals(std::cref(UsedGlobals.GlobsPerSCC[CurrSCC])),
-          CurrSCC(CurrSCC), InRecursion(InRecursion) {}
+        : LocalProblem(Problem->localAnalysis(CurrSCC, MRes)), PathEdges(MRes),
+          Incoming(MRes), CurrSCC(CurrSCC), InRecursion(InRecursion) {}
   };
 
   struct Mapper {
@@ -124,7 +113,7 @@ private:
       ComputedMappings.clear();
     }
 
-    const SourceFactSet &getSourceFactsFor(auto &Solver,
+    const SourceFactSet &getSourceFactsFor(auto &LocalProblem,
                                            const DataFlowEnvironment<d_t> &In,
                                            const FunctionSummary &CalleeSum,
                                            SourceFactId CalleeSrc,
@@ -132,7 +121,7 @@ private:
       auto &Ret = Mapping[CalleeSrc];
 
       if (ComputedMappings.tryInsert(CalleeSrc)) {
-        auto &&CSFacts = Solver.Problem->invReturnFlow(
+        auto &&CSFacts = LocalProblem.invReturnFlow(
             CallInst, CalleeSum.SourceFactIds[CalleeSrc]);
 
         for (const auto *Fact : CSFacts) {
@@ -145,24 +134,25 @@ private:
       return Ret;
     }
 
-    void insertAllSrcFactsFor(SourceFactSet &Into, auto &Solver,
+    void insertAllSrcFactsFor(SourceFactSet &Into, auto &LocalProblem,
                               const DataFlowEnvironment<d_t> &In,
                               const FunctionSummary &CalleeSum,
                               const SourceFactSet &CalleeSrcs,
                               ByConstRef<n_t> CallInst) {
       CalleeSrcs.foreach ([&](auto SrcFactId) {
-        Into.insertAllOf(
-            getSourceFactsFor(Solver, In, CalleeSum, SrcFactId, CallInst));
+        Into.insertAllOf(getSourceFactsFor(LocalProblem, In, CalleeSum,
+                                           SrcFactId, CallInst));
       });
     }
 
     [[nodiscard]] SourceFactSet
-    getAllSrcFactsFor(auto &Solver, const DataFlowEnvironment<d_t> &In,
+    getAllSrcFactsFor(auto &LocalProblem, const DataFlowEnvironment<d_t> &In,
                       const FunctionSummary &CalleeSum,
                       const SourceFactSet &CalleeSrcs,
                       ByConstRef<n_t> CallInst) {
       SourceFactSet Ret;
-      insertAllSrcFactsFor(Ret, Solver, In, CalleeSum, CalleeSrcs, CallInst);
+      insertAllSrcFactsFor(Ret, LocalProblem, In, CalleeSum, CalleeSrcs,
+                           CallInst);
       return Ret;
     }
   };
@@ -171,7 +161,7 @@ private:
                              llvm::ArrayRef<FunctionId> CurrFuns) {
     const size_t SCCSize = CurrFuns.size();
     const bool InRecursion = SCCSize > 1;
-    IntermediateState IState(&PoolRes, *UsedGlobals, CurrSCC, InRecursion);
+    IntermediateState IState(&PoolRes, CurrSCC, InRecursion);
 
     const auto IterStrategy = Config.IterStrategy;
     const bool UseTopoFixpointDriver = [=] {
@@ -187,10 +177,11 @@ private:
       return true;
     }();
 
-    ControlFlowOrder CFO;
+    ControlFlowOrder<n_t> CFO;
     if (UseTopoFixpointDriver) {
-      // TODO: implement computeCFGOrder()
-      computeCFGOrder(CFO, SCCs, CurrSCC, *ICF, Functions);
+      for (const auto &Fun : CurrFuns) {
+        computeCFGOrder(CFO, *ICF, Fun);
+      }
     }
 
     ArraySetDriver<n_t> DefaultDriver;
@@ -201,7 +192,7 @@ private:
           for (auto FunId : llvm::reverse(CurrFuns)) {
             const auto *Fun = (*Functions)[FunId];
             submitInitialSeeds(IState, Driver, Summaries[FunId].SourceFactIds,
-                               Fun);
+                               Fun, CurrSCC);
           }
           Driver.run([&](n_t BlockStart) {
             analyzeBlock(IState, Driver, BlockStart);
@@ -222,9 +213,9 @@ private:
         llvm::errs() << '.';
       }
 
-      ITST_ASSERT(IState.HasNewSummary.empty(),
-                  "After repropagating, we should not have any summary "
-                  "applications pending");
+      assert(IState.HasNewSummary.empty() &&
+             "After repropagating, we should not have any summary "
+             "applications pending");
     };
     if (UseTopoFixpointDriver) {
       ComputeFixpointWithDriver(TopoDriver);
@@ -245,10 +236,10 @@ private:
 
   void submitInitialSeeds(IntermediateState &IState, auto &Driver,
                           Compressor<d_t, SourceFactId> &SeedCompressor,
-                          ByConstRef<f_t> Fun) {
+                          ByConstRef<f_t> Fun, SCCId<FunctionId> CurrSCC) {
     const auto &SPs = ICF->getStartPointsOf(Fun);
 
-    const auto &Zero = Problem->getZeroValue();
+    const auto &Zero = IState.LocalProblem.getZeroValue();
     SeedCompressor.insert(Zero);
     assert(SeedCompressor.get(Zero) == SourceFactId(0) &&
            "The Zero value must always have Id 0!");
@@ -257,7 +248,7 @@ private:
       auto &SeedState = IState.PathEdges[SP];
       SeedState[Zero].insert(SourceFactId(0));
 
-      Problem->initialSeeds(SeedState, Fun);
+      IState.LocalProblem.initialSeeds(SeedState, SeedCompressor, Fun, CurrSCC);
       Driver.push(SP);
     }
   }
@@ -321,7 +312,8 @@ private:
       const auto &In = getOrDefault(IState.PathEdges, CS);
 
       for (const auto &[CalleeLeak, LeakSrc] : Sum.LeakIf) {
-        const auto &CSSrc = M.getAllSrcFactsFor(*this, In, Sum, LeakSrc, CS);
+        const auto &CSSrc =
+            M.getAllSrcFactsFor(IState.LocalProblem, In, Sum, LeakSrc, CS);
         reportOrPropagateLeak(IState, *CallerId, CalleeLeak.first,
                               CalleeLeak.second, CSSrc);
       }
@@ -467,7 +459,7 @@ private:
       return analyzeExitInst(IState, LocalState, CurrFunId, Inst);
     }
 
-    Problem->normalFlow(LocalState, Inst);
+    IState.LocalProblem.normalFlow(LocalState, Inst);
   }
 
   void analyzeExitInst(IntermediateState &IState,
@@ -527,7 +519,7 @@ private:
                    CalleeId, Inst, CurrFunId);
     }
     if (CSInfo.CanCTR) {
-      Problem->callToRetFlow(LocalState, Inst);
+      IState.LocalProblem.callToRetFlow(LocalState, Inst);
     }
 
     mergeStates(LocalState, std::move(CollectedSummary));
@@ -541,13 +533,13 @@ private:
     Mapper M(Sum.SourceFactIds.size());
 
     for (const auto &[SumFact, SumSrc] : Sum.EndSummary) {
-      auto &&RetFacts = Problem->returnFlow(Inst, SumFact);
+      auto &&RetFacts = IState.LocalProblem.returnFlow(Inst, SumFact);
       if (RetFacts.empty()) {
         continue;
       }
 
       const auto &RetSrcFacts =
-          M.getAllSrcFactsFor(*this, In, Sum, SumSrc, Inst);
+          M.getAllSrcFactsFor(IState.LocalProblem, In, Sum, SumSrc, Inst);
       if (RetSrcFacts.empty()) {
         continue;
       }
@@ -559,7 +551,8 @@ private:
 
     if (CalleeId != CurrFunId) { // Prevent self-insertion
       for (const auto &[CalleeLeak, LeakSrc] : Sum.LeakIf) {
-        const auto &CSSrc = M.getAllSrcFactsFor(*this, In, Sum, LeakSrc, Inst);
+        const auto &CSSrc =
+            M.getAllSrcFactsFor(IState.LocalProblem, In, Sum, LeakSrc, Inst);
         reportOrPropagateLeak(IState, CurrFunId, CalleeLeak.first,
                               CalleeLeak.second, CSSrc);
       }
@@ -592,14 +585,16 @@ private:
         IState.Incoming[CalleeFun].insert(Inst);
       }
 
-      Problem->leakTaintsAtCall(Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
-        if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
-          reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact, *LeakSrc);
-        }
-      });
+      IState.LocalProblem.leakTaintsAtCall(
+          Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
+            if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
+              reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact,
+                                    *LeakSrc);
+            }
+          });
 
       // Generate taints from zero:
-      Problem->generateTaintsAtCall(
+      IState.LocalProblem.generateTaintsAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> GenFact) {
             // Note: Assume, this gets called for all relevant aliases as well
             LocalState[GenFact].insert(SourceFactId(0));
@@ -610,6 +605,21 @@ private:
         .MayRecurse = MayRecurse,
         .CanCTR = CanCTR,
     };
+  }
+
+  void handleSourceSinkConfig(IntermediateState &IState,
+                              DataFlowEnvironment<d_t> &LocalState,
+                              FunctionId CurrFunId, n_t Inst) {
+    IState.LocalProblem.leaksTaint(Inst, [&](const auto &LeakFact) {
+      if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
+        reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact, *LeakSrc);
+      }
+    });
+
+    // Generate taints from zero:
+    IState.LocalProblem.generateTaints(Inst, [&](const auto &GenFact) {
+      LocalState[GenFact].insert(SourceFactId(0));
+    });
   }
 
   void rescheduleCallsAtExit(IntermediateState &IState, auto &Driver,
@@ -634,7 +644,7 @@ private:
     // The zero fact has always Id 0!
     if (From.tryErase(SourceFactId(0))) {
       if (Leaks[LeakInst].insert(LeakFact).second) {
-        Problem->onResult(LeakInst, LeakFact);
+        IState.LocalProblem.onResult(LeakInst, LeakFact);
       }
     }
 
@@ -702,7 +712,6 @@ private:
 
   MaybeUniquePtr<const SCCHolder<FunctionId>> SCCs{};
   MaybeUniquePtr<const Compressor<f_t, FunctionId>> Functions{};
-  MaybeUniquePtr<const UsedGlobalsHolder<v_t>> UsedGlobals{};
 
   // --- global analysis state
   TypedVector<FunctionId, FunctionSummary> Summaries{};

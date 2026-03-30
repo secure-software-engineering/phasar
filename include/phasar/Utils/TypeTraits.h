@@ -211,10 +211,9 @@ template <typename T, typename Enable = void>
 struct [[deprecated("getAsJson should not be used anymore. Use printAsJson "
                     "instead")]] has_getAsJson : std::false_type {}; // NOLINT
 template <typename T>
-struct [[deprecated(
-    "getAsJson should not be used anymore. Use printAsJson "
-    "instead")]] has_getAsJson<T, std::void_t<decltype(std::declval<const T>()
-                                                           .getAsJson())>>
+struct [[deprecated("getAsJson should not be used anymore. Use printAsJson "
+                    "instead")]]
+has_getAsJson<T, std::void_t<decltype(std::declval<const T>().getAsJson())>>
     : std::true_type {}; // NOLINT
 
 struct TrueFn {
