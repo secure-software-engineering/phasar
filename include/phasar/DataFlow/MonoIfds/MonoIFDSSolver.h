@@ -18,10 +18,13 @@
 #include "phasar/DataFlow/MonoIfds/RPOWorkList.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
-#include "phasar/Utils/FunctionCompressor.h"
+#include "phasar/Utils/FunctionId.h"
+#include "phasar/Utils/HashUtils.h"
 #include "phasar/Utils/Lazy.h"
+#include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Nullable.h"
+#include "phasar/Utils/RepeatIterator.h"
 #include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/TypedVector.h"
 
@@ -57,7 +60,7 @@ public:
     return *this;
   }
 
-  MonoIFDSSolver setFunctionCompressor(
+  MonoIFDSSolver &setFunctionCompressor(
       const Compressor<f_t, FunctionId> *Functions) & noexcept {
     this->Functions = Functions;
     return *this;
@@ -65,19 +68,29 @@ public:
 
   void solve();
 
+  void dumpResults(llvm::raw_ostream &OS) const {
+    OS << "No Raw-Results Dump available yet!\n";
+  }
+
+  void emitTextReport(llvm::raw_ostream &OS) const {
+    Problem->emitTextReport(OS);
+  }
+
 private:
   // NOTE: Used the node_hash_map from
   // [parallel-hash-map](https://github.com/greg7mdp/parallel-hashmap) here
   // for the paper-eval!
   template <typename Key, typename Value>
-  using node_hash_map = std::pmr::unordered_map<Key, Value>;
+  using node_hash_map =
+      std::pmr::unordered_map<Key, Value, psr::DefaultHash<Key>>;
 
   struct FunctionSummary {
     Compressor<d_t, SourceFactId> SourceFactIds;
     DataFlowEnvironment<d_t> EndSummary;
 
-    [[clang::require_explicit_initialization]] node_hash_map<
-        std::pair<n_t, d_t>, SourceFactSet> LeakIf;
+    node_hash_map<std::pair<n_t, d_t>, SourceFactSet> LeakIf;
+
+    FunctionSummary(std::pmr::memory_resource *MRes) : LeakIf(MRes) {}
   };
 
   struct IntermediateState {
@@ -161,7 +174,7 @@ private:
                              llvm::ArrayRef<FunctionId> CurrFuns) {
     const size_t SCCSize = CurrFuns.size();
     const bool InRecursion = SCCSize > 1;
-    IntermediateState IState(&PoolRes, CurrSCC, InRecursion);
+    IntermediateState IState(Problem, &PoolRes, CurrSCC, InRecursion);
 
     const auto IterStrategy = Config.IterStrategy;
     const bool UseTopoFixpointDriver = [=] {
@@ -180,7 +193,7 @@ private:
     ControlFlowOrder<n_t> CFO;
     if (UseTopoFixpointDriver) {
       for (const auto &Fun : CurrFuns) {
-        computeCFGOrder(CFO, *ICF, Fun);
+        computeCFGOrder(CFO, *ICF, (*Functions)[Fun]);
       }
     }
 
@@ -203,13 +216,13 @@ private:
         };
 
     const auto RepropagateInRecursion = [&](auto &Driver) {
-      rescheduleCalls(IState, Driver, SCCs, CurrSCC, Functions);
+      rescheduleCalls(IState, Driver);
       while (!Driver.empty()) {
         Driver.run(
             [&](n_t BlockStart) { analyzeBlock(IState, Driver, BlockStart); });
         assert(Driver.empty());
 
-        rescheduleCalls(IState, Driver, SCCs, CurrSCC, Functions);
+        rescheduleCalls(IState, Driver);
         llvm::errs() << '.';
       }
 
@@ -231,7 +244,7 @@ private:
       }
     }
 
-    repropagateLeaks(IState, SCCs, CurrSCC, Functions);
+    repropagateLeaks(IState, CurrSCC);
   }
 
   void submitInitialSeeds(IntermediateState &IState, auto &Driver,
@@ -248,7 +261,7 @@ private:
       auto &SeedState = IState.PathEdges[SP];
       SeedState[Zero].insert(SourceFactId(0));
 
-      IState.LocalProblem.initialSeeds(SeedState, SeedCompressor, Fun, CurrSCC);
+      IState.LocalProblem.initialSeeds(SeedState, SeedCompressor, Fun);
       Driver.push(SP);
     }
   }
@@ -262,7 +275,7 @@ private:
 
     for (auto FunId : IState.HasNewSummary) {
       IState.HasNewLeaks.erase(FunId);
-      const auto &Fun = Functions[FunId];
+      const auto &Fun = (*Functions)[FunId];
 
       for (const auto &CS : getOrDefault(IState.Incoming, Fun)) {
         const auto &CSFun = ICF->getFunctionOf(CS);
@@ -283,7 +296,7 @@ private:
       NewLeaksWL.swap(IState.HasNewLeaks);
 
       for (auto FunId : NewLeaksWL) {
-        handleLeaksForFun(IState, SCCs, CurrSCC, Functions, FunId);
+        handleLeaksForFun(IState, CurrSCC, FunId);
       }
       NewLeaksWL.clear();
     }
@@ -338,7 +351,7 @@ private:
                         ByConstRef<n_t> BlockStart,
                         DataFlowEnvironment<d_t> LocalState) {
 
-    auto CurrFunId = Functions.get(BlockStart->getFunction());
+    auto CurrFunId = Functions->get(BlockStart->getFunction());
 
     // const bool EnableAggressiveLoopPriorization =
     //     Config.EnableAggressiveLoopPriorization;
@@ -514,7 +527,7 @@ private:
       // Collect all data-flows that need to be propagated. Don't update
       // LocalState in-place
 
-      auto CalleeId = Functions.get(CalleeFun);
+      auto CalleeId = Functions->get(CalleeFun);
       applySummary(IState, std::as_const(LocalState), CollectedSummary,
                    CalleeId, Inst, CurrFunId);
     }
@@ -578,23 +591,23 @@ private:
         CanCTR = false;
       }
 
-      auto CalleeId = Functions.get(CalleeFun);
+      auto CalleeId = Functions->get(CalleeFun);
       auto CalleeSCC = SCCs.SCCOfNode[CalleeId];
       if (CalleeSCC == CurrSCC) {
         MayRecurse = true;
         IState.Incoming[CalleeFun].insert(Inst);
       }
 
-      IState.LocalProblem.leakTaintsAtCall(
+      IState.LocalProblem.requestedEffectAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
-            if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
+            if (const auto *LeakSrc = psr::getOrNull(LocalState, LeakFact)) {
               reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact,
                                     *LeakSrc);
             }
           });
 
       // Generate taints from zero:
-      IState.LocalProblem.generateTaintsAtCall(
+      IState.LocalProblem.generateFactsAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> GenFact) {
             // Note: Assume, this gets called for all relevant aliases as well
             LocalState[GenFact].insert(SourceFactId(0));
@@ -610,14 +623,14 @@ private:
   void handleSourceSinkConfig(IntermediateState &IState,
                               DataFlowEnvironment<d_t> &LocalState,
                               FunctionId CurrFunId, n_t Inst) {
-    IState.LocalProblem.leaksTaint(Inst, [&](const auto &LeakFact) {
+    IState.LocalProblem.requestedEffect(Inst, [&](const auto &LeakFact) {
       if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
         reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact, *LeakSrc);
       }
     });
 
     // Generate taints from zero:
-    IState.LocalProblem.generateTaints(Inst, [&](const auto &GenFact) {
+    IState.LocalProblem.generateFacts(Inst, [&](const auto &GenFact) {
       LocalState[GenFact].insert(SourceFactId(0));
     });
   }
@@ -720,9 +733,11 @@ private:
 
 template <MonoIFDSProblem ProblemT> void MonoIFDSSolver<ProblemT>::solve() {
   // Step 1: Check for pre-analysis results: If any of them is null, create them
+  // TODO: !!!
 
   // Step 2: Pre-allocate buffers
-  Summaries.resize(Functions->size());
+  Summaries.reserve(Functions->size());
+  Summaries.append(psr::repeat(&PoolRes, Functions->size()));
 
   // Step 3: Analyze each CG-SCC in isolation
 

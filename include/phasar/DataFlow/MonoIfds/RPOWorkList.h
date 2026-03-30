@@ -39,7 +39,7 @@ public:
       return std::nullopt;
     }
 
-    auto IId = ControlFlowOrder<ItemT>::CFGOrderId(Max);
+    auto IId = typename ControlFlowOrder<ItemT>::CFGOrderId(Max);
     Max = WorkList.find_prev(Max);
     return CFO.Order[IId];
   }

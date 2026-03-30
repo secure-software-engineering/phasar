@@ -6,17 +6,15 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Compressor.h"
-#include "phasar/Utils/FunctionCompressor.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/SCCGeneric.h"
 
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/InstrTypes.h"
-
-#include <llvm-16/llvm/ADT/STLExtras.h>
-#include <llvm-16/llvm/ADT/SmallVector.h>
-#include <llvm-16/llvm/IR/Instructions.h>
-#include <llvm-16/llvm/Support/Casting.h>
-#include <llvm-16/llvm/Support/ErrorHandling.h>
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 using namespace psr;
 using namespace psr::monoifds;
@@ -277,7 +275,7 @@ void monoifds::TaintAnalysis::LocalAnalysis::initialSeeds(
   }
 }
 
-void monoifds::TaintAnalysis::LocalAnalysis::generateTaintsAtCall(
+void monoifds::TaintAnalysis::LocalAnalysis::generateFactsAtCall(
     n_t CS, f_t Callee, llvm::function_ref<void(d_t)> GenFact) {
   forallGeneratedFacts(*TA->Config, llvm::cast<llvm::CallBase>(CS), Callee,
                        [this, CS, GenFact](const auto *Fact) {
@@ -286,7 +284,7 @@ void monoifds::TaintAnalysis::LocalAnalysis::generateTaintsAtCall(
                        });
 }
 
-void monoifds::TaintAnalysis::LocalAnalysis::leakTaintsAtCall(
+void monoifds::TaintAnalysis::LocalAnalysis::requestedEffectAtCall(
     n_t CS, f_t Callee, llvm::function_ref<void(d_t)> LeakFact) {
   forallLeakedFacts(*TA->Config, llvm::cast<llvm::CallBase>(CS), Callee,
                     LeakFact);

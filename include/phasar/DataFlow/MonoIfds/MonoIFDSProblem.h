@@ -12,7 +12,7 @@
 #include "phasar/DataFlow/MonoIfds/DataFlowEnvironment.h"
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/Compressor.h"
-#include "phasar/Utils/FunctionCompressor.h"
+#include "phasar/Utils/FunctionId.h"
 #include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -24,50 +24,46 @@ namespace psr::monoifds {
 template <typename T>
 concept MonoIFDSAnalysisDomain = IsAnalysisDomain<T>;
 
-template <typename T>
-concept LocalMonoIFDSProblem = requires(
-    T &Problem,
-    DataFlowEnvironment<typename T::ProblemAnalysisDomain::d_t> &InOut,
-    typename T::ProblemAnalysisDomain::n_t Inst,
-    const typename T::ProblemAnalysisDomain::n_t &Fact,
-    const typename T::ProblemAnalysisDomain::f_t &Fun,
-    Compressor<typename T::ProblemAnalysisDomain::d_t, SourceFactId>
-        &SeedCompressor) {
-  Problem.normalFlow(InOut, Inst);
-  Problem.callToRetFlow(InOut, Inst);
-  {
-    Problem.returnFlow(Inst, Fact)
-  } -> psr::is_iterable_over_v<typename T::ProblemAnalysisDomain::d_t>;
+template <typename T, typename Dom>
+concept LocalMonoIFDSProblem =
+    requires(T &Problem, DataFlowEnvironment<typename Dom::d_t> &InOut,
+             typename Dom::n_t Inst, const typename Dom::n_t &Fact,
+             const typename Dom::f_t &Fun,
+             Compressor<typename Dom::d_t, SourceFactId> &SeedCompressor) {
+      Problem.normalFlow(InOut, Inst);
+      Problem.callToRetFlow(InOut, Inst);
+      {
+        Problem.returnFlow(Inst, Fact)
+      } -> psr::is_iterable_over_v<typename Dom::d_t>;
 
-  {
-    Problem.invReturnFlow(Inst, Fact)
-  } -> psr::is_iterable_over_v<typename T::ProblemAnalysisDomain::d_t>;
+      {
+        Problem.invReturnFlow(Inst, Fact)
+      } -> psr::is_iterable_over_v<typename Dom::d_t>;
 
-  {
-    Problem.getZeroValue()
-  } -> std::convertible_to<typename T::ProblemAnalysisDomain::d_t>;
+      { Problem.getZeroValue() } -> std::convertible_to<typename Dom::d_t>;
 
-  Problem.initialSeeds(InOut, SeedCompressor, Fun);
+      Problem.initialSeeds(InOut, SeedCompressor, Fun);
 
-  Problem.generateTaintsAtCall(
-      Inst, Fun, [](const typename T::ProblemAnalysisDomain::d_t & GenFact) {});
+      Problem.generateFactsAtCall(Inst, Fun,
+                                  [](const typename Dom::d_t & GenFact) {});
 
-  Problem.generateTaints(
-      Inst, [](const typename T::ProblemAnalysisDomain::d_t & GenFact) {});
-  Problem.leakTaintsAtCall(
-      Inst, Fun,
-      [](const typename T::ProblemAnalysisDomain::d_t & LeakFact) {});
-  Problem.leakTaints(
-      Inst, [](const typename T::ProblemAnalysisDomain::d_t & LeakFact) {});
-  Problem.onResult(Inst, Fact);
-};
+      Problem.generateFacts(Inst, [](const typename Dom::d_t & GenFact) {});
+      Problem.requestedEffectAtCall(Inst, Fun,
+                                    [](const typename Dom::d_t & LeakFact) {});
+      Problem.requestedEffect(Inst, [](const typename Dom::d_t & LeakFact) {});
+      Problem.onResult(Inst, Fact);
+    };
 
 template <typename T>
-concept MonoIFDSProblem = requires(T &Problem, SCCId<FunctionId> CurrSCC,
-                                   std::pmr::memory_resource *MRes) {
-  typename T::ProblemAnalysisDomain;
-  requires MonoIFDSAnalysisDomain<typename T::ProblemAnalysisDomain>;
+concept MonoIFDSProblem =
+    requires(T &Problem, SCCId<FunctionId> CurrSCC,
+             std::pmr::memory_resource *MRes, llvm::raw_ostream &OS) {
+      typename T::ProblemAnalysisDomain;
+      requires MonoIFDSAnalysisDomain<typename T::ProblemAnalysisDomain>;
 
-  { Problem.localAnalysis(CurrSCC, MRes) } -> LocalMonoIFDSProblem;
-};
+      {
+        Problem.localAnalysis(CurrSCC, MRes)
+      } -> LocalMonoIFDSProblem<typename T::ProblemAnalysisDomain>;
+      Problem.emitTextReport(OS);
+    };
 } // namespace psr::monoifds

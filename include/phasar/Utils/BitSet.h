@@ -37,6 +37,10 @@ namespace psr {
 template <typename IdT, typename BitVectorTy = llvm::BitVector> class BitSet {
   static llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
                                             uintptr_t & /*Store*/) {
+    if (BV.empty()) {
+      return {};
+    }
+
     return BV.getData();
   }
   static llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,

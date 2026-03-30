@@ -1,4 +1,4 @@
-#include "phasar/Utils/FunctionCompressor.h"
+#include "phasar/Utils/FunctionId.h"
 
 #include <string>
 

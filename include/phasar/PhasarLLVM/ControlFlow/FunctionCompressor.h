@@ -9,17 +9,12 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/Utils/Compressor.h"
-#include "phasar/Utils/StrongTypeDef.h"
-
-#include "llvm/IR/Function.h"
-
-#include <cstdint>
-
-PHASAR_STRONG_TYPEDEF(psr, uint32_t, FunctionId);
+#include "phasar/Utils/FunctionId.h"
 
 namespace psr {
-using FunctionCompressor = Compressor<const llvm::Function *, FunctionId>;
-
-std::string to_string(FunctionId FId);
+Compressor<const llvm::Function *, FunctionId>
+compressFunctions(const LLVMBasedCallGraph &CG,
+                  llvm::ArrayRef<const llvm::Function *> EntryPoints);
 } // namespace psr

@@ -18,7 +18,6 @@
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMAnalysisPrinter.h"
 #include "phasar/Utils/Compressor.h"
-#include "phasar/Utils/FunctionCompressor.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
 #include "phasar/Utils/SCCGeneric.h"
@@ -67,14 +66,14 @@ public:
     void initialSeeds(DataFlowEnvironment<d_t> &SeedState,
                       Compressor<d_t, SourceFactId> &SeedCompressor, f_t Fun);
 
-    void generateTaintsAtCall(n_t CS, f_t Callee,
-                              llvm::function_ref<void(d_t)> GenFact);
-    void generateTaints(n_t CS, llvm::function_ref<void(d_t)> GenFact) {
+    void generateFactsAtCall(n_t CS, f_t Callee,
+                             llvm::function_ref<void(d_t)> GenFact);
+    void generateFacts(n_t CS, llvm::function_ref<void(d_t)> GenFact) {
       // XXX: Implement (was not necessary for paper eval)
     }
-    void leakTaintsAtCall(n_t CS, f_t Callee,
-                          llvm::function_ref<void(d_t)> LeakFact);
-    void leakTaints(n_t CS, llvm::function_ref<void(d_t)> LeakFact) {
+    void requestedEffectAtCall(n_t CS, f_t Callee,
+                               llvm::function_ref<void(d_t)> LeakFact);
+    void requestedEffect(n_t Inst, llvm::function_ref<void(d_t)> LeakFact) {
       // XXX: Implement (was not necessary for paper eval)
     }
     void onResult(n_t Inst, d_t Fact) {
@@ -87,10 +86,19 @@ public:
                                             std::pmr::memory_resource *MRes) {
     return LocalAnalysis{
         .TA = this,
-        .AC = AliasCache(AI, Config->getRegisteredSkipSeedsCallBack(),
+        .AC = AliasCache(AI,
+                         Config->getRegisteredSkipSeedsCallBack()
+                             ? (llvm::function_ref<bool(const llvm::Value *)>)
+                                   Config->getRegisteredSkipSeedsCallBack()
+                             : llvm::function_ref<bool(const llvm::Value *)>{},
                          &UsedGlobals->GlobsPerSCC[CurrSCC], MRes),
         .CurrSCC = CurrSCC,
     };
+  }
+
+  void emitTextReport(llvm::raw_ostream &OS) const {
+    OS << "\n----- Found the following leaks -----\n";
+    Printer->onFinalize(OS);
   }
 
   // TODO: shouldBeInSummary()
