@@ -21,13 +21,16 @@
 #include "phasar/Utils/FunctionId.h"
 #include "phasar/Utils/HashUtils.h"
 #include "phasar/Utils/Lazy.h"
+#include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/Nullable.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/RepeatIterator.h"
 #include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/TypedVector.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
 
 #include <concepts>
@@ -44,6 +47,8 @@ public:
   using i_t = typename ProblemT::ProblemAnalysisDomain::i_t;
   using f_t = typename ProblemT::ProblemAnalysisDomain::f_t;
   using v_t = typename ProblemT::ProblemAnalysisDomain::v_t;
+
+  static constexpr llvm::StringLiteral LogCategory = "MonoIFDSSolver";
 
   explicit MonoIFDSSolver(ProblemT *Problem, const i_t *ICF,
                           std::pmr::polymorphic_allocator<> Alloc =
@@ -172,6 +177,10 @@ private:
 
   void computeFixpointForSCC(SCCId<FunctionId> CurrSCC,
                              llvm::ArrayRef<FunctionId> CurrFuns) {
+
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                         "[computeFixpointForSCC]: " << CurrSCC.Value);
+
     const size_t SCCSize = CurrFuns.size();
     const bool InRecursion = SCCSize > 1;
     IntermediateState IState(Problem, &PoolRes, CurrSCC, InRecursion);
@@ -250,6 +259,8 @@ private:
   void submitInitialSeeds(IntermediateState &IState, auto &Driver,
                           Compressor<d_t, SourceFactId> &SeedCompressor,
                           ByConstRef<f_t> Fun, SCCId<FunctionId> CurrSCC) {
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                         "[submitInitialSeeds]: For fun " << FToString(Fun));
     const auto &SPs = ICF->getStartPointsOf(Fun);
 
     const auto &Zero = IState.LocalProblem.getZeroValue();
@@ -600,6 +611,9 @@ private:
 
       IState.LocalProblem.requestedEffectAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
+            PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                                 "[handleCallSrcSinksAndMayRecurse]: LeakFact: "
+                                     << DToString(LeakFact));
             if (const auto *LeakSrc = psr::getOrNull(LocalState, LeakFact)) {
               reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact,
                                     *LeakSrc);
@@ -609,6 +623,9 @@ private:
       // Generate taints from zero:
       IState.LocalProblem.generateFactsAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> GenFact) {
+            PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                                 "[handleCallSrcSinksAndMayRecurse]: GenFact: "
+                                     << DToString(GenFact));
             // Note: Assume, this gets called for all relevant aliases as well
             LocalState[GenFact].insert(SourceFactId(0));
           });
@@ -654,6 +671,10 @@ private:
 
   void reportOrPropagateLeak(IntermediateState &IState, FunctionId CurrFunId,
                              n_t LeakInst, d_t LeakFact, SourceFactSet From) {
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                         "[reportOrPropagateLeak]: " << DToString(LeakFact)
+                                                     << " AT "
+                                                     << NToString(LeakInst));
     // The zero fact has always Id 0!
     if (From.tryErase(SourceFactId(0))) {
       if (Leaks[LeakInst].insert(LeakFact).second) {
