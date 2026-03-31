@@ -16,6 +16,7 @@
 #include "phasar/DataFlow/MonoIfds/MonoIFDSConfig.h"
 #include "phasar/DataFlow/MonoIfds/MonoIFDSProblem.h"
 #include "phasar/DataFlow/MonoIfds/RPOWorkList.h"
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/FunctionId.h"
@@ -28,13 +29,17 @@
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/RepeatIterator.h"
 #include "phasar/Utils/SCCGeneric.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
+#include "llvm/Support/TypeName.h"
 
 #include <concepts>
+#include <memory>
 #include <memory_resource>
+#include <stdexcept>
 #include <unordered_map>
 #include <utility>
 
@@ -98,8 +103,11 @@ private:
     FunctionSummary(std::pmr::memory_resource *MRes) : LeakIf(MRes) {}
   };
 
+  using LocalAnalysis = decltype(std::declval<ProblemT>().localAnalysis(
+      SCCId<FunctionId>(), std::declval<std::pmr::memory_resource *>()));
+
   struct IntermediateState {
-    typename ProblemT::LocalAnalysis LocalProblem;
+    LocalAnalysis LocalProblem;
     node_hash_map<n_t, DataFlowEnvironment<d_t>> PathEdges;
     node_hash_map<f_t, llvm::SmallDenseSet<n_t>> Incoming;
 
@@ -175,6 +183,50 @@ private:
     }
   };
 
+  void initializeFunctions() {
+    if (SCCs) {
+      throw std::logic_error("SCCs without FunctionCompressor?");
+    }
+
+    if constexpr (requires() {
+                    {
+                      Problem->getEntryPoints()
+                    } -> psr::is_iterable_over_v<f_t>;
+                  }) {
+      Functions = std::make_unique<Compressor<f_t, FunctionId>>(
+          compressFunctions(ICF->getCallGraph(), Problem->getEntryPoints()));
+    } else if constexpr (requires() {
+                           {
+                             Problem->getEntryPoints()
+                           } -> psr::is_iterable_over_v<std::string>;
+                         }) {
+      Functions =
+          std::make_unique<Compressor<f_t, FunctionId>>(compressFunctions(
+              ICF->getCallGraph(),
+              psr::getEntryFunctions(*ICF, Problem->getEntryPoints())));
+    } else {
+      throw std::logic_error("The analysis problem " +
+                             llvm::getTypeName<ProblemT>().str() +
+                             " does not provide getEntryPoints(). So, you "
+                             "must set a FunctionCompressor by calling "
+                             "setFunctionCompressor() on the solver!");
+    }
+  }
+
+  void initializeSCCs() {
+    SCCs = std::make_unique<SCCHolder<FunctionId>>(
+        computeCGSCCs(ICF->getCallGraph(), *ICF, *Functions));
+  }
+
+  void initialize() {
+    if (!Functions) {
+      initializeFunctions();
+    }
+    if (!SCCs) {
+      initializeSCCs();
+    }
+  }
+
   void computeFixpointForSCC(SCCId<FunctionId> CurrSCC,
                              llvm::ArrayRef<FunctionId> CurrFuns) {
 
@@ -214,7 +266,7 @@ private:
           for (auto FunId : llvm::reverse(CurrFuns)) {
             const auto *Fun = (*Functions)[FunId];
             submitInitialSeeds(IState, Driver, Summaries[FunId].SourceFactIds,
-                               Fun, CurrSCC);
+                               Fun);
           }
           Driver.run([&](n_t BlockStart) {
             analyzeBlock(IState, Driver, BlockStart);
@@ -258,7 +310,7 @@ private:
 
   void submitInitialSeeds(IntermediateState &IState, auto &Driver,
                           Compressor<d_t, SourceFactId> &SeedCompressor,
-                          ByConstRef<f_t> Fun, SCCId<FunctionId> CurrSCC) {
+                          ByConstRef<f_t> Fun) {
     PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
                          "[submitInitialSeeds]: For fun " << FToString(Fun));
     const auto &SPs = ICF->getStartPointsOf(Fun);
@@ -754,7 +806,7 @@ private:
 
 template <MonoIFDSProblem ProblemT> void MonoIFDSSolver<ProblemT>::solve() {
   // Step 1: Check for pre-analysis results: If any of them is null, create them
-  // TODO: !!!
+  initialize();
 
   // Step 2: Pre-allocate buffers
   Summaries.reserve(Functions->size());

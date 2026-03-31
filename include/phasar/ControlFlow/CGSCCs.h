@@ -12,29 +12,26 @@
 #include "phasar/ControlFlow/CFG.h"
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/Utils/BitSet.h"
-#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/FunctionId.h"
-#include "phasar/Utils/GraphTraits.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/SCCGeneric.h"
-
-#include <limits>
-#include <type_traits>
 
 namespace psr {
 
 // TODO: Use SCCGeneric algorithms here!
 
-template <typename N, typename F>
+// Note: Use forward edges (i.e., cs->callee), such that the SCC-order reflects
+// the bottom-up iteration order.
+template <typename N, typename F, CFGOf<N, F> C>
+  requires InstructionClassifier<C>
 SCCHolder<FunctionId>
-computeCGSCCs(const psr::CallGraph<N, F> &CG, const CFGOf<N, F> auto &CF,
+computeCGSCCs(const psr::CallGraph<N, F> &CG, const C &CF,
               const Compressor<F, FunctionId> &Functions) {
 
   SCCHolder<FunctionId> Ret{};
 
   auto NumFuns = Functions.size();
-
   if (!NumFuns) {
     return Ret;
   }
