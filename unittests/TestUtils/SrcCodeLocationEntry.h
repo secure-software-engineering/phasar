@@ -148,6 +148,7 @@ struct RetVal {
     return std::string("RetVal { InFunction: ") + InFunction.str() + " }";
   }
 };
+
 struct RetStmt {
   llvm::StringRef InFunction;
 
@@ -179,11 +180,25 @@ struct OperandOf {
   }
 };
 
+struct FuncByName {
+  llvm::StringRef FuncName;
+
+  friend bool operator<(FuncByName F1, FuncByName F2) noexcept {
+    return F1.FuncName < F2.FuncName;
+  }
+  friend bool operator==(FuncByName F1, FuncByName F2) noexcept {
+    return F1.FuncName == F2.FuncName;
+  }
+  [[nodiscard]] std::string str() const {
+    return std::string("FuncByName { FuncName: ") + FuncName.str() + " }";
+  }
+};
+
 struct TestingSrcLocation
     : public std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                          ArgInFun, RetVal, RetStmt, OperandOf> {
+                          ArgInFun, RetVal, RetStmt, OperandOf, FuncByName> {
   using VarT = std::variant<LineCol, LineColFun, LineColFunOp, GlobalVar, ArgNo,
-                            ArgInFun, RetVal, RetStmt, OperandOf>;
+                            ArgInFun, RetVal, RetStmt, OperandOf, FuncByName>;
   using VarT::variant;
 
   template <typename T> [[nodiscard]] constexpr bool isa() const noexcept {
@@ -264,6 +279,12 @@ template <> struct hash<psr::unittest::OperandOf> {
   size_t operator()(psr::unittest::OperandOf Op) const noexcept {
     return llvm::hash_combine(Op.OperandIndex,
                               hash<psr::unittest::LineColFunOp>{}(Op.Inst));
+  }
+};
+
+template <> struct hash<psr::unittest::FuncByName> {
+  size_t operator()(psr::unittest::FuncByName Fun) const noexcept {
+    return llvm::hash_value(Fun.FuncName);
   }
 };
 
@@ -398,7 +419,13 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
 
             return Inst->getOperand(Op.OperandIndex);
           },
-      },
+          [&](FuncByName F) -> llvm::Value const * {
+            const auto *Func = GetFunction(F.FuncName);
+            if (Func) {
+              return Func;
+            }
+            llvm::report_fatal_error("No function named " + F.FuncName);
+          }},
       Loc);
   if (!Ret) {
     llvm::report_fatal_error("Cannot convert " + llvm::Twine(Loc.str()) +
