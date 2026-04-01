@@ -19,7 +19,8 @@
 
 namespace psr {
 
-/// \file This file contains useful functions for handling errors, by using
+/// \file
+/// This file contains useful functions for handling errors, by using
 /// std::system_error, or returning null or a default value.
 
 template <typename T> T getOrThrow(llvm::ErrorOr<T> ValOrErr) {

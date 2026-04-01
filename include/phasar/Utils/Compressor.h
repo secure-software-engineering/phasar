@@ -11,12 +11,14 @@
 #define PHASAR_UTILS_COMPRESSOR_H
 
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
 
+#include <concepts>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -31,7 +33,7 @@ template <typename T, typename IdT = uint32_t> class Compressor;
 ///
 /// This specialization handles types that can be efficiently passed by value
 template <typename T, typename IdT>
-  requires CanEfficientlyPassByValue<T>
+  requires(CanEfficientlyPassByValue<T> && has_llvm_dense_map_info<T>)
 class Compressor<T, IdT> {
 public:
   void reserve(size_t Capacity) {
@@ -41,7 +43,7 @@ public:
   }
 
   IdT getOrInsert(T Elem) {
-    auto [It, Inserted] = ToInt.try_emplace(Elem, IdT(ToInt.size()));
+    auto [It, Inserted] = ToInt.try_emplace(Elem, IdT(FromInt.size()));
     if (Inserted) {
       FromInt.push_back(Elem);
     }
@@ -49,11 +51,17 @@ public:
   }
 
   std::pair<IdT, bool> insert(T Elem) {
-    auto [It, Inserted] = ToInt.try_emplace(Elem, IdT(ToInt.size()));
+    auto [It, Inserted] = ToInt.try_emplace(Elem, IdT(FromInt.size()));
     if (Inserted) {
       FromInt.push_back(Elem);
     }
     return {It->second, Inserted};
+  }
+
+  IdT insertDummy(T Elem) {
+    auto Ret = IdT(FromInt.size());
+    FromInt.push_back(Elem);
+    return Ret;
   }
 
   [[nodiscard]]
@@ -105,7 +113,7 @@ private:
 ///
 /// This specialization handles types that cannot be efficiently passed by value
 template <typename T, typename IdT>
-  requires(!CanEfficientlyPassByValue<T>)
+  requires(!CanEfficientlyPassByValue<T> || !has_llvm_dense_map_info<T>)
 class Compressor<T, IdT> {
 public:
   void reserve(size_t Capacity) {
@@ -157,6 +165,12 @@ public:
     auto *Ins = &FromInt.emplace_back(std::move(Elem));
     ToInt[Ins] = Ret;
     return {Ret, true};
+  }
+
+  IdT insertDummy(std::convertible_to<T> auto &&Elem) {
+    auto Ret = Id(FromInt.size());
+    FromInt.emplace_back(PSR_FWD(Elem));
+    return Ret;
   }
 
   /// Returns the index of the given element in the compressors storage. If

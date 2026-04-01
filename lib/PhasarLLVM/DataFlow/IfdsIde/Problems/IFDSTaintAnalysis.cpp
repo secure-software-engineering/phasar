@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
@@ -46,9 +47,11 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      LLVMAliasInfoRef PT,
                                      const LLVMTaintConfig *Config,
                                      std::vector<std::string> EntryPoints,
-                                     bool TaintMainArgs)
+                                     bool TaintMainArgs,
+                                     bool EnableStrongUpdateStore)
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
+      EnableStrongUpdateStore(EnableStrongUpdateStore),
       Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
@@ -281,17 +284,32 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
       Gen.insert(Store->getValueOperand());
     }
 
-    auto Ret =
-        lambdaFlow([Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
-          if (Store->getPointerOperand() == Source) {
-            return {};
-          }
-          if (Store->getValueOperand() == Source) {
-            return Gen;
-          }
+    auto Ret = [&]() -> FlowFunctionPtrType {
+      if (EnableStrongUpdateStore) {
+        return lambdaFlow(
+            [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+              if (Store->getPointerOperand() == Source) {
+                return {};
+              }
+              if (Store->getValueOperand() == Source) {
+                return Gen;
+              }
 
-          return {Source};
-        });
+              return {Source};
+            });
+      }
+
+      // Only weak update on store
+      return lambdaFlow(
+          [Store, Gen{std::move(Gen)}](d_t Source) -> container_type {
+            if (Store->getValueOperand() == Source) {
+              return Gen;
+            }
+
+            return {Source};
+          });
+    }();
+
     if (Config->isSink(Store->getPointerOperand())) {
       // Handle sink variables:
 
@@ -572,6 +590,33 @@ bool IFDSTaintAnalysis::isInteresting(
     return true;
   }
   return Config->mayLeakValuesAt(Inst, nullptr);
+}
+
+std::optional<int32_t>
+IFDSTaintAnalysis::KillsAtFn::operator()(n_t Curr, d_t CurrNode) const {
+  const auto *CS = llvm::dyn_cast<llvm::CallBase>(Curr);
+  if (!CS) {
+    return std::nullopt;
+  }
+
+  const auto *DestFun = CS->getCalledFunction();
+  if (!DestFun) {
+    return std::nullopt;
+  }
+
+  container_type Kill;
+  psr::collectSanitizedFacts(Kill, *Self->Config, CS, DestFun);
+
+  const auto &DL = Self->IRDB->getModule()->getDataLayout();
+
+  for (const auto *KillFact : Kill) {
+    auto [BasePtr, Offset] = psr::cfl_fieldsens::getBaseAndOffset(KillFact, DL);
+    if (BasePtr == CurrNode) {
+      return Offset;
+    }
+  }
+
+  return std::nullopt;
 }
 
 } // namespace psr

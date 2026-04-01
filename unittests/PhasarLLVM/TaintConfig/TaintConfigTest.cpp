@@ -1,6 +1,5 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
@@ -8,6 +7,7 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 
+#include "../TestUtils/SrcCodeLocationEntry.h"
 #include "../TestUtils/TestConfig.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
@@ -21,11 +21,11 @@ static constexpr auto PathToAttrTaintConfigTestCode =
     PHASAR_BUILD_SUBFOLDER("TaintConfig/AttrConfig/");
 
 namespace {
+using namespace psr::unittest;
+
 class TaintConfigTest : public ::testing::Test {
 
 public:
-  void SetUp() override { psr::ValueAnnotationPass::resetValueID(); }
-
   std::string getFunctionName(std::string MangledFunctionName) {
     if (MangledFunctionName.find('(') != std::string::npos) {
       return MangledFunctionName.substr(0, MangledFunctionName.find('('));
@@ -40,7 +40,8 @@ TEST_F(TaintConfigTest, Array_01) {
   const std::string File = "array_01_c_dbg.ll";
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
-  const llvm::Value *I = IR.getInstruction(5);
+  const llvm::Value *I = testingLocInIR(
+      OperandOf{0, LineColFunOp{8, 3, "main", llvm::Instruction::Call}}, IR);
   ASSERT_TRUE(Config.isSource(I));
 }
 
@@ -49,7 +50,8 @@ TEST_F(TaintConfigTest, Array_02) {
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
-  const llvm::Value *I = IR.getInstruction(5);
+  const llvm::Value *I = testingLocInIR(
+      OperandOf{0, LineColFunOp{9, 3, "main", llvm::Instruction::Call}}, IR);
   ASSERT_TRUE(Config.isSource(I));
 }
 
@@ -78,8 +80,8 @@ TEST_F(TaintConfigTest, Basic_02) {
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
-  const llvm::Value *I1 = IR.getInstruction(9);
-  const llvm::Value *I2 = IR.getInstruction(21);
+  const llvm::Value *I1 = testingLocInIR(LineColFun{10, 6, "modX"}, IR);
+  const llvm::Value *I2 = testingLocInIR(LineColFun{17, 12, "main"}, IR);
   ASSERT_TRUE(Config.isSource(I1));
   ASSERT_TRUE(Config.isSource(I2));
 }
@@ -103,7 +105,8 @@ TEST_F(TaintConfigTest, Basic_04) {
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
-  const llvm::Value *I = IR.getInstruction(4);
+  const llvm::Value *I = testingLocInIR(
+      OperandOf{0, LineColFunOp{3, 3, "main", llvm::Instruction::Call}}, IR);
   ASSERT_TRUE(Config.isSource(I));
 }
 
@@ -112,7 +115,7 @@ TEST_F(TaintConfigTest, DataMember_01) {
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
-  const llvm::Value *I = IR.getInstruction(9);
+  const llvm::Value *I = testingLocInIR(LineColFun{10, 12, "main"}, IR);
   ASSERT_TRUE(Config.isSource(I));
 }
 
@@ -143,10 +146,11 @@ TEST_F(TaintConfigTest, FunMember_02) {
   psr::LLVMTaintConfig TConfig(IR);
   // IR.emitPreprocessedIR(llvm::outs(), false);
   llvm::outs() << TConfig << '\n';
-  const llvm::Value *I1 = IR.getInstruction(20);
-  const llvm::Value *I2 = IR.getInstruction(57);
-  const llvm::Value *I3 = IR.getInstruction(67);
-  const llvm::Value *I4 = IR.getInstruction(76);
+  const llvm::Value *I1 = testingLocInIR(LineColFun{19, 12, "main"}, IR);
+  const llvm::Value *I2 = testingLocInIR(LineColFun{4, 14, "_ZN1XC2Ei"}, IR);
+  const llvm::Value *I3 =
+      testingLocInIR(LineColFun{8, 76, "_ZN1X5sanitEv"}, IR);
+  const llvm::Value *I4 = testingLocInIR(LineColFun{7, 63, "_ZN1XD2Ev"}, IR);
   ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
   ASSERT_TRUE(TConfig.isSource(I3));
@@ -203,9 +207,8 @@ TEST_F(TaintConfigTest, StaticFun_02) {
   psr::LLVMProjectIRDB IR({PathToAttrTaintConfigTestCode + File});
   psr::LLVMTaintConfig Config(IR);
   llvm::outs() << Config << '\n';
-  const llvm::Value *CallInst = IR.getInstruction(16);
-  const auto *I = llvm::dyn_cast<llvm::CallBase>(CallInst);
-  ASSERT_TRUE(I && Config.isSource(I->getCalledFunction()->getArg(0)));
+  const auto *FooFn = IR.getFunction("_ZN12_GLOBAL__N_13fooERi");
+  ASSERT_TRUE(FooFn && Config.isSource(FooFn->getArg(0)));
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
     if (FName == "bar") {
@@ -237,7 +240,8 @@ TEST_F(TaintConfigTest, Array_01_Json) {
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
 
-  const llvm::Value *I = IR.getInstruction(3);
+  const llvm::Value *I = testingLocInIR(
+      OperandOf{1, LineColFunOp{8, 9, "main", llvm::Instruction::Store}}, IR);
   ASSERT_TRUE(TConfig.isSource(I));
 }
 
@@ -249,7 +253,8 @@ TEST_F(TaintConfigTest, Array_02_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  const llvm::Value *I = IR.getInstruction(3);
+  const llvm::Value *I = testingLocInIR(
+      OperandOf{1, LineColFunOp{9, 9, "main", llvm::Instruction::Store}}, IR);
   ASSERT_TRUE(TConfig.isSource(I));
 }
 
@@ -284,8 +289,8 @@ TEST_F(TaintConfigTest, Basic_02_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  const llvm::Value *I1 = IR.getInstruction(7);
-  const llvm::Value *I2 = IR.getInstruction(18);
+  const llvm::Value *I1 = testingLocInIR(LineColFun{10, 6, "modX"}, IR);
+  const llvm::Value *I2 = testingLocInIR(LineColFun{17, 12, "main"}, IR);
   ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
 }
@@ -315,7 +320,8 @@ TEST_F(TaintConfigTest, Basic_04_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  const llvm::Value *I = IR.getInstruction(2);
+  const llvm::Value *I = testingLocInIR(
+      OperandOf{1, LineColFunOp{3, 7, "main", llvm::Instruction::Store}}, IR);
   ASSERT_TRUE(TConfig.isSource(I));
 }
 
@@ -326,8 +332,8 @@ TEST_F(TaintConfigTest, DataMember_01_Json) {
       psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
-  const llvm::Value *I = IR.getInstruction(17);
   //   IR.emitPreprocessedIR(llvm::outs(), false);
+  const llvm::Value *I = testingLocInIR(LineColFun{3, 7, "_ZN1XC2Ev"}, IR);
   ASSERT_TRUE(TConfig.isSource(I));
 }
 
@@ -367,10 +373,11 @@ TEST_F(TaintConfigTest, FunMember_02_Json) {
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
 
-  const llvm::Value *I1 = IR.getInstruction(16);
-  const llvm::Value *I2 = IR.getInstruction(52);
-  const llvm::Value *I3 = IR.getInstruction(61);
-  const llvm::Value *I4 = IR.getInstruction(69);
+  const llvm::Value *I1 = testingLocInIR(LineColFun{19, 12, "main"}, IR);
+  const llvm::Value *I2 = testingLocInIR(LineColFun{4, 14, "_ZN1XC2Ei"}, IR);
+  const llvm::Value *I3 =
+      testingLocInIR(LineColFun{8, 39, "_ZN1X5sanitEv"}, IR);
+  const llvm::Value *I4 = testingLocInIR(LineColFun{7, 31, "_ZN1XD2Ev"}, IR);
   ASSERT_TRUE(TConfig.isSource(I1));
   ASSERT_TRUE(TConfig.isSource(I2));
   ASSERT_TRUE(TConfig.isSource(I3));
@@ -443,9 +450,8 @@ TEST_F(TaintConfigTest, StaticFun_02_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
   llvm::outs() << TConfig << '\n';
-  const llvm::Value *CallInst = IR.getInstruction(13);
-  const auto *I = llvm::dyn_cast<llvm::CallBase>(CallInst);
-  ASSERT_TRUE(I && TConfig.isSource(I->getCalledFunction()->getArg(0)));
+  const auto *FooFn = IR.getFunction("_ZN12_GLOBAL__N_13fooERi");
+  ASSERT_TRUE(FooFn && TConfig.isSource(FooFn->getArg(0)));
   for (const auto *F : IR.getAllFunctions()) {
     std::string FName = getFunctionName(llvm::demangle(F->getName().str()));
     if (FName == "bar") {

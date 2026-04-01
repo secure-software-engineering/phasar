@@ -34,6 +34,7 @@
 #include <set>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace psr {
 
@@ -122,6 +123,19 @@ public:
     }
   }
 
+  [[nodiscard]] constexpr AnalysisPrinterBase<AnalysisDomainTy> &
+  printer() noexcept {
+    assert(Printer != nullptr);
+    return *Printer;
+  }
+
+  [[nodiscard]] constexpr MaybeUniquePtr<AnalysisPrinterBase<AnalysisDomainTy>>
+  consumePrinter() noexcept {
+    assert(Printer != nullptr);
+    return std::exchange(Printer,
+                         NullAnalysisPrinter<AnalysisDomainTy>::getInstance());
+  }
+
   /// Checks if the given data-flow fact is the special tautological lambda (or
   /// zero) fact.
   [[nodiscard]] virtual bool isZeroValue(d_t FlowFact) const noexcept {
@@ -176,6 +190,10 @@ public:
   virtual bool setSoundness(Soundness /*S*/) { return false; }
 
   [[nodiscard]] const db_t *getProjectIRDB() const noexcept { return IRDB; }
+
+  [[nodiscard]] llvm::ArrayRef<std::string> getEntryPoints() const noexcept {
+    return EntryPoints;
+  }
 
 protected:
   typename FlowFunctions<AnalysisDomainTy, Container>::FlowFunctionPtrType

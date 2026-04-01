@@ -32,6 +32,7 @@ namespace psr::controller {
 LLVM_LIBRARY_VISIBILITY void executeIFDSUninitVar(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSConst(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSTaint(AnalysisController &Data);
+LLVM_LIBRARY_VISIBILITY void executeIFDSCFLEnvTaint(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSType(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSSolverTest(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void

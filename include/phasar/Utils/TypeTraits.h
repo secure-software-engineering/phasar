@@ -29,7 +29,8 @@ namespace psr {
 using std::type_identity;
 using std::type_identity_t;
 
-/// \file TODO: We should stick to one naming convention here and not mix
+/// \file
+/// TODO: We should stick to one naming convention here and not mix
 /// CamelCase with lower_case!
 
 // NOLINTBEGIN(readability-identifier-naming)
@@ -117,6 +118,12 @@ concept has_adl_to_string_v = requires(const T &Val) {
   { std::to_string(Val) } -> std::convertible_to<std::string_view>;
 } || requires(const T &Val) {
   { to_string(Val) } -> std::convertible_to<std::string_view>;
+};
+
+template <typename T>
+concept has_adl_join = requires(const T &Val) {
+  // TODO: Add psr::join-variant, once we have a fallback!
+  { join(Val, Val) } -> std::convertible_to<T>;
 };
 
 template <typename T>
@@ -252,11 +259,26 @@ template <has_adl_to_string_v T>
   return to_string(Val);
 }
 
+template <has_adl_join T>
+[[nodiscard]] decltype(auto) adl_join(const T &L,
+                                      const std::type_identity_t<T> &R) {
+  // using psr::join; // TODO: Enable, once we have a generic psr::join!
+  return join(L, R);
+}
+
 struct IdentityFn {
   template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<decltype(Val)>(Val);
   }
 };
+
+template <typename T, typename R, typename... P>
+concept invocable_r = requires(T Val, P... Params) {
+  { std::invoke(PSR_FWD(Val), PSR_FWD(Params)...) } -> std::convertible_to<R>;
+};
+
+template <typename T, typename U>
+concept proper_subclass_of = std::derived_from<T, U> && !std::same_as<T, U>;
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

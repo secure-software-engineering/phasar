@@ -84,14 +84,14 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
 [[nodiscard]] std::string llvmIRToString(const llvm::Value *V);
 
 /**
- * @brief Similar to llvmIRToString, but removes the metadata from the output as
- * they are not always stable. Prefer this function over llvmIRToString, if you
- * are comparing the string representations of LLVM iR instructions.
+ * @brief Similar to llvmIRToString(), but removes the metadata from the output
+ * as they are not always stable. Prefer this function over llvmIRToString, if
+ * you are comparing the string representations of LLVM iR instructions.
  */
 [[nodiscard]] std::string llvmIRToStableString(const llvm::Value *V);
 
 /**
- * @brief Same as @link(llvmIRToString) but tries to shorten the
+ * @brief Same as llvmIRToString() but tries to shorten the
  *        resulting string
  */
 std::string llvmIRToShortString(const llvm::Value *V);
@@ -129,7 +129,7 @@ globalValuesUsedinFunction(const llvm::Function *F);
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
  * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore,
  * a formal arguments ID will look like this:
- *    <function_name>.<#argument>
+ *    `<function_name>.<#argument>`
  *
  * ZeroValue will have -1 as ID by default.
  *
@@ -161,7 +161,7 @@ int getFunctionArgumentNr(const llvm::Argument *Arg);
  *
  * @brief Returns the n-th LLVM Argument of a given LLVM Function.
  * @param F Function to retrieve the Arguments from.
- * @param argNo Argument number.
+ * @param ArgNo Argument number.
  * @return LLVM Argument or nullptr, if argNo invalid.
  */
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
@@ -172,7 +172,7 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
  *
  * @brief Returns the n-th LLVM Instruction of a given LLVM Function.
  * @param F Function to retrieve the Instruction from.
- * @param instNo Instruction number.
+ * @param Idx Instruction number.
  * @return LLVM Instruction or nullptr, if instNo invalid.
  */
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
@@ -187,7 +187,7 @@ const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
  * @brief Returns the n-th LLVM Termination Instruction of a given LLVM
  * Function.
  * @param F Function to retrieve the Termination Instruction from.
- * @param termInstNo Termination Instruction number.
+ * @param TermInstNo Termination Instruction number.
  * @return LLVM Instruction or nullptr, if termInstNo invalid.
  */
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
@@ -199,7 +199,7 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
  * @brief Returns the n-th LLVM Store Instruction of a given LLVM
  * Function.
  * @param F Function to retrieve the Store Instruction from.
- * @param termInstNo Store Instruction number.
+ * @param TermInstNo Store Instruction number.
  * @return LLVM Store Instruction or nullptr, if stoNo invalid.
  */
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
@@ -230,7 +230,7 @@ std::string getModuleNameFromVal(const llvm::Value *V);
 /**
  * @brief Computes a hash value for a given LLVM Module.
  * @param M LLVM Module.
- * @param considerIdentifier If true, module identifier will be considered for
+ * @param ConsiderIdentifier If true, module identifier will be considered for
  * hash computation.
  * @return Hash value.
  */

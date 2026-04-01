@@ -69,7 +69,7 @@ TEST(EdgeFunctionComposerTest, HandleEFIDs) {
   EdgeFunction<int> EFC2 = MyEFC{EF2, EdgeIdentity<int>{}};
   llvm::outs() << "My EFC: " << EFC1 << " " << EFC2 << '\n';
   EXPECT_EQ("EFComposer[AddTwoEF_1, AddTwoEF_2]", to_string(EFC1));
-  EXPECT_EQ("EFComposer[AddTwoEF_2, psr::EdgeIdentity<int>]", to_string(EFC2));
+  EXPECT_EQ("EFComposer[AddTwoEF_2, EdgeIdentity]", to_string(EFC2));
   // Reset ID's for next test
   CurrAddTwoEfId = 0;
 }
