@@ -8,6 +8,8 @@ using namespace psr::library_summary;
 static library_summary::FunctionDataFlowFacts createLibCSummary() {
   FunctionDataFlowFacts Sum;
 
+  Sum.addElement("atoi", 0, ReturnValue{});
+
   // abs
   Sum.addElement("abs", 0, ReturnValue{});
 

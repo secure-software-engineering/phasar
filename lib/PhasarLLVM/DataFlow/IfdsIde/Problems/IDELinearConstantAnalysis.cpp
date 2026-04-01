@@ -66,17 +66,9 @@ struct LCAEdgeFunctionComposer : EdgeFunctionComposer<l_t> {
   }
 };
 
-auto hash_value(const LCAEdgeFunctionComposer &EF) noexcept {
-  return llvm::hash_combine(EF.First, EF.Second);
-}
-
 static_assert(is_llvm_hashable_v<LCAEdgeFunctionComposer>);
 
-struct GenConstant : ConstantEdgeFunction<l_t> {};
-
-llvm::hash_code hash_value(const GenConstant &EF) noexcept {
-  return llvm::hash_value(EF.Value);
-}
+using GenConstant = ConstantEdgeFunction<l_t>;
 
 using TTT = decltype(hash_value(std::declval<GenConstant>()));
 static_assert(is_llvm_hashable_v<GenConstant>);

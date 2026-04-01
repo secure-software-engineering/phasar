@@ -11,19 +11,15 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_EXTENDEDTAINTANALYSIS_ABSTRACTMEMORYLOCATIONFACTORY_H
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/AbstractMemoryLocation.h"
+#include "phasar/Utils/MemoryLocationAllocator.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FoldingSet.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/Support/TrailingObjects.h"
-
-#include <memory>
-#include <vector>
 
 namespace llvm {
 class DataLayout;
-class GetElementPtrInst;
+class GEPOperator;
 } // namespace llvm
 
 namespace psr {
@@ -35,30 +31,10 @@ namespace detail {
 class AbstractMemoryLocationFactoryBase {
 
 private:
-  struct Allocator {
-    struct Block final : public llvm::TrailingObjects<Block, void *> {
-
-      Block *Next = nullptr;
-
-      static Block *create(Block *Next, size_t NumPointerEntries);
-      static void destroy(Block *Blck, size_t NumPointerEntries);
-
-    private:
-      Block(Block *Next);
-    };
-
-    Block *Root = nullptr;
-    void **Pos = nullptr, **End = nullptr;
-    size_t InitialCapacity{};
+  struct Allocator : MemoryLocationAllocator {
 
     Allocator() noexcept = default;
     Allocator(size_t InitialCapacity);
-    Allocator(const Allocator &) = delete;
-    Allocator(Allocator &&Other) noexcept;
-    ~Allocator();
-
-    Allocator &operator=(const Allocator &) = delete;
-    Allocator &operator=(Allocator &&Other) noexcept;
 
     AbstractMemoryLocationImpl *create(const llvm::Value *Baseptr,
                                        size_t Lifetime,
@@ -106,7 +82,7 @@ protected:
                         llvm::ArrayRef<ptrdiff_t> Ind);
   const AbstractMemoryLocationImpl *
   withOffsetImpl(const AbstractMemoryLocationImpl *AML,
-                 const llvm::GetElementPtrInst *Gep);
+                 const llvm::GEPOperator *Gep);
 
   const AbstractMemoryLocationImpl *
   withOffsetsImpl(const AbstractMemoryLocationImpl *AML,
@@ -178,8 +154,7 @@ public:
   }
 
   [[nodiscard]] AbstractMemoryLocation
-  withOffset(const AbstractMemoryLocation &AML,
-             const llvm::GetElementPtrInst *Gep) {
+  withOffset(const AbstractMemoryLocation &AML, const llvm::GEPOperator *Gep) {
     return {withOffsetImpl(AML.operator->(), Gep)};
   }
 

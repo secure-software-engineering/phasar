@@ -4,16 +4,15 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Fabian Schiebel, Maximilian Huber and others
+ *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
-#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_IDEALIASINFOTABULATIONPROBLEM_H
+#ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTALLOCSITESAWAREIDEPROBLEM_H
+#define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTALLOCSITESAWAREIDEPROBLEM_H
 
-#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMBasePointerAliasSet.h"
 
 #include <cassert>
 
@@ -27,7 +26,7 @@ class Value;
 namespace psr {
 
 namespace detail {
-class IDEAliasAwareDefaultFlowFunctionsImpl
+class IDEAllocSitesAwareDefaultFlowFunctionsImpl
     : private IDENoAliasDefaultFlowFunctionsImpl {
 public:
   using typename IDENoAliasDefaultFlowFunctionsImpl::d_t;
@@ -38,54 +37,74 @@ public:
 
   using IDENoAliasDefaultFlowFunctionsImpl::isFunctionModeled;
 
-  [[nodiscard]] constexpr LLVMAliasIteratorRef getAliasInfo() const noexcept {
+  bool EnableStrongUpdateStore = true;
+
+  [[nodiscard]] constexpr const auto &getAliasInfo() const noexcept {
     return AS;
   }
 
-  constexpr IDEAliasAwareDefaultFlowFunctionsImpl(
-      LLVMAliasIteratorRef AS) noexcept
-      : AS(AS) {}
+  constexpr IDEAllocSitesAwareDefaultFlowFunctionsImpl(
+      LLVMAliasInfoRef AS) noexcept
+      : AS(AS) {
+    assert(AS && "You must provide an alias information handle!");
+  }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunctionImpl(n_t Curr,
                                                               n_t /*Succ*/);
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunctionImpl(n_t CallInst,
+                                                            f_t CalleeFun);
   [[nodiscard]] FlowFunctionPtrType getRetFlowFunctionImpl(n_t CallSite,
                                                            f_t /*CalleeFun*/,
                                                            n_t ExitInst,
                                                            n_t /*RetSite*/);
-  using IDENoAliasDefaultFlowFunctionsImpl::getCallFlowFunctionImpl;
-  using IDENoAliasDefaultFlowFunctionsImpl::getCallToRetFlowFunctionImpl;
+  [[nodiscard]] FlowFunctionPtrType
+  getCallToRetFlowFunctionImpl(n_t CallSite, n_t /*RetSite*/,
+                               llvm::ArrayRef<f_t> /*Callees*/);
 
 private:
-  LLVMAliasIteratorRef AS;
+  LLVMBasePointerAliasSet AS;
 };
 } // namespace detail
 
 template <typename AnalysisDomainTy>
-class DefaultAliasAwareIDEProblem
+class DefaultAllocSitesAwareIDEProblem
     : public IDETabulationProblem<AnalysisDomainTy>,
-      protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
+      protected detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl {
 public:
-  using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::d_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
+  using ProblemAnalysisDomain = AnalysisDomainTy;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using n_t = typename AnalysisDomainTy::n_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using v_t = typename AnalysisDomainTy::v_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+  using i_t = typename AnalysisDomainTy::i_t;
+  using db_t = typename AnalysisDomainTy::db_t;
 
-  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
+  using ConfigurationTy = HasNoConfigurationType;
+
+  using FlowFunctionType = FlowFunction<d_t>;
+  using FlowFunctionPtrType = typename FlowFunctionType::FlowFunctionPtrType;
+
+  using container_type = typename FlowFunctionType::container_type;
 
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
   ///
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
-  explicit DefaultAliasAwareIDEProblem(
-      const db_t *IRDB, LLVMAliasIteratorRef AS,
+  explicit DefaultAllocSitesAwareIDEProblem(
+      const ProjectIRDBBase<db_t> *IRDB, LLVMAliasInfoRef AS,
       std::vector<std::string> EntryPoints,
       std::optional<d_t>
           ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
-                                               ZeroValue),
-        detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
+                                               std::move(ZeroValue)),
+        detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl(AS) {}
+
+  void disableStrongUpdateStore() noexcept {
+    this->EnableStrongUpdateStore = false;
+  }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
@@ -111,28 +130,25 @@ public:
   }
 };
 
-class DefaultAliasAwareIFDSProblem
-    : public IFDSTabulationProblem<LLVMAnalysisDomainDefault>,
-      protected detail::IDEAliasAwareDefaultFlowFunctionsImpl {
+class DefaultAllocSitesAwareIFDSProblem
+    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
+      protected detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl {
 public:
-  using typename IFDSTabulationProblem::d_t;
-  using typename IFDSTabulationProblem::f_t;
-  using typename IFDSTabulationProblem::FlowFunctionPtrType;
-  using typename IFDSTabulationProblem::n_t;
-
   /// Constructs an IFDSTabulationProblem with the usual arguments + alias
   /// information.
   ///
   /// \note It is useful to use an instance of FilteredAliasSet for the alias
   /// information to lower suprious aliases
-  explicit DefaultAliasAwareIFDSProblem(
-      const db_t *IRDB, LLVMAliasIteratorRef AS,
+  explicit DefaultAllocSitesAwareIFDSProblem(
+      const db_t *IRDB, LLVMAliasInfoRef AS,
       std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
-        detail::IDEAliasAwareDefaultFlowFunctionsImpl(AS) {}
+        detail::IDEAllocSitesAwareDefaultFlowFunctionsImpl(AS) {}
 
-  using detail::IDEAliasAwareDefaultFlowFunctionsImpl::getAliasInfo;
+  void disableStrongUpdateStore() noexcept {
+    this->EnableStrongUpdateStore = false;
+  }
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) override {
@@ -160,4 +176,4 @@ public:
 
 } // namespace psr
 
-#endif
+#endif // PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_DEFAULTALLOCSITESAWAREIDEPROBLEM_H

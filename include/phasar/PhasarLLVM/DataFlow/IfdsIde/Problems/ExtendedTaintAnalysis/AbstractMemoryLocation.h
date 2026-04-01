@@ -21,12 +21,12 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/TrailingObjects.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <string>
 
@@ -97,8 +97,8 @@ public:
   ///
   /// \return The byte offset, iff all indices are constants. Otherwise
   /// std::nullopt
-  static std::optional<ptrdiff_t>
-  computeOffset(const llvm::DataLayout &DL, const llvm::GetElementPtrInst *Gep);
+  static std::optional<ptrdiff_t> computeOffset(const llvm::DataLayout &DL,
+                                                const llvm::GEPOperator *Gep);
 
   [[nodiscard]] inline bool isOverApproximation() const {
     return lifetime() == 0;

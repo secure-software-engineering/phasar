@@ -15,5 +15,8 @@ using namespace psr;
 
 void controller::executeIFDSTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
-  executeIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints);
+  // Note: Don't blindly generate argc and argv. Use a proper taint config
+  // instead
+  executeIFDSAnalysis<IFDSTaintAnalysis>(Data, &Config, Data.EntryPoints,
+                                         false);
 }

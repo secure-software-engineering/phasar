@@ -55,7 +55,6 @@ public:
   /// `"__ALL__"`
   /// @param[in] ZeroValue Provides the special tautological zero value (aka.
   /// Λ).
-  /// \endlink.
   explicit IFDSTabulationProblem(const db_t *IRDB,
                                  std::vector<std::string> EntryPoints,
                                  d_t ZeroValue)
