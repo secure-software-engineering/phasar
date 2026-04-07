@@ -181,17 +181,16 @@ struct OperandOf {
 };
 
 struct FuncByName {
-  llvm::StringRef NameOfFunction;
+  llvm::StringRef FuncName;
 
-  friend bool operator<(FuncByName R1, FuncByName R2) noexcept {
-    return R1.NameOfFunction < R2.NameOfFunction;
+  friend bool operator<(FuncByName F1, FuncByName F2) noexcept {
+    return F1.FuncName < F2.FuncName;
   }
-  friend bool operator==(FuncByName R1, FuncByName R2) noexcept {
-    return R1.NameOfFunction == R2.NameOfFunction;
+  friend bool operator==(FuncByName F1, FuncByName F2) noexcept {
+    return F1.FuncName == F2.FuncName;
   }
   [[nodiscard]] std::string str() const {
-    return std::string("FuncByName { InFunction: ") + NameOfFunction.str() +
-           " }";
+    return std::string("FuncByName { FuncName: ") + FuncName.str() + " }";
   }
 };
 
@@ -284,8 +283,8 @@ template <> struct hash<psr::unittest::OperandOf> {
 };
 
 template <> struct hash<psr::unittest::FuncByName> {
-  size_t operator()(psr::unittest::FuncByName FBN) const noexcept {
-    return llvm::hash_value(FBN.NameOfFunction);
+  size_t operator()(psr::unittest::FuncByName Fun) const noexcept {
+    return llvm::hash_value(Fun.FuncName);
   }
 };
 
@@ -420,14 +419,13 @@ testingLocInIR(TestingSrcLocation Loc, const LLVMProjectIRDB &IRDB,
 
             return Inst->getOperand(Op.OperandIndex);
           },
-          [&](FuncByName FBN) -> llvm::Value const * {
-            if (const auto *Func = GetFunction(FBN.NameOfFunction)) {
+          [&](FuncByName F) -> llvm::Value const * {
+            const auto *Func = GetFunction(F.FuncName);
+            if (Func) {
               return Func;
             }
-            llvm::report_fatal_error("No function with name " +
-                                     FBN.NameOfFunction);
-          },
-      },
+            llvm::report_fatal_error("No function named " + F.FuncName);
+          }},
       Loc);
   if (!Ret) {
     llvm::report_fatal_error("Cannot convert " + llvm::Twine(Loc.str()) +
