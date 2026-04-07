@@ -365,7 +365,10 @@ TEST(ValueIdMap, MoveAssign) {
 TEST(ValueIdMap, SelfAssign) {
   ValueIdMap<Id, int> M;
   M.try_emplace(id(0), 42);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-assign-overloaded"
   M = M; // NOLINT(clang-diagnostic-self-assign-overloaded)
+#pragma GCC diagnostic pop
   EXPECT_EQ(42, M.at(id(0)));
 }
 
