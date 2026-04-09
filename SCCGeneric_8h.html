@@ -94,9 +94,9 @@ $(function() {
 <code>#include &quot;<a class="el" href="GraphTraits_8h_source.html">phasar/Utils/GraphTraits.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="IotaIterator_8h_source.html">phasar/Utils/IotaIterator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="RepeatIterator_8h_source.html">phasar/Utils/RepeatIterator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="SCCId_8h_source.html">phasar/Utils/SCCId.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="TypedVector_8h_source.html">phasar/Utils/TypedVector.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/ArrayRef.h&quot;</code><br />
-<code>#include &quot;llvm/ADT/DenseMapInfo.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/DenseSet.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/STLExtras.h&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
@@ -108,11 +108,6 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCId.html">psr::SCCId&lt; GraphNodeId &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Id of a strongly-connected component in a graph.  <a href="structpsr_1_1SCCId.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllvm_1_1DenseMapInfo_3_01psr_1_1SCCId_3_01GraphNodeId_01_4_01_4.html">llvm::DenseMapInfo&lt; psr::SCCId&lt; GraphNodeId &gt; &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html">psr::SCCHolder&lt; GraphNodeId &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Holds the SCCs of a given graph. Each SCC is assigned a unique sequential id.  <a href="structpsr_1_1SCCHolder.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -133,8 +128,6 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespacepsr_1_1detail" id="r_namespacepsr_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1detail.html">psr::detail</a></td></tr>
 <tr class="memdesc:namespacepsr_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class that implements a control flow graph. Conforms to the <a class="el" href="classpsr_1_1CFGBase.html">CFGBase</a> CRTP interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacellvm" id="r_namespacellvm"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacellvm.html">llvm</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -143,7 +136,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a8ed5d4bf7cefa8d4f4fd2ee01828a0b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a graph based on the given input Graph, collapsing all SCCs to single nodes. The resulting graph is always a DAG, i.e., it contains no cycles.  <br /></td></tr>
 <tr class="separator:a8ed5d4bf7cefa8d4f4fd2ee01828a0b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19840ad93c151c03707e7e92afd8c3a1" id="r_a19840ad93c151c03707e7e92afd8c3a1"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId &gt; </td></tr>
-<tr class="memitem:a19840ad93c151c03707e7e92afd8c3a1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1SCCOrder.html">SCCOrder</a>&lt; GraphNodeId &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a19840ad93c151c03707e7e92afd8c3a1">psr::computeSCCOrder</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="structpsr_1_1SCCHolder.html">SCCHolder</a>&lt; GraphNodeId &gt; &amp;SCCs, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="structpsr_1_1SCCDependencyGraph.html">SCCDependencyGraph</a>&lt; GraphNodeId &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Callers</a>)</td></tr>
+<tr class="memitem:a19840ad93c151c03707e7e92afd8c3a1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1SCCOrder.html">SCCOrder</a>&lt; GraphNodeId &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a19840ad93c151c03707e7e92afd8c3a1">psr::computeSCCOrder</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="structpsr_1_1SCCHolder.html">SCCHolder</a>&lt; GraphNodeId &gt; &amp;SCCs, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="structpsr_1_1SCCDependencyGraph.html">SCCDependencyGraph</a>&lt; GraphNodeId &gt; &amp;Callers)</td></tr>
 <tr class="memdesc:a19840ad93c151c03707e7e92afd8c3a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes a topological order of the nodes in the given dependency-graph.  <br /></td></tr>
 <tr class="separator:a19840ad93c151c03707e7e92afd8c3a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a749378376b19f7ceb0d4b28324884a6b" id="r_a749378376b19f7ceb0d4b28324884a6b"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a> , <a class="el" href="classbool.html">bool</a> Iterative = true&gt; </td></tr>
@@ -156,7 +149,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

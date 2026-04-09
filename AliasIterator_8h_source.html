@@ -126,7 +126,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">concept </span>HasAlias = <span class="keyword">requires</span>(T &amp;AS, <span class="keyword">typename</span> T::v_t <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <span class="keyword">typename</span> T::n_t Inst) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  { AS.alias(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, Inst) } -&gt; std::same_as&lt;AliasResult&gt;;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  { AS.alias(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, Inst) } -&gt; std::convertible_to&lt;AliasResult&gt;;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>};</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
@@ -283,13 +283,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1AliasIteratorRef_html_aeebf81612261c6aaa801b48c0f685bff"><div class="ttname"><a href="classpsr_1_1AliasIteratorRef.html#aeebf81612261c6aaa801b48c0f685bff">psr::AliasIteratorRef::AliasIteratorRef</a></div><div class="ttdeci">constexpr AliasIteratorRef(ConcreteAA AA) noexcept</div><div class="ttdef"><b>Definition</b> <a href="AliasIterator_8h_source.html#l00089">AliasIterator.h:89</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1IsAliasIterator_html"><div class="ttname"><a href="conceptpsr_1_1IsAliasIterator.html">psr::IsAliasIterator</a></div><div class="ttdef"><b>Definition</b> <a href="AliasIterator_8h_source.html#l00048">AliasIterator.h:48</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a40959371d6d8d02e197a2939d33d5dea"><div class="ttname"><a href="namespacepsr.html#a40959371d6d8d02e197a2939d33d5dea">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE T &amp; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00292">Utilities.h:292</a></div></div>
+<div class="ttc" id="anamespacepsr_html_a40959371d6d8d02e197a2939d33d5dea"><div class="ttname"><a href="namespacepsr.html#a40959371d6d8d02e197a2939d33d5dea">psr::assertNotNull</a></div><div class="ttdeci">LLVM_ATTRIBUTE_ALWAYS_INLINE T &amp; assertNotNull(T &amp;Value)</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00301">Utilities.h:301</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="astructpsr_1_1TypeErasureUtils_html"><div class="ttname"><a href="structpsr_1_1TypeErasureUtils.html">psr::TypeErasureUtils</a></div><div class="ttdef"><b>Definition</b> <a href="TypeErasureUtils_8h_source.html#l00016">TypeErasureUtils.h:16</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:47 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

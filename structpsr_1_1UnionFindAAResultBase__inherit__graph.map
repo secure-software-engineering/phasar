@@ -1,0 +1,7 @@
+<map id="psr::UnionFindAAResultBase" name="psr::UnionFindAAResultBase">
+<area shape="rect" id="Node000001" title=" " alt="" coords="124,5,331,31"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1BasicUnionFindAAResult.html" title=" " alt="" coords="5,86,215,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,41,129,88,126,84,197,36"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1CallingContextSensUnionFindAAResult.html" title=" " alt="" coords="239,79,453,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,36,319,76,316,81,255,41"/>
+</map>

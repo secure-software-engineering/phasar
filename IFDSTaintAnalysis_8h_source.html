@@ -105,9 +105,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="IFDSTabulationProblem_8h.html">phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h</a>&quot;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedICFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h</a>&quot;</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMProjectIRDB_8h.html">phasar/PhasarLLVM/DB/LLVMProjectIRDB.h</a>&quot;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMFunctionDataFlowFacts_8h.html">phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h</a>&quot;</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAnalysisDomain_8h.html">phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h</a>&quot;</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAliasInfo_8h.html">phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h</a>&quot;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAnalysisDomain_8h.html">phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h</a>&quot;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMAliasInfo_8h.html">phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h</a>&quot;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMFunctionDataFlowFacts_8h.html">phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h</a>&quot;</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;map&gt;</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;set&gt;</span></div>
@@ -244,11 +244,11 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_add33d940596eaff0ef8b39851bbfe6cc"><div class="ttname"><a href="namespacepsr.html#add33d940596eaff0ef8b39851bbfe6cc">psr::FlowFunctionPtrType</a></div><div class="ttdeci">FlowFunctionPtrTypeOf&lt; FlowFunction&lt; D, Container &gt; &gt; FlowFunctionPtrType</div><div class="ttdef"><b>Definition</b> <a href="FlowFunctions_8h_source.html#l00098">FlowFunctions.h:98</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ae978c20a03ae03bd7b2c13119a2a0ab5"><div class="ttname"><a href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">psr::LLVMAliasInfoRef</a></div><div class="ttdeci">AliasInfoRef&lt; const llvm::Value *, const llvm::Instruction * &gt; LLVMAliasInfoRef</div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasInfo_8h_source.html#l00027">LLVMAliasInfo.h:28</a></div></div>
+<div class="ttc" id="anamespacepsr_html_ae978c20a03ae03bd7b2c13119a2a0ab5"><div class="ttname"><a href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">psr::LLVMAliasInfoRef</a></div><div class="ttdeci">AliasInfoRef&lt; const llvm::Value *, const llvm::Instruction * &gt; LLVMAliasInfoRef</div><div class="ttdef"><b>Definition</b> <a href="LLVMAliasInfo_8h_source.html#l00032">LLVMAliasInfo.h:33</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:47 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

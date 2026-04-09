@@ -109,20 +109,20 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keyword">requires</span>(!std::is_pointer_v&lt;T&gt;)</div>
 <div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">   19</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">return</span> std::addressof(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">   19</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(T &amp;Ref) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">return</span> std::addressof(Ref);</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
 </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="keyword">requires</span>(!std::is_pointer_v&lt;T&gt;)</div>
 <div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9093ea8c6532cacce4319d6a2b0fed38">   24</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">constexpr</span> <span class="keyword">const</span> T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(<span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">return</span> std::addressof(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9093ea8c6532cacce4319d6a2b0fed38">   24</a></span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <span class="keyword">constexpr</span> <span class="keyword">const</span> T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(<span class="keyword">const</span> T &amp;Ref) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">return</span> std::addressof(Ref);</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}</div>
 </div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keyword">requires</span>(!std::is_pointer_v&lt;T&gt;)</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="namespacepsr.html#a97927c2b2c7fb8f68d8e81e0a821f07e">   29</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(T &amp;&amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">noexcept</span> = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="namespacepsr.html#a97927c2b2c7fb8f68d8e81e0a821f07e">   29</a></span><span class="keyword">constexpr</span> T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(T &amp;&amp;Ref) <span class="keyword">noexcept</span> = <span class="keyword">delete</span>;</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
 <div class="foldopen" id="foldopen00031" data-start="{" data-end="}">
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="namespacepsr.html#a66176a2ddd7ed9c42e94305f6237860e">   31</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] T *<a class="code hl_function" href="namespacepsr.html#af9795ff203b6ffab026d43cf085536e7">getPointerFrom</a>(T *<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>) <span class="keyword">noexcept</span> {</div>
@@ -230,7 +230,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:47 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

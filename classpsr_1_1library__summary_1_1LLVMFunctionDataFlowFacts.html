@@ -94,7 +94,7 @@ $(function() {
 <p>A LLVM-specific mapping of <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html" title="Simple representation of a serializable data-flow summary.">FunctionDataFlowFacts</a>.  
  <a href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#details">More...</a></p>
 
-<p><code>#include &quot;<a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h</a>&quot;</code></p>
+<p><code>#include &quot;<a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h</a>&quot;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -105,33 +105,26 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0665e860d01acbcc3a151a422be923e8" id="r_a0665e860d01acbcc3a151a422be923e8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a0665e860d01acbcc3a151a422be923e8">LLVMFunctionDataFlowFacts</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
 <tr class="separator:a0665e860d01acbcc3a151a422be923e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd05f93037d0bab6263b7fbde756e2fa" id="r_acd05f93037d0bab6263b7fbde756e2fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#acd05f93037d0bab6263b7fbde756e2fa">insertSet</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, uint32_t Index, std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OutSet</a>)</td></tr>
-<tr class="memdesc:acd05f93037d0bab6263b7fbde756e2fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert a set of data flow facts  <br /></td></tr>
-<tr class="separator:acd05f93037d0bab6263b7fbde756e2fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f9a570938f5dd61fc2dbf1264f78e3a" id="r_a5f9a570938f5dd61fc2dbf1264f78e3a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a5f9a570938f5dd61fc2dbf1264f78e3a">insertSet</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Argument *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Arg</a>, std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OutSet</a>)</td></tr>
-<tr class="separator:a5f9a570938f5dd61fc2dbf1264f78e3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a4dd57cb5cbf6971074b43550ad30a4" id="r_a1a4dd57cb5cbf6971074b43550ad30a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a1a4dd57cb5cbf6971074b43550ad30a4">addElement</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, uint32_t Index, <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Out</a>)</td></tr>
-<tr class="separator:a1a4dd57cb5cbf6971074b43550ad30a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05396aea3c0943548fe92915b5d49f52" id="r_a05396aea3c0943548fe92915b5d49f52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a05396aea3c0943548fe92915b5d49f52">addElement</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Argument *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Arg</a>, <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Out</a>)</td></tr>
-<tr class="separator:a05396aea3c0943548fe92915b5d49f52"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d01f1d97bf4bb18961e52d494aa047c" id="r_a2d01f1d97bf4bb18961e52d494aa047c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a2d01f1d97bf4bb18961e52d494aa047c">contains</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fn)</td></tr>
-<tr class="separator:a2d01f1d97bf4bb18961e52d494aa047c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4473e963b466d32c350d16c03cff5857" id="r_a4473e963b466d32c350d16c03cff5857"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a4473e963b466d32c350d16c03cff5857">getFacts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, uint32_t Index)</td></tr>
-<tr class="separator:a4473e963b466d32c350d16c03cff5857"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7d432c6f9e01307d96dbed136b1d5e4" id="r_af7d432c6f9e01307d96dbed136b1d5e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#af7d432c6f9e01307d96dbed136b1d5e4">getFacts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Argument *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Arg</a>)</td></tr>
-<tr class="separator:af7d432c6f9e01307d96dbed136b1d5e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b1d9656373aac6f7f5763986aff29d3" id="r_a8b1d9656373aac6f7f5763986aff29d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a6a7100c974f20f8b55598b734f239c71">ParameterMappingTy</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a8b1d9656373aac6f7f5763986aff29d3">getFactsForFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun)</td></tr>
-<tr class="separator:a8b1d9656373aac6f7f5763986aff29d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ac7e195b88d12db52048d1cc4710b30" id="r_a9ac7e195b88d12db52048d1cc4710b30"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a9ac7e195b88d12db52048d1cc4710b30">contains</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fn) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a9ac7e195b88d12db52048d1cc4710b30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21b504e9ca73e9d226b6b12d89ad7a19" id="r_a21b504e9ca73e9d226b6b12d89ad7a19"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a21b504e9ca73e9d226b6b12d89ad7a19">getFacts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, uint32_t Index) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a21b504e9ca73e9d226b6b12d89ad7a19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa146d1e83e5bfbb3c0a9cec6434d5de4" id="r_aa146d1e83e5bfbb3c0a9cec6434d5de4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#aa146d1e83e5bfbb3c0a9cec6434d5de4">getFacts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Argument *Arg) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:aa146d1e83e5bfbb3c0a9cec6434d5de4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae62e8972a346136d138fe8b0ebed0bd5" id="r_ae62e8972a346136d138fe8b0ebed0bd5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a6a7100c974f20f8b55598b734f239c71">ParameterMappingTy</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#ae62e8972a346136d138fe8b0ebed0bd5">getFactsForFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:ae62e8972a346136d138fe8b0ebed0bd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b3b5ccb06e65ac76fe88df82e6121a1" id="r_a1b3b5ccb06e65ac76fe88df82e6121a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a6a7100c974f20f8b55598b734f239c71">ParameterMappingTy</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a1b3b5ccb06e65ac76fe88df82e6121a1">getFactsForFunctionOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *Fun) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a1b3b5ccb06e65ac76fe88df82e6121a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:a7eb19c9c9c6bac760a2e0928201e0298" id="r_a7eb19c9c9c6bac760a2e0928201e0298"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html">LLVMFunctionDataFlowFacts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a7eb19c9c9c6bac760a2e0928201e0298">readFromFDFF</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html">FunctionDataFlowFacts</a> &amp;Fdff, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Irdb</a>)</td></tr>
-<tr class="separator:a7eb19c9c9c6bac760a2e0928201e0298"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40c7b845cfb28a385d8eeaa925e230c5" id="r_a40c7b845cfb28a385d8eeaa925e230c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html">LLVMFunctionDataFlowFacts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a40c7b845cfb28a385d8eeaa925e230c5">readFromFDFF</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html">FunctionDataFlowFacts</a> &amp;Fdff, std::invocable&lt; llvm::StringRef &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GetFunctionByNameOrNull</a>)</td></tr>
+<tr class="separator:a40c7b845cfb28a385d8eeaa925e230c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A LLVM-specific mapping of <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html" title="Simple representation of a serializable data-flow summary.">FunctionDataFlowFacts</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00030">30</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00031">31</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a6a7100c974f20f8b55598b734f239c71" name="a6a7100c974f20f8b55598b734f239c71"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6a7100c974f20f8b55598b734f239c71">&#9670;&#160;</a></span>ParameterMappingTy</h2>
@@ -145,7 +138,7 @@ Friends</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00033">33</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00034">34</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
 
 </div>
 </div>
@@ -176,100 +169,8 @@ Friends</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a05396aea3c0943548fe92915b5d49f52" name="a05396aea3c0943548fe92915b5d49f52"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05396aea3c0943548fe92915b5d49f52">&#9670;&#160;</a></span>addElement() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::library_summary::LLVMFunctionDataFlowFacts::addElement </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
-          <td class="paramname"><em>Fun</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Argument *&#160;</td>
-          <td class="paramname"><em>Arg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a>&#160;</td>
-          <td class="paramname"><em>Out</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00050">50</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
-
-<p class="reference">References <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00047">addElement()</a>.</p>
-
-</div>
-</div>
-<a id="a1a4dd57cb5cbf6971074b43550ad30a4" name="a1a4dd57cb5cbf6971074b43550ad30a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a4dd57cb5cbf6971074b43550ad30a4">&#9670;&#160;</a></span>addElement() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::library_summary::LLVMFunctionDataFlowFacts::addElement </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
-          <td class="paramname"><em>Fun</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>Index</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a>&#160;</td>
-          <td class="paramname"><em>Out</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00047">47</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00050">addElement()</a>.</p>
-
-</div>
-</div>
-<a id="a2d01f1d97bf4bb18961e52d494aa047c" name="a2d01f1d97bf4bb18961e52d494aa047c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2d01f1d97bf4bb18961e52d494aa047c">&#9670;&#160;</a></span>contains()</h2>
+<a id="a9ac7e195b88d12db52048d1cc4710b30" name="a9ac7e195b88d12db52048d1cc4710b30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ac7e195b88d12db52048d1cc4710b30">&#9670;&#160;</a></span>contains()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -282,7 +183,7 @@ Friends</h2></td></tr>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
           <td class="paramname"><em>Fn</em></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -292,12 +193,12 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00055">55</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00036">36</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
 
 </div>
 </div>
-<a id="af7d432c6f9e01307d96dbed136b1d5e4" name="af7d432c6f9e01307d96dbed136b1d5e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7d432c6f9e01307d96dbed136b1d5e4">&#9670;&#160;</a></span>getFacts() <span class="overload">[1/2]</span></h2>
+<a id="aa146d1e83e5bfbb3c0a9cec6434d5de4" name="aa146d1e83e5bfbb3c0a9cec6434d5de4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa146d1e83e5bfbb3c0a9cec6434d5de4">&#9670;&#160;</a></span>getFacts() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -320,7 +221,7 @@ Friends</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -330,14 +231,14 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00068">68</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00048">48</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00060">getFacts()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00041">getFacts()</a>.</p>
 
 </div>
 </div>
-<a id="a4473e963b466d32c350d16c03cff5857" name="a4473e963b466d32c350d16c03cff5857"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4473e963b466d32c350d16c03cff5857">&#9670;&#160;</a></span>getFacts() <span class="overload">[2/2]</span></h2>
+<a id="a21b504e9ca73e9d226b6b12d89ad7a19" name="a21b504e9ca73e9d226b6b12d89ad7a19"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21b504e9ca73e9d226b6b12d89ad7a19">&#9670;&#160;</a></span>getFacts() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -360,7 +261,7 @@ Friends</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -370,14 +271,16 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00060">60</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00041">41</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00068">getFacts()</a>.</p>
+<p class="reference">References <a class="el" href="MapUtils_8h_source.html#l00025">psr::getOrDefault()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00048">getFacts()</a>.</p>
 
 </div>
 </div>
-<a id="a8b1d9656373aac6f7f5763986aff29d3" name="a8b1d9656373aac6f7f5763986aff29d3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b1d9656373aac6f7f5763986aff29d3">&#9670;&#160;</a></span>getFactsForFunction()</h2>
+<a id="ae62e8972a346136d138fe8b0ebed0bd5" name="ae62e8972a346136d138fe8b0ebed0bd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae62e8972a346136d138fe8b0ebed0bd5">&#9670;&#160;</a></span>getFactsForFunction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -390,7 +293,7 @@ Friends</h2></td></tr>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
           <td class="paramname"><em>Fun</em></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -400,12 +303,14 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00073">73</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00053">53</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+
+<p class="reference">References <a class="el" href="MapUtils_8h_source.html#l00025">psr::getOrDefault()</a>.</p>
 
 </div>
 </div>
-<a id="a5f9a570938f5dd61fc2dbf1264f78e3a" name="a5f9a570938f5dd61fc2dbf1264f78e3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f9a570938f5dd61fc2dbf1264f78e3a">&#9670;&#160;</a></span>insertSet() <span class="overload">[1/2]</span></h2>
+<a id="a1b3b5ccb06e65ac76fe88df82e6121a1" name="a1b3b5ccb06e65ac76fe88df82e6121a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b3b5ccb06e65ac76fe88df82e6121a1">&#9670;&#160;</a></span>getFactsForFunctionOrNull()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -414,27 +319,11 @@ Friends</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::library_summary::LLVMFunctionDataFlowFacts::insertSet </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html#a6a7100c974f20f8b55598b734f239c71">ParameterMappingTy</a> * psr::library_summary::LLVMFunctionDataFlowFacts::getFactsForFunctionOrNull </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
-          <td class="paramname"><em>Fun</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Argument *&#160;</td>
-          <td class="paramname"><em>Arg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt;&#160;</td>
-          <td class="paramname"><em>OutSet</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
+          <td class="paramname"><em>Fun</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -444,63 +333,15 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00041">41</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00061">61</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00036">insertSet()</a>.</p>
-
-</div>
-</div>
-<a id="acd05f93037d0bab6263b7fbde756e2fa" name="acd05f93037d0bab6263b7fbde756e2fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd05f93037d0bab6263b7fbde756e2fa">&#9670;&#160;</a></span>insertSet() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::library_summary::LLVMFunctionDataFlowFacts::insertSet </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
-          <td class="paramname"><em>Fun</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>Index</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="structpsr_1_1library__summary_1_1DataFlowFact.html">DataFlowFact</a> &gt;&#160;</td>
-          <td class="paramname"><em>OutSet</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>insert a set of data flow facts </p>
-
-<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00036">36</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00041">insertSet()</a>.</p>
+<p class="reference">References <a class="el" href="MapUtils_8h_source.html#l00025">psr::getOrDefault()</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Friends And Related Symbol Documentation</h2>
-<a id="a7eb19c9c9c6bac760a2e0928201e0298" name="a7eb19c9c9c6bac760a2e0928201e0298"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7eb19c9c9c6bac760a2e0928201e0298">&#9670;&#160;</a></span>readFromFDFF</h2>
+<a id="a40c7b845cfb28a385d8eeaa925e230c5" name="a40c7b845cfb28a385d8eeaa925e230c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40c7b845cfb28a385d8eeaa925e230c5">&#9670;&#160;</a></span>readFromFDFF</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -517,8 +358,8 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
-          <td class="paramname"><em>Irdb</em>&#160;</td>
+          <td class="paramtype">std::invocable&lt; llvm::StringRef &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td>
+          <td class="paramname"><em>GetFunctionByNameOrNull</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -533,15 +374,17 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html#l00066">66</a> of file <a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a>.</p>
+
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>include/phasar/PhasarLLVM/DataFlow/IfdsIde/<a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a></li>
+<li>include/phasar/PhasarLLVM/Utils/<a class="el" href="LLVMFunctionDataFlowFacts_8h_source.html">LLVMFunctionDataFlowFacts.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:19 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

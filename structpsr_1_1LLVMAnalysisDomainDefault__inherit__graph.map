@@ -1,39 +1,43 @@
 <map id="psr::LLVMAnalysisDomainDefault" name="psr::LLVMAnalysisDomainDefault">
-<area shape="rect" id="Node000001" title="An AnalysisDomain that specializes sensible defaults for LLVM&#45;based analysis." alt="" coords="209,434,448,459"/>
+<area shape="rect" id="Node000001" title="An AnalysisDomain that specializes sensible defaults for LLVM&#45;based analysis." alt="" coords="209,466,448,491"/>
 <area shape="rect" id="Node000003" href="$structpsr_1_1IDEExtendedTaintAnalysisDomain.html" title=" " alt="" coords="514,5,733,45"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="331,420,344,347,372,249,394,196,421,145,454,97,494,55,512,43,515,48,498,59,458,100,425,147,399,198,377,251,349,349,336,421"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="330,452,341,374,368,267,390,209,417,153,452,101,494,55,512,43,515,47,498,59,456,104,422,156,394,212,373,269,346,375,335,453"/>
 <area shape="rect" id="Node000004" href="$structpsr_1_1IDEFeatureTaintAnalysisDomain.html" title=" " alt="" coords="520,69,727,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="333,420,350,358,381,276,403,233,429,192,459,153,494,119,519,105,521,109,498,123,463,156,433,195,407,236,386,279,355,359,338,421"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="332,452,347,385,377,295,398,247,425,200,457,157,494,119,518,104,521,109,498,123,461,160,429,203,403,249,382,297,352,386,337,453"/>
 <area shape="rect" id="Node000005" href="$structpsr_1_1IDEGeneralizedLCADomain.html" title=" " alt="" coords="510,134,737,159"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="335,420,355,366,387,298,434,228,462,197,495,170,519,157,521,162,497,174,466,201,438,232,392,301,360,369,340,422"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="334,452,351,392,383,316,404,275,430,236,460,200,494,170,517,157,520,162,498,174,464,204,434,239,409,278,388,318,356,394,339,453"/>
 <area shape="rect" id="Node000006" href="$structpsr_1_1IDEInstInteractionAnalysisDomain.html" title=" " alt="" coords="513,184,734,224"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="340,420,364,379,398,329,442,277,495,234,517,222,520,227,497,238,446,281,402,332,368,382,345,423"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="338,452,360,404,393,345,438,285,465,258,495,234,516,222,518,227,497,238,469,262,442,288,398,348,364,407,343,454"/>
 <area shape="rect" id="Node000007" href="$structpsr_1_1IDELinearConstantAnalysisDomain.html" title=" " alt="" coords="511,248,736,288"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="348,422,409,360,450,326,495,298,522,286,524,291,497,302,453,330,413,364,351,425"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="343,453,368,418,403,376,446,334,495,298,520,286,522,290,497,302,449,338,407,380,372,422,347,456"/>
 <area shape="rect" id="Node000008" href="$structpsr_1_1IDEProtoAnalysisDomain.html" title=" " alt="" coords="517,313,729,338"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="357,424,419,385,495,348,538,335,540,341,497,353,421,390,360,428"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="350,454,412,400,452,372,495,348,531,336,533,341,497,353,455,376,415,404,354,458"/>
 <area shape="rect" id="Node000009" href="$structpsr_1_1IDESecureHeapPropagationAnalysisDomain.html" title=" " alt="" coords="509,363,737,403"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="401,428,530,400,531,405,402,434"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="372,458,495,412,536,400,538,405,497,417,374,463"/>
 <area shape="rect" id="Node000010" href="$structpsr_1_1IDESolverTestAnalysisDomain.html" title=" " alt="" coords="526,427,721,467"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="462,444,526,444,526,449,462,449"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="459,462,525,455,526,460,460,467"/>
 <area shape="rect" id="Node000011" href="$structpsr_1_1IDETypeStateAnalysisDomain.html" title=" " alt="" coords="496,491,751,531"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="402,460,531,488,530,493,401,465"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="460,490,496,494,495,499,459,495"/>
 <area shape="rect" id="Node000012" href="$structpsr_1_1InterMonoSolverTestDomain.html" title=" " alt="" coords="532,555,715,595"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="361,465,422,503,497,540,533,552,531,558,495,545,419,507,358,469"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="374,494,497,540,538,552,536,557,495,545,372,499"/>
 <area shape="rect" id="Node000013" href="$structpsr_1_1InterMonoTaintAnalysisDomain.html" title=" " alt="" coords="522,619,725,659"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="350,469,410,537,452,573,497,604,524,616,521,621,495,609,448,578,407,540,346,472"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="355,499,416,552,455,580,497,604,527,616,525,621,495,609,452,585,413,556,351,503"/>
 <area shape="rect" id="Node000014" href="$structpsr_1_1IntraMonoFullConstantPropagationAnalysisDomain.html" title=" " alt="" coords="520,683,727,723"/>
-<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="344,471,367,514,400,568,444,623,470,647,497,668,521,681,518,686,495,673,466,651,440,626,396,571,362,517,339,473"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="347,502,371,540,405,585,448,630,497,668,521,680,519,685,495,673,445,634,401,588,367,543,342,505"/>
 <area shape="rect" id="Node000015" href="$structpsr_1_1IntraMonoSolverTestAnalysisDomain.html" title=" " alt="" coords="532,747,715,787"/>
-<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="340,471,359,526,391,597,437,671,465,704,498,732,533,751,531,756,494,737,462,708,433,674,386,600,354,528,335,473"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="342,504,363,553,396,615,441,679,468,708,497,732,533,750,530,755,495,737,464,712,437,682,391,618,358,555,337,506"/>
 <area shape="rect" id="Node000016" href="$structpsr_1_1IntraMonoUninitVariablesDomain.html" title=" " alt="" coords="516,811,731,851"/>
-<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="337,472,353,538,382,626,404,673,430,718,461,760,498,797,517,809,514,813,494,801,457,764,425,721,399,675,378,628,348,540,332,474"/>
-<area shape="rect" id="Node000017" title=" " alt="" coords="533,875,714,915"/>
-<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="335,473,347,549,374,655,395,711,422,766,456,817,498,861,514,872,533,881,531,885,512,877,494,865,452,820,418,768,390,713,369,656,342,551,330,474"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1AnalysisDomain.html" title=" " alt="" coords="5,434,161,459"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,444,209,444,209,449,175,449"/>
-<area shape="rect" id="Node000018" title=" " alt="" coords="799,875,980,915"/>
-<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="728,892,798,892,798,897,728,897"/>
-<area shape="rect" id="Node000019" href="$classpsr_1_1IDETypeStateAnalysis.html" title=" " alt="" coords="1028,875,1232,915"/>
-<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="994,892,1028,892,1028,897,994,897"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="338,504,356,564,387,644,408,686,433,727,463,764,498,797,517,809,514,813,494,801,459,768,429,730,403,688,382,646,351,566,333,505"/>
+<area shape="rect" id="Node000017" href="$structpsr_1_1LLVMPAGDomain.html" title=" " alt="" coords="543,875,704,901"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="336,504,349,576,377,674,398,725,425,775,458,821,498,861,519,873,543,881,541,886,517,878,494,865,454,825,420,778,393,727,372,675,343,578,330,505"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="533,925,714,965"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="335,505,345,585,356,637,372,695,393,754,420,811,455,865,498,911,515,923,534,932,532,937,512,928,494,915,451,868,416,814,388,756,367,696,351,639,340,586,329,506"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1AnalysisDomain.html" title=" " alt="" coords="5,466,161,491"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,476,209,476,209,481,175,481"/>
+<area shape="rect" id="Node000018" href="$classpsr_1_1pag_1_1LLVMCGProvider.html" title=" " alt="" coords="799,875,988,901"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="718,885,798,885,798,891,718,891"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="803,925,984,965"/>
+<area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="728,943,802,943,802,948,728,948"/>
+<area shape="rect" id="Node000021" href="$classpsr_1_1IDETypeStateAnalysis.html" title=" " alt="" coords="1036,925,1240,965"/>
+<area shape="poly" id="edge20_Node000020_Node000021" title=" " alt="" coords="998,943,1036,943,1036,948,998,948"/>
 </map>

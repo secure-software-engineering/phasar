@@ -91,22 +91,21 @@ $(function() {
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> GraphTrait&gt;</div>
 <div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1is__weighted__const__graph__trait.html">psr::is_weighted_const_graph_trait</a> = </div>
 <div class="line">    <a class="code hl_concept" href="conceptpsr_1_1is__const__graph__trait.html">is_const_graph_trait&lt;GraphTrait&gt;</a> &amp;&amp;</div>
-<div class="line">    <span class="keyword">requires</span>(<span class="keyword">const</span> <span class="keyword">typename</span> GraphTrait::edge_t &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Edge</a>) {</div>
+<div class="line">    <span class="keyword">requires</span>(<span class="keyword">const</span> <span class="keyword">typename</span> GraphTrait::edge_t &amp;Edge) {</div>
 <div class="line">      <span class="keyword">typename</span> GraphTrait::weight_t;</div>
 <div class="line">      {</div>
-<div class="line">        GraphTrait::weight(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Edge</a>)</div>
+<div class="line">        GraphTrait::weight(Edge)</div>
 <div class="line">      } -&gt; std::convertible_to&lt;typename GraphTrait::weight_t&gt;;</div>
 <div class="line">    }</div>
 <div class="ttc" id="aconceptpsr_1_1is__const__graph__trait_html"><div class="ttname"><a href="conceptpsr_1_1is__const__graph__trait.html">psr::is_const_graph_trait</a></div><div class="ttdef"><b>Definition</b> <a href="GraphTraits_8h_source.html#l00040">GraphTraits.h:40</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1is__weighted__const__graph__trait_html"><div class="ttname"><a href="conceptpsr_1_1is__weighted__const__graph__trait.html">psr::is_weighted_const_graph_trait</a></div><div class="ttdef"><b>Definition</b> <a href="GraphTraits_8h_source.html#l00098">GraphTraits.h:98</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="GraphTraits_8h_source.html#l00098">98</a> of file <a class="el" href="GraphTraits_8h_source.html">GraphTraits.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:19 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

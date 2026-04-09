@@ -1,0 +1,5 @@
+<map id="psr::pag::Edge" name="psr::pag::Edge">
+<area shape="rect" id="Node000001" title="Tagged union of all PAG edge kinds, see above." alt="" coords="38,108,153,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,185,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,74,98,108,93,108,93,74"/>
+</map>

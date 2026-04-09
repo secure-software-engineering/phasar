@@ -112,10 +112,10 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="foldopen" id="foldopen00021" data-start="{" data-end="};">
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="structpsr_1_1Ref2PointerConverter.html">   21</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">struct </span><a class="code hl_struct" href="structpsr_1_1Ref2PointerConverter.html">Ref2PointerConverter</a> {</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="structpsr_1_1Ref2PointerConverter.html#a9b54cedc0406b19419535d337422f3f2">   22</a></span>  T *<a class="code hl_function" href="structpsr_1_1Ref2PointerConverter.html#a9b54cedc0406b19419535d337422f3f2">operator()</a>(T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">const</span> <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> std::addressof(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>); }</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="structpsr_1_1Ref2PointerConverter.html#a9b54cedc0406b19419535d337422f3f2">   22</a></span>  T *<a class="code hl_function" href="structpsr_1_1Ref2PointerConverter.html#a9b54cedc0406b19419535d337422f3f2">operator()</a>(T &amp;Ref) <span class="keyword">const</span> <span class="keyword">noexcept</span> { <span class="keywordflow">return</span> std::addressof(Ref); }</div>
 <div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="structpsr_1_1Ref2PointerConverter.html#a81ed7876f8b86da306b6500b84b6ad8a">   23</a></span>  <span class="keyword">const</span> T *<a class="code hl_function" href="structpsr_1_1Ref2PointerConverter.html#a81ed7876f8b86da306b6500b84b6ad8a">operator()</a>(<span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordflow">return</span> std::addressof(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ref</a>);</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="structpsr_1_1Ref2PointerConverter.html#a81ed7876f8b86da306b6500b84b6ad8a">   23</a></span>  <span class="keyword">const</span> T *<a class="code hl_function" href="structpsr_1_1Ref2PointerConverter.html#a81ed7876f8b86da306b6500b84b6ad8a">operator()</a>(<span class="keyword">const</span> T &amp;Ref) <span class="keyword">const</span> <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordflow">return</span> std::addressof(Ref);</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  }</div>
 </div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>};</div>
@@ -135,7 +135,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:47 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

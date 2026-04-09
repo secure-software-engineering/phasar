@@ -96,6 +96,7 @@ $(function() {
 <code>#include &quot;llvm/ADT/STLExtras.h&quot;</code><br />
 <code>#include &quot;llvm/Support/raw_ostream.h&quot;</code><br />
 <code>#include &lt;concepts&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
@@ -127,6 +128,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IdentityFn.html">psr::IdentityFn</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1DummyFn.html">psr::DummyFn&lt; ArgT &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
@@ -145,6 +148,10 @@ Concepts</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__iterable__v.html">psr::is_iterable_v</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1Foreachable.html">psr::Foreachable</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1ForeachableOver.html">psr::ForeachableOver</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__pair__v.html">psr::is_pair_v</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -188,6 +195,12 @@ Concepts</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1is__explicitly__convertible__to.html">psr::is_explicitly_convertible_to</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IdType.html">psr::IdType</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1SmallIdType.html">psr::SmallIdType</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1IsTemplateInstance.html">psr::IsTemplateInstance</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1has__reserve__v.html">psr::has_reserve_v</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptpsr_1_1invocable__r.html">psr::invocable_r</a></td></tr>
@@ -204,7 +217,7 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aed729e099bf598be2128544639dc9f6d" id="r_aed729e099bf598be2128544639dc9f6d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:aed729e099bf598be2128544639dc9f6d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aed729e099bf598be2128544639dc9f6d">psr::reserveIfPossible</a> (T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>, <a class="el" href="classsize__t.html">size_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Capacity</a>)</td></tr>
+<tr class="memitem:aed729e099bf598be2128544639dc9f6d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aed729e099bf598be2128544639dc9f6d">psr::reserveIfPossible</a> (T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>, <a class="el" href="classsize__t.html">size_t</a> Capacity)</td></tr>
 <tr class="separator:aed729e099bf598be2128544639dc9f6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cc220ee4e33dc7e81fc267972154c1c" id="r_a2cc220ee4e33dc7e81fc267972154c1c"><td class="memTemplParams" colspan="2">template&lt;has_adl_to_string_v T&gt; </td></tr>
 <tr class="memitem:a2cc220ee4e33dc7e81fc267972154c1c"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2cc220ee4e33dc7e81fc267972154c1c">psr::adl_to_string</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;Val)</td></tr>
@@ -221,6 +234,9 @@ Variables</h2></td></tr>
 <tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2" id="r_a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
 <tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7441705fb5051f9f8c2b934f3307cac2">psr::variant_idx</a> = detail::variant_idx&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>, T&gt;::value</td></tr>
 <tr class="separator:a7441705fb5051f9f8c2b934f3307cac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24" id="r_a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
+<tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a06a011dfd124da09b4bf8b06c926bb24">psr::IsTriviallyRelocatable</a></td></tr>
+<tr class="separator:a06a011dfd124da09b4bf8b06c926bb24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>TODO: We should stick to one naming convention here and not mix CamelCase with lower_case! </p>
@@ -229,7 +245,7 @@ Variables</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

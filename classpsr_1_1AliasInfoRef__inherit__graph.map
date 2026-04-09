@@ -1,13 +1,16 @@
 <map id="psr::AliasInfoRef&lt; V, N &gt;" name="psr::AliasInfoRef&lt; V, N &gt;">
-<area shape="rect" id="Node000001" title="A type&#45;erased reference to any object implementing the IsAliasInfo interface. Use this,..." alt="" coords="643,55,783,95"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1AliasInfo.html" title="Similar to AliasInfoRef, but exclusively owns the held reference. Use this, if you need to decide dyn..." alt="" coords="1038,5,1202,31"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="795,55,806,53,927,35,1037,23,1038,28,928,41,807,58,796,60"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="1050,55,1190,95"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="797,73,1050,73,1050,78,797,78"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="1021,120,1219,175"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="774,97,807,107,918,128,1022,139,1021,144,917,133,806,113,773,103"/>
-<area shape="rect" id="Node000002" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="387,55,593,95"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="607,73,643,73,643,78,607,78"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,55,212,95"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="226,73,386,73,386,78,226,78"/>
+<area shape="rect" id="Node000001" title="A type&#45;erased reference to any object implementing the IsAliasInfo interface. Use this,..." alt="" coords="643,67,783,107"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1AliasInfo.html" title=" " alt="" coords="1457,5,1616,60"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="775,60,806,51,895,35,987,24,1168,14,1331,16,1457,23,1457,28,1331,21,1168,19,987,29,896,40,807,57,776,65"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1AliasInfo.html" title="Similar to AliasInfoRef, but exclusively owns the held reference. Use this, if you need to decide dyn..." alt="" coords="1038,45,1202,71"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="797,79,1037,61,1038,67,797,84"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="1050,95,1190,135"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="797,98,807,99,936,108,1050,112,1050,117,936,114,806,105,796,104"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1AliasInfoRef.html" title=" " alt="" coords="1021,160,1219,215"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="751,113,778,131,808,145,861,161,917,172,1021,183,1021,189,916,177,860,166,806,150,775,135,748,118"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="387,67,593,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="607,85,643,85,643,90,607,90"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1AnalysisPropertiesMixin.html" title=" " alt="" coords="5,67,212,107"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="226,85,386,85,386,90,226,90"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="1216,60,1321,60,1433,53,1457,49,1457,54,1434,58,1321,65,1216,65"/>
 </map>

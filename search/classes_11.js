@@ -32,7 +32,9 @@ var searchData=
   ['stablevector_3c_20interpropagationjob_20_3e_29',['StableVector&lt; InterPropagationJob &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
   ['stablevector_3c_20psr_3a_3aequivalenceclassmapng_3c_20std_3a_3apair_3c_20uint64_5ft_2c_20uint64_5ft_20_3e_2c_20edgefunction_3c_20l_5ft_20_3e_20_3e_20_3e_30',['StableVector&lt; psr::EquivalenceClassMapNG&lt; std::pair&lt; uint64_t, uint64_t &gt;, EdgeFunction&lt; l_t &gt; &gt; &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
   ['stablevector_3c_20psr_3a_3aequivalenceclassmapng_3c_20uint64_5ft_2c_20edgefunction_3c_20l_5ft_20_3e_20_3e_20_3e_31',['StableVector&lt; psr::EquivalenceClassMapNG&lt; uint64_t, EdgeFunction&lt; l_t &gt; &gt; &gt;',['../classpsr_1_1StableVector.html',1,'psr']]],
-  ['stringidless_32',['StringIDLess',['../structpsr_1_1StringIDLess.html',1,'psr']]],
-  ['summaryedge_33',['SummaryEdge',['../structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html',1,'psr::IterativeIDESolverBase']]],
-  ['svfpointstoinfotraits_34',['SVFPointsToInfoTraits',['../structpsr_1_1SVFPointsToInfoTraits.html',1,'psr']]]
+  ['store_32',['Store',['../structpsr_1_1pag_1_1Store.html',1,'psr::pag']]],
+  ['storepoi_33',['StorePOI',['../structpsr_1_1pag_1_1StorePOI.html',1,'psr::pag']]],
+  ['stringidless_34',['StringIDLess',['../structpsr_1_1StringIDLess.html',1,'psr']]],
+  ['summaryedge_35',['SummaryEdge',['../structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html',1,'psr::IterativeIDESolverBase']]],
+  ['svfpointstoinfotraits_36',['SVFPointsToInfoTraits',['../structpsr_1_1SVFPointsToInfoTraits.html',1,'psr']]]
 ];

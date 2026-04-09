@@ -1,0 +1,19 @@
+<map id="psr::NonNullPtr&lt; T &gt;" name="psr::NonNullPtr&lt; T &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="265,229,424,254"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="692,7,863,47"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="351,215,364,181,384,141,411,102,446,70,475,54,506,41,570,24,634,17,692,16,692,22,634,22,571,30,508,46,478,58,450,74,415,105,388,144,369,183,356,216"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="692,71,863,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="361,215,397,175,421,154,447,138,508,114,572,98,635,90,692,86,692,92,636,95,573,104,509,119,449,142,424,158,401,178,365,219"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="692,135,863,190"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="390,221,447,204,575,181,692,167,692,172,576,186,449,209,392,227"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="690,214,865,269"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="438,239,690,239,690,244,438,244"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="692,293,863,333"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="423,254,448,259,692,298,692,303,448,264,422,259"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="673,358,881,383"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="372,261,407,288,449,311,505,330,563,345,673,362,673,367,562,350,503,335,447,316,404,292,369,265"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="691,409,864,479"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="356,266,369,300,388,340,415,378,450,408,477,424,507,435,570,449,633,454,690,453,691,458,633,459,570,455,506,440,475,428,446,413,411,381,383,342,364,302,351,268"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,229,216,254"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,239,265,239,265,244,230,244"/>
+</map>

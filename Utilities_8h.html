@@ -89,7 +89,8 @@ $(function() {
   <div class="headertitle"><div class="title">Utilities.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="ByRef_8h_source.html">phasar/Utils/ByRef.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="TypeTraits_8h_source.html">phasar/Utils/TypeTraits.h</a>&quot;</code><br />
 <code>#include &quot;llvm/ADT/SmallVector.h&quot;</code><br />
 <code>#include &quot;llvm/Support/Compiler.h&quot;</code><br />
 <code>#include &quot;llvm/Support/raw_ostream.h&quot;</code><br />
@@ -161,6 +162,9 @@ requires (!has_erase_iterator_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b
 <tr class="memitem:a25925bd87e39b958fc320ad7f393f816"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_ATTRIBUTE_ALWAYS_INLINE</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a25925bd87e39b958fc320ad7f393f816">psr::forward_like</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">U</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">X</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="memdesc:a25925bd87e39b958fc320ad7f393f816"><td class="mdescLeft">&#160;</td><td class="mdescRight">See <a href="https://en.cppreference.com/w/cpp/utility/forward_like">https://en.cppreference.com/w/cpp/utility/forward_like</a>  <br /></td></tr>
 <tr class="separator:a25925bd87e39b958fc320ad7f393f816"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78fcb9017f07967383d71d7a51216b9e" id="r_a78fcb9017f07967383d71d7a51216b9e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
+<tr class="memitem:a78fcb9017f07967383d71d7a51216b9e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a78fcb9017f07967383d71d7a51216b9e">psr::copyOrRef</a> (T &amp;Val) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a78fcb9017f07967383d71d7a51216b9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab025bec751130f627cf431d0026856b3" id="r_ab025bec751130f627cf431d0026856b3"><td class="memTemplParams" colspan="2">template&lt;is_llvm_printable_v T&gt; </td></tr>
 <tr class="memitem:ab025bec751130f627cf431d0026856b3"><td class="memTemplItemLeft" align="right" valign="top">llvm::raw_ostream &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab025bec751130f627cf431d0026856b3">psr::operator&lt;&lt;</a> (llvm::raw_ostream &amp;OS, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::optional&lt; T &gt; &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Opt</a>)</td></tr>
 <tr class="separator:ab025bec751130f627cf431d0026856b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,7 +188,7 @@ requires (!std::is_pointer_v&lt;T&gt;)</td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

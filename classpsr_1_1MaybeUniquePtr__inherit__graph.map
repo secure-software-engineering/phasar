@@ -1,21 +1,25 @@
 <map id="psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;" name="psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="289,260,475,300"/>
-<area shape="rect" id="Node000003" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="745,6,939,61"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="392,246,407,209,429,167,459,125,497,91,556,60,621,41,685,31,744,27,745,32,686,36,622,46,558,65,500,96,463,129,434,170,412,211,397,248"/>
-<area shape="rect" id="Node000004" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="715,85,969,139"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="410,248,449,213,497,182,551,160,606,143,714,121,715,126,607,148,552,165,500,186,452,217,413,252"/>
-<area shape="rect" id="Node000005" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="763,164,921,204"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="445,253,498,236,637,207,762,190,763,195,638,213,499,241,447,258"/>
-<area shape="rect" id="Node000006" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="763,228,921,268"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="488,270,762,251,763,256,489,275"/>
-<area shape="rect" id="Node000007" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="755,292,929,332"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="489,287,499,288,755,305,754,310,498,293,488,293"/>
-<area shape="rect" id="Node000008" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="747,356,937,425"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="421,306,458,330,500,349,562,367,627,379,747,388,746,394,626,384,561,372,498,355,455,335,418,311"/>
-<area shape="rect" id="Node000009" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="763,449,921,489"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="405,310,445,361,471,385,500,406,565,434,635,452,703,462,763,467,762,472,702,468,634,457,564,439,497,410,467,390,441,364,401,313"/>
-<area shape="rect" id="Node000010" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="739,514,945,569"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="393,313,407,356,428,406,459,455,478,477,500,495,527,511,556,524,618,541,681,548,739,549,739,554,680,554,617,546,555,529,525,516,497,500,474,481,455,459,423,409,402,358,388,314"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,260,240,300"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,277,289,277,289,283,254,283"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="289,349,475,389"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="754,26,949,81"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="383,336,392,279,412,210,426,174,445,140,469,109,497,83,526,65,558,51,624,35,692,31,754,34,754,39,692,36,625,41,559,56,529,70,500,87,473,113,450,143,431,176,417,211,398,280,389,336"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="732,105,971,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="391,335,406,296,428,252,458,209,497,174,553,145,613,128,674,118,732,115,732,120,675,123,614,133,555,150,500,178,462,213,432,255,411,298,396,337"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="724,170,979,225"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="407,337,447,299,497,264,553,241,611,224,723,203,724,209,612,229,554,246,500,269,450,303,411,341"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="772,249,931,289"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="440,341,498,321,570,305,642,291,772,274,772,279,643,296,571,310,499,327,442,346"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="772,313,931,353"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="488,359,772,337,772,342,489,364"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="742,378,961,433"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="486,389,499,391,625,401,742,404,742,409,625,406,498,396,485,394"/>
+<area shape="rect" id="Node000009" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="764,457,939,497"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="431,393,500,423,568,441,638,454,764,469,764,475,637,459,567,446,498,428,429,398"/>
+<area shape="rect" id="Node000010" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="756,521,947,591"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="402,400,441,459,468,488,500,511,562,537,629,553,695,560,756,561,756,566,695,565,628,558,561,542,497,516,465,492,437,462,397,403"/>
+<area shape="rect" id="Node000011" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="772,615,931,655"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="394,402,408,444,429,492,460,540,479,561,500,579,532,598,565,612,637,631,708,639,772,639,772,644,708,644,636,636,564,617,529,603,497,584,475,565,456,543,425,495,403,446,389,404"/>
+<area shape="rect" id="Node000012" href="$classpsr_1_1MaybeUniquePtr.html" title=" " alt="" coords="749,679,954,734"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="388,403,395,463,414,538,428,576,447,612,471,645,500,673,528,690,558,704,622,720,687,724,748,722,749,727,687,730,621,725,556,709,525,695,497,677,467,648,443,615,423,578,409,539,390,464,382,404"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,349,240,389"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,367,289,367,289,372,254,372"/>
 </map>

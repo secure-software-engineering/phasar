@@ -144,6 +144,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9c773b94f34ef63eeae26d85a4f1a5eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81d3b773edeb95af8dcd5a82c4a1c330" id="r_a81d3b773edeb95af8dcd5a82c4a1c330"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1BitSet.html#a952cf4cc50d06046f9d936e0ffeed715">iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1BitSet.html#a81d3b773edeb95af8dcd5a82c4a1c330">end</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="separator:a81d3b773edeb95af8dcd5a82c4a1c330"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02fb071fa9c8b0534b7ce2aa0cf5e548" id="r_a02fb071fa9c8b0534b7ce2aa0cf5e548"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1BitSet.html#a02fb071fa9c8b0534b7ce2aa0cf5e548">findFirst</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memdesc:a02fb071fa9c8b0534b7ce2aa0cf5e548"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the smallest element in the set, or std::nullopt if empty.  <br /></td></tr>
+<tr class="separator:a02fb071fa9c8b0534b7ce2aa0cf5e548"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac94984f283508fbf0bea5948353b007c" id="r_ac94984f283508fbf0bea5948353b007c"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1BitSet.html#ac94984f283508fbf0bea5948353b007c">findNext</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> Key) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:ac94984f283508fbf0bea5948353b007c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af55bee435aa63fbb0bc95eff1cf8e803" id="r_af55bee435aa63fbb0bc95eff1cf8e803"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; HandlerFn&gt; </td></tr>
 <tr class="memitem:af55bee435aa63fbb0bc95eff1cf8e803"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1BitSet.html#af55bee435aa63fbb0bc95eff1cf8e803">foreach</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">HandlerFn</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Handler</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(std::is_nothrow_invocable_v&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">HandlerFn</a> &amp;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt;)</td></tr>
 <tr class="separator:af55bee435aa63fbb0bc95eff1cf8e803"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -180,7 +185,7 @@ Friends</h2></td></tr>
 <tr class="separator:aaee4e1ef54e5ff36e4bfe23db8d922c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a> = llvm::BitVector&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a> = llvm::BitVector&gt;<br />
 class psr::BitSet&lt; IdT, BitVectorTy &gt;</div><p>A set-type that can compactly store sets of sequential integer-like types. </p>
 <p>Use this type for sequential (unsigned) integers and ids that can convert from and to uint32_t.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -191,7 +196,7 @@ class psr::BitSet&lt; IdT, BitVectorTy &gt;</div><p>A set-type that can compactl
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00037">37</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00041">41</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a952cf4cc50d06046f9d936e0ffeed715" name="a952cf4cc50d06046f9d936e0ffeed715"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a952cf4cc50d06046f9d936e0ffeed715">&#9670;&#160;</a></span>iterator</h2>
@@ -199,7 +204,7 @@ class psr::BitSet&lt; IdT, BitVectorTy &gt;</div><p>A set-type that can compactl
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1BitSet.html">psr::BitSet</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a> &gt;::iterator =  <a class="el" href="classpsr_1_1BitSet_1_1Iterator.html">Iterator</a></td>
@@ -207,7 +212,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00083">83</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00094">94</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -217,7 +222,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1BitSet.html">psr::BitSet</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a> &gt;::value_type =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a></td>
@@ -225,7 +230,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00084">84</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00095">95</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -236,7 +241,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -263,7 +268,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -283,7 +288,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00087">87</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00098">98</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -293,7 +298,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -323,7 +328,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00088">88</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00099">99</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -334,7 +339,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -353,7 +358,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00174">174</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00185">185</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -363,7 +368,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -382,7 +387,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00176">176</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00187">187</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -392,7 +397,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -413,7 +418,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>The number of bits available. This operation is <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">O(1)</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00251">251</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00275">275</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -423,7 +428,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -442,7 +447,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00145">145</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00156">156</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -452,7 +457,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -472,9 +477,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00097">97</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00108">108</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00129">psr::BitSet&lt; IdT, BitVectorTy &gt;::tryErase()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00140">psr::BitSet&lt; IdT, BitVectorTy &gt;::tryErase()</a>.</p>
 
 </div>
 </div>
@@ -484,7 +489,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -504,7 +509,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Whether this set contains no elements. In contrast to most other containers, this operation is linear in <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">O(capacity())</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00257">257</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00281">281</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -514,7 +519,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -533,7 +538,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00179">179</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00190">190</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -543,7 +548,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -563,9 +568,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00123">123</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00134">134</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="SCCGeneric_8h_source.html#l00237">psr::computeSCCDependencies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="SCCGeneric_8h_source.html#l00174">psr::computeSCCDependencies()</a>.</p>
 
 </div>
 </div>
@@ -575,7 +580,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -597,7 +602,69 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Same as operator-=, but returns *this to allow a fluent interface. </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00219">219</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00243">243</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+
+</div>
+</div>
+<a id="a02fb071fa9c8b0534b7ce2aa0cf5e548" name="a02fb071fa9c8b0534b7ce2aa0cf5e548"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02fb071fa9c8b0534b7ce2aa0cf5e548">&#9670;&#160;</a></span>findFirst()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; <a class="el" href="classpsr_1_1BitSet.html">psr::BitSet</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a> &gt;::findFirst </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the smallest element in the set, or std::nullopt if empty. </p>
+
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00193">193</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+
+</div>
+</div>
+<a id="ac94984f283508fbf0bea5948353b007c" name="ac94984f283508fbf0bea5948353b007c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac94984f283508fbf0bea5948353b007c">&#9670;&#160;</a></span>findNext()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; <a class="el" href="classpsr_1_1BitSet.html">psr::BitSet</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a> &gt;::findNext </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a>&#160;</td>
+          <td class="paramname"><em>Key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns the smallest element greater than <code>Key</code>, or std::nullopt if none exists. </p>
+
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00200">200</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -607,7 +674,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <div class="memtemplate">
 template&lt;std::invocable&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> &gt; HandlerFn&gt; </div>
 <table class="mlabels">
@@ -628,12 +695,12 @@ template&lt;std::invocable&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Calls the given handler function for each sert bit in the bitset.</p>
+<p>Calls the given handler function for each set bit in the bitset.</p>
 <p>This is likely faster than using iterators. </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00185">185</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00209">209</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="SCCGeneric_8h_source.html#l00237">psr::computeSCCDependencies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="SCCGeneric_8h_source.html#l00174">psr::computeSCCDependencies()</a>.</p>
 
 </div>
 </div>
@@ -643,7 +710,7 @@ template&lt;std::invocable&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -663,7 +730,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00102">102</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00113">113</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -673,7 +740,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -695,7 +762,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Same as <a class="el" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith()</a>, but returns *this to allow a fluent interface. </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00214">214</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00238">238</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -705,7 +772,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -725,7 +792,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00224">224</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00248">248</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -735,7 +802,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -755,9 +822,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00246">246</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00270">270</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00140">psr::BitSet&lt; IdT, BitVectorTy &gt;::tryMergeWith()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00151">psr::BitSet&lt; IdT, BitVectorTy &gt;::tryMergeWith()</a>.</p>
 
 </div>
 </div>
@@ -767,7 +834,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -787,9 +854,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00137">137</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00148">148</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00140">psr::BitSet&lt; IdT, BitVectorTy &gt;::tryMergeWith()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="BitSet_8h_source.html#l00151">psr::BitSet&lt; IdT, BitVectorTy &gt;::tryMergeWith()</a>.</p>
 
 </div>
 </div>
@@ -799,7 +866,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -819,7 +886,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00205">205</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00229">229</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>.</p>
 
@@ -831,7 +898,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -851,7 +918,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00203">203</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00227">227</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -861,7 +928,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -883,7 +950,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Same as <a class="el" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith()</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00202">202</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00226">226</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -893,7 +960,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -913,7 +980,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00091">91</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00102">102</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -923,7 +990,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -943,9 +1010,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>The number of bits set to 1. In contrast to most other containers, this operation is linear in <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">O(capacity())</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00254">254</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00278">278</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="SCCGeneric_8h_source.html#l00237">psr::computeSCCDependencies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="SCCGeneric_8h_source.html#l00174">psr::computeSCCDependencies()</a>.</p>
 
 </div>
 </div>
@@ -955,7 +1022,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -977,9 +1044,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Same as <a class="el" href="classpsr_1_1BitSet.html#af06e051bc7c2ae4f2046f41ed1001257">erase()</a>, but returns, whether the set was changed. </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00129">129</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00140">140</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">References <a class="el" href="BitSet_8h_source.html#l00097">psr::BitSet&lt; IdT, BitVectorTy &gt;::contains()</a>.</p>
+<p class="reference">References <a class="el" href="BitSet_8h_source.html#l00108">psr::BitSet&lt; IdT, BitVectorTy &gt;::contains()</a>.</p>
 
 </div>
 </div>
@@ -989,7 +1056,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -1011,7 +1078,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Same as <a class="el" href="classpsr_1_1BitSet.html#a40dff093c4bc2a7ff9a4fabdc3166db6">insert()</a>, but returns, whether the set was changed. </p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00112">112</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00123">123</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>.</p>
 
@@ -1023,7 +1090,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -1046,9 +1113,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Same as <a class="el" href="classpsr_1_1BitSet.html#a94e5843e16ca38c8e5f6c1f5c2ff6d06">mergeWith()</a>, but returns, whether the set was changed. </p>
 <p>TODO: Make this more efficient</p>
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00140">140</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00151">151</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
-<p class="reference">References <a class="el" href="BitSet_8h_source.html#l00246">psr::BitSet&lt; IdT, BitVectorTy &gt;::isSupersetOf()</a>, and <a class="el" href="BitSet_8h_source.html#l00137">psr::BitSet&lt; IdT, BitVectorTy &gt;::mergeWith()</a>.</p>
+<p class="reference">References <a class="el" href="BitSet_8h_source.html#l00270">psr::BitSet&lt; IdT, BitVectorTy &gt;::isSupersetOf()</a>, and <a class="el" href="BitSet_8h_source.html#l00148">psr::BitSet&lt; IdT, BitVectorTy &gt;::mergeWith()</a>.</p>
 
 </div>
 </div>
@@ -1059,7 +1126,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -1089,7 +1156,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00169">169</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00180">180</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -1099,7 +1166,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IdT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
+template&lt;SmallIdType IdT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BitVectorTy</a>  = llvm::BitVector&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -1129,7 +1196,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00147">147</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="BitSet_8h_source.html#l00158">158</a> of file <a class="el" href="BitSet_8h_source.html">BitSet.h</a>.</p>
 
 </div>
 </div>
@@ -1139,7 +1206,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

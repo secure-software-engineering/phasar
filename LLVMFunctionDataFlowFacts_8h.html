@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PhASAR: include/phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h File Reference</title>
+<title>PhASAR: include/phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -78,7 +78,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_05d093d0ed3722b9a30705a9449fa665.html">phasar</a></li><li class="navelem"><a class="el" href="dir_6556945d274d6e1e874171d9d575b3f4.html">PhasarLLVM</a></li><li class="navelem"><a class="el" href="dir_b11f051d1364f2a30973d8d796d4babf.html">DataFlow</a></li><li class="navelem"><a class="el" href="dir_a914fe635f43607d3ac935bbff17c46d.html">IfdsIde</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_05d093d0ed3722b9a30705a9449fa665.html">phasar</a></li><li class="navelem"><a class="el" href="dir_6556945d274d6e1e874171d9d575b3f4.html">PhasarLLVM</a></li><li class="navelem"><a class="el" href="dir_079f3dfffeb9e770010097b0dd1334eb.html">Utils</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -90,11 +90,11 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="LLVMProjectIRDB_8h_source.html">phasar/PhasarLLVM/DB/LLVMProjectIRDB.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="FunctionDataFlowFacts_8h_source.html">phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="DefaultValue_8h_source.html">phasar/Utils/DefaultValue.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="FunctionDataFlowFacts_8h_source.html">phasar/Utils/FunctionDataFlowFacts.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="MapUtils_8h_source.html">phasar/Utils/MapUtils.h</a>&quot;</code><br />
 <code>#include &quot;llvm/IR/Argument.h&quot;</code><br />
 <code>#include &quot;llvm/IR/Function.h&quot;</code><br />
-<code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div>
 <p><a href="LLVMFunctionDataFlowFacts_8h_source.html">Go to the source code of this file.</a></p>
@@ -114,13 +114,13 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab1d68f700ae69f3ca6846b4a571d7359" id="r_ab1d68f700ae69f3ca6846b4a571d7359"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html">LLVMFunctionDataFlowFacts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1library__summary.html#ab1d68f700ae69f3ca6846b4a571d7359">psr::library_summary::readFromFDFF</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html">FunctionDataFlowFacts</a> &amp;Fdff, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Irdb</a>)</td></tr>
-<tr class="separator:ab1d68f700ae69f3ca6846b4a571d7359"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6772e2296b360491f3b6cc61f743055a" id="r_a6772e2296b360491f3b6cc61f743055a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1library__summary_1_1LLVMFunctionDataFlowFacts.html">LLVMFunctionDataFlowFacts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr_1_1library__summary.html#a6772e2296b360491f3b6cc61f743055a">psr::library_summary::readFromFDFF</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1library__summary_1_1FunctionDataFlowFacts.html">FunctionDataFlowFacts</a> &amp;Fdff, std::invocable&lt; llvm::StringRef &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GetFunctionByNameOrNull</a>)</td></tr>
+<tr class="separator:a6772e2296b360491f3b6cc61f743055a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 7 2026 09:47:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Apr 9 2026 16:27:48 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

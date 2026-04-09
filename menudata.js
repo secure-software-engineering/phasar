@@ -83,6 +83,7 @@ var menudata={children:[
 {text:"n",url:"namespacemembers_type.html#index_n"},
 {text:"r",url:"namespacemembers_type.html#index_r"},
 {text:"s",url:"namespacemembers_type.html#index_s"},
+{text:"v",url:"namespacemembers_type.html#index_v"},
 {text:"w",url:"namespacemembers_type.html#index_w"}]},
 {text:"Enumerations",url:"namespacemembers_enum.html"},
 {text:"Enumerator",url:"namespacemembers_eval.html"}]}]},
@@ -200,11 +201,13 @@ var menudata={children:[
 {text:"i",url:"functions_rela.html#index_i"},
 {text:"j",url:"functions_rela.html#index_j"},
 {text:"l",url:"functions_rela.html#index_l"},
+{text:"m",url:"functions_rela.html#index_m"},
 {text:"o",url:"functions_rela.html#index_o"},
 {text:"p",url:"functions_rela.html#index_p"},
 {text:"r",url:"functions_rela.html#index_r"},
 {text:"s",url:"functions_rela.html#index_s"},
-{text:"t",url:"functions_rela.html#index_t"}]}]}]},
+{text:"t",url:"functions_rela.html#index_t"},
+{text:"v",url:"functions_rela.html#index_v"}]}]}]},
 {text:"Files",url:"files.html",children:[
 {text:"File List",url:"files.html"},
 {text:"File Members",url:"globals.html",children:[
@@ -219,7 +222,9 @@ var menudata={children:[
 {text:"i",url:"globals.html#index_i"},
 {text:"p",url:"globals.html#index_p"},
 {text:"r",url:"globals.html#index_r"},
-{text:"s",url:"globals.html#index_s"}]},
+{text:"s",url:"globals.html#index_s"},
+{text:"u",url:"globals.html#index_u"}]},
+{text:"Functions",url:"globals_func.html"},
 {text:"Variables",url:"globals_vars.html"},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"_",url:"globals_defs.html#index__5F"},
@@ -232,4 +237,5 @@ var menudata={children:[
 {text:"i",url:"globals_defs.html#index_i"},
 {text:"p",url:"globals_defs.html#index_p"},
 {text:"r",url:"globals_defs.html#index_r"},
-{text:"s",url:"globals_defs.html#index_s"}]}]}]}]}
+{text:"s",url:"globals_defs.html#index_s"},
+{text:"u",url:"globals_defs.html#index_u"}]}]}]}]}
