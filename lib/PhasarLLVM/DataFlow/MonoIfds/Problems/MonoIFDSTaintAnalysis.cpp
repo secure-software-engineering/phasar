@@ -184,8 +184,7 @@ auto monoifds::TaintAnalysis::LocalAnalysis::returnFlow(n_t CallSite, d_t Fact)
   return {CallSite};
 }
 
-auto monoifds::TaintAnalysis::LocalAnalysis::invReturnFlow(n_t CallSite,
-                                                           d_t Fact)
+auto monoifds::TaintAnalysis::LocalAnalysis::invCallFlow(n_t CallSite, d_t Fact)
     -> llvm::SmallVector<d_t> {
   if (llvm::isa<llvm::Constant>(Fact)) {
     // Pass global variables as is, if desired

@@ -27,6 +27,7 @@
 #include "llvm/ADT/STLFunctionalExtras.h"
 
 #include <memory_resource>
+#include <type_traits>
 
 namespace psr::monoifds {
 class TaintAnalysis : public LLVMIFDSAnalysisDomainDefault {
@@ -57,7 +58,14 @@ public:
     void normalFlow(DataFlowEnvironment<d_t> &InOut, n_t Curr);
     void callToRetFlow(DataFlowEnvironment<d_t> &InOut, n_t Curr);
     [[nodiscard]] llvm::SmallVector<d_t> returnFlow(n_t CallSite, d_t Fact);
-    [[nodiscard]] llvm::SmallVector<d_t> invReturnFlow(n_t CallSite, d_t Fact);
+    [[nodiscard]] llvm::SmallVector<d_t> invCallFlow(n_t CallSite, d_t Fact);
+    [[nodiscard]] std::false_type
+    summaryFlow(const DataFlowEnvironment<d_t> & /*In*/,
+                DataFlowEnvironment<d_t> & /*Out*/, n_t /*Curr*/,
+                f_t /*Callee*/) {
+      // No propagators defined so far
+      return {};
+    }
 
     [[nodiscard]] d_t getZeroValue() const {
       return LLVMZeroValue::getInstance();

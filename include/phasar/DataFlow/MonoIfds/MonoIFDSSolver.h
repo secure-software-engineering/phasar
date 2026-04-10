@@ -45,6 +45,9 @@
 
 namespace psr::monoifds {
 
+/// \brief Implements the MonoIFDS algorithm, as presented in "Scaling Bottom-up
+/// IFDS Taint Analysis with Optimized Data-flow Encoding" by Schiebel and
+/// Bodden. <TODO: DOI>
 template <MonoIFDSProblem ProblemT> class MonoIFDSSolver {
 public:
   using n_t = typename ProblemT::ProblemAnalysisDomain::n_t;
@@ -147,7 +150,7 @@ private:
       auto &Ret = Mapping[CalleeSrc];
 
       if (ComputedMappings.tryInsert(CalleeSrc)) {
-        auto &&CSFacts = LocalProblem.invReturnFlow(
+        auto &&CSFacts = LocalProblem.invCallFlow(
             CallInst, CalleeSum.SourceFactIds[CalleeSrc]);
 
         for (const auto *Fact : CSFacts) {
@@ -308,6 +311,7 @@ private:
     repropagateLeaks(IState, CurrSCC);
   }
 
+  /// Lines 1-3 in Algorithm 4
   void submitInitialSeeds(IntermediateState &IState, auto &Driver,
                           Compressor<d_t, SourceFactId> &SeedCompressor,
                           ByConstRef<f_t> Fun) {
@@ -329,6 +333,7 @@ private:
     }
   }
 
+  /// Delayed Line 39 in Algorithm 4
   void rescheduleCalls(IntermediateState &IState, auto &Driver) {
     if (!IState.InRecursion) {
       return;
@@ -353,6 +358,7 @@ private:
     IState.HasNewSummary.clear();
   }
 
+  /// RepropagateLeaks procedure in Algorithm 2
   void repropagateLeaks(IntermediateState &IState, SCCId<FunctionId> CurrSCC) {
     llvm::SmallDenseSet<FunctionId> NewLeaksWL;
     while (!IState.HasNewLeaks.empty()) {
@@ -365,6 +371,7 @@ private:
     }
   }
 
+  /// Continuation of RepropagateLeaks procedure in Algorithm 2
   void handleLeaksForFun(IntermediateState &IState, SCCId<FunctionId> CurrSCC,
                          FunctionId CurrFun) {
     const auto *Fun = (*Functions)[CurrFun];
@@ -410,14 +417,12 @@ private:
     analyzeBlockImpl(IState, Driver, BlockStart, LocalStateRef);
   }
 
+  /// Procedure AnalyzeBlock (Lines 8-11+14 in Algorithm 4)
   void analyzeBlockImpl(IntermediateState &IState, auto &Driver,
                         ByConstRef<n_t> BlockStart,
                         DataFlowEnvironment<d_t> LocalState) {
 
     auto CurrFunId = Functions->get(BlockStart->getFunction());
-
-    // const bool EnableAggressiveLoopPriorization =
-    //     Config.EnableAggressiveLoopPriorization;
 
     Nullable<n_t> CurrInst = BlockStart;
 
@@ -494,19 +499,7 @@ private:
         // Merge
         if (Inserted || tryMergeStates(SuccBBStateIt->second, LocalState)) {
           SuccBBStateIt->second.Version++;
-
-          // note: HasSingleSucc implies here that UniqueSucc==nullptr
-
-          // TODO: Should we support EnableAggressiveLoopPriorization outside of
-          // LLVM? It did not show significant performance benefits, though
-
-          // if (EnableAggressiveLoopPriorization && HasSingleSucc &&
-          //     Block->getTerminator()->hasMetadata(llvm::LLVMContext::MD_loop))
-          //     {
-          //   UniqueSucc = Succ;
-          // } else {
           Driver.push(Succ);
-          // }
         }
       }
 
@@ -521,6 +514,7 @@ private:
     } while (CurrInst);
   }
 
+  /// Lines 15-20 in Algorithm 4
   void analyzeInstruction(IntermediateState &IState,
                           DataFlowEnvironment<d_t> &LocalState,
                           FunctionId CurrFunId, ByConstRef<n_t> Inst) {
@@ -538,6 +532,8 @@ private:
     IState.LocalProblem.normalFlow(LocalState, Inst);
   }
 
+  /// Procedure AnalyzeExit (Lines 35-38 in Algorithm 4, Line 39 is delayed to
+  /// rescheduleCalls())
   void analyzeExitInst(IntermediateState &IState,
                        DataFlowEnvironment<d_t> &LocalState,
                        FunctionId CurrFunId, ByConstRef<n_t> Inst) {
@@ -570,14 +566,15 @@ private:
     }
   }
 
+  /// Procedure AnalyzeCall (Lines 21-34 in Algorithm 4)
   void analyzeCallInst(IntermediateState &IState,
                        DataFlowEnvironment<d_t> &LocalState,
                        FunctionId CurrFunId, ByConstRef<n_t> Inst) {
 
     const auto &Callees = ICF->getCalleesOfCallAt(Inst);
 
-    const auto CSInfo = handleCallSrcSinksAndMayRecurse(
-        IState, LocalState, Callees, CurrFunId, Inst);
+    auto CSInfo = handleCallSrcSinksAndMayRecurse(IState, LocalState, Callees,
+                                                  CurrFunId, Inst);
 
     if (CSInfo.MayRecurse) {
       IState.InRecursion = true;
@@ -590,7 +587,15 @@ private:
       // Collect all data-flows that need to be propagated. Don't update
       // LocalState in-place
 
+      if (IState.LocalProblem.summaryFlow(std::as_const(LocalState),
+                                          CollectedSummary, Inst, CalleeFun)) {
+        continue;
+      }
+
       auto CalleeId = Functions->get(CalleeFun);
+      if (ICF->getStartPointsOf(CalleeFun).empty()) {
+        CSInfo.CanCTR = false;
+      }
       applySummary(IState, std::as_const(LocalState), CollectedSummary,
                    CalleeId, Inst, CurrFunId);
     }
@@ -601,6 +606,7 @@ private:
     mergeStates(LocalState, std::move(CollectedSummary));
   }
 
+  /// Lines 26-32 in Algorithm 4
   void applySummary(IntermediateState &IState,
                     const DataFlowEnvironment<d_t> &In,
                     DataFlowEnvironment<d_t> &LocalState, FunctionId CalleeId,
@@ -650,10 +656,6 @@ private:
     bool MayRecurse = false;
     bool CanCTR = !Callees.empty();
     for (f_t CalleeFun : Callees) {
-      if (ICF->getStartPointsOf(CalleeFun).empty()) {
-        CanCTR = false;
-      }
-
       auto CalleeId = Functions->get(CalleeFun);
       auto CalleeSCC = SCCs.SCCOfNode[CalleeId];
       if (CalleeSCC == CurrSCC) {
@@ -721,6 +723,7 @@ private:
     }
   }
 
+  // PropagateLeaks procedure in Algorithm 4
   void reportOrPropagateLeak(IntermediateState &IState, FunctionId CurrFunId,
                              n_t LeakInst, d_t LeakFact, SourceFactSet From) {
     PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
