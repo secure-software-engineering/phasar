@@ -16,6 +16,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <concepts>
+#include <cstddef>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -57,6 +58,19 @@ public:
       decltype(getTemplateArgImpl<Base>(std::declval<const Derived &>()));
 };
 
+template <template <typename...> typename Base, typename Derived>
+class IsTemplateInstanceImpl {
+private:
+  template <template <typename...> typename TBase, typename... TT>
+  static std::true_type test(const TBase<TT...> &Impl);
+  template <template <typename...> typename TBase>
+  static std::false_type test(...);
+
+public:
+  static constexpr bool value =
+      decltype(test<Base>(std::declval<const Derived &>()))::value;
+};
+
 template <typename Var, typename T> struct variant_idx;
 template <typename... Ts, typename T>
 struct variant_idx<std::variant<Ts...>, T>
@@ -92,6 +106,12 @@ template <typename T, typename Over>
 concept is_iterable_over_v = is_iterable_v<T> && requires(T &Val) {
   { *llvm::adl_begin(Val) } -> same_as_decay<Over>;
 };
+
+template <typename T>
+concept Foreachable = requires(T &Val) { Val.foreach ([](auto &&...Elem) {}); };
+template <typename T, typename... Over>
+concept ForeachableOver =
+    requires(T &Val) { Val.foreach ([](const Over &...Elem) {}); };
 
 template <typename T>
 concept is_pair_v = detail::is_pair<T>::value; // NOLINT
@@ -202,6 +222,17 @@ template <typename From, typename To>
 concept is_explicitly_convertible_to =
     requires(From F) { static_cast<To>(std::forward<From>(F)); };
 
+template <typename T>
+concept IdType = is_explicitly_convertible_to<T, size_t> &&
+                 is_explicitly_convertible_to<size_t, T>;
+
+template <typename T, unsigned MaxWidth = sizeof(unsigned)>
+concept SmallIdType = IdType<T> && sizeof(T) <= MaxWidth;
+
+template <typename Derived, template <typename...> typename Base>
+concept IsTemplateInstance =
+    detail::IsTemplateInstanceImpl<Base, Derived>::value;
+
 template <typename Var, typename T>
 constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
@@ -233,7 +264,7 @@ struct FalseFn {
 /// Delegates to the ctor of T
 template <typename T> struct DefaultConstruct {
   template <typename... U>
-  [[nodiscard]] inline T
+  [[nodiscard]] T
   operator()(U &&...Val) noexcept(std::is_nothrow_constructible_v<T, U...>) {
     return T(std::forward<U>(Val)...);
   }
@@ -270,6 +301,26 @@ struct IdentityFn {
     return std::forward<decltype(Val)>(Val);
   }
 };
+
+template <typename ArgT> struct DummyFn {
+  void operator()(ArgT Arg) const noexcept {}
+};
+
+/// True if T can be relocated by copying its bytes (e.g. via memcpy) without
+/// invoking the move constructor or destructor on the source. Uses Clang's
+/// builtin trait when available (P1144 / P2786), which covers types like
+/// std::unique_ptr that are trivially relocatable but not trivially copyable.
+/// Falls back to std::is_trivially_copyable_v on other compilers.
+template <typename T>
+inline constexpr bool IsTriviallyRelocatable =
+#if defined(__has_builtin) &&                                                  \
+    __has_builtin(__builtin_is_cpp_trivially_relocatable)
+    __builtin_is_cpp_trivially_relocatable(T);
+#elif defined(__has_builtin) && __has_builtin(__is_trivially_relocatable)
+    __is_trivially_relocatable(T);
+#else
+    std::is_trivially_copyable_v<T>;
+#endif
 
 template <typename T, typename R, typename... P>
 concept invocable_r = requires(T Val, P... Params) {

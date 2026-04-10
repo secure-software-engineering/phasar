@@ -31,6 +31,11 @@ struct DataFlowFact {
   DataFlowFact(Parameter Param) noexcept : Fact(Param) {}
   DataFlowFact(ReturnValue Ret) noexcept : Fact(Ret) {}
 
+  template <typename T>
+  [[nodiscard]] constexpr const auto *dyn_cast() const noexcept {
+    return std::get_if<T>(&Fact);
+  }
+
   std::variant<Parameter, ReturnValue> Fact;
 };
 

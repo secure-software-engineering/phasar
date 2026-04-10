@@ -1,5 +1,14 @@
 #pragma once
 
+/******************************************************************************
+ * Copyright (c) 2026 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #include "phasar/Utils/ByRef.h"
 
 #include "llvm/ADT/DenseMapInfo.h"
@@ -15,20 +24,21 @@
   }                                                                            \
   namespace llvm {                                                             \
   template <> struct DenseMapInfo<NAMESPACE::NAME> {                           \
-    using NAME = NAMESPACE::NAME;                                              \
-    static constexpr NAME getEmptyKey() noexcept {                             \
-      return NAME(std::is_signed_v<TYPE> ? std::numeric_limits<TYPE>::min()    \
-                                         : std::numeric_limits<TYPE>::max());  \
+    using QUAL_NAME = NAMESPACE::NAME;                                         \
+    static constexpr QUAL_NAME getEmptyKey() noexcept {                        \
+      return QUAL_NAME(std::is_signed_v<TYPE>                                  \
+                           ? std::numeric_limits<TYPE>::min()                  \
+                           : std::numeric_limits<TYPE>::max());                \
     }                                                                          \
-    static constexpr NAME getTombstoneKey() noexcept {                         \
-      return NAME(std::is_signed_v<TYPE>                                       \
-                      ? std::numeric_limits<TYPE>::min() + 1                   \
-                      : std::numeric_limits<TYPE>::max() - 1);                 \
+    static constexpr QUAL_NAME getTombstoneKey() noexcept {                    \
+      return QUAL_NAME(std::is_signed_v<TYPE>                                  \
+                           ? std::numeric_limits<TYPE>::min() + 1              \
+                           : std::numeric_limits<TYPE>::max() - 1);            \
     }                                                                          \
-    static auto getHashValue(NAME Id) noexcept {                               \
+    static auto getHashValue(QUAL_NAME Id) noexcept {                          \
       return llvm::hash_value(TYPE(Id));                                       \
     }                                                                          \
-    static constexpr bool isEqual(NAME Id1, NAME Id2) noexcept {               \
+    static constexpr bool isEqual(QUAL_NAME Id1, QUAL_NAME Id2) noexcept {     \
       return Id1 == Id2;                                                       \
     }                                                                          \
   };                                                                           \
@@ -94,3 +104,20 @@
     }                                                                          \
   };                                                                           \
   }
+
+namespace psr {
+template <typename EnumT>
+// NOLINTNEXTLINE(readability-identifier-naming)
+[[nodiscard]] constexpr auto to_underlying(EnumT Val) noexcept
+  requires(std::is_enum_v<EnumT>)
+{
+  return static_cast<std::underlying_type_t<EnumT>>(Val);
+}
+template <typename EnumT>
+// NOLINTNEXTLINE(readability-identifier-naming)
+[[nodiscard]] constexpr auto to_underlying(EnumT Val) noexcept
+  requires(std::is_integral_v<EnumT>)
+{
+  return Val;
+}
+} // namespace psr

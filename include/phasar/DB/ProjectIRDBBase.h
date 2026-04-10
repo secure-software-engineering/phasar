@@ -10,6 +10,7 @@
 #ifndef PHASAR_DB_PROJECTIRDBBASE_H
 #define PHASAR_DB_PROJECTIRDBBASE_H
 
+#include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -82,6 +83,13 @@ public:
   [[nodiscard]] bool hasFunction(llvm::StringRef FunctionName) const noexcept {
     assert(isValid());
     return self().hasFunctionImpl(FunctionName);
+  }
+
+  /// Returns the function that contains the given instruction Inst.
+  /// Each instruction must be part of a function.
+  [[nodiscard]] f_t getFunctionOf(ByConstRef<n_t> Inst) const {
+    assert(isValid());
+    return self().getFunctionOfImpl(Inst);
   }
 
   /// Returns the global variable if available, nullptr/nullopt

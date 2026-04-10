@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasIterator.h"
 
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Constants.h"
 

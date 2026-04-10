@@ -410,7 +410,7 @@ if (PHASAR_ENABLE_WARNINGS)
   if (MSVC)
     string(APPEND CMAKE_CXX_FLAGS " /W4")
   else()
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter -Werror=return-type")
   endif()
 endif (PHASAR_ENABLE_WARNINGS)
 

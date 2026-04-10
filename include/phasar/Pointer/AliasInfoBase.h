@@ -40,11 +40,13 @@ concept IsAliasInfo =
              typename AliasInfoTraits<T>::n_t Inst) {
       CVal.print(llvm::outs());
       CVal.printAsJson(llvm::outs());
-      MutVal.mergeWith(MutVal);
-      MutVal.introduceAlias(Ptr, Ptr, Inst, AliasResult{});
+      // MutVal.mergeWith(MutVal);
+      // MutVal.introduceAlias(Ptr, Ptr, Inst, AliasResult{});
 
-      { CVal.isInterProcedural() } -> std::convertible_to<bool>;
-      { CVal.getAliasAnalysisType() } -> std::same_as<AliasAnalysisType>;
+      { CVal.isInterProcedural() } noexcept -> std::convertible_to<bool>;
+      {
+        CVal.getAliasAnalysisType()
+      } noexcept -> std::convertible_to<AliasAnalysisType>;
       { MutVal.alias(Ptr, Ptr, Inst) } -> std::same_as<AliasResult>;
       {
         MutVal.getAliasSet(Ptr, Inst)
@@ -55,10 +57,12 @@ concept IsAliasInfo =
       {
         MutVal.isInReachableAllocationSites(Ptr, Ptr, bool{}, Inst)
       } -> std::convertible_to<bool>;
-      { CVal.getAnalysisProperties() } -> std::same_as<AnalysisProperties>;
-      { CVal.isContextSensitive() } -> std::convertible_to<bool>;
-      { CVal.isFieldSensitive() } -> std::convertible_to<bool>;
-      { CVal.isFlowSensitive() } -> std::convertible_to<bool>;
+      {
+        CVal.getAnalysisProperties()
+      } noexcept -> std::convertible_to<AnalysisProperties>;
+      { CVal.isContextSensitive() } noexcept -> std::convertible_to<bool>;
+      { CVal.isFieldSensitive() } noexcept -> std::convertible_to<bool>;
+      { CVal.isFlowSensitive() } noexcept -> std::convertible_to<bool>;
     };
 
 } // namespace psr

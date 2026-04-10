@@ -113,7 +113,8 @@ protected:
 
     auto UsedGlobals = computeUsedGlobals(IRDB, FC, SCCs, SCCCallers);
 
-    FilteredLLVMAliasIterator FAI(&HA.getAliasInfo());
+    auto AI = HA.getAliasInfo();
+    FilteredLLVMAliasIterator FAI(AI);
     CachedLLVMAliasIterator CAI(&FAI);
     GroundTruthCollector GT(convertTestingLocationSetMapInIR(GroundTruth, IRDB),
                             Loc);

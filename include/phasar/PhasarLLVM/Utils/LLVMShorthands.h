@@ -19,6 +19,12 @@
 
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/IR/Argument.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Type.h"
+#include "llvm/Support/Casting.h"
+
 #include <string>
 #include <vector>
 
@@ -256,6 +262,47 @@ bool isGuardVariable(const llvm::Value *V);
  */
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
+[[nodiscard]] inline bool
+definitelyContainsNoPointerFast(const llvm::Type *Ty) noexcept {
+  return Ty->isIntOrIntVectorTy() || Ty->isFloatingPointTy() ||
+         Ty->isFPOrFPVectorTy() || Ty->isVoidTy();
+}
+
+namespace detail {
+bool definitelyContainsNoPointerImpl(const llvm::Type *Ty) noexcept;
+} // namespace detail
+
+/// Approximates, whether the given LLVM type may not contain a pointer.
+/// This check is designed to be extremely lightweight and is therefore not very
+/// precise.
+///
+/// \returns True, iff it can be proven that Ty does *not* contain a pointer
+[[nodiscard]] inline bool
+definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
+  if (definitelyContainsNoPointerFast(Ty)) {
+    return true;
+  }
+
+  return detail::definitelyContainsNoPointerImpl(Ty);
+}
+/// Approximates, whether the given LLVM value may not contain a pointer.
+/// This check is designed to be extremely lightweight and is therefore not very
+/// precise.
+///
+/// \returns True, iff it can be proven that Val does *not* contain a pointer
+[[nodiscard]] inline bool definitelyContainsNoPointer(const llvm::Value *Val) {
+  return llvm::isa<llvm::ConstantData>(Val) ||
+         definitelyContainsNoPointer(Val->getType());
+}
+
+/// Approximates, whether the given LLVM value may be address-taken, i.e.,
+/// whether its pointer value is used for other purposes than just
+/// store/load/gep.
+///
+/// This check is designed to be rather lightweight and may therefore not be
+/// precise in all cases.
+[[nodiscard]] bool isAddressTakenVariable(const llvm::Value *Var) noexcept;
+
 /**
  * Tests for <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>
  * e.g.
@@ -263,6 +310,26 @@ bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
  * @param F The function to test - Target of the call instruction
  */
 bool isVarAnnotationIntrinsic(const llvm::Function *F);
+
+inline const llvm::Function *getFunction(const llvm::Value *V) {
+  if (!V) {
+    return nullptr;
+  }
+  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return Inst->getFunction();
+  }
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->getParent();
+  }
+  return nullptr;
+}
+inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
+  if (!Inst) {
+    return nullptr;
+  }
+
+  return Inst->getFunction();
+}
 
 /**
  * Retrieves String annotation value as per

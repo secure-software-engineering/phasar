@@ -61,6 +61,8 @@ protected:
 template <typename T, bool RequireAlignment = false>
 class [[clang::trivial_abi]] MaybeUniquePtr
     : detail::MaybeUniquePtrBase<T, RequireAlignment> {
+  template <typename U, bool Align> friend class MaybeUniquePtr;
+
   using detail::MaybeUniquePtrBase<T, RequireAlignment>::Data;
 
 public:
@@ -80,6 +82,14 @@ public:
 
   constexpr MaybeUniquePtr(MaybeUniquePtr &&Other) noexcept
       : detail::MaybeUniquePtrBase<T, RequireAlignment>(std::move(Other)) {
+    Other.Data = {};
+  }
+
+  constexpr MaybeUniquePtr(
+      MaybeUniquePtr<std::remove_const_t<T>> &&Other) noexcept
+    requires std::is_const_v<T>
+      : detail::MaybeUniquePtrBase<T, RequireAlignment>(Other.get(),
+                                                        Other.owns()) {
     Other.Data = {};
   }
 

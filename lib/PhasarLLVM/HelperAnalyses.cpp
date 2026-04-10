@@ -1,10 +1,15 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/Pointer/AliasAnalysisType.h"
 
 #include <memory>
 #include <string>
@@ -29,7 +34,7 @@ HelperAnalyses::HelperAnalyses(std::string IRFile,
                                HelperAnalysisConfig Config) noexcept
     : IRFile(std::move(IRFile)),
       PrecomputedPTS(std::move(Config.PrecomputedPTS)), PTATy(Config.PTATy),
-      AllowLazyPTS(Config.AllowLazyPTS),
+      UFAATy(Config.UFAATy), AllowLazyPTS(Config.AllowLazyPTS),
       PrecomputedCG(std::move(Config.PrecomputedCG)),
       EntryPoints(std::move(EntryPoints)), CGTy(Config.CGTy),
       SoundnessLevel(Config.SoundnessLevel),
@@ -68,16 +73,28 @@ LLVMProjectIRDB &HelperAnalyses::getProjectIRDB() {
   return *IRDB;
 }
 
-LLVMAliasSet &HelperAnalyses::getAliasInfo() {
+LLVMAliasInfoRef HelperAnalyses::getAliasInfo() {
   if (!PT) {
     if (PrecomputedPTS.has_value()) {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), *PrecomputedPTS);
+    } else if (PTATy == AliasAnalysisType::UnionFind) {
+      auto &IRDB = getProjectIRDB();
+      auto VTP = LLVMVFTableProvider(IRDB);
+      auto Res = RTAResolver(&IRDB, &VTP, &getTypeHierarchy());
+      const auto BaseCG = buildLLVMBasedCallGraph(
+          IRDB, Res, getEntryFunctions(IRDB, EntryPoints));
+      PT = std::make_unique<LLVMUnionFindAliasSet>(
+          &getProjectIRDB(), BaseCG,
+          LLVMUnionFindAliasSet::Config{
+              .AType = UFAATy,
+              .ALocality = LLVMUnionFindAliasSet::AnalysisLocality::Global,
+          });
     } else {
       PT = std::make_unique<LLVMAliasSet>(&getProjectIRDB(), AllowLazyPTS,
                                           PTATy);
     }
   }
-  return *PT;
+  return PT.get();
 }
 
 DIBasedTypeHierarchy &HelperAnalyses::getTypeHierarchy() {
@@ -94,7 +111,7 @@ LLVMBasedICFG &HelperAnalyses::getICFG() {
     } else {
       ICF = std::make_unique<LLVMBasedICFG>(
           &getProjectIRDB(), CGTy, std::move(EntryPoints), &getTypeHierarchy(),
-          needsAliasInfo(CGTy) ? &getAliasInfo() : nullptr, SoundnessLevel,
+          needsAliasInfo(CGTy) ? getAliasInfo() : nullptr, SoundnessLevel,
           AutoGlobalSupport);
     }
   }

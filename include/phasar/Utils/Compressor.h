@@ -23,16 +23,15 @@
 #include <deque>
 #include <functional>
 #include <optional>
-#include <type_traits>
 
 namespace psr {
-template <typename T, typename IdT = uint32_t> class Compressor;
+template <typename T, IdType IdT = uint32_t> class Compressor;
 
 /// \brief A utility class that assigns a sequential Id to every inserted
 /// object.
 ///
 /// This specialization handles types that can be efficiently passed by value
-template <typename T, typename IdT>
+template <typename T, IdType IdT>
   requires(CanEfficientlyPassByValue<T> && has_llvm_dense_map_info<T>)
 class Compressor<T, IdT> {
 public:
@@ -112,7 +111,7 @@ private:
 /// object.
 ///
 /// This specialization handles types that cannot be efficiently passed by value
-template <typename T, typename IdT>
+template <typename T, IdType IdT>
   requires(!CanEfficientlyPassByValue<T> || !has_llvm_dense_map_info<T>)
 class Compressor<T, IdT> {
 public:
@@ -247,6 +246,45 @@ private:
 
   std::deque<T> FromInt;
   llvm::DenseMap<const T *, IdT, DSI> ToInt;
+};
+
+struct NoneCompressor final {
+  constexpr NoneCompressor() noexcept = default;
+
+  template <typename T>
+    requires(!std::is_same_v<NoneCompressor, T>)
+  constexpr NoneCompressor(const T & /*unused*/) noexcept {}
+
+  template <typename T>
+  [[nodiscard]] constexpr decltype(auto) getOrInsert(T &&Val) const noexcept {
+    return std::forward<T>(Val);
+  }
+
+  template <typename T>
+  constexpr std::pair<T, bool> insert(const T &Elem) const {
+    return {Elem, false};
+  }
+
+  template <typename T>
+  constexpr std::optional<T> getOrNull(const T &Elem) const {
+    return {Elem};
+  }
+
+  template <typename T> constexpr T get(const T &Elem) const { return Elem; }
+
+  template <typename T>
+  [[nodiscard]] constexpr bool inbounds(const T & /*Idx*/) const noexcept {
+    return true;
+  }
+
+  template <typename T>
+  [[nodiscard]] constexpr decltype(auto) operator[](T &&Val) const noexcept {
+    return std::forward<T>(Val);
+  }
+  constexpr void reserve(size_t /*unused*/) const noexcept {}
+
+  [[nodiscard]] constexpr size_t size() const noexcept { return 0; }
+  [[nodiscard]] constexpr size_t capacity() const noexcept { return 0; }
 };
 
 } // namespace psr

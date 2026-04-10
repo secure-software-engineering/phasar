@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_TYPEPROPAGATOR_H
 
 #include "phasar/PhasarLLVM/ControlFlow/VTA/TypeAssignmentGraph.h"
+#include "phasar/Utils/SCCId.h"
 #include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -22,7 +23,6 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-template <typename GraphNodeId> struct SCCId;
 template <typename GraphNodeId> struct SCCHolder;
 template <typename GraphNodeId> struct SCCDependencyGraph;
 template <typename GraphNodeId> struct SCCOrder;

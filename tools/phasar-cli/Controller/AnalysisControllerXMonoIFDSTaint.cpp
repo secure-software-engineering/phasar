@@ -35,7 +35,8 @@ void controller::executeMonoIFDSTaint(AnalysisController &Data) {
 
   auto UsedGlobals = computeUsedGlobals(IRDB, FC, SCCs, SCCCallers);
 
-  FilteredLLVMAliasIterator FAI(&Data.HA->getAliasInfo());
+  auto AI = Data.HA->getAliasInfo();
+  FilteredLLVMAliasIterator FAI(AI);
   CachedLLVMAliasIterator CAI(&FAI);
   monoifds::TaintAnalysis TA(&Config, &UsedGlobals, &CAI);
   monoifds::MonoIFDSSolver Solver(&TA, &ICF);

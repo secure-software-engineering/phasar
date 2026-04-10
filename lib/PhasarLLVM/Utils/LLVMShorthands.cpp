@@ -17,6 +17,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Fn.h"
 #include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -34,6 +35,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ModuleSlotTracker.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -164,6 +166,9 @@ std::string psr::llvmIRToString(const llvm::Value *V) {
   }
   if (const auto *F = llvm::dyn_cast<llvm::Function>(V)) {
     return "fun @" + F->getName().str();
+  }
+  if (const auto *BB = llvm::dyn_cast<llvm::BasicBlock>(V)) {
+    return "block " + BB->getName().str();
   }
 
   std::string IRBuffer;
@@ -493,6 +498,63 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   return false;
 }
 
+static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->hasStructRetAttr();
+  }
+  return isAllocaInstOrHeapAllocaFunction(V);
+}
+
+bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
+  if (!Var) {
+    return false;
+  }
+  if (!isAllocationSiteOrSimilar(Var)) {
+    return true;
+  }
+
+  llvm::SmallVector<const llvm::Value *> WL = {Var};
+  llvm::SmallDenseSet<const llvm::Value *> Seen = {Var};
+
+  while (!WL.empty()) {
+    const auto *CurrVal = WL.pop_back_val();
+
+    for (const auto &Use : CurrVal->uses()) {
+      if (llvm::isa<llvm::LoadInst>(Use.getUser())) {
+        continue;
+      }
+      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Use.getUser())) {
+        if (Store->getPointerOperand() == Use) {
+          continue;
+        }
+      } else if (llvm::isa<llvm::DbgInfoIntrinsic>(Use.getUser())) {
+        continue;
+      } else if (llvm::isa<llvm::CastInst>(Use.getUser())) {
+        if (!CurrVal->getType()->isPointerTy()) {
+          return true; // ptrtoint
+        }
+
+        if (!Seen.insert(Use.getUser()).second) {
+          WL.push_back(Use.getUser());
+        }
+
+        continue;
+      } else if (const auto *GEP =
+                     llvm::dyn_cast<llvm::GEPOperator>(Use.getUser())) {
+        if (Use == GEP->getPointerOperand() && !Seen.insert(GEP).second) {
+          WL.push_back(GEP);
+        }
+
+        continue;
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool psr::isStaticVariableLazyInitializationBranch(
     const llvm::BranchInst *Inst) {
   if (Inst->isUnconditional()) {
@@ -518,6 +580,20 @@ bool psr::isStaticVariableLazyInitializationBranch(
         }
       }
     }
+  }
+
+  return false;
+}
+
+[[nodiscard]] bool
+psr::detail::definitelyContainsNoPointerImpl(const llvm::Type *Ty) noexcept {
+  if (const auto *Arr = llvm::dyn_cast<llvm::ArrayType>(Ty)) {
+    return definitelyContainsNoPointerFast(Arr->getElementType());
+  }
+
+  if (const auto *Struct = llvm::dyn_cast<llvm::StructType>(Ty)) {
+    return llvm::all_of(Struct->elements(),
+                        fn<definitelyContainsNoPointerFast>);
   }
 
   return false;

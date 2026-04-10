@@ -13,10 +13,11 @@
 #include "phasar/ControlFlow/CallGraphData.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
+#include "phasar/PhasarLLVM/HelperAnalysisConfig.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
-#include "phasar/Utils/IO.h"
+#include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/InitPhasar.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Soundness.h"
@@ -118,6 +119,16 @@ cl::opt<AliasAnalysisType> AliasTypeOpt(
 cl::alias AliasTypeAlias("P", cl::aliasopt(AliasTypeOpt),
                          cl::desc("Alias for --alias-analysis"),
                          cl::cat(PsrCat));
+cl::opt<UnionFindAliasAnalysisType> UFAliasTypeOpt(
+    "union-find-aa",
+    cl::desc(
+        "The union-find alias analysis type to use (default: ctx-ind-sens)"),
+    cl::init(UnionFindAliasAnalysisType::CtxIndSens), cl::cat(PsrCat),
+    values({
+#define UNIONFIND_ALIAS_ANALYSIS_TYPE(NAME, CMDFLAG, DESC)                     \
+  clEnumValN(UnionFindAliasAnalysisType::NAME, CMDFLAG, DESC),
+#include "phasar/Pointer/UnionFindAAType.def"
+    }));
 
 cl::opt<CallGraphAnalysisType>
     CGTypeOpt("call-graph-analysis",
@@ -460,27 +471,32 @@ int main(int Argc, const char **Argv) {
     EntryOpt.push_back("main");
   }
 
-  // setup IRDB as source code manager
-  HelperAnalyses HA(std::move(ModuleOpt.getValue()),
-                    std::move(PrecomputedAliasSet), AliasTypeOpt,
-                    !AnalysisController::needsToEmitPTA(EmitterOptions),
-                    EntryOpt, std::move(PrecomputedCallGraph), CGTypeOpt,
-                    SoundnessOpt, AutoGlobalsOpt);
+  HelperAnalysisConfig HAConfig{
+      .PrecomputedCG = std::move(PrecomputedCallGraph),
+      .PTATy = AliasTypeOpt,
+      .UFAATy = UFAliasTypeOpt,
+      .CGTy = CGTypeOpt,
+      .SoundnessLevel = SoundnessOpt,
+      .AutoGlobalSupport = AutoGlobalsOpt,
+      .AllowLazyPTS = !AnalysisController::needsToEmitPTA(EmitterOptions),
+  };
+  HelperAnalyses HA(std::move(ModuleOpt.getValue()), EntryOpt,
+                    std::move(HAConfig));
   if (!HA.getProjectIRDB().isValid()) {
     // Note: Error message has already been printed
     return 1;
   }
 
   AnalysisController Controller{
-      &HA,
-      DataFlowAnalysisOpt,
-      {AnalysisConfigOpt.getValue()},
-      EntryOpt,
-      StrategyOpt,
-      EmitterOptions,
-      SolverConfig,
-      ProjectIdOpt.getValue(),
-      OutDirOpt.getValue(),
+      .HA = &HA,
+      .DataFlowAnalyses = DataFlowAnalysisOpt,
+      .AnalysisConfigs = {AnalysisConfigOpt.getValue()},
+      .EntryPoints = EntryOpt,
+      .Strategy = StrategyOpt,
+      .EmitterOptions = EmitterOptions,
+      .SolverConfig = SolverConfig,
+      .ProjectID = ProjectIdOpt.getValue(),
+      .ResultDirectory = OutDirOpt.getValue(),
   };
   if (!OutDirOpt.empty()) {
     // create directory for results

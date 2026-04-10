@@ -16,13 +16,13 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -52,7 +52,9 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
       EnableStrongUpdateStore(EnableStrongUpdateStore),
-      Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
+      Llvmfdff(library_summary::readFromFDFF(
+          getLibCSummary(),
+          [IRDB](llvm::StringRef FName) { return IRDB->getFunction(FName); })) {
   assert(Config != nullptr);
   assert(PT);
 }
