@@ -1,5 +1,8 @@
 #include "phasar/PhasarLLVM/DataFlow/MonoIfds/AliasCache.h"
 
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Printer.h"
+
 #include "llvm/IR/Instruction.h"
 
 using namespace psr;
@@ -14,13 +17,16 @@ monoifds::AliasCache::getAliasSet(const llvm::Value *Fact,
   Accesses++;
   if (Inserted) {
     Misses++;
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "For " << DToString(Fact));
     AI.forallAliasesOf(Fact, At, [this, &Vec = It->second](const auto *Alias) {
+      PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  Alias " << DToString(Alias));
       const auto *AliasBase = Alias->stripPointerCastsAndAliases();
       if (const auto *Glob = llvm::dyn_cast<llvm::GlobalVariable>(AliasBase);
           Glob && !PermittedGlobals->contains(Glob)) {
         return;
       }
       if (!SkipSeedsCallBack || !SkipSeedsCallBack(Alias)) {
+        PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory, "  --> add");
         Vec.push_back(Alias);
       }
     });

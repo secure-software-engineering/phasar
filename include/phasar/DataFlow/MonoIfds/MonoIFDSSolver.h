@@ -45,18 +45,22 @@
 
 namespace psr::monoifds {
 
+class MonoIFDFSSolverBase {
+public:
+  static constexpr llvm::StringLiteral LogCategory = "MonoIFDSSolver";
+};
+
 /// \brief Implements the MonoIFDS algorithm, as presented in "Scaling Bottom-up
 /// IFDS Taint Analysis with Optimized Data-flow Encoding" by Schiebel and
 /// Bodden. <TODO: DOI>
-template <MonoIFDSProblem ProblemT> class MonoIFDSSolver {
+template <MonoIFDSProblem ProblemT>
+class MonoIFDSSolver : public MonoIFDFSSolverBase {
 public:
   using n_t = typename ProblemT::ProblemAnalysisDomain::n_t;
   using d_t = typename ProblemT::ProblemAnalysisDomain::d_t;
   using i_t = typename ProblemT::ProblemAnalysisDomain::i_t;
   using f_t = typename ProblemT::ProblemAnalysisDomain::f_t;
   using v_t = typename ProblemT::ProblemAnalysisDomain::v_t;
-
-  static constexpr llvm::StringLiteral LogCategory = "MonoIFDSSolver";
 
   explicit MonoIFDSSolver(ProblemT *Problem, const i_t *ICF,
                           std::pmr::polymorphic_allocator<> Alloc =
@@ -276,7 +280,7 @@ private:
           });
           assert(Driver.empty());
 
-          llvm::errs() << '.';
+          // llvm::errs() << '.';
         };
 
     const auto RepropagateInRecursion = [&](auto &Driver) {
@@ -287,7 +291,7 @@ private:
         assert(Driver.empty());
 
         rescheduleCalls(IState, Driver);
-        llvm::errs() << '.';
+        // llvm::errs() << '.';
       }
 
       assert(IState.HasNewSummary.empty() &&
@@ -663,11 +667,16 @@ private:
         IState.Incoming[CalleeFun].insert(Inst);
       }
 
+      PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                           "[handleCallSrcSinksAndMayRecurse]: At call to "
+                               << FToString(CalleeFun));
+
       IState.LocalProblem.requestedEffectAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
-            PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                                 "[handleCallSrcSinksAndMayRecurse]: LeakFact: "
-                                     << DToString(LeakFact));
+            PHASAR_LOG_LEVEL_CAT(
+                DEBUG, LogCategory,
+                "[handleCallSrcSinksAndMayRecurse]:   LeakFact: "
+                    << DToString(LeakFact));
             if (const auto *LeakSrc = psr::getOrNull(LocalState, LeakFact)) {
               reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact,
                                     *LeakSrc);
@@ -677,9 +686,10 @@ private:
       // Generate taints from zero:
       IState.LocalProblem.generateFactsAtCall(
           Inst, CalleeFun, [&](ByConstRef<d_t> GenFact) {
-            PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                                 "[handleCallSrcSinksAndMayRecurse]: GenFact: "
-                                     << DToString(GenFact));
+            PHASAR_LOG_LEVEL_CAT(
+                DEBUG, LogCategory,
+                "[handleCallSrcSinksAndMayRecurse]:   GenFact: "
+                    << DToString(GenFact));
             // Note: Assume, this gets called for all relevant aliases as well
             LocalState[GenFact].insert(SourceFactId(0));
           });

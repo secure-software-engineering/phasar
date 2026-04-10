@@ -29,6 +29,8 @@ namespace psr::monoifds {
 
 class AliasCache {
 public:
+  static constexpr llvm::StringLiteral LogCategory = "monoifds::AliasCache";
+
   // Passed AI should already be FilteredAliasSet or similar
   explicit AliasCache(
       LLVMAliasIteratorRef AI [[clang::lifetime_capture_by(this)]],

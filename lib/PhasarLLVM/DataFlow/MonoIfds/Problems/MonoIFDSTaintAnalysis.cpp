@@ -278,8 +278,12 @@ void monoifds::TaintAnalysis::LocalAnalysis::generateFactsAtCall(
     n_t CS, f_t Callee, llvm::function_ref<void(d_t)> GenFact) {
   forallGeneratedFacts(*TA->Config, llvm::cast<llvm::CallBase>(CS), Callee,
                        [this, CS, GenFact](const auto *Fact) {
-                         auto Aliases = AC.getAliasSet(Fact, CS);
-                         llvm::for_each(Aliases, GenFact);
+                         if (Fact->getType()->isPointerTy()) {
+                           auto Aliases = AC.getAliasSet(Fact, CS);
+                           llvm::for_each(Aliases, GenFact);
+                         } else {
+                           std::invoke(GenFact, Fact);
+                         }
                        });
 }
 
