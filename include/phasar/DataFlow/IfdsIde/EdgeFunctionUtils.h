@@ -69,49 +69,48 @@ template <typename L> struct ConstantEdgeFunction {
 
   [[nodiscard]] constexpr bool isConstant() const noexcept { return true; }
 
+  [[nodiscard]] friend constexpr bool
+  operator==(ConstantEdgeFunction<L> LHS, ConstantEdgeFunction<L> RHS) noexcept
+    requires CanEfficientlyPassByValue<ConstantEdgeFunction>
+  {
+    return LHS.Value == RHS.Value;
+  }
+
+  [[nodiscard]] friend constexpr bool
+  operator==(const ConstantEdgeFunction<L> &LHS,
+             const ConstantEdgeFunction<L> &RHS) noexcept
+    requires(!CanEfficientlyPassByValue<ConstantEdgeFunction>)
+  {
+    return LHS.Value == RHS.Value;
+  }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const ConstantEdgeFunction &Id) {
+    OS << "ConstantEF";
+    if constexpr (is_llvm_printable_v<
+                      typename ConstantEdgeFunction<L>::value_type>) {
+      OS << '[' << Id.Value << ']';
+    }
+    return OS;
+  }
+
+  [[nodiscard]] friend auto hash_value(const ConstantEdgeFunction &CEF) noexcept
+    requires(is_std_hashable_v<typename NonTopBotValue<L>::type> ||
+             is_llvm_hashable_v<typename NonTopBotValue<L>::type>)
+  {
+    using value_type = typename ConstantEdgeFunction<L>::value_type;
+    if constexpr (is_std_hashable_v<value_type>) {
+      return std::hash<value_type>{}(CEF.Value);
+    } else {
+      using llvm::hash_value;
+      return hash_value(CEF.Value);
+    }
+  }
+
   // -- constant data member
 
   value_type Value{};
 };
-
-template <typename L>
-  requires CanEfficientlyPassByValue<ConstantEdgeFunction<L>>
-[[nodiscard]] constexpr bool operator==(ConstantEdgeFunction<L> LHS,
-                                        ConstantEdgeFunction<L> RHS) noexcept {
-  return LHS.Value == RHS.Value;
-}
-
-template <typename L>
-  requires(!CanEfficientlyPassByValue<ConstantEdgeFunction<L>>)
-[[nodiscard]] constexpr bool
-operator==(const ConstantEdgeFunction<L> &LHS,
-           const ConstantEdgeFunction<L> &RHS) noexcept {
-  return LHS.Value == RHS.Value;
-}
-
-template <typename L>
-[[nodiscard]] llvm::raw_ostream &
-operator<<(llvm::raw_ostream &OS, ByConstRef<ConstantEdgeFunction<L>> Id) {
-  OS << "ConstantEF";
-  if constexpr (is_llvm_printable_v<
-                    typename ConstantEdgeFunction<L>::value_type>) {
-    OS << '[' << Id.Value << ']';
-  }
-  return OS;
-}
-
-template <typename L>
-  requires(is_std_hashable_v<typename NonTopBotValue<L>::type> ||
-           is_llvm_hashable_v<typename NonTopBotValue<L>::type>)
-[[nodiscard]] auto hash_value(const ConstantEdgeFunction<L> &CEF) noexcept {
-  using value_type = typename ConstantEdgeFunction<L>::value_type;
-  if constexpr (is_std_hashable_v<value_type>) {
-    return std::hash<value_type>{}(CEF.Value);
-  } else {
-    using llvm::hash_value;
-    return hash_value(CEF.Value);
-  }
-}
 
 template <typename L> struct AllBottom final {
   using l_t = L;
@@ -295,6 +294,10 @@ template <typename L> struct EdgeFunctionComposer {
     return First.depth() + Second.depth();
   }
 
+  friend auto hash_value(const EdgeFunctionComposer &EFC) noexcept {
+    return llvm::hash_combine(EFC.First, EFC.Second);
+  }
+
   // -- data members
 
   EdgeFunction<l_t> First{};
@@ -302,11 +305,6 @@ template <typename L> struct EdgeFunctionComposer {
 };
 
 static_assert(HasDepth<EdgeFunctionComposer<int>>);
-
-template <typename L>
-auto hash_value(const EdgeFunctionComposer<L> &EFC) noexcept {
-  return llvm::hash_combine(EFC.First, EFC.Second);
-}
 
 template <typename L, uint8_t N> struct JoinEdgeFunction {
   using l_t = L;

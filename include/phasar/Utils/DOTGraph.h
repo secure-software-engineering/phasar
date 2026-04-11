@@ -103,11 +103,12 @@ struct DOTNode {
   DOTNode(std::string FName, std::string L, std::string SId, unsigned FId = 0,
           bool IsStmt = true, bool Isv = true);
   [[nodiscard]] std::string str(const std::string &Indent = "") const;
-};
 
-bool operator<(const DOTNode &Lhs, const DOTNode &Rhs);
-bool operator==(const DOTNode &Lhs, const DOTNode &Rhs);
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTNode &Node);
+  friend bool operator<(const DOTNode &Lhs, const DOTNode &Rhs);
+  friend bool operator==(const DOTNode &Lhs, const DOTNode &Rhs);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const DOTNode &Node);
+};
 
 struct DOTEdge {
   DOTNode Source;
@@ -119,10 +120,11 @@ struct DOTEdge {
   DOTEdge(DOTNode Src, DOTNode Tar, bool Isv = true, std::string Efl = "",
           std::string Vl = "");
   [[nodiscard]] std::string str(const std::string &Indent = "") const;
-};
 
-bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs);
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTEdge &Edge);
+  friend bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const DOTEdge &Edge);
+};
 
 struct DOTFactSubGraph {
   // fact subgraph id = <func-name>_<fact-id>
@@ -134,10 +136,10 @@ struct DOTFactSubGraph {
   std::set<DOTEdge> Edges;
 
   [[nodiscard]] std::string str(const std::string &Indent = "") const;
-};
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const DOTFactSubGraph &FactSG);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const DOTFactSubGraph &FactSG);
+};
 
 struct DOTFunctionSubGraph {
   // function subgraph id = <func-name>
@@ -157,10 +159,10 @@ struct DOTFunctionSubGraph {
   void createLayoutCFNodes();
   void createLayoutFactNodes();
   void createLayoutFactEdges();
-};
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const DOTFunctionSubGraph &FunctionSG);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const DOTFunctionSubGraph &FunctionSG);
+};
 
 template <typename D> struct DOTGraph {
   std::string Label;

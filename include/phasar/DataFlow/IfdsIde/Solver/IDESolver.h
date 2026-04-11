@@ -215,6 +215,12 @@ public:
     getSolverResults().dumpResults(*ICF, OS);
   }
 
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IDESolver &Solver) {
+    Solver.dumpResults(OS);
+    return OS;
+  }
+
   void dumpAllInterPathEdges() {
     llvm::outs() << "COMPUTED INTER PATH EDGES" << '\n';
     auto Interpe = this->computedInterPathEdges.cellSet();
@@ -1916,14 +1922,6 @@ private:
 
   std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
 };
-
-template <typename AnalysisDomainTy, typename Container>
-llvm::raw_ostream &
-operator<<(llvm::raw_ostream &OS,
-           const IDESolver<AnalysisDomainTy, Container> &Solver) {
-  Solver.dumpResults(OS);
-  return OS;
-}
 
 template <typename Problem, typename ICF>
 IDESolver(Problem &, ICF *)

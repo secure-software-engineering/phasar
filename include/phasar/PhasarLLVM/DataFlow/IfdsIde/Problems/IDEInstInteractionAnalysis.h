@@ -154,20 +154,20 @@ public:
     print(OS);
     return Ret;
   }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IDEIIAFlowFact &FlowFact) {
+    FlowFact.print(OS);
+    return OS;
+  }
+
+  friend std::ostream &operator<<(std::ostream &OS,
+                                  const IDEIIAFlowFact &FlowFact) {
+    llvm::raw_os_ostream Rso(OS);
+    FlowFact.print(Rso);
+    return OS;
+  }
 };
-
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                     const IDEIIAFlowFact &FlowFact) {
-  FlowFact.print(OS);
-  return OS;
-}
-
-inline std::ostream &operator<<(std::ostream &OS,
-                                const IDEIIAFlowFact &FlowFact) {
-  llvm::raw_os_ostream Rso(OS);
-  FlowFact.print(Rso);
-  return OS;
-}
 
 } // namespace psr
 

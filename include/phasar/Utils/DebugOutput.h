@@ -99,15 +99,14 @@ template <typename T> struct PrettyPrinter {
     return OS;
   }
 
+  friend std::ostream &operator<<(std::ostream &OS, const PrettyPrinter &P) {
+    llvm::raw_os_ostream ROS(OS);
+    ROS << P;
+    return OS;
+  }
+
   const T &Data;
 };
-
-template <typename T>
-std::ostream &operator<<(std::ostream &OS, const PrettyPrinter<T> &P) {
-  llvm::raw_os_ostream ROS(OS);
-  ROS << P;
-  return OS;
-}
 
 template <typename T> PrettyPrinter(const T &) -> PrettyPrinter<T>;
 
