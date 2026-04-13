@@ -21,7 +21,8 @@ namespace psr::monoifds {
 using SourceFactSet = BitSet<SourceFactId>;
 
 /// The local analysis state: TargetFact-->{SourceFact}
-
+///
+/// \tparam D The type of (target-) data-flow facts
 template <typename D>
 struct DataFlowEnvironment : llvm::SmallDenseMap<D, SourceFactSet> {
   using llvm::SmallDenseMap<D, SourceFactSet>::SmallDenseMap;

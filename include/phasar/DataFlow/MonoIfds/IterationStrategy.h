@@ -15,11 +15,15 @@
 #include <cstdint>
 
 namespace psr::monoifds {
+/// Iteration strategy for intra-procedural propagation
 enum class IterationStrategy : uint8_t {
+  /// Simple de-duplicating queue (See ArraySetDriver)
   DedupFIFOQueue,
+  /// Reverse-Post-Order queue (see TopoFixpointDriver)
   TopoPrioQueue,
+  /// Hybrid of TopoPrioQueue in singleton-CG-SCCs and DedupFIFOQueue for larger
+  /// CG-SCCs
   Hybrid,
-  HybridCapped,
 };
 
 [[nodiscard]] constexpr llvm::StringRef
@@ -31,8 +35,6 @@ to_string(IterationStrategy IterStrategy) noexcept {
     return "topo";
   case IterationStrategy::Hybrid:
     return "hybrid";
-  case IterationStrategy::HybridCapped:
-    return "hybrid-capped";
   }
   llvm_unreachable("All valid IterationStrategy alternatives should be handled "
                    "in the switch above");

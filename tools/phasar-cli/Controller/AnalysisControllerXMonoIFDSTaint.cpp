@@ -47,7 +47,7 @@ void controller::executeMonoIFDSTaint(AnalysisController &Data) {
     if (Data.EmitterOptions &
         AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
       MeasureTime.emplace([](auto Elapsed) {
-        llvm::outs() << "Elapsed: " << hms{Elapsed} << '\n';
+        llvm::outs() << "MonoIFDSSolver Elapsed: " << hms{Elapsed} << '\n';
       });
     }
 

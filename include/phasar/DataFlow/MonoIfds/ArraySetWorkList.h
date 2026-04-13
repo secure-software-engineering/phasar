@@ -12,6 +12,8 @@
 #include "phasar/Utils/ArraySet.h"
 
 namespace psr::monoifds {
+
+/// \brief Simple worklist, based on a de-duplicating queue
 template <typename ItemT> class ArraySetDriver {
 public:
   void push(ItemT Item) { WL.insert(std::move(Item)); }

@@ -250,7 +250,7 @@ private:
         return false;
       }
 
-      if (IterStrategy == IterationStrategy::HybridCapped) {
+      if (IterStrategy == IterationStrategy::Hybrid) {
         // return SCCSize < 20;
         return SCCSize == 1;
       }

@@ -13,7 +13,7 @@
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/FunctionId.h"
-#include "phasar/Utils/SCCGeneric.h"
+#include "phasar/Utils/SCCId.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include <concepts>
@@ -36,6 +36,7 @@ namespace psr::monoifds {
 template <typename T>
 concept MonoIFDSAnalysisDomain = IsAnalysisDomain<T>;
 
+/// \brief CG-SCC-local analysis
 template <typename T, typename Dom>
 concept LocalMonoIFDSProblem =
     requires(T &Problem, DataFlowEnvironment<typename Dom::d_t> &InOut,
