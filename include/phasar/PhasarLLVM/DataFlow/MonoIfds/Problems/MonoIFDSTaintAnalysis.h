@@ -109,7 +109,9 @@ public:
     Printer->onFinalize(OS);
   }
 
-  // TODO: shouldBeInSummary()
+  // Optional API function: Filter out facts that are do not need to go into a
+  // procedure summary
+  [[nodiscard]] bool shouldBeInSummary(d_t ExitFact, n_t ExitInst);
 
 private:
   MaybeUniquePtr<AnalysisPrinterBase<ProblemAnalysisDomain>> Printer =

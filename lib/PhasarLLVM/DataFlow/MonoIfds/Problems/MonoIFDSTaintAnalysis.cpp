@@ -292,3 +292,52 @@ void monoifds::TaintAnalysis::LocalAnalysis::requestedEffectAtCall(
   forallLeakedFacts(*TA->Config, llvm::cast<llvm::CallBase>(CS), Callee,
                     LeakFact);
 }
+
+bool monoifds::TaintAnalysis::shouldBeInSummary(d_t ExitFact, n_t ExitInst) {
+  if (llvm::isa<llvm::Constant>(ExitFact)) {
+    // Global vars should be in summary
+    return !llvm::isa<llvm::Function>(ExitFact);
+  }
+
+  const auto *RetStmt = llvm::dyn_cast<llvm::ReturnInst>(ExitInst);
+  if (RetStmt && RetStmt->getReturnValue() == ExitFact) {
+    // The return value should be in summary
+    return true;
+  }
+
+  const auto *Fun = ExitInst->getFunction();
+  if (Fun->isVarArg()) {
+    if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(ExitFact)) {
+      const auto *AllocTy = Alloc->getAllocatedType();
+      if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
+          AllocTy->getArrayElementType()->isStructTy() &&
+          AllocTy->getArrayElementType()->getStructName() ==
+              "struct.__va_list_tag") {
+
+        return true;
+      }
+    }
+  }
+
+  if (llvm::isa<llvm::AllocaInst>(ExitFact)) {
+    // Locals do not escape
+    return false;
+  }
+
+  // Only output parameters can escape (i.e., pointer args)
+  if (!ExitFact->getType()->isPointerTy()) {
+    return false;
+  }
+
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(ExitFact)) {
+    if (Arg->hasByValAttr()) {
+      // This parameter is actually passed by value in the src code, just for
+      // ABI reasons it appears as being passed by pointer
+      return false;
+    }
+
+    return true;
+  }
+
+  return false;
+}

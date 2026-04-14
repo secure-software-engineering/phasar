@@ -237,9 +237,6 @@ private:
   void computeFixpointForSCC(SCCId<FunctionId> CurrSCC,
                              llvm::ArrayRef<FunctionId> CurrFuns) {
 
-    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                         "[computeFixpointForSCC]: " << CurrSCC.Value);
-
     const size_t SCCSize = CurrFuns.size();
     const bool InRecursion = SCCSize > 1;
     IntermediateState IState(Problem, &PoolRes, CurrSCC, InRecursion);
@@ -828,6 +825,9 @@ template <MonoIFDSProblem ProblemT> void MonoIFDSSolver<ProblemT>::solve() {
   // Step 3: Analyze each CG-SCC in isolation
 
   for (const auto &[SCC, CurrFuns] : SCCs->NodesInSCC.enumerate()) {
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                         "[computeFixpointForSCC]: " << SCC.Value << '/'
+                                                     << SCCs->size());
     computeFixpointForSCC(SCC, CurrFuns);
   }
 }
