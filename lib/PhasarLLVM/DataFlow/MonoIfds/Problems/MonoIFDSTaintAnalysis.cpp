@@ -7,7 +7,6 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/MapUtils.h"
-#include "phasar/Utils/SCCGeneric.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
@@ -306,20 +305,12 @@ bool monoifds::TaintAnalysis::shouldBeInSummary(d_t ExitFact, n_t ExitInst) {
   }
 
   const auto *Fun = ExitInst->getFunction();
-  if (Fun->isVarArg()) {
-    if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(ExitFact)) {
-      const auto *AllocTy = Alloc->getAllocatedType();
-      if (AllocTy->isArrayTy() && AllocTy->getArrayNumElements() > 0 &&
-          AllocTy->getArrayElementType()->isStructTy() &&
-          AllocTy->getArrayElementType()->getStructName() ==
-              "struct.__va_list_tag") {
 
-        return true;
-      }
+  if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(ExitFact)) {
+    if (Fun->isVarArg() && psr::isVaListAlloca(*Alloc)) {
+      return true;
     }
-  }
 
-  if (llvm::isa<llvm::AllocaInst>(ExitFact)) {
     // Locals do not escape
     return false;
   }

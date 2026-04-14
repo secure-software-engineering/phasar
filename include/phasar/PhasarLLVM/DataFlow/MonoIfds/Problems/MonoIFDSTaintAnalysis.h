@@ -20,7 +20,7 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NullAnalysisPrinter.h"
-#include "phasar/Utils/SCCGeneric.h"
+#include "phasar/Utils/SCCId.h"
 #include "phasar/Utils/UsedGlobalsHolder.h"
 #include "phasar/Utils/Utilities.h"
 
