@@ -72,7 +72,7 @@ struct AnalysisDomain {
   // Inter-procedural control flow --- Specifies the type of the
   // inter-procedural control-flow graph to be used.
   using i_t = void;
-  // The ProjectIRDB type to use. Must inherit from the ProjectIRDBBase CRTP
+  // The ProjectIRDB type to use. Must conform to the ProjectIRDB concept
   // template
   using db_t = void;
   // Lattice element --- Specifies the type of the underlying lattice; the value

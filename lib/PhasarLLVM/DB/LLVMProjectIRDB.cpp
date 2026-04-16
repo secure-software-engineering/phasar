@@ -256,29 +256,32 @@ internalGetFunctionDefinition(const llvm::Module &M,
   return nullptr;
 }
 
-[[nodiscard]] bool LLVMProjectIRDB::debugInfoAvailableImpl() const {
+[[nodiscard]] bool LLVMProjectIRDB::debugInfoAvailable() const {
+  assert(isValid());
   return Mod->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 /// Non-const overload
 [[nodiscard]] llvm::Function *
 LLVMProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) {
+  assert(isValid());
   return internalGetFunctionDefinition(*Mod, FunctionName);
 }
 
 [[nodiscard]] const llvm::Function *
-LLVMProjectIRDB::getFunctionDefinitionImpl(llvm::StringRef FunctionName) const {
+LLVMProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) const {
+  assert(isValid());
   return internalGetFunctionDefinition(*Mod, FunctionName);
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
-LLVMProjectIRDB::getGlobalVariableImpl(
-    llvm::StringRef GlobalVariableName) const {
+LLVMProjectIRDB::getGlobalVariable(llvm::StringRef GlobalVariableName) const {
+  assert(isValid());
   return Mod->getGlobalVariable(GlobalVariableName, true);
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
-LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
+LLVMProjectIRDB::getGlobalVariableDefinition(
     llvm::StringRef GlobalVariableName) const {
   const auto *G = getGlobalVariable(GlobalVariableName);
   if (G && !G->isDeclaration()) {
@@ -287,9 +290,14 @@ LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
   return nullptr;
 }
 
-bool LLVMProjectIRDB::isValidImpl() const noexcept { return Mod != nullptr; }
+bool LLVMProjectIRDB::isValid() const noexcept { return Mod != nullptr; }
 
-void LLVMProjectIRDB::dumpImpl() const {
+void LLVMProjectIRDB::dump() const {
+  if (!isValid()) {
+    llvm::dbgs() << "<Invalid Module>\n";
+    llvm::dbgs().flush();
+    return;
+  }
   llvm::dbgs() << *Mod;
   llvm::dbgs().flush();
 }
@@ -333,8 +341,6 @@ void LLVMProjectIRDB::insertFunction(llvm::Function *F, bool DoPreprocessing) {
   }
   assert(InstToId.size() == IdToInst.size());
 }
-
-template class ProjectIRDBBase<LLVMProjectIRDB>;
 
 } // namespace psr
 

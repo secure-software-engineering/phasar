@@ -19,7 +19,6 @@
 
 #include "phasar/Config/Configuration.h"
 #include "phasar/ControlFlow/SparseCFGProvider.h"
-#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionStats.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
