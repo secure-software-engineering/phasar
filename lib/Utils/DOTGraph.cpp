@@ -25,7 +25,7 @@
 #include <sstream>
 #include <utility>
 
-namespace psr {
+using namespace psr;
 
 DOTNode::DOTNode(std::string FName, std::string L, std::string SId,
                  unsigned FId, bool IsStmt, bool IsV)
@@ -199,6 +199,25 @@ void DOTFunctionSubGraph::createLayoutFactEdges() {
   }
 }
 
+bool psr::operator<(const DOTNode &Lhs, const DOTNode &Rhs) {
+  StringIDLess StrLess;
+  // comparing control flow nodes
+  if (Lhs.FactId == 0 && Rhs.FactId == 0) {
+    return StrLess(Lhs.StmtId, Rhs.StmtId);
+  } // comparing fact nodes
+  if (Lhs.FactId == Rhs.FactId) {
+    return StrLess(Lhs.StmtId, Rhs.StmtId);
+  }
+  return Lhs.FactId < Rhs.FactId;
+}
+
+bool psr::operator<(const DOTEdge &Lhs, const DOTEdge &Rhs) {
+  if (Lhs.Source == Rhs.Source) {
+    return Lhs.Target < Rhs.Target;
+  }
+  return Lhs.Source < Rhs.Source;
+}
+
 DOTConfig &DOTConfig::getDOTConfig() {
   static DOTConfig DC;
   return DC;
@@ -263,5 +282,3 @@ void DOTConfig::importDOTConfig(llvm::StringRef ConfigPath) {
     throw std::ios_base::failure(FilePath.string() + " is not a valid path");
   }
 }
-
-} // namespace psr

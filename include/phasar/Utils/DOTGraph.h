@@ -104,17 +104,7 @@ struct DOTNode {
           bool IsStmt = true, bool Isv = true);
   [[nodiscard]] std::string str(const std::string &Indent = "") const;
 
-  friend bool operator<(const DOTNode &Lhs, const DOTNode &Rhs) {
-    StringIDLess StrLess;
-    // comparing control flow nodes
-    if (Lhs.FactId == 0 && Rhs.FactId == 0) {
-      return StrLess(Lhs.StmtId, Rhs.StmtId);
-    } // comparing fact nodes
-    if (Lhs.FactId == Rhs.FactId) {
-      return StrLess(Lhs.StmtId, Rhs.StmtId);
-    }
-    return Lhs.FactId < Rhs.FactId;
-  }
+  friend bool operator<(const DOTNode &Lhs, const DOTNode &Rhs);
 
   friend bool operator==(const DOTNode &Lhs, const DOTNode &Rhs) {
     return !(Lhs < Rhs) && !(Rhs < Lhs);
@@ -137,21 +127,13 @@ struct DOTEdge {
           std::string Vl = "");
   [[nodiscard]] std::string str(const std::string &Indent = "") const;
 
-  friend bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs) {
-    if (Lhs.Source == Rhs.Source) {
-      return Lhs.Target < Rhs.Target;
-    }
-    return Lhs.Source < Rhs.Source;
-  }
+  friend bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs);
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const DOTEdge &Edge) {
     return OS << Edge.str();
   }
 };
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTNode &Node);
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTEdge &Edge);
 
 struct DOTFactSubGraph {
   // fact subgraph id = <func-name>_<fact-id>
