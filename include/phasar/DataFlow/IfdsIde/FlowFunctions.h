@@ -22,6 +22,7 @@
 
 #include "llvm/ADT/ArrayRef.h"
 
+#include <concepts>
 #include <functional>
 #include <initializer_list>
 #include <iterator>
@@ -873,6 +874,271 @@ public:
                                                      f_t /*CalleeFun*/) {
     return nullptr;
   }
+};
+
+template <typename T>
+concept FlowFunctionFactory =
+    requires(T &FFF, typename T::n_t Curr, typename T::n_t Succ,
+             typename T::n_t ExitInst, typename T::n_t CallSite,
+             typename T::n_t RetSite, typename T::f_t CalleeFun,
+             llvm::ArrayRef<typename T::f_t> Callees) {
+      typename T::FlowFunctionPtrType;
+      typename T::d_t;
+      typename T::f_t;
+      typename T::n_t;
+      typename T::container_type;
+
+      requires is_iterable_over_v<typename T::container_type, typename T::d_t>;
+
+      ///
+      /// Describes the effects of the current instruction, i.e. data-flows,
+      /// along normal (non-call, non-return) instructions. Analysis writers are
+      /// free to inspect the successor instructions, too, as a lookahead.
+      ///
+      /// Let instruction_1 := Curr, instruction_2 := Succ, and 0 the
+      /// tautological lambda fact.
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds before the current statement under analysis. f's return
+      /// type is a set of (target) facts that have to be generated from the
+      /// source fact d_i by the data-flow solver. Each combination of input
+      /// fact d_i (given as an input to f) and respective output facts (f(d_i))
+      /// represents an edge that must be "drawn" to construct the exploded
+      /// supergraph for the analysis problem to be solved.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before
+      /// instruction_1. We assume that f is implemented to produce the
+      /// following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass the lambda (or zero fact) as identity
+      ///    f(o) -> {o, x}    // generate a new fact x from o
+      ///    f(.) -> {.}       // pass all other facts that hold before
+      ///                      // instruction_1 as identity
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                         0  o      ...
+      ///                         |  |\     ...
+      /// x = instruction_1 o p   |  | \    ...
+      ///                         |  |  |   ...
+      ///                         v  v  v   ...
+      ///                         0  o  x   ...
+      ///
+      /// y = instruction_2 q r
+      /// \endcode
+      {
+        FFF.getNormalFlowFunction(Curr, Succ)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// Handles call flows: describes the effects of a function call at
+      /// callInst to the callee target destFun. If a call instruction has
+      /// multiple callee targets, for instance, because it is an indirect
+      /// function call that cannot be analyzed precisely in a static manner,
+      /// the call flow function will be queried for each callee target.
+      ///
+      /// This flow function usually handles parameter passing and maps actual
+      /// to formal parameters. If an analysis writer does not wish to analyze a
+      /// given callee target they can return a flow function implementation
+      /// that kills all data-flow facts (e.g. KillAll) such that call is not
+      /// followed. A commonly used trick to model the effects of functions that
+      /// are not present (e.g. library functions such as malloc(), free(),
+      /// etc.) is to kill all facts at the call to the respective target and
+      /// plugin the semantics in the call-to-return flow function. In the
+      /// call-to-return flow function, an analysis writer can check if the
+      /// function of interest is one of the possible targets and then, return a
+      /// flow function implementation that describes the special semantics of
+      /// that function call.
+      ///
+      /// Let start_point be the starting point of the callee target CalleeFun.
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds right before the CallInst. f's return type is a set of
+      /// (target) facts that have to be generated from the source fact d_i by
+      /// the data-flow solver. Each target fact that is generated will hold
+      /// before start_point.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before CallInst. We
+      /// assume that f is implemented to produce the following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass as identity into the callee target
+      ///    f(o) -> {q}       // map actual o into formal q
+      ///    f(p) -> {r}       // map actual p into formal r
+      ///    f(.) -> {}        // kill all other facts that are not visible to
+      ///    the
+      ///                      // callee target
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                            0  o  p   ...
+      ///                             \  \  \  ...
+      /// x = CalleeFun(o, p, ...)     \  \  +----------------+
+      ///                               \  +----------------  |
+      ///                                 +-------------+  +  |
+      ///                                      ...      |  |  |
+      ///                                      ...      |  |  |
+      ///                            0  o  p   ...      |  |  |
+      ///                                               |  |  |
+      ///                                               |  |  |
+      ///                                               |  |  |
+      ///                     Ty CalleeFun(q, r, ...)   |  |  |
+      ///                                               v  v  v
+      ///                                               0  q  r   ...
+      ///
+      ///                                 start point
+      /// \endcode
+      {
+        FFF.getCallFlowFunction(Curr, CalleeFun)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// Handles return flows: describes the data-flows from an ExitInst to the
+      /// corresponding RetSite.
+      ///
+      /// This flow function usually handles the returned value of the callee
+      /// target as well as the parameter mapping back to the caller of
+      /// CalleeFun for pointer parameters as modifications made by CalleeFun
+      /// are visible to the caller. Data-flow facts that are not returned or
+      /// escape via function pointer parameters (or global variables) are
+      /// usually killed.
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds right before the ExitInst. f's return type is a set of
+      /// (target) facts that have to be generated from the source fact d_i by
+      /// the data-flow solver. Each target fact that is generated will hold
+      /// after CallSite.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before ExitInst. We
+      /// assume that f is implemented to produce the following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass as identity into the callee target
+      ///    f(r) -> {x}       // map return value to lhs variable at CallSite
+      ///    f(q) -> {o}       // map pointer-typed formal q to actual o
+      ///    f(.) -> {}        // kill all other facts that are not visible to
+      ///    the
+      ///                      // caller
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                         0  o   ...
+      ///
+      /// x = CalleeFun(o, ...)
+      ///                               +------------------+
+      ///                            +--|---------------+  |
+      ///                         +--|--|------------+  |  |
+      ///                         v  v  v   ...      |  |  |
+      ///                         0  o  x   ...      |  |  |
+      ///                                            |  |  |
+      ///                                            |  |  |
+      ///                                            |  |  |
+      ///                     Ty CalleeFun(q, ...)   |  |  |
+      ///                                            |  |  |
+      ///                                            0  q  r   ...
+      ///
+      ///                                 return r
+      /// \endcode
+      {
+        FFF.getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// Describes the data-flows alongsite a CallSite.
+      ///
+      /// This flow function usually passes all data-flow facts that are not
+      /// involved in the function call alongsite the CallSite. Data-flow facts
+      /// that are not actual parameters or passed by value, modifications to
+      /// those within a callee are not visible in the caller context, are
+      /// mostly passed as identity. The call-to-return flow function may also
+      /// be used to describe special semantics (cf. getCallFlowFunction()).
+      ///
+      /// The returned flow function implementation f
+      /// (FlowFunction::computeTargets()) is applied to each data-flow fact d_i
+      /// that holds right before the CallSite. f's return type is a set of
+      /// (target) facts that have to be generated from the source fact d_i by
+      /// the data-flow solver. Each target fact that is generated will hold
+      /// after CallSite.
+      ///
+      /// The concrete implementation of f is depending on the analysis problem.
+      /// In the following, we present a brief, contrived example:
+      ///
+      /// f is applied to each data-flow fact d_i that holds before CallSite. We
+      /// assume that f is implemented to produce the following outputs.
+      /// \code
+      ///    f(0) -> {0}       // pass lambda as identity alongsite the CallSite
+      ///    f(o) -> {o}       // assuming that o is passed by value, it is
+      ///    passed
+      ///                      // alongsite the CallSite
+      ///    f(p) -> {}        // assuming that p is a pointer-typed value, we
+      ///    need
+      ///                      // to kill p, as it will be handled by the call-
+      ///                      and
+      ///                      // return-flow functions
+      ///    f(.) -> {.}       // pass everything that is not involved in the
+      ///    call
+      ///                      // as identity
+      /// \endcode
+      /// The above implementation corresponds to the following edges in the
+      /// exploded supergraph.
+      /// \code
+      ///                            0  o   ...
+      ///                            |  |
+      ///                            |  +-------+
+      ///                            +--------+ |
+      ///                                     | |
+      /// x = CalleeFun(o, p, ...)            | |
+      ///                                     | |
+      ///                            +--------+ |
+      ///                            |  +-------+
+      ///                            v  v
+      ///                            0  o  x   ...
+      /// \endcode
+      {
+        FFF.getCallToRetFlowFunction(CallSite, RetSite, Callees)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+
+      ///
+      /// May be used to encode special sementics of a given callee target
+      /// (whose call should not be directly followed by the data-flow solver)
+      /// similar to the getCallFlowFunction() --> getCallToRetFlowFunction()
+      /// trick (cf. getCallFlowFunction()).
+      ///
+      /// The default implementation returns a nullptr to indicate that the
+      /// mechanism should not be used.
+      ///
+      {
+        FFF.getSummaryFlowFunction(Curr, CalleeFun)
+      } -> std::convertible_to<typename T::FlowFunctionPtrType>;
+    };
+
+template <typename T>
+concept UnbalancedRetSideEffectProvider = requires(
+    T &FFF, typename T::n_t ExitInst, typename T::n_t CallSite,
+    typename T::f_t CalleeFun, typename T::d_t Source) {
+  /// Performs any side-effects of a return-flow-function
+  ///
+  /// In case of unbalanced returns (if the option `followReturnsPastSeeds` is
+  /// activated in the IfdsIdeSolverConfig), we will eventually reach a function
+  /// that is not called from other functions. Still, we may want to apply a
+  /// return-flow-function -- just for its side-effects, such as registering a
+  /// taint
+  {
+    FFF.applyUnbalancedRetFlowFunctionSideEffects(CalleeFun, ExitInst, Source)
+  };
 };
 
 } // namespace psr
