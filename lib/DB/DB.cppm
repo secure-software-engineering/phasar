@@ -7,7 +7,6 @@ export module phasar.db;
 export namespace psr {
 using psr::IRDBGetFunctionDef;
 using psr::ProjectIRDB;
-using psr::ProjectIRDBTraits;
 using psr::ProjectSymbolTable;
 
 } // namespace psr
