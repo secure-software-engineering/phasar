@@ -51,15 +51,6 @@ public:
   /// calls to isValid() return false.
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
 
-  /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
-  /// If an error occurs, an error message is written to stderr and subsequent
-  /// calls to isValid() return false.
-  [[deprecated("When moving to the next LLVM version, opaque pointers support "
-               "is removed completely. Please use one of the other "
-               "constructors of LLVMProjectIRDB.")]]
-  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                           bool EnableOpaquePointers);
-
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is optionally being preprocessed.
   ///
@@ -82,15 +73,6 @@ public:
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
   explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
-
-  /// Parses the given LLVM IR file and owns the resulting IR Module.
-  /// If an error occurs, an error message is written to stderr and subsequent
-  /// calls to isValid() return false.
-  [[deprecated("When moving to the next LLVM version, opaque pointers support "
-               "is removed completely. Please use one of the other "
-               "constructors of LLVMProjectIRDB.")]]
-  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                           bool EnableOpaquePointers);
 
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(const LLVMProjectIRDB &) = delete;

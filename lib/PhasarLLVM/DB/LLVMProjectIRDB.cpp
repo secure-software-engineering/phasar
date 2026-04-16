@@ -27,19 +27,6 @@ namespace psr {
 
 static_assert(ProjectIRDB<LLVMProjectIRDB>);
 
-[[deprecated]]
-static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
-#if LLVM_VERSION_MAJOR >= 15 && LLVM_VERSION_MAJOR < 17
-  if (!Enable) {
-    Ctx.setOpaquePointers(false);
-  }
-#elif LLVM_VERSION_MAJOR < 15
-  if (Enable) {
-    Ctx.enableOpaquePointers();
-  }
-#endif
-}
-
 namespace {
 enum class IRDBParsingError {
   CouldNotParse = 1,
@@ -153,25 +140,6 @@ LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName)
   preprocessModule(NonConst);
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                                 bool EnableOpaquePointers)
-    : Ctx(new llvm::LLVMContext()) {
-  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
-
-  if (!M) {
-    llvm::WithColor::error()
-        << "Could not load LLVM-" << LLVM_VERSION_MAJOR << " IR file "
-        << IRFileName << ": " << M.getError().message() << '\n';
-    return;
-  }
-
-  auto *NonConst = M->get();
-  Mod = std::move(M.get());
-  ModulesToSlotTracker::setMSTForModule(Mod.get());
-  preprocessModule(NonConst);
-}
-
 void LLVMProjectIRDB::initInstructionIds() {
   assert(Mod != nullptr);
   size_t Id = 0;
@@ -263,23 +231,6 @@ LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf)
     : Ctx(new llvm::LLVMContext()) {
   auto M = getParsedIRModuleOrErr(Buf, *Ctx);
   if (!M) {
-    return;
-  }
-
-  auto *NonConst = M->get();
-  Mod = std::move(M.get());
-  ModulesToSlotTracker::setMSTForModule(Mod.get());
-  preprocessModule(NonConst);
-}
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                                 bool EnableOpaquePointers)
-    : Ctx(new llvm::LLVMContext()) {
-  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrErr(Buf, *Ctx);
-  if (!M) {
-    llvm::WithColor::error() << "Could not load " << LLVM_VERSION_MAJOR
-                             << " IR buffer: " << Buf.getBufferIdentifier()
-                             << ": " << M.getError().message() << '\n';
     return;
   }
 
