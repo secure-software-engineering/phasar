@@ -150,6 +150,9 @@ struct DOTEdge {
   }
 };
 
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTNode &Node);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const DOTEdge &Edge);
+
 struct DOTFactSubGraph {
   // fact subgraph id = <func-name>_<fact-id>
   std::string Id;
