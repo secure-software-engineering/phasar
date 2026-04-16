@@ -62,6 +62,15 @@ public:
   };
 };
 
+template <typename T>
+concept IsJoinLattice = requires(T &JL, typename T::l_t Val) {
+  typename T::l_t;
+
+  { JL.topElement() } -> std::convertible_to<typename T::l_t>;
+  { JL.bottomElement() } -> std::convertible_to<typename T::l_t>;
+  { JL.join(Val, Val) } -> std::convertible_to<typename T::l_t>;
+};
+
 template <typename L> struct NonTopBotValue {
   using type = L;
 
