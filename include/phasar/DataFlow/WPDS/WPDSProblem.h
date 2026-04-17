@@ -39,7 +39,7 @@ concept WPDSAnalysisDomain = requires {
 /// paper (Reps, Schwoon, Jha, Melski, SciCP 58, 2005):
 ///
 ///   - Control locations  = dataflow facts (d_t).
-///   - Stack symbols      = program nodes  (n_t), compressed to uint32_t IDs.
+///   - Stack symbols      = program nodes  (n_t), compressed to SymId.
 ///
 /// The WPDSSolver generates WPDS rules by calling the flow-weight functions
 /// for every source fact d ∈ getAllFacts():
