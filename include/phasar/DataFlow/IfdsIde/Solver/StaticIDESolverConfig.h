@@ -55,7 +55,7 @@ struct IDESolverConfigBase {
   static constexpr bool EnableStatistics = false;
   static constexpr JumpFunctionGCMode EnableJumpFunctionGC =
       JumpFunctionGCMode::Disabled;
-  static constexpr bool UseEndSummaryTab = false;
+  static constexpr bool UseEndSummaryTab = true;
 };
 
 template <typename Base, bool ComputeValuesVal> struct WithComputeValues;
