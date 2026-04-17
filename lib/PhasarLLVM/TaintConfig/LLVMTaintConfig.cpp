@@ -159,6 +159,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
 
   const auto AddVariable = [this](const VariableData &VarDesc,
                                   const llvm::Instruction &I) -> bool {
+#if LLVM_VERSION_MAJOR > 18
     for (const llvm::DbgVariableRecord &DbR :
          llvm::filterDbgVars(I.getDbgRecordRange())) {
       const auto *Var = DbR.getVariable();
@@ -168,6 +169,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
         return true;
       }
     }
+#endif
 
     if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
       const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
