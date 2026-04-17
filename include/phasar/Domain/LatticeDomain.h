@@ -187,8 +187,8 @@ template <typename L> struct JoinLatticeTraits<LatticeDomain<L>> {
   using l_t = L;
   static constexpr Bottom bottom() noexcept { return {}; }
   static constexpr Top top() noexcept { return {}; }
-  static LatticeDomain<L> join(ByConstRef<LatticeDomain<l_t>> LHS,
-                               ByConstRef<LatticeDomain<l_t>> RHS) {
+  static constexpr LatticeDomain<L> join(ByConstRef<LatticeDomain<l_t>> LHS,
+                                         ByConstRef<LatticeDomain<l_t>> RHS) {
     // Top < (Lhs::l_t < Rhs::l_t) < Bottom
     if (LHS.isTop() || LHS == RHS) {
       return RHS;
@@ -228,7 +228,7 @@ struct NonTopBotValue<LatticeDomain<L>> {
 
 namespace std {
 template <typename L> struct hash<psr::LatticeDomain<L>> {
-  size_t operator()(const psr::LatticeDomain<L> &LD) noexcept {
+  constexpr size_t operator()(const psr::LatticeDomain<L> &LD) noexcept {
     if (LD.isBottom()) {
       return SIZE_MAX;
     }
