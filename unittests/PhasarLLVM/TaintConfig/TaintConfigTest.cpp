@@ -242,7 +242,7 @@ TEST_F(TaintConfigTest, Array_01_Json) {
 
   const llvm::Value *I = testingLocInIR(
       OperandOf{1, LineColFunOp{8, 9, "main", llvm::Instruction::Store}}, IR);
-  ASSERT_TRUE(TConfig.isSource(I));
+  ASSERT_TRUE(TConfig.isSource(I)) << psr::llvmIRToString(I);
 }
 
 TEST_F(TaintConfigTest, Array_02_Json) {
@@ -253,9 +253,12 @@ TEST_F(TaintConfigTest, Array_02_Json) {
   psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
   //   IR.emitPreprocessedIR(llvm::outs(), false);
   psr::LLVMTaintConfig TConfig(IR, JsonConfig);
+
+  TConfig.print(llvm::errs());
+
   const llvm::Value *I = testingLocInIR(
       OperandOf{1, LineColFunOp{9, 9, "main", llvm::Instruction::Store}}, IR);
-  ASSERT_TRUE(TConfig.isSource(I));
+  ASSERT_TRUE(TConfig.isSource(I)) << psr::llvmIRToString(I);
 }
 
 TEST_F(TaintConfigTest, Basic_01_Json) {
