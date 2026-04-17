@@ -24,6 +24,11 @@ namespace psr {
 using LLVMAliasIteratorRef =
     AliasIteratorRef<const llvm::Value *, const llvm::Instruction *>;
 
+template <typename T>
+concept IsLLVMAliasIterator =
+    detail::IsAliasIteratorFor<T, const llvm::Value *,
+                               const llvm::Instruction *>;
+
 using LLVMAliasInfoRef =
     AliasInfoRef<const llvm::Value *, const llvm::Instruction *>;
 

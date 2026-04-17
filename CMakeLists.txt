@@ -23,7 +23,7 @@ if (DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
 endif()
 
-set(PHASAR_VERSION 2510)
+set(PHASAR_VERSION 2604)
 if (NOT PHASAR_IN_TREE)
   project (phasar
     LANGUAGES C CXX
@@ -410,7 +410,7 @@ if (PHASAR_ENABLE_WARNINGS)
   if (MSVC)
     string(APPEND CMAKE_CXX_FLAGS " /W4")
   else()
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wno-unused-parameter -Werror=return-type")
   endif()
 endif (PHASAR_ENABLE_WARNINGS)
 

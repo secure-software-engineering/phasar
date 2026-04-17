@@ -9,27 +9,6 @@
 
 namespace psr {
 
-struct NoneCompressor final {
-  constexpr NoneCompressor() noexcept = default;
-
-  template <typename T>
-    requires(!std::is_same_v<NoneCompressor, T>)
-  constexpr NoneCompressor(const T & /*unused*/) noexcept {}
-
-  template <typename T>
-  [[nodiscard]] decltype(auto) getOrInsert(T &&Val) const noexcept {
-    return std::forward<T>(Val);
-  }
-  template <typename T>
-  [[nodiscard]] decltype(auto) operator[](T &&Val) const noexcept {
-    return std::forward<T>(Val);
-  }
-  void reserve(size_t /*unused*/) const noexcept {}
-
-  [[nodiscard]] size_t size() const noexcept { return 0; }
-  [[nodiscard]] size_t capacity() const noexcept { return 0; }
-};
-
 class LLVMProjectIRDB;
 
 /// Once we have fast instruction IDs (as we already have in IntelliSecPhasar),

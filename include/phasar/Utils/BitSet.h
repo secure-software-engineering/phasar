@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_BITSET_H
 #define PHASAR_UTILS_BITSET_H
 
+#include "phasar/Utils/TypeTraits.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 
@@ -20,6 +22,7 @@
 #include <cstdint>
 #include <functional>
 #include <iterator>
+#include <optional>
 #include <type_traits>
 
 namespace psr {
@@ -34,13 +37,21 @@ namespace psr {
 /// convertible from and to uint32_t.
 /// \tparam BitVectorTy The underlying bit-vector to use. Must be either
 /// llvm::BitVector or llvm::SmallBitVector.
-template <typename IdT, typename BitVectorTy = llvm::BitVector> class BitSet {
+template <SmallIdType IdT, typename BitVectorTy = llvm::BitVector>
+class BitSet {
   static llvm::ArrayRef<uintptr_t> getWords(const llvm::BitVector &BV,
                                             uintptr_t & /*Store*/) {
+    // getData() accesses Bits[0] unconditionally; guard against empty vector.
+    if (BV.empty()) {
+      return {};
+    }
     return BV.getData();
   }
   static llvm::ArrayRef<uintptr_t> getWords(const llvm::SmallBitVector &BV,
                                             uintptr_t &Store) {
+    if (BV.empty()) {
+      return {};
+    }
     return BV.getData(Store);
   }
 
@@ -178,7 +189,20 @@ public:
   }
   [[nodiscard]] iterator end() const noexcept { return Bits.set_bits_end(); }
 
-  /// Calls the given handler function for each sert bit in the bitset.
+  /// Returns the smallest element in the set, or std::nullopt if empty.
+  [[nodiscard]] std::optional<IdT> findFirst() const noexcept {
+    const int First = Bits.find_first();
+    return First >= 0 ? std::optional<IdT>(IdT(First)) : std::nullopt;
+  }
+
+  /// Returns the smallest element greater than \p Key, or std::nullopt if
+  /// none exists.
+  [[nodiscard]] std::optional<IdT> findNext(IdT Key) const noexcept {
+    const int Next = Bits.find_next(int(uint32_t(Key)));
+    return Next >= 0 ? std::optional<IdT>(IdT(Next)) : std::nullopt;
+  }
+
+  /// Calls the given handler function for each set bit in the bitset.
   ///
   /// This is likely faster than using iterators.
   template <std::invocable<IdT> HandlerFn>

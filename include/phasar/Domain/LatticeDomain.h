@@ -13,6 +13,7 @@
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/JoinLattice.h"
+#include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/Hashing.h"
@@ -22,6 +23,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <variant>
 
@@ -98,6 +100,13 @@ struct LatticeDomain : public std::variant<Top, L, Bottom> {
   [[nodiscard]] inline const L &assertGetValue() const noexcept {
     assert(std::holds_alternative<L>(*this));
     return std::get<L>(*this);
+  }
+
+  template <typename TransformFn, typename... ArgsT>
+  void onValue(TransformFn Transform, ArgsT &&...Args) {
+    if (auto *Val = getValueOrNull()) {
+      std::invoke(std::move(Transform), *Val, PSR_FWD(Args)...);
+    }
   }
 };
 
@@ -213,6 +222,14 @@ template <typename L> struct JoinLatticeTraits<LatticeDomain<L>> {
       return LHS;
     }
 
+    if constexpr (has_adl_join<l_t>) {
+      if (auto LhsPtr = LHS.getValueOrNull()) {
+        if (auto RhsPtr = RHS.getValueOrNull()) {
+          return psr::adl_join(*LhsPtr, *RhsPtr);
+        }
+      }
+    }
+
     return Bottom{};
   }
 };
@@ -243,7 +260,12 @@ template <typename L> struct hash<psr::LatticeDomain<L>> {
       return SIZE_MAX - 1;
     }
     assert(LD.getValueOrNull() != nullptr);
-    return std::hash<L>{}(*LD.getValueOrNull());
+    if constexpr (psr::is_std_hashable_v<L>) {
+      return std::hash<L>{}(*LD.getValueOrNull());
+    } else {
+      using llvm::hash_value;
+      return hash_value(*LD.getValueOrNull());
+    }
   }
 };
 } // namespace std

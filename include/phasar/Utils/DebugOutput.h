@@ -10,6 +10,7 @@
 #define PHASAR_UTILS_DEBUGOUTPUT_H
 
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -23,14 +24,15 @@
 namespace psr {
 namespace detail {
 
-/// \file This file contains many useful ways of printing information for
+/// \file
+/// This file contains many useful ways of printing information for
 /// debugging purposes.
 
 template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data);
 
 template <typename OS_t, typename... Args, size_t... Idx>
-void printTuple(OS_t &OS, const std::tuple<Args...> &Tup,
-                std::index_sequence<Idx...> /*unused*/) {
+inline void printTuple(OS_t &OS, const std::tuple<Args...> &Tup,
+                       std::index_sequence<Idx...> /*unused*/) {
   OS << "(";
   ((OS << (Idx == 0 ? "" : ", "), printHelper(OS, std::get<Idx>(Tup))), ...);
   OS << ")";
@@ -55,6 +57,12 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
     }
   } else if constexpr (is_printable_v<ElemTy, OS_t>) {
     OS << Data;
+  } else if constexpr (has_str_v<ElemTy>) {
+    OS << Data.str();
+  } else if constexpr (has_adl_to_string_v<ElemTy>) {
+    OS << psr::adl_to_string(Data);
+  } else if constexpr (std::is_enum_v<ElemTy>) {
+    OS << std::underlying_type_t<ElemTy>(Data);
   } else if constexpr (is_pair_v<ElemTy>) {
     OS << "(";
     printHelper(OS, Data.first);
@@ -63,8 +71,6 @@ template <typename OS_t, typename T> void printHelper(OS_t &OS, const T &Data) {
     OS << ")";
   } else if constexpr (is_tuple_v<ElemTy>) {
     printTuple(OS, Data, std::make_index_sequence<std::tuple_size_v<ElemTy>>());
-  } else if constexpr (has_str_v<ElemTy>) {
-    OS << Data.str();
   } else if constexpr (is_iterable_v<ElemTy>) {
     OS << "{ ";
     bool Frst = true;

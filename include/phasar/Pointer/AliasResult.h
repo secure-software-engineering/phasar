@@ -22,6 +22,11 @@ enum class AliasResult {
 
 std::string toString(AliasResult AR);
 
+// for ADL std::to_string compatibility
+[[nodiscard]] inline auto to_string(AliasResult Res) noexcept { // NOLINT
+  return toString(Res);
+}
+
 AliasResult toAliasResult(llvm::StringRef S);
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, AliasResult AR);

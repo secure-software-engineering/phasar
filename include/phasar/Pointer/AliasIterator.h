@@ -34,7 +34,7 @@ concept IsAliasIteratorFor =
 
 template <typename T>
 concept HasAlias = requires(T &AS, typename T::v_t Ptr, typename T::n_t Inst) {
-  { AS.alias(Ptr, Ptr, Inst) } -> std::same_as<AliasResult>;
+  { AS.alias(Ptr, Ptr, Inst) } -> std::convertible_to<AliasResult>;
 };
 
 template <typename T>

@@ -1,6 +1,6 @@
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LibCSummary.h"
+#include "phasar/Utils/LibCSummary.h"
 
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/FunctionDataFlowFacts.h"
+#include "phasar/Utils/FunctionDataFlowFacts.h"
 
 using namespace psr;
 using namespace psr::library_summary;

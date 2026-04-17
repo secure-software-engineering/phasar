@@ -22,8 +22,8 @@ template <typename N, typename D> class PathEdge {
 
 public:
   PathEdge(D DSource, N Target,
-           D DTarget) noexcept(std::is_nothrow_move_constructible_v<N>
-                                   &&std::is_nothrow_move_constructible_v<D>)
+           D DTarget) noexcept(std::is_nothrow_move_constructible_v<N> &&
+                               std::is_nothrow_move_constructible_v<D>)
       : DSource(std::move(DSource)), Target(std::move(Target)),
         DTarget(std::move(DTarget)) {}
 

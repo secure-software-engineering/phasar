@@ -2,6 +2,7 @@ set(PointerFlowSources
 	LLVMAliasSetTest.cpp
 	LLVMAliasSetSerializationTest.cpp
 	FilteredLLVMAliasSetTest.cpp
+	LLVMUnionFindAATest.cpp
 )
 
 if (PHASAR_USE_SVF)

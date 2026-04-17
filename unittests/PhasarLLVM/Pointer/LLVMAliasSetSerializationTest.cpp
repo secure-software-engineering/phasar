@@ -94,7 +94,7 @@ static void analyze(llvm::StringRef File, const GroundTruthTy &Gt,
 }
 
 TEST(LLVMAliasSetSerializationTest, Ser_Intra01) {
-  analyze("pointers/basic_01_cpp.ll", {{{"1"}, {"0", "3"}}, {"main"}});
+  analyze("pointers/basic_01_c.ll", {{{"1"}, {"0", "3"}}, {"main"}});
 }
 
 TEST(LLVMAliasSetSerializationTest, Ser_Inter01) {

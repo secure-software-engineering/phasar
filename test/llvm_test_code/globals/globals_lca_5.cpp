@@ -39,7 +39,7 @@ Foo foo;
 
 __attribute__((constructor)) void makeGlobalFoo() {
   foo = createFoo();
-  __cxa_atexit((void (*)(void *)) & Foo_dtor, &foo, nullptr);
+  __cxa_atexit((void (*)(void *))&Foo_dtor, &foo, nullptr);
 }
 
 int main() { printf("x: %d\n", foo); }

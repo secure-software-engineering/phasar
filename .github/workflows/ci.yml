@@ -51,7 +51,7 @@ jobs:
       - name: ccache  # This should always come after the actions/checkout step.
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.build }}
+          key: ${{ github.job }}-${{ matrix.os }}-llvm${{ matrix.llvm-version }}-${{ matrix.build }}
 
       - name: Install Phasar Dependencies
         shell: bash

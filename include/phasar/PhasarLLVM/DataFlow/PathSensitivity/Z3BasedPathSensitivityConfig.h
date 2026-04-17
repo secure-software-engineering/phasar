@@ -22,7 +22,7 @@ struct Z3BasedPathSensitivityConfig
   std::optional<z3::expr> AdditionalConstraint;
 
   [[nodiscard]] Z3BasedPathSensitivityConfig
-  withAdditionalConstraint(const z3::expr &Constr) const &noexcept {
+  withAdditionalConstraint(const z3::expr &Constr) const & noexcept {
     auto Ret = *this;
     Ret.AdditionalConstraint =
         Ret.AdditionalConstraint ? *Ret.AdditionalConstraint && Constr : Constr;
@@ -30,7 +30,7 @@ struct Z3BasedPathSensitivityConfig
   }
 
   [[nodiscard]] Z3BasedPathSensitivityConfig
-  withAdditionalConstraint(const z3::expr &Constr) &&noexcept {
+  withAdditionalConstraint(const z3::expr &Constr) && noexcept {
     AdditionalConstraint =
         AdditionalConstraint ? *AdditionalConstraint && Constr : Constr;
     return std::move(*this);

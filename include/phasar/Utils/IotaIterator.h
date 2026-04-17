@@ -84,7 +84,8 @@ template <typename IdT>
   return Ret;
 }
 
-template <typename IdT> [[nodiscard]] constexpr auto iota(size_t To) noexcept {
+template <typename IdT = size_t>
+[[nodiscard]] constexpr auto iota(size_t To) noexcept {
   static_assert(is_explicitly_convertible_to<size_t, IdT> &&
                     is_explicitly_convertible_to<IdT, size_t>,
                 "Iota only works on integers and integer-like types");

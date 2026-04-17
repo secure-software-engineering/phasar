@@ -16,6 +16,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <concepts>
+#include <cstddef>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -29,7 +30,8 @@ namespace psr {
 using std::type_identity;
 using std::type_identity_t;
 
-/// \file TODO: We should stick to one naming convention here and not mix
+/// \file
+/// TODO: We should stick to one naming convention here and not mix
 /// CamelCase with lower_case!
 
 // NOLINTBEGIN(readability-identifier-naming)
@@ -54,6 +56,19 @@ private:
 public:
   using type =
       decltype(getTemplateArgImpl<Base>(std::declval<const Derived &>()));
+};
+
+template <template <typename...> typename Base, typename Derived>
+class IsTemplateInstanceImpl {
+private:
+  template <template <typename...> typename TBase, typename... TT>
+  static std::true_type test(const TBase<TT...> &Impl);
+  template <template <typename...> typename TBase>
+  static std::false_type test(...);
+
+public:
+  static constexpr bool value =
+      decltype(test<Base>(std::declval<const Derived &>()))::value;
 };
 
 template <typename Var, typename T> struct variant_idx;
@@ -93,6 +108,12 @@ concept is_iterable_over_v = is_iterable_v<T> && requires(T &Val) {
 };
 
 template <typename T>
+concept Foreachable = requires(T &Val) { Val.foreach ([](auto &&...Elem) {}); };
+template <typename T, typename... Over>
+concept ForeachableOver =
+    requires(T &Val) { Val.foreach ([](const Over &...Elem) {}); };
+
+template <typename T>
 concept is_pair_v = detail::is_pair<T>::value; // NOLINT
 
 template <typename T>
@@ -117,6 +138,12 @@ concept has_adl_to_string_v = requires(const T &Val) {
   { std::to_string(Val) } -> std::convertible_to<std::string_view>;
 } || requires(const T &Val) {
   { to_string(Val) } -> std::convertible_to<std::string_view>;
+};
+
+template <typename T>
+concept has_adl_join = requires(const T &Val) {
+  // TODO: Add psr::join-variant, once we have a fallback!
+  { join(Val, Val) } -> std::convertible_to<T>;
 };
 
 template <typename T>
@@ -195,6 +222,17 @@ template <typename From, typename To>
 concept is_explicitly_convertible_to =
     requires(From F) { static_cast<To>(std::forward<From>(F)); };
 
+template <typename T>
+concept IdType = is_explicitly_convertible_to<T, size_t> &&
+                 is_explicitly_convertible_to<size_t, T>;
+
+template <typename T, unsigned MaxWidth = sizeof(unsigned)>
+concept SmallIdType = IdType<T> && sizeof(T) <= MaxWidth;
+
+template <typename Derived, template <typename...> typename Base>
+concept IsTemplateInstance =
+    detail::IsTemplateInstanceImpl<Base, Derived>::value;
+
 template <typename Var, typename T>
 constexpr size_t variant_idx = detail::variant_idx<Var, T>::value;
 
@@ -227,7 +265,7 @@ struct FalseFn {
 /// Delegates to the ctor of T
 template <typename T> struct DefaultConstruct {
   template <typename... U>
-  [[nodiscard]] inline T
+  [[nodiscard]] T
   operator()(U &&...Val) noexcept(std::is_nothrow_constructible_v<T, U...>) {
     return T(std::forward<U>(Val)...);
   }
@@ -252,11 +290,46 @@ template <has_adl_to_string_v T>
   return to_string(Val);
 }
 
+template <has_adl_join T>
+[[nodiscard]] decltype(auto) adl_join(const T &L,
+                                      const std::type_identity_t<T> &R) {
+  // using psr::join; // TODO: Enable, once we have a generic psr::join!
+  return join(L, R);
+}
+
 struct IdentityFn {
   template <typename T> decltype(auto) operator()(T &&Val) const noexcept {
     return std::forward<decltype(Val)>(Val);
   }
 };
+
+template <typename ArgT> struct DummyFn {
+  void operator()(ArgT Arg) const noexcept {}
+};
+
+/// True if T can be relocated by copying its bytes (e.g. via memcpy) without
+/// invoking the move constructor or destructor on the source. Uses Clang's
+/// builtin trait when available (P1144 / P2786), which covers types like
+/// std::unique_ptr that are trivially relocatable but not trivially copyable.
+/// Falls back to std::is_trivially_copyable_v on other compilers.
+template <typename T>
+inline constexpr bool IsTriviallyRelocatable =
+#if defined(__has_builtin) &&                                                  \
+    __has_builtin(__builtin_is_cpp_trivially_relocatable)
+    __builtin_is_cpp_trivially_relocatable(T);
+#elif defined(__has_builtin) && __has_builtin(__is_trivially_relocatable)
+    __is_trivially_relocatable(T);
+#else
+    std::is_trivially_copyable_v<T>;
+#endif
+
+template <typename T, typename R, typename... P>
+concept invocable_r = requires(T Val, P... Params) {
+  { std::invoke(PSR_FWD(Val), PSR_FWD(Params)...) } -> std::convertible_to<R>;
+};
+
+template <typename T, typename U>
+concept proper_subclass_of = std::derived_from<T, U> && !std::same_as<T, U>;
 
 // NOLINTEND(readability-identifier-naming)
 } // namespace psr

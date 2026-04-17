@@ -19,7 +19,11 @@
 
 #include "phasar/Utils/Utilities.h"
 
-#include "llvm/Support/Compiler.h"
+#include "llvm/IR/Argument.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Type.h"
+#include "llvm/Support/Casting.h"
 
 #include <string>
 #include <vector>
@@ -92,14 +96,14 @@ llvm::ModuleSlotTracker &getModuleSlotTrackerFor(const llvm::Value *V);
 [[nodiscard]] std::string llvmIRToString(const llvm::Value *V);
 
 /**
- * @brief Similar to llvmIRToString, but removes the metadata from the output as
- * they are not always stable. Prefer this function over llvmIRToString, if you
- * are comparing the string representations of LLVM iR instructions.
+ * @brief Similar to llvmIRToString(), but removes the metadata from the output
+ * as they are not always stable. Prefer this function over llvmIRToString, if
+ * you are comparing the string representations of LLVM iR instructions.
  */
 [[nodiscard]] std::string llvmIRToStableString(const llvm::Value *V);
 
 /**
- * @brief Same as @link(llvmIRToString) but tries to shorten the
+ * @brief Same as llvmIRToString() but tries to shorten the
  *        resulting string
  */
 std::string llvmIRToShortString(const llvm::Value *V);
@@ -137,7 +141,7 @@ globalValuesUsedinFunction(const llvm::Function *F);
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
  * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore,
  * a formal arguments ID will look like this:
- *    <function_name>.<#argument>
+ *    `<function_name>.<#argument>`
  *
  * ZeroValue will have -1 as ID by default.
  *
@@ -169,7 +173,7 @@ int getFunctionArgumentNr(const llvm::Argument *Arg);
  *
  * @brief Returns the n-th LLVM Argument of a given LLVM Function.
  * @param F Function to retrieve the Arguments from.
- * @param argNo Argument number.
+ * @param ArgNo Argument number.
  * @return LLVM Argument or nullptr, if argNo invalid.
  */
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
@@ -180,7 +184,7 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
  *
  * @brief Returns the n-th LLVM Instruction of a given LLVM Function.
  * @param F Function to retrieve the Instruction from.
- * @param instNo Instruction number.
+ * @param Idx Instruction number.
  * @return LLVM Instruction or nullptr, if instNo invalid.
  */
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
@@ -195,7 +199,7 @@ const llvm::Instruction *getLastInstructionOf(const llvm::Function *F);
  * @brief Returns the n-th LLVM Termination Instruction of a given LLVM
  * Function.
  * @param F Function to retrieve the Termination Instruction from.
- * @param termInstNo Termination Instruction number.
+ * @param TermInstNo Termination Instruction number.
  * @return LLVM Instruction or nullptr, if termInstNo invalid.
  */
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
@@ -207,7 +211,7 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
  * @brief Returns the n-th LLVM Store Instruction of a given LLVM
  * Function.
  * @param F Function to retrieve the Store Instruction from.
- * @param termInstNo Store Instruction number.
+ * @param TermInstNo Store Instruction number.
  * @return LLVM Store Instruction or nullptr, if stoNo invalid.
  */
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
@@ -238,7 +242,7 @@ std::string getModuleNameFromVal(const llvm::Value *V);
 /**
  * @brief Computes a hash value for a given LLVM Module.
  * @param M LLVM Module.
- * @param considerIdentifier If true, module identifier will be considered for
+ * @param ConsiderIdentifier If true, module identifier will be considered for
  * hash computation.
  * @return Hash value.
  */
@@ -264,6 +268,47 @@ bool isGuardVariable(const llvm::Value *V);
  */
 bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
 
+[[nodiscard]] inline bool
+definitelyContainsNoPointerFast(const llvm::Type *Ty) noexcept {
+  return Ty->isIntOrIntVectorTy() || Ty->isFloatingPointTy() ||
+         Ty->isFPOrFPVectorTy() || Ty->isVoidTy();
+}
+
+namespace detail {
+bool definitelyContainsNoPointerImpl(const llvm::Type *Ty) noexcept;
+} // namespace detail
+
+/// Approximates, whether the given LLVM type may not contain a pointer.
+/// This check is designed to be extremely lightweight and is therefore not very
+/// precise.
+///
+/// \returns True, iff it can be proven that Ty does *not* contain a pointer
+[[nodiscard]] inline bool
+definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
+  if (definitelyContainsNoPointerFast(Ty)) {
+    return true;
+  }
+
+  return detail::definitelyContainsNoPointerImpl(Ty);
+}
+/// Approximates, whether the given LLVM value may not contain a pointer.
+/// This check is designed to be extremely lightweight and is therefore not very
+/// precise.
+///
+/// \returns True, iff it can be proven that Val does *not* contain a pointer
+[[nodiscard]] inline bool definitelyContainsNoPointer(const llvm::Value *Val) {
+  return llvm::isa<llvm::ConstantData>(Val) ||
+         definitelyContainsNoPointer(Val->getType());
+}
+
+/// Approximates, whether the given LLVM value may be address-taken, i.e.,
+/// whether its pointer value is used for other purposes than just
+/// store/load/gep.
+///
+/// This check is designed to be rather lightweight and may therefore not be
+/// precise in all cases.
+[[nodiscard]] bool isAddressTakenVariable(const llvm::Value *Var) noexcept;
+
 /**
  * Tests for <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>
  * e.g.
@@ -271,6 +316,26 @@ bool isStaticVariableLazyInitializationBranch(const llvm::BranchInst *Inst);
  * @param F The function to test - Target of the call instruction
  */
 bool isVarAnnotationIntrinsic(const llvm::Function *F);
+
+inline const llvm::Function *getFunction(const llvm::Value *V) {
+  if (!V) {
+    return nullptr;
+  }
+  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return Inst->getFunction();
+  }
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->getParent();
+  }
+  return nullptr;
+}
+inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
+  if (!Inst) {
+    return nullptr;
+  }
+
+  return Inst->getFunction();
+}
 
 /**
  * Retrieves String annotation value as per

@@ -28,7 +28,8 @@
 
 namespace psr {
 
-/// \file This file contains functions for reading in text files and json files
+/// \file
+/// This file contains functions for reading in text files and json files
 /// and provides error handling capabilities as well, if needed.
 
 [[nodiscard]] llvm::ErrorOr<std::string>
@@ -51,6 +52,9 @@ void writeTextFile(const llvm::Twine &Path, llvm::StringRef Content);
 
 [[nodiscard]] std::unique_ptr<llvm::raw_fd_ostream>
 openFileStream(const llvm::Twine &Filename);
+
+std::unique_ptr<llvm::raw_ostream>
+openFileForWrite(const llvm::Twine &FilePath);
 
 } // namespace psr
 

@@ -13,9 +13,9 @@
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
-#include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 
 #include <map>
 #include <set>
@@ -41,6 +41,12 @@ class LLVMTaintConfig;
  */
 class IFDSTaintAnalysis
     : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
+  struct KillsAtFn {
+    const IFDSTaintAnalysis *Self{};
+
+    [[nodiscard]] std::optional<int32_t> operator()(n_t Curr,
+                                                    d_t CurrNode) const;
+  };
 
 public:
   // Setup the configuration type
@@ -58,7 +64,8 @@ public:
   IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     const LLVMTaintConfig *Config,
                     std::vector<std::string> EntryPoints = {"main"},
-                    bool TaintMainArgs = true);
+                    bool TaintMainArgs = true,
+                    bool EnableStrongUpdateStore = true);
 
   FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
 
@@ -86,10 +93,13 @@ public:
   [[nodiscard]] bool
   isInteresting(const llvm::Instruction *Inst) const noexcept;
 
+  [[nodiscard]] KillsAtFn killsAt() const { return {.Self = this}; }
+
 private:
   const LLVMTaintConfig *Config{};
   LLVMAliasInfoRef PT{};
   bool TaintMainArgs{};
+  bool EnableStrongUpdateStore{};
   library_summary::LLVMFunctionDataFlowFacts Llvmfdff;
 
   bool isSourceCall(const llvm::CallBase *CB,

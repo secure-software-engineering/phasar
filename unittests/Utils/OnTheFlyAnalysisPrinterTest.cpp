@@ -15,6 +15,8 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+namespace {
+
 using namespace psr;
 using namespace psr::unittest;
 
@@ -29,8 +31,8 @@ class GroundTruthCollector
 
 public:
   // constructor init Groundtruth in each fixture
-  GroundTruthCollector(GroundTruthTy &GroundTruth)
-      : GroundTruth(GroundTruth) {};
+  GroundTruthCollector(GroundTruthTy GroundTruth)
+      : GroundTruth(std::move(GroundTruth)) {};
 
   void convertGT(const LLVMProjectIRDB &IRDB) {
     LLVMGroundTruth = convertTestingLocationSetMapInIR(GroundTruth, IRDB);
@@ -110,6 +112,7 @@ TEST_F(OnTheFlyAnalysisPrinterTest, UninitTest_02_NOLEAK) {
   GroundTruthCollector GroundTruthPrinter = {GroundTruth};
   doAnalysisTest("ctor_default_cpp_dbg.ll", GroundTruthPrinter);
 }
+} // namespace
 
 // main function for the test case
 int main(int Argc, char **Argv) {

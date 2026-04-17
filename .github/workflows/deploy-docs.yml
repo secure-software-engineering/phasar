@@ -8,6 +8,7 @@ permissions:
   contents: write
 jobs:
   build-and-deploy:
+    if: github.repository == 'secure-software-engineering/phasar'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: true
