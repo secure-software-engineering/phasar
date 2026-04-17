@@ -11,6 +11,7 @@
 
 #include "phasar/ControlFlow/CFG.h"
 #include "phasar/ControlFlow/ControlFlowOrder.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/DataFlow/MonoIfds/ArraySetWorkList.h"
 #include "phasar/DataFlow/MonoIfds/DataFlowEnvironment.h"
 #include "phasar/DataFlow/MonoIfds/MonoIFDSConfig.h"
@@ -53,12 +54,13 @@ public:
 /// \brief Implements the MonoIFDS algorithm, as presented in "Scaling Bottom-up
 /// IFDS Taint Analysis with Optimized Data-flow Encoding" by Schiebel and
 /// Bodden. <TODO: DOI>
-template <MonoIFDSProblem ProblemT>
+template <MonoIFDSProblem ProblemT,
+          ICFG ICFGTy = typename ProblemT::ProblemAnalysisDomain::i_t>
 class MonoIFDSSolver : public MonoIFDFSSolverBase {
 public:
   using n_t = typename ProblemT::ProblemAnalysisDomain::n_t;
   using d_t = typename ProblemT::ProblemAnalysisDomain::d_t;
-  using i_t = typename ProblemT::ProblemAnalysisDomain::i_t;
+  using i_t = ICFGTy;
   using f_t = typename ProblemT::ProblemAnalysisDomain::f_t;
   using v_t = typename ProblemT::ProblemAnalysisDomain::v_t;
 
@@ -814,7 +816,8 @@ private:
   llvm::SmallDenseMap<n_t, llvm::SmallDenseSet<d_t, 1>> Leaks{};
 };
 
-template <MonoIFDSProblem ProblemT> void MonoIFDSSolver<ProblemT>::solve() {
+template <MonoIFDSProblem ProblemT, ICFG ICFGTy>
+void MonoIFDSSolver<ProblemT, ICFGTy>::solve() {
   // Step 1: Check for pre-analysis results: If any of them is null, create them
   initialize();
 
