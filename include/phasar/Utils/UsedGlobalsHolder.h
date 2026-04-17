@@ -9,7 +9,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "phasar/Utils/SCCGeneric.h"
+#include "phasar/Utils/SCCId.h"
+#include "phasar/Utils/TypedVector.h"
 
 #include "llvm/ADT/DenseSet.h"
 

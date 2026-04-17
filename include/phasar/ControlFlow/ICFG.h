@@ -8,6 +8,7 @@
  *****************************************************************************/
 #pragma once
 
+#include "phasar/ControlFlow/CFG.h"
 #include "phasar/ControlFlow/CallGraphBase.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/TypeTraits.h"
@@ -19,8 +20,8 @@
 
 namespace psr {
 template <typename T>
-concept ICFG = requires(const T &ICF, llvm::StringRef Name,
-                        typename T::n_t Inst, typename T::f_t Fun) {
+concept ICFG = CFG<T> && requires(const T &ICF, llvm::StringRef Name,
+                                  typename T::n_t Inst, typename T::f_t Fun) {
   typename T::f_t;
   typename T::n_t;
 
@@ -61,4 +62,8 @@ concept ICFGDump = requires(const T &ICF, llvm::raw_ostream &OS) {
   ICF.print(OS);
   ICF.printAsJson(OS);
 };
+
+template <typename T, typename N, typename F>
+concept ICFGOf = ICFG<T> && std::same_as<N, typename T::n_t> &&
+                 std::same_as<F, typename T::f_t>;
 } // namespace psr

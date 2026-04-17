@@ -1,16 +1,15 @@
 #include "phasar/PhasarLLVM/Utils/UsedGlobals.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/FunctionId.h"
 #include "phasar/Utils/SCCGeneric.h"
 
-#include "llvm/IR/Module.h"
-
-#include <llvm-16/llvm/IR/Function.h>
-#include <llvm-16/llvm/IR/InstIterator.h>
-#include <llvm-16/llvm/IR/Instructions.h>
-#include <llvm-16/llvm/IR/IntrinsicInst.h>
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 
 using namespace psr;
 

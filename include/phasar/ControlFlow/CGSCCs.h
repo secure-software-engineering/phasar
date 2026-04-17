@@ -11,8 +11,8 @@
 
 #include "phasar/ControlFlow/CFG.h"
 #include "phasar/ControlFlow/CallGraph.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/Utils/BitSet.h"
-#include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/FunctionId.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/SCCGeneric.h"
@@ -25,9 +25,9 @@ namespace psr {
 // the bottom-up iteration order.
 template <typename N, typename F, CFGOf<N, F> C>
   requires InstructionClassifier<C>
-SCCHolder<FunctionId>
+[[nodiscard]] SCCHolder<FunctionId>
 computeCGSCCs(const psr::CallGraph<N, F> &CG, const C &CF,
-              const Compressor<F, FunctionId> &Functions) {
+              const FunctionCompressor<F> &Functions) {
 
   SCCHolder<FunctionId> Ret{};
 
@@ -113,18 +113,25 @@ computeCGSCCs(const psr::CallGraph<N, F> &CG, const C &CF,
   return Ret;
 }
 
+template <ICFG I>
+  requires InstructionClassifier<I>
+[[nodiscard]] SCCHolder<FunctionId>
+computeCGSCCs(const I &ICF,
+              const FunctionCompressor<typename I::f_t> &Functions) {
+  return computeCGSCCs(ICF.getCallGraph(), ICF, Functions);
+}
+
 template <typename N, typename F>
-SCCDependencyGraph<FunctionId>
+[[nodiscard]] SCCDependencyGraph<FunctionId>
 computeCGSCCCallers(const psr::CallGraph<N, F> &CG, const CFGOf<N, F> auto &CF,
-                    const Compressor<F, FunctionId> &Functions,
+                    const FunctionCompressor<F> &Functions,
                     const SCCHolder<FunctionId> &SCCs) {
   SCCDependencyGraph<FunctionId> Ret;
   Ret.ChildrenOfSCC.resize(SCCs.size());
 
   BitSet<SCCId<FunctionId>> Leaves(SCCs.size(), true);
 
-  for (auto FunId : iota<FunctionId>(Functions.size())) {
-    const auto *Fun = Functions[FunId];
+  for (auto [FunId, Fun] : Functions.enumerate()) {
     auto SCC = SCCs.SCCOfNode[FunId];
 
     for (const auto &CS : CG.getCallersOf(Fun)) {
@@ -144,6 +151,14 @@ computeCGSCCCallers(const psr::CallGraph<N, F> &CG, const CFGOf<N, F> auto &CF,
       [&](auto Leaf) { Ret.SCCRoots.push_back(SCCId<FunctionId>(Leaf)); });
 
   return Ret;
+}
+
+template <ICFG I>
+[[nodiscard]] SCCDependencyGraph<FunctionId>
+computeCGSCCCallers(const I &ICF,
+                    const FunctionCompressor<typename I::f_t> &Functions,
+                    const SCCHolder<FunctionId> &SCCs) {
+  return computeCGSCCCallers(ICF.getCallGraph(), ICF, Functions, SCCs);
 }
 
 } // namespace psr

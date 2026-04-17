@@ -20,4 +20,6 @@ PHASAR_STRONG_TYPEDEF(psr, uint32_t, FunctionId);
 
 namespace psr {
 std::string to_string(FunctionId FId);
+
+template <typename F> using FunctionCompressor = Compressor<F, FunctionId>;
 } // namespace psr

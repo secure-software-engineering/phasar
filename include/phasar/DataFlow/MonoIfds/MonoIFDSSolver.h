@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "phasar/ControlFlow/CFG.h"
+#include "phasar/ControlFlow/CGSCCs.h"
 #include "phasar/ControlFlow/ControlFlowOrder.h"
 #include "phasar/ControlFlow/ICFG.h"
 #include "phasar/DataFlow/MonoIfds/ArraySetWorkList.h"

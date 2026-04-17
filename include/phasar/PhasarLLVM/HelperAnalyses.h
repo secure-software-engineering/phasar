@@ -16,6 +16,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/Pointer/UnionFindAliasAnalysisType.h"
+#include "phasar/Utils/FunctionId.h"
 
 #include "llvm/ADT/Twine.h"
 
@@ -25,6 +26,7 @@
 
 namespace llvm {
 class Module;
+class GlobalVariable;
 } // namespace llvm
 
 namespace psr {
@@ -32,7 +34,9 @@ class LLVMProjectIRDB;
 class DIBasedTypeHierarchy;
 class LLVMBasedICFG;
 class LLVMBasedCFG;
-class LLVMAliasSet;
+template <typename GraphNodeId> struct SCCHolder;
+template <typename GraphNodeId> struct SCCDependencyGraph;
+template <typename G> struct UsedGlobalsHolder;
 
 class HelperAnalyses { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
@@ -66,6 +70,12 @@ public:
   [[nodiscard]] DIBasedTypeHierarchy &getTypeHierarchy();
   [[nodiscard]] LLVMBasedICFG &getICFG();
   [[nodiscard]] LLVMBasedCFG &getCFG();
+  [[nodiscard]] FunctionCompressor<const llvm::Function *> &
+  getCompressedFunctions();
+  [[nodiscard]] const SCCHolder<FunctionId> &getCGSCCs();
+  [[nodiscard]] const SCCDependencyGraph<FunctionId> &getCGSCCCallers();
+  [[nodiscard]] const UsedGlobalsHolder<const llvm::GlobalVariable *> &
+  getUsedGlobals();
 
 private:
   std::unique_ptr<LLVMProjectIRDB> IRDB;
@@ -73,6 +83,10 @@ private:
   std::unique_ptr<DIBasedTypeHierarchy> TH;
   std::unique_ptr<LLVMBasedICFG> ICF;
   std::unique_ptr<LLVMBasedCFG> CFG;
+  std::unique_ptr<FunctionCompressor<const llvm::Function *>> FC;
+  std::unique_ptr<SCCHolder<FunctionId>> SCCs;
+  std::unique_ptr<SCCDependencyGraph<FunctionId>> SCCCallers;
+  std::unique_ptr<UsedGlobalsHolder<const llvm::GlobalVariable *>> UsedGlobals;
 
   // IRDB
   std::string IRFile;

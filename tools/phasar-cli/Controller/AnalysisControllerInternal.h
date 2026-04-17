@@ -19,11 +19,10 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Timer.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
 
 #include "AnalysisController.h"
-
-#include <llvm-16/llvm/ADT/StringRef.h>
 
 namespace psr {
 template <typename T, typename U> class IDESolver;
