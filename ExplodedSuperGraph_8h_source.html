@@ -211,13 +211,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      <span class="keywordflow">return</span> Owner != <span class="keyword">nullptr</span> &amp;&amp; NodeId != Node::NoPredId;</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    }</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a81f30fad8753dd504a23d76dd89a3880">operator==</a>(NodeRef L, NodeRef R) <span class="keyword">noexcept</span> {</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr_1_1vta.html#ae8799c5fb488feaaa9f91f304a5d64e3">operator==</a>(NodeRef L, NodeRef R) <span class="keyword">noexcept</span> {</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>      <span class="keywordflow">return</span> L.NodeId == R.NodeId &amp;&amp; L.Owner == R.Owner;</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    }</div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> operator!=(NodeRef L, NodeRef R) <span class="keyword">noexcept</span> {</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      <span class="keywordflow">return</span> !(L == R);</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    }</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr.html#a81f30fad8753dd504a23d76dd89a3880">operator==</a>(NodeRef L,</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    [[nodiscard]] <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacepsr_1_1vta.html#ae8799c5fb488feaaa9f91f304a5d64e3">operator==</a>(NodeRef L,</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>                                         std::nullptr_t <span class="comment">/*R*/</span>) <span class="keyword">noexcept</span> {</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>      <span class="keywordflow">return</span> L.Owner == <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    }</div>
@@ -225,7 +225,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>      <span class="keywordflow">return</span> !(L == R);</div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    }</div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keyword">friend</span> llvm::hash_code <a class="code hl_function" href="namespacepsr.html#a395a173e63ba43797c2fee25987ef840">hash_value</a>(NodeRef NR) <span class="keyword">noexcept</span> { <span class="comment">// NOLINT</span></div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keyword">friend</span> llvm::hash_code <a class="code hl_function" href="namespacepsr_1_1cfl__fieldsens.html#a5408a1998d5e19f6a5ff0c5f6ae8d937">hash_value</a>(NodeRef NR) <span class="keyword">noexcept</span> { <span class="comment">// NOLINT</span></div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      <span class="keywordflow">return</span> llvm::hash_combine(NR.NodeId, NR.Owner);</div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    }</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
@@ -481,10 +481,10 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassbool_html"><div class="ttname"><a href="classbool.html">bool</a></div></div>
 <div class="ttc" id="aclasspsr_1_1scope__exit_html"><div class="ttname"><a href="classpsr_1_1scope__exit.html">psr::scope_exit</a></div><div class="ttdoc">See https://en.cppreference.com/w/cpp/experimental/scope_exit/scope_exit</div><div class="ttdef"><b>Definition</b> <a href="Utilities_8h_source.html#l00151">Utilities.h:151</a></div></div>
 <div class="ttc" id="aclasssize__t_html"><div class="ttname"><a href="classsize__t.html">size_t</a></div></div>
+<div class="ttc" id="anamespacepsr_1_1cfl__fieldsens_html_a5408a1998d5e19f6a5ff0c5f6ae8d937"><div class="ttname"><a href="namespacepsr_1_1cfl__fieldsens.html#a5408a1998d5e19f6a5ff0c5f6ae8d937">psr::cfl_fieldsens::hash_value</a></div><div class="ttdeci">llvm::hash_code hash_value(FieldStringNodeId NId)</div><div class="ttdef"><b>Definition</b> <a href="CFLFieldSensIFDSProblem_8h_source.html#l00052">CFLFieldSensIFDSProblem.h:52</a></div></div>
+<div class="ttc" id="anamespacepsr_1_1vta_html_ae8799c5fb488feaaa9f91f304a5d64e3"><div class="ttname"><a href="namespacepsr_1_1vta.html#ae8799c5fb488feaaa9f91f304a5d64e3">psr::vta::operator==</a></div><div class="ttdeci">constexpr bool operator==(Variable L, Variable R) noexcept</div><div class="ttdef"><b>Definition</b> <a href="TypeAssignmentGraph_8h_source.html#l00064">TypeAssignmentGraph.h:64</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
-<div class="ttc" id="anamespacepsr_html_a395a173e63ba43797c2fee25987ef840"><div class="ttname"><a href="namespacepsr.html#a395a173e63ba43797c2fee25987ef840">psr::hash_value</a></div><div class="ttdeci">auto hash_value(const ConstantEdgeFunction&lt; L &gt; &amp;CEF) noexcept</div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionUtils_8h_source.html#l00107">EdgeFunctionUtils.h:107</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a5462787d6bd41739c36e66d99f2aee6a"><div class="ttname"><a href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString</a></div><div class="ttdeci">std::string DToString(const AbstractMemoryLocation &amp;AML)</div></div>
-<div class="ttc" id="anamespacepsr_html_a81f30fad8753dd504a23d76dd89a3880"><div class="ttname"><a href="namespacepsr.html#a81f30fad8753dd504a23d76dd89a3880">psr::operator==</a></div><div class="ttdeci">constexpr bool operator==(ConstantEdgeFunction&lt; L &gt; LHS, ConstantEdgeFunction&lt; L &gt; RHS) noexcept</div><div class="ttdef"><b>Definition</b> <a href="EdgeFunctionUtils_8h_source.html#l00080">EdgeFunctionUtils.h:80</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710b"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710b">psr::ESGEdgeKind</a></div><div class="ttdeci">ESGEdgeKind</div><div class="ttdef"><b>Definition</b> <a href="ESGEdgeKind_8h_source.html#l00014">ESGEdgeKind.h:14</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710ba4f014d5b11e540cab57eb17a1f449aad"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba4f014d5b11e540cab57eb17a1f449aad">psr::ESGEdgeKind::CallToRet</a></div><div class="ttdeci">@ CallToRet</div></div>
 <div class="ttc" id="anamespacepsr_html_a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd"><div class="ttname"><a href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::ESGEdgeKind::Ret</a></div><div class="ttdeci">@ Ret</div></div>
@@ -495,7 +495,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 17 2026 15:40:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Apr 17 2026 17:33:32 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

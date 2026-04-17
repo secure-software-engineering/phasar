@@ -198,24 +198,23 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  }</div>
 </div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno"><a class="line" href="structpsr_1_1PrettyPrinter.html#ae0bb3dce01ab755743967a0fb3613fb8">  102</a></span>  <span class="keyword">const</span> T &amp;<a class="code hl_variable" href="structpsr_1_1PrettyPrinter.html#ae0bb3dce01ab755743967a0fb3613fb8">Data</a>;</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>};</div>
+<div class="foldopen" id="foldopen00102" data-start="{" data-end="};">
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno"><a class="line" href="structpsr_1_1PrettyPrinter.html#a54f919f72f53c4c5243270e6ad91f68e">  102</a></span>  <span class="keyword">friend</span> std::ostream &amp;<a class="code hl_friend" href="structpsr_1_1PrettyPrinter.html#a54f919f72f53c4c5243270e6ad91f68e">operator&lt;&lt;</a>(std::ostream &amp;OS, <span class="keyword">const</span> <a class="code hl_struct" href="structpsr_1_1PrettyPrinter.html">PrettyPrinter</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">P</a>) {</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    llvm::raw_os_ostream <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ROS</a>(OS);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ROS</a> &lt;&lt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">P</a>;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordflow">return</span> OS;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  }</div>
 </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span> </div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="foldopen" id="foldopen00106" data-start="{" data-end="}">
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="namespacepsr.html#a9792b0bea26ef5cc9235cbe2280b2c21">  106</a></span>std::ostream &amp;<a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(std::ostream &amp;OS, <span class="keyword">const</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PrettyPrinter&lt;T&gt;</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">P</a>) {</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  llvm::raw_os_ostream <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ROS</a>(OS);</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ROS</a> &lt;&lt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">P</a>;</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  <span class="keywordflow">return</span> OS;</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>}</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="structpsr_1_1PrettyPrinter.html#ae0bb3dce01ab755743967a0fb3613fb8">  108</a></span>  <span class="keyword">const</span> T &amp;<a class="code hl_variable" href="structpsr_1_1PrettyPrinter.html#ae0bb3dce01ab755743967a0fb3613fb8">Data</a>;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>};</div>
 </div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="namespacepsr.html#aa73a5b122d82c47528b16f9ea92aeeba">  112</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <a class="code hl_struct" href="structpsr_1_1PrettyPrinter.html">PrettyPrinter</a>(<span class="keyword">const</span> T &amp;) -&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PrettyPrinter&lt;T&gt;</a>;</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="namespacepsr.html#aa73a5b122d82c47528b16f9ea92aeeba">  111</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <a class="code hl_struct" href="structpsr_1_1PrettyPrinter.html">PrettyPrinter</a>(<span class="keyword">const</span> T &amp;) -&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PrettyPrinter&lt;T&gt;</a>;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aLLVMShorthands_8h_html"><div class="ttname"><a href="LLVMShorthands_8h.html">LLVMShorthands.h</a></div></div>
 <div class="ttc" id="aTypeTraits_8h_html"><div class="ttname"><a href="TypeTraits_8h.html">TypeTraits.h</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1has__adl__to__string__v_html"><div class="ttname"><a href="conceptpsr_1_1has__adl__to__string__v.html">psr::has_adl_to_string_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00137">TypeTraits.h:137</a></div></div>
@@ -228,16 +227,16 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_1_1detail_html_a907a9c49b531820bab5374909f0426fe"><div class="ttname"><a href="namespacepsr_1_1detail.html#a907a9c49b531820bab5374909f0426fe">psr::detail::printHelper</a></div><div class="ttdeci">void printHelper(OS_t &amp;OS, const T &amp;Data)</div><div class="ttdef"><b>Definition</b> <a href="DebugOutput_8h_source.html#l00041">DebugOutput.h:41</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a2cc220ee4e33dc7e81fc267972154c1c"><div class="ttname"><a href="namespacepsr.html#a2cc220ee4e33dc7e81fc267972154c1c">psr::adl_to_string</a></div><div class="ttdeci">decltype(auto) adl_to_string(const T &amp;Val)</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00288">TypeTraits.h:288</a></div></div>
-<div class="ttc" id="anamespacepsr_html_aaf51d0e816794e17404d95f3c3f773ea"><div class="ttname"><a href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">psr::operator&lt;&lt;</a></div><div class="ttdeci">llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, AnalysisStrategy S)</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ad5a75f4cae1c54079d849c1581cb3156"><div class="ttname"><a href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156">psr::llvmIRToString</a></div><div class="ttdeci">std::string llvmIRToString(const llvm::Value *V)</div><div class="ttdoc">Returns a string representation of a LLVM Value.</div></div>
 <div class="ttc" id="astructpsr_1_1PrettyPrinter_html"><div class="ttname"><a href="structpsr_1_1PrettyPrinter.html">psr::PrettyPrinter</a></div><div class="ttdef"><b>Definition</b> <a href="DebugOutput_8h_source.html#l00095">DebugOutput.h:95</a></div></div>
-<div class="ttc" id="astructpsr_1_1PrettyPrinter_html_ae0bb3dce01ab755743967a0fb3613fb8"><div class="ttname"><a href="structpsr_1_1PrettyPrinter.html#ae0bb3dce01ab755743967a0fb3613fb8">psr::PrettyPrinter::Data</a></div><div class="ttdeci">const T &amp; Data</div><div class="ttdef"><b>Definition</b> <a href="DebugOutput_8h_source.html#l00102">DebugOutput.h:102</a></div></div>
+<div class="ttc" id="astructpsr_1_1PrettyPrinter_html_a54f919f72f53c4c5243270e6ad91f68e"><div class="ttname"><a href="structpsr_1_1PrettyPrinter.html#a54f919f72f53c4c5243270e6ad91f68e">psr::PrettyPrinter::operator&lt;&lt;</a></div><div class="ttdeci">friend std::ostream &amp; operator&lt;&lt;(std::ostream &amp;OS, const PrettyPrinter &amp;P)</div><div class="ttdef"><b>Definition</b> <a href="DebugOutput_8h_source.html#l00102">DebugOutput.h:102</a></div></div>
+<div class="ttc" id="astructpsr_1_1PrettyPrinter_html_ae0bb3dce01ab755743967a0fb3613fb8"><div class="ttname"><a href="structpsr_1_1PrettyPrinter.html#ae0bb3dce01ab755743967a0fb3613fb8">psr::PrettyPrinter::Data</a></div><div class="ttdeci">const T &amp; Data</div><div class="ttdef"><b>Definition</b> <a href="DebugOutput_8h_source.html#l00108">DebugOutput.h:108</a></div></div>
 <div class="ttc" id="astructpsr_1_1PrettyPrinter_html_ae8c87babf85efad2784f08fcbe5720dd"><div class="ttname"><a href="structpsr_1_1PrettyPrinter.html#ae8c87babf85efad2784f08fcbe5720dd">psr::PrettyPrinter::operator&lt;&lt;</a></div><div class="ttdeci">friend llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, const PrettyPrinter &amp;P)</div><div class="ttdef"><b>Definition</b> <a href="DebugOutput_8h_source.html#l00096">DebugOutput.h:96</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 17 2026 15:40:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Apr 17 2026 17:33:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

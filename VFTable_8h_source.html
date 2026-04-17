@@ -131,23 +131,23 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="classpsr_1_1VFTable.html#a3ab6161a774315f960cc7ecdb75e1484">   38</a></span>  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1VFTable.html#a3ab6161a774315f960cc7ecdb75e1484">print</a>(llvm::raw_ostream &amp;OS) <span class="keyword">const</span> = 0;</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="classpsr_1_1VFTable.html#ab9a1fe283a2fb232e19f9ee3ec29aca4">   40</a></span>  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classpsr_1_1VFTable.html#ab9a1fe283a2fb232e19f9ee3ec29aca4">printAsJson</a>(llvm::raw_ostream &amp;OS) <span class="keyword">const</span> = 0;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>};</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="foldopen" id="foldopen00042" data-start="{" data-end="};">
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="classpsr_1_1VFTable.html#a06f57d180c20e37ad459ef9ece79041b">   42</a></span>  <span class="keyword">friend</span> llvm::raw_ostream &amp;<a class="code hl_friend" href="classpsr_1_1VFTable.html#a06f57d180c20e37ad459ef9ece79041b">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS,</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                                       <span class="keyword">const</span> <a class="code hl_class" href="classpsr_1_1VFTable.html">VFTable</a> &amp;<a class="code hl_class" href="classpsr_1_1Table.html">Table</a>) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <a class="code hl_class" href="classpsr_1_1Table.html">Table</a>.print(OS);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordflow">return</span> OS;</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  }</div>
 </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> F&gt;</div>
-<div class="foldopen" id="foldopen00044" data-start="{" data-end="}">
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="namespacepsr.html#a4b714177a20ae60997d37a5467c67684">   44</a></span><span class="keyword">inline</span> llvm::raw_ostream &amp;<a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS,</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                                     <span class="keyword">const</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VFTable&lt;F&gt;</a> &amp;<a class="code hl_class" href="classpsr_1_1Table.html">Table</a>) {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <a class="code hl_class" href="classpsr_1_1Table.html">Table</a>.print(OS);</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">return</span> OS;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>};</div>
 </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclasspsr_1_1Table_html"><div class="ttname"><a href="classpsr_1_1Table.html">psr::Table</a></div><div class="ttdef"><b>Definition</b> <a href="Table_8h_source.html#l00036">Table.h:36</a></div></div>
 <div class="ttc" id="aclasspsr_1_1VFTable_html"><div class="ttname"><a href="classpsr_1_1VFTable.html">psr::VFTable</a></div><div class="ttdoc">A generic class to represent a virtual function table.</div><div class="ttdef"><b>Definition</b> <a href="VFTable_8h_source.html#l00024">VFTable.h:24</a></div></div>
+<div class="ttc" id="aclasspsr_1_1VFTable_html_a06f57d180c20e37ad459ef9ece79041b"><div class="ttname"><a href="classpsr_1_1VFTable.html#a06f57d180c20e37ad459ef9ece79041b">psr::VFTable::operator&lt;&lt;</a></div><div class="ttdeci">friend llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, const VFTable &amp;Table)</div><div class="ttdef"><b>Definition</b> <a href="VFTable_8h_source.html#l00042">VFTable.h:42</a></div></div>
 <div class="ttc" id="aclasspsr_1_1VFTable_html_a27ee447cfb6d47b17913fc7568741776"><div class="ttname"><a href="classpsr_1_1VFTable.html#a27ee447cfb6d47b17913fc7568741776">psr::VFTable::getFunction</a></div><div class="ttdeci">virtual F getFunction(unsigned Idx) const =0</div></div>
 <div class="ttc" id="aclasspsr_1_1VFTable_html_a3ab6161a774315f960cc7ecdb75e1484"><div class="ttname"><a href="classpsr_1_1VFTable.html#a3ab6161a774315f960cc7ecdb75e1484">psr::VFTable::print</a></div><div class="ttdeci">virtual void print(llvm::raw_ostream &amp;OS) const =0</div></div>
 <div class="ttc" id="aclasspsr_1_1VFTable_html_a5e356cee13a70806bc9724b2c818f682"><div class="ttname"><a href="classpsr_1_1VFTable.html#a5e356cee13a70806bc9724b2c818f682">psr::VFTable::empty</a></div><div class="ttdeci">virtual bool empty() const =0</div></div>
@@ -158,12 +158,11 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1VFTable_html_abd60cba1eb32ddc819da7a6ccca770f6"><div class="ttname"><a href="classpsr_1_1VFTable.html#abd60cba1eb32ddc819da7a6ccca770f6">psr::VFTable::~VFTable</a></div><div class="ttdeci">virtual ~VFTable()=default</div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
-<div class="ttc" id="anamespacepsr_html_aaf51d0e816794e17404d95f3c3f773ea"><div class="ttname"><a href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">psr::operator&lt;&lt;</a></div><div class="ttdeci">llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, AnalysisStrategy S)</div></div>
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 17 2026 15:40:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Apr 17 2026 17:33:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

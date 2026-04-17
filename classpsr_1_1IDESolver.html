@@ -87,6 +87,7 @@ $(function() {
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="classpsr_1_1IDESolver-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">psr::IDESolver&lt; AnalysisDomainTy, Container &gt; Class Template Reference</div></div>
 </div><!--header-->
@@ -296,6 +297,11 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:abeca8e9ddb81f74a289e1fddfb17d36e" id="r_abeca8e9ddb81f74a289e1fddfb17d36e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolver.html#abeca8e9ddb81f74a289e1fddfb17d36e">computeAndPrintStatistics</a> ()</td></tr>
 <tr class="memdesc:abeca8e9ddb81f74a289e1fddfb17d36e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes and prints statistics of the analysis run, e.g. number of generated/killed facts, number of summary-reuses etc.  <br /></td></tr>
 <tr class="separator:abeca8e9ddb81f74a289e1fddfb17d36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a89d01c83914e449dca72eab7ee6ba18f" id="r_a89d01c83914e449dca72eab7ee6ba18f"><td class="memItemLeft" align="right" valign="top">llvm::raw_ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolver.html#a89d01c83914e449dca72eab7ee6ba18f">operator&lt;&lt;</a> (llvm::raw_ostream &amp;OS, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Solver</a>)</td></tr>
+<tr class="separator:a89d01c83914e449dca72eab7ee6ba18f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> = std::set&lt;typename AnalysisDomainTy::d_t&gt;&gt;<br />
@@ -704,9 +710,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00748">748</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00754">754</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -758,9 +764,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01274">1274</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01280">1280</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
 
 </div>
 </div>
@@ -794,7 +800,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>The total number of valid facts can be smaller than the difference of generated and killed facts, due to set semantics, i.e., a fact can be generated multiple times but appears only once.</p>
 <p>Zero value is not counted! </p>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01391">1391</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01397">1397</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">psr::Core</a>, <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00113">GET_COUNTER</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, and <a class="el" href="PAMMMacros_8h_source.html#l00112">PRINT_TIMER</a>.</p>
 
@@ -851,9 +857,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The set of caller-side abstractions at the callee's start node </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01144">1144</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01150">1150</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
 
 </div>
 </div>
@@ -908,9 +914,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The set of caller-side abstractions at the return site </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01157">1157</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01163">1163</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
 
 </div>
 </div>
@@ -965,9 +971,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The set of abstractions at the successor node </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01126">1126</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01132">1132</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00593">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
 
 </div>
 </div>
@@ -1036,9 +1042,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The set of caller-side abstractions at the return site </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01172">1172</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01178">1178</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -1084,9 +1090,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01132">1132</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01138">1138</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
 
 </div>
 </div>
@@ -1117,9 +1123,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Computes the final values for edge functions. </p>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00867">867</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00873">873</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00840">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>, <a class="el" href="IDESolver_8h_source.html#l00807">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valueComputationTask()</a>, and <a class="el" href="IDESolver_8h_source.html#l00789">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
+<p class="reference">References <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>, <a class="el" href="IDESolver_8h_source.html#l00813">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valueComputationTask()</a>, and <a class="el" href="IDESolver_8h_source.html#l00795">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
 
 </div>
 </div>
@@ -1149,7 +1155,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Moves the computed solver-results out of this solver such that the solver can be destroyed without that the analysis results are lost. Do not call any function (including <a class="el" href="classpsr_1_1IDESolver.html#a101bbb52c274eebf56264c0f29be5390">getSolverResults()</a>) on this <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a> instance after that. </p>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00273">273</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00279">279</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -1178,7 +1184,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00218">218</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00224">224</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -1207,7 +1213,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00238">238</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00244">244</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -1239,7 +1245,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00214">214</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -1279,7 +1285,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01560">1560</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01566">1566</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="classpsr_1_1DOTConfig.html#a42d9e6222cf9cc843519683ddd2f1a14">psr::DOTConfig::importDOTConfig()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, and <a class="el" href="namespacepsr.html#a44202ae7e19e7ae3bd454149976c364a">psr::to_string()</a>.</p>
 
@@ -1313,7 +1319,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00210">210</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -1345,7 +1351,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00206">206</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -1374,7 +1380,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01557">1557</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01563">1563</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a42f4c43f53160d491d7a1b2f73ae81d4">psr::IFDSIDESolverConfig::setEmitESG()</a>.</p>
 
@@ -1416,11 +1422,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01257">1257</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01263">1263</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">psr::Core</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>.</p>
 
 </div>
 </div>
@@ -1480,11 +1486,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00278">278</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00284">284</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="EdgeFunction_8h_source.html#l00626">psr::EdgeFunction&lt; L &gt;::depth()</a>, and <a class="el" href="EdgeFunction_8h_source.html#l00590">psr::EdgeFunction&lt; L &gt;::getAllocationPolicy()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00349">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printEdgeFunctionStatistics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00355">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printEdgeFunctionStatistics()</a>.</p>
 
 </div>
 </div>
@@ -1530,9 +1536,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00354">354</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00360">360</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00593">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
 
 </div>
 </div>
@@ -1563,7 +1569,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Returns a view into the computed solver-results.</p>
 <p>NOTE: The <a class="el" href="classpsr_1_1SolverResults.html">SolverResults</a> store a reference into this <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>, so its lifetime is also bound to the lifetime of this solver. If you want to use the solverResults beyond the lifetime of this solver, use <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">comsumeSolverResults()</a> instead. </p>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00264">264</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00270">270</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00214">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::dumpResults()</a>, <a class="el" href="IDESolver_8h_source.html#l00210">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitGraphicalReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00206">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00150">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::resultAt()</a>, <a class="el" href="IDESolver_8h_source.html#l00169">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::resultAtInLLVMSSA()</a>, <a class="el" href="IDESolver_8h_source.html#l00179">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::resultsAt()</a>, and <a class="el" href="IDESolver_8h_source.html#l00199">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::resultsAtInLLVMSSA()</a>.</p>
 
@@ -1605,9 +1611,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01270">1270</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01276">1276</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -1659,9 +1665,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01252">1252</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01258">1258</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00685">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00691">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>.</p>
 
 </div>
 </div>
@@ -1691,11 +1697,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00720">720</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00726">726</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00593">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
 
 </div>
 </div>
@@ -1781,11 +1787,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00756">756</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00762">762</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00593">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l01194">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagate()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l01200">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagate()</a>.</p>
 
 </div>
 </div>
@@ -1814,7 +1820,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01318">1318</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01324">1324</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, and <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>.</p>
 
@@ -1846,9 +1852,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00349">349</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00355">355</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00278">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00284">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getEdgeFunctionStatistics()</a>.</p>
 
 </div>
 </div>
@@ -1877,11 +1883,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01296">1296</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01302">1302</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -1910,11 +1916,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01278">1278</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01284">1284</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -1958,11 +1964,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00380">380</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00386">386</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="PAMMMacros_8h_source.html#l00107">ADD_TO_HISTOGRAM</a>, <a class="el" href="IDESolver_8h_source.html#l01274">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::addIncoming()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">psr::Call</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba4f014d5b11e540cab57eb17a1f449aad">psr::CallToRet</a>, <a class="el" href="IDESolver_8h_source.html#l01144">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeCallFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01157">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeCallToReturnFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01172">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeReturnFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01132">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeSummaryFlowFunction()</a>, <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="IDESolver_8h_source.html#l01257">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::endSummary()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="IDESolver_8h_source.html#l00354">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getNextUserOrNull()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="IDESolver_8h_source.html#l00720">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="Macros_8h_source.html#l00013">PSR_FWD</a>, <a class="el" href="IDESolver_8h_source.html#l01107">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::restoreContextOnReturnedFact()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>, <a class="el" href="IDESolver_8h_source.html#l00829">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba425c51c12355d6e0da11642b4d517735">psr::SkipUnknownFn</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba290612199861c31d1036b185b4e69b75">psr::Summary</a>, and <a class="el" href="Nullable_8h_source.html#l00026">psr::unwrapNullable()</a>.</p>
+<p class="reference">References <a class="el" href="PAMMMacros_8h_source.html#l00107">ADD_TO_HISTOGRAM</a>, <a class="el" href="IDESolver_8h_source.html#l01280">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::addIncoming()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">psr::Call</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba4f014d5b11e540cab57eb17a1f449aad">psr::CallToRet</a>, <a class="el" href="IDESolver_8h_source.html#l01150">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeCallFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01163">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeCallToReturnFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01178">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeReturnFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01138">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeSummaryFlowFunction()</a>, <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="IDESolver_8h_source.html#l01263">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::endSummary()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="IDESolver_8h_source.html#l00360">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getNextUserOrNull()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="IDESolver_8h_source.html#l00726">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="Macros_8h_source.html#l00013">PSR_FWD</a>, <a class="el" href="IDESolver_8h_source.html#l01113">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::restoreContextOnReturnedFact()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>, <a class="el" href="IDESolver_8h_source.html#l00835">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba425c51c12355d6e0da11642b4d517735">psr::SkipUnknownFn</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba290612199861c31d1036b185b4e69b75">psr::Summary</a>, and <a class="el" href="Nullable_8h_source.html#l00026">psr::unwrapNullable()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00756">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00762">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>.</p>
 
 </div>
 </div>
@@ -2001,11 +2007,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <p>TODO: Add a check for "d1 is seed in functionOf(n)"</p>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00936">936</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00942">942</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="PAMMMacros_8h_source.html#l00107">ADD_TO_HISTOGRAM</a>, <a class="el" href="IDESolver_8h_source.html#l00748">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::addEndSummary()</a>, <a class="el" href="IDESolver_8h_source.html#l01172">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeReturnFlowFunction()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a293f47cc1531f4459c762163622c4d27">psr::IFDSIDESolverConfig::followReturnsPastSeeds()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="IDESolver_8h_source.html#l00354">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getNextUserOrNull()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="IDESolver_8h_source.html#l01270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::incoming()</a>, <a class="el" href="IDESolver_8h_source.html#l00720">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l01296">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01278">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printIncomingTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01087">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagteUnbalancedReturnFlow()</a>, <a class="el" href="Macros_8h_source.html#l00013">PSR_FWD</a>, <a class="el" href="IDESolver_8h_source.html#l01107">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::restoreContextOnReturnedFact()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>, <a class="el" href="IDESolver_8h_source.html#l00829">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>, and <a class="el" href="Nullable_8h_source.html#l00026">psr::unwrapNullable()</a>.</p>
+<p class="reference">References <a class="el" href="PAMMMacros_8h_source.html#l00107">ADD_TO_HISTOGRAM</a>, <a class="el" href="IDESolver_8h_source.html#l00754">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::addEndSummary()</a>, <a class="el" href="IDESolver_8h_source.html#l01178">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeReturnFlowFunction()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="PathEdge_8h_source.html#l00030">psr::PathEdge&lt; N, D &gt;::factAtSource()</a>, <a class="el" href="PathEdge_8h_source.html#l00034">psr::PathEdge&lt; N, D &gt;::factAtTarget()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a293f47cc1531f4459c762163622c4d27">psr::IFDSIDESolverConfig::followReturnsPastSeeds()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="IDESolver_8h_source.html#l00360">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getNextUserOrNull()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="IDESolver_8h_source.html#l01276">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::incoming()</a>, <a class="el" href="IDESolver_8h_source.html#l00726">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l01302">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01284">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printIncomingTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01093">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagteUnbalancedReturnFlow()</a>, <a class="el" href="Macros_8h_source.html#l00013">PSR_FWD</a>, <a class="el" href="IDESolver_8h_source.html#l01113">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::restoreContextOnReturnedFact()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>, <a class="el" href="IDESolver_8h_source.html#l00835">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>, and <a class="el" href="Nullable_8h_source.html#l00026">psr::unwrapNullable()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00756">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00762">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>.</p>
 
 </div>
 </div>
@@ -2041,11 +2047,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00593">593</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00599">599</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="PAMMMacros_8h_source.html#l00107">ADD_TO_HISTOGRAM</a>, <a class="el" href="IDESolver_8h_source.html#l01126">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeNormalFlowFunction()</a>, <a class="el" href="PathEdge_8h_source.html#l00041">psr::PathEdge&lt; N, D &gt;::consume()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="IDESolver_8h_source.html#l00354">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getNextUserOrNull()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="IDESolver_8h_source.html#l00720">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba960b44c579bc2f6818d2daaf9e4c16f0">psr::Normal</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="Macros_8h_source.html#l00013">PSR_FWD</a>, <a class="el" href="IDESolver_8h_source.html#l00829">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>, and <a class="el" href="Nullable_8h_source.html#l00026">psr::unwrapNullable()</a>.</p>
+<p class="reference">References <a class="el" href="PAMMMacros_8h_source.html#l00107">ADD_TO_HISTOGRAM</a>, <a class="el" href="IDESolver_8h_source.html#l01132">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeNormalFlowFunction()</a>, <a class="el" href="PathEdge_8h_source.html#l00041">psr::PathEdge&lt; N, D &gt;::consume()</a>, <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="IDESolver_8h_source.html#l00360">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getNextUserOrNull()</a>, <a class="el" href="PathEdge_8h_source.html#l00032">psr::PathEdge&lt; N, D &gt;::getTarget()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="IDESolver_8h_source.html#l00726">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710ba960b44c579bc2f6818d2daaf9e4c16f0">psr::Normal</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="Macros_8h_source.html#l00013">PSR_FWD</a>, <a class="el" href="IDESolver_8h_source.html#l00835">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>, and <a class="el" href="Nullable_8h_source.html#l00026">psr::unwrapNullable()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00756">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00762">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>.</p>
 
 </div>
 </div>
@@ -2109,9 +2115,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01194">1194</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01200">1200</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="IDESolver_8h_source.html#l00756">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="IDESolver_8h_source.html#l00762">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
 
 </div>
 </div>
@@ -2157,11 +2163,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00685">685</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00691">691</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l01252">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::joinValueAt()</a>, <a class="el" href="IDESolver_8h_source.html#l00702">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, and <a class="el" href="IDESolver_8h_source.html#l00694">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l01258">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::joinValueAt()</a>, <a class="el" href="IDESolver_8h_source.html#l00708">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, and <a class="el" href="IDESolver_8h_source.html#l00700">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00658">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00637">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtStart()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00664">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00643">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtStart()</a>.</p>
 
 </div>
 </div>
@@ -2201,11 +2207,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00658">658</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00664">664</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00685">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, and <a class="el" href="IDESolver_8h_source.html#l00694">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
+<p class="reference">References <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a50dab44e082bd795031acfd5a6ca5063">psr::IFDSIDESolverConfig::emitESG()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00691">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, and <a class="el" href="IDESolver_8h_source.html#l00700">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00789">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00795">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
 
 </div>
 </div>
@@ -2245,11 +2251,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00637">637</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00643">643</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="IDESolver_8h_source.html#l00685">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, and <a class="el" href="IDESolver_8h_source.html#l00694">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="IDESolver_8h_source.html#l00691">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, and <a class="el" href="IDESolver_8h_source.html#l00700">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00789">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00795">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
 
 </div>
 </div>
@@ -2301,9 +2307,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01087">1087</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01093">1093</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -2358,9 +2364,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Fact that will be propagated to the caller. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01107">1107</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01113">1113</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>.</p>
 
 </div>
 </div>
@@ -2404,7 +2410,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00150">150</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -2450,7 +2456,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00169">169</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -2493,7 +2499,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00179">179</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="IFDSSolver_8h_source.html#l00064">psr::IFDSSolver&lt; AnalysisDomainTy, Container &gt;::ifdsResultsAt()</a>, and <a class="el" href="IFDSSolver_8h_source.html#l00089">psr::IFDSSolver&lt; AnalysisDomainTy, Container &gt;::ifdsResultsAtInLLVMSSA()</a>.</p>
 
@@ -2541,7 +2547,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00199">199</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00264">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IDESolver_8h_source.html#l00270">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -2599,11 +2605,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00829">829</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00835">835</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="ESGEdgeKind_8h_source.html#l00016">psr::isInterProc()</a>, and <a class="el" href="structpsr_1_1IFDSIDESolverConfig.html#a62487e70710478c8089e04a5d952004d">psr::IFDSIDESolverConfig::recordEdges()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00380">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00936">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00593">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
 
 </div>
 </div>
@@ -2649,11 +2655,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00702">702</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00708">708</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="Logger_8h_source.html#l00102">IF_LOG_LEVEL_ENABLED</a>, <a class="el" href="Table_8h_source.html#l00075">psr::Table&lt; R, C, V &gt;::insert()</a>, <a class="el" href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00685">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00840">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>, and <a class="el" href="IDESolver_8h_source.html#l00807">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valueComputationTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00691">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>, and <a class="el" href="IDESolver_8h_source.html#l00813">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valueComputationTask()</a>.</p>
 
 </div>
 </div>
@@ -2684,7 +2690,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Schedules the processing of initial seeds, initiating the analysis. Clients should only call this methods if performing synchronization on their own. Normally, <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a25167cc74e667d8651faf9940a6bfcba">solve()</a> should be called instead. </p>
 <p>If statically disabling the logger, Fact and Value are unused. To prevent the copilation to fail with -Werror, add the [[maybe_unused]] attribute</p>
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00887">887</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00893">893</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="InitialSeeds_8h_source.html#l00050">psr::InitialSeeds&lt; N, D, L &gt;::addSeed()</a>, <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5a83168e6cb289d732cc78427b51f93153">psr::Core</a>, <a class="el" href="InitialSeeds_8h_source.html#l00060">psr::InitialSeeds&lt; N, D, L &gt;::countInitialSeeds()</a>, <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00082">psr::InitialSeeds&lt; N, D, L &gt;::getSeeds()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, and <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>.</p>
 
@@ -2715,11 +2721,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00840">840</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00846">846</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00082">psr::InitialSeeds&lt; N, D, L &gt;::getSeeds()</a>, <a class="el" href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00702">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00694">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>, and <a class="el" href="IDESolver_8h_source.html#l00789">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a5462787d6bd41739c36e66d99f2aee6a">psr::DToString()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00082">psr::InitialSeeds&lt; N, D, L &gt;::getSeeds()</a>, <a class="el" href="namespacepsr.html#ac1657d444b8f6ddfe706d149969f200f">psr::LToString()</a>, <a class="el" href="Printer_8h_source.html#l00055">psr::NToString()</a>, <a class="el" href="Logger_8h_source.html#l00105">PHASAR_LOG_LEVEL</a>, <a class="el" href="IDESolver_8h_source.html#l00708">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00700">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>, and <a class="el" href="IDESolver_8h_source.html#l00795">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valuePropagationTask()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00867">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00873">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeValues()</a>.</p>
 
 </div>
 </div>
@@ -2759,11 +2765,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00694">694</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00700">700</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 <p class="reference">References <a class="el" href="Table_8h_source.html#l00153">psr::Table&lt; R, C, V &gt;::contains()</a>, and <a class="el" href="Table_8h_source.html#l00178">psr::Table&lt; R, C, V &gt;::get()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00685">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00658">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00637">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtStart()</a>, <a class="el" href="IDESolver_8h_source.html#l00840">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>, and <a class="el" href="IDESolver_8h_source.html#l00807">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valueComputationTask()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00691">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00664">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00643">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtStart()</a>, <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>, and <a class="el" href="IDESolver_8h_source.html#l00813">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::valueComputationTask()</a>.</p>
 
 </div>
 </div>
@@ -2793,11 +2799,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00807">807</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00813">813</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="IDESolver_8h_source.html#l00702">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, and <a class="el" href="IDESolver_8h_source.html#l00694">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a40c472b9f8de123f74784de0fb41adc5abbd47109890259c0127154db1af26c75">psr::Full</a>, <a class="el" href="PAMMMacros_8h_source.html#l00104">INC_COUNTER</a>, <a class="el" href="PAMMMacros_8h_source.html#l00097">PAMM_GET_INSTANCE</a>, <a class="el" href="IDESolver_8h_source.html#l00708">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, and <a class="el" href="IDESolver_8h_source.html#l00700">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::val()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00867">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00873">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeValues()</a>.</p>
 
 </div>
 </div>
@@ -2827,11 +2833,52 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00789">789</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00795">795</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="InitialSeeds_8h_source.html#l00076">psr::InitialSeeds&lt; N, D, L &gt;::containsInitialSeedsFor()</a>, <a class="el" href="IDESolver_8h_source.html#l00658">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00637">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtStart()</a>.</p>
+<p class="reference">References <a class="el" href="InitialSeeds_8h_source.html#l00076">psr::InitialSeeds&lt; N, D, L &gt;::containsInitialSeedsFor()</a>, <a class="el" href="IDESolver_8h_source.html#l00664">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtCall()</a>, and <a class="el" href="IDESolver_8h_source.html#l00643">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagateValueAtStart()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00867">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeValues()</a>, and <a class="el" href="IDESolver_8h_source.html#l00840">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00873">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeValues()</a>, and <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
+<a id="a89d01c83914e449dca72eab7ee6ba18f" name="a89d01c83914e449dca72eab7ee6ba18f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89d01c83914e449dca72eab7ee6ba18f">&#9670;&#160;</a></span>operator&lt;&lt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>  = std::set&lt;typename AnalysisDomainTy::d_t&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">llvm::raw_ostream &amp; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
+          <td class="paramname"><em>OS</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>Solver</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l00218">218</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -2841,7 +2888,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 17 2026 15:40:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Apr 17 2026 17:33:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
