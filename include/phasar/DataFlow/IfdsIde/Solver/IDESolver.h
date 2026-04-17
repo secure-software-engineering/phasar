@@ -18,6 +18,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IDESOLVER_H
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/ControlFlow/ICFG.h"
 #include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
@@ -49,7 +50,6 @@
 
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/Support/TypeName.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "nlohmann/json.hpp"
@@ -61,7 +61,6 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
-#include <unordered_set>
 #include <utility>
 
 namespace psr {
@@ -70,7 +69,8 @@ namespace psr {
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
 /// can then be queried by using resultAt() and resultsAt().
 template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+          typename Container = std::set<typename AnalysisDomainTy::d_t>,
+          ICFG ICFGTy = typename AnalysisDomainTy::i_t>
 class IDESolver
     : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>> {
   friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>>;
@@ -82,27 +82,20 @@ public:
 
   using l_t = typename AnalysisDomainTy::l_t;
   using n_t = typename AnalysisDomainTy::n_t;
-  using i_t = typename AnalysisDomainTy::i_t;
+  using i_t = ICFGTy;
   using d_t = typename AnalysisDomainTy::d_t;
   using f_t = typename AnalysisDomainTy::f_t;
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  template <std::convertible_to<const i_t &> I>
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-            const I *ICF)
+            const ICFGTy *ICF)
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
-        ICF(&static_cast<const i_t &>(*ICF)), SVFG(ICF),
+        ICF(&assertNotNull(ICF)),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
         JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>()),
-        Seeds(Problem.initialSeeds()) {
-    assert(ICF != nullptr);
-
-    if constexpr (has_getSparseCFG_v<I, d_t>) {
-      NextUserOrNullCB = &nextUserOrNullThunk<I>;
-    }
-  }
+        Seeds(Problem.initialSeeds()) {}
 
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
             const i_t *ICF)
@@ -351,13 +344,19 @@ public:
   }
 
 protected:
-  Nullable<n_t> getNextUserOrNull(ByConstRef<f_t> Fun, ByConstRef<d_t> d3,
-                                  ByConstRef<n_t> n) {
-    if (!NextUserOrNullCB || IDEProblem.isZeroValue(d3)) {
+  [[nodiscard]] Nullable<n_t> getNextUserOrNull(ByConstRef<f_t> Fun,
+                                                ByConstRef<d_t> d3,
+                                                ByConstRef<n_t> n) {
+    if constexpr (has_getSparseCFG_v<ICFGTy, d_t>) {
+      if (IDEProblem.isZeroValue(d3)) {
+        return {};
+      }
+
+      auto &&SCFG = ICF->getSparseCFG(Fun, d3);
+      return SCFG.nextUserOrNull(n);
+    } else {
       return {};
     }
-
-    return NextUserOrNullCB(SVFG, Fun, d3, n);
   }
 
   /// Lines 13-20 of the algorithm; processing a call site in the caller's
@@ -1772,13 +1771,6 @@ public:
   }
 
 private:
-  template <typename I>
-  static auto nextUserOrNullThunk(const void *SVFG, ByConstRef<f_t> Fun,
-                                  ByConstRef<d_t> d3, ByConstRef<n_t> n) {
-    auto &&SCFG = static_cast<const I *>(SVFG)->getSparseCFG(Fun, d3);
-    return SCFG.nextUserOrNull(n);
-  };
-
   /// @brief: Allows less-than comparison based on the statement ID.
   struct StmtLess {
     const i_t *ICF;
@@ -1875,10 +1867,7 @@ private:
   IDETabulationProblem<AnalysisDomainTy, Container> &IDEProblem;
   d_t ZeroValue;
   const i_t *ICF;
-  const void *SVFG;
   IFDSIDESolverConfig &SolverConfig;
-  Nullable<n_t> (*NextUserOrNullCB)(const void *, ByConstRef<f_t>,
-                                    ByConstRef<d_t>, ByConstRef<n_t>) = nullptr;
 
   std::vector<std::pair<PathEdge<n_t, d_t>, EdgeFunction<l_t>>> WorkList;
   std::vector<std::pair<n_t, d_t>> ValuePropWL;
@@ -1926,14 +1915,14 @@ operator<<(llvm::raw_ostream &OS,
 }
 
 template <typename Problem, typename ICF>
-IDESolver(Problem &, ICF *)
+IDESolver(Problem &, const ICF *)
     -> IDESolver<typename Problem::ProblemAnalysisDomain,
-                 typename Problem::container_type>;
+                 typename Problem::container_type, ICF>;
 
 template <typename Problem, typename ICF>
-IDESolver(Problem *, ICF *)
+IDESolver(Problem *, const ICF *)
     -> IDESolver<typename Problem::ProblemAnalysisDomain,
-                 typename Problem::container_type>;
+                 typename Problem::container_type, ICF>;
 
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,
@@ -1943,11 +1932,9 @@ template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t,
                     typename AnalysisDomainTy::l_t>
-solveIDEProblem(
-    IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-    const std::convertible_to<const typename AnalysisDomainTy::i_t &> auto
-        &ICF) {
-  IDESolver<AnalysisDomainTy, Container> Solver(&Problem, &ICF);
+solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
+                const ICFG auto &ICF) {
+  IDESolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();
 }
