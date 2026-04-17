@@ -168,17 +168,18 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="structpsr_1_1NonTopBotValue.html">   65</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> L&gt; <span class="keyword">struct </span><a class="code hl_struct" href="structpsr_1_1NonTopBotValue.html">NonTopBotValue</a> {</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="structpsr_1_1NonTopBotValue.html#a37ce475efc8054ee2109ecd2b163b76f">   66</a></span>  <span class="keyword">using </span><a class="code hl_typedef" href="structpsr_1_1NonTopBotValue.html#a37ce475efc8054ee2109ecd2b163b76f">type</a> = L;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="foldopen" id="foldopen00068" data-start="{" data-end="}">
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="structpsr_1_1NonTopBotValue.html#a610f766f8b3ffd58180029ba54fc8173">   68</a></span>  <span class="keyword">static</span> L <a class="code hl_function" href="structpsr_1_1NonTopBotValue.html#a610f766f8b3ffd58180029ba54fc8173">unwrap</a>(L Value) <span class="keyword">noexcept</span>(std::is_nothrow_move_constructible_v&lt;L&gt;) {</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keywordflow">return</span> Value;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  }</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  <span class="keyword">constexpr</span> <span class="keyword">static</span> L</div>
+<div class="foldopen" id="foldopen00069" data-start="{" data-end="}">
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="structpsr_1_1NonTopBotValue.html#a0db27d50e7087023e99c24c1b9adfbd5">   69</a></span>  <a class="code hl_function" href="structpsr_1_1NonTopBotValue.html#a0db27d50e7087023e99c24c1b9adfbd5">unwrap</a>(L Value) <span class="keyword">noexcept</span>(std::is_nothrow_move_constructible_v&lt;L&gt;) {</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordflow">return</span> Value;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  }</div>
 </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>};</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>};</div>
 </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>} <span class="comment">// namespace psr</span></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>} <span class="comment">// namespace psr</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aMacros_8h_html"><div class="ttname"><a href="Macros_8h.html">Macros.h</a></div></div>
 <div class="ttc" id="aclassAnalysisDomainTy_html"><div class="ttname"><a href="classAnalysisDomainTy.html">AnalysisDomainTy</a></div></div>
 <div class="ttc" id="aclasspsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4_html_a1afc3d5e55bbd91084460d4d81fdb74b"><div class="ttname"><a href="classpsr_1_1JoinLattice_3_01AnalysisDomainTy_01_4.html#a1afc3d5e55bbd91084460d4d81fdb74b">psr::JoinLattice&lt; AnalysisDomainTy &gt;::~JoinLattice</a></div><div class="ttdeci">virtual ~JoinLattice()=default</div></div>
@@ -197,12 +198,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="astructpsr_1_1JoinLatticeTraits_html"><div class="ttname"><a href="structpsr_1_1JoinLatticeTraits.html">psr::JoinLatticeTraits</a></div><div class="ttdef"><b>Definition</b> <a href="JoinLattice_8h_source.html#l00028">JoinLattice.h:28</a></div></div>
 <div class="ttc" id="astructpsr_1_1NonTopBotValue_html"><div class="ttname"><a href="structpsr_1_1NonTopBotValue.html">psr::NonTopBotValue</a></div><div class="ttdef"><b>Definition</b> <a href="JoinLattice_8h_source.html#l00065">JoinLattice.h:65</a></div></div>
+<div class="ttc" id="astructpsr_1_1NonTopBotValue_html_a0db27d50e7087023e99c24c1b9adfbd5"><div class="ttname"><a href="structpsr_1_1NonTopBotValue.html#a0db27d50e7087023e99c24c1b9adfbd5">psr::NonTopBotValue::unwrap</a></div><div class="ttdeci">static constexpr L unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v&lt; L &gt;)</div><div class="ttdef"><b>Definition</b> <a href="JoinLattice_8h_source.html#l00069">JoinLattice.h:69</a></div></div>
 <div class="ttc" id="astructpsr_1_1NonTopBotValue_html_a37ce475efc8054ee2109ecd2b163b76f"><div class="ttname"><a href="structpsr_1_1NonTopBotValue.html#a37ce475efc8054ee2109ecd2b163b76f">psr::NonTopBotValue::type</a></div><div class="ttdeci">L type</div><div class="ttdef"><b>Definition</b> <a href="JoinLattice_8h_source.html#l00066">JoinLattice.h:66</a></div></div>
-<div class="ttc" id="astructpsr_1_1NonTopBotValue_html_a610f766f8b3ffd58180029ba54fc8173"><div class="ttname"><a href="structpsr_1_1NonTopBotValue.html#a610f766f8b3ffd58180029ba54fc8173">psr::NonTopBotValue::unwrap</a></div><div class="ttdeci">static L unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v&lt; L &gt;)</div><div class="ttdef"><b>Definition</b> <a href="JoinLattice_8h_source.html#l00068">JoinLattice.h:68</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 13 2026 14:25:20 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Apr 17 2026 15:40:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

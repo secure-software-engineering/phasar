@@ -99,15 +99,15 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a73031dc546e23efda9f968366ce408c5" id="r_a73031dc546e23efda9f968366ce408c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> L&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1NonTopBotValue_3_01LatticeDomain_3_01L_01_4_01_4.html#a73031dc546e23efda9f968366ce408c5">unwrap</a> (<a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt; L &gt; Value) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(std::is_nothrow_move_constructible_v&lt; L &gt;)</td></tr>
-<tr class="separator:a73031dc546e23efda9f968366ce408c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77d6165a19da4e9c4346f32600c04874" id="r_a77d6165a19da4e9c4346f32600c04874"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> L&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1NonTopBotValue_3_01LatticeDomain_3_01L_01_4_01_4.html#a77d6165a19da4e9c4346f32600c04874">unwrap</a> (<a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt; L &gt; Value) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(std::is_nothrow_move_constructible_v&lt; L &gt;)</td></tr>
+<tr class="separator:a77d6165a19da4e9c4346f32600c04874"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> L&gt;<br />
 requires (std::is_nothrow_constructible_v&lt;<a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt;L&gt;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> L &amp;&gt; || !std::is_nothrow_copy_constructible_v&lt;<a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt;L&gt;&gt;)<br />
 struct psr::NonTopBotValue&lt; LatticeDomain&lt; L &gt; &gt;</div><p>If we know that a stored L value is never <a class="el" href="structpsr_1_1Top.html">Top</a> or <a class="el" href="structpsr_1_1Bottom.html">Bottom</a>, we don't need to store the discriminator of the std::variant. </p>
 
-<p class="definition">Definition at line <a class="el" href="LatticeDomain_8h_source.html#l00242">242</a> of file <a class="el" href="LatticeDomain_8h_source.html">LatticeDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LatticeDomain_8h_source.html#l00227">227</a> of file <a class="el" href="LatticeDomain_8h_source.html">LatticeDomain.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="af1689087ecb7d544f87ca15ccb114d09" name="af1689087ecb7d544f87ca15ccb114d09"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af1689087ecb7d544f87ca15ccb114d09">&#9670;&#160;</a></span>type</h2>
@@ -123,13 +123,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LatticeDomain_8h_source.html#l00243">243</a> of file <a class="el" href="LatticeDomain_8h_source.html">LatticeDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LatticeDomain_8h_source.html#l00228">228</a> of file <a class="el" href="LatticeDomain_8h_source.html">LatticeDomain.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a73031dc546e23efda9f968366ce408c5" name="a73031dc546e23efda9f968366ce408c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a73031dc546e23efda9f968366ce408c5">&#9670;&#160;</a></span>unwrap()</h2>
+<a id="a77d6165a19da4e9c4346f32600c04874" name="a77d6165a19da4e9c4346f32600c04874"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77d6165a19da4e9c4346f32600c04874">&#9670;&#160;</a></span>unwrap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -140,7 +140,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> L <a class="el" href="structpsr_1_1NonTopBotValue.html">psr::NonTopBotValue</a>&lt; <a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt; L &gt; &gt;::unwrap </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> L <a class="el" href="structpsr_1_1NonTopBotValue.html">psr::NonTopBotValue</a>&lt; <a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt; L &gt; &gt;::unwrap </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structpsr_1_1LatticeDomain.html">LatticeDomain</a>&lt; L &gt;&#160;</td>
           <td class="paramname"><em>Value</em></td><td>)</td>
@@ -149,12 +149,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LatticeDomain_8h_source.html#l00245">245</a> of file <a class="el" href="LatticeDomain_8h_source.html">LatticeDomain.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LatticeDomain_8h_source.html#l00230">230</a> of file <a class="el" href="LatticeDomain_8h_source.html">LatticeDomain.h</a>.</p>
 
 </div>
 </div>
@@ -164,7 +164,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 13 2026 14:25:21 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Apr 17 2026 15:40:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
