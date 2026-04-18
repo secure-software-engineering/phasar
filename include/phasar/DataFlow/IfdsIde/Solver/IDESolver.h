@@ -208,6 +208,12 @@ public:
     getSolverResults().dumpResults(*ICF, OS);
   }
 
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IDESolver &Solver) {
+    Solver.dumpResults(OS);
+    return OS;
+  }
+
   void dumpAllInterPathEdges() {
     llvm::outs() << "COMPUTED INTER PATH EDGES" << '\n';
     auto Interpe = this->computedInterPathEdges.cellSet();

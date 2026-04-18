@@ -31,6 +31,9 @@ class raw_ostream;
 namespace psr::ptaben {
 struct QueryResult : QueryLocation {
   AliasResult Result{};
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const QueryResult &Result);
 };
 
 struct QuerySrcCodeLocation {
@@ -39,11 +42,6 @@ struct QuerySrcCodeLocation {
 };
 
 [[nodiscard]] bool isSoundResult(const QueryResult &QR) noexcept;
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const QueryResult &Result);
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const QueryLocation &Result);
 
 void findAllQueryLocations(
     const llvm::Module &Mod, llvm::SmallVectorImpl<QueryLocation> &Locs,
