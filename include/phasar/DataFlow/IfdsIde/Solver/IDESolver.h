@@ -1776,12 +1776,6 @@ public:
     OS << G;
   }
 
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const IDESolver &Solver) {
-    Solver.dumpResults(OS);
-    return OS;
-  }
-
 private:
   /// @brief: Allows less-than comparison based on the statement ID.
   struct StmtLess {
