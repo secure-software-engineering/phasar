@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDETypeStateAnalysis.h"
@@ -36,9 +37,10 @@ protected:
   std::optional<HelperAnalyses> HA;
   OpenSSLSecureMemoryDescription Desc{};
   std::optional<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>> TSProblem;
-  std::unique_ptr<
-      IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>
-      Llvmtssolver;
+  std::optional<
+      OwningSolverResults<const llvm::Instruction *, const llvm::Value *,
+                          OpenSSLSecureMemoryDescription::State>>
+      SR;
 
   enum OpenSSLSecureMemoryState {
     TOP = 42,
@@ -55,11 +57,7 @@ protected:
     TSProblem = createAnalysisProblem<
         IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>(*HA, &Desc,
                                                               EntryPoints);
-    Llvmtssolver = std::make_unique<
-        IDESolver_P<IDETypeStateAnalysis<OpenSSLSecureMemoryDescription>>>(
-        *TSProblem, &HA->getICFG());
-
-    Llvmtssolver->solve();
+    SR = solveIDEProblem(*TSProblem, HA->getICFG());
   }
 
   /**
@@ -75,7 +73,7 @@ protected:
       auto *Inst = HA->getProjectIRDB().getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> Results;
-      for (auto Result : Llvmtssolver->resultsAt(Inst, true)) {
+      for (auto Result : SR->resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
           Results.insert(std::pair<std::string, int>(
               getMetaDataID(Result.first), int(Result.second)));

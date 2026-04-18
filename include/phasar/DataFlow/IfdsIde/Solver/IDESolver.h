@@ -1925,8 +1925,11 @@ IDESolver(Problem *, const ICF *)
                  typename Problem::container_type, ICF>;
 
 template <typename Problem>
-using IDESolver_P = IDESolver<typename Problem::ProblemAnalysisDomain,
-                              typename Problem::container_type>;
+using IDESolver_P
+    [[deprecated("Let C++ deduce the template arguments of IDESolver, or call "
+                 "solveIDEProblem() instead")]] =
+        IDESolver<typename Problem::ProblemAnalysisDomain,
+                  typename Problem::container_type>;
 
 template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,

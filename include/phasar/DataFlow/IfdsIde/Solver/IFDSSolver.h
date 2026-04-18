@@ -125,8 +125,11 @@ IFDSSolver(Problem *, const ICF *)
                   typename Problem::container_type, ICF>;
 
 template <typename Problem>
-using IFDSSolver_P = IFDSSolver<typename Problem::ProblemAnalysisDomain,
-                                typename Problem::container_type>;
+using IFDSSolver_P
+    [[deprecated("Let C++ deduce the template arguments of IFDSSolver, or call "
+                 "solveIFDSProblem() instead")]] =
+        IFDSSolver<typename Problem::ProblemAnalysisDomain,
+                   typename Problem::container_type>;
 
 template <typename AnalysisDomainTy, typename Container>
 OwningSolverResults<typename AnalysisDomainTy::n_t,
