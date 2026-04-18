@@ -72,8 +72,8 @@ template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
           ICFG ICFGTy = typename AnalysisDomainTy::i_t>
 class IDESolver
-    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>> {
-  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container>>;
+    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
+  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>>;
 
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;
@@ -1770,6 +1770,12 @@ public:
     OS << G;
   }
 
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const IDESolver &Solver) {
+    Solver.dumpResults(OS);
+    return OS;
+  }
+
 private:
   /// @brief: Allows less-than comparison based on the statement ID.
   struct StmtLess {
@@ -1905,14 +1911,6 @@ private:
 
   std::map<std::pair<n_t, d_t>, size_t> FSummaryReuse;
 };
-
-template <typename AnalysisDomainTy, typename Container>
-llvm::raw_ostream &
-operator<<(llvm::raw_ostream &OS,
-           const IDESolver<AnalysisDomainTy, Container> &Solver) {
-  Solver.dumpResults(OS);
-  return OS;
-}
 
 template <typename Problem, typename ICF>
 IDESolver(Problem &, const ICF *)
