@@ -50,12 +50,16 @@ public:
   using n_t = typename AnalysisDomainTy::n_t;
   using i_t = ICFGTy;
 
-  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy>
+  template <typename IfdsDomainTy>
+    requires(std::same_as<WithBinaryValueDomain<AnalysisDomainTy>,
+                          WithBinaryValueDomain<IfdsDomainTy>>)
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> &IFDSProblem,
              const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
 
-  template <std::derived_from<AnalysisDomainTy> IfdsDomainTy>
+  template <typename IfdsDomainTy>
+    requires(std::same_as<WithBinaryValueDomain<AnalysisDomainTy>,
+                          WithBinaryValueDomain<IfdsDomainTy>>)
   IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
              const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
@@ -129,7 +133,7 @@ OwningSolverResults<typename AnalysisDomainTy::n_t,
                     typename AnalysisDomainTy::d_t, BinaryDomain>
 solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
                  const ICFG auto &ICF) {
-  IFDSSolver Solver(Problem, &ICF);
+  IFDSSolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();
 }

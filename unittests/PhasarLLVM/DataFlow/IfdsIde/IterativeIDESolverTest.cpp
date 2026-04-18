@@ -15,6 +15,7 @@
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/TypeName.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -22,8 +23,6 @@
 #include <atomic>
 #include <chrono>
 #include <type_traits>
-
-#include <llvm-16/llvm/Support/TypeName.h>
 
 using namespace psr;
 
