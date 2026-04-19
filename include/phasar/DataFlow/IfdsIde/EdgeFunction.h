@@ -43,6 +43,11 @@ concept IsEdgeFunction = requires(const T &EF, typename T::l_t Src) {
   { EF.computeTarget(Src) } -> std::convertible_to<typename T::l_t>;
 };
 
+template <typename T, typename L>
+concept IsEdgeFunctionFor = IsEdgeFunction<T> && requires {
+  requires std::same_as<typename T::l_t, L>;
+};
+
 template <typename T>
 concept HasEFCompose = requires(EdgeFunctionRef<T> EFRef,
                                 const EdgeFunction<typename T::l_t> &EF) {
