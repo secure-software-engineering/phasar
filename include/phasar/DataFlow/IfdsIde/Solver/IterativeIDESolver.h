@@ -53,7 +53,7 @@ namespace psr {
 /// Applications: An Experience Report"
 /// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
-template <typename ProblemTy,
+template <IDEProblem ProblemTy,
           typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>>
 class IterativeIDESolver
     : private SolverStatsSelector<StaticSolverConfigTy>,
@@ -63,10 +63,8 @@ class IterativeIDESolver
           std::conditional_t<StaticSolverConfigTy::ComputeValues,
                              typename ProblemTy::ProblemAnalysisDomain::l_t,
                              BinaryDomain>>,
-      public IterativeIDESolverBase<
-          StaticSolverConfigTy,
-          typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-              typename ProblemTy::ProblemAnalysisDomain::l_t>>,
+      public IterativeIDESolverBase<StaticSolverConfigTy,
+                                    typename ProblemTy::EdgeFunctionType>,
       public IDESolverAPIMixin<
           IterativeIDESolver<ProblemTy, StaticSolverConfigTy>> {
 
@@ -449,9 +447,9 @@ private:
 
   void submitInitialSeeds() {
     auto Seeds = Problem.initialSeeds();
-    EdgeFunctionPtrType IdFun = [] {
+    EdgeFunctionPtrType IdFun = [&] {
       if constexpr (ComputeValues) {
-        return EdgeIdentity<l_t>{};
+        return Problem.identity();
       } else {
         return EdgeFunctionPtrType{};
       }
@@ -901,9 +899,9 @@ private:
                                  combineIds(AtInstructionId, CalleeId))
             .computeTargets(CSFact);
 
-    EdgeFunctionPtrType IdEF = [] {
+    EdgeFunctionPtrType IdEF = [&] {
       if constexpr (ComputeValues) {
-        return EdgeIdentity<l_t>{};
+        return Problem.identity();
       } else {
         return EdgeFunctionPtrType{};
       }
