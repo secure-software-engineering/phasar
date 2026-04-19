@@ -71,6 +71,9 @@ concept IsJoinLattice = requires(T &JL, typename T::l_t Val) {
   { JL.join(Val, Val) } -> std::convertible_to<typename T::l_t>;
 };
 
+template <typename T, typename L>
+concept IsJoinLatticeFor = IsJoinLattice<T> && std::same_as<typename T::l_t, L>;
+
 template <typename L> struct NonTopBotValue {
   using type = L;
 
