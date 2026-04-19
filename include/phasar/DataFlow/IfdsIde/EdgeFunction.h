@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionSingletonCache.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/EmptyBaseOptimizationUtils.h"
+#include "phasar/Utils/ErrorFwd.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/TypeTraits.h"
 
@@ -37,14 +38,23 @@ template <typename L> class EdgeFunction;
 template <typename EF> class EdgeFunctionRef;
 
 template <typename T>
-concept IsEdgeFunction =
-    requires(const T &EF, const EdgeFunction<typename T::l_t> &TEEF,
-             EdgeFunctionRef<T> CEF, typename T::l_t Src) {
-      typename T::l_t;
-      { EF.computeTarget(Src) } -> std::convertible_to<typename T::l_t>;
-      { T::compose(CEF, TEEF) } -> std::same_as<EdgeFunction<typename T::l_t>>;
-      { T::join(CEF, TEEF) } -> std::same_as<EdgeFunction<typename T::l_t>>;
-    };
+concept IsEdgeFunction = requires(const T &EF, typename T::l_t Src) {
+  typename T::l_t;
+  { EF.computeTarget(Src) } -> std::convertible_to<typename T::l_t>;
+};
+
+template <typename T>
+concept HasEFCompose = requires(EdgeFunctionRef<T> EFRef,
+                                const EdgeFunction<typename T::l_t> &EF) {
+  {
+    T::compose(EFRef, EF)
+  } -> std::convertible_to<EdgeFunction<typename T::l_t>>;
+};
+template <typename T>
+concept HasEFJoin = requires(EdgeFunctionRef<T> EFRef,
+                             const EdgeFunction<typename T::l_t> &EF) {
+  { T::join(EFRef, EF) } -> std::convertible_to<EdgeFunction<typename T::l_t>>;
+};
 
 enum class EdgeFunctionAllocationPolicy {
   SmallObjectOptimized,
@@ -100,21 +110,23 @@ protected:
 /// \brief Non-null reference to an edge function that is guarenteed to be
 /// managed by an EdgeFunction object.
 template <typename EF>
-class [[clang::trivial_abi]] EdgeFunctionRef final : EdgeFunctionBase {
+class [[gsl::Pointer(EF)]] EdgeFunctionRef final : EdgeFunctionBase {
   template <typename L> friend class EdgeFunction;
 
 public:
   using l_t = typename EF::l_t;
 
-  EdgeFunctionRef(const EdgeFunctionRef &) noexcept = default;
-  EdgeFunctionRef &operator=(const EdgeFunctionRef &) noexcept = default;
-  ~EdgeFunctionRef() = default;
+  [[nodiscard]] constexpr const EF *operator->() const noexcept {
+    return getPtr<EF>(Instance);
+  }
+  [[nodiscard]] constexpr const EF *get() const noexcept {
+    return getPtr<EF>(Instance);
+  }
+  [[nodiscard]] constexpr const EF &operator*() const noexcept {
+    return *getPtr<EF>(Instance);
+  }
 
-  const EF *operator->() const noexcept { return getPtr<EF>(Instance); }
-  const EF *get() const noexcept { return getPtr<EF>(Instance); }
-  const EF &operator*() const noexcept { return *getPtr<EF>(Instance); }
-
-  [[nodiscard]] bool isCached() const noexcept {
+  [[nodiscard]] constexpr bool isCached() const noexcept {
     if constexpr (IsSOOCandidate<EF>) {
       return false;
     } else {
@@ -122,7 +134,7 @@ public:
     }
   }
 
-  [[nodiscard]] EdgeFunctionSingletonCache<EF> *
+  [[nodiscard]] constexpr EdgeFunctionSingletonCache<EF> *
   getCacheOrNull() const noexcept {
     if (isCached()) {
       return static_cast<const CachedRefCounted<EF> *>(Instance)->Cache;
@@ -148,46 +160,46 @@ private:
 template <typename L>
 // -- combined copy and move assignment
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
-class [[clang::trivial_abi]] EdgeFunction final : EdgeFunctionBase {
+class [[clang::trivial_abi, gsl::Owner]] EdgeFunction final : EdgeFunctionBase {
 public:
   using l_t = L;
 
   // --- Constructors
 
   /// Default-initializes the edge-function with nullptr
-  EdgeFunction() noexcept = default;
+  constexpr EdgeFunction() noexcept = default;
   /// Default-initializes the edge-function with nullptr
-  EdgeFunction(std::nullptr_t) noexcept : EdgeFunction() {}
+  constexpr EdgeFunction(std::nullptr_t) noexcept : EdgeFunction() {}
   /// Copy constructor. Increments the ref-count, if not small-object-optimized.
   EdgeFunction(const EdgeFunction &Other) noexcept
       : EdgeFunction(Other.EF, Other.VTAndHeapAlloc) {}
   /// Move constructor. Does not increment the ref-count, but instead leaves the
   /// moved-from edge function in the nullptr state.
-  EdgeFunction(EdgeFunction &&Other) noexcept
+  constexpr EdgeFunction(EdgeFunction &&Other) noexcept
       : EF(std::exchange(Other.EF, nullptr)),
         VTAndHeapAlloc(
             std::exchange(Other.VTAndHeapAlloc, decltype(VTAndHeapAlloc){})) {}
 
   /// Standard swap; does not affect ref-counts
-  void swap(EdgeFunction &Other) noexcept {
+  constexpr void swap(EdgeFunction &Other) noexcept {
     std::swap(EF, Other.EF);
     std::swap(VTAndHeapAlloc, Other.VTAndHeapAlloc);
   }
   /// Standard swap; does not affect ref-counts
-  friend void swap(EdgeFunction &LHS, EdgeFunction &RHS) noexcept {
+  constexpr friend void swap(EdgeFunction &LHS, EdgeFunction &RHS) noexcept {
     LHS.swap(RHS);
   }
 
   /// Combined copy- and move assignment. If the assigned-to edge function is
   /// not null, invokes the destructor on it, before overwriting its content.
-  EdgeFunction &operator=(EdgeFunction Other) noexcept {
+  constexpr EdgeFunction &operator=(EdgeFunction Other) noexcept {
     std::destroy_at(this);
     return *new (this) EdgeFunction(std::move(Other)); // NOLINT
   }
   /// Null-assignment operator. Decrements the ref-count if not
   /// small-object-optimized or already null. Leaves the assigned-to edge
   /// function in the nullptr state.
-  EdgeFunction &operator=(std::nullptr_t) noexcept {
+  constexpr EdgeFunction &operator=(std::nullptr_t) noexcept {
     std::destroy_at(this);
     return *new (this) EdgeFunction(); // NOLINT
   }
@@ -581,7 +593,9 @@ public:
 
   /// Gets an opaque identifier for this edge function. Only meant for
   /// comparisons of object-identity. Do not dereference!
-  [[nodiscard]] const void *getOpaqueValue() const noexcept { return EF; }
+  [[nodiscard]] constexpr const void *getOpaqueValue() const noexcept {
+    return EF;
+  }
 
   /// Gets the cache where this edge function is being cached in. If this edge
   /// function is not cached (i.e., isCached() returns false), returns nullptr.
@@ -647,82 +661,116 @@ private:
   };
 
   template <typename ConcreteEF>
+  static l_t computeTargetThunk(const void *EF, ByConstRef<l_t> Source) {
+    return getPtr<ConcreteEF>(EF)->computeTarget(Source);
+  }
+
+  template <typename ConcreteEF>
+  static EdgeFunction composeThunk(const void *EF, const EdgeFunction &SecondEF,
+                                   AllocationPolicy Policy) {
+    if constexpr (HasEFCompose<ConcreteEF>) {
+      return ConcreteEF::compose(
+          EdgeFunctionRef<ConcreteEF>(
+              EF, Policy == AllocationPolicy::CustomHeapAllocated),
+          SecondEF);
+    } else {
+      composeEFPureVirtualError(llvm::getTypeName<ConcreteEF>(),
+                                llvm::getTypeName<l_t>());
+    }
+  }
+
+  template <typename ConcreteEF>
+  static EdgeFunction joinThunk(const void *EF, const EdgeFunction &OtherEF,
+                                AllocationPolicy Policy) {
+    if constexpr (HasEFJoin<ConcreteEF>) {
+      return ConcreteEF::join(
+          EdgeFunctionRef<ConcreteEF>(
+              EF, Policy == AllocationPolicy::CustomHeapAllocated),
+          OtherEF);
+    } else {
+      joinEFPureVirtualError(llvm::getTypeName<ConcreteEF>(),
+                             llvm::getTypeName<l_t>());
+    }
+  }
+
+  template <typename ConcreteEF>
+  static bool equalsThunk(const void *EF1, const void *EF2) noexcept {
+    static_assert(IsEqualityComparable<ConcreteEF> ||
+                      std::is_empty_v<ConcreteEF>,
+                  "An EdgeFunction must be equality comparable with "
+                  "operator==. Only if the type is empty, i.e. has no "
+                  "members, the comparison can be inferred.");
+    if constexpr (IsEqualityComparable<ConcreteEF>) {
+      return *getPtr<ConcreteEF>(EF1) == *getPtr<ConcreteEF>(EF2);
+    } else {
+      return true;
+    }
+  }
+
+  template <typename ConcreteEF>
+  static void printThunk(const void *EF, llvm::raw_ostream &OS) {
+    if constexpr (is_llvm_printable_v<ConcreteEF>) {
+      OS << *getPtr<ConcreteEF>(EF);
+    } else {
+      OS << llvm::getTypeName<ConcreteEF>();
+    }
+  }
+
+  template <typename ConcreteEF>
+  static bool isConstantThunk(const void *EF) noexcept {
+    if constexpr (HasIsConstant<ConcreteEF>) {
+      static_assert(
+          std::is_nothrow_invocable_v<decltype(&ConcreteEF::isConstant),
+                                      const ConcreteEF &>,
+          "The function isConstant() must be noexcept!");
+      return getPtr<ConcreteEF>(EF)->isConstant();
+    } else {
+      return false;
+    }
+  }
+
+  template <typename ConcreteEF>
+  static void destroyThunk(const void *EF, AllocationPolicy Policy) noexcept {
+    if constexpr (!IsSOOCandidate<ConcreteEF>) {
+      if (Policy != AllocationPolicy::CustomHeapAllocated) {
+        assert(Policy == AllocationPolicy::DefaultHeapAllocated);
+        delete static_cast<const RefCounted<ConcreteEF> *>(EF);
+      } else {
+        auto CEF = static_cast<const CachedRefCounted<ConcreteEF> *>(EF);
+        CEF->Cache->erase(CEF->Value);
+        delete CEF;
+      }
+    }
+  }
+
+  template <typename ConcreteEF>
+  static size_t getHashCodeThunk(const void *EF, const void *VT) noexcept {
+    if constexpr (is_std_hashable_v<ConcreteEF>) {
+      return std::hash<ConcreteEF>{}(*getPtr<ConcreteEF>(EF));
+    } else if constexpr (is_llvm_hashable_v<ConcreteEF>) {
+      using llvm::hash_value;
+      return hash_value(*getPtr<ConcreteEF>(EF));
+    } else {
+      return llvm::hash_combine(EF, VT);
+    }
+  }
+
+  template <typename ConcreteEF>
+  static size_t depthThunk(const void *EF) noexcept {
+    if constexpr (HasDepth<ConcreteEF>) {
+      return getPtr<ConcreteEF>(EF)->depth();
+    } else {
+      return 1;
+    }
+  }
+
+  template <typename ConcreteEF>
   static constexpr VTable VTableFor = {
-      [](const void *EF, ByConstRef<l_t> Source) {
-        return getPtr<ConcreteEF>(EF)->computeTarget(Source);
-      },
-      [](const void *EF, const EdgeFunction &SecondEF,
-         AllocationPolicy Policy) {
-        return ConcreteEF::compose(
-            EdgeFunctionRef<ConcreteEF>(
-                EF, Policy == AllocationPolicy::CustomHeapAllocated),
-            SecondEF);
-      },
-      [](const void *EF, const EdgeFunction &OtherEF, AllocationPolicy Policy) {
-        return ConcreteEF::join(
-            EdgeFunctionRef<ConcreteEF>(
-                EF, Policy == AllocationPolicy::CustomHeapAllocated),
-            OtherEF);
-      },
-      [](const void *EF1, const void *EF2) noexcept {
-        static_assert(IsEqualityComparable<ConcreteEF> ||
-                          std::is_empty_v<ConcreteEF>,
-                      "An EdgeFunction must be equality comparable with "
-                      "operator==. Only if the type is empty, i.e. has no "
-                      "members, the comparison can be inferred.");
-        if constexpr (IsEqualityComparable<ConcreteEF>) {
-          return *getPtr<ConcreteEF>(EF1) == *getPtr<ConcreteEF>(EF2);
-        } else {
-          return true;
-        }
-      },
-      [](const void *EF, llvm::raw_ostream &OS) {
-        if constexpr (is_llvm_printable_v<ConcreteEF>) {
-          OS << *getPtr<ConcreteEF>(EF);
-        } else {
-          OS << llvm::getTypeName<ConcreteEF>();
-        }
-      },
-      [](const void *EF) noexcept {
-        if constexpr (HasIsConstant<ConcreteEF>) {
-          static_assert(
-              std::is_nothrow_invocable_v<decltype(&ConcreteEF::isConstant),
-                                          const ConcreteEF &>,
-              "The function isConstant() must be noexcept!");
-          return getPtr<ConcreteEF>(EF)->isConstant();
-        } else {
-          return false;
-        }
-      },
-      [](const void *EF, AllocationPolicy Policy) noexcept {
-        if constexpr (!IsSOOCandidate<ConcreteEF>) {
-          if (Policy != AllocationPolicy::CustomHeapAllocated) {
-            assert(Policy == AllocationPolicy::DefaultHeapAllocated);
-            delete static_cast<const RefCounted<ConcreteEF> *>(EF);
-          } else {
-            auto CEF = static_cast<const CachedRefCounted<ConcreteEF> *>(EF);
-            CEF->Cache->erase(CEF->Value);
-            delete CEF;
-          }
-        }
-      },
-      [](const void *EF, const void *VT) noexcept -> size_t {
-        if constexpr (is_std_hashable_v<ConcreteEF>) {
-          return std::hash<ConcreteEF>{}(*getPtr<ConcreteEF>(EF));
-        } else if constexpr (is_llvm_hashable_v<ConcreteEF>) {
-          using llvm::hash_value;
-          return hash_value(*getPtr<ConcreteEF>(EF));
-        } else {
-          return llvm::hash_combine(EF, VT);
-        }
-      },
-      [](const void *EF) noexcept -> size_t {
-        if constexpr (HasDepth<ConcreteEF>) {
-          return getPtr<ConcreteEF>(EF)->depth();
-        } else {
-          return 1;
-        }
-      },
+      &computeTargetThunk<ConcreteEF>, &composeThunk<ConcreteEF>,
+      &joinThunk<ConcreteEF>,          &equalsThunk<ConcreteEF>,
+      &printThunk<ConcreteEF>,         &isConstantThunk<ConcreteEF>,
+      &destroyThunk<ConcreteEF>,       &getHashCodeThunk<ConcreteEF>,
+      &depthThunk<ConcreteEF>,
   };
 
   // Utility ctor for (copy) construction. Increments the ref-count if

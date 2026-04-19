@@ -11,5 +11,4 @@ using psr::ExampleModulePass;
 using psr::GeneralStatistics;
 using psr::GeneralStatisticsAnalysis;
 using psr::ValueAnnotationPass;
-using psr::operator<<;
 } // namespace psr
