@@ -1,4 +1,5 @@
 set(IfdsIdeProblemSources
+	WPDSSolverTest.cpp
 	IFDSConstAnalysisTest.cpp
 	IFDSTaintAnalysisTest.cpp
 	IDEInstInteractionAnalysisTest.cpp

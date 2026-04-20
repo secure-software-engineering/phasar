@@ -31,7 +31,7 @@ public:
 
       // --v Needed for llvm::mapped_iterator
       // NOLINTNEXTLINE(readability-const-return-type)
-      const std::pair<const d_t &, const l_t &>
+      const std::pair<ByConstRef<d_t>, ByConstRef<l_t>>
       operator()(ByConstRef<typename row_map_t::value_type> Entry) const {
         return {Results->FactCompressor[Entry.first],
                 Results->ValCompressor[Entry.second]};

@@ -41,8 +41,10 @@ concept WPDSAnalysisDomain = requires {
 ///   - Control locations  = dataflow facts (d_t).
 ///   - Stack symbols      = program nodes  (n_t), compressed to SymId.
 ///
-/// The WPDSSolver generates WPDS rules by calling the flow-weight functions
-/// for every source fact d ∈ getAllFacts():
+/// The WPDSSolver seeds fact discovery from getZeroFact() and grows the fact
+/// set on-the-fly: every (d', w) pair returned by a flow-weight function
+/// introduces d' as a new source fact to be processed. Rules are generated
+/// as facts are discovered; no upfront enumeration of facts is required.
 ///
 ///   - Intraprocedural edge n→n', fact d:
 ///       for each (d', w) in intraFlowWeights(n, n', d):
@@ -71,8 +73,7 @@ concept WPDSAnalysisDomain = requires {
 ///       -> iterable<pair<d_t, w_t>>
 ///   auto returnFlowWeights(n_t ExitNode, d_t SrcFact)
 ///       -> iterable<pair<d_t, w_t>>
-///   auto getAllFacts()           -> iterable<d_t>
-///   d_t  getZeroFact()
+///   d_t  getZeroFact()           — seed fact; all others discovered via flows
 ///   auto getEntryPoints()        -> iterable<n_t>
 ///   w_t  getInitialWeight(n_t)   [typically w_t::one()]
 ///   const i_t& getICFG() const
@@ -110,11 +111,6 @@ concept WPDSProblem =
         Problem.returnFlowWeights(N1, D)
       } -> psr::is_iterable_over_v<std::pair<typename AnalysisDomainTy::d_t,
                                              typename AnalysisDomainTy::w_t>>;
-
-      /// All dataflow facts in the analysis domain.
-      {
-        Problem.getAllFacts()
-      } -> psr::is_iterable_over_v<typename AnalysisDomainTy::d_t>;
 
       /// The "zero fact" (λ-fact / seed fact) used as the initial control
       /// location in the P-automaton.

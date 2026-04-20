@@ -22,6 +22,7 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/TypedVector.h"
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
 
 #include <cassert>
@@ -63,7 +64,6 @@ public:
 
   /// Run the full analysis: build WPDS, saturate, extract node values.
   void solve() {
-    compressFacts();
     buildWPDS();
     buildInitialAutomaton();
     saturate();
@@ -81,79 +81,107 @@ public:
   /// Returns the compressed SymId of a program node (stack symbol).
   [[nodiscard]] SymId symId(n_t N) const { return NodeComp.get(N); }
 
-private:
-  // ─── Phase 0: Compress facts ───────────────────────────────────────────────
-
-  void compressFacts() {
-    for (const d_t &D : Problem.getAllFacts()) {
-      FactComp.getOrInsert(D);
-    }
+  /// Returns the LocId for a fact, or nullopt if not discovered during build.
+  [[nodiscard]] std::optional<LocId> factIdOr(const d_t &D) const noexcept {
+    return FactComp.getOrNull(D);
   }
 
+  /// Returns the SymId for a node, or nullopt if not discovered during build.
+  [[nodiscard]] std::optional<SymId> symIdOr(n_t N) const noexcept {
+    return NodeComp.getOrNull(N);
+  }
+
+  /// Returns the computed value for (fact, node) without consuming the solver.
+  [[nodiscard]] w_t getNodeValue(LocId Fact, SymId Sym) const noexcept {
+    auto It = NodeValues.find({Fact, Sym});
+    return It != NodeValues.end() ? It->second : w_t::zero();
+  }
+
+  /// Direct access to the node-value map for iteration without a move.
+  [[nodiscard]] const typename WPDSSolverResults<w_t>::NodeValueMap &
+  getNodeValueMap() const noexcept {
+    return NodeValues;
+  }
+
+  /// Reverse lookup: fact at compressed id.
+  [[nodiscard]] decltype(auto) factAt(LocId L) const { return FactComp[L]; }
+  /// Reverse lookup: node at compressed id.
+  [[nodiscard]] decltype(auto) nodeAt(SymId S) const { return NodeComp[S]; }
+
+private:
   // ─── Phase 1: Build WPDS from ICFG ─────────────────────────────────────────
 
   void buildWPDS() {
     const i_t &ICFG = Problem.getICFG();
-    const auto NumFacts = static_cast<uint32_t>(FactComp.size());
 
-    for (auto Fun : ICFG.getAllFunctions()) {
-      for (auto N : ICFG.getAllInstructionsOf(Fun)) {
-        SymId NSym = NodeComp.getOrInsert(N);
+    // Exploded-supergraph worklist: only visit (fact, node) pairs where the
+    // fact can actually hold at that node.
+    using FactNodePair = std::pair<LocId, SymId>;
+    std::deque<FactNodePair> FNWorklist;
+    llvm::DenseSet<FactNodePair> FNSeen;
 
-        if (ICFG.isCallSite(N)) {
-          for (auto R : ICFG.getSuccsOf(N)) {
-            SymId RSym = NodeComp.getOrInsert(R);
+    const auto ScheduleIfNew = [&](LocId DIdx, SymId NSym) {
+      if (FNSeen.insert({DIdx, NSym}).second) {
+        FNWorklist.emplace_back(DIdx, NSym);
+      }
+    };
 
-            for (auto Callee : ICFG.getCalleesOfCallAt(N)) {
-              for (auto E : ICFG.getStartPointsOf(Callee)) {
-                SymId ESym = NodeComp.getOrInsert(E);
+    // Seed: zero fact at each entry point.
+    LocId ZeroIdx = FactComp.getOrInsert(Problem.getZeroFact());
+    assert(ZeroIdx == LocId{} && "The zero-value should be 0");
+    for (auto E : Problem.getEntryPoints()) {
+      ScheduleIfNew(ZeroIdx, NodeComp.getOrInsert(E));
+    }
 
-                for (uint32_t DRaw = 0; DRaw < NumFacts; ++DRaw) {
-                  LocId DIdx{DRaw};
-                  const d_t &D = FactComp[DIdx];
-                  for (auto [Dprime, W] : Problem.callFlowWeights(N, E, R, D)) {
-                    LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
-                    Sys.addPushRule(DIdx, NSym, DPrimeIdx, ESym, RSym,
-                                    std::move(W));
-                  }
-                }
-              }
-            }
+    while (!FNWorklist.empty()) {
+      auto [DIdx, NSym] = FNWorklist.front();
+      FNWorklist.pop_front();
+      const d_t &D = FactComp[DIdx];
+      n_t N = NodeComp[NSym];
 
-            // Call-to-return bypass
-            for (uint32_t DRaw = 0; DRaw < NumFacts; ++DRaw) {
-              LocId DIdx{DRaw};
-              const d_t &D = FactComp[DIdx];
-              for (auto [Dprime, W] :
-                   Problem.callToReturnFlowWeights(N, R, D)) {
+      if (ICFG.isCallSite(N)) {
+        for (auto R : ICFG.getSuccsOf(N)) {
+          SymId RSym = NodeComp.getOrInsert(R);
+
+          for (auto Callee : ICFG.getCalleesOfCallAt(N)) {
+            for (auto E : ICFG.getStartPointsOf(Callee)) {
+              SymId ESym = NodeComp.getOrInsert(E);
+              for (auto [Dprime, W] : Problem.callFlowWeights(N, E, R, D)) {
                 LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
-                Sys.addInternalRule(DIdx, NSym, DPrimeIdx, RSym, std::move(W));
+                Sys.addPushRule(DIdx, NSym, DPrimeIdx, ESym, RSym,
+                                std::move(W));
+                ScheduleIfNew(DPrimeIdx, ESym);
               }
             }
           }
 
-        } else if (ICFG.isExitInst(N)) {
-          for (uint32_t DRaw = 0; DRaw < NumFacts; ++DRaw) {
-            LocId DIdx{DRaw};
-            const d_t &D = FactComp[DIdx];
-            for (auto [Dprime, W] : Problem.returnFlowWeights(N, D)) {
-              LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
-              Sys.addPopRule(DIdx, NSym, DPrimeIdx, std::move(W));
+          for (auto [Dprime, W] : Problem.callToReturnFlowWeights(N, R, D)) {
+            LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
+            Sys.addInternalRule(DIdx, NSym, DPrimeIdx, RSym, std::move(W));
+            ScheduleIfNew(DPrimeIdx, RSym);
+          }
+        }
+
+      } else if (ICFG.isExitInst(N)) {
+        auto Fun = ICFG.getFunctionOf(N);
+        for (auto [Dprime, W] : Problem.returnFlowWeights(N, D)) {
+          LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
+          Sys.addPopRule(DIdx, NSym, DPrimeIdx, std::move(W));
+          // Schedule D' at every return site of every call to this function.
+          for (auto Caller : ICFG.getCallersOf(Fun)) {
+            for (auto R : ICFG.getSuccsOf(Caller)) {
+              ScheduleIfNew(DPrimeIdx, NodeComp.getOrInsert(R));
             }
           }
+        }
 
-        } else {
-          for (auto Succ : ICFG.getSuccsOf(N)) {
-            SymId SuccSym = NodeComp.getOrInsert(Succ);
-            for (uint32_t DRaw = 0; DRaw < NumFacts; ++DRaw) {
-              LocId DIdx{DRaw};
-              const d_t &D = FactComp[DIdx];
-              for (auto [Dprime, W] : Problem.intraFlowWeights(N, Succ, D)) {
-                LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
-                Sys.addInternalRule(DIdx, NSym, DPrimeIdx, SuccSym,
-                                    std::move(W));
-              }
-            }
+      } else {
+        for (auto Succ : ICFG.getSuccsOf(N)) {
+          SymId SuccSym = NodeComp.getOrInsert(Succ);
+          for (auto [Dprime, W] : Problem.intraFlowWeights(N, Succ, D)) {
+            LocId DPrimeIdx = FactComp.getOrInsert(Dprime);
+            Sys.addInternalRule(DIdx, NSym, DPrimeIdx, SuccSym, std::move(W));
+            ScheduleIfNew(DPrimeIdx, SuccSym);
           }
         }
       }
