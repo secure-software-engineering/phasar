@@ -24,7 +24,7 @@
 #include "AnalysisController.h"
 
 namespace psr {
-template <typename T, typename U> class IDESolver;
+template <typename T, typename U, ICFG I> class IDESolver;
 } // namespace psr
 
 namespace psr::controller {
@@ -63,8 +63,9 @@ makeTaintConfig(AnalysisController &Data);
 
 template <typename T>
 static void statsEmitter(llvm::raw_ostream & /*OS*/, const T & /*Solver*/) {}
-template <typename T, typename U>
-static void statsEmitter(llvm::raw_ostream &OS, const IDESolver<T, U> &Solver);
+template <typename T, typename U, typename I>
+static void statsEmitter(llvm::raw_ostream &OS,
+                         const IDESolver<T, U, I> &Solver);
 
 template <typename T>
 static void emitRequestedDataFlowResults(AnalysisController &Data, T &Solver) {

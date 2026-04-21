@@ -19,19 +19,16 @@
 
 namespace psr::controller {
 
-template <typename T, typename U>
-static void statsEmitter(llvm::raw_ostream &OS, const IDESolver<T, U> &Solver) {
+template <typename T, typename U, typename I>
+static void statsEmitter(llvm::raw_ostream &OS,
+                         const IDESolver<T, U, I> &Solver) {
   OS << "\nEdgeFunction Statistics:\n";
   Solver.printEdgeFunctionStatistics(OS);
 }
 
-template <typename SolverTy, typename ProblemTy, typename ICFGTy,
-          typename... ArgTys>
-static void executeIfdsIdeAnalysisImpl(AnalysisController &Data,
-                                       const ICFGTy &ICF, ArgTys &&...Args) {
-  auto Problem =
-      createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
-  SolverTy Solver(Problem, &ICF);
+template <typename SolverTy>
+static void executeIfdsIdeAnalysisImpl(SolverTy &Solver,
+                                       AnalysisController &Data) {
   {
     std::optional<Timer> MeasureTime;
     if (Data.EmitterOptions &
@@ -47,44 +44,55 @@ static void executeIfdsIdeAnalysisImpl(AnalysisController &Data,
 }
 
 template <typename SolverTy, typename ProblemTy, typename... ArgTys>
-static void executeIfdsIdeAnalysis(AnalysisController &Data, ArgTys &&...Args) {
-  executeIfdsIdeAnalysisImpl<SolverTy, ProblemTy>(
-      Data, Data.HA->getICFG(), std::forward<ArgTys>(Args)...);
-}
-
-template <typename SolverTy, typename ProblemTy, typename... ArgTys>
 static void executeSparseIfdsIdeAnalysis(AnalysisController &Data,
                                          ArgTys &&...Args) {
-
   SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
   executeIfdsIdeAnalysisImpl<SolverTy, ProblemTy>(
       Data, SVFG, std::forward<ArgTys>(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
+static void executeIFDSAnalysisWithICFG(AnalysisController &Data,
+                                        const ICFG auto &ICF,
+                                        ArgTys &&...Args) {
+  auto Problem =
+      createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
+  IFDSSolver Solver(&Problem, &ICF);
+  executeIfdsIdeAnalysisImpl(Solver, Data);
+}
+template <typename ProblemTy, typename... ArgTys>
+static void executeIDEAnalysisWithICFG(AnalysisController &Data,
+                                       const ICFG auto &ICF, ArgTys &&...Args) {
+  auto Problem =
+      createAnalysisProblem<ProblemTy>(*Data.HA, std::forward<ArgTys>(Args)...);
+  IDESolver Solver(&Problem, &ICF);
+  executeIfdsIdeAnalysisImpl(Solver, Data);
+}
+
+template <typename ProblemTy, typename... ArgTys>
 static void executeIFDSAnalysis(AnalysisController &Data, ArgTys &&...Args) {
-  executeIfdsIdeAnalysis<IFDSSolver_P<ProblemTy>, ProblemTy>(
-      Data, std::forward<ArgTys>(Args)...);
+  executeIFDSAnalysisWithICFG<ProblemTy>(Data, Data.HA->getICFG(),
+                                         PSR_FWD(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeSparseIFDSAnalysis(AnalysisController &Data,
                                       ArgTys &&...Args) {
-  executeSparseIfdsIdeAnalysis<IFDSSolver_P<ProblemTy>, ProblemTy>(
-      Data, std::forward<ArgTys>(Args)...);
+  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
+  executeIFDSAnalysisWithICFG<ProblemTy>(Data, SVFG, PSR_FWD(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeIDEAnalysis(AnalysisController &Data, ArgTys &&...Args) {
-  executeIfdsIdeAnalysis<IDESolver_P<ProblemTy>, ProblemTy>(
-      Data, std::forward<ArgTys>(Args)...);
+  executeIDEAnalysisWithICFG<ProblemTy>(Data, Data.HA->getICFG(),
+                                        PSR_FWD(Args)...);
 }
 
 template <typename ProblemTy, typename... ArgTys>
 static void executeSparseIDEAnalysis(AnalysisController &Data,
                                      ArgTys &&...Args) {
-  executeSparseIfdsIdeAnalysis<IDESolver_P<ProblemTy>, ProblemTy>(
-      Data, std::forward<ArgTys>(Args)...);
+  SparseLLVMBasedICFGView SVFG(&Data.HA->getICFG(), Data.HA->getAliasInfo());
+  executeIDEAnalysisWithICFG<ProblemTy>(Data, SVFG, PSR_FWD(Args)...);
 }
 
 } // namespace psr::controller
