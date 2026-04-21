@@ -1,13 +1,19 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,201,117,226"/>
-<area shape="rect" id="Node000001" href="$structpsr_1_1has__getAsJson_3_01T_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_01const_0104be425445e633405856f6f045939da7.html" title=" " alt="" coords="183,5,375,75"/>
-<area shape="poly" id="edge359_Node000000_Node000001" title=" " alt="" coords="75,187,111,136,136,109,164,85,182,73,185,77,167,89,140,113,116,140,79,190"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1has__getHashCode_3_01T_00_01decltype_07std_1_1declval_3_01const_01T_01_4_07_08_8getHashCode_07_08_08_4.html" title=" " alt="" coords="165,99,392,154"/>
-<area shape="poly" id="edge360_Node000000_Node000002" title=" " alt="" coords="100,192,164,164,197,152,199,157,166,169,103,197"/>
-<area shape="rect" id="Node000003" href="$structpsr_1_1has__std__hash_3_01T_00_01decltype_07std_1_1hash_3_01T_01_4_02_03_07std_1_1declval_3_01const_01T_01_4_08_08_4.html" title=" " alt="" coords="195,179,362,248"/>
-<area shape="poly" id="edge361_Node000000_Node000003" title=" " alt="" coords="131,211,195,211,195,216,131,216"/>
-<area shape="rect" id="Node000004" href="$structpsr_1_1is__pathtracingfilter__for_3_01PathTracingFilter_3_01EndFilter_00_01ErrFilter_01_4_00_01NodeRef_01_4.html" title=" " alt="" coords="193,272,365,341"/>
-<area shape="poly" id="edge362_Node000000_Node000004" title=" " alt="" coords="104,229,166,258,194,269,192,274,164,262,101,234"/>
-<area shape="rect" id="Node000005" href="$structpsr_1_1is__variant_3_01std_1_1variant_3_01Args_8_8_8_01_4_01_4.html" title=" " alt="" coords="197,365,360,405"/>
-<area shape="poly" id="edge363_Node000000_Node000005" title=" " alt="" coords="77,237,112,295,137,325,167,351,198,367,196,372,164,356,133,329,108,298,72,240"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,263,177,289"/>
+<area shape="rect" id="Node000001" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="244,5,415,45"/>
+<area shape="poly" id="edge351_Node000000_Node000001" title=" " alt="" coords="99,249,116,207,143,155,178,101,200,77,224,55,243,43,246,48,227,59,204,80,182,104,147,157,121,209,104,251"/>
+<area shape="rect" id="Node000002" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="244,69,415,109"/>
+<area shape="poly" id="edge352_Node000000_Node000002" title=" " alt="" coords="105,250,153,185,186,150,224,119,246,107,249,112,227,124,190,153,157,188,110,253"/>
+<area shape="rect" id="Node000003" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="244,134,415,189"/>
+<area shape="poly" id="edge353_Node000000_Node000003" title=" " alt="" coords="123,254,224,198,250,186,252,191,227,202,126,258"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="242,213,417,267"/>
+<area shape="poly" id="edge354_Node000000_Node000004" title=" " alt="" coords="188,259,241,251,242,256,189,264"/>
+<area shape="rect" id="Node000005" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="244,292,415,332"/>
+<area shape="poly" id="edge355_Node000000_Node000005" title=" " alt="" coords="190,288,244,296,243,302,189,293"/>
+<area shape="rect" id="Node000006" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="225,357,433,382"/>
+<area shape="poly" id="edge356_Node000000_Node000006" title=" " alt="" coords="127,293,173,318,226,342,267,354,266,359,224,346,171,323,125,298"/>
+<area shape="rect" id="Node000007" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="243,407,416,476"/>
+<area shape="poly" id="edge357_Node000000_Node000007" title=" " alt="" coords="116,297,165,343,227,391,249,404,246,409,224,396,161,347,113,301"/>
+<area shape="rect" id="Node000008" href="$classpsr_1_1NonNullPtr.html" title=" " alt="" coords="250,501,409,526"/>
+<area shape="poly" id="edge358_Node000000_Node000008" title=" " alt="" coords="104,301,121,342,147,392,182,443,203,466,227,486,251,499,249,503,224,490,200,470,178,447,142,395,116,344,99,303"/>
 </map>

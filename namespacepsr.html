@@ -542,7 +542,7 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSignAnalysis.html">IFDSSignAnalysis</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solves the given <a class="el" href="classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from...">IFDSTabulationProblem</a> as described in the 1995 paper by Reps, Horwitz and Sagiv. To solve the problem, call <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a25167cc74e667d8651faf9940a6bfcba">solve()</a>. Results can then be queried by using <a class="el" href="classpsr_1_1IDESolver.html#a9ec5e5680de8686a5a7a1746a4266815" title="Returns the L-type result for the given value at the given statement.">resultAt()</a> and <a class="el" href="classpsr_1_1IDESolver.html#ad80d6ac028c9a72c2f524b85ddd7bda5">resultsAt()</a>.  <a href="classpsr_1_1IFDSSolver.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solves the given <a class="el" href="classpsr_1_1IFDSTabulationProblem.html" title="The analysis problem interface for IFDS problems (solvable by the IFDSSolver). Create a subclass from...">IFDSTabulationProblem</a> as described in the 1995 paper by Reps, Horwitz and Sagiv. To solve the problem, call <a class="el" href="classpsr_1_1IDESolverAPIMixin.html#a25167cc74e667d8651faf9940a6bfcba">solve()</a>. Results can then be queried by using <a class="el" href="classpsr_1_1IDESolver.html#a5bac1dd1fb209e7de03937ad1cd2b152" title="Returns the L-type result for the given value at the given statement.">resultAt()</a> and <a class="el" href="classpsr_1_1IDESolver.html#a233bbcb4d463da5e0a3e374b79166b23">resultsAt()</a>.  <a href="classpsr_1_1IFDSSolver.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IFDSSolverTest.html">IFDSSolverTest</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1488,27 +1488,30 @@ requires (std::is_same_v&lt;<a class="el" href="namespacepsr.html#a951662fd4f90e
 <tr class="memitem:afc8dd589c37061a2ffe8c039e4f9a554" id="r_afc8dd589c37061a2ffe8c039e4f9a554"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SR1</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SR2</a> &gt; </td></tr>
 <tr class="memitem:afc8dd589c37061a2ffe8c039e4f9a554"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#afc8dd589c37061a2ffe8c039e4f9a554">checkSREquality</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SR1</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SR2</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>)</td></tr>
 <tr class="separator:afc8dd589c37061a2ffe8c039e4f9a554"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad0a44a029f4f8adc2b33dcbc412be502" id="r_ad0a44a029f4f8adc2b33dcbc412be502"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
-<tr class="memitem:ad0a44a029f4f8adc2b33dcbc412be502"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad0a44a029f4f8adc2b33dcbc412be502">IDESolver</a> (Problem &amp;, ICF *) -&gt; <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td></tr>
-<tr class="separator:ad0a44a029f4f8adc2b33dcbc412be502"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7005017d7af01ae06051f5bed0a206cc" id="r_a7005017d7af01ae06051f5bed0a206cc"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
-<tr class="memitem:a7005017d7af01ae06051f5bed0a206cc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7005017d7af01ae06051f5bed0a206cc">IDESolver</a> (Problem *, ICF *) -&gt; <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td></tr>
-<tr class="separator:a7005017d7af01ae06051f5bed0a206cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ec24497f714fa19eae981150f8a2486" id="r_a4ec24497f714fa19eae981150f8a2486"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </td></tr>
-<tr class="memitem:a4ec24497f714fa19eae981150f8a2486"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::n_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::d_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::l_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4ec24497f714fa19eae981150f8a2486">solveIDEProblem</a> (<a class="el" href="classpsr_1_1IDETabulationProblem.html">IDETabulationProblem</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::convertible_to&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::i_t &amp; &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;ICF)</td></tr>
-<tr class="separator:a4ec24497f714fa19eae981150f8a2486"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19375f649801eea3b82c7369b0650bd1" id="r_a19375f649801eea3b82c7369b0650bd1"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
-<tr class="memitem:a19375f649801eea3b82c7369b0650bd1"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a19375f649801eea3b82c7369b0650bd1">IFDSSolver</a> (Problem &amp;, ICF *) -&gt; <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td></tr>
-<tr class="separator:a19375f649801eea3b82c7369b0650bd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32972f3918b2c804cfbbab573544ea49" id="r_a32972f3918b2c804cfbbab573544ea49"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
-<tr class="memitem:a32972f3918b2c804cfbbab573544ea49"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a32972f3918b2c804cfbbab573544ea49">IFDSSolver</a> (Problem *, ICF *) -&gt; <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td></tr>
-<tr class="separator:a32972f3918b2c804cfbbab573544ea49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a23934b472a3f65ba7601dc4e05558287" id="r_a23934b472a3f65ba7601dc4e05558287"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </td></tr>
-<tr class="memitem:a23934b472a3f65ba7601dc4e05558287"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::n_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::d_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a23934b472a3f65ba7601dc4e05558287">solveIFDSProblem</a> (<a class="el" href="classpsr_1_1IFDSTabulationProblem.html">IFDSTabulationProblem</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::convertible_to&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::i_t &amp; &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;ICF)</td></tr>
-<tr class="separator:a23934b472a3f65ba7601dc4e05558287"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64f46d730704908a92f31a5702ba9969" id="r_a64f46d730704908a92f31a5702ba9969"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy &gt; </td></tr>
-<tr class="memitem:a64f46d730704908a92f31a5702ba9969"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a64f46d730704908a92f31a5702ba9969">PathAwareIDESolver</a> (ProblemTy &amp;) -&gt; <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain &gt;</td></tr>
-<tr class="separator:a64f46d730704908a92f31a5702ba9969"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4530b3380a94574aa8ae28fc2d4b91cd" id="r_a4530b3380a94574aa8ae28fc2d4b91cd"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
+<tr class="memitem:a4530b3380a94574aa8ae28fc2d4b91cd"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4530b3380a94574aa8ae28fc2d4b91cd">IDESolver</a> (Problem &amp;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *) -&gt; <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td></tr>
+<tr class="separator:a4530b3380a94574aa8ae28fc2d4b91cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0360a6ad657850e5e3b7a3d99469ef22" id="r_a0360a6ad657850e5e3b7a3d99469ef22"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
+<tr class="memitem:a0360a6ad657850e5e3b7a3d99469ef22"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0360a6ad657850e5e3b7a3d99469ef22">IDESolver</a> (Problem *, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *) -&gt; <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td></tr>
+<tr class="separator:a0360a6ad657850e5e3b7a3d99469ef22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3381471d670394f2bc4b7cbc15d4822" id="r_af3381471d670394f2bc4b7cbc15d4822"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </td></tr>
+<tr class="memitem:af3381471d670394f2bc4b7cbc15d4822"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::n_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::d_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::l_t &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af3381471d670394f2bc4b7cbc15d4822">solveIDEProblem</a> (<a class="el" href="classpsr_1_1IDETabulationProblem.html">IDETabulationProblem</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICFG <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;ICF)</td></tr>
+<tr class="separator:af3381471d670394f2bc4b7cbc15d4822"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae34195c87ff25b62958613912c618212" id="r_ae34195c87ff25b62958613912c618212"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
+<tr class="memitem:ae34195c87ff25b62958613912c618212"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae34195c87ff25b62958613912c618212">IFDSSolver</a> (Problem &amp;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *) -&gt; <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td></tr>
+<tr class="separator:ae34195c87ff25b62958613912c618212"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a784cdfccb37a766b06d6b0b4106cb8ec" id="r_a784cdfccb37a766b06d6b0b4106cb8ec"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ICF &gt; </td></tr>
+<tr class="memitem:a784cdfccb37a766b06d6b0b4106cb8ec"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a784cdfccb37a766b06d6b0b4106cb8ec">IFDSSolver</a> (Problem *, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *) -&gt; <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td></tr>
+<tr class="separator:a784cdfccb37a766b06d6b0b4106cb8ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe44f35d87db298034bf9c3ce26c815e" id="r_afe44f35d87db298034bf9c3ce26c815e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </td></tr>
+<tr class="memitem:afe44f35d87db298034bf9c3ce26c815e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1OwningSolverResults.html">OwningSolverResults</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::n_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::d_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#afe44f35d87db298034bf9c3ce26c815e">solveIFDSProblem</a> (<a class="el" href="classpsr_1_1IFDSTabulationProblem.html">IFDSTabulationProblem</a>&lt; <a class="el" href="classAnalysisDomainTy.html">AnalysisDomainTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICFG <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;ICF)</td></tr>
+<tr class="separator:afe44f35d87db298034bf9c3ce26c815e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a9b370e6336485700d5d4236ee9b54e" id="r_a0a9b370e6336485700d5d4236ee9b54e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , ICFG ICFGTy&gt; </td></tr>
+<tr class="memitem:a0a9b370e6336485700d5d4236ee9b54e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0a9b370e6336485700d5d4236ee9b54e">PathAwareIDESolver</a> (ProblemTy &amp;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> *) -&gt; <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::container_type, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;</td></tr>
+<tr class="separator:a0a9b370e6336485700d5d4236ee9b54e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa89d85b28c79851aab66b789cee39f1f" id="r_aa89d85b28c79851aab66b789cee39f1f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , ICFG ICFGTy&gt; </td></tr>
+<tr class="memitem:aa89d85b28c79851aab66b789cee39f1f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa89d85b28c79851aab66b789cee39f1f">PathAwareIDESolver</a> (ProblemTy *, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> *) -&gt; <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::container_type, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;</td></tr>
+<tr class="separator:aa89d85b28c79851aab66b789cee39f1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53ecb3ad5dfbb3431e4d94ed70855e2b" id="r_a53ecb3ad5dfbb3431e4d94ed70855e2b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a53ecb3ad5dfbb3431e4d94ed70855e2b">getMetaDataID</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V)</td></tr>
 <tr class="memdesc:a53ecb3ad5dfbb3431e4d94ed70855e2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the ID of a given LLVM Value.  <br /></td></tr>
 <tr class="separator:a53ecb3ad5dfbb3431e4d94ed70855e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2434,7 +2437,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01937">1937</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01926">1926</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 </div>
 </div>
@@ -2450,7 +2453,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00083">83</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00062">62</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2466,7 +2469,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00085">85</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00073">73</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2484,7 +2487,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00122">122</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00128">128</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
 
 </div>
 </div>
@@ -2500,7 +2503,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00084">84</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00063">63</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2516,7 +2519,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00086">86</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00074">74</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -2532,7 +2535,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00087">87</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="StaticIDESolverConfig_8h_source.html#l00093">93</a> of file <a class="el" href="StaticIDESolverConfig_8h_source.html">StaticIDESolverConfig.h</a>.</p>
 
 </div>
 </div>
@@ -6003,7 +6006,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01397">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDESolver_8h_source.html#l01566">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00118">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00379">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00449">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00332">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getNormalEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00412">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00507">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00726">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00762">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="IDESolver_8h_source.html#l01324">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01302">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01284">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l01200">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00708">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00893">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01396">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDESolver_8h_source.html#l01565">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00111">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00379">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00449">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00332">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getNormalEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00412">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00507">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00725">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00761">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="IDESolver_8h_source.html#l01323">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01301">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01283">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="IDESolver_8h_source.html#l00385">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l01199">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00707">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00892">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00845">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
 
 </div>
 </div>
@@ -8555,8 +8558,8 @@ template&lt;detail::is_enum T&gt; </div>
 
 </div>
 </div>
-<a id="ad0a44a029f4f8adc2b33dcbc412be502" name="ad0a44a029f4f8adc2b33dcbc412be502"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad0a44a029f4f8adc2b33dcbc412be502">&#9670;&#160;</a></span>IDESolver() <span class="overload">[1/2]</span></h2>
+<a id="a4530b3380a94574aa8ae28fc2d4b91cd" name="a4530b3380a94574aa8ae28fc2d4b91cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4530b3380a94574aa8ae28fc2d4b91cd">&#9670;&#160;</a></span>IDESolver() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -8572,21 +8575,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ICF *&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a7005017d7af01ae06051f5bed0a206cc" name="a7005017d7af01ae06051f5bed0a206cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7005017d7af01ae06051f5bed0a206cc">&#9670;&#160;</a></span>IDESolver() <span class="overload">[2/2]</span></h2>
+<a id="a0360a6ad657850e5e3b7a3d99469ef22" name="a0360a6ad657850e5e3b7a3d99469ef22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0360a6ad657850e5e3b7a3d99469ef22">&#9670;&#160;</a></span>IDESolver() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -8602,13 +8605,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ICF *&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -8689,8 +8692,8 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="a19375f649801eea3b82c7369b0650bd1" name="a19375f649801eea3b82c7369b0650bd1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19375f649801eea3b82c7369b0650bd1">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[1/2]</span></h2>
+<a id="ae34195c87ff25b62958613912c618212" name="ae34195c87ff25b62958613912c618212"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae34195c87ff25b62958613912c618212">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -8706,21 +8709,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ICF *&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a32972f3918b2c804cfbbab573544ea49" name="a32972f3918b2c804cfbbab573544ea49"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32972f3918b2c804cfbbab573544ea49">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[2/2]</span></h2>
+<a id="a784cdfccb37a766b06d6b0b4106cb8ec" name="a784cdfccb37a766b06d6b0b4106cb8ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a784cdfccb37a766b06d6b0b4106cb8ec">&#9670;&#160;</a></span>IFDSSolver() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -8736,13 +8739,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">ICF *&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICF *&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type &gt;</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1IFDSSolver.html">IFDSSolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Problem::container_type, ICF &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -9316,7 +9319,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">Call</a>, and <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">Ret</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00835">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::saveEdges()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDESolver_8h_source.html#l00834">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::saveEdges()</a>.</p>
 
 </div>
 </div>
@@ -9806,7 +9809,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00222">psr::FeatureTaintGenerator::createEdgeFactPrinter()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00118">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getAsJson()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01158">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::printEdgeFactImpl()</a>, <a class="el" href="IDESolver_8h_source.html#l00708">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00145">psr::IDEFeatureTaintEdgeFact::str()</a>, <a class="el" href="IDESolver_8h_source.html#l00893">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00222">psr::FeatureTaintGenerator::createEdgeFactPrinter()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00111">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01158">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::printEdgeFactImpl()</a>, <a class="el" href="IDESolver_8h_source.html#l00707">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDEFeatureTaintAnalysis_8h_source.html#l00145">psr::IDEFeatureTaintEdgeFact::str()</a>, <a class="el" href="IDESolver_8h_source.html#l00892">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00845">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
 
 </div>
 </div>
@@ -10307,7 +10310,7 @@ template&lt;detail::IsSomehowPrintable N&gt; </div>
 
 <p class="reference">References <a class="el" href="Printer_8h_source.html#l00033">psr::detail::printSomehow()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01397">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00396">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::dumpResults()</a>, <a class="el" href="IDESolver_8h_source.html#l01566">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00118">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00379">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00226">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00449">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00284">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallToRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00332">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getNormalEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00192">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getNormalFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00251">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00412">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00507">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00318">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getSummaryFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00726">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00762">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="CallStringCTX_8h_source.html#l00074">psr::CallStringCTX&lt; N, K &gt;::print()</a>, <a class="el" href="IDESolver_8h_source.html#l01324">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01302">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01284">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00090">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::printWorkList()</a>, <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00225">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00289">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00181">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processNormal()</a>, <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>, <a class="el" href="IDESolver_8h_source.html#l01200">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00708">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00893">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00846">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::submitInitialValues()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="JumpFunctions_8h_source.html#l00078">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::addFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l01396">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::computeAndPrintStatistics()</a>, <a class="el" href="InitialSeeds_8h_source.html#l00085">psr::InitialSeeds&lt; N, D, L &gt;::dump()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00396">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::dumpResults()</a>, <a class="el" href="IDESolver_8h_source.html#l01565">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01088">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::emitTextReport()</a>, <a class="el" href="IDESolver_8h_source.html#l00111">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::getAsJson()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00379">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00226">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00449">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallToRetEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00284">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getCallToRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00332">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getNormalEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00192">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getNormalFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00251">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getRetFlowFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00412">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getReturnEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00507">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getSummaryEdgeFunction()</a>, <a class="el" href="FlowEdgeFunctionCache_8h_source.html#l00318">psr::FlowEdgeFunctionCache&lt; AnalysisDomainTy, Container &gt;::getSummaryFlowFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00725">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::jumpFunction()</a>, <a class="el" href="IDESolver_8h_source.html#l00761">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::pathEdgeProcessingTask()</a>, <a class="el" href="CallStringCTX_8h_source.html#l00074">psr::CallStringCTX&lt; N, K &gt;::print()</a>, <a class="el" href="IDESolver_8h_source.html#l01323">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printComputedPathEdges()</a>, <a class="el" href="IDESolver_8h_source.html#l01301">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printEndSummaryTab()</a>, <a class="el" href="IDESolver_8h_source.html#l01283">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::printIncomingTab()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00211">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printJumpFunctions()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00242">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyForwardLookup()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00257">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyLookupByTargetNode()</a>, <a class="el" href="JumpFunctions_8h_source.html#l00227">psr::JumpFunctions&lt; AnalysisDomainTy, Container &gt;::printNonEmptyReverseLookup()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00090">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::printWorkList()</a>, <a class="el" href="IDESolver_8h_source.html#l00385">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00225">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00941">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00289">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processExit()</a>, <a class="el" href="InterMonoSolver_8h_source.html#l00181">psr::InterMonoSolver&lt; AnalysisDomainTy, K &gt;::processNormal()</a>, <a class="el" href="IDESolver_8h_source.html#l00598">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processNormalFlow()</a>, <a class="el" href="IDESolver_8h_source.html#l01199">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::propagate()</a>, <a class="el" href="IDESolver_8h_source.html#l00707">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::setVal()</a>, <a class="el" href="IDESolver_8h_source.html#l00892">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialSeeds()</a>, and <a class="el" href="IDESolver_8h_source.html#l00845">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::submitInitialValues()</a>.</p>
 
 </div>
 </div>
@@ -11099,20 +11102,60 @@ template&lt;class... Ts&gt; </div>
 
 </div>
 </div>
-<a id="a64f46d730704908a92f31a5702ba9969" name="a64f46d730704908a92f31a5702ba9969"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64f46d730704908a92f31a5702ba9969">&#9670;&#160;</a></span>PathAwareIDESolver()</h2>
+<a id="a0a9b370e6336485700d5d4236ee9b54e" name="a0a9b370e6336485700d5d4236ee9b54e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a9b370e6336485700d5d4236ee9b54e">&#9670;&#160;</a></span>PathAwareIDESolver() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy &gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , ICFG ICFGTy&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="classpsr_1_1PathAwareIDESolver.html">psr::PathAwareIDESolver</a> </td>
           <td>(</td>
           <td class="paramtype">ProblemTy &amp;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> -&gt;  <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain &gt;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> *&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::container_type, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa89d85b28c79851aab66b789cee39f1f" name="aa89d85b28c79851aab66b789cee39f1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa89d85b28c79851aab66b789cee39f1f">&#9670;&#160;</a></span>PathAwareIDESolver() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , ICFG ICFGTy&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1PathAwareIDESolver.html">psr::PathAwareIDESolver</a> </td>
+          <td>(</td>
+          <td class="paramtype">ProblemTy *&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> *&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  <a class="el" href="classpsr_1_1PathAwareIDESolver.html">PathAwareIDESolver</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::container_type, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -11762,8 +11805,8 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="a4ec24497f714fa19eae981150f8a2486" name="a4ec24497f714fa19eae981150f8a2486"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ec24497f714fa19eae981150f8a2486">&#9670;&#160;</a></span>solveIDEProblem()</h2>
+<a id="af3381471d670394f2bc4b7cbc15d4822" name="af3381471d670394f2bc4b7cbc15d4822"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3381471d670394f2bc4b7cbc15d4822">&#9670;&#160;</a></span>solveIDEProblem()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -11779,7 +11822,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::convertible_to&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::i_t &amp; &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICFG <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td>
           <td class="paramname"><em>ICF</em>&#160;</td>
         </tr>
         <tr>
@@ -11790,12 +11833,12 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01944">1944</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IDESolver_8h_source.html#l01936">1936</a> of file <a class="el" href="IDESolver_8h_source.html">IDESolver.h</a>.</p>
 
 </div>
 </div>
-<a id="a23934b472a3f65ba7601dc4e05558287" name="a23934b472a3f65ba7601dc4e05558287"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a23934b472a3f65ba7601dc4e05558287">&#9670;&#160;</a></span>solveIFDSProblem()</h2>
+<a id="afe44f35d87db298034bf9c3ce26c815e" name="afe44f35d87db298034bf9c3ce26c815e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe44f35d87db298034bf9c3ce26c815e">&#9670;&#160;</a></span>solveIFDSProblem()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -11811,7 +11854,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::convertible_to&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AnalysisDomainTy::i_t &amp; &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ICFG <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td>
           <td class="paramname"><em>ICF</em>&#160;</td>
         </tr>
         <tr>
@@ -11822,7 +11865,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00128">128</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IFDSSolver_8h_source.html#l00137">137</a> of file <a class="el" href="IFDSSolver_8h_source.html">IFDSSolver.h</a>.</p>
 
 </div>
 </div>
@@ -12004,7 +12047,7 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00288">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01566">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01018">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getData()</a>, <a class="el" href="PointerAssignmentGraph_8h_source.html#l00290">psr::pag::TracingPBStrategy::onAddEdge()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="TypeTraits_8h_source.html#l00288">adl_to_string()</a>, <a class="el" href="IDESolver_8h_source.html#l01565">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::emitESGAsDot()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l01018">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getData()</a>, <a class="el" href="PointerAssignmentGraph_8h_source.html#l00290">psr::pag::TracingPBStrategy::onAddEdge()</a>, <a class="el" href="AnalysisProperties_8h_source.html#l00028">operator&lt;&lt;()</a>, and <a class="el" href="CSTDFILEIOTypeStateDescription_8h_source.html#l00033">operator&lt;&lt;()</a>.</p>
 
 </div>
 </div>
@@ -12798,7 +12841,7 @@ requires std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a
 
 <p class="definition">Definition at line <a class="el" href="Nullable_8h_source.html#l00026">26</a> of file <a class="el" href="Nullable_8h_source.html">Nullable.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00375">psr::CallingContextSensUnionFindAA&lt; AnalysisDomainT, K &gt;::onAddValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00386">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00942">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00599">psr::IDESolver&lt; AnalysisDomainTy, Container &gt;::processNormalFlow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="UnionFindAA_8h_source.html#l00375">psr::CallingContextSensUnionFindAA&lt; AnalysisDomainT, K &gt;::onAddValue()</a>, <a class="el" href="IDESolver_8h_source.html#l00385">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processCall()</a>, <a class="el" href="IDESolver_8h_source.html#l00941">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processExit()</a>, and <a class="el" href="IDESolver_8h_source.html#l00598">psr::IDESolver&lt; AnalysisDomainTy, Container, ICFGTy &gt;::processNormalFlow()</a>.</p>
 
 </div>
 </div>
@@ -13246,7 +13289,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 17 2026 17:33:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Apr 21 2026 17:51:08 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

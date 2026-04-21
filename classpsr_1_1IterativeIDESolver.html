@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PhASAR: psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt; Class Template Reference</title>
+<title>PhASAR: psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -86,59 +86,59 @@ $(function() {
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classpsr_1_1IterativeIDESolver-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt; Class Template Reference</div></div>
+  <div class="headertitle"><div class="title">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt; Class Template Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
 <p><code>#include &quot;<a class="el" href="IterativeIDESolver_8h_source.html">phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h</a>&quot;</code></p>
 <div class="dynheader">
-Inheritance diagram for psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt;:</div>
+Inheritance diagram for psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="classpsr_1_1IterativeIDESolver__inherit__graph.svg" width="1282" height="334"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classpsr_1_1IterativeIDESolver__inherit__graph.svg" width="1252" height="334"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a3fdd1f950b1b18cc4b6841b7d74570ee" id="r_a3fdd1f950b1b18cc4b6841b7d74570ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a3fdd1f950b1b18cc4b6841b7d74570ee">domain_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain</td></tr>
-<tr class="separator:a3fdd1f950b1b18cc4b6841b7d74570ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac32399e92b5252d4ebff8c83b305ba2f" id="r_ac32399e92b5252d4ebff8c83b305ba2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#ac32399e92b5252d4ebff8c83b305ba2f">d_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::d_t</td></tr>
-<tr class="separator:ac32399e92b5252d4ebff8c83b305ba2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a923f771775603863b2032f9faf4ad525" id="r_a923f771775603863b2032f9faf4ad525"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a923f771775603863b2032f9faf4ad525">n_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::n_t</td></tr>
-<tr class="separator:a923f771775603863b2032f9faf4ad525"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada14f137de275cbd06f0d0fb443bfabc" id="r_ada14f137de275cbd06f0d0fb443bfabc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#ada14f137de275cbd06f0d0fb443bfabc">f_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::f_t</td></tr>
-<tr class="separator:ada14f137de275cbd06f0d0fb443bfabc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafa9551a16c2e5d3325a9122ecd91800" id="r_aafa9551a16c2e5d3325a9122ecd91800"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#aafa9551a16c2e5d3325a9122ecd91800">t_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::t_t</td></tr>
-<tr class="separator:aafa9551a16c2e5d3325a9122ecd91800"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d3ceeb8d71989e25bc0120336a18c80" id="r_a7d3ceeb8d71989e25bc0120336a18c80"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a7d3ceeb8d71989e25bc0120336a18c80">v_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::v_t</td></tr>
-<tr class="separator:a7d3ceeb8d71989e25bc0120336a18c80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2afa86121482bfe775fdc41aa70e38cf" id="r_a2afa86121482bfe775fdc41aa70e38cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a2afa86121482bfe775fdc41aa70e38cf">l_t</a> = std::conditional_t&lt; StaticSolverConfigTy::ComputeValues, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::l_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt;</td></tr>
-<tr class="separator:a2afa86121482bfe775fdc41aa70e38cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07de369f99d298a3711ba97b435a73ba" id="r_a07de369f99d298a3711ba97b435a73ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a07de369f99d298a3711ba97b435a73ba">i_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::i_t</td></tr>
-<tr class="separator:a07de369f99d298a3711ba97b435a73ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1cea6d4b04a534f7890677b6e00d5043" id="r_a1cea6d4b04a534f7890677b6e00d5043"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a1cea6d4b04a534f7890677b6e00d5043">config_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a></td></tr>
-<tr class="separator:a1cea6d4b04a534f7890677b6e00d5043"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0107ca2388007ea0fe89c89a0d30208e" id="r_a0107ca2388007ea0fe89c89a0d30208e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a0107ca2388007ea0fe89c89a0d30208e">domain_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain</td></tr>
+<tr class="separator:a0107ca2388007ea0fe89c89a0d30208e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf31888892d4de05a73a259b60448071" id="r_adf31888892d4de05a73a259b60448071"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#adf31888892d4de05a73a259b60448071">d_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::d_t</td></tr>
+<tr class="separator:adf31888892d4de05a73a259b60448071"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b62ef03a266f774e9ffa6f0141ecaa4" id="r_a7b62ef03a266f774e9ffa6f0141ecaa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a7b62ef03a266f774e9ffa6f0141ecaa4">n_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::n_t</td></tr>
+<tr class="separator:a7b62ef03a266f774e9ffa6f0141ecaa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96ab1641a84305f0e8931c0e4bb078fb" id="r_a96ab1641a84305f0e8931c0e4bb078fb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a96ab1641a84305f0e8931c0e4bb078fb">f_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::f_t</td></tr>
+<tr class="separator:a96ab1641a84305f0e8931c0e4bb078fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaf810dc54be20ae55b7437e7ac6c680" id="r_acaf810dc54be20ae55b7437e7ac6c680"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#acaf810dc54be20ae55b7437e7ac6c680">t_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::t_t</td></tr>
+<tr class="separator:acaf810dc54be20ae55b7437e7ac6c680"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad36c0c9b7703e8985c76689fd195781d" id="r_ad36c0c9b7703e8985c76689fd195781d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#ad36c0c9b7703e8985c76689fd195781d">v_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::v_t</td></tr>
+<tr class="separator:ad36c0c9b7703e8985c76689fd195781d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd38a16aae6b44d807826409bc7d3760" id="r_abd38a16aae6b44d807826409bc7d3760"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#abd38a16aae6b44d807826409bc7d3760">l_t</a> = std::conditional_t&lt; StaticSolverConfigTy::ComputeValues, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::l_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a> &gt;</td></tr>
+<tr class="separator:abd38a16aae6b44d807826409bc7d3760"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f97816129638ed87230bc87b4630f70" id="r_a6f97816129638ed87230bc87b4630f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a6f97816129638ed87230bc87b4630f70">i_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a></td></tr>
+<tr class="separator:a6f97816129638ed87230bc87b4630f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3530869e0890c2d0110fea411f0e4218" id="r_a3530869e0890c2d0110fea411f0e4218"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a3530869e0890c2d0110fea411f0e4218">config_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a></td></tr>
+<tr class="separator:a3530869e0890c2d0110fea411f0e4218"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_types_classpsr_1_1IterativeIDESolverBase"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classpsr_1_1IterativeIDESolverBase')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;</a></td></tr>
 <tr class="memitem:a5f05ebbac7257d4136c40a88d7dfd1e9 inherit pub_types_classpsr_1_1IterativeIDESolverBase" id="r_a5f05ebbac7257d4136c40a88d7dfd1e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolverBase.html#a5f05ebbac7257d4136c40a88d7dfd1e9">EdgeFunctionPtrType</a> = std::conditional_t&lt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html#a15636eda77166e1b651113fae9dc5891">ComputeValues</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a>, <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a> &gt;</td></tr>
 <tr class="separator:a5f05ebbac7257d4136c40a88d7dfd1e9 inherit pub_types_classpsr_1_1IterativeIDESolverBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a38579aebddd20475e9c45989ea7c8bf1" id="r_a38579aebddd20475e9c45989ea7c8bf1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a38579aebddd20475e9c45989ea7c8bf1">IterativeIDESolver</a> (ProblemTy *Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html#a07de369f99d298a3711ba97b435a73ba">i_t</a> *ICFG) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a38579aebddd20475e9c45989ea7c8bf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ab801d00d07deb5e788aa7931c0a036" id="r_a2ab801d00d07deb5e788aa7931c0a036"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a2ab801d00d07deb5e788aa7931c0a036">solve</a> () &amp;</td></tr>
-<tr class="separator:a2ab801d00d07deb5e788aa7931c0a036"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a256bcc351d95458ee2cbb4eeda92a7a3" id="r_a256bcc351d95458ee2cbb4eeda92a7a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a256bcc351d95458ee2cbb4eeda92a7a3">solve</a> () &amp;&amp;</td></tr>
-<tr class="separator:a256bcc351d95458ee2cbb4eeda92a7a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c08313ff15979274283a8bc735736e7" id="r_a1c08313ff15979274283a8bc735736e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a1c08313ff15979274283a8bc735736e7">getSolverResults</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:a1c08313ff15979274283a8bc735736e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afbf6c97aa4629f40e97d1f815e927e80" id="r_afbf6c97aa4629f40e97d1f815e927e80"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#afbf6c97aa4629f40e97d1f815e927e80">consumeSolverResults</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:afbf6c97aa4629f40e97d1f815e927e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac810dc0916b639f3ea6eab4c5c0a7aaa" id="r_ac810dc0916b639f3ea6eab4c5c0a7aaa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#ac810dc0916b639f3ea6eab4c5c0a7aaa">dumpResults</a> (llvm::raw_ostream &amp;OS=llvm::outs()) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
-<tr class="separator:ac810dc0916b639f3ea6eab4c5c0a7aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb6d509e17c44307749b2a27ef0cca04" id="r_afb6d509e17c44307749b2a27ef0cca04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1IterativeIDESolverStats.html">IterativeIDESolverStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#afb6d509e17c44307749b2a27ef0cca04">getStats</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
-<tr class="separator:afb6d509e17c44307749b2a27ef0cca04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb4d5e02397b894cc059d7fbee30ced4" id="r_abb4d5e02397b894cc059d7fbee30ced4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#abb4d5e02397b894cc059d7fbee30ced4">dumpStats</a> (llvm::raw_ostream &amp;OS=llvm::outs()) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
-<tr class="separator:abb4d5e02397b894cc059d7fbee30ced4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0c2ff2a0d9c1ae17615022fba42119a" id="r_ae0c2ff2a0d9c1ae17615022fba42119a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#ae0c2ff2a0d9c1ae17615022fba42119a">IterativeIDESolver</a> (ProblemTy *Problem, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> *ICFG, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>={}) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:ae0c2ff2a0d9c1ae17615022fba42119a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab18cbaca2f07c98cff94090b114026ea" id="r_ab18cbaca2f07c98cff94090b114026ea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#ab18cbaca2f07c98cff94090b114026ea">solve</a> () &amp;</td></tr>
+<tr class="separator:ab18cbaca2f07c98cff94090b114026ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2af675b8b4536cf93592ff5206ab29f2" id="r_a2af675b8b4536cf93592ff5206ab29f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a2af675b8b4536cf93592ff5206ab29f2">solve</a> () &amp;&amp;</td></tr>
+<tr class="separator:a2af675b8b4536cf93592ff5206ab29f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ac5bf1aaf10fce1d5396f8c94ee113f" id="r_a1ac5bf1aaf10fce1d5396f8c94ee113f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a1ac5bf1aaf10fce1d5396f8c94ee113f">getSolverResults</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a1ac5bf1aaf10fce1d5396f8c94ee113f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e19ee30d5f054795e00dc9fc7aa2aec" id="r_a5e19ee30d5f054795e00dc9fc7aa2aec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a5e19ee30d5f054795e00dc9fc7aa2aec">consumeSolverResults</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a5e19ee30d5f054795e00dc9fc7aa2aec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a780331890f0697e648df2554d0e92ec7" id="r_a780331890f0697e648df2554d0e92ec7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a780331890f0697e648df2554d0e92ec7">dumpResults</a> (llvm::raw_ostream &amp;OS=llvm::outs()) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a780331890f0697e648df2554d0e92ec7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54c24a6e165d09db35ac2fc6b5ca7247" id="r_a54c24a6e165d09db35ac2fc6b5ca7247"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1IterativeIDESolverStats.html">IterativeIDESolverStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a54c24a6e165d09db35ac2fc6b5ca7247">getStats</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="separator:a54c24a6e165d09db35ac2fc6b5ca7247"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e7d32f4b62be293a1837d848be8a3bf" id="r_a3e7d32f4b62be293a1837d848be8a3bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IterativeIDESolver.html#a3e7d32f4b62be293a1837d848be8a3bf">dumpStats</a> (llvm::raw_ostream &amp;OS=llvm::outs()) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="separator:a3e7d32f4b62be293a1837d848be8a3bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classpsr_1_1IDESolverAPIMixin"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpsr_1_1IDESolverAPIMixin')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpsr_1_1IDESolverAPIMixin.html">psr::IDESolverAPIMixin&lt; Derived &gt;</a></td></tr>
 <tr class="memitem:ad65ef44a8bb07d276a04540e914f2cd4 inherit pub_methods_classpsr_1_1IDESolverAPIMixin" id="r_ad65ef44a8bb07d276a04540e914f2cd4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IDESolverAPIMixin.html#ad65ef44a8bb07d276a04540e914f2cd4">initialize</a> ()</td></tr>
 <tr class="separator:ad65ef44a8bb07d276a04540e914f2cd4 inherit pub_methods_classpsr_1_1IDESolverAPIMixin"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -222,77 +222,41 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:ab0c769f22e0892b76d059551668d55aa inherit pro_types_classpsr_1_1IterativeIDESolverBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt;<br />
-class psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt;</div><p>Solves the given <a class="el" href="classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">IDETabulationProblem</a> as described in the 1996 paper by Sagiv, Horwitz and Reps. To solve the problem, call <a class="el" href="classpsr_1_1IterativeIDESolver.html#a2ab801d00d07deb5e788aa7931c0a036">solve()</a>.</p>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt;<br />
+class psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;</div><p>Solves the given <a class="el" href="classpsr_1_1IDETabulationProblem.html" title="The analysis problem interface for IDE problems (solvable by the IDESolver). Create a subclass from t...">IDETabulationProblem</a> as described in the 1996 paper by Sagiv, Horwitz and Reps. To solve the problem, call <a class="el" href="classpsr_1_1IterativeIDESolver.html#ab18cbaca2f07c98cff94090b114026ea">solve()</a>.</p>
 <p>This solver implements the optimizations and the $JF_N$ layout from the paper "Scaling Interprocedural Static Data-Flow Analysis to Large C/C++
 Applications: An Experience Report" (<a href="https://doi.org/10.4230/LIPIcs.ECOOP.2024.36">https://doi.org/10.4230/LIPIcs.ECOOP.2024.36</a>) by Schiebel, Sattler, Schubert, Apel, and Bodden. </p>
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00058">58</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00059">59</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a1cea6d4b04a534f7890677b6e00d5043" name="a1cea6d4b04a534f7890677b6e00d5043"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1cea6d4b04a534f7890677b6e00d5043">&#9670;&#160;</a></span>config_t</h2>
+<a id="a3530869e0890c2d0110fea411f0e4218" name="a3530869e0890c2d0110fea411f0e4218"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3530869e0890c2d0110fea411f0e4218">&#9670;&#160;</a></span>config_t</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::config_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a></td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::config_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00086">86</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00088">88</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
-<a id="ac32399e92b5252d4ebff8c83b305ba2f" name="ac32399e92b5252d4ebff8c83b305ba2f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac32399e92b5252d4ebff8c83b305ba2f">&#9670;&#160;</a></span>d_t</h2>
+<a id="adf31888892d4de05a73a259b60448071" name="adf31888892d4de05a73a259b60448071"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf31888892d4de05a73a259b60448071">&#9670;&#160;</a></span>d_t</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::d_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::d_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00077">77</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
-
-</div>
-</div>
-<a id="a3fdd1f950b1b18cc4b6841b7d74570ee" name="a3fdd1f950b1b18cc4b6841b7d74570ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3fdd1f950b1b18cc4b6841b7d74570ee">&#9670;&#160;</a></span>domain_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::domain_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00076">76</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
-
-</div>
-</div>
-<a id="ada14f137de275cbd06f0d0fb443bfabc" name="ada14f137de275cbd06f0d0fb443bfabc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada14f137de275cbd06f0d0fb443bfabc">&#9670;&#160;</a></span>f_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::f_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::f_t</td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::d_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::d_t</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -301,52 +265,16 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="a07de369f99d298a3711ba97b435a73ba" name="a07de369f99d298a3711ba97b435a73ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a07de369f99d298a3711ba97b435a73ba">&#9670;&#160;</a></span>i_t</h2>
+<a id="a0107ca2388007ea0fe89c89a0d30208e" name="a0107ca2388007ea0fe89c89a0d30208e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0107ca2388007ea0fe89c89a0d30208e">&#9670;&#160;</a></span>domain_t</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::i_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::i_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00084">84</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
-
-</div>
-</div>
-<a id="a2afa86121482bfe775fdc41aa70e38cf" name="a2afa86121482bfe775fdc41aa70e38cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2afa86121482bfe775fdc41aa70e38cf">&#9670;&#160;</a></span>l_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::l_t =  std::conditional_t&lt;StaticSolverConfigTy::ComputeValues, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::l_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00082">82</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
-
-</div>
-</div>
-<a id="a923f771775603863b2032f9faf4ad525" name="a923f771775603863b2032f9faf4ad525"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a923f771775603863b2032f9faf4ad525">&#9670;&#160;</a></span>n_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::n_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::n_t</td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::domain_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy::ProblemAnalysisDomain</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -355,34 +283,16 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<a id="aafa9551a16c2e5d3325a9122ecd91800" name="aafa9551a16c2e5d3325a9122ecd91800"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aafa9551a16c2e5d3325a9122ecd91800">&#9670;&#160;</a></span>t_t</h2>
+<a id="a96ab1641a84305f0e8931c0e4bb078fb" name="a96ab1641a84305f0e8931c0e4bb078fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96ab1641a84305f0e8931c0e4bb078fb">&#9670;&#160;</a></span>f_t</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::t_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::t_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00080">80</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
-
-</div>
-</div>
-<a id="a7d3ceeb8d71989e25bc0120336a18c80" name="a7d3ceeb8d71989e25bc0120336a18c80"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d3ceeb8d71989e25bc0120336a18c80">&#9670;&#160;</a></span>v_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::v_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::v_t</td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::f_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::f_t</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -391,20 +301,110 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a38579aebddd20475e9c45989ea7c8bf1" name="a38579aebddd20475e9c45989ea7c8bf1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a38579aebddd20475e9c45989ea7c8bf1">&#9670;&#160;</a></span>IterativeIDESolver()</h2>
+<a id="a6f97816129638ed87230bc87b4630f70" name="a6f97816129638ed87230bc87b4630f70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f97816129638ed87230bc87b4630f70">&#9670;&#160;</a></span>i_t</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::i_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00086">86</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+
+</div>
+</div>
+<a id="abd38a16aae6b44d807826409bc7d3760" name="abd38a16aae6b44d807826409bc7d3760"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd38a16aae6b44d807826409bc7d3760">&#9670;&#160;</a></span>l_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::l_t =  std::conditional_t&lt;StaticSolverConfigTy::ComputeValues, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::l_t, <a class="el" href="namespacepsr.html#a951662fd4f90e7136dd1d6679ad80a9b">BinaryDomain</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00084">84</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+
+</div>
+</div>
+<a id="a7b62ef03a266f774e9ffa6f0141ecaa4" name="a7b62ef03a266f774e9ffa6f0141ecaa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b62ef03a266f774e9ffa6f0141ecaa4">&#9670;&#160;</a></span>n_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::n_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::n_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00080">80</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+
+</div>
+</div>
+<a id="acaf810dc54be20ae55b7437e7ac6c680" name="acaf810dc54be20ae55b7437e7ac6c680"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acaf810dc54be20ae55b7437e7ac6c680">&#9670;&#160;</a></span>t_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::t_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::t_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00082">82</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+
+</div>
+</div>
+<a id="ad36c0c9b7703e8985c76689fd195781d" name="ad36c0c9b7703e8985c76689fd195781d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad36c0c9b7703e8985c76689fd195781d">&#9670;&#160;</a></span>v_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::v_t =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> domain_t::v_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00083">83</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ae0c2ff2a0d9c1ae17615022fba42119a" name="ae0c2ff2a0d9c1ae17615022fba42119a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0c2ff2a0d9c1ae17615022fba42119a">&#9670;&#160;</a></span>IterativeIDESolver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::IterativeIDESolver </td>
+          <td class="memname"><a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::IterativeIDESolver </td>
           <td>(</td>
           <td class="paramtype">ProblemTy *&#160;</td>
           <td class="paramname"><em>Problem</em>, </td>
@@ -412,8 +412,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html#a07de369f99d298a3711ba97b435a73ba">i_t</a> *&#160;</td>
-          <td class="paramname"><em>ICFG</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> *&#160;</td>
+          <td class="paramname"><em>ICFG</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>&#160;</td>
+          <td class="paramname"> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -428,24 +434,24 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00150">150</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00133">133</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="afbf6c97aa4629f40e97d1f815e927e80" name="afbf6c97aa4629f40e97d1f815e927e80"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afbf6c97aa4629f40e97d1f815e927e80">&#9670;&#160;</a></span>consumeSolverResults()</h2>
+<a id="a5e19ee30d5f054795e00dc9fc7aa2aec" name="a5e19ee30d5f054795e00dc9fc7aa2aec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e19ee30d5f054795e00dc9fc7aa2aec">&#9670;&#160;</a></span>consumeSolverResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::consumeSolverResults </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::consumeSolverResults </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -458,25 +464,25 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00166">166</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00150">150</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00157">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt;::solve()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00141">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::solve()</a>.</p>
 
 </div>
 </div>
-<a id="ac810dc0916b639f3ea6eab4c5c0a7aaa" name="ac810dc0916b639f3ea6eab4c5c0a7aaa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac810dc0916b639f3ea6eab4c5c0a7aaa">&#9670;&#160;</a></span>dumpResults()</h2>
+<a id="a780331890f0697e648df2554d0e92ec7" name="a780331890f0697e648df2554d0e92ec7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a780331890f0697e648df2554d0e92ec7">&#9670;&#160;</a></span>dumpResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::dumpResults </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::dumpResults </td>
           <td>(</td>
           <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
           <td class="paramname"><em>OS</em> = <code>llvm::outs()</code></td><td>)</td>
@@ -490,23 +496,23 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00172">172</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00156">156</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
-<a id="abb4d5e02397b894cc059d7fbee30ced4" name="abb4d5e02397b894cc059d7fbee30ced4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb4d5e02397b894cc059d7fbee30ced4">&#9670;&#160;</a></span>dumpStats()</h2>
+<a id="a3e7d32f4b62be293a1837d848be8a3bf" name="a3e7d32f4b62be293a1837d848be8a3bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e7d32f4b62be293a1837d848be8a3bf">&#9670;&#160;</a></span>dumpStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::dumpStats </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::dumpStats </td>
           <td>(</td>
           <td class="paramtype">llvm::raw_ostream &amp;&#160;</td>
           <td class="paramname"><em>OS</em> = <code>llvm::outs()</code></td><td>)</td>
@@ -520,23 +526,23 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00229">229</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00213">213</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
-<a id="a1c08313ff15979274283a8bc735736e7" name="a1c08313ff15979274283a8bc735736e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c08313ff15979274283a8bc735736e7">&#9670;&#160;</a></span>getSolverResults()</h2>
+<a id="a1ac5bf1aaf10fce1d5396f8c94ee113f" name="a1ac5bf1aaf10fce1d5396f8c94ee113f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ac5bf1aaf10fce1d5396f8c94ee113f">&#9670;&#160;</a></span>getSolverResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::getSolverResults </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::getSolverResults </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -549,25 +555,25 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00162">162</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00146">146</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00153">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt;::solve()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="IterativeIDESolver_8h_source.html#l00137">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::solve()</a>.</p>
 
 </div>
 </div>
-<a id="afb6d509e17c44307749b2a27ef0cca04" name="afb6d509e17c44307749b2a27ef0cca04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afb6d509e17c44307749b2a27ef0cca04">&#9670;&#160;</a></span>getStats()</h2>
+<a id="a54c24a6e165d09db35ac2fc6b5ca7247" name="a54c24a6e165d09db35ac2fc6b5ca7247"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54c24a6e165d09db35ac2fc6b5ca7247">&#9670;&#160;</a></span>getStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1IterativeIDESolverStats.html">IterativeIDESolverStats</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::getStats </td>
+          <td class="memname"><a class="el" href="structpsr_1_1IterativeIDESolverStats.html">IterativeIDESolverStats</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::getStats </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -580,23 +586,23 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00223">223</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00207">207</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
 </div>
 </div>
-<a id="a2ab801d00d07deb5e788aa7931c0a036" name="a2ab801d00d07deb5e788aa7931c0a036"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ab801d00d07deb5e788aa7931c0a036">&#9670;&#160;</a></span>solve() <span class="overload">[1/2]</span></h2>
+<a id="ab18cbaca2f07c98cff94090b114026ea" name="ab18cbaca2f07c98cff94090b114026ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab18cbaca2f07c98cff94090b114026ea">&#9670;&#160;</a></span>solve() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::solve </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::solve </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> &amp;</td>
@@ -609,25 +615,25 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00153">153</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00137">137</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00162">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt;::getSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00146">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::getSolverResults()</a>.</p>
 
 </div>
 </div>
-<a id="a256bcc351d95458ee2cbb4eeda92a7a3" name="a256bcc351d95458ee2cbb4eeda92a7a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a256bcc351d95458ee2cbb4eeda92a7a3">&#9670;&#160;</a></span>solve() <span class="overload">[2/2]</span></h2>
+<a id="a2af675b8b4536cf93592ff5206ab29f2" name="a2af675b8b4536cf93592ff5206ab29f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2af675b8b4536cf93592ff5206ab29f2">&#9670;&#160;</a></span>solve() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;&gt; </div>
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ProblemTy , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>  = DefaultIDESolverConfig&lt;ProblemTy&gt;, ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> &gt;::solve </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1IterativeIDESolver.html">psr::IterativeIDESolver</a>&lt; ProblemTy, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ICFGTy</a> &gt;::solve </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> &amp;&amp;</td>
@@ -640,9 +646,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00157">157</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="IterativeIDESolver_8h_source.html#l00141">141</a> of file <a class="el" href="IterativeIDESolver_8h_source.html">IterativeIDESolver.h</a>.</p>
 
-<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00166">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy &gt;::consumeSolverResults()</a>.</p>
+<p class="reference">References <a class="el" href="IterativeIDESolver_8h_source.html#l00150">psr::IterativeIDESolver&lt; ProblemTy, StaticSolverConfigTy, ICFGTy &gt;::consumeSolverResults()</a>.</p>
 
 </div>
 </div>
@@ -652,7 +658,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 17 2026 17:33:33 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Apr 21 2026 17:51:09 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

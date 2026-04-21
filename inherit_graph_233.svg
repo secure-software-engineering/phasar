@@ -16,7 +16,7 @@
 <text text-anchor="start" x="8" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00">psr::IDESolverAPIMixin</text>
 <text text-anchor="start" x="8" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; IDESolver&lt; AnalysisDomainTy,</text>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00"> std::set&lt; typename AnalysisDomainTy</text>
-<text text-anchor="middle" x="104.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::d_t &gt; &gt; &gt;</text>
+<text text-anchor="middle" x="104.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::d_t &gt;, ICFGTy &gt; &gt;</text>
 </a>
 </g>
 </g>
