@@ -45,7 +45,7 @@ concept has_getSparseCFG_v =
     };
 
 template <typename T, typename D>
-concept has_advanveToNextUser_v =
+concept has_advanceToNextUser_v =
     requires(const T &ICF, typename T::n_t Inst, D Fact) {
       {
         ICF.advanceToNextUser(Inst, Fact)
