@@ -112,6 +112,61 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return getOrInsert(PAGVariable(V));
   }
 
+  ValueId rep(ValueId V) const { return SCCUf.find(V); }
+
+  // Merges the SCCs containing A and B.  Returns the new representative.
+  // Folds all pts/edges/constraints from the non-rep into the rep, then
+  // clears the non-rep's NodeInfo.
+  ValueId merge(ValueId A, ValueId B) {
+    A = rep(A);
+    B = rep(B);
+    if (A == B) {
+      return A;
+    }
+    const ValueId Rep = SCCUf.join(A, B);
+    const ValueId NonRep = (Rep == A) ? B : A;
+
+    // Steal assign edges from NonRep and re-register under Rep.
+    llvm::SmallVector<ValueId, 2> NRDsts = std::move(Nodes[NonRep].AssignDsts);
+    Nodes[NonRep].AssignDstSet.clear();
+    for (ValueId Dst : NRDsts) {
+      const ValueId DstRep = rep(Dst);
+      if (DstRep != Rep) {
+        addAssignEdge(Rep, DstRep);
+      }
+    }
+
+    // Merge pts sets.
+    bool PtsGrew = false;
+    Nodes[NonRep].PtsSet.foreach ([&](ValueId Obj) {
+      if (Nodes[Rep].PtsSet.tryInsert(Obj)) {
+        PtsGrew = true;
+      }
+    });
+    if (PtsGrew) {
+      PropWorklist.push_back(Rep);
+    }
+
+    // Merge complex constraints.
+    auto &RepNode = Nodes[Rep];
+    auto &NRNode = Nodes[NonRep];
+    for (ValueId D : NRNode.LoadDsts) {
+      RepNode.LoadDsts.push_back(D);
+    }
+    for (ValueId S : NRNode.StoreSrcs) {
+      RepNode.StoreSrcs.push_back(S);
+    }
+    for (ValueId D : NRNode.MemCopyAsSrc) {
+      RepNode.MemCopyAsSrc.push_back(D);
+    }
+    for (ValueId S : NRNode.MemCopyAsDst) {
+      RepNode.MemCopyAsDst.push_back(S);
+    }
+
+    NRNode = NodeInfo{};
+    return Rep;
+  }
+
   // ---- Operand traversal ----------------------------------------------
 
   void forEachOpId(const llvm::Value *V, std::invocable<ValueId> auto Handler) {
@@ -149,6 +204,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Constraint insertion -------------------------------------------
 
   void addPointee(ValueId Ptr, ValueId Obj) {
+    Ptr = rep(Ptr);
+    Obj = rep(Obj);
     auto &PtrNode = grow(Ptr);
     (void)grow(Obj);
     if (PtrNode.PtsSet.tryInsert(Obj)) {
@@ -157,6 +214,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void addAssignEdge(ValueId Src, ValueId Dst) {
+    Src = rep(Src);
+    Dst = rep(Dst);
     if (Src == Dst) {
       return;
     }
@@ -171,6 +230,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void addLoad(ValueId Ptr, ValueId Dst) {
+    Ptr = rep(Ptr);
+    Dst = rep(Dst);
     auto &PtrNode = grow(Ptr);
     (void)grow(Dst);
     PtrNode.PtsSet.foreach ([&](ValueId Obj) { addAssignEdge(Obj, Dst); });
@@ -178,6 +239,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void addStore(ValueId Ptr, ValueId Src) {
+    Ptr = rep(Ptr);
+    Src = rep(Src);
     auto &PtrNode = grow(Ptr);
     (void)grow(Src);
     PtrNode.PtsSet.foreach ([&](ValueId Obj) { addAssignEdge(Src, Obj); });
@@ -185,6 +248,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void addMemCopy(ValueId SrcPtr, ValueId DstPtr) {
+    SrcPtr = rep(SrcPtr);
+    DstPtr = rep(DstPtr);
     auto &SrcNode = grow(SrcPtr);
     auto &DstNode = grow(DstPtr);
     SrcNode.PtsSet.foreach ([&](ValueId O1) {
@@ -224,23 +289,34 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   void propagate() {
     while (!PropWorklist.empty()) {
-      const ValueId U = PropWorklist.pop_back_val();
+      ValueId U = rep(PropWorklist.pop_back_val());
       if (!Nodes.inbounds(U)) {
         continue;
       }
-      const auto &UNode = Nodes[U];
 
-      for (ValueId V : UNode.AssignDsts) {
-        if (!Nodes.inbounds(V) || V == U) {
+      // Snapshot resolved successors: merge() can modify Nodes[U].AssignDsts.
+      llvm::SmallVector<ValueId, 4> Dsts;
+      for (ValueId V : Nodes[U].AssignDsts) {
+        Dsts.push_back(rep(V));
+      }
+
+      for (ValueId VSnap : Dsts) {
+        const ValueId V =
+            rep(VSnap); // re-resolve: prior merge may have changed rep
+        if (V == U || !Nodes.inbounds(V)) {
           continue;
         }
-        auto &VNode = Nodes[V];
-        RawAliasSet<ValueId> NewPts = UNode.PtsSet;
-        NewPts -= VNode.PtsSet;
+
+        RawAliasSet<ValueId> NewPts = Nodes[U].PtsSet;
+        NewPts -= Nodes[V].PtsSet;
         if (NewPts.empty()) {
+          // LCD: direct back-edge V→U with pts(U) ⊆ pts(V) → cycle, collapse.
+          if (Nodes[V].AssignDstSet.contains(U)) {
+            U = merge(U, V);
+          }
           continue;
         }
-        VNode.PtsSet |= NewPts;
+        Nodes[V].PtsSet |= NewPts;
         PropWorklist.push_back(V);
         NewPts.foreach ([&](ValueId NewObj) { onNewPointee(V, NewObj); });
       }
