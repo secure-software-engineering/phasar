@@ -402,7 +402,7 @@ private:
     if constexpr (ComputeValues) {
       /// NOTE: We can already clear the EFCache here, as we are not querying
       /// any edge function in Phase II; The EFs that are in use are kept alive
-      /// by their shared_ptr
+      /// by their unique_ptr
       FECache.clear();
 
       submitInitialValues();

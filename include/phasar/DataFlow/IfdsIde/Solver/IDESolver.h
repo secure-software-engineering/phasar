@@ -94,7 +94,7 @@ public:
         ICF(&assertNotNull(ICF)),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
-        JumpFn(std::make_shared<JumpFunctions<AnalysisDomainTy, Container>>()),
+        JumpFn(std::make_unique<JumpFunctions<AnalysisDomainTy, Container>>()),
         Seeds(Problem.initialSeeds()) {}
 
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
@@ -1888,7 +1888,7 @@ private:
 
   EdgeFunction<l_t> AllTop;
 
-  std::shared_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
+  std::unique_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
 
   std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunction<l_t>>>
       IntermediateEdgeFunctions;

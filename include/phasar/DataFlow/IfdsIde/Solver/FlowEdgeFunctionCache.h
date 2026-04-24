@@ -11,10 +11,12 @@
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_FLOWEDGEFUNCTIONCACHE_H
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
+#include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Utils/EquivalenceClassMap.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -95,6 +97,8 @@ class FlowEdgeFunctionCache {
       std::is_same_v<NTKeyCompressorType, DTKeyCompressorType>,
       NTKeyCompressorType,
       MapKeyCompressorCombinator<NTKeyCompressorType, DTKeyCompressorType>>;
+
+  using FlowFunctionType = FlowFunction<d_t, Container>;
 
 private:
   MapKeyCompressorType KeyCompressor;
@@ -189,7 +193,7 @@ public:
   FlowEdgeFunctionCache &
   operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
+  FlowFunctionType *getNormalFlowFunction(n_t Curr, n_t Succ) {
     assertNotNull(Curr);
     assertNotNull(Succ);
     PAMM_GET_INSTANCE;
@@ -203,27 +207,30 @@ public:
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("Normal-FF Cache Hit", 1, Full);
       if (SearchNormalFlowFunction->second.FlowFuncPtr != nullptr) {
-        return SearchNormalFlowFunction->second.FlowFuncPtr;
+        return getPointerFrom(SearchNormalFlowFunction->second.FlowFuncPtr);
       }
       auto FF = (AutoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+                    ? std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                           Problem.getNormalFlowFunction(Curr, Succ), ZV)
                     : Problem.getNormalFlowFunction(Curr, Succ);
-      SearchNormalFlowFunction->second.FlowFuncPtr = FF;
-      return FF;
+      auto Ret = getPointerFrom(FF);
+      SearchNormalFlowFunction->second.FlowFuncPtr = std::move(FF);
+      return Ret;
     }
     INC_COUNTER("Normal-FF Construction", 1, Full);
     auto FF = (AutoAddZero)
-                  ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+                  ? std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                         Problem.getNormalFlowFunction(Curr, Succ), ZV)
                   : Problem.getNormalFlowFunction(Curr, Succ);
-    NormalFunctionCache.insert(std::make_pair(Key, NormalEdgeFlowData(FF)));
+    auto Ret = getPointerFrom(FF);
+    NormalFunctionCache.insert(
+        std::make_pair(Key, NormalEdgeFlowData(std::move(FF))));
     PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
 
-    return FF;
+    return Ret;
   }
 
-  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) {
+  FlowFunctionType *getCallFlowFunction(n_t CallSite, f_t DestFun) {
     assertNotNull(CallSite);
     assertNotNull(DestFun);
     PAMM_GET_INSTANCE;
@@ -236,20 +243,21 @@ public:
     if (SearchCallFlowFunction != CallFlowFunctionCache.end()) {
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("Call-FF Cache Hit", 1, Full);
-      return SearchCallFlowFunction->second;
+      return getPointerFrom(SearchCallFlowFunction->second);
     }
     INC_COUNTER("Call-FF Construction", 1, Full);
     auto FF = (AutoAddZero)
-                  ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+                  ? std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                         Problem.getCallFlowFunction(CallSite, DestFun), ZV)
                   : Problem.getCallFlowFunction(CallSite, DestFun);
-    CallFlowFunctionCache.insert(std::make_pair(Key, FF));
+    auto Ret = getPointerFrom(FF);
+    CallFlowFunctionCache.insert(std::make_pair(Key, std::move(FF)));
     PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
-    return FF;
+    return Ret;
   }
 
-  FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitInst, n_t RetSite) {
+  FlowFunctionType *getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                       n_t ExitInst, n_t RetSite) {
     assertNotNull(CallSite);
     assertNotNull(CalleeFun);
     assertNotNull(ExitInst);
@@ -266,23 +274,24 @@ public:
     if (SearchReturnFlowFunction != ReturnFlowFunctionCache.end()) {
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("Return-FF Cache Hit", 1, Full);
-      return SearchReturnFlowFunction->second;
+      return getPointerFrom(SearchReturnFlowFunction->second);
     }
     INC_COUNTER("Return-FF Construction", 1, Full);
     auto FF = (AutoAddZero)
-                  ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+                  ? std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                         Problem.getRetFlowFunction(CallSite, CalleeFun,
                                                    ExitInst, RetSite),
                         ZV)
                   : Problem.getRetFlowFunction(CallSite, CalleeFun, ExitInst,
                                                RetSite);
-    ReturnFlowFunctionCache.insert(std::make_pair(Key, FF));
+    auto Ret = getPointerFrom(FF);
+    ReturnFlowFunctionCache.insert(std::make_pair(Key, std::move(FF)));
     PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
-    return FF;
+    return Ret;
   }
 
-  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                               llvm::ArrayRef<f_t> Callees) {
+  FlowFunctionType *getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                             llvm::ArrayRef<f_t> Callees) {
     assertNotNull(CallSite);
     assertNotNull(RetSite);
     assertAllNotNull(Callees);
@@ -301,18 +310,19 @@ public:
     if (SearchCallToRetFlowFunction != CallToRetFlowFunctionCache.end()) {
       PHASAR_LOG_LEVEL(DEBUG, "Flow function fetched from cache");
       INC_COUNTER("CallToRet-FF Cache Hit", 1, Full);
-      return SearchCallToRetFlowFunction->second;
+      return getPointerFrom(SearchCallToRetFlowFunction->second);
     }
     INC_COUNTER("CallToRet-FF Construction", 1, Full);
     auto FF =
         (AutoAddZero)
-            ? std::make_shared<ZeroedFlowFunction<d_t, Container>>(
+            ? std::make_unique<ZeroedFlowFunction<d_t, Container>>(
                   Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees),
                   ZV)
             : Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
-    CallToRetFlowFunctionCache.insert(std::make_pair(Key, FF));
+    auto Ret = getPointerFrom(FF);
+    CallToRetFlowFunctionCache.insert(std::make_pair(Key, std::move(FF)));
     PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
-    return FF;
+    return Ret;
   }
 
   FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun) {
