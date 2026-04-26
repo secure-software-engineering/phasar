@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 #define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
+#include "phasar/Utils/Macros.h"
+
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
@@ -61,11 +63,9 @@ public:
     this->insert(Vals.begin(), Vals.end());
   }
 
-  [[nodiscard]] inline const_iterator begin() const {
-    return StoredData.begin();
-  }
-  [[nodiscard]] inline const_iterator end() const { return StoredData.end(); }
-  [[nodiscard]] inline llvm::iterator_range<const_iterator>
+  [[nodiscard]] const_iterator begin() const { return StoredData.begin(); }
+  [[nodiscard]] const_iterator end() const { return StoredData.end(); }
+  [[nodiscard]] llvm::iterator_range<const_iterator>
   equivalenceClasses() const {
     return llvm::make_range(begin(), end());
   }
@@ -135,8 +135,28 @@ public:
     return std::make_pair(StoredData.back().first.begin(), true);
   }
 
+  template <typename KK = KeyT, typename VCtor>
+  const ValueT &getOrInsertLazy(KK &&Key, VCtor &&MakeV) {
+    for (auto &[StoredKeySet, StoredVal] : StoredData) {
+      if (StoredKeySet.count(Key)) {
+        return StoredVal;
+      }
+    }
+    ValueT Val = std::invoke(PSR_FWD(MakeV));
+
+    for (auto &KVPair : StoredData) {
+      if (KVPair.second == Val) {
+        KVPair.first.insert(PSR_FWD(Key));
+        return KVPair.second;
+      }
+    }
+
+    StoredData.emplace_back(SetType<KeyT>{Key}, std::move(Val));
+    return StoredData.back().second;
+  }
+
   /// Return 1 if the specified key is in the map, 0 otherwise.
-  [[nodiscard]] inline size_type count(const KeyT &Key) const {
+  [[nodiscard]] size_type count(const KeyT &Key) const {
     for (auto &KVPair : StoredData) {
       if (KVPair.first.count(Key) >= 1) {
         return 1;
@@ -145,14 +165,12 @@ public:
     return 0;
   }
 
-  [[nodiscard]] inline size_type numEquivalenceClasses() const {
+  [[nodiscard]] size_type numEquivalenceClasses() const {
     return StoredData.size();
   }
 
   /// Returns the size of the map, i.e., the number of equivalence classes.
-  [[nodiscard]] inline size_type size() const {
-    return numEquivalenceClasses();
-  }
+  [[nodiscard]] size_type size() const { return numEquivalenceClasses(); }
 
   [[nodiscard]] const_iterator find(key_type Key) const {
     return llvm::find_if(StoredData,
@@ -169,7 +187,7 @@ public:
     return std::nullopt;
   }
 
-  inline void clear() { StoredData.clear(); }
+  void clear() { StoredData.clear(); }
 
 private:
   StorageT StoredData{};
@@ -270,14 +288,12 @@ public:
     return end();
   }
 
-  [[nodiscard]] inline size_t numEquivalenceClasses() const noexcept {
+  [[nodiscard]] size_t numEquivalenceClasses() const noexcept {
     return Values.size();
   }
 
   /// Returns the size of the map, i.e., the number of equivalence classes.
-  [[nodiscard]] inline size_t size() const noexcept {
-    return numEquivalenceClasses();
-  }
+  [[nodiscard]] size_t size() const noexcept { return numEquivalenceClasses(); }
 
   [[nodiscard]] bool empty() const noexcept { return Values.empty(); }
 
