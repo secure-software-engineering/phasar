@@ -15,6 +15,7 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/Utils/EquivalenceClassMap.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/PointerUtils.h"
 #include "phasar/Utils/Utilities.h"
@@ -43,7 +44,7 @@ public:
   using KeyType = KeyT;
   using CompressedType = KeyT;
 
-  [[nodiscard]] inline CompressedType getCompressedID(KeyT Key) { return Key; }
+  [[nodiscard]] CompressedType getCompressedID(KeyT Key) { return Key; }
 };
 
 template <typename... Ts> class MapKeyCompressorCombinator : public Ts... {
@@ -56,7 +57,7 @@ public:
   using KeyType = const llvm::Value *;
   using CompressedType = uint32_t;
 
-  [[nodiscard]] inline CompressedType getCompressedID(KeyType Key) {
+  [[nodiscard]] CompressedType getCompressedID(KeyType Key) {
     auto Search = Map.find(Key);
     if (Search == Map.end()) {
       return Map.insert(std::make_pair(Key, Map.size() + 1)).first->getSecond();
@@ -86,65 +87,8 @@ class FlowEdgeFunctionCache {
   using t_t = typename AnalysisDomainTy::t_t;
   using l_t = typename AnalysisDomainTy::l_t;
 
-  using DTKeyCompressorType = std::conditional_t<
-      std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>,
-      LLVMMapKeyCompressor, DefaultMapKeyCompressor<d_t>>;
-  using NTKeyCompressorType = std::conditional_t<
-      std::is_base_of_v<llvm::Value, std::remove_pointer_t<n_t>>,
-      LLVMMapKeyCompressor, DefaultMapKeyCompressor<n_t>>;
-
-  using MapKeyCompressorType = std::conditional_t<
-      std::is_same_v<NTKeyCompressorType, DTKeyCompressorType>,
-      NTKeyCompressorType,
-      MapKeyCompressorCombinator<NTKeyCompressorType, DTKeyCompressorType>>;
-
   using FlowFunctionType = FlowFunction<d_t, Container>;
-
-private:
-  MapKeyCompressorType KeyCompressor;
-
-  using EdgeFuncInstKey = uint64_t;
-  using EdgeFuncNodeKey = std::conditional_t<
-      std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>, uint64_t,
-      std::pair<d_t, d_t>>;
-  using InnerEdgeFunctionMapType =
-      EquivalenceClassMap<EdgeFuncNodeKey, EdgeFunction<l_t>>;
-
-  using ZFF = ZeroedFlowFunction<d_t, Container>;
-
-  IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
-  // Auto add zero
-  bool AutoAddZero;
-  d_t ZV;
-
-  struct NormalEdgeFlowData {
-    NormalEdgeFlowData() noexcept = default;
-    NormalEdgeFlowData(FlowFunctionPtrType Val) : FlowFuncPtr(std::move(Val)) {}
-    NormalEdgeFlowData(InnerEdgeFunctionMapType Map)
-        : EdgeFunctionMap{std::move(Map)} {}
-
-    FlowFunctionPtrType FlowFuncPtr{};
-    InnerEdgeFunctionMapType EdgeFunctionMap{};
-  };
-
-  // Caches for the flow/edge functions
-  std::map<EdgeFuncInstKey, NormalEdgeFlowData> NormalFunctionCache;
-
-  // Caches for the flow functions
-  std::map<std::tuple<n_t, f_t>, FlowFunctionPtrType> CallFlowFunctionCache;
-  std::map<std::tuple<n_t, f_t, n_t, n_t>, FlowFunctionPtrType>
-      ReturnFlowFunctionCache;
-  std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType>
-      CallToRetFlowFunctionCache;
-  // Caches for the edge functions
-  std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunction<l_t>>
-      CallEdgeFunctionCache;
-  std::map<std::tuple<n_t, f_t, n_t, d_t, n_t, d_t>, EdgeFunction<l_t>>
-      ReturnEdgeFunctionCache;
-  std::map<EdgeFuncInstKey, InnerEdgeFunctionMapType>
-      CallToRetEdgeFunctionCache;
-  std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunction<l_t>>
-      SummaryEdgeFunctionCache;
+  using EdgeFunctionType = EdgeFunction<l_t>;
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
@@ -195,7 +139,8 @@ public:
   FlowEdgeFunctionCache &
   operator=(FlowEdgeFunctionCache &&FEFC) noexcept = default;
 
-  FlowFunctionType *getNormalFlowFunction(n_t Curr, n_t Succ) {
+  [[nodiscard]] NonNullPtr<FlowFunctionType> getNormalFlowFunction(n_t Curr,
+                                                                   n_t Succ) {
     assertNotNull(Curr);
     assertNotNull(Succ);
     PAMM_GET_INSTANCE;
@@ -221,7 +166,8 @@ public:
     return getPointerFrom(NormalFE.FlowFuncPtr);
   }
 
-  FlowFunctionType *getCallFlowFunction(n_t CallSite, f_t DestFun) {
+  [[nodiscard]] NonNullPtr<FlowFunctionType> getCallFlowFunction(n_t CallSite,
+                                                                 f_t DestFun) {
     assertNotNull(CallSite);
     assertNotNull(DestFun);
     PAMM_GET_INSTANCE;
@@ -246,8 +192,8 @@ public:
     return getPointerFrom(It->second);
   }
 
-  FlowFunctionType *getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                       n_t ExitInst, n_t RetSite) {
+  [[nodiscard]] NonNullPtr<FlowFunctionType>
+  getRetFlowFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, n_t RetSite) {
     assertNotNull(CallSite);
     assertNotNull(CalleeFun);
     assertNotNull(ExitInst);
@@ -277,8 +223,9 @@ public:
     return getPointerFrom(It->second);
   }
 
-  FlowFunctionType *getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                                             llvm::ArrayRef<f_t> Callees) {
+  [[nodiscard]] NonNullPtr<FlowFunctionType>
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) {
     assertNotNull(CallSite);
     assertNotNull(RetSite);
     assertAllNotNull(Callees);
@@ -311,7 +258,8 @@ public:
     return getPointerFrom(It->second);
   }
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun) {
+  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                                           f_t DestFun) {
     assertNotNull(CallSite);
     assertNotNull(DestFun);
     // PAMM_GET_INSTANCE;
@@ -325,8 +273,8 @@ public:
     return FF;
   }
 
-  EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                          d_t SuccNode) {
+  [[nodiscard]] EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode,
+                                                       n_t Succ, d_t SuccNode) {
     assertNotNull(Curr);
     assertNotNull(Succ);
 
@@ -352,8 +300,9 @@ public:
     return Ret;
   }
 
-  EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                        f_t DestinationFunction, d_t DestNode) {
+  [[nodiscard]] EdgeFunctionType getCallEdgeFunction(n_t CallSite, d_t SrcNode,
+                                                     f_t DestinationFunction,
+                                                     d_t DestNode) {
 
     assertNotNull(CallSite);
     assertNotNull(DestinationFunction);
@@ -385,9 +334,9 @@ public:
     return It->second;
   }
 
-  EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
-                                          n_t ExitInst, d_t ExitNode,
-                                          n_t RetSite, d_t RetNode) {
+  [[nodiscard]] EdgeFunctionType
+  getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction, n_t ExitInst,
+                        d_t ExitNode, n_t RetSite, d_t RetNode) {
     assertNotNull(CallSite);
     assertNotNull(CalleeFunction);
     assertNotNull(ExitInst);
@@ -418,9 +367,9 @@ public:
     return It->second;
   }
 
-  EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
-                                             n_t RetSite, d_t RetSiteNode,
-                                             llvm::ArrayRef<f_t> Callees) {
+  [[nodiscard]] EdgeFunctionType
+  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
+                           d_t RetSiteNode, llvm::ArrayRef<f_t> Callees) {
     assertNotNull(CallSite);
     assertNotNull(RetSite);
     assertAllNotNull(Callees);
@@ -454,8 +403,10 @@ public:
     return Ret;
   }
 
-  EdgeFunction<l_t> getSummaryEdgeFunction(n_t CallSite, d_t CallNode,
-                                           n_t RetSite, d_t RetSiteNode) {
+  [[nodiscard]] EdgeFunctionType getSummaryEdgeFunction(n_t CallSite,
+                                                        d_t CallNode,
+                                                        n_t RetSite,
+                                                        d_t RetSiteNode) {
     assertNotNull(CallSite);
     assertNotNull(RetSite);
 
@@ -582,6 +533,37 @@ public:
   }
 
 private:
+  using DTKeyCompressorType = std::conditional_t<
+      std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>,
+      LLVMMapKeyCompressor, DefaultMapKeyCompressor<d_t>>;
+  using NTKeyCompressorType = std::conditional_t<
+      std::is_base_of_v<llvm::Value, std::remove_pointer_t<n_t>>,
+      LLVMMapKeyCompressor, DefaultMapKeyCompressor<n_t>>;
+
+  using MapKeyCompressorType = std::conditional_t<
+      std::is_same_v<NTKeyCompressorType, DTKeyCompressorType>,
+      NTKeyCompressorType,
+      MapKeyCompressorCombinator<NTKeyCompressorType, DTKeyCompressorType>>;
+
+  using EdgeFuncInstKey = uint64_t;
+  using EdgeFuncNodeKey = std::conditional_t<
+      std::is_base_of_v<llvm::Value, std::remove_pointer_t<d_t>>, uint64_t,
+      std::pair<d_t, d_t>>;
+  using InnerEdgeFunctionMapType =
+      EquivalenceClassMap<EdgeFuncNodeKey, EdgeFunctionType>;
+
+  using ZFF = ZeroedFlowFunction<d_t, Container>;
+
+  struct NormalEdgeFlowData {
+    NormalEdgeFlowData() noexcept = default;
+    NormalEdgeFlowData(FlowFunctionPtrType Val) : FlowFuncPtr(std::move(Val)) {}
+    NormalEdgeFlowData(InnerEdgeFunctionMapType Map)
+        : EdgeFunctionMap{std::move(Map)} {}
+
+    FlowFunctionPtrType FlowFuncPtr{};
+    InnerEdgeFunctionMapType EdgeFunctionMap{};
+  };
+
   constexpr EdgeFuncInstKey createEdgeFunctionInstKey(n_t Lhs, n_t Rhs) {
     uint64_t Val = 0;
     Val |= KeyCompressor.getCompressedID(Lhs);
@@ -601,6 +583,32 @@ private:
       return std::make_pair(Lhs, Rhs);
     }
   }
+
+  MapKeyCompressorType KeyCompressor;
+
+  IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
+  // Auto add zero
+  bool AutoAddZero;
+  d_t ZV;
+
+  // Caches for the flow/edge functions
+  std::map<EdgeFuncInstKey, NormalEdgeFlowData> NormalFunctionCache;
+
+  // Caches for the flow functions
+  std::map<std::tuple<n_t, f_t>, FlowFunctionPtrType> CallFlowFunctionCache;
+  std::map<std::tuple<n_t, f_t, n_t, n_t>, FlowFunctionPtrType>
+      ReturnFlowFunctionCache;
+  std::map<std::tuple<n_t, n_t>, FlowFunctionPtrType>
+      CallToRetFlowFunctionCache;
+  // Caches for the edge functions
+  std::map<std::tuple<n_t, d_t, f_t, d_t>, EdgeFunctionType>
+      CallEdgeFunctionCache;
+  std::map<std::tuple<n_t, f_t, n_t, d_t, n_t, d_t>, EdgeFunctionType>
+      ReturnEdgeFunctionCache;
+  std::map<EdgeFuncInstKey, InnerEdgeFunctionMapType>
+      CallToRetEdgeFunctionCache;
+  std::map<std::tuple<n_t, d_t, n_t, d_t>, EdgeFunctionType>
+      SummaryEdgeFunctionCache;
 };
 
 } // namespace psr
