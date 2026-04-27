@@ -150,6 +150,9 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(N) Succ Inst : " << NToString(Succ)));
     auto Key = createEdgeFunctionInstKey(Curr, Succ);
 
+    // operator[] instead of try_emplace: NormalEdgeFlowData holds both the
+    // flow function ptr and the edge function map for the same (Curr,Succ)
+    // key, so getNormalEdgeFunction shares this entry via the same lookup.
     auto &NormalFE = NormalFunctionCache[std::move(Key)];
     if (!NormalFE.FlowFuncPtr) {
       INC_COUNTER("Normal-FF Construction", 1, Full);
@@ -258,6 +261,10 @@ public:
     return getPointerFrom(It->second);
   }
 
+  /// \note Unlike the other get*FlowFunction methods, this returns a nullable
+  /// FlowFunctionPtrType rather than NonNullPtr. A null return means no special
+  /// summary is available for this call site; the solver falls back to
+  /// propagating through the callee body.
   [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
                                                            f_t DestFun) {
     assertNotNull(CallSite);
@@ -289,12 +296,17 @@ public:
     EdgeFuncInstKey OuterMapKey = createEdgeFunctionInstKey(Curr, Succ);
     auto &NormalFE = NormalFunctionCache[std::move(OuterMapKey)];
     auto Ret = NormalFE.EdgeFunctionMap.getOrInsertLazy(
-        createEdgeFunctionNodeKey(CurrNode, SuccNode), [&] {
+        createEdgeFunctionNodeKey(CurrNode, SuccNode),
+        [&] {
           INC_COUNTER("Normal-EF Construction", 1, Full);
           auto EF =
               Problem.getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
           PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
           return EF;
+        },
+        [&] {
+          INC_COUNTER("Normal-EF Cache Hit", 1, Full);
+          PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
         });
     PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << Ret);
     return Ret;
@@ -392,12 +404,17 @@ public:
     auto &Outer = CallToRetEdgeFunctionCache[std::move(OuterMapKey)];
 
     auto Ret = Outer.getOrInsertLazy(
-        std::move(createEdgeFunctionNodeKey(CallNode, RetSiteNode)), [&] {
+        std::move(createEdgeFunctionNodeKey(CallNode, RetSiteNode)),
+        [&] {
           INC_COUNTER("CallToRet-EF Construction", 1, Full);
           auto Ret = Problem.getCallToRetEdgeFunction(
               CallSite, CallNode, RetSite, RetSiteNode, Callees);
           PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
           return Ret;
+        },
+        [&] {
+          INC_COUNTER("CallToRet-EF Cache Hit", 1, Full);
+          PHASAR_LOG_LEVEL(DEBUG, "Edge function fetched from cache");
         });
     PHASAR_LOG_LEVEL(DEBUG, "Provide Edge Function: " << Ret);
     return Ret;

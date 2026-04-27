@@ -163,6 +163,9 @@ public:
   ///                   v   v   v  ...
   ///                   x1  x2  x3 ...
   /// \endcode
+  /// \note Returns a non-owning pointer to a function-static singleton
+  /// (owns()==false). The pointee has program lifetime. Most other factory
+  /// functions in this class return owning unique_ptrs.
   static FlowFunctionPtrType identityFlow() {
     struct IdFF final : public FlowFunction<d_t, container_type> {
       container_type computeTargets(d_t Source) override {
@@ -430,6 +433,9 @@ public:
   /// \code
   /// x, f(x) = {}.
   /// \endcode
+  /// \note Returns a non-owning pointer to a function-static singleton
+  /// (owns()==false). The pointee has program lifetime. Most other factory
+  /// functions in this class return owning unique_ptrs.
   static FlowFunctionPtrType killAllFlows() {
     struct KillAllFF final : public FlowFunction<d_t, container_type> {
       Container computeTargets(d_t /*Source*/) override { return Container(); }
