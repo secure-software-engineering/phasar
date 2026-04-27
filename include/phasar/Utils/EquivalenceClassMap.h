@@ -11,6 +11,7 @@
 #define PHASAR_UTILS_EQUIVALENCECLASSMAP_H
 
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/PointerProxy.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseSet.h"
@@ -206,11 +207,10 @@ class EquivalenceClassMapNG {
 public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   class const_iterator {
-
   public:
     using value_type = std::pair<SetTy, TValue>;
     using reference = std::pair<const SetTy &, const TValue &>;
-    using pointer = reference *;
+    using pointer = PointerProxy<reference>;
     using difference_type = ptrdiff_t;
     using iterator_category = std::forward_iterator_tag;
 
@@ -222,10 +222,7 @@ public:
 
     reference operator*() noexcept { return reference(*Ky, *Val); }
 
-    pointer operator->() noexcept {
-      TempStorage.emplace(*Ky, *Val);
-      return &*TempStorage;
-    }
+    pointer operator->() noexcept { return pointer{**this}; }
 
     bool operator==(const const_iterator &Other) const noexcept {
       return Val == Other.Val;
@@ -243,8 +240,6 @@ public:
 
     const TValue *Val;
     const SetTy *Ky;
-
-    std::optional<reference> TempStorage;
   };
 
   EquivalenceClassMapNG() noexcept = default;
