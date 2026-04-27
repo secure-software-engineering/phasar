@@ -426,15 +426,6 @@ public:
 
   template <IsEdgeFunction ConcreteEF>
     requires(!std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>>)
-  [[nodiscard]] PSR_DEPRECATED(
-      "With C++20, we do not need this helper anymore, use operator== instead",
-      "operator==") bool equals(EdgeFunctionRef<ConcreteEF> Other)
-      const noexcept {
-    return *this == Other;
-  }
-
-  template <IsEdgeFunction ConcreteEF>
-    requires(!std::is_same_v<EdgeFunction, std::decay_t<ConcreteEF>>)
   [[nodiscard]] bool
   operator==(EdgeFunctionRef<ConcreteEF> Other) const noexcept {
     if (!isa<ConcreteEF>()) {

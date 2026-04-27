@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
 #define PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
 
-#include "phasar/DB/ProjectIRDBBase.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 
@@ -29,36 +28,20 @@
 #include <memory>
 
 namespace psr {
-class LLVMProjectIRDB;
 
-template <> struct ProjectIRDBTraits<LLVMProjectIRDB> {
+/// \brief Project IR Database that manages a LLVM IR module.
+class LLVMProjectIRDB {
+
+public:
   using n_t = const llvm::Instruction *;
   using f_t = const llvm::Function *;
   using m_t = const llvm::Module *;
   using g_t = const llvm::GlobalVariable *;
-};
 
-/// \brief Project IR Database that manages a LLVM IR module.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-class LLVMProjectIRDB : public ProjectIRDBBase<LLVMProjectIRDB> {
-#pragma GCC diagnostic pop
-  friend ProjectIRDBBase;
-
-public:
   /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
   /// If an error occurs, an error message is written to stderr and subsequent
   /// calls to isValid() return false.
   explicit LLVMProjectIRDB(const llvm::Twine &IRFileName);
-
-  /// Reads and parses the given LLVM IR file and owns the resulting IR Module.
-  /// If an error occurs, an error message is written to stderr and subsequent
-  /// calls to isValid() return false.
-  [[deprecated("When moving to the next LLVM version, opaque pointers support "
-               "is removed completely. Please use one of the other "
-               "constructors of LLVMProjectIRDB.")]]
-  explicit LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                           bool EnableOpaquePointers);
 
   /// Initializes the new ProjectIRDB with the given IR Module _without_ taking
   /// ownership. The module is optionally being preprocessed.
@@ -83,15 +66,6 @@ public:
   /// calls to isValid() return false.
   explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf);
 
-  /// Parses the given LLVM IR file and owns the resulting IR Module.
-  /// If an error occurs, an error message is written to stderr and subsequent
-  /// calls to isValid() return false.
-  [[deprecated("When moving to the next LLVM version, opaque pointers support "
-               "is removed completely. Please use one of the other "
-               "constructors of LLVMProjectIRDB.")]]
-  explicit LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                           bool EnableOpaquePointers);
-
   LLVMProjectIRDB(const LLVMProjectIRDB &) = delete;
   LLVMProjectIRDB &operator=(const LLVMProjectIRDB &) = delete;
 
@@ -115,27 +89,37 @@ public:
   [[nodiscard]] static LLVMProjectIRDB
   loadOrExit(const llvm::Twine &IRFileName, bool EnableOpaquePointers) = delete;
 
-  /// Also use the const overload
-  using ProjectIRDBBase::getFunction;
   /// Non-const overload
   [[nodiscard]] llvm::Function *getFunction(llvm::StringRef FunctionName) {
+    assert(isValid());
+    return Mod->getFunction(FunctionName);
+  }
+  /// Returns the function if available, nullptr/nullopt otherwise.
+  [[nodiscard]] f_t getFunction(llvm::StringRef FunctionName) const {
+    assert(isValid());
     return Mod->getFunction(FunctionName);
   }
 
-  /// Also use the const overload
-  using ProjectIRDBBase::getFunctionDefinition;
-  /// Non-const overload
+  /// Returns a mutable pointer to the function's definition if available, null
+  /// otherwise.
   [[nodiscard]] llvm::Function *
   getFunctionDefinition(llvm::StringRef FunctionName);
 
-  /// Also use the const overload
-  using ProjectIRDBBase::getModule;
-  /// Non-const overload
+  /// Returns the function's definition if available, null otherwise.
+  [[nodiscard]] f_t getFunctionDefinition(llvm::StringRef FunctionName) const;
+
+  /// Returns the managed module
   [[nodiscard]] llvm::Module *getModule() noexcept { return Mod.get(); }
+
+  /// Returns the managed module
+  [[nodiscard]] const llvm::Module *getModule() const noexcept {
+    return Mod.get();
+  }
 
   /// Similar to getInstruction(size_t), but is also able to return global
   /// variables by id
   [[nodiscard]] const llvm::Value *getValueFromId(size_t Id) const noexcept {
+    assert(isValid());
     return Id < IdToInst.size() ? IdToInst[Id] : nullptr;
   }
 
@@ -167,48 +151,41 @@ public:
   /// Returns a range of all global variables (and global constants, e.g, string
   /// literals) in the managed module
   [[nodiscard]] auto getAllGlobals() const {
+    assert(isValid());
     return llvm::map_range(std::as_const(*Mod).globals(),
                            Ref2PointerConverter<llvm::GlobalVariable>{});
   }
 
   explicit operator bool() const noexcept { return isValid(); }
 
-private:
-  [[nodiscard]] m_t getModuleImpl() const noexcept { return Mod.get(); }
-  [[nodiscard]] bool debugInfoAvailableImpl() const;
-  [[nodiscard]] FunctionRange getAllFunctionsImpl() const {
-    return llvm::map_range(ProjectIRDBBase::getModule()->functions(),
+  [[nodiscard]] bool debugInfoAvailable() const;
+  [[nodiscard]] FunctionRange getAllFunctions() const {
+    return llvm::map_range(getModule()->functions(),
                            Ref2PointerConverter<llvm::Function>{});
   }
-  [[nodiscard]] f_t getFunctionImpl(llvm::StringRef FunctionName) const {
-    return Mod->getFunction(FunctionName);
-  }
-  [[nodiscard]] f_t
-  getFunctionDefinitionImpl(llvm::StringRef FunctionName) const;
-  [[nodiscard]] bool
-  hasFunctionImpl(llvm::StringRef FunctionName) const noexcept {
+
+  [[nodiscard]] bool hasFunction(llvm::StringRef FunctionName) const noexcept {
+    assert(isValid());
     return Mod->getFunction(FunctionName) != nullptr;
   }
-  [[nodiscard]] f_t getFunctionOfImpl(n_t Inst) const {
-    assert(Inst != nullptr);
-    return Inst->getFunction();
-  }
 
+  [[nodiscard]] g_t getGlobalVariable(llvm::StringRef GlobalVariableName) const;
   [[nodiscard]] g_t
-  getGlobalVariableImpl(llvm::StringRef GlobalVariableName) const;
-  [[nodiscard]] g_t
-  getGlobalVariableDefinitionImpl(llvm::StringRef GlobalVariableName) const;
-  [[nodiscard]] size_t getNumInstructionsImpl() const noexcept {
+  getGlobalVariableDefinition(llvm::StringRef GlobalVariableName) const;
+
+  [[nodiscard]] size_t getNumInstructions() const noexcept {
     return IdToInst.size() - IdOffset;
   }
-  [[nodiscard]] size_t getNumFunctionsImpl() const noexcept {
+  [[nodiscard]] size_t getNumFunctions() const noexcept {
+    assert(isValid());
     return Mod->size();
   }
-  [[nodiscard]] size_t getNumGlobalsImpl() const noexcept {
+  [[nodiscard]] size_t getNumGlobals() const noexcept {
+    assert(isValid());
     return Mod->global_size();
   }
 
-  [[nodiscard]] n_t getInstructionImpl(size_t Id) const noexcept {
+  [[nodiscard]] n_t getInstruction(size_t Id) const noexcept {
     // Effectively make use of integer overflow here...
     if (Id - IdOffset < IdToInst.size() - IdOffset) {
       return llvm::cast<llvm::Instruction>(IdToInst[Id]);
@@ -216,21 +193,22 @@ private:
     return n_t{};
   }
 
-  [[nodiscard]] auto getAllInstructionsImpl() const noexcept {
+  [[nodiscard]] auto getAllInstructions() const noexcept {
     return llvm::map_range(
         llvm::ArrayRef(IdToInst).drop_front(IdOffset),
         [](const llvm::Value *V) { return llvm::cast<llvm::Instruction>(V); });
   }
 
-  [[nodiscard]] size_t getInstructionIdImpl(n_t Inst) const {
+  [[nodiscard]] size_t getInstructionId(n_t Inst) const {
     auto It = InstToId.find(Inst);
     assert(It != InstToId.end());
     return It->second;
   }
-  [[nodiscard]] bool isValidImpl() const noexcept;
+  [[nodiscard]] bool isValid() const noexcept;
 
-  void dumpImpl() const;
+  void dump() const;
 
+private:
   void initInstructionIds();
   /// XXX Later we might get rid of the metadata IDs entirely and therefore of
   /// the preprocessing as well
@@ -250,7 +228,6 @@ private:
 const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
                                   llvm::StringRef Id);
 
-extern template class ProjectIRDBBase<LLVMProjectIRDB>;
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DB_LLVMPROJECTIRDB_H
