@@ -21,14 +21,15 @@
 
 /// \file
 /// Defines requirements for an analysis problem that can be solved by the
-/// MonoIFDS solver.
+/// MonoIFDSSolver.
+///
 /// Since MonoIFDS solves analyses bottom-up, each CG-SCC is analyzed in
 /// isolation. The solver will call Problem.localAnalysis(...) once per SCC and
 /// use the returned LocalMonoIFDSProblem to drive the solving process.
 /// Although the solver currently is only single-threaded, you can expect that
 /// (also in a multi-threaded future) LocalMonoIFDSProblem instances are not
 /// accessed by multiple threads at a time, while different instances may be
-/// solved on different threads.
+/// solved on different threads in parallel.
 
 namespace psr::monoifds {
 

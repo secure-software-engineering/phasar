@@ -33,6 +33,7 @@
 #include "phasar/Utils/SCCGeneric.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
@@ -63,12 +64,12 @@ public:
   using d_t = typename ProblemT::ProblemAnalysisDomain::d_t;
   using i_t = ICFGTy;
   using f_t = typename ProblemT::ProblemAnalysisDomain::f_t;
-  using v_t = typename ProblemT::ProblemAnalysisDomain::v_t;
 
   explicit MonoIFDSSolver(ProblemT *Problem, const i_t *ICF,
                           std::pmr::polymorphic_allocator<> Alloc =
                               std::pmr::get_default_resource())
-      : Problem(Problem), ICF(ICF), MBufRes(Alloc.resource()) {}
+      : Problem(&assertNotNull(Problem)), ICF(&assertNotNull(ICF)),
+        MBufRes(Alloc.resource()) {}
 
   MonoIFDSSolver &setConfig(MonoIfdsConfig Config) & noexcept {
     this->Config = Config;
@@ -76,12 +77,14 @@ public:
   }
 
   MonoIFDSSolver &setCGSCCs(const SCCHolder<FunctionId> *SCCs) & noexcept {
+    assertNotNull(SCCs);
     this->SCCs = SCCs;
     return *this;
   }
 
   MonoIFDSSolver &setFunctionCompressor(
       const Compressor<f_t, FunctionId> *Functions) & noexcept {
+    assertNotNull(Functions);
     this->Functions = Functions;
     return *this;
   }
@@ -203,17 +206,16 @@ private:
                       Problem->getEntryPoints()
                     } -> psr::is_iterable_over_v<f_t>;
                   }) {
-      Functions = std::make_unique<Compressor<f_t, FunctionId>>(
+      Functions = std::make_unique<FunctionCompressor<f_t>>(
           compressFunctions(ICF->getCallGraph(), Problem->getEntryPoints()));
     } else if constexpr (requires() {
                            {
                              Problem->getEntryPoints()
                            } -> psr::is_iterable_over_v<std::string>;
                          }) {
-      Functions =
-          std::make_unique<Compressor<f_t, FunctionId>>(compressFunctions(
-              ICF->getCallGraph(),
-              psr::getEntryFunctions(*ICF, Problem->getEntryPoints())));
+      Functions = std::make_unique<FunctionCompressor<f_t>>(compressFunctions(
+          ICF->getCallGraph(),
+          psr::getEntryFunctions(*ICF, Problem->getEntryPoints())));
     } else {
       throw std::logic_error("The analysis problem " +
                              llvm::getTypeName<ProblemT>().str() +
@@ -224,6 +226,8 @@ private:
   }
 
   void initializeSCCs() {
+    assert(Functions && "Functions have been initialized already (see "
+                        "invocation order in initialize())");
     SCCs = std::make_unique<SCCHolder<FunctionId>>(
         computeCGSCCs(ICF->getCallGraph(), *ICF, *Functions));
   }
@@ -723,7 +727,6 @@ private:
 
     for (const auto &CS : getOrDefault(IState.Incoming, Fun)) {
       if (auto CallerId = Functions->getOrNull(CS->getFunction())) {
-        // Driver.push(CS);
         if (EnableEnvVersioning) {
           IState.PathEdges[CS].Version++;
         }
