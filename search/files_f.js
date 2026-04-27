@@ -13,9 +13,9 @@ var searchData=
   ['phasar_2eh_10',['phasar.h',['../phasar_8h.html',1,'']]],
   ['phasarclang_2eh_11',['PhasarClang.h',['../PhasarClang_8h.html',1,'']]],
   ['phasarllvm_2eh_12',['PhasarLLVM.h',['../PhasarLLVM_8h.html',1,'']]],
-  ['phasarpass_2eh_13',['phasarpass.h',['../PhasarPass_2PhasarPass_8h.html',1,'(Global Namespace)'],['../PhasarPass_8h.html',1,'(Global Namespace)']]],
+  ['phasarpass_2eh_13',['phasarpass.h',['../PhasarPass_8h.html',1,'(Global Namespace)'],['../PhasarPass_2PhasarPass_8h.html',1,'(Global Namespace)']]],
   ['phasarprinterpass_2eh_14',['PhasarPrinterPass.h',['../PhasarPrinterPass_8h.html',1,'']]],
-  ['pointer_2eh_15',['pointer.h',['../Pointer_8h.html',1,'(Global Namespace)'],['../PhasarLLVM_2Pointer_8h.html',1,'(Global Namespace)']]],
+  ['pointer_2eh_15',['pointer.h',['../PhasarLLVM_2Pointer_8h.html',1,'(Global Namespace)'],['../Pointer_8h.html',1,'(Global Namespace)']]],
   ['pointerassignmentgraph_2eh_16',['PointerAssignmentGraph.h',['../PointerAssignmentGraph_8h.html',1,'']]],
   ['pointerutils_2eh_17',['PointerUtils.h',['../PointerUtils_8h.html',1,'']]],
   ['pointstoinfo_2eh_18',['PointsToInfo.h',['../PointsToInfo_8h.html',1,'']]],
@@ -23,6 +23,5 @@ var searchData=
   ['pointstoiterator_2eh_20',['PointsToIterator.h',['../PointsToIterator_8h.html',1,'']]],
   ['precomputedresolver_2eh_21',['PrecomputedResolver.h',['../PrecomputedResolver_8h.html',1,'']]],
   ['printer_2eh_22',['Printer.h',['../Printer_8h.html',1,'']]],
-  ['projectirdb_2eh_23',['ProjectIRDB.h',['../ProjectIRDB_8h.html',1,'']]],
-  ['projectirdbbase_2eh_24',['ProjectIRDBBase.h',['../ProjectIRDBBase_8h.html',1,'']]]
+  ['projectirdb_2eh_23',['ProjectIRDB.h',['../ProjectIRDB_8h.html',1,'']]]
 ];

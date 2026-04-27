@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['m_5ft_0',['m_t',['../structpsr_1_1ProjectIRDBTraits_3_01LLVMProjectIRDB_01_4.html#ae717378042412da62031ff6a98e6b929',1,'psr::ProjectIRDBTraits&lt; LLVMProjectIRDB &gt;']]],
+  ['m_5ft_0',['m_t',['../classpsr_1_1LLVMProjectIRDB.html#a4e351aef68ef24c393b815a758b76cd3',1,'psr::LLVMProjectIRDB']]],
   ['macros_2eh_1',['Macros.h',['../Macros_8h.html',1,'']]],
   ['makecomposeef_2',['makeComposeEF',['../namespacepsr_1_1XTaint.html#aaad97d4e97a17c8b99ec3f904f7c706b',1,'psr::XTaint']]],
   ['makeff_3',['makeFF',['../namespacepsr_1_1XTaint.html#a9c6eafc05330b4042660e72836a8054a',1,'psr::XTaint']]],
@@ -49,7 +49,7 @@ var searchData=
   ['maybeuniqueptr_3c_20psr_3a_3asccholder_3c_20funvtxty_20_3e_20_3e_46',['MaybeUniquePtr&lt; psr::SCCHolder&lt; FunVtxTy &gt; &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
   ['maybeuniqueptr_3c_20z3_3a_3acontext_20_3e_47',['MaybeUniquePtr&lt; z3::context &gt;',['../classpsr_1_1MaybeUniquePtr.html',1,'psr']]],
   ['mayleakvaluesat_48',['mayLeakValuesAt',['../classpsr_1_1TaintConfigBase.html#a11e5571e7a007f42c2baca3f99902496',1,'psr::TaintConfigBase']]],
-  ['maypointsto_49',['maypointsto',['../classpsr_1_1PointsToIteratorRef.html#a289d4cdb5e8aa1ae784128dbea33af3a',1,'psr::PointsToIteratorRef::mayPointsTo()'],['../structpsr_1_1PointsToIteratorRef_1_1VTable.html#a7b6dfc7b38d75b8ff3bd6a0d5a0574e4',1,'psr::PointsToIteratorRef::VTable::MayPointsTo'],['../classpsr_1_1PointsToInfoBase.html#a6942263ab4e8311a58dd3bf7bbe2740d',1,'psr::PointsToInfoBase::mayPointsTo(ByConstRef&lt; v_t &gt; Pointer, ByConstRef&lt; o_t &gt; Obj, ByConstRef&lt; n_t &gt; AtInstruction) const'],['../classpsr_1_1PointsToInfoBase.html#a9efdf29d943693a655f3ff5a99e9713b',1,'psr::PointsToInfoBase::mayPointsTo(ByConstRef&lt; o_t &gt; Pointer, ByConstRef&lt; o_t &gt; Obj, ByConstRef&lt; n_t &gt; AtInstruction) const']]],
+  ['maypointsto_49',['maypointsto',['../classpsr_1_1PointsToInfoBase.html#a6942263ab4e8311a58dd3bf7bbe2740d',1,'psr::PointsToInfoBase::mayPointsTo()'],['../classpsr_1_1PointsToIteratorRef.html#a289d4cdb5e8aa1ae784128dbea33af3a',1,'psr::PointsToIteratorRef::mayPointsTo()'],['../classpsr_1_1PointsToInfoBase.html#a9efdf29d943693a655f3ff5a99e9713b',1,'psr::PointsToInfoBase::mayPointsTo()'],['../structpsr_1_1PointsToIteratorRef_1_1VTable.html#a7b6dfc7b38d75b8ff3bd6a0d5a0574e4',1,'psr::PointsToIteratorRef::VTable::MayPointsTo']]],
   ['medianefperedge_50',['MedianEFPerEdge',['../structpsr_1_1EdgeFunctionCacheStats.html#acb4fedf689d2d20bca618bb28e1024ea',1,'psr::EdgeFunctionCacheStats']]],
   ['memintrinsics_51',['MemIntrinsics',['../structpsr_1_1GeneralStatistics.html#a5a30ad0a29ef2546638810d3d1c7fec9',1,'psr::GeneralStatistics']]],
   ['memory_5fresource_5ftype_52',['memory_resource_type',['../classpsr_1_1AliasSetOwner.html#af2acb5dffaf3f9197638e85fb0a89326',1,'psr::AliasSetOwner']]],

@@ -39,8 +39,5 @@ var searchData=
   ['pointstotraits_3c_20pointstoinforef_3c_20ptatraits_20_3e_20_3e_36',['PointsToTraits&lt; PointsToInfoRef&lt; PTATraits &gt; &gt;',['../structpsr_1_1PointsToTraits_3_01PointsToInfoRef_3_01PTATraits_01_4_01_4.html',1,'psr']]],
   ['precomputedresolver_37',['PrecomputedResolver',['../classpsr_1_1PrecomputedResolver.html',1,'psr']]],
   ['prettyprinter_38',['PrettyPrinter',['../structpsr_1_1PrettyPrinter.html',1,'psr']]],
-  ['projectirdbbase_39',['ProjectIRDBBase',['../classProjectIRDBBase.html',1,'']]],
-  ['projectirdbtraits_40',['ProjectIRDBTraits',['../structpsr_1_1ProjectIRDBTraits.html',1,'psr']]],
-  ['projectirdbtraits_3c_20llvmprojectirdb_20_3e_41',['ProjectIRDBTraits&lt; LLVMProjectIRDB &gt;',['../structpsr_1_1ProjectIRDBTraits_3_01LLVMProjectIRDB_01_4.html',1,'psr']]],
-  ['ptatraits_42',['PTATraits',['../classPTATraits.html',1,'']]]
+  ['ptatraits_39',['PTATraits',['../classPTATraits.html',1,'']]]
 ];
