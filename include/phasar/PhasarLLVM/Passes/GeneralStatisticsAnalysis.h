@@ -75,10 +75,10 @@ struct GeneralStatistics {
   std::string ModuleName{};
 
   void printAsJson(llvm::raw_ostream &OS = llvm::outs()) const;
-};
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const GeneralStatistics &Statistics);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const GeneralStatistics &Statistics);
+};
 
 /**
  * This class uses the Module Pass Mechanism of LLVM to compute

@@ -315,17 +315,6 @@ struct IDEFeatureTaintAnalysis::AddFactsEF {
     return Source;
   }
 
-  static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<AddFactsEF> /*This*/,
-          const EdgeFunction<l_t> & /*SecondFunction*/) {
-    llvm::report_fatal_error("Implemented in 'extend'");
-  }
-
-  static EdgeFunction<l_t> join(EdgeFunctionRef<AddFactsEF> /*This*/,
-                                const EdgeFunction<l_t> & /*OtherFunction*/) {
-    llvm::report_fatal_error("Implemented in 'combine'");
-  }
-
   friend bool operator==(const AddFactsEF &L, const AddFactsEF &R) {
     return L.Facts == R.Facts;
   }
@@ -344,17 +333,6 @@ struct IDEFeatureTaintAnalysis::GenerateEF {
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const {
     return Facts;
-  }
-
-  static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<GenerateEF> /*This*/,
-          const EdgeFunction<l_t> & /*SecondFunction*/) {
-    llvm::report_fatal_error("Implemented in 'extend'");
-  }
-
-  static EdgeFunction<l_t> join(EdgeFunctionRef<GenerateEF> /*This*/,
-                                const EdgeFunction<l_t> & /*OtherFunction*/) {
-    llvm::report_fatal_error("Implemented in 'combine'");
   }
 
   friend bool operator==(const GenerateEF &L, const GenerateEF &R) {
@@ -377,17 +355,6 @@ struct AddSmallFactsEF {
     return Source;
   }
 
-  static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<AddSmallFactsEF> /*This*/,
-          const EdgeFunction<l_t> & /*SecondFunction*/) {
-    llvm::report_fatal_error("Implemented in 'extend'");
-  }
-
-  static EdgeFunction<l_t> join(EdgeFunctionRef<AddSmallFactsEF> /*This*/,
-                                const EdgeFunction<l_t> & /*OtherFunction*/) {
-    llvm::report_fatal_error("Implemented in 'combine'");
-  }
-
   // NOLINTNEXTLINE -- unused function -- must satisfy the EF interface
   friend bool operator==(const AddSmallFactsEF &L, const AddSmallFactsEF &R) {
     return L.Facts == R.Facts;
@@ -408,17 +375,6 @@ struct GenerateSmallEF {
 
   [[nodiscard]] l_t computeTarget(ByConstRef<l_t> /*Source*/) const {
     return Facts;
-  }
-
-  static EdgeFunction<l_t>
-  compose(EdgeFunctionRef<GenerateSmallEF> /*This*/,
-          const EdgeFunction<l_t> & /*SecondFunction*/) {
-    llvm::report_fatal_error("Implemented in 'extend'");
-  }
-
-  static EdgeFunction<l_t> join(EdgeFunctionRef<GenerateSmallEF> /*This*/,
-                                const EdgeFunction<l_t> & /*OtherFunction*/) {
-    llvm::report_fatal_error("Implemented in 'combine'");
   }
 
   // NOLINTNEXTLINE -- unused function -- must satisfy the EF interface

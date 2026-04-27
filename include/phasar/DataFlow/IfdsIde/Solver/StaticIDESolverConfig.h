@@ -25,13 +25,13 @@ enum class JumpFunctionGCMode {
 
 struct IDESolverConfigBase {
   template <typename K, typename V>
-  static inline constexpr bool IsSimple1d =
+  static constexpr bool IsSimple1d =
       sizeof(std::pair<K, V>) <= 32 &&
       std::is_nothrow_move_constructible_v<K> &&
       std::is_nothrow_move_constructible_v<V> && has_llvm_dense_map_info<K>;
 
   template <typename T>
-  static inline constexpr bool IsSimpleVal =
+  static constexpr bool IsSimpleVal =
       sizeof(T) <= 32 && std::is_nothrow_move_constructible_v<T> &&
       has_llvm_dense_map_info<T>;
 
@@ -51,23 +51,31 @@ struct IDESolverConfigBase {
 
   template <typename L> using EdgeFunctionPtrType = EdgeFunction<L>;
 
-  static inline constexpr bool AutoAddZero = true;
-  static inline constexpr bool EnableStatistics = false;
-  static inline constexpr JumpFunctionGCMode EnableJumpFunctionGC =
+  static constexpr bool AutoAddZero = true;
+  static constexpr bool EnableStatistics = false;
+  static constexpr JumpFunctionGCMode EnableJumpFunctionGC =
       JumpFunctionGCMode::Disabled;
-  static inline constexpr bool UseEndSummaryTab = false;
+  static constexpr bool UseEndSummaryTab = true;
 };
 
+template <typename Base, bool ComputeValuesVal> struct WithComputeValues;
+using IDESolverConfig = WithComputeValues<IDESolverConfigBase, true>;
+using IFDSSolverConfig = WithComputeValues<IDESolverConfigBase, false>;
+
 template <typename Base, bool ComputeValuesVal>
-struct WithComputeValues : Base {
+struct [[clang::preferred_name(IDESolverConfig),
+         clang::preferred_name(IFDSSolverConfig)]]
+WithComputeValues : Base {
   static constexpr bool ComputeValues = ComputeValuesVal;
 };
 
-template <typename Base, JumpFunctionGCMode GCMode> struct WithGCMode : Base {
-  static constexpr JumpFunctionGCMode EnableJumpFunctionGC = GCMode;
-};
+template <typename Base, bool EnableStats> struct WithStats;
+using IDESolverConfigWithStats = WithStats<IDESolverConfig, true>;
+using IFDSSolverConfigWithStats = WithStats<IFDSSolverConfig, true>;
 
-template <typename Base, bool EnableStats> struct WithStats : Base {
+template <typename Base, bool EnableStats>
+struct [[clang::preferred_name(IDESolverConfigWithStats),
+         clang::preferred_name(IFDSSolverConfigWithStats)]] WithStats : Base {
   static constexpr bool EnableStatistics = EnableStats;
 };
 
@@ -77,15 +85,18 @@ struct WithWorkList : Base {
 };
 
 template <typename Base, bool UseEST> struct WithEndSummaryTab : Base {
-  static inline constexpr bool UseEndSummaryTab = UseEST;
+  static constexpr bool UseEndSummaryTab = UseEST;
 };
 
-using IDESolverConfig = WithComputeValues<IDESolverConfigBase, true>;
-using IFDSSolverConfig = WithComputeValues<IDESolverConfigBase, false>;
-using IDESolverConfigWithStats = WithStats<IDESolverConfig, true>;
-using IFDSSolverConfigWithStats = WithStats<IFDSSolverConfig, true>;
+template <typename Base, JumpFunctionGCMode GCMode> struct WithGCMode;
+
 using IFDSSolverConfigWithStatsAndGC =
     WithGCMode<IFDSSolverConfigWithStats, JumpFunctionGCMode::Enabled>;
+template <typename Base, JumpFunctionGCMode GCMode>
+struct [[clang::preferred_name(IFDSSolverConfigWithStatsAndGC)]] WithGCMode
+    : Base {
+  static constexpr JumpFunctionGCMode EnableJumpFunctionGC = GCMode;
+};
 
 template <typename ProblemTy>
 struct DefaultIDESolverConfig : IDESolverConfig {};

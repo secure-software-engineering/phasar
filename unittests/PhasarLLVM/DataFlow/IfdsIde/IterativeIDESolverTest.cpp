@@ -15,6 +15,7 @@
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/Support/TypeName.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -41,15 +42,14 @@ protected:
                        Soundness::Soundy, /*IncludeGlobals*/ true);
 
     IDELinearConstantAnalysis Problem(&IRDB, &ICFG, {"main"});
-    IterativeIDESolver<IDELinearConstantAnalysis, SolverConfigTy> Solver(
-        &Problem, &ICFG);
+    IterativeIDESolver Solver(&Problem, &ICFG, SolverConfigTy{});
 
     auto Start = std::chrono::steady_clock::now();
     Solver.solve();
     auto End = std::chrono::steady_clock::now();
     auto NewTime = End - Start;
-    llvm::errs() << "IterativeIDESolver Elapsed:\t" << NewTime.count()
-                 << "ns\n";
+    llvm::errs() << llvm::getTypeName<decltype(Solver)>() << " Elapsed:\t"
+                 << NewTime.count() << "ns\n";
 
     IDESolver OldSolver(&Problem, &ICFG);
     Start = std::chrono::steady_clock::now();
@@ -89,16 +89,15 @@ protected:
                        Soundness::Soundy, /*IncludeGlobals*/ true);
 
     IDELinearConstantAnalysis Problem(&IRDB, &ICFG, {"main"});
-    IterativeIDESolver<IDELinearConstantAnalysis, SolverConfigTy> Solver(
-        &Problem, &ICFG);
+    IterativeIDESolver Solver(&Problem, &ICFG, SolverConfigTy{});
 
     auto Start = std::chrono::steady_clock::now();
     std::atomic_bool Cancel = false;
     auto _ = Solver.solveWithAsyncCancellation(Cancel);
     auto End = std::chrono::steady_clock::now();
     auto NewTime = End - Start;
-    llvm::errs() << "IterativeIDESolver Elapsed:\t" << NewTime.count()
-                 << "ns\n";
+    llvm::errs() << llvm::getTypeName<decltype(Solver)>() << " Elapsed:\t"
+                 << NewTime.count() << "ns\n";
 
     IDESolver OldSolver(&Problem, &ICFG);
     Start = std::chrono::steady_clock::now();

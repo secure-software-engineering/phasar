@@ -25,7 +25,7 @@
 #include <sstream>
 #include <utility>
 
-namespace psr {
+using namespace psr;
 
 DOTNode::DOTNode(std::string FName, std::string L, std::string SId,
                  unsigned FId, bool IsStmt, bool IsV)
@@ -199,7 +199,7 @@ void DOTFunctionSubGraph::createLayoutFactEdges() {
   }
 }
 
-bool operator<(const DOTNode &Lhs, const DOTNode &Rhs) {
+bool psr::operator<(const DOTNode &Lhs, const DOTNode &Rhs) {
   StringIDLess StrLess;
   // comparing control flow nodes
   if (Lhs.FactId == 0 && Rhs.FactId == 0) {
@@ -211,32 +211,11 @@ bool operator<(const DOTNode &Lhs, const DOTNode &Rhs) {
   return Lhs.FactId < Rhs.FactId;
 }
 
-bool operator==(const DOTNode &Lhs, const DOTNode &Rhs) {
-  return !(Lhs < Rhs) && !(Rhs < Lhs);
-}
-
-std::ostream &operator<<(std::ostream &OS, const DOTNode &Node) {
-  return OS << Node.str();
-}
-
-bool operator<(const DOTEdge &Lhs, const DOTEdge &Rhs) {
+bool psr::operator<(const DOTEdge &Lhs, const DOTEdge &Rhs) {
   if (Lhs.Source == Rhs.Source) {
     return Lhs.Target < Rhs.Target;
   }
   return Lhs.Source < Rhs.Source;
-}
-
-std::ostream &operator<<(std::ostream &OS, const DOTEdge &Edge) {
-  return OS << Edge.str();
-}
-
-std::ostream &operator<<(std::ostream &OS, const DOTFactSubGraph &FactSG) {
-  return OS << FactSG.str();
-}
-
-std::ostream &operator<<(std::ostream &OS,
-                         const DOTFunctionSubGraph &FunctionSG) {
-  return OS << FunctionSG.str();
 }
 
 DOTConfig &DOTConfig::getDOTConfig() {
@@ -303,5 +282,3 @@ void DOTConfig::importDOTConfig(llvm::StringRef ConfigPath) {
     throw std::ios_base::failure(FilePath.string() + " is not a valid path");
   }
 }
-
-} // namespace psr

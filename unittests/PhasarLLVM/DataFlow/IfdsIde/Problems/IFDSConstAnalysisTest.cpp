@@ -56,11 +56,11 @@ protected:
   }
 
   void compareResultsImpl(const std::set<const llvm::Value *> &GroundTruth,
-                          IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                          auto &&SR) {
     std::set<const llvm::Value *> AllMutableAllocas;
 
     for (const auto *RR : getRetOrResInstructions()) {
-      std::set<const llvm::Value *> Facts = Solver.ifdsResultsAt(RR);
+      std::set<const llvm::Value *> Facts = SR.ifdsResultsAt(RR);
       for (const auto *Fact : Facts) {
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
@@ -75,18 +75,18 @@ protected:
   }
 
   void compareResults(const std::set<TestingSrcLocation> &GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                      auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationSetInIR(GroundTruth, HA->getProjectIRDB());
 
-    compareResultsImpl(GroundTruthEntries, Solver);
+    compareResultsImpl(GroundTruthEntries, Solver.getSolverResults());
   }
   void compareResults(std::initializer_list<TestingSrcLocation> GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                      auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationSetInIR(GroundTruth, HA->getProjectIRDB());
 
-    compareResultsImpl(GroundTruthEntries, Solver);
+    compareResultsImpl(GroundTruthEntries, Solver.getSolverResults());
   }
 };
 
