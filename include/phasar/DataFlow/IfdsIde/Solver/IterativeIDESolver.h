@@ -154,54 +154,7 @@ public:
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
-    OS << "\n***************************************************************\n"
-       << "*                  Raw IDESolver results                      *\n"
-       << "***************************************************************\n";
-    auto Cells = this->base_results_t::ValTab_cellVec();
-    if (Cells.empty()) {
-      OS << "No results computed!\n";
-      return;
-    }
-
-    std::sort(Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
-      if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-        return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
-                              getMetaDataID(Rhs.getRowKey()));
-      } else {
-        // If non-LLVM IR is used
-        return Lhs.getRowKey() < Rhs.getRowKey();
-      }
-    });
-
-    n_t Prev{};
-    n_t Curr{};
-    f_t PrevFn{};
-    f_t CurrFn{};
-
-    for (const auto &Cell : Cells) {
-      Curr = Cell.getRowKey();
-      CurrFn = ICFG.getFunctionOf(Curr);
-      if (PrevFn != CurrFn) {
-        PrevFn = CurrFn;
-        OS << "\n\n============ Results for function '" +
-                  ICFG.getFunctionName(CurrFn) + "' ============\n";
-      }
-      if (Prev != Curr) {
-        Prev = Curr;
-        std::string NString = NToString(Curr);
-        std::string Line(NString.size(), '-');
-
-        OS << "\n\nN: " << NString << "\n---" << Line << '\n';
-      }
-      OS << "\tD: " << DToString(Cell.getColumnKey());
-      if constexpr (ComputeValues) {
-        OS << " | V: " << LToString(Cell.getValue());
-      }
-
-      OS << '\n';
-    }
-
-    OS << '\n';
+    getSolverResults().dumpResults(ICFG, OS);
   }
 
   [[nodiscard]] IterativeIDESolverStats getStats() const noexcept

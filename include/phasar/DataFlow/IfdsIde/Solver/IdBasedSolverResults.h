@@ -3,6 +3,7 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverResults.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -38,7 +39,7 @@ public:
 
       // --v Needed for llvm::mapped_iterator
       // NOLINTNEXTLINE(readability-const-return-type)
-      const std::pair<const d_t &, const l_t &>
+      const std::pair<ByConstRef<d_t>, ByConstRef<l_t>>
       operator()(ByConstRef<typename row_map_t::value_type> Entry) const {
         return {Results->FactCompressor[Entry.first],
                 Results->ValCompressor[Entry.second]};
@@ -88,6 +89,7 @@ public:
     }
 
     [[nodiscard]] size_t size() const noexcept { return Row->size(); }
+    [[nodiscard]] bool empty() const noexcept { return Row->empty(); }
 
   private:
     const detail::IterativeIDESolverResults<n_t, d_t, l_t> *Results{};
@@ -181,6 +183,45 @@ public:
     }
   }
 
+  /// Returns the data-flow results at the given statement while respecting
+  /// LLVM's SSA semantics.
+  ///
+  /// An example: when a value is loaded and the location loaded from, here
+  /// variable 'i', is a data-flow fact that holds, then the loaded value '%0'
+  /// will usually be generated and also holds. However, due to the underlying
+  /// theory (and respective implementation) this load instruction causes the
+  /// loaded value to be generated and thus, it will be valid only AFTER the
+  /// load instruction, i.e., at the successor instruction.
+  ///
+  ///   %0 = load i32, i32* %i, align 4
+  ///
+  /// This result accessor function returns the results at the successor
+  /// instruction(s) reflecting that the expression on the left-hand side holds
+  /// if the expression on the right-hand side holds.
+  [[nodiscard]] std::unordered_map<d_t, l_t>
+  resultsAtInLLVMSSA(ByConstRef<n_t> Stmt,
+                     bool AllowOverapproximation = false) const
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>;
+
+  /// Returns the L-type result at the given statement for the given data-flow
+  /// fact while respecting LLVM's SSA semantics.
+  ///
+  /// An example: when a value is loaded and the location loaded from, here
+  /// variable 'i', is a data-flow fact that holds, then the loaded value '%0'
+  /// will usually be generated and also holds. However, due to the underlying
+  /// theory (and respective implementation) this load instruction causes the
+  /// loaded value to be generated and thus, it will be valid only AFTER the
+  /// load instruction, i.e., at the successor instruction.
+  ///
+  ///   %0 = load i32, i32* %i, align 4
+  ///
+  /// This result accessor function returns the results at the successor
+  /// instruction(s) reflecting that the expression on the left-hand side holds
+  /// if the expression on the right-hand side holds.
+  [[nodiscard]] l_t resultAtInLLVMSSA(ByConstRef<n_t> Stmt, d_t Value,
+                                      bool AllowOverapproximation = false) const
+    requires same_as_decay<std::remove_pointer_t<n_t>, llvm::Instruction>;
+
   template <typename ICFGTy>
   void dumpResults(const ICFGTy &ICF,
                    llvm::raw_ostream &OS = llvm::outs()) const;
@@ -272,10 +313,17 @@ void detail::IdBasedSolverResultsBase<Derived, N, D, L>::dumpResults(
     }
   });
 
+  OS << "\n***************************************************************\n"
+     << "*                  Raw IterativeIDESolver results             *\n"
+     << "***************************************************************\n";
+
   f_t PrevFn = f_t{};
   f_t CurrFn = f_t{};
 
   for (const auto &[Row, Column] : ResultEntries) {
+    if (Column.empty()) {
+      continue;
+    }
     CurrFn = ICF.getFunctionOf(Row);
     if (PrevFn != CurrFn) {
       PrevFn = CurrFn;
