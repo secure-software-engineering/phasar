@@ -3,14 +3,21 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolverResults.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
 
 #include <cassert>
 #include <cstddef>
 #include <set>
 #include <unordered_map>
 #include <utility>
+
+namespace llvm {
+class Instruction;
+class Value;
+} // namespace llvm
 
 namespace psr {
 
@@ -174,6 +181,10 @@ public:
     }
   }
 
+  template <typename ICFGTy>
+  void dumpResults(const ICFGTy &ICF,
+                   llvm::raw_ostream &OS = llvm::outs()) const;
+
 private:
   [[nodiscard]] constexpr const auto &results() const noexcept {
     return static_cast<const Derived *>(this)->resultsImpl();
@@ -219,6 +230,17 @@ public:
     assert(this->Results != nullptr);
   }
 
+  [[nodiscard]] IdBasedSolverResults<N, D, L> get() const & noexcept {
+    return {Results.get()};
+  }
+  IdBasedSolverResults<N, D, L> get() && = delete;
+
+  [[nodiscard]] operator IdBasedSolverResults<N, D, L>() const & noexcept {
+    return get();
+  }
+
+  operator IdBasedSolverResults<N, D, L>() && = delete;
+
 private:
   [[nodiscard]] constexpr const auto &resultsImpl() const noexcept {
     assert(Results != nullptr);
@@ -227,6 +249,50 @@ private:
 
   std::unique_ptr<const detail::IterativeIDESolverResults<N, D, L>> Results{};
 };
+
+// For sorting the results in dumpResults()
+std::string getMetaDataID(const llvm::Value *V);
+
+template <typename Derived, typename N, typename D, typename L>
+template <typename ICFGTy>
+void detail::IdBasedSolverResultsBase<Derived, N, D, L>::dumpResults(
+    const ICFGTy &ICF, llvm::raw_ostream &OS) const {
+  using f_t = typename ICFGTy::f_t;
+
+  auto ResultEntries = llvm::to_vector(getAllResultEntries());
+
+  std::ranges::sort(ResultEntries, [](const auto &Lhs, const auto &Rhs) {
+    const auto &LRow = std::get<0>(Lhs);
+    const auto &RRow = std::get<0>(Rhs);
+    if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
+      return StringIDLess{}(getMetaDataID(LRow), getMetaDataID(RRow));
+    } else {
+      // If non-LLVM IR is used
+      return LRow < RRow;
+    }
+  });
+
+  f_t PrevFn = f_t{};
+  f_t CurrFn = f_t{};
+
+  for (const auto &[Row, Column] : ResultEntries) {
+    CurrFn = ICF.getFunctionOf(Row);
+    if (PrevFn != CurrFn) {
+      PrevFn = CurrFn;
+      OS << "\n\n============ Results for function '" +
+                ICF.getFunctionName(CurrFn) + "' ============\n";
+    }
+
+    std::string NString = NToString(Row);
+    std::string Line(NString.size(), '-');
+    OS << "\n\nN: " << NString << "\n---" << Line << '\n';
+
+    for (const auto &[Col, Val] : Column) {
+      OS << "\tD: " << DToString(Col) << " | V: " << LToString(Val) << '\n';
+    }
+  }
+  OS << '\n';
+}
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_IDBASEDSOLVERRESULTS_H
