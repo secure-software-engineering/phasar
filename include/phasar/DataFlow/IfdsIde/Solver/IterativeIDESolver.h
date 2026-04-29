@@ -54,7 +54,8 @@ namespace psr {
 /// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
 template <typename ProblemTy,
-          typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>>
+          typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>,
+          ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t>
 class IterativeIDESolver
     : private SolverStatsSelector<StaticSolverConfigTy>,
       private detail::IterativeIDESolverResults<
@@ -68,9 +69,10 @@ class IterativeIDESolver
           typename StaticSolverConfigTy::template EdgeFunctionPtrType<
               typename ProblemTy::ProblemAnalysisDomain::l_t>>,
       public IDESolverAPIMixin<
-          IterativeIDESolver<ProblemTy, StaticSolverConfigTy>> {
+          IterativeIDESolver<ProblemTy, StaticSolverConfigTy, ICFGTy>> {
 
-  friend IDESolverAPIMixin<IterativeIDESolver<ProblemTy, StaticSolverConfigTy>>;
+  friend IDESolverAPIMixin<
+      IterativeIDESolver<ProblemTy, StaticSolverConfigTy, ICFGTy>>;
 
 public:
   using domain_t = typename ProblemTy::ProblemAnalysisDomain;
@@ -81,7 +83,7 @@ public:
   using v_t = typename domain_t::v_t;
   using l_t = std::conditional_t<StaticSolverConfigTy::ComputeValues,
                                  typename domain_t::l_t, BinaryDomain>;
-  using i_t = typename domain_t::i_t;
+  using i_t = ICFGTy;
 
   using config_t = StaticSolverConfigTy;
 
@@ -124,30 +126,12 @@ private:
 
   using typename base_t::summaries_t;
 
-  static inline constexpr JumpFunctionGCMode EnableJumpFunctionGC =
+  static constexpr JumpFunctionGCMode EnableJumpFunctionGC =
       StaticSolverConfigTy::EnableJumpFunctionGC;
 
-  static inline ProblemTy &assertNotNull(ProblemTy *Problem) noexcept {
-    /// Dereferencing a nullptr is UB, so after initializing this->Problem the
-    /// null-check might be optimized away to the literal 'true'.
-    /// However, we still want to pass a pointer to the ctor to make clear that
-    /// the _reference_ of the problem is captured.
-    assert(Problem &&
-           "IterativeIDESolver: The IDETabulationProblem must not be null!");
-    return *Problem;
-  }
-
-  static inline const i_t &assertNotNull(const i_t *ICFG) noexcept {
-    /// Dereferencing a nullptr is UB, so after initializing this->ICFG the
-    /// null-check might be optimized away to the literal 'true'.
-    /// However, we still want to pass a pointer to the ctor to make clear that
-    /// the _reference_ of the problem is captured.
-    assert(ICFG && "IterativeIDESolver: The ICFG must not be null!");
-    return *ICFG;
-  }
-
 public:
-  IterativeIDESolver(ProblemTy *Problem, const i_t *ICFG) noexcept
+  IterativeIDESolver(ProblemTy *Problem, const ICFGTy *ICFG,
+                     StaticSolverConfigTy /*Config*/ = {}) noexcept
       : Problem(assertNotNull(Problem)), ICFG(assertNotNull(ICFG)) {}
 
   auto solve() & {
@@ -170,54 +154,7 @@ public:
   }
 
   void dumpResults(llvm::raw_ostream &OS = llvm::outs()) const {
-    OS << "\n***************************************************************\n"
-       << "*                  Raw IDESolver results                      *\n"
-       << "***************************************************************\n";
-    auto Cells = this->base_results_t::ValTab_cellVec();
-    if (Cells.empty()) {
-      OS << "No results computed!\n";
-      return;
-    }
-
-    std::sort(Cells.begin(), Cells.end(), [](const auto &Lhs, const auto &Rhs) {
-      if constexpr (std::is_same_v<n_t, const llvm::Instruction *>) {
-        return StringIDLess{}(getMetaDataID(Lhs.getRowKey()),
-                              getMetaDataID(Rhs.getRowKey()));
-      } else {
-        // If non-LLVM IR is used
-        return Lhs.getRowKey() < Rhs.getRowKey();
-      }
-    });
-
-    n_t Prev{};
-    n_t Curr{};
-    f_t PrevFn{};
-    f_t CurrFn{};
-
-    for (const auto &Cell : Cells) {
-      Curr = Cell.getRowKey();
-      CurrFn = ICFG.getFunctionOf(Curr);
-      if (PrevFn != CurrFn) {
-        PrevFn = CurrFn;
-        OS << "\n\n============ Results for function '" +
-                  ICFG.getFunctionName(CurrFn) + "' ============\n";
-      }
-      if (Prev != Curr) {
-        Prev = Curr;
-        std::string NString = NToString(Curr);
-        std::string Line(NString.size(), '-');
-
-        OS << "\n\nN: " << NString << "\n---" << Line << '\n';
-      }
-      OS << "\tD: " << DToString(Cell.getColumnKey());
-      if constexpr (ComputeValues) {
-        OS << " | V: " << LToString(Cell.getValue());
-      }
-
-      OS << '\n';
-    }
-
-    OS << '\n';
+    getSolverResults().dumpResults(ICFG, OS);
   }
 
   [[nodiscard]] IterativeIDESolverStats getStats() const noexcept
@@ -369,8 +306,6 @@ private:
   }
 
   void performDataflowFactPropagation() {
-    // submitInitialSeeds();
-
     std::atomic_bool Finished = true;
     do {
       /// NOTE: Have a separate function on the worklist to process it, to
@@ -869,10 +804,6 @@ private:
         auto ExitId = NodeCompressor.getOrInsert(ExitInst);
 
         if constexpr (!UseEndSummaryTab) {
-          // Summaries = JumpFunctions[ExitId].cellVec([FactId](const auto &Kvp)
-          // {
-          //   return splitId(Kvp.first).first == FactId;
-          // });
           Summaries = JumpFunctions[ExitId].allOf(
               [](uint64_t Key) { return splitId(Key).first; }, FactId,
               [](uint64_t Key) { return splitId(Key).second; });
@@ -911,7 +842,7 @@ private:
     for (ByConstRef<n_t> SP : ICFG.getStartPointsOf(Callee)) {
       auto SPId = NodeCompressor.getOrInsert(SP);
       auto &JumpFn = JumpFunctions[SPId];
-      // bool HasResults = !JumpFn.empty();
+
       for (ByConstRef<d_t> Fact : CalleeFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
 
@@ -928,8 +859,6 @@ private:
         }();
 
         storeResultsAndPropagate(JumpFn, SPId, FactId, FactId, CalleeId, IdEF);
-
-        // CallWL.insert(combineIds(FactId, CalleeId));
 
         auto It = &AllInterPropagationsOwner.emplace_back(InterPropagationJob{
             CallEF, SourceFactId, CalleeId, AtInstructionId, FactId});
@@ -1081,10 +1010,6 @@ private:
         /// map we are iterating over is bad
 
         if constexpr (!UseEndSummaryTab) {
-          // Summaries = JumpFunctions[ExitId].cellVec(
-          //     [SPFactId{SPFactId}](const auto &Kvp) {
-          //       return splitId(Kvp.first).first == SPFactId;
-          //     });
           Summaries = JumpFunctions[ExitId].allOf(
               [](uint64_t Key) { return splitId(Key).first; }, SPFactId,
               [](uint64_t Key) { return splitId(Key).second; });
@@ -1311,8 +1236,6 @@ private:
   }
 
   void cleanupInterJobsFor(unsigned FunId) {
-    /// XXX: Use std::erase_if when upgrading to C++20
-
     auto Cells = SourceFactAndFuncToInterJob.cells();
     for (auto Iter = Cells.begin(), End = Cells.end(); Iter != End;) {
       auto It = Iter++;
@@ -1361,7 +1284,7 @@ private:
   }
 
   ProblemTy &Problem;
-  const i_t &ICFG;
+  const ICFGTy &ICFG;
 
   Compressor<f_t> FunCompressor{};
 
@@ -1402,10 +1325,6 @@ private:
 
   llvm::OwningArrayRef<size_t> RefCountPerFunction{};
   llvm::BitVector CandidateFunctionsForGC{};
-
-  // FlowFunctionCache<ProblemTy, StaticSolverConfigTy::AutoAddZero> FFCache{
-  //     &MRes};
-  // EdgeFunctionCache<ProblemTy> EFCache{&MRes};
 
   flow_edge_function_cache_t FECache{Problem};
 };

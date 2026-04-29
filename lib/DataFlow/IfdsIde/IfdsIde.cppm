@@ -40,7 +40,6 @@ using psr::EdgeIdentity;
 using psr::IdeAnalysisDomain;
 using psr::IfdsAnalysisDomain;
 using psr::IsEdgeFunction;
-using psr::operator==;
 using psr::operator<<;
 using psr::addSeedsForStartingPoints;
 using psr::AllTopFnProvider;

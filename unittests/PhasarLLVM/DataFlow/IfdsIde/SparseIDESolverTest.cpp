@@ -1,6 +1,7 @@
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
+#include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedICFG.h"
@@ -50,8 +51,8 @@ TEST_P(LinearConstant, SparseResultsEquivalent) {
   IDELinearConstantAnalysis LCAProblem(&IRDB, &ICF, Entry);
   IDELinearConstantAnalysis SLCAProblem(&IRDB, &SICF, Entry);
 
-  auto DenseResults = IDESolver(LCAProblem, &ICF).solve();
-  auto SparseResults = IDESolver(SLCAProblem, &SICF).solve();
+  auto DenseResults = IDESolver(&LCAProblem, &ICF).solve();
+  auto SparseResults = IDESolver(&SLCAProblem, &SICF).solve();
 
   DenseResults.dumpResults(ICF, llvm::outs() << "DenseResults:");
   SparseResults.dumpResults(SICF, llvm::outs() << "SparseResults:");
@@ -102,8 +103,8 @@ TEST_P(DoubleFreeTA, SparseLeaksEquivalent) {
   IFDSTaintAnalysis TaintProblem(&IRDB, &PT, &Config, Entry);
   IFDSTaintAnalysis STaintProblem(&IRDB, &PT, &Config, Entry);
 
-  auto DenseResults = IDESolver(TaintProblem, &ICF).solve();
-  auto SparseResults = IDESolver(STaintProblem, &SICF).solve();
+  auto DenseResults = IFDSSolver(&TaintProblem, &ICF).solve();
+  auto SparseResults = IFDSSolver(&STaintProblem, &SICF).solve();
 
   for (const auto &[LeakInst, Leaks] : TaintProblem.Leaks) {
     auto LeakIt = STaintProblem.Leaks.find(LeakInst);
