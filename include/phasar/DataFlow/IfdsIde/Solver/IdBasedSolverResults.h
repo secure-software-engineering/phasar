@@ -272,7 +272,7 @@ public:
   }
 
   [[nodiscard]] IdBasedSolverResults<N, D, L> get() const & noexcept {
-    return {Results.get()};
+    return IdBasedSolverResults<N, D, L>{Results.get()};
   }
   IdBasedSolverResults<N, D, L> get() && = delete;
 
