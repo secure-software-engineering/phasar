@@ -90,10 +90,7 @@ protected:
    * @param groundTruth results to compare against
    * @param solver provides the results
    */
-  void compareResults(
-      const GroundTruthMapTy &GroundTruth,
-      IDESolver_P<IDETypeStateAnalysis<CSTDFILEIOTypeStateDescription>>
-          &Solver) {
+  void compareResults(const GroundTruthMapTy &GroundTruth, auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationMapMapInIR(GroundTruth, HA->getProjectIRDB());
 

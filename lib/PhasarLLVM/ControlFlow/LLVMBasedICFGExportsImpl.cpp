@@ -79,6 +79,8 @@ LLVMBasedICFG::exportICFGAsDot(bool WithSourceCodeInfo) const {
       if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(InterTo)) {
         InterTo = InterTo->getNextNonDebugInstruction(false);
       }
+#else
+      (void)IgnoreDbgInstructions;
 #endif
 
       // createEdge(From, InterTo);

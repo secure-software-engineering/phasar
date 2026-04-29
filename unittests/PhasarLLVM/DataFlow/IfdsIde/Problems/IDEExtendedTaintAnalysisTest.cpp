@@ -9,6 +9,7 @@
 
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
+#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
@@ -81,12 +82,11 @@ protected:
 
     TaintProblem.emitTextReport(Solver.getSolverResults());
 
-    compareResults(TaintProblem, Solver, GroundTruth);
+    compareResults(TaintProblem, Solver.getSolverResults(), GroundTruth);
   }
 
   void
-  compareResults(IDEExtendedTaintAnalysis<> &TaintProblem,
-                 IDESolver_P<IDEExtendedTaintAnalysis<>> &Solver,
+  compareResults(IDEExtendedTaintAnalysis<> &TaintProblem, auto &&SR,
                  const std::map<TestingSrcLocation, TaintSetT> &GroundTruth) {
     auto GroundTruthEntries = convertTestingLocationSetMapInIR(
         GroundTruth, *TaintProblem.getProjectIRDB());
@@ -94,8 +94,7 @@ protected:
     std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
         FoundLeaks;
 
-    for (const auto &[LeakInst, LeakVals] :
-         TaintProblem.getAllLeaks(Solver.getSolverResults())) {
+    for (const auto &[LeakInst, LeakVals] : TaintProblem.getAllLeaks(SR)) {
       FoundLeaks[LeakInst].insert(LeakVals.begin(), LeakVals.end());
     }
 

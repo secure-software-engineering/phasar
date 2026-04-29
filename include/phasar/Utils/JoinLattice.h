@@ -65,7 +65,8 @@ public:
 template <typename L> struct NonTopBotValue {
   using type = L;
 
-  static L unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {
+  constexpr static L
+  unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {
     return Value;
   }
 };

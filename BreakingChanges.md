@@ -2,7 +2,10 @@
 
 ## development HEAD
 
-*None*
+- Removed the CRTP-template `ProjectIRDBBase`. Use the concept `ProjectIRDB` instead.
+- Remove `EdgeFunction<L>::equals`. Use `operator==` instead.
+- Remove ctor-overloads of `LLVMProjectIRDB` that use the `EnableOpaquePointers` parameter. LLVM is removing support for opaque pointers. Use the other ctors instead.
+- Removed type-trait `has_getAsJson`, as it is not used in our codebase anymore. We switched from `getAsJson` to `printAsJson` a while ago.
 
 ## v2604
 
