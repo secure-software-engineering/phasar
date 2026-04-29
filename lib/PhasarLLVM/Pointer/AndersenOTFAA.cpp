@@ -26,13 +26,9 @@
 #include "llvm/Support/Casting.h"
 
 #include <cassert>
-#include <cstdint>
 #include <optional>
 
 using namespace psr;
-
-// Sentinel: non-pointer argument slot (no ValueId assigned).
-static constexpr ValueId NoArgId = ValueId(UINT32_MAX);
 
 struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Per-node state -------------------------------------------------
@@ -44,18 +40,25 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     llvm::SmallDenseSet<ValueId, 4> AssignDstSet; // dedup guard
     // Load constraints: dst = *this.
     llvm::SmallVector<ValueId, 1> LoadDsts;
+    llvm::SmallDenseSet<ValueId, 2> LoadDstSet; // dedup guard
     // Store constraints: *this = src.
     llvm::SmallVector<ValueId, 1> StoreSrcs;
+    llvm::SmallDenseSet<ValueId, 2> StoreSrcSet; // dedup guard
     // MemCopy: memcpy(dst_ptr, this=src_ptr).
     llvm::SmallVector<ValueId, 1> MemCopyAsSrc;
+    llvm::SmallDenseSet<ValueId, 2> MemCopyAsSrcSet; // dedup guard
     // MemCopy: memcpy(this=dst_ptr, src_ptr).
     llvm::SmallVector<ValueId, 1> MemCopyAsDst;
+    llvm::SmallDenseSet<ValueId, 2> MemCopyAsDstSet; // dedup guard
   };
+
+  // One set of ValueIds per call argument; empty means non-pointer.
+  using ArgList = llvm::SmallVector<llvm::SmallVector<ValueId, 2>>;
 
   struct FPCallRecord {
     const llvm::CallBase *CS;
     ValueId FPId;
-    llvm::SmallVector<ValueId, 4> Args;
+    ArgList Args;
     std::optional<ValueId> CSRetVal;
   };
 
@@ -112,11 +115,12 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return getOrInsert(PAGVariable(V));
   }
 
-  ValueId rep(ValueId V) const { return SCCUf.find(V); }
+  [[nodiscard]] ValueId rep(ValueId V) const { return SCCUf.find(V); }
 
   // Merges the SCCs containing A and B.  Returns the new representative.
   // Folds all pts/edges/constraints from the non-rep into the rep, then
-  // clears the non-rep's NodeInfo.
+  // clears the non-rep's NodeInfo.  All NonRep data is snapshotted before any
+  // addAssignEdge call to avoid reference invalidation via grow().
   ValueId merge(ValueId A, ValueId B) {
     A = rep(A);
     B = rep(B);
@@ -126,10 +130,23 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     const ValueId Rep = SCCUf.join(A, B);
     const ValueId NonRep = (Rep == A) ? B : A;
 
-    // Steal assign edges from NonRep and re-register under Rep.
-    llvm::SmallVector<ValueId, 2> NRDsts = std::move(Nodes[NonRep].AssignDsts);
+    // Snapshot all NonRep data before any addAssignEdge / grow calls that
+    // may reallocate Nodes and invalidate references.
+    llvm::SmallVector<ValueId, 2> NRAssignDsts =
+        std::move(Nodes[NonRep].AssignDsts);
     Nodes[NonRep].AssignDstSet.clear();
-    for (ValueId Dst : NRDsts) {
+    const RawAliasSet<ValueId> NRPts = Nodes[NonRep].PtsSet;
+    llvm::SmallVector<ValueId, 2> NRLoadDsts =
+        std::move(Nodes[NonRep].LoadDsts);
+    llvm::SmallVector<ValueId, 2> NRStoreSrcs =
+        std::move(Nodes[NonRep].StoreSrcs);
+    llvm::SmallVector<ValueId, 2> NRMemCopyAsSrc =
+        std::move(Nodes[NonRep].MemCopyAsSrc);
+    llvm::SmallVector<ValueId, 2> NRMemCopyAsDst =
+        std::move(Nodes[NonRep].MemCopyAsDst);
+
+    // Re-register NonRep's assign edges under Rep.
+    for (ValueId Dst : NRAssignDsts) {
       const ValueId DstRep = rep(Dst);
       if (DstRep != Rep) {
         addAssignEdge(Rep, DstRep);
@@ -137,33 +154,60 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     // Merge pts sets.
-    bool PtsGrew = false;
-    Nodes[NonRep].PtsSet.foreach ([&](ValueId Obj) {
-      if (Nodes[Rep].PtsSet.tryInsert(Obj)) {
-        PtsGrew = true;
-      }
-    });
+    const bool PtsGrew = Nodes[Rep].PtsSet.tryMergeWith(NRPts);
     if (PtsGrew) {
       PropWorklist.push_back(Rep);
     }
 
-    // Merge complex constraints.
-    auto &RepNode = Nodes[Rep];
-    auto &NRNode = Nodes[NonRep];
-    for (ValueId D : NRNode.LoadDsts) {
-      RepNode.LoadDsts.push_back(D);
-    }
-    for (ValueId S : NRNode.StoreSrcs) {
-      RepNode.StoreSrcs.push_back(S);
-    }
-    for (ValueId D : NRNode.MemCopyAsSrc) {
-      RepNode.MemCopyAsSrc.push_back(D);
-    }
-    for (ValueId S : NRNode.MemCopyAsDst) {
-      RepNode.MemCopyAsDst.push_back(S);
+    // Snapshot Rep's pts (after merge) for retroactive constraint firing.
+    const RawAliasSet<ValueId> RepPts = Nodes[Rep].PtsSet;
+
+    // Transfer NonRep's load constraints and retroactively fire them for
+    // Rep's existing pts members.
+    for (ValueId D : NRLoadDsts) {
+      if (Nodes[Rep].LoadDstSet.insert(D).second) {
+        Nodes[Rep].LoadDsts.push_back(D);
+        RepPts.foreach ([&](ValueId Obj) { addAssignEdge(Obj, D); });
+      }
     }
 
-    NRNode = NodeInfo{};
+    // Transfer NonRep's store constraints with retroactive firing.
+    for (ValueId S : NRStoreSrcs) {
+      if (Nodes[Rep].StoreSrcSet.insert(S).second) {
+        Nodes[Rep].StoreSrcs.push_back(S);
+        RepPts.foreach ([&](ValueId Obj) { addAssignEdge(S, Obj); });
+      }
+    }
+
+    // Transfer NonRep's memcpy-as-src constraints with retroactive firing.
+    for (ValueId D : NRMemCopyAsSrc) {
+      if (Nodes[Rep].MemCopyAsSrcSet.insert(D).second) {
+        Nodes[Rep].MemCopyAsSrc.push_back(D);
+        if (Nodes.inbounds(D)) {
+          // Snapshot DstPtr's pts: addAssignEdge may resize Nodes.
+          const RawAliasSet<ValueId> DstPts = Nodes[D].PtsSet;
+          RepPts.foreach ([&](ValueId O1) {
+            DstPts.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
+          });
+        }
+      }
+    }
+
+    // Transfer NonRep's memcpy-as-dst constraints with retroactive firing.
+    for (ValueId S : NRMemCopyAsDst) {
+      if (Nodes[Rep].MemCopyAsDstSet.insert(S).second) {
+        Nodes[Rep].MemCopyAsDst.push_back(S);
+        if (Nodes.inbounds(S)) {
+          // Snapshot SrcPtr's pts: addAssignEdge may resize Nodes.
+          const RawAliasSet<ValueId> SrcPts = Nodes[S].PtsSet;
+          SrcPts.foreach ([&](ValueId O1) {
+            RepPts.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
+          });
+        }
+      }
+    }
+
+    Nodes[NonRep] = NodeInfo{};
     return Rep;
   }
 
@@ -202,13 +246,21 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   // ---- Constraint insertion -------------------------------------------
+  //
+  // INVARIANT: every method resolves all ids through rep() first, then calls
+  // grow() for all ids before accessing Nodes by reference.  Any grow() call
+  // may reallocate the Nodes backing array, so no NodeInfo& must be held
+  // across a grow() call or across any call that may invoke grow() (i.e.
+  // addAssignEdge, addPointee, etc.).  Where the existing pts set must be
+  // iterated while addAssignEdge is called inside, the pts set is first
+  // copied into a local snapshot.
 
   void addPointee(ValueId Ptr, ValueId Obj) {
     Ptr = rep(Ptr);
     Obj = rep(Obj);
-    auto &PtrNode = grow(Ptr);
-    (void)grow(Obj);
-    if (PtrNode.PtsSet.tryInsert(Obj)) {
+    grow(Ptr);
+    grow(Obj); // grow before indexing Nodes[Ptr]
+    if (Nodes[Ptr].PtsSet.tryInsert(Obj)) {
       PropWorklist.push_back(Ptr);
     }
   }
@@ -219,11 +271,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (Src == Dst) {
       return;
     }
-    auto &SrcNode = grow(Src);
-    (void)grow(Dst);
-    if (SrcNode.AssignDstSet.insert(Dst).second) {
-      SrcNode.AssignDsts.push_back(Dst);
-      if (!SrcNode.PtsSet.empty()) {
+    grow(Src);
+    grow(Dst); // grow before indexing Nodes[Src]
+    if (Nodes[Src].AssignDstSet.insert(Dst).second) {
+      Nodes[Src].AssignDsts.push_back(Dst);
+      if (!Nodes[Src].PtsSet.empty()) {
         PropWorklist.push_back(Src);
       }
     }
@@ -232,58 +284,81 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   void addLoad(ValueId Ptr, ValueId Dst) {
     Ptr = rep(Ptr);
     Dst = rep(Dst);
-    auto &PtrNode = grow(Ptr);
-    (void)grow(Dst);
-    PtrNode.PtsSet.foreach ([&](ValueId Obj) { addAssignEdge(Obj, Dst); });
-    PtrNode.LoadDsts.push_back(Dst);
+    grow(Ptr);
+    grow(Dst); // grow before accessing Nodes[Ptr]
+    // Snapshot pts: addAssignEdge inside the lambda may resize Nodes.
+    const RawAliasSet<ValueId> ExistingPts = Nodes[Ptr].PtsSet;
+    ExistingPts.foreach ([&](ValueId Obj) { addAssignEdge(Obj, Dst); });
+    if (Nodes[Ptr].LoadDstSet.insert(Dst).second) {
+      Nodes[Ptr].LoadDsts.push_back(Dst);
+    }
   }
 
   void addStore(ValueId Ptr, ValueId Src) {
     Ptr = rep(Ptr);
     Src = rep(Src);
-    auto &PtrNode = grow(Ptr);
-    (void)grow(Src);
-    PtrNode.PtsSet.foreach ([&](ValueId Obj) { addAssignEdge(Src, Obj); });
-    PtrNode.StoreSrcs.push_back(Src);
+    grow(Ptr);
+    grow(Src); // grow before accessing Nodes[Ptr]
+    // Snapshot pts: addAssignEdge inside the lambda may resize Nodes.
+    const RawAliasSet<ValueId> ExistingPts = Nodes[Ptr].PtsSet;
+    ExistingPts.foreach ([&](ValueId Obj) { addAssignEdge(Src, Obj); });
+    if (Nodes[Ptr].StoreSrcSet.insert(Src).second) {
+      Nodes[Ptr].StoreSrcs.push_back(Src);
+    }
   }
 
   void addMemCopy(ValueId SrcPtr, ValueId DstPtr) {
     SrcPtr = rep(SrcPtr);
     DstPtr = rep(DstPtr);
-    auto &SrcNode = grow(SrcPtr);
-    auto &DstNode = grow(DstPtr);
-    SrcNode.PtsSet.foreach ([&](ValueId O1) {
-      DstNode.PtsSet.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
+    grow(SrcPtr);
+    grow(DstPtr); // grow before accessing Nodes[SrcPtr/DstPtr]
+    // Snapshot both pts sets: addAssignEdge inside the lambdas may resize
+    // Nodes, invalidating any reference into it.
+    const RawAliasSet<ValueId> SrcPts = Nodes[SrcPtr].PtsSet;
+    const RawAliasSet<ValueId> DstPts = Nodes[DstPtr].PtsSet;
+    SrcPts.foreach ([&](ValueId O1) {
+      DstPts.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
     });
-    SrcNode.MemCopyAsSrc.push_back(DstPtr);
-    DstNode.MemCopyAsDst.push_back(SrcPtr);
+    if (Nodes[SrcPtr].MemCopyAsSrcSet.insert(DstPtr).second) {
+      Nodes[SrcPtr].MemCopyAsSrc.push_back(DstPtr);
+    }
+    if (Nodes[DstPtr].MemCopyAsDstSet.insert(SrcPtr).second) {
+      Nodes[DstPtr].MemCopyAsDst.push_back(SrcPtr);
+    }
   }
 
   // ---- Propagation ----------------------------------------------------
 
   void onNewPointee(ValueId PtrRep, ValueId NewObj) {
     assert(Nodes.inbounds(PtrRep));
-    const auto &Node = Nodes[PtrRep];
+    // Snapshot all constraint lists before any addAssignEdge call: grow()
+    // inside addAssignEdge may reallocate Nodes, invalidating references.
+    const auto LoadDsts = Nodes[PtrRep].LoadDsts;
+    const auto StoreSrcs = Nodes[PtrRep].StoreSrcs;
+    const auto MemSrcs = Nodes[PtrRep].MemCopyAsSrc;
+    const auto MemDsts = Nodes[PtrRep].MemCopyAsDst;
 
-    for (ValueId Dst : Node.LoadDsts) {
+    for (ValueId Dst : LoadDsts) {
       addAssignEdge(NewObj, Dst);
     }
-    for (ValueId Src : Node.StoreSrcs) {
+    for (ValueId Src : StoreSrcs) {
       addAssignEdge(Src, NewObj);
     }
-    for (ValueId DstPtr : Node.MemCopyAsSrc) {
+    for (ValueId DstPtr : MemSrcs) {
       if (!Nodes.inbounds(DstPtr)) {
         continue;
       }
-      Nodes[DstPtr].PtsSet.foreach (
-          [&](ValueId O2) { addAssignEdge(NewObj, O2); });
+      // Snapshot DstPtr's pts: addAssignEdge may resize Nodes.
+      const RawAliasSet<ValueId> DstPts = Nodes[DstPtr].PtsSet;
+      DstPts.foreach ([&](ValueId O2) { addAssignEdge(NewObj, O2); });
     }
-    for (ValueId SrcPtr : Node.MemCopyAsDst) {
+    for (ValueId SrcPtr : MemDsts) {
       if (!Nodes.inbounds(SrcPtr)) {
         continue;
       }
-      Nodes[SrcPtr].PtsSet.foreach (
-          [&](ValueId O1) { addAssignEdge(O1, NewObj); });
+      // Snapshot SrcPtr's pts: addAssignEdge may resize Nodes.
+      const RawAliasSet<ValueId> SrcPts = Nodes[SrcPtr].PtsSet;
+      SrcPts.foreach ([&](ValueId O1) { addAssignEdge(O1, NewObj); });
     }
   }
 
@@ -301,8 +376,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       }
 
       for (ValueId VSnap : Dsts) {
-        const ValueId V =
-            rep(VSnap); // re-resolve: prior merge may have changed rep
+        // Re-resolve: a prior iteration's merge() may have changed the rep.
+        const ValueId V = rep(VSnap);
         if (V == U || !Nodes.inbounds(V)) {
           continue;
         }
@@ -310,7 +385,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         RawAliasSet<ValueId> NewPts = Nodes[U].PtsSet;
         NewPts -= Nodes[V].PtsSet;
         if (NewPts.empty()) {
-          // LCD: direct back-edge V→U with pts(U) ⊆ pts(V) → cycle, collapse.
+          // LCD: direct back-edge V→U with pts(U)⊆pts(V) → 2-cycle, collapse.
           if (Nodes[V].AssignDstSet.contains(U)) {
             U = merge(U, V);
           }
@@ -472,7 +547,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Call-graph co-refinement ---------------------------------------
 
   void connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
-                     llvm::ArrayRef<ValueId> Args,
+                     llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
                      std::optional<ValueId> CSRetVal) {
     if (Callee->isDeclaration()) {
       return;
@@ -492,11 +567,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       addAssignEdge(RetSlotId, *CSRetVal);
     }
 
-    for (const auto &[Param, ArgId] : llvm::zip(Callee->args(), Args)) {
-      if (ArgId == NoArgId || definitelyContainsNoPointer(&Param)) {
+    for (const auto &[Param, ArgIds] : llvm::zip(Callee->args(), Args)) {
+      if (ArgIds.empty() || definitelyContainsNoPointer(&Param)) {
         continue;
       }
-      addAssignEdge(ArgId, getOrInsert(&Param));
+      const ValueId ParamId = getOrInsert(&Param);
+      for (ValueId ArgId : ArgIds) {
+        addAssignEdge(ArgId, ParamId);
+      }
     }
 
     propagate();
@@ -507,15 +585,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return;
     }
 
-    llvm::SmallVector<ValueId, 4> Args;
+    // Build one entry per call argument: empty inner vector = non-pointer.
+    ArgList Args;
     for (const auto &Arg : C->args()) {
-      if (definitelyContainsNoPointer(Arg.get())) {
-        Args.push_back(NoArgId);
-        continue;
+      llvm::SmallVector<ValueId, 2> ArgIds;
+      if (!definitelyContainsNoPointer(Arg.get())) {
+        forEachOpId(Arg.get(), [&](ValueId Id) { ArgIds.push_back(Id); });
       }
-      ValueId ArgId = NoArgId;
-      forEachOpId(Arg.get(), [&](ValueId Id) { ArgId = Id; });
-      Args.push_back(ArgId);
+      Args.push_back(std::move(ArgIds));
     }
 
     std::optional<ValueId> CSRetVal;
@@ -537,7 +614,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(FPId)) {
         return;
       }
-      Nodes[FPId].PtsSet.foreach ([&](ValueId ObjId) {
+      // Snapshot pts(FPId): connectCallee→propagate() may grow pts(FPId).
+      const RawAliasSet<ValueId> FPPts = Nodes[FPId].PtsSet;
+      FPPts.foreach ([&](ValueId ObjId) {
         if (!Nodes.inbounds(ObjId)) {
           return;
         }
@@ -565,7 +644,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(Rec.FPId)) {
         continue;
       }
-      Nodes[Rec.FPId].PtsSet.foreach ([&](ValueId ObjId) {
+      // Snapshot pts(FPId): connectCallee→propagate() may grow it.
+      const RawAliasSet<ValueId> FPPts = Nodes[Rec.FPId].PtsSet;
+      FPPts.foreach ([&](ValueId ObjId) {
         if (!Nodes.inbounds(ObjId)) {
           return;
         }
