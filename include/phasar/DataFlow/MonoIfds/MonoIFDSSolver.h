@@ -435,16 +435,16 @@ private:
     Nullable<n_t> CurrInst = BlockStart;
 
     do {
-      auto Last = CurrInst;
+      auto Last = unwrapNullable(CurrInst);
 
       do {
-        analyzeInstruction(IState, LocalState, CurrFunId,
-                           unwrapNullable(CurrInst));
-        Last = CurrInst;
+        auto Curr = unwrapNullable(CurrInst);
+        analyzeInstruction(IState, LocalState, CurrFunId, Curr);
+        Last = Curr;
         if constexpr (IsBlockAwareControlFlow<i_t>) {
-          CurrInst = ICF->getUniqueSuccessor(unwrapNullable(CurrInst));
+          CurrInst = ICF->getUniqueSuccessor(Curr);
         } else {
-          const auto &Succs = ICF->getSuccsOf(unwrapNullable(CurrInst));
+          const auto &Succs = ICF->getSuccsOf(Curr);
           if (Succs.size() == 1) {
             CurrInst = Succs[0];
           } else {
@@ -456,7 +456,7 @@ private:
       Nullable<n_t> UniqueSucc{};
 
       // We have at least one instruction, so we can safely unwrap here
-      const auto &Succs = ICF->getSuccsOf(unwrapNullable(Last));
+      const auto &Succs = ICF->getSuccsOf(Last);
       const auto SuccSz = Succs.size();
       const bool HasSingleSucc = SuccSz == 1;
       for (const auto &Succ : Succs) {

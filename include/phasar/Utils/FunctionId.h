@@ -12,8 +12,6 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/StrongTypeDef.h"
 
-#include "llvm/IR/Function.h"
-
 #include <cstdint>
 
 PHASAR_STRONG_TYPEDEF(psr, uint32_t, FunctionId);

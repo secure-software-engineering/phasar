@@ -16,7 +16,7 @@
 
 namespace psr::monoifds {
 /// See SootUp's
-/// [UniversePriorityQueue](https://github.com/soot-oss/SootUp/blob/develop/sootup.analysis.intraprocedural/src/main/java/sootup/analysis/intraprocedural/UniverseSortedPriorityQueue.java)
+/// [UniverseSortedPriorityQueue](https://github.com/soot-oss/SootUp/blob/develop/sootup.analysis.intraprocedural/src/main/java/sootup/analysis/intraprocedural/UniverseSortedPriorityQueue.java)
 template <typename ItemT> class TopoFixpointDriver {
 public:
   TopoFixpointDriver() noexcept = default;
