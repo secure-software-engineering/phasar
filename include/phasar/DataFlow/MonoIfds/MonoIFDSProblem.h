@@ -9,8 +9,8 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/DataFlow/MonoIfds/DataFlowEnvironment.h"
-#include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/FunctionId.h"
 #include "phasar/Utils/SCCId.h"
@@ -35,7 +35,7 @@ namespace psr::monoifds {
 
 /// \brief Defines requirements for a MonoIFDS-compatible analysis domain.
 template <typename T>
-concept MonoIFDSAnalysisDomain = IsAnalysisDomain<T>;
+concept MonoIFDSAnalysisDomain = IfdsAnalysisDomain<T>;
 
 /// \brief CG-SCC-local analysis
 template <typename T, typename Dom>
