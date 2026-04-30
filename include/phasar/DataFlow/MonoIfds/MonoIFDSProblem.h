@@ -50,12 +50,14 @@ concept LocalMonoIFDSProblem =
       ///
       /// Corresponds to the $flow()$ function in the paper.
       Problem.normalFlow(InOut, Inst);
+
       /// Intra-procedural data-flow at call-sites. Input facts are passed-in as
       /// InOut; modifications are performed in-place. Kills facts that may be
       /// strongly updated by the callee. Don't use it to *generate* facts.
       ///
       /// Corresponds to the $callFlow()$ function in the paper.
       Problem.callToRetFlow(InOut, Inst);
+
       /// Inter-procedural data-flow at exit-statements; Maps callee-facts back
       /// to the return-site in the caller. As with normal IFDS, this function
       /// will be called for each incoming Fact, that should be mapped back;
@@ -88,13 +90,18 @@ concept LocalMonoIFDSProblem =
         Problem.summaryFlow(In, InOut, Inst, Fun)
       } -> std::convertible_to<bool>;
 
-      /// The special zero value, aka. $\Lambda$. Always holds. Facts that are
-      /// generated unconditionally originate from zero.
+      /// The special zero-value, aka. $\Lambda$. Always holds. Facts that are
+      /// generated unconditionally, originate from zero.
+      ///
+      /// Note: The solver guarantees that the zero-value always has
+      /// SourceFactId 0.
       { Problem.getZeroValue() } -> std::convertible_to<typename Dom::d_t>;
 
       /// Approximates the source-facts that should hold at the entry of Fun.
       /// Input the facts in the InOut map as
       /// `SeedState[Fact].insert(SeedCompressor.getOrInsert(Fact))`
+      ///
+      /// Note: This is assumed to be a (conservative) over-approximation!
       Problem.initialSeeds(InOut, SeedCompressor, Fun);
 
       /// At a call-site Inst calling Fun, invokes the given callback for each
@@ -111,16 +118,20 @@ concept LocalMonoIFDSProblem =
       Problem.generateFacts(Inst, [](const typename Dom::d_t & GenFact) {});
 
       /// Invokes the given callback for each LeakFact for which the solver
-      /// should call onResult(Inst, LeakFact), if LeakFacts holds at Inst.
+      /// should later call onResult(Inst, LeakFact), if LeakFacts holds at
+      /// Inst. Here, Inst is assumed to be a call-site that may call Fun.
       ///
       /// Useful for taint sinks.
-      Problem.requestedEffectAtCall(Inst, Fun,
-                                    [](const typename Dom::d_t & LeakFact) {});
+      Problem.requestResultCallbackAtCallSite(
+          Inst, Fun, [](const typename Dom::d_t & LeakFact) {});
+
       /// Invokes the given callback for each LeakFact for which the solver
-      /// should call onResult(Inst, LeakFact), if LeakFacts holds at Inst.
+      /// should later call onResult(Inst, LeakFact), if LeakFacts holds at
+      /// Inst.
       ///
       /// Useful for taint sinks.
-      Problem.requestedEffect(Inst, [](const typename Dom::d_t & LeakFact) {});
+      Problem.requestResultCallback(Inst,
+                                    [](const typename Dom::d_t & LeakFact) {});
 
       /// Notifies the problem that a previously requested leak-Fact now is
       /// known to hold at Inst.
@@ -149,5 +160,16 @@ concept MonoIFDSProblem =
 
       /// Pretty-print the analysis results into the given llvm::raw_ostream.
       Problem.emitTextReport(OS);
+    };
+
+/// Optional requirement for a MonoIFDSProblem to better filter function
+/// summaries.
+template <typename T>
+concept HasShouldBeInSummary =
+    requires(T &Problem, typename T::ProblemAnalysisDomain::d_t ExitFact,
+             typename T::ProblemAnalysisDomain::n_t ExitInst) {
+      {
+        Problem.shouldBeInSummary(ExitFact, ExitInst)
+      } -> std::convertible_to<bool>;
     };
 } // namespace psr::monoifds

@@ -551,11 +551,7 @@ private:
     auto &Sum = Summaries[CurrFunId].EndSummary;
 
     for (auto &&[ExitFact, ExitSrc] : LocalState) {
-      if constexpr (requires(ProblemT &P) {
-                      {
-                        P.shouldBeInSummary(ExitFact, Inst)
-                      } -> std::convertible_to<bool>;
-                    }) {
+      if constexpr (HasShouldBeInSummary<ProblemT>) {
         if (!Problem->shouldBeInSummary(ExitFact, Inst)) {
           continue;
         }
@@ -675,7 +671,7 @@ private:
                            "[handleCallSrcSinksAndMayRecurse]: At call to "
                                << FToString(CalleeFun));
 
-      IState.LocalProblem.requestedEffectAtCall(
+      IState.LocalProblem.requestResultCallbackAtCallSite(
           Inst, CalleeFun, [&](ByConstRef<d_t> LeakFact) {
             PHASAR_LOG_LEVEL_CAT(
                 DEBUG, LogCategory,
@@ -708,7 +704,7 @@ private:
   void handleSourceSinkConfig(IntermediateState &IState,
                               DataFlowEnvironment<d_t> &LocalState,
                               FunctionId CurrFunId, n_t Inst) {
-    IState.LocalProblem.requestedEffect(Inst, [&](const auto &LeakFact) {
+    IState.LocalProblem.requestResultCallback(Inst, [&](const auto &LeakFact) {
       if (const auto *LeakSrc = getOrNull(LocalState, LeakFact)) {
         reportOrPropagateLeak(IState, CurrFunId, Inst, LeakFact, *LeakSrc);
       }

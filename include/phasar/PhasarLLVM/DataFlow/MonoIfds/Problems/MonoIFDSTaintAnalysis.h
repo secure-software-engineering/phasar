@@ -79,9 +79,11 @@ public:
     void generateFacts(n_t CS, llvm::function_ref<void(d_t)> GenFact) {
       // XXX: Implement (was not necessary for paper eval)
     }
-    void requestedEffectAtCall(n_t CS, f_t Callee,
-                               llvm::function_ref<void(d_t)> LeakFact);
-    void requestedEffect(n_t Inst, llvm::function_ref<void(d_t)> LeakFact) {
+    void
+    requestResultCallbackAtCallSite(n_t CS, f_t Callee,
+                                    llvm::function_ref<void(d_t)> LeakFact);
+    void requestResultCallback(n_t Inst,
+                               llvm::function_ref<void(d_t)> LeakFact) {
       // XXX: Implement (was not necessary for paper eval)
     }
     void onResult(n_t Inst, d_t Fact) {

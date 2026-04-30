@@ -286,7 +286,7 @@ void monoifds::TaintAnalysis::LocalAnalysis::generateFactsAtCall(
                        });
 }
 
-void monoifds::TaintAnalysis::LocalAnalysis::requestedEffectAtCall(
+void monoifds::TaintAnalysis::LocalAnalysis::requestResultCallbackAtCallSite(
     n_t CS, f_t Callee, llvm::function_ref<void(d_t)> LeakFact) {
   forallLeakedFacts(*TA->Config, llvm::cast<llvm::CallBase>(CS), Callee,
                     LeakFact);
