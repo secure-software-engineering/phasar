@@ -215,7 +215,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">bool</span> needs_cache_v =</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      std::is_same_v&lt;std::shared_ptr&lt;FlowFunction&lt;d_t&gt;&gt;, T&gt; ||</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      std::is_same_v&lt;std::unique_ptr&lt;FlowFunction&lt;d_t&gt;&gt;, T&gt; ||</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      std::is_same_v&lt;GenericFlowFunction&lt;d_t&gt;, T&gt; ||</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>      (detail::IsFlowFunctionPtr&lt;T, d_t&gt; &amp;&amp; !std::is_pointer_v&lt;T&gt;);</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>};</div>
@@ -477,7 +477,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 29 2026 16:15:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat May 2 2026 08:54:08 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -16,5 +16,6 @@ var searchData=
   ['psr_5fconstinit_13',['PSR_CONSTINIT',['../Macros_8h.html#ae8830b04d087aada14410389c3c95cfc',1,'Macros.h']]],
   ['psr_5fdeprecated_14',['PSR_DEPRECATED',['../Macros_8h.html#a844bf3de25eb667d9146fceaa8db9846',1,'Macros.h']]],
   ['psr_5ffwd_15',['PSR_FWD',['../Macros_8h.html#a886bb5afef08c49ad3edb43f16df19b0',1,'Macros.h']]],
-  ['psr_5finitializer_16',['PSR_INITIALIZER',['../InitPhasar_8h.html#a229517fa88a6b7cbea209bcd0fe9f9c3',1,'InitPhasar.h']]]
+  ['psr_5finitializer_16',['PSR_INITIALIZER',['../InitPhasar_8h.html#a229517fa88a6b7cbea209bcd0fe9f9c3',1,'InitPhasar.h']]],
+  ['psr_5flifetimebound_17',['PSR_LIFETIMEBOUND',['../Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46',1,'Macros.h']]]
 ];

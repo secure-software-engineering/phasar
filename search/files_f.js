@@ -17,11 +17,12 @@ var searchData=
   ['phasarprinterpass_2eh_14',['PhasarPrinterPass.h',['../PhasarPrinterPass_8h.html',1,'']]],
   ['pointer_2eh_15',['pointer.h',['../PhasarLLVM_2Pointer_8h.html',1,'(Global Namespace)'],['../Pointer_8h.html',1,'(Global Namespace)']]],
   ['pointerassignmentgraph_2eh_16',['PointerAssignmentGraph.h',['../PointerAssignmentGraph_8h.html',1,'']]],
-  ['pointerutils_2eh_17',['PointerUtils.h',['../PointerUtils_8h.html',1,'']]],
-  ['pointstoinfo_2eh_18',['PointsToInfo.h',['../PointsToInfo_8h.html',1,'']]],
-  ['pointstoinfobase_2eh_19',['PointsToInfoBase.h',['../PointsToInfoBase_8h.html',1,'']]],
-  ['pointstoiterator_2eh_20',['PointsToIterator.h',['../PointsToIterator_8h.html',1,'']]],
-  ['precomputedresolver_2eh_21',['PrecomputedResolver.h',['../PrecomputedResolver_8h.html',1,'']]],
-  ['printer_2eh_22',['Printer.h',['../Printer_8h.html',1,'']]],
-  ['projectirdb_2eh_23',['ProjectIRDB.h',['../ProjectIRDB_8h.html',1,'']]]
+  ['pointerproxy_2eh_17',['PointerProxy.h',['../PointerProxy_8h.html',1,'']]],
+  ['pointerutils_2eh_18',['PointerUtils.h',['../PointerUtils_8h.html',1,'']]],
+  ['pointstoinfo_2eh_19',['PointsToInfo.h',['../PointsToInfo_8h.html',1,'']]],
+  ['pointstoinfobase_2eh_20',['PointsToInfoBase.h',['../PointsToInfoBase_8h.html',1,'']]],
+  ['pointstoiterator_2eh_21',['PointsToIterator.h',['../PointsToIterator_8h.html',1,'']]],
+  ['precomputedresolver_2eh_22',['PrecomputedResolver.h',['../PrecomputedResolver_8h.html',1,'']]],
+  ['printer_2eh_23',['Printer.h',['../Printer_8h.html',1,'']]],
+  ['projectirdb_2eh_24',['ProjectIRDB.h',['../ProjectIRDB_8h.html',1,'']]]
 ];

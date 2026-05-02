@@ -97,7 +97,7 @@ $(function() {
 <div class="dynheader">
 Inheritance diagram for psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structpsr_1_1EquivalenceClassMap__inherit__graph.svg" width="291" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structpsr_1_1EquivalenceClassMap__inherit__graph.svg" width="282" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -157,6 +157,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a92a0f3a1214d1bb7fe5d6d17f5f781de" id="r_a92a0f3a1214d1bb7fe5d6d17f5f781de"><td class="memTemplParams" colspan="2">template&lt;typename... Ts&gt; </td></tr>
 <tr class="memitem:a92a0f3a1214d1bb7fe5d6d17f5f781de"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1EquivalenceClassMap.html#a93cb68272f03b5c8e7c2cd8da57e2a59">insert_return_type</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1EquivalenceClassMap.html#a92a0f3a1214d1bb7fe5d6d17f5f781de">try_emplace</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> &amp;Key, <a class="el" href="classpsr_1_1Ts.html">Ts</a> &amp;&amp;...<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>)</td></tr>
 <tr class="separator:a92a0f3a1214d1bb7fe5d6d17f5f781de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a103ad86552702827b9c30f6718cb93af" id="r_a103ad86552702827b9c30f6718cb93af"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KK</a>  = KeyT, std::invocable&lt;&gt; VCtor, std::invocable&lt;&gt; OnHitFn = psr::TrueFn&gt; </td></tr>
+<tr class="memitem:a103ad86552702827b9c30f6718cb93af"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ValueT &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1EquivalenceClassMap.html#a103ad86552702827b9c30f6718cb93af">getOrInsertLazy</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KK</a> &amp;&amp;Key, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VCtor</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MakeV</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OnHitFn</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OnHit</a>={})</td></tr>
+<tr class="separator:a103ad86552702827b9c30f6718cb93af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11d7378c828d6c3f44b6fdf3d3bf8917" id="r_a11d7378c828d6c3f44b6fdf3d3bf8917"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1EquivalenceClassMap.html#aa9f1f3046bbd9c1fb6c5e4ee945df2c9">size_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1EquivalenceClassMap.html#a11d7378c828d6c3f44b6fdf3d3bf8917">count</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> &amp;Key) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
 <tr class="memdesc:a11d7378c828d6c3f44b6fdf3d3bf8917"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return 1 if the specified key is in the map, 0 otherwise.  <br /></td></tr>
 <tr class="separator:a11d7378c828d6c3f44b6fdf3d3bf8917"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,7 +180,7 @@ Public Member Functions</h2></td></tr>
 struct psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;</div><p><a class="el" href="structpsr_1_1EquivalenceClassMap.html" title="EquivalenceClassMap is a special map type that splits the keys into equivalence classes regarding the...">EquivalenceClassMap</a> is a special map type that splits the keys into equivalence classes regarding their mapped values. </p>
 <p>Meaning, that all keys that are equivalent are mapped to the same value. Two keys are treated as equivalent and merged into an equivalence class when they refer to Values that are considered equal according to operator==. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00032">32</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00036">36</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a0ac3fdb6b97be9aeeeb2fdd88d2f9d4d" name="a0ac3fdb6b97be9aeeeb2fdd88d2f9d4d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ac3fdb6b97be9aeeeb2fdd88d2f9d4d">&#9670;&#160;</a></span>const_iterator</h2>
@@ -193,7 +196,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00045">45</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00049">49</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -211,7 +214,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00034">34</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00038">38</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -229,7 +232,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00047">47</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00051">51</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -247,7 +250,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00041">41</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00045">45</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -265,7 +268,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00042">42</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00046">46</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -285,7 +288,7 @@ template&lt;typename... Ts&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00033">33</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00037">37</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -303,7 +306,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00040">40</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00044">44</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -321,7 +324,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00037">37</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00041">41</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -339,7 +342,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00043">43</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00047">47</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -370,7 +373,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00050">50</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00054">54</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -412,9 +415,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00055">55</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00059">59</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00076">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00078">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>.</p>
 
 </div>
 </div>
@@ -444,9 +447,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00059">59</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00063">63</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00076">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00078">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>.</p>
 
 </div>
 </div>
@@ -476,9 +479,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00064">64</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00068">68</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00069">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::equivalenceClasses()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00071">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::equivalenceClasses()</a>.</p>
 
 </div>
 </div>
@@ -507,7 +510,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00172">172</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00196">196</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -539,7 +542,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Return 1 if the specified key is in the map, 0 otherwise. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00139">139</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00165">165</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -568,9 +571,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00067">67</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00069">69</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00069">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::equivalenceClasses()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00071">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::equivalenceClasses()</a>.</p>
 
 </div>
 </div>
@@ -599,9 +602,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00069">69</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00071">71</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00064">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::begin()</a>, and <a class="el" href="EquivalenceClassMap_8h_source.html#l00067">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::end()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00068">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::begin()</a>, and <a class="el" href="EquivalenceClassMap_8h_source.html#l00069">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::end()</a>.</p>
 
 </div>
 </div>
@@ -631,9 +634,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00157">157</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00181">181</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00164">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::findValue()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00188">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::findValue()</a>.</p>
 
 </div>
 </div>
@@ -663,9 +666,57 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00164">164</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00188">188</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00157">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::find()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00181">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::find()</a>.</p>
+
+</div>
+</div>
+<a id="a103ad86552702827b9c30f6718cb93af" name="a103ad86552702827b9c30f6718cb93af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a103ad86552702827b9c30f6718cb93af">&#9670;&#160;</a></span>getOrInsertLazy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> ValueT &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KK</a>  = KeyT, std::invocable&lt;&gt; VCtor, std::invocable&lt;&gt; OnHitFn = psr::TrueFn&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> ValueT &amp; <a class="el" href="structpsr_1_1EquivalenceClassMap.html">psr::EquivalenceClassMap</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KeyT</a>, ValueT &gt;::getOrInsertLazy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">KK</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>Key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VCtor</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>MakeV</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OnHitFn</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>OnHit</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00142">142</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -708,11 +759,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Inserts Key into the corresponding equivalence class for Value. If Value is not already in the map a new equivalence class is created. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00076">76</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00078">78</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00109">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00111">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00055">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::EquivalenceClassMap()</a>, and <a class="el" href="EquivalenceClassMap_8h_source.html#l00059">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::EquivalenceClassMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00059">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::EquivalenceClassMap()</a>, and <a class="el" href="EquivalenceClassMap_8h_source.html#l00063">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::EquivalenceClassMap()</a>.</p>
 
 </div>
 </div>
@@ -743,9 +794,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Inserts Key into the corresponding equivalence class for Value. If Value is not already in the map a new equivalence class is created. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00089">89</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00091">91</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00109">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00111">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -789,9 +840,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Insert a range of Key Values pairs into the map. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00100">100</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00102">102</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00109">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00111">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -834,9 +885,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Inserts Key into the corresponding equivalence class for Value. If Value is not already in the map a new equivalence class is created. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00083">83</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00085">85</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00109">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00111">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -867,9 +918,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 <p>Inserts Key into the corresponding equivalence class for Value. If Value is not already in the map a new equivalence class is created. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00095">95</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00097">97</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00109">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00111">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::try_emplace()</a>.</p>
 
 </div>
 </div>
@@ -898,9 +949,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00148">148</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00174">174</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00153">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00179">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::size()</a>.</p>
 
 </div>
 </div>
@@ -931,9 +982,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Returns the size of the map, i.e., the number of equivalence classes. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00153">153</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00179">179</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00148">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::numEquivalenceClasses()</a>.</p>
+<p class="reference">References <a class="el" href="EquivalenceClassMap_8h_source.html#l00174">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::numEquivalenceClasses()</a>.</p>
 
 </div>
 </div>
@@ -976,7 +1027,7 @@ template&lt;typename... Ts&gt; </div>
 </div><div class="memdoc">
 <p>Inserts Key into the corresponding equivalence class for Value. If Value is not already in the map a new equivalence class is created. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00125">125</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00127">127</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
 </div>
 </div>
@@ -1019,9 +1070,9 @@ template&lt;typename... Ts&gt; </div>
 </div><div class="memdoc">
 <p>Inserts Key into the corresponding equivalence class for Value. If Value is not already in the map a new equivalence class is created. </p>
 
-<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00109">109</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="EquivalenceClassMap_8h_source.html#l00111">111</a> of file <a class="el" href="EquivalenceClassMap_8h_source.html">EquivalenceClassMap.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00076">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, <a class="el" href="EquivalenceClassMap_8h_source.html#l00089">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, <a class="el" href="EquivalenceClassMap_8h_source.html#l00100">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, <a class="el" href="EquivalenceClassMap_8h_source.html#l00083">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, and <a class="el" href="EquivalenceClassMap_8h_source.html#l00095">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="EquivalenceClassMap_8h_source.html#l00078">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, <a class="el" href="EquivalenceClassMap_8h_source.html#l00091">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, <a class="el" href="EquivalenceClassMap_8h_source.html#l00102">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, <a class="el" href="EquivalenceClassMap_8h_source.html#l00085">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>, and <a class="el" href="EquivalenceClassMap_8h_source.html#l00097">psr::EquivalenceClassMap&lt; KeyT, ValueT &gt;::insert()</a>.</p>
 
 </div>
 </div>
@@ -1031,7 +1082,7 @@ template&lt;typename... Ts&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 29 2026 16:15:47 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat May 2 2026 08:54:09 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

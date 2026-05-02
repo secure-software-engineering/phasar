@@ -192,7 +192,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">no_unique_address</a>]] std::decay_t&lt;DCtor&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactConstructor</a>;</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  };</div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  <span class="keywordflow">return</span> std::make_shared&lt;Mapper&gt;(CallSite, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateGlobals</a>,</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  <span class="keywordflow">return</span> std::make_unique&lt;Mapper&gt;(CallSite, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateGlobals</a>,</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>                                  std::forward&lt;Fn&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateArgs</a>),</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>                                  std::forward&lt;DCtor&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactConstructor</a>));</div>
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>}</div>
@@ -300,7 +300,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">no_unique_address</a>]] std::decay_t&lt;DCtor&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactConstructor</a>;</div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  };</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keywordflow">return</span> std::make_shared&lt;Mapper&gt;(CallSite, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DestFun</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateGlobals</a>,</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keywordflow">return</span> std::make_unique&lt;Mapper&gt;(CallSite, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DestFun</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateGlobals</a>,</div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>                                  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateZeroToCallee</a>,</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>                                  std::forward&lt;Fn&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateArgumentWithSource</a>),</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>                                  std::forward&lt;DCtor&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactConstructor</a>));</div>
@@ -412,7 +412,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">no_unique_address</a>]] std::decay_t&lt;PostProcessFn&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PostProcess</a>;</div>
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>  };</div>
 <div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  <span class="keywordflow">return</span> std::make_shared&lt;Mapper&gt;(</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  <span class="keywordflow">return</span> std::make_unique&lt;Mapper&gt;(</div>
 <div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>      CallSite, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ExitInst</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateGlobals</a>,</div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>      std::forward&lt;FnParam&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateParameter</a>),</div>
 <div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>      std::forward&lt;FnRet&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PropagateRet</a>), std::forward&lt;DCtor&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactConstructor</a>),</div>
@@ -463,7 +463,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>      [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">no_unique_address</a>]] std::decay_t&lt;Fn&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Pred</a>;</div>
 <div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>    };</div>
 <div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span> </div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>    <span class="keywordflow">return</span> std::make_shared&lt;StrongUpdateFlow&gt;(</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>    <span class="keywordflow">return</span> std::make_unique&lt;StrongUpdateFlow&gt;(</div>
 <div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>        Store-&gt;getPointerOperand(), <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BasePtrOp</a>,</div>
 <div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        std::forward&lt;Fn&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GeneratePointerOpIf</a>));</div>
 <div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>  }</div>
@@ -488,7 +488,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">no_unique_address</a>]] std::decay_t&lt;Fn&gt; <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Pred</a>;</div>
 <div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>  };</div>
 <div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span> </div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>  <span class="keywordflow">return</span> std::make_shared&lt;StrongUpdateFlow&gt;(</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>  <span class="keywordflow">return</span> std::make_unique&lt;StrongUpdateFlow&gt;(</div>
 <div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>      Store, std::forward&lt;Fn&gt;(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GeneratePointerOpIf</a>));</div>
 <div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>}</div>
 </div>
@@ -540,7 +540,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>      <span class="keyword">const</span> llvm::Value *<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BasePtrOp</a>;</div>
 <div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>    };</div>
 <div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span> </div>
-<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>    <span class="keywordflow">return</span> std::make_shared&lt;StrongUpdateFlow&gt;(Store, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BasePtrOp</a>);</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>    <span class="keywordflow">return</span> std::make_unique&lt;StrongUpdateFlow&gt;(Store, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">BasePtrOp</a>);</div>
 <div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>  }</div>
 <div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span> </div>
 <div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>  <span class="keyword">struct </span><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StrongUpdateFlow</a></div>
@@ -561,7 +561,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>    <span class="keyword">const</span> llvm::StoreInst *Store;</div>
 <div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>  };</div>
 <div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span> </div>
-<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>  <span class="keywordflow">return</span> std::make_shared&lt;StrongUpdateFlow&gt;(Store);</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>  <span class="keywordflow">return</span> std::make_unique&lt;StrongUpdateFlow&gt;(Store);</div>
 <div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>}</div>
 </div>
 <div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span> </div>
@@ -571,7 +571,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aFlowFunctions_8h_html"><div class="ttname"><a href="FlowFunctions_8h.html">FlowFunctions.h</a></div></div>
 <div class="ttc" id="aLLVMShorthands_8h_html"><div class="ttname"><a href="LLVMShorthands_8h.html">LLVMShorthands.h</a></div></div>
 <div class="ttc" id="aLLVMZeroValue_8h_html"><div class="ttname"><a href="LLVMZeroValue_8h.html">LLVMZeroValue.h</a></div></div>
-<div class="ttc" id="aclasspsr_1_1FlowFunction_html"><div class="ttname"><a href="classpsr_1_1FlowFunction.html">psr::FlowFunction</a></div><div class="ttdef"><b>Definition</b> <a href="FlowFunctions_8h_source.html#l00042">FlowFunctions.h:42</a></div></div>
+<div class="ttc" id="aclasspsr_1_1FlowFunction_html"><div class="ttname"><a href="classpsr_1_1FlowFunction.html">psr::FlowFunction</a></div><div class="ttdef"><b>Definition</b> <a href="FlowFunctions_8h_source.html#l00043">FlowFunctions.h:43</a></div></div>
 <div class="ttc" id="aclasspsr_1_1LLVMZeroValue_html_a632f1885195c87077f7b4ddbf41bdcaa"><div class="ttname"><a href="classpsr_1_1LLVMZeroValue.html#a632f1885195c87077f7b4ddbf41bdcaa">psr::LLVMZeroValue::isLLVMZeroValue</a></div><div class="ttdeci">static constexpr auto isLLVMZeroValue</div><div class="ttdef"><b>Definition</b> <a href="LLVMZeroValue_8h_source.html#l00067">LLVMZeroValue.h:67</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a18391e61c7e1db6fb0ba4d9102615dac"><div class="ttname"><a href="namespacepsr.html#a18391e61c7e1db6fb0ba4d9102615dac">psr::mapFactsToCaller</a></div><div class="ttdeci">FlowFunctionPtrType&lt; D, Container &gt; mapFactsToCaller(const llvm::CallBase *CallSite, const llvm::Instruction *ExitInst, FnParam &amp;&amp;PropagateParameter={}, FnRet &amp;&amp;PropagateRet={}, DCtor &amp;&amp;FactConstructor={}, bool PropagateGlobals=true, bool PropagateZeroToCaller=true, PostProcessFn &amp;&amp;PostProcess={})</div><div class="ttdef"><b>Definition</b> <a href="LLVMFlowFunctions_8h_source.html#l00240">LLVMFlowFunctions.h:240</a></div></div>
@@ -585,7 +585,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 29 2026 16:15:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat May 2 2026 08:54:08 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

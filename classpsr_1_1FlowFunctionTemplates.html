@@ -104,53 +104,55 @@ Public Types</h2></td></tr>
 <tr class="separator:a5196ea1f9a2f2537adfca8aef9359dbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb5403115276c51dfdeac3f0bc23f3d3" id="r_acb5403115276c51dfdeac3f0bc23f3d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#acb5403115276c51dfdeac3f0bc23f3d3">container_type</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a></td></tr>
 <tr class="separator:acb5403115276c51dfdeac3f0bc23f3d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5afa5c4a1b6e840804fc57223df81de" id="r_aa5afa5c4a1b6e840804fc57223df81de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> = <a class="el" href="namespacepsr.html#add33d940596eaff0ef8b39851bbfe6cc">psr::FlowFunctionPtrType</a>&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#acb5403115276c51dfdeac3f0bc23f3d3">container_type</a> &gt;</td></tr>
+<tr class="separator:aa5afa5c4a1b6e840804fc57223df81de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7693ec23881690be00ba5c21b22bffdf" id="r_a7693ec23881690be00ba5c21b22bffdf"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F1</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F2</a> &gt; <br />
+<tr class="memitem:a490199e24b0aebd722e0d087e444bb14" id="r_a490199e24b0aebd722e0d087e444bb14"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F1</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F2</a> &gt; <br />
 requires (std::is_same_v&lt;<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F2::value_type&gt; &amp;&amp; std::is_same_v&lt;<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#acb5403115276c51dfdeac3f0bc23f3d3">container_type</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F2::container_type&gt; &amp;&amp; std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F1::container_type, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F2::container_type&gt;)</td></tr>
-<tr class="memitem:a7693ec23881690be00ba5c21b22bffdf"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a7693ec23881690be00ba5c21b22bffdf">unionFlows</a> (<a class="el" href="namespacepsr.html#a0f6633babc7099a18f9c04d285a4fee2">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F1</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OneFF</a>, <a class="el" href="namespacepsr.html#a0f6633babc7099a18f9c04d285a4fee2">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F2</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OtherFF</a>)</td></tr>
-<tr class="separator:a7693ec23881690be00ba5c21b22bffdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a490199e24b0aebd722e0d087e444bb14"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a490199e24b0aebd722e0d087e444bb14">unionFlows</a> (<a class="el" href="namespacepsr.html#aba8dc3a590a0fd08f8fe1df28e33423a">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F1</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OneFF</a>, <a class="el" href="namespacepsr.html#aba8dc3a590a0fd08f8fe1df28e33423a">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F2</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">OtherFF</a>)</td></tr>
+<tr class="separator:a490199e24b0aebd722e0d087e444bb14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:add2d566d5c79a5f534c62a0a1d3c9b38" id="r_add2d566d5c79a5f534c62a0a1d3c9b38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#add2d566d5c79a5f534c62a0a1d3c9b38">identityFlow</a> ()</td></tr>
-<tr class="separator:add2d566d5c79a5f534c62a0a1d3c9b38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a147ba7bfdbfe0b5001d6e1943af5ed63" id="r_a147ba7bfdbfe0b5001d6e1943af5ed63"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn &gt; </td></tr>
-<tr class="memitem:a147ba7bfdbfe0b5001d6e1943af5ed63"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a147ba7bfdbfe0b5001d6e1943af5ed63">lambdaFlow</a> (Fn &amp;&amp;F)</td></tr>
-<tr class="separator:a147ba7bfdbfe0b5001d6e1943af5ed63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf9d8c5d164e07321b988a4c1c95e60b" id="r_aaf9d8c5d164e07321b988a4c1c95e60b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aaf9d8c5d164e07321b988a4c1c95e60b">generateFlow</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
-<tr class="separator:aaf9d8c5d164e07321b988a4c1c95e60b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2be8719fb69dde9475d66ebc788c175" id="r_ab2be8719fb69dde9475d66ebc788c175"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn  = psr::TrueFn&gt; <br />
+<tr class="memitem:a2a46ab06a3b39fd42b05854d0fdb3f4b" id="r_a2a46ab06a3b39fd42b05854d0fdb3f4b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a2a46ab06a3b39fd42b05854d0fdb3f4b">identityFlow</a> ()</td></tr>
+<tr class="separator:a2a46ab06a3b39fd42b05854d0fdb3f4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af79431433f72dda767e5c6d14836c57f" id="r_af79431433f72dda767e5c6d14836c57f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn &gt; </td></tr>
+<tr class="memitem:af79431433f72dda767e5c6d14836c57f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#af79431433f72dda767e5c6d14836c57f">lambdaFlow</a> (Fn &amp;&amp;F)</td></tr>
+<tr class="separator:af79431433f72dda767e5c6d14836c57f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa94810cc739302f361dcff8bb51e6c4" id="r_afa94810cc739302f361dcff8bb51e6c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#afa94810cc739302f361dcff8bb51e6c4">generateFlow</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
+<tr class="separator:afa94810cc739302f361dcff8bb51e6c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3aad4f8926169164a16850d0f54fa983" id="r_a3aad4f8926169164a16850d0f54fa983"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn  = psr::TrueFn&gt; <br />
 requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, Fn, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&gt;</td></tr>
-<tr class="memitem:ab2be8719fb69dde9475d66ebc788c175"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#ab2be8719fb69dde9475d66ebc788c175">generateFlowIf</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, Fn <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Predicate</a>)</td></tr>
-<tr class="separator:ab2be8719fb69dde9475d66ebc788c175"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb9c908f667a441c28a49d5262cd797f" id="r_abb9c908f667a441c28a49d5262cd797f"><td class="memTemplParams" colspan="2">template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> &gt; Range = std::initializer_list&lt;d_t&gt;&gt; </td></tr>
-<tr class="memitem:abb9c908f667a441c28a49d5262cd797f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#abb9c908f667a441c28a49d5262cd797f">generateManyFlows</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactsToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
-<tr class="separator:abb9c908f667a441c28a49d5262cd797f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa408cf54ca83d66d081cb8b0f379597f" id="r_aa408cf54ca83d66d081cb8b0f379597f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa408cf54ca83d66d081cb8b0f379597f">killFlow</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToKill</a>)</td></tr>
-<tr class="separator:aa408cf54ca83d66d081cb8b0f379597f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a415a7ad7ee0dbdb625e734bde92d5e81" id="r_a415a7ad7ee0dbdb625e734bde92d5e81"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn  = psr::TrueFn&gt; <br />
+<tr class="memitem:a3aad4f8926169164a16850d0f54fa983"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a3aad4f8926169164a16850d0f54fa983">generateFlowIf</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, Fn <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Predicate</a>)</td></tr>
+<tr class="separator:a3aad4f8926169164a16850d0f54fa983"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8dde1af78b938df5aa3ff423396035d3" id="r_a8dde1af78b938df5aa3ff423396035d3"><td class="memTemplParams" colspan="2">template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> &gt; Range = std::initializer_list&lt;d_t&gt;&gt; </td></tr>
+<tr class="memitem:a8dde1af78b938df5aa3ff423396035d3"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a8dde1af78b938df5aa3ff423396035d3">generateManyFlows</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactsToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
+<tr class="separator:a8dde1af78b938df5aa3ff423396035d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6d2adbf50242570d8e37c03f69e8cd3" id="r_ab6d2adbf50242570d8e37c03f69e8cd3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#ab6d2adbf50242570d8e37c03f69e8cd3">killFlow</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToKill</a>)</td></tr>
+<tr class="separator:ab6d2adbf50242570d8e37c03f69e8cd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1d419efa3afa580f414f8a60cd87d72" id="r_ad1d419efa3afa580f414f8a60cd87d72"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn  = psr::TrueFn&gt; <br />
 requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, Fn, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&gt;</td></tr>
-<tr class="memitem:a415a7ad7ee0dbdb625e734bde92d5e81"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a415a7ad7ee0dbdb625e734bde92d5e81">killFlowIf</a> (Fn <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Predicate</a>)</td></tr>
-<tr class="separator:a415a7ad7ee0dbdb625e734bde92d5e81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b0a79912a320a8e49c0edd3776b088b" id="r_a5b0a79912a320a8e49c0edd3776b088b"><td class="memTemplParams" colspan="2">template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> &gt; Range = std::initializer_list&lt;d_t&gt;&gt; </td></tr>
-<tr class="memitem:a5b0a79912a320a8e49c0edd3776b088b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5b0a79912a320a8e49c0edd3776b088b">killManyFlows</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactsToKill</a>)</td></tr>
-<tr class="separator:a5b0a79912a320a8e49c0edd3776b088b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8cd75ab690f50de16aa05ec9dd7ede6" id="r_af8cd75ab690f50de16aa05ec9dd7ede6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#af8cd75ab690f50de16aa05ec9dd7ede6">killAllFlows</a> ()</td></tr>
-<tr class="separator:af8cd75ab690f50de16aa05ec9dd7ede6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b930627df2266dd5abdc72ede27eb01" id="r_a1b930627df2266dd5abdc72ede27eb01"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a1b930627df2266dd5abdc72ede27eb01">generateFlowAndKillAllOthers</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
-<tr class="separator:a1b930627df2266dd5abdc72ede27eb01"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afeac57087bc9dea10ea075099b16bde8" id="r_afeac57087bc9dea10ea075099b16bde8"><td class="memTemplParams" colspan="2">template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> &gt; Range = std::initializer_list&lt;d_t&gt;&gt; </td></tr>
-<tr class="memitem:afeac57087bc9dea10ea075099b16bde8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#afeac57087bc9dea10ea075099b16bde8">generateManyFlowsAndKillAllOthers</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactsToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
-<tr class="separator:afeac57087bc9dea10ea075099b16bde8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae31cd099a93bc480d92490478fadec63" id="r_ae31cd099a93bc480d92490478fadec63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#ae31cd099a93bc480d92490478fadec63">transferFlow</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
-<tr class="separator:ae31cd099a93bc480d92490478fadec63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1d419efa3afa580f414f8a60cd87d72"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#ad1d419efa3afa580f414f8a60cd87d72">killFlowIf</a> (Fn <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Predicate</a>)</td></tr>
+<tr class="separator:ad1d419efa3afa580f414f8a60cd87d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa85dd481ce3a812af2f6158c89b07e37" id="r_aa85dd481ce3a812af2f6158c89b07e37"><td class="memTemplParams" colspan="2">template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> &gt; Range = std::initializer_list&lt;d_t&gt;&gt; </td></tr>
+<tr class="memitem:aa85dd481ce3a812af2f6158c89b07e37"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa85dd481ce3a812af2f6158c89b07e37">killManyFlows</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactsToKill</a>)</td></tr>
+<tr class="separator:aa85dd481ce3a812af2f6158c89b07e37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c87f536019133fd7b423396d422c967" id="r_a8c87f536019133fd7b423396d422c967"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a8c87f536019133fd7b423396d422c967">killAllFlows</a> ()</td></tr>
+<tr class="separator:a8c87f536019133fd7b423396d422c967"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33e2f8b83e7495f7c2b00b23544d1736" id="r_a33e2f8b83e7495f7c2b00b23544d1736"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a33e2f8b83e7495f7c2b00b23544d1736">generateFlowAndKillAllOthers</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
+<tr class="separator:a33e2f8b83e7495f7c2b00b23544d1736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e22e4afb2a60ffdcd332447434837c8" id="r_a3e22e4afb2a60ffdcd332447434837c8"><td class="memTemplParams" colspan="2">template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> &gt; Range = std::initializer_list&lt;d_t&gt;&gt; </td></tr>
+<tr class="memitem:a3e22e4afb2a60ffdcd332447434837c8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a3e22e4afb2a60ffdcd332447434837c8">generateManyFlowsAndKillAllOthers</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactsToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
+<tr class="separator:a3e22e4afb2a60ffdcd332447434837c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4503d9914204c05c17909c8e17e4ac7a" id="r_a4503d9914204c05c17909c8e17e4ac7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a4503d9914204c05c17909c8e17e4ac7a">transferFlow</a> (<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FactToGenerate</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>)</td></tr>
+<tr class="separator:a4503d9914204c05c17909c8e17e4ac7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>&gt;<br />
 class psr::FlowFunctionTemplates&lt; D, Container &gt;</div>
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00145">145</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00146">146</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="acb5403115276c51dfdeac3f0bc23f3d3" name="acb5403115276c51dfdeac3f0bc23f3d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acb5403115276c51dfdeac3f0bc23f3d3">&#9670;&#160;</a></span>container_type</h2>
@@ -166,7 +168,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00148">148</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00149">149</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 </div>
 </div>
@@ -184,13 +186,31 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00147">147</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00148">148</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+
+</div>
+</div>
+<a id="aa5afa5c4a1b6e840804fc57223df81de" name="aa5afa5c4a1b6e840804fc57223df81de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5afa5c4a1b6e840804fc57223df81de">&#9670;&#160;</a></span>FlowFunctionPtrType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::FlowFunctionPtrType =  <a class="el" href="namespacepsr.html#add33d940596eaff0ef8b39851bbfe6cc">psr::FlowFunctionPtrType</a>&lt;<a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>, <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#acb5403115276c51dfdeac3f0bc23f3d3">container_type</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00151">151</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aaf9d8c5d164e07321b988a4c1c95e60b" name="aaf9d8c5d164e07321b988a4c1c95e60b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf9d8c5d164e07321b988a4c1c95e60b">&#9670;&#160;</a></span>generateFlow()</h2>
+<a id="afa94810cc739302f361dcff8bb51e6c4" name="afa94810cc739302f361dcff8bb51e6c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa94810cc739302f361dcff8bb51e6c4">&#9670;&#160;</a></span>generateFlow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -201,7 +221,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateFlow </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateFlow </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&#160;</td>
           <td class="paramname"><em>FactToGenerate</em>, </td>
@@ -235,14 +255,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="line">     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a></div>
 </div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd>If the FactToGenerate already holds at the beginning of the statement, this flow function does not kill it. For IFDS analysis it makes no difference, but in the case of IDE, the corresponding edge functions are being joined together potentially lowering precision. If that is an issue, use transferFlow instead. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00228">228</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00234">234</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="a1b930627df2266dd5abdc72ede27eb01" name="a1b930627df2266dd5abdc72ede27eb01"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1b930627df2266dd5abdc72ede27eb01">&#9670;&#160;</a></span>generateFlowAndKillAllOthers()</h2>
+<a id="a33e2f8b83e7495f7c2b00b23544d1736" name="a33e2f8b83e7495f7c2b00b23544d1736"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33e2f8b83e7495f7c2b00b23544d1736">&#9670;&#160;</a></span>generateFlowAndKillAllOthers()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -253,7 +273,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateFlowAndKillAllOthers </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateFlowAndKillAllOthers </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&#160;</td>
           <td class="paramname"><em>FactToGenerate</em>, </td>
@@ -286,14 +306,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="line">          <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a></div>
 <div class="line">       <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00463">463</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00473">473</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="ab2be8719fb69dde9475d66ebc788c175" name="ab2be8719fb69dde9475d66ebc788c175"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2be8719fb69dde9475d66ebc788c175">&#9670;&#160;</a></span>generateFlowIf()</h2>
+<a id="a3aad4f8926169164a16850d0f54fa983" name="a3aad4f8926169164a16850d0f54fa983"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3aad4f8926169164a16850d0f54fa983">&#9670;&#160;</a></span>generateFlowIf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -307,7 +327,7 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateFlowIf </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateFlowIf </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&#160;</td>
           <td class="paramname"><em>FactToGenerate</em>, </td>
@@ -334,14 +354,14 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
 <p>So, given a flow function f = generateFlowIf(v, p), for all incoming dataflow facts x: </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = {<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>}   <span class="keywordflow">if</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">p</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) == <span class="keyword">true</span></div>
 <div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = {<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>}      <span class="keywordflow">else</span>.</div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00260">260</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00266">266</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="abb9c908f667a441c28a49d5262cd797f" name="abb9c908f667a441c28a49d5262cd797f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb9c908f667a441c28a49d5262cd797f">&#9670;&#160;</a></span>generateManyFlows()</h2>
+<a id="a8dde1af78b938df5aa3ff423396035d3" name="a8dde1af78b938df5aa3ff423396035d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8dde1af78b938df5aa3ff423396035d3">&#9670;&#160;</a></span>generateManyFlows()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -354,7 +374,7 @@ template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionT
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateManyFlows </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateManyFlows </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>FactsToGenerate</em>, </td>
@@ -386,14 +406,14 @@ template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionT
 <div class="line">     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a> ... \    <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a> ...</div>
 <div class="line">     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v1</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v2</a> ... <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">vN</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00299">299</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00305">305</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710baa4228a09dd66155de8e93a39245768bd">psr::Ret</a>, and <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="afeac57087bc9dea10ea075099b16bde8" name="afeac57087bc9dea10ea075099b16bde8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afeac57087bc9dea10ea075099b16bde8">&#9670;&#160;</a></span>generateManyFlowsAndKillAllOthers()</h2>
+<a id="a3e22e4afb2a60ffdcd332447434837c8" name="a3e22e4afb2a60ffdcd332447434837c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e22e4afb2a60ffdcd332447434837c8">&#9670;&#160;</a></span>generateManyFlowsAndKillAllOthers()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -406,7 +426,7 @@ template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionT
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateManyFlowsAndKillAllOthers </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::generateManyFlowsAndKillAllOthers </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>FactsToGenerate</em>, </td>
@@ -438,14 +458,14 @@ template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionT
 <div class="line">        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a> ... \      ...</div>
 <div class="line">     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v1</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v2</a> ... <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">vN</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00503">503</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00515">515</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="add2d566d5c79a5f534c62a0a1d3c9b38" name="add2d566d5c79a5f534c62a0a1d3c9b38"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#add2d566d5c79a5f534c62a0a1d3c9b38">&#9670;&#160;</a></span>identityFlow()</h2>
+<a id="a2a46ab06a3b39fd42b05854d0fdb3f4b" name="a2a46ab06a3b39fd42b05854d0fdb3f4b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a46ab06a3b39fd42b05854d0fdb3f4b">&#9670;&#160;</a></span>identityFlow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -456,7 +476,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::identityFlow </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::identityFlow </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -469,21 +489,22 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 <p>A flow function that propagates all incoming facts unchanged.</p>
-<p>Given a flow-function f = <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#add2d566d5c79a5f534c62a0a1d3c9b38">identityFlow()</a>, then for all incoming dataflow-facts x, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f(x)</a> = {x}.</p>
+<p>Given a flow-function f = <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a2a46ab06a3b39fd42b05854d0fdb3f4b">identityFlow()</a>, then for all incoming dataflow-facts x, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f(x)</a> = {x}.</p>
 <p>In the exploded supergraph it may look as follows: </p><div class="fragment"><div class="line">                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x1</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x1</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x3</a> ...</div>
 <div class="line">                 |   |   |  ...</div>
 <div class="line">id-<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">instruction</a>   |   |   |  ...</div>
 <div class="line">                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>   <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>   <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  ...</div>
 <div class="line">                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x1</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x2</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x3</a> ...</div>
-</div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00163">163</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+</div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd>Returns a non-owning pointer to a function-static singleton (owns()==false). The pointee has program lifetime. Most other factory functions in this class return owning unique_ptrs. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00169">169</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="af8cd75ab690f50de16aa05ec9dd7ede6" name="af8cd75ab690f50de16aa05ec9dd7ede6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8cd75ab690f50de16aa05ec9dd7ede6">&#9670;&#160;</a></span>killAllFlows()</h2>
+<a id="a8c87f536019133fd7b423396d422c967" name="a8c87f536019133fd7b423396d422c967"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c87f536019133fd7b423396d422c967">&#9670;&#160;</a></span>killAllFlows()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -494,7 +515,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killAllFlows </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killAllFlows </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -507,14 +528,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 <p>A flow function that stops propagating <em>all</em> incoming dataflow facts.</p>
-<p>Given a flow function f = <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#af8cd75ab690f50de16aa05ec9dd7ede6">killAllFlows()</a>, for all incoming dataflow facts </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = {}.</div>
-</div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00429">429</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p>Given a flow function f = <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a8c87f536019133fd7b423396d422c967">killAllFlows()</a>, for all incoming dataflow facts </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = {}.</div>
+</div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd>Returns a non-owning pointer to a function-static singleton (owns()==false). The pointee has program lifetime. Most other factory functions in this class return owning unique_ptrs. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00439">439</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 </div>
 </div>
-<a id="aa408cf54ca83d66d081cb8b0f379597f" name="aa408cf54ca83d66d081cb8b0f379597f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa408cf54ca83d66d081cb8b0f379597f">&#9670;&#160;</a></span>killFlow()</h2>
+<a id="ab6d2adbf50242570d8e37c03f69e8cd3" name="ab6d2adbf50242570d8e37c03f69e8cd3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6d2adbf50242570d8e37c03f69e8cd3">&#9670;&#160;</a></span>killFlow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -525,7 +547,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killFlow </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killFlow </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&#160;</td>
           <td class="paramname"><em>FactToKill</em></td><td>)</td>
@@ -547,14 +569,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="line">         <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a></div>
 <div class="line">         <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a> ...</div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00341">341</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00348">348</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="a415a7ad7ee0dbdb625e734bde92d5e81" name="a415a7ad7ee0dbdb625e734bde92d5e81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a415a7ad7ee0dbdb625e734bde92d5e81">&#9670;&#160;</a></span>killFlowIf()</h2>
+<a id="ad1d419efa3afa580f414f8a60cd87d72" name="ad1d419efa3afa580f414f8a60cd87d72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1d419efa3afa580f414f8a60cd87d72">&#9670;&#160;</a></span>killFlowIf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -568,7 +590,7 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killFlowIf </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killFlowIf </td>
           <td>(</td>
           <td class="paramtype">Fn&#160;</td>
           <td class="paramname"><em>Predicate</em></td><td>)</td>
@@ -585,14 +607,14 @@ requires std::is_invocable_r_v&lt;<a class="el" href="classbool.html">bool</a>, 
 <p>Given a flow function f = killFlowIf(p), for all incoming dataflow facts x: </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = {}   <span class="keywordflow">if</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">p</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) == <span class="keyword">true</span></div>
 <div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = {<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>}  <span class="keywordflow">else</span>.</div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00367">367</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00374">374</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="a5b0a79912a320a8e49c0edd3776b088b" name="a5b0a79912a320a8e49c0edd3776b088b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b0a79912a320a8e49c0edd3776b088b">&#9670;&#160;</a></span>killManyFlows()</h2>
+<a id="aa85dd481ce3a812af2f6158c89b07e37" name="aa85dd481ce3a812af2f6158c89b07e37"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa85dd481ce3a812af2f6158c89b07e37">&#9670;&#160;</a></span>killManyFlows()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -605,7 +627,7 @@ template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionT
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killManyFlows </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::killManyFlows </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Range</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>FactsToKill</em></td><td>)</td>
@@ -630,14 +652,14 @@ template&lt;is_iterable_over_v&lt; <a class="el" href="classpsr_1_1FlowFunctionT
 <div class="line">         <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>                 <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a></div>
 <div class="line">         <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v1</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v2</a> ... <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">vN</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a> ...</div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00405">405</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00412">412</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="a147ba7bfdbfe0b5001d6e1943af5ed63" name="a147ba7bfdbfe0b5001d6e1943af5ed63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a147ba7bfdbfe0b5001d6e1943af5ed63">&#9670;&#160;</a></span>lambdaFlow()</h2>
+<a id="af79431433f72dda767e5c6d14836c57f" name="af79431433f72dda767e5c6d14836c57f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af79431433f72dda767e5c6d14836c57f">&#9670;&#160;</a></span>lambdaFlow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -650,7 +672,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::lambdaFlow </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::lambdaFlow </td>
           <td>(</td>
           <td class="paramtype">Fn &amp;&amp;&#160;</td>
           <td class="paramname"><em>F</em></td><td>)</td>
@@ -672,14 +694,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="line">        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>   <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>   <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a></div>
 <div class="line">        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x1</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x2</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x3</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x4</a></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00189">189</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00195">195</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="ae31cd099a93bc480d92490478fadec63" name="ae31cd099a93bc480d92490478fadec63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae31cd099a93bc480d92490478fadec63">&#9670;&#160;</a></span>transferFlow()</h2>
+<a id="a4503d9914204c05c17909c8e17e4ac7a" name="a4503d9914204c05c17909c8e17e4ac7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4503d9914204c05c17909c8e17e4ac7a">&#9670;&#160;</a></span>transferFlow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -690,7 +712,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::transferFlow </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::transferFlow </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#a5196ea1f9a2f2537adfca8aef9359dbf">d_t</a>&#160;</td>
           <td class="paramname"><em>FactToGenerate</em>, </td>
@@ -724,14 +746,14 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="line">     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>   <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a> ...</div>
 <div class="line">     <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">w</a>   <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">v</a>  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00556">556</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00567">567</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
 </div>
 </div>
-<a id="a7693ec23881690be00ba5c21b22bffdf" name="a7693ec23881690be00ba5c21b22bffdf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7693ec23881690be00ba5c21b22bffdf">&#9670;&#160;</a></span>unionFlows()</h2>
+<a id="a490199e24b0aebd722e0d087e444bb14" name="a490199e24b0aebd722e0d087e444bb14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a490199e24b0aebd722e0d087e444bb14">&#9670;&#160;</a></span>unionFlows()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -745,15 +767,15 @@ requires (std::is_same_v&lt;<a class="el" href="classpsr_1_1FlowFunctionTemplate
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::unionFlows </td>
+          <td class="memname"><a class="el" href="classpsr_1_1FlowFunctionTemplates.html#aa5afa5c4a1b6e840804fc57223df81de">FlowFunctionPtrType</a> <a class="el" href="classpsr_1_1FlowFunctionTemplates.html">psr::FlowFunctionTemplates</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::unionFlows </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#a0f6633babc7099a18f9c04d285a4fee2">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F1</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aba8dc3a590a0fd08f8fe1df28e33423a">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F1</a> &gt;&#160;</td>
           <td class="paramname"><em>OneFF</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#a0f6633babc7099a18f9c04d285a4fee2">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F2</a> &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#aba8dc3a590a0fd08f8fe1df28e33423a">FlowFunctionPtrTypeOf</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">F2</a> &gt;&#160;</td>
           <td class="paramname"><em>OtherFF</em>&#160;</td>
         </tr>
         <tr>
@@ -771,7 +793,7 @@ requires (std::is_same_v&lt;<a class="el" href="classpsr_1_1FlowFunctionTemplate
 <p>A flow function that takes two other flow functions OneFF and OtherFF and applies both flow functions on each input merging the results together with set-union.</p>
 <p>Given a flow function f = unionFlows(g, h), for all incoming dataflow facts x: </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">f</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) = <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">g</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>) <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">h</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">x</a>).     (<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">where</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">u</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">denotes</a> set-<span class="keyword">union</span>)</div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00593">593</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="FlowFunctions_8h_source.html#l00604">604</a> of file <a class="el" href="FlowFunctions_8h_source.html">FlowFunctions.h</a>.</p>
 
 <p class="reference">References <a class="el" href="classpsr_1_1FlowFunction.html#ac45025b8e1a6ba7ad2a9995b0281515e">psr::FlowFunction&lt; D, Container &gt;::computeTargets()</a>, and <a class="el" href="namespacepsr.html#aff032377459da673c2e7dfa583735d58af31bbdd1b3e85bccd652680e16935819">psr::Source</a>.</p>
 
@@ -783,7 +805,7 @@ requires (std::is_same_v&lt;<a class="el" href="classpsr_1_1FlowFunctionTemplate
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 29 2026 16:15:47 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat May 2 2026 08:54:09 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
