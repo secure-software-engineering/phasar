@@ -3,10 +3,10 @@ FROM "$baseimage" AS build
 
 RUN --mount=type=bind,source=./utils/InstallAptDependencies.sh,target=/InstallAptDependencies.sh \
   set -eux; \
-  ./InstallAptDependencies.sh --noninteractive tzdata clang-22 libclang-rt-22-dev clang-tools-22
+  ./InstallAptDependencies.sh --noninteractive tzdata clang-20 libclang-rt-20-dev clang-tools-20
 
-ENV CC=/usr/bin/clang-22 \
-    CXX=/usr/bin/clang++-22
+ENV CC=/usr/bin/clang-20 \
+    CXX=/usr/bin/clang++-20
 
 FROM build
 
