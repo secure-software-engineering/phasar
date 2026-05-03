@@ -43,8 +43,8 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 # End - Parsing command-line-parameters
 
-if [ "$LLVM_IR_VERSION" != "16" ] && [ "$LLVM_IR_VERSION" != "17" ] && [[ ! "$LLVM_IR_VERSION" =~ ^"22."[0-9] ]]; then
-    echo "Invalid LLVM version: $LLVM_IR_VERSION, expected 16 or 22.1" >&2
+if [ "$LLVM_IR_VERSION" != "16" ] && [ "$LLVM_IR_VERSION" != "17" ] && [ "$LLVM_IR_VERSION" != "22" ]; then
+    echo "Invalid LLVM version: $LLVM_IR_VERSION, expected 16 or 22" >&2
     exit 1
 fi
 
