@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/LibrarySummary.h"
@@ -17,6 +18,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Function.h"
@@ -35,13 +37,26 @@ namespace {
 /// File-local wrapper: extends PAGVariable with a variable/object flag.
 /// Variable nodes (IsObject=false) represent SSA pointer values.
 /// Object nodes (IsObject=true) represent abstract memory cells.
-struct AndersenVar {
-  PAGVariable Base{};
-  bool IsObject = false;
+class AndersenVar {
+public:
+  AndersenVar() noexcept = default;
+  AndersenVar(PAGVariable Base, bool IsObject) : Base(Base, IsObject) {}
+
+  [[nodiscard]] PAGVariable getBase() const noexcept {
+    return Base.getPointer();
+  }
+  [[nodiscard]] bool isObject() const noexcept { return Base.getInt(); }
 
   friend bool operator==(AndersenVar A, AndersenVar B) noexcept {
-    return A.Base == B.Base && A.IsObject == B.IsObject;
+    return A.Base == B.Base;
   }
+
+  friend auto hash_value(AndersenVar V) noexcept {
+    return llvm::hash_value(V.Base.getOpaqueValue());
+  }
+
+private:
+  llvm::PointerIntPair<PAGVariable, 1, bool> Base{};
 };
 } // namespace
 
@@ -53,11 +68,7 @@ template <> struct DenseMapInfo<AndersenVar> {
   static AndersenVar getTombstoneKey() noexcept {
     return {DenseMapInfo<psr::PAGVariable>::getTombstoneKey(), false};
   }
-  static unsigned getHashValue(AndersenVar V) noexcept {
-    return llvm::hash_combine(
-        DenseMapInfo<psr::PAGVariable>::getHashValue(V.Base),
-        unsigned(V.IsObject));
-  }
+  static unsigned getHashValue(AndersenVar V) noexcept { return hash_value(V); }
   static bool isEqual(AndersenVar A, AndersenVar B) noexcept { return A == B; }
 };
 } // namespace llvm
@@ -677,8 +688,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           return;
         }
         for (const auto &Var : LocalVC.id2vars(ObjId)) {
-          const auto *Fun =
-              llvm::dyn_cast_or_null<llvm::Function>(Var.Base.valueOrNull());
+          const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
+              Var.getBase().valueOrNull());
           if (Fun) {
             connectCallee(C, Fun, Args, CSRetVal);
           }
@@ -707,8 +718,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           return;
         }
         for (const auto &Var : LocalVC.id2vars(ObjId)) {
-          const auto *Fun =
-              llvm::dyn_cast_or_null<llvm::Function>(Var.Base.valueOrNull());
+          const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
+              Var.getBase().valueOrNull());
           if (Fun) {
             connectCallee(Rec.CS, Fun, Rec.Args, Rec.CSRetVal);
           }
@@ -743,15 +754,15 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       ValueId FirstExtId{};
       bool HasFirst = false;
       for (const auto &V : LocalVC.id2vars(VId)) {
-        if (V.IsObject) {
+        if (V.isObject()) {
           continue;
         }
         if (!HasFirst) {
-          FirstExtId = ExternalVC.insert(V.Base).first;
+          FirstExtId = ExternalVC.insert(V.getBase()).first;
           HasFirst = true;
           LocalToExt[VId] = FirstExtId;
         } else {
-          ExternalVC.addAlias(V.Base, FirstExtId);
+          ExternalVC.addAlias(V.getBase(), FirstExtId);
         }
       }
     }
