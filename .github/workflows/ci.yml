@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
         compiler: [ [clang++-20, clang-20, "clang-20 libclang-rt-20-dev clang-tools-20"] ]
         build: [ Debug, Release, DebugLibdeps, DebugCov ]
-        llvm-version: [ 16, 22.1 ]
+        llvm-version: [ 16, "22.1" ]
         include:
           - build: Debug
             cmake_build_type: Debug
