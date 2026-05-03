@@ -1,4 +1,6 @@
 set(lca_files
+  andersen_otf_interproc.c
+  andersen_otf_fp.c
   basic_01.c
   basic_02.c
   basic_03.c
@@ -45,6 +47,8 @@ set(lca_files
 )
 
 set(lca_files_mem2reg
+  andersen_otf_interproc.c
+  andersen_otf_fp.c
   basic_01.c
   basic_02.c
   basic_03.c

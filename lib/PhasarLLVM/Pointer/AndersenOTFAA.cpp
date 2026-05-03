@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/UnionFind.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -29,6 +30,37 @@
 #include <optional>
 
 using namespace psr;
+
+namespace {
+/// File-local wrapper: extends PAGVariable with a variable/object flag.
+/// Variable nodes (IsObject=false) represent SSA pointer values.
+/// Object nodes (IsObject=true) represent abstract memory cells.
+struct AndersenVar {
+  PAGVariable Base{};
+  bool IsObject = false;
+
+  friend bool operator==(AndersenVar A, AndersenVar B) noexcept {
+    return A.Base == B.Base && A.IsObject == B.IsObject;
+  }
+};
+} // namespace
+
+namespace llvm {
+template <> struct DenseMapInfo<AndersenVar> {
+  static AndersenVar getEmptyKey() noexcept {
+    return {DenseMapInfo<psr::PAGVariable>::getEmptyKey(), false};
+  }
+  static AndersenVar getTombstoneKey() noexcept {
+    return {DenseMapInfo<psr::PAGVariable>::getTombstoneKey(), false};
+  }
+  static unsigned getHashValue(AndersenVar V) noexcept {
+    return llvm::hash_combine(
+        DenseMapInfo<psr::PAGVariable>::getHashValue(V.Base),
+        unsigned(V.IsObject));
+  }
+  static bool isEqual(AndersenVar A, AndersenVar B) noexcept { return A == B; }
+};
+} // namespace llvm
 
 struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Per-node state -------------------------------------------------
@@ -64,9 +96,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   // ---- Data fields ----------------------------------------------------
 
-  const LLVMProjectIRDB &IRDB;      // NOLINT
-  const llvm::DataLayout &DL;       // NOLINT
-  ValueCompressor<PAGVariable> &VC; // NOLINT
+  const LLVMProjectIRDB &IRDB;              // NOLINT
+  const llvm::DataLayout &DL;               // NOLINT
+  ValueCompressor<PAGVariable> &ExternalVC; // NOLINT – caller-visible output
+  ValueCompressor<AndersenVar> LocalVC{};   // internal variable+object nodes
 
   llvm::SmallVector<const llvm::Function *, 8> FunctionWorklist;
   llvm::DenseSet<const llvm::Function *> Reachable;
@@ -85,7 +118,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   SolverData(const LLVMProjectIRDB &IRDB,
              llvm::ArrayRef<const llvm::Function *> Entries,
              ValueCompressor<PAGVariable> &VC)
-      : IRDB(IRDB), DL(IRDB.getModule()->getDataLayout()), VC(VC) {
+      : IRDB(IRDB), DL(IRDB.getModule()->getDataLayout()), ExternalVC(VC) {
     for (const auto *F : Entries) {
       if (Reachable.insert(F).second) {
         FunctionWorklist.push_back(F);
@@ -104,15 +137,16 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return Nodes[V];
   }
 
-  ValueId getOrInsert(PAGVariable Var) {
-    auto [Id, Inserted] = VC.insert(Var);
-    (void)Inserted;
+  ValueId getOrInsertVar(PAGVariable Var) {
+    auto [Id, _] = LocalVC.insert(AndersenVar{Var, false});
     grow(Id);
     return Id;
   }
 
-  ValueId getOrInsert(const llvm::Value *V) {
-    return getOrInsert(PAGVariable(V));
+  ValueId getOrInsertObj(PAGVariable Var) {
+    auto [Id, _] = LocalVC.insert(AndersenVar{Var, true});
+    grow(Id);
+    return Id;
   }
 
   [[nodiscard]] ValueId rep(ValueId V) const { return SCCUf.find(V); }
@@ -220,7 +254,15 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     if (!llvm::isa<llvm::ConstantExpr>(V)) {
-      std::invoke(Handler, getOrInsert(V));
+      const ValueId VId = getOrInsertVar(PAGVariable(V));
+      // A function used as a value (e.g. stored into a function-pointer
+      // variable) is an addressable abstract object: pts(F) = {F}.
+      // Without this, pts(fp_alloca) never gains F and OTF call resolution
+      // silently produces no callees.
+      if (llvm::isa<llvm::Function>(V)) {
+        addPointee(VId, VId);
+      }
+      std::invoke(Handler, VId);
       return;
     }
 
@@ -235,7 +277,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           continue;
         }
         if (const auto *GObj = llvm::dyn_cast<llvm::GlobalObject>(Op)) {
-          std::invoke(Handler, getOrInsert(GObj));
+          const ValueId GId = getOrInsertVar(PAGVariable(GObj));
+          if (llvm::isa<llvm::Function>(GObj)) {
+            addPointee(GId, GId);
+          }
+          std::invoke(Handler, GId);
           continue;
         }
         if (const auto *User = llvm::dyn_cast<llvm::User>(Op)) {
@@ -405,8 +451,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (definitelyContainsNoPointer(G.getValueType())) {
         continue;
       }
-      const ValueId GId = getOrInsert(&G);
-      addPointee(GId, GId);
+      const ValueId VarId = getOrInsertVar(PAGVariable(&G));
+      const ValueId ObjId = getOrInsertObj(PAGVariable(&G));
+      addPointee(VarId, ObjId);
     }
     propagate();
   }
@@ -414,7 +461,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   void processFunction(const llvm::Function *F) {
     for (const auto &Arg : F->args()) {
       if (!definitelyContainsNoPointer(&Arg)) {
-        (void)getOrInsert(&Arg);
+        (void)getOrInsertVar(PAGVariable(&Arg));
       }
     }
     for (const auto &I : llvm::instructions(F)) {
@@ -424,8 +471,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   void processInstruction(const llvm::Instruction &I) {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
-      const ValueId Id = getOrInsert(Alloca);
-      addPointee(Id, Id);
+      const ValueId VarId = getOrInsertVar(PAGVariable(Alloca));
+      const ValueId ObjId = getOrInsertObj(PAGVariable(Alloca));
+      addPointee(VarId, ObjId);
       return;
     }
     if (const auto *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
@@ -463,7 +511,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         return;
       }
       forEachOpId(Cast->getOperand(0), [&](ValueId OpId) {
-        VC.addAlias(Cast, OpId);
+        LocalVC.addAlias(AndersenVar{PAGVariable(Cast), false}, OpId);
         grow(OpId);
       });
       return;
@@ -472,7 +520,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     // GEPs: alias result to base pointer (field-insensitive).
     if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
       forEachOpId(GEP->getPointerOperand(), [&](ValueId OpId) {
-        VC.addAlias(GEP, OpId);
+        LocalVC.addAlias(AndersenVar{PAGVariable(GEP), false}, OpId);
         grow(OpId);
       });
     }
@@ -492,7 +540,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (definitelyContainsNoPointer(L)) {
       return;
     }
-    const ValueId DstId = getOrInsert(L);
+    const ValueId DstId = getOrInsertVar(PAGVariable(L));
     forEachOpId(L->getPointerOperand(),
                 [&](ValueId PtrId) { addLoad(PtrId, DstId); });
   }
@@ -508,7 +556,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (definitelyContainsNoPointer(P)) {
       return;
     }
-    const ValueId PhiId = getOrInsert(P);
+    const ValueId PhiId = getOrInsertVar(PAGVariable(P));
     for (const auto &Inc : P->incoming_values()) {
       if (definitelyContainsNoPointer(Inc.get())) {
         continue;
@@ -522,7 +570,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (definitelyContainsNoPointer(S)) {
       return;
     }
-    const ValueId SelId = getOrInsert(S);
+    const ValueId SelId = getOrInsertVar(PAGVariable(S));
     const auto *TV = S->getTrueValue();
     const auto *FV = S->getFalseValue();
     if (!definitelyContainsNoPointer(TV)) {
@@ -539,7 +587,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return;
     }
     const ValueId RetSlotId =
-        getOrInsert(PAGVariable::Return{R->getFunction()});
+        getOrInsertVar(PAGVariable::Return{R->getFunction()});
     forEachOpId(RetVal,
                 [&](ValueId ValId) { addAssignEdge(ValId, RetSlotId); });
   }
@@ -553,7 +601,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return;
     }
 
-    const ValueId CalleeId = getOrInsert(Callee);
+    const ValueId CalleeId = getOrInsertVar(PAGVariable(Callee));
     if (!ConnectedCallees[CS].insert(CalleeId).second) {
       return;
     }
@@ -563,7 +611,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     if (CSRetVal && !Callee->getReturnType()->isVoidTy()) {
-      const ValueId RetSlotId = getOrInsert(PAGVariable::Return{Callee});
+      const ValueId RetSlotId = getOrInsertVar(PAGVariable::Return{Callee});
       addAssignEdge(RetSlotId, *CSRetVal);
     }
 
@@ -571,7 +619,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (ArgIds.empty() || definitelyContainsNoPointer(&Param)) {
         continue;
       }
-      const ValueId ParamId = getOrInsert(&Param);
+      const ValueId ParamId = getOrInsertVar(PAGVariable(&Param));
       for (ValueId ArgId : ArgIds) {
         addAssignEdge(ArgId, ParamId);
       }
@@ -581,7 +629,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void handleCall(const llvm::CallBase *C) {
-    if (C->isInlineAsm()) {
+    if (C->isInlineAsm() || C->isDebugOrPseudoInst()) {
       return;
     }
 
@@ -597,7 +645,15 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
     std::optional<ValueId> CSRetVal;
     if (C->getType()->isPointerTy()) {
-      CSRetVal = getOrInsert(C);
+      const ValueId VarId = getOrInsertVar(PAGVariable(C));
+      CSRetVal = VarId;
+      const auto *DirectCallee = llvm::dyn_cast<llvm::Function>(
+          C->getCalledOperand()->stripPointerCastsAndAliases());
+      if (DirectCallee &&
+          psr::isHeapAllocatingFunction(DirectCallee->getName())) {
+        const ValueId ObjId = getOrInsertObj(PAGVariable(C));
+        addPointee(VarId, ObjId);
+      }
     }
 
     const auto *FnPtr = C->getCalledOperand()->stripPointerCastsAndAliases();
@@ -608,7 +664,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     // Indirect call: connect already-known targets, record for fixpoint.
-    const ValueId FPId = getOrInsert(FnPtr);
+    const ValueId FPId = getOrInsertVar(PAGVariable(FnPtr));
 
     const auto ConnectKnownTargets = [&]() {
       if (!Nodes.inbounds(FPId)) {
@@ -620,9 +676,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         if (!Nodes.inbounds(ObjId)) {
           return;
         }
-        for (const auto &Var : VC.id2vars(ObjId)) {
+        for (const auto &Var : LocalVC.id2vars(ObjId)) {
           const auto *Fun =
-              llvm::dyn_cast_or_null<llvm::Function>(Var.valueOrNull());
+              llvm::dyn_cast_or_null<llvm::Function>(Var.Base.valueOrNull());
           if (Fun) {
             connectCallee(C, Fun, Args, CSRetVal);
           }
@@ -650,9 +706,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         if (!Nodes.inbounds(ObjId)) {
           return;
         }
-        for (const auto &Var : VC.id2vars(ObjId)) {
+        for (const auto &Var : LocalVC.id2vars(ObjId)) {
           const auto *Fun =
-              llvm::dyn_cast_or_null<llvm::Function>(Var.valueOrNull());
+              llvm::dyn_cast_or_null<llvm::Function>(Var.Base.valueOrNull());
           if (Fun) {
             connectCallee(Rec.CS, Fun, Rec.Args, Rec.CSRetVal);
           }
@@ -664,32 +720,65 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Result construction --------------------------------------------
 
   AndersenOTFResult buildResult() {
-    const size_t NumVars = VC.size();
-    AndersenOTFResult Result;
-    Result.NumVars = NumVars;
+    const size_t NumLocal = LocalVC.size();
 
-    // Reverse map: abstract object → set of values pointing to it.
-    TypedVector<ValueId, RawAliasSet<ValueId>> Obj2Ptrs(NumVars);
-    for (auto VId : iota<ValueId>(NumVars)) {
-      if (!Nodes.inbounds(VId)) {
+    // Reverse map: abstract object → all local IDs that point to it.
+    TypedVector<ValueId, RawAliasSet<ValueId>> Obj2Ptrs(NumLocal);
+    for (auto VId : iota<ValueId>(NumLocal)) {
+      const ValueId RepId = rep(VId);
+      if (!Nodes.inbounds(RepId)) {
         continue;
       }
-      Nodes[VId].PtsSet.foreach ([&](ValueId Obj) {
-        if (size_t(Obj) < NumVars) {
+      Nodes[RepId].PtsSet.foreach ([&](ValueId Obj) {
+        if (size_t(Obj) < NumLocal) {
           Obj2Ptrs[Obj].insert(VId);
         }
       });
     }
 
-    Result.AliasSets.resize(NumVars);
-    for (auto VId : iota<ValueId>(NumVars)) {
-      if (!Nodes.inbounds(VId)) {
+    // Map variable local IDs → external VC IDs.
+    // Object nodes are internal only and do not appear in the external result.
+    TypedVector<ValueId, std::optional<ValueId>> LocalToExt(NumLocal);
+    for (auto VId : iota<ValueId>(NumLocal)) {
+      ValueId FirstExtId{};
+      bool HasFirst = false;
+      for (const auto &V : LocalVC.id2vars(VId)) {
+        if (V.IsObject) {
+          continue;
+        }
+        if (!HasFirst) {
+          FirstExtId = ExternalVC.insert(V.Base).first;
+          HasFirst = true;
+          LocalToExt[VId] = FirstExtId;
+        } else {
+          ExternalVC.addAlias(V.Base, FirstExtId);
+        }
+      }
+    }
+
+    AndersenOTFResult Result;
+    Result.NumVars = ExternalVC.size();
+    Result.AliasSets.resize(Result.NumVars);
+
+    for (auto VId : iota<ValueId>(NumLocal)) {
+      if (!LocalToExt[VId]) {
         continue;
       }
-      Nodes[VId].PtsSet.foreach ([&](ValueId Obj) {
-        if (size_t(Obj) < NumVars) {
-          Result.AliasSets[VId] |= Obj2Ptrs[Obj];
+      const ValueId ExtVId = *LocalToExt[VId];
+      const ValueId RepId = rep(VId);
+      if (!Nodes.inbounds(RepId)) {
+        continue;
+      }
+
+      Nodes[RepId].PtsSet.foreach ([&](ValueId Obj) {
+        if (size_t(Obj) >= NumLocal) {
+          return;
         }
+        Obj2Ptrs[Obj].foreach ([&](ValueId AliasLocalId) {
+          if (const auto &AliasExt = LocalToExt[AliasLocalId]) {
+            Result.AliasSets[ExtVId].insert(*AliasExt);
+          }
+        });
       });
     }
 
