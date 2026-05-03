@@ -27,4 +27,12 @@
 #define PSR_DEPRECATED(MSG, REPLACEMENT) [[deprecated(MSG)]]
 #endif
 
+#if __has_cpp_attribute(clang::lifetimebound)
+#define PSR_LIFETIMEBOUND [[clang::lifetimebound]]
+#elif __has_cpp_attribute([[lifetimebound]])
+#define PSR_LIFETIMEBOUND [[lifetimebound]]
+#else
+#define PSR_LIFETIMEBOUND
+#endif
+
 #endif // PHASAR_UTILS_MACROS_H

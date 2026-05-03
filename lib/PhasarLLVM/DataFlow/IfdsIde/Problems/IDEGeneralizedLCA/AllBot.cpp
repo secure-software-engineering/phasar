@@ -23,9 +23,9 @@ static_assert(psr::IsEqualityComparable<psr::AllTop<const llvm::Value *>>);
 
 // namespace psr::glca {
 
-// std::shared_ptr<AllBot::type> AllBot::getInstance() {
-//   static std::shared_ptr<type> Ret =
-//       std::make_shared<type>(IDEGeneralizedLCA::l_t{nullptr});
+// std::unique_ptr<AllBot::type> AllBot::getInstance() {
+//   static std::unique_ptr<type> Ret =
+//       std::make_unique<type>(IDEGeneralizedLCA::l_t{nullptr});
 //   return Ret;
 // }
 
@@ -51,7 +51,7 @@ static_assert(psr::IsEqualityComparable<psr::AllTop<const llvm::Value *>>);
 // }
 
 // bool AllBot::isBot(
-//     const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &EdgeFn,
+//     const std::unique_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &EdgeFn,
 //     bool NonRec) {
 //   return isBot(EdgeFn.get(), NonRec);
 // }

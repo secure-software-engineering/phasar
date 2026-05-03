@@ -37,10 +37,10 @@ using LeakMap_t = std::unordered_map<const llvm::Instruction *,
                                      llvm::SmallSet<const llvm::Value *, 1>>;
 
 /// Have an own function for creating a flow/edge-function instance to allow
-/// fast migration to memory-management schemes other than std::shared_ptr
+/// fast migration to memory-management schemes other than std::unique_ptr
 template <typename FlowFunctionTy, typename... Args>
-inline std::shared_ptr<FlowFunctionTy> makeFF(Args &&...Arguments) {
-  return std::make_shared<FlowFunctionTy>(std::forward<Args>(Arguments)...);
+inline std::unique_ptr<FlowFunctionTy> makeFF(Args &&...Arguments) {
+  return std::make_unique<FlowFunctionTy>(std::forward<Args>(Arguments)...);
 }
 
 } // namespace psr::XTaint
