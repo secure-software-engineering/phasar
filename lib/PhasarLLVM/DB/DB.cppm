@@ -7,5 +7,4 @@ export module phasar.llvm.db;
 export namespace psr {
 using psr::fromMetaDataId;
 using psr::LLVMProjectIRDB;
-using psr::ProjectIRDBTraits;
 } // namespace psr

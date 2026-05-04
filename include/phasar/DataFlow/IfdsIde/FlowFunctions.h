@@ -18,6 +18,7 @@
 #define PHASAR_DATAFLOW_IFDSIDE_FLOWFUNCTIONS_H
 
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -45,7 +46,7 @@ template <typename D, typename Container = std::set<D>> class FlowFunction {
 
 public:
   using FlowFunctionType = FlowFunction<D, Container>;
-  using FlowFunctionPtrType = std::shared_ptr<FlowFunctionType>;
+  using FlowFunctionPtrType = MaybeUniquePtr<FlowFunctionType>;
 
   using container_type = Container;
   using value_type = typename container_type::value_type;
@@ -87,7 +88,7 @@ concept is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
 
 /// Given a flow-function type FF, returns a (smart) pointer type pointing to FF
 template <is_flowfunction_v FF>
-using FlowFunctionPtrTypeOf = std::shared_ptr<FF>;
+using FlowFunctionPtrTypeOf = MaybeUniquePtr<FF>;
 
 /// Given a dataflow-fact type and optionally a container-type, returns a
 /// (smart) pointer type pointing to a FlowFunction with the specified
@@ -147,6 +148,8 @@ public:
   using d_t = D;
   using container_type = Container;
 
+  using FlowFunctionPtrType = psr::FlowFunctionPtrType<d_t, container_type>;
+
   /// A flow function that propagates all incoming facts unchanged.
   ///
   /// Given a flow-function f = identityFlow(), then for all incoming
@@ -160,15 +163,18 @@ public:
   ///                   v   v   v  ...
   ///                   x1  x2  x3 ...
   /// \endcode
-  static auto identityFlow() {
+  /// \note Returns a non-owning pointer to a function-static singleton
+  /// (owns()==false). The pointee has program lifetime. Most other factory
+  /// functions in this class return owning unique_ptrs.
+  static FlowFunctionPtrType identityFlow() {
     struct IdFF final : public FlowFunction<d_t, container_type> {
       container_type computeTargets(d_t Source) override {
         return {std::move(Source)};
       }
     };
-    static auto TheIdentity = std::make_shared<IdFF>();
+    static auto TheIdentity = IdFF();
 
-    return TheIdentity;
+    return &TheIdentity;
   }
 
   /// The most generic flow function. Invokes the passed function object F to
@@ -186,7 +192,7 @@ public:
   ///          v  v   v   v  v
   ///          x1 x2  x  x3 x4
   /// \endcode
-  template <typename Fn> static auto lambdaFlow(Fn &&F) {
+  template <typename Fn> static FlowFunctionPtrType lambdaFlow(Fn &&F) {
     struct LambdaFlow final : public FlowFunction<d_t, container_type> {
       LambdaFlow(Fn &&F) : Flow(std::forward<Fn>(F)) {}
       container_type computeTargets(d_t Source) override {
@@ -196,7 +202,7 @@ public:
       [[no_unique_address]] std::decay_t<Fn> Flow;
     };
 
-    return std::make_shared<LambdaFlow>(std::forward<Fn>(F));
+    return std::make_unique<LambdaFlow>(std::forward<Fn>(F));
   }
 
   //===----------------------------------------------------------------------===//
@@ -225,7 +231,7 @@ public:
   /// no difference, but in the case of IDE, the corresponding edge functions
   /// are being joined together potentially lowering precision. If that is an
   /// issue, use transferFlow instead.
-  static auto generateFlow(d_t FactToGenerate, d_t From) {
+  static FlowFunctionPtrType generateFlow(d_t FactToGenerate, d_t From) {
     struct GenFrom final : public FlowFunction<d_t, container_type> {
       GenFrom(d_t GenValue, d_t FromValue)
           : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
@@ -241,7 +247,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenFrom>(std::move(FactToGenerate),
+    return std::make_unique<GenFrom>(std::move(FactToGenerate),
                                      std::move(From));
   }
 
@@ -257,7 +263,7 @@ public:
   /// \endcode
   template <typename Fn = psr::TrueFn>
     requires std::is_invocable_r_v<bool, Fn, d_t>
-  static auto generateFlowIf(d_t FactToGenerate, Fn Predicate) {
+  static FlowFunctionPtrType generateFlowIf(d_t FactToGenerate, Fn Predicate) {
     struct GenFlowIf final : public FlowFunction<d_t, container_type> {
       GenFlowIf(d_t GenValue, Fn &&Predicate)
           : GenValue(std::move(GenValue)),
@@ -274,7 +280,7 @@ public:
       [[no_unique_address]] std::decay_t<Fn> Predicate;
     };
 
-    return std::make_shared<GenFlowIf>(std::move(FactToGenerate),
+    return std::make_unique<GenFlowIf>(std::move(FactToGenerate),
                                        std::forward<Fn>(Predicate));
   }
 
@@ -296,7 +302,8 @@ public:
   ///       x  w  v1 v2 ... vN  u
   /// \endcode
   template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
-  static auto generateManyFlows(Range &&FactsToGenerate, d_t From) {
+  static FlowFunctionPtrType generateManyFlows(Range &&FactsToGenerate,
+                                               d_t From) {
     struct GenMany final : public FlowFunction<d_t, container_type> {
       GenMany(container_type &&GenValues, d_t FromValue)
           : GenValues(std::move(GenValues)), FromValue(std::move(FromValue)) {}
@@ -314,7 +321,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenMany>(detail::makeContainer<container_type>(
+    return std::make_unique<GenMany>(detail::makeContainer<container_type>(
                                          std::forward<Range>(FactsToGenerate)),
                                      std::move(From));
   }
@@ -338,7 +345,7 @@ public:
   ///           v     v
   ///           u  v  w ...
   /// \endcode
-  static auto killFlow(d_t FactToKill) {
+  static FlowFunctionPtrType killFlow(d_t FactToKill) {
     struct KillFlow final : public FlowFunction<d_t, container_type> {
       KillFlow(d_t KillValue) : KillValue(std::move(KillValue)) {}
       container_type computeTargets(d_t Source) override {
@@ -350,7 +357,7 @@ public:
       d_t KillValue;
     };
 
-    return std::make_shared<KillFlow>(std::move(FactToKill));
+    return std::make_unique<KillFlow>(std::move(FactToKill));
   }
 
   /// A flow function similar to killFlow that stops propagating all dataflow
@@ -364,7 +371,7 @@ public:
   /// \endcode
   template <typename Fn = psr::TrueFn>
     requires std::is_invocable_r_v<bool, Fn, d_t>
-  static auto killFlowIf(Fn Predicate) {
+  static FlowFunctionPtrType killFlowIf(Fn Predicate) {
     struct KillFlowIf final : public FlowFunction<d_t, container_type> {
       KillFlowIf(Fn &&Predicate) : Predicate(std::forward<Fn>(Predicate)) {}
 
@@ -378,7 +385,7 @@ public:
       [[no_unique_address]] std::decay_t<Fn> Predicate;
     };
 
-    return std::make_shared<KillFlowIf>(std::forward<Fn>(Predicate));
+    return std::make_unique<KillFlowIf>(std::forward<Fn>(Predicate));
   }
 
   /// A flow function that stops propagating a specific set of dataflow facts
@@ -402,7 +409,7 @@ public:
   ///           u  v1  v2 ... vN  w ...
   /// \endcode
   template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
-  static auto killManyFlows(Range &&FactsToKill) {
+  static FlowFunctionPtrType killManyFlows(Range &&FactsToKill) {
     struct KillMany final : public FlowFunction<d_t, container_type> {
       KillMany(Container &&KillValues) : KillValues(std::move(KillValues)) {}
 
@@ -416,7 +423,7 @@ public:
       container_type KillValues;
     };
 
-    return std::make_shared<KillMany>(detail::makeContainer<container_type>(
+    return std::make_unique<KillMany>(detail::makeContainer<container_type>(
         std::forward<Range>(FactsToKill)));
   }
 
@@ -426,13 +433,16 @@ public:
   /// \code
   /// x, f(x) = {}.
   /// \endcode
-  static auto killAllFlows() {
+  /// \note Returns a non-owning pointer to a function-static singleton
+  /// (owns()==false). The pointee has program lifetime. Most other factory
+  /// functions in this class return owning unique_ptrs.
+  static FlowFunctionPtrType killAllFlows() {
     struct KillAllFF final : public FlowFunction<d_t, container_type> {
       Container computeTargets(d_t /*Source*/) override { return Container(); }
     };
-    static auto TheKillAllFlow = std::make_shared<KillAllFF>();
+    static auto TheKillAllFlow = KillAllFF();
 
-    return TheKillAllFlow;
+    return &TheKillAllFlow;
   }
 
   //===----------------------------------------------------------------------===//
@@ -460,7 +470,8 @@ public:
   ///            v  v
   ///         x  w  v  u
   /// \endcode
-  static auto generateFlowAndKillAllOthers(d_t FactToGenerate, d_t From) {
+  static FlowFunctionPtrType generateFlowAndKillAllOthers(d_t FactToGenerate,
+                                                          d_t From) {
     struct GenFlowAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
       GenFlowAndKillAllOthers(d_t GenValue, d_t FromValue)
@@ -477,7 +488,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
+    return std::make_unique<GenFlowAndKillAllOthers>(std::move(FactToGenerate),
                                                      std::move(From));
   }
 
@@ -500,8 +511,8 @@ public:
   ///       x  w  v1 v2 ... vN  u
   /// \endcode
   template <is_iterable_over_v<d_t> Range = std::initializer_list<d_t>>
-  static auto generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate,
-                                                d_t From) {
+  static FlowFunctionPtrType
+  generateManyFlowsAndKillAllOthers(Range &&FactsToGenerate, d_t From) {
     struct GenManyAndKillAllOthers final
         : public FlowFunction<d_t, container_type> {
       GenManyAndKillAllOthers(Container &&GenValues, d_t FromValue)
@@ -520,7 +531,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<GenManyAndKillAllOthers>(
+    return std::make_unique<GenManyAndKillAllOthers>(
         detail::makeContainer<container_type>(
             std::forward<Range>(FactsToGenerate)),
         std::move(From));
@@ -553,7 +564,7 @@ public:
   ///       v  v   v  v ...
   ///       x  w   v  u
   /// \endcode
-  static auto transferFlow(d_t FactToGenerate, d_t From) {
+  static FlowFunctionPtrType transferFlow(d_t FactToGenerate, d_t From) {
     struct TransferFlow final : public FlowFunction<d_t, container_type> {
       TransferFlow(d_t GenValue, d_t FromValue)
           : GenValue(std::move(GenValue)), FromValue(std::move(FromValue)) {}
@@ -572,7 +583,7 @@ public:
       d_t FromValue;
     };
 
-    return std::make_shared<TransferFlow>(std::move(FactToGenerate),
+    return std::make_unique<TransferFlow>(std::move(FactToGenerate),
                                           std::move(From));
   }
 
@@ -590,8 +601,8 @@ public:
              std::is_same_v<container_type, typename F2::container_type> &&
              std::is_same_v<typename F1::container_type,
                             typename F2::container_type>)
-  auto unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
-                  FlowFunctionPtrTypeOf<F2> OtherFF) {
+  FlowFunctionPtrType unionFlows(FlowFunctionPtrTypeOf<F1> OneFF,
+                                 FlowFunctionPtrTypeOf<F2> OtherFF) {
     struct UnionFlow final : public FlowFunction<d_t, container_type> {
       UnionFlow(FlowFunctionPtrTypeOf<F1> OneFF,
                 FlowFunctionPtrTypeOf<F2> OtherFF) noexcept
@@ -613,7 +624,7 @@ public:
       FlowFunctionPtrTypeOf<F2> OtherFF;
     };
 
-    return std::make_shared<UnionFlow>(std::move(OneFF), std::move(OtherFF));
+    return std::make_unique<UnionFlow>(std::move(OneFF), std::move(OtherFF));
   }
 };
 

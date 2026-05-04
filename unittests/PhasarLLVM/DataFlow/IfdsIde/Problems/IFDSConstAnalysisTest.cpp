@@ -64,7 +64,7 @@ protected:
       for (const auto *Fact : Facts) {
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
-             !Constproblem->isZeroValue(Fact))) {
+             !llvm::cast<llvm::GlobalVariable>(Fact)->isConstant())) {
           llvm::outs() << "Found *Fact: " << *Fact << "\n";
           AllMutableAllocas.insert(Fact);
         }
@@ -439,7 +439,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
   Llvmconstsolver.solve();
   std::set<TestingSrcLocation> GroundTruth = {
       LineColFun{4, 0, "main"},
-      GlobalVar{"__const.main.a"},
+      // GlobalVar{"__const.main.a"}, -- not portable across libstdc++ versions
   };
 
   compareResults(GroundTruth, Llvmconstsolver);
@@ -454,8 +454,9 @@ PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   Llvmconstsolver.solve();
   compareResults(
       {
-          GlobalVar{"__const.main.a"},
-          GlobalVar{".str"},
+          // GlobalVar{"__const.main.a"},-- not portable across libstdc++
+          // versions
+          // GlobalVar{".str"},-- not portable across libstdc++ versions
           LineColFun{4, 0, "main"},
       },
       Llvmconstsolver);
