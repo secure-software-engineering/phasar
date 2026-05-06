@@ -18,7 +18,7 @@ PHASAR_STRONG_TYPEDEF(psr::monoifds, uint32_t, SourceFactId);
 
 namespace psr::monoifds {
 
-using SourceFactSet = BitSet<SourceFactId>;
+using SourceFactSet = BitSet<SourceFactId, llvm::SmallBitVector>;
 
 /// The local analysis state: TargetFact-->{SourceFact}
 ///
