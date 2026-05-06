@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 
 #include "phasar/ControlFlow/CGSCCs.h"
+#include "phasar/DataFlow/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/FunctionCompressor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
@@ -17,7 +18,15 @@
 #include <memory>
 #include <string>
 
-namespace psr {
+using namespace psr;
+
+static_assert(CanGetICFG<HelperAnalyses>);
+static_assert(CanGetICFGOf<HelperAnalyses, const llvm::Instruction *,
+                           const llvm::Function *>);
+static_assert(
+    CanGetCompressedFunctionsOf<HelperAnalyses, const llvm::Function *>);
+static_assert(CanGetCGSCCs<HelperAnalyses>);
+
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::optional<LLVMAliasSetData> PrecomputedPTS,
                                AliasAnalysisType PTATy, bool AllowLazyPTS,
@@ -175,5 +184,3 @@ HelperAnalyses::getUsedGlobals() {
   }
   return *UsedGlobals;
 }
-
-} // namespace psr

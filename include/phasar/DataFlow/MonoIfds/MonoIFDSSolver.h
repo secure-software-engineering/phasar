@@ -13,6 +13,7 @@
 #include "phasar/ControlFlow/CGSCCs.h"
 #include "phasar/ControlFlow/ControlFlowOrder.h"
 #include "phasar/ControlFlow/ICFG.h"
+#include "phasar/DataFlow/HelperAnalyses.h"
 #include "phasar/DataFlow/MonoIfds/ArraySetWorkList.h"
 #include "phasar/DataFlow/MonoIfds/DataFlowEnvironment.h"
 #include "phasar/DataFlow/MonoIfds/MonoIFDSConfig.h"
@@ -39,7 +40,6 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/TypeName.h"
 
-#include <concepts>
 #include <memory>
 #include <memory_resource>
 #include <stdexcept>
@@ -70,6 +70,19 @@ public:
                               std::pmr::get_default_resource())
       : Problem(&assertNotNull(Problem)), ICF(&assertNotNull(ICF)),
         MBufRes(Alloc.resource()) {}
+
+  template <CanGetICFGOf<n_t, f_t> HelperAnalysesT>
+  explicit MonoIFDSSolver(ProblemT *Problem, HelperAnalysesT &HA,
+                          std::pmr::polymorphic_allocator<> Alloc =
+                              std::pmr::get_default_resource())
+      : MonoIFDSSolver(Problem, &HA.getICFG(), Alloc) {
+    if constexpr (CanGetCompressedFunctionsOf<HelperAnalysesT, f_t>) {
+      setFunctionCompressor(&HA.getCompressedFunctions());
+    }
+    if constexpr (CanGetCGSCCs<HelperAnalysesT>) {
+      setCGSCCs(&HA.getCGSCCs());
+    }
+  }
 
   MonoIFDSSolver &setConfig(MonoIfdsConfig Config) & noexcept {
     this->Config = Config;

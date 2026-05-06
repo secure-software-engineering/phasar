@@ -26,10 +26,12 @@ void controller::executeMonoIFDSTaint(AnalysisController &Data) {
   auto Config = makeTaintConfig(Data);
   monoifds::TaintAnalysis TA(&Config, &Data.HA->getUsedGlobals(), &CAI);
 
-  monoifds::MonoIFDSSolver Solver(&TA, &Data.HA->getICFG());
-  Solver //
-      .setCGSCCs(&Data.HA->getCGSCCs())
-      .setFunctionCompressor(&Data.HA->getCompressedFunctions());
+  // monoifds::MonoIFDSSolver Solver(&TA, &Data.HA->getICFG());
+  // Solver //
+  //     .setCGSCCs(&Data.HA->getCGSCCs())
+  //     .setFunctionCompressor(&Data.HA->getCompressedFunctions());
+
+  monoifds::MonoIFDSSolver Solver(&TA, *Data.HA);
 
   {
     std::optional<Timer> MeasureTime;
