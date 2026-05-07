@@ -1757,12 +1757,8 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
 <tr class="memitem:a760f1365adfeb898b503d6bbfe646712" id="r_a760f1365adfeb898b503d6bbfe646712"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a760f1365adfeb898b503d6bbfe646712">isAllocaInstOrHeapAllocaFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="memdesc:a760f1365adfeb898b503d6bbfe646712"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the given LLVM Value is either a alloca instruction or a heap allocation function, e.g. new, new[], malloc, realloc or calloc.  <br /></td></tr>
 <tr class="separator:a760f1365adfeb898b503d6bbfe646712"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad00e1b06b90f1024714e9f3f94e5721d" id="r_ad00e1b06b90f1024714e9f3f94e5721d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad00e1b06b90f1024714e9f3f94e5721d">matchesSignature</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *F, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::FunctionType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FType</a>, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ExactMatch</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a>)</td></tr>
-<tr class="separator:ad00e1b06b90f1024714e9f3f94e5721d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e77b0ff0c4910e927c5aa5bb782f951" id="r_a7e77b0ff0c4910e927c5aa5bb782f951"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7e77b0ff0c4910e927c5aa5bb782f951">matchesSignature</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::FunctionType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FType1</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::FunctionType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FType2</a>)</td></tr>
-<tr class="separator:a7e77b0ff0c4910e927c5aa5bb782f951"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fae0d532d34267a5a662f47f85a6715" id="r_a3fae0d532d34267a5a662f47f85a6715"><td class="memItemLeft" align="right" valign="top">llvm::ModuleSlotTracker &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a3fae0d532d34267a5a662f47f85a6715">getModuleSlotTrackerFor</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V)</td></tr>
-<tr class="separator:a3fae0d532d34267a5a662f47f85a6715"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a515e5c0c4b97a2c1856189a00cf3a61a" id="r_a515e5c0c4b97a2c1856189a00cf3a61a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_DEPRECATED</a>(&quot;With <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">opaque</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">pointers</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">this</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">function</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">not</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">very</a> useful. <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Use</a> &quot; &quot;<a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a>() instead.&quot;, &quot;psr::isConsistentCall&quot;) <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">matchesSignature</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_DEPRECATED</a>(&quot;With <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">opaque</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">pointers</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">this</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">function</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">not</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">very</a> useful. <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Use</a> &quot; &quot;<a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a>() instead.&quot;, &quot;psr::isConsistentCall&quot;) <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">matchesSignature</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm llvm::ModuleSlotTracker &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a515e5c0c4b97a2c1856189a00cf3a61a">getModuleSlotTrackerFor</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V)</td></tr>
+<tr class="separator:a515e5c0c4b97a2c1856189a00cf3a61a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5a75f4cae1c54079d849c1581cb3156" id="r_ad5a75f4cae1c54079d849c1581cb3156"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad5a75f4cae1c54079d849c1581cb3156">llvmIRToString</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V)</td></tr>
 <tr class="memdesc:ad5a75f4cae1c54079d849c1581cb3156"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string representation of a LLVM Value.  <br /></td></tr>
 <tr class="separator:ad5a75f4cae1c54079d849c1581cb3156"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -5910,11 +5906,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Approximates, whether the given LLVM type may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Ty does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00281">281</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00287">287</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00266">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00272">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00293">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00299">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -5944,9 +5940,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Approximates, whether the given LLVM value may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Val does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00293">293</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00299">299</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00281">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00287">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -5974,9 +5970,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00266">266</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00272">272</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00281">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00287">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -6711,7 +6707,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00326">326</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00332">332</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -6739,7 +6735,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00314">314</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00320">320</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00262">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00268">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00256">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00229">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
 
@@ -7089,14 +7085,14 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
 
 </div>
 </div>
-<a id="a3fae0d532d34267a5a662f47f85a6715" name="a3fae0d532d34267a5a662f47f85a6715"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3fae0d532d34267a5a662f47f85a6715">&#9670;&#160;</a></span>getModuleSlotTrackerFor()</h2>
+<a id="a515e5c0c4b97a2c1856189a00cf3a61a" name="a515e5c0c4b97a2c1856189a00cf3a61a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a515e5c0c4b97a2c1856189a00cf3a61a">&#9670;&#160;</a></span>getModuleSlotTrackerFor()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">llvm::ModuleSlotTracker &amp; psr::getModuleSlotTrackerFor </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_DEPRECATED</a>(&quot;With <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">opaque</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">pointers</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">this</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">function</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">not</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">very</a> useful. <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Use</a> &quot; &quot;<a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a>() instead.&quot;, &quot;psr::isConsistentCall&quot;) <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">matchesSignature</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LLVM_DEPRECATED</a>(&quot;With <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">opaque</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">pointers</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">this</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">function</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">not</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">very</a> useful. <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Use</a> &quot; &quot;<a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall</a>() instead.&quot;, &quot;psr::isConsistentCall&quot;) <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">matchesSignature</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm llvm::ModuleSlotTracker &amp; psr::getModuleSlotTrackerFor </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *&#160;</td>
           <td class="paramname"><em>V</em></td><td>)</td>
@@ -7104,6 +7100,10 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns true if the provided function and the function type are both not null and have the same number of parameters and the same return type. If the argument ExactMatch is set to true, which it is by default, the two provided arguments must also have the same type for each argument, for the function to return true.</p>
+<dl class="section note"><dt>Note</dt><dd>This function is less useful in practice than you may think. Consider using <a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall()</a> instead. Returns true iff the provided functions are both not null and have the same number of paramters, the same return type and each parameter of both functions has the same type aswell.</dd>
+<dd>
+This function is less useful in practice than you may think. Consider using <a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall()</a> instead. </dd></dl>
 
 </div>
 </div>
@@ -9554,7 +9554,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Returns a string representation of a LLVM Value. </p>
 
-<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00191">checkSREquality()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00765">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getNormalEdgeFunction()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00667">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getStrongUpdateStoreEF()</a>, <a class="el" href="DebugOutput_8h_source.html#l00041">psr::detail::printHelper()</a>, <a class="el" href="LLVMSolverResults_8h_source.html#l00093">psr::detail::resultAtInLLVMSSAImpl()</a>, and <a class="el" href="LLVMSolverResults_8h_source.html#l00032">psr::detail::resultsAtInLLVMSSAImpl()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="GenericSolverResults_8h_source.html#l00191">checkSREquality()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00765">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getNormalEdgeFunction()</a>, <a class="el" href="IDEInstInteractionAnalysis_8h_source.html#l00667">psr::IDEInstInteractionAnalysisT&lt; EdgeFactType, SyntacticAnalysisOnly, EnableIndirectTaints &gt;::getStrongUpdateStoreEF()</a>, <a class="el" href="DebugOutput_8h_source.html#l00041">psr::detail::printHelper()</a>, <a class="el" href="LLVMSolverResults_8h_source.html#l00095">psr::detail::resultAtInLLVMSSAImpl()</a>, and <a class="el" href="LLVMSolverResults_8h_source.html#l00032">psr::detail::resultsAtInLLVMSSAImpl()</a>.</p>
 
 </div>
 </div>
@@ -10064,72 +10064,6 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="ErrorHandling_8h_source.html#l00064">64</a> of file <a class="el" href="ErrorHandling_8h_source.html">ErrorHandling.h</a>.</p>
-
-</div>
-</div>
-<a id="ad00e1b06b90f1024714e9f3f94e5721d" name="ad00e1b06b90f1024714e9f3f94e5721d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad00e1b06b90f1024714e9f3f94e5721d">&#9670;&#160;</a></span>matchesSignature() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::matchesSignature </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td>
-          <td class="paramname"><em>F</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::FunctionType *&#160;</td>
-          <td class="paramname"><em>FType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
-          <td class="paramname"><em>ExactMatch</em> = <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a></code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns true if the provided function and the function type are both not null and have the same number of parameters and the same return type. If the argument ExactMatch is set to true, which it is by default, the two provided arguments must also have the same type for each argument, for the function to return true.</p>
-<dl class="section note"><dt>Note</dt><dd>This function is less useful in practice than you may think. Consider using <a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall()</a> instead. </dd></dl>
-
-</div>
-</div>
-<a id="a7e77b0ff0c4910e927c5aa5bb782f951" name="a7e77b0ff0c4910e927c5aa5bb782f951"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e77b0ff0c4910e927c5aa5bb782f951">&#9670;&#160;</a></span>matchesSignature() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::matchesSignature </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::FunctionType *&#160;</td>
-          <td class="paramname"><em>FType1</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::FunctionType *&#160;</td>
-          <td class="paramname"><em>FType2</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns true iff the provided functions are both not null and have the same number of paramters, the same return type and each parameter of both functions has the same type aswell.</p>
-<dl class="section note"><dt>Note</dt><dd>This function is less useful in practice than you may think. Consider using <a class="el" href="namespacepsr.html#a1d7e8e0325ae290072875ea2a35f9332">isConsistentCall()</a> instead. </dd></dl>
 
 </div>
 </div>
@@ -13229,7 +13163,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 6 2026 16:30:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu May 7 2026 17:51:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
