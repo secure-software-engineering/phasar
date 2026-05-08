@@ -75,10 +75,13 @@ asIdBased(const ValueCompressor<PAGVariable> &VC, const LLVMProjectIRDB &IRDB,
 using GTMap = std::map<unittest::TestingSrcLocation,
                        std::vector<unittest::TestingSrcLocation>>;
 
+template <std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
+              LLVMPAGBuilder>
 void doAnalysisAndCompareResults(
     const llvm::Twine &IRFile, const GTMap &ExpectedResults,
     std::invocable<const LLVMProjectIRDB &, const LLVMBasedCallGraph &> auto
         AABuilder,
+    PAGBuilderImpl Impl = {},
     std::source_location Loc = std::source_location::current()) {
 
   auto IRDB = LLVMProjectIRDB::loadOrExit(PathToLLFiles + IRFile);
@@ -88,8 +91,8 @@ void doAnalysisAndCompareResults(
                                         {"main"}, TH, VTP);
 
   ValueCompressor<PAGVariable> VC;
-  UnionFindAAResult auto Results =
-      computeUnionFindAARaw(IRDB, AABuilder(IRDB, BaseCG), &VC);
+  UnionFindAAResult auto Results = computeUnionFindAARaw(
+      IRDB, AABuilder(IRDB, BaseCG), &VC, std::move(Impl));
 
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
     const auto PtrId = asId(VC, IRDB, PtrVar);
@@ -7312,6 +7315,47 @@ TEST(IndirectionSensUnionFindAATest, Indirection10) {
                           .OpCode = llvm::Instruction::Alloca}}}};
 
   doAnalysisAndCompareResults("indirection_10_cpp_dbg.ll", GT, IndAABuilder);
+}
+
+// ---------------------------------------------------------------------------
+// MemorySSA flow-sensitivity tests
+//
+// These tests verify that LLVMPAGBuilder::withBuiltinMemSSA() connects each
+// load only to its actually-reaching stores (not to killed ones).
+// ---------------------------------------------------------------------------
+
+// p = &a; p = &b; q = load p  — second store kills first, so q must NOT alias a
+TEST(MemSSAUnionFindAATest, KillStore) {
+  GTMap GT = {{LineColFunOp{.Line = 6,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Load},
+               {LineColFunOp{.Line = 3,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+
+  doAnalysisAndCompareResults("memssa_kill_01_c_dbg.ll", GT, ContextAABuilder,
+                              LLVMPAGBuilder::withBuiltinMemSSA());
+}
+
+// if (c) p = &a; else p = &b; q = load p  — MemoryPhi: q aliases both a and b
+TEST(MemSSAUnionFindAATest, BranchBothReach) {
+  GTMap GT = {{LineColFunOp{.Line = 9,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Load},
+               {LineColFunOp{.Line = 2,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca},
+                LineColFunOp{.Line = 3,
+                             .Col = 0,
+                             .InFunction = "main",
+                             .OpCode = llvm::Instruction::Alloca}}}};
+
+  doAnalysisAndCompareResults("memssa_branch_01_c_dbg.ll", GT, ContextAABuilder,
+                              LLVMPAGBuilder::withBuiltinMemSSA());
 }
 
 } // namespace

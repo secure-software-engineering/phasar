@@ -10,14 +10,20 @@
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/AssumptionCache.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/MemorySSA.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Dominators.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Operator.h"
 
 #include <concepts>
-#include <functional>
+#include <memory>
 
 using namespace psr;
 using namespace psr::pag;
@@ -128,12 +134,59 @@ struct PAGMappedLibrarySummary {
   }
 };
 
+// Bundle of per-function analyses for the built-in MemorySSA provider.
+// Members are declared in initialization order: each field depends only on
+// the ones before it.  MSSA is constructed last in the body (after
+// AA.addAAResult) because MemorySSA is neither movable nor copyable.
+struct MemSSABundle {
+  llvm::AssumptionCache AC;
+  llvm::TargetLibraryInfo TLI;
+  llvm::DominatorTree DT;
+  llvm::BasicAAResult BAA;
+  llvm::AAResults AA;
+  std::optional<llvm::MemorySSA> MSSA;
+
+  explicit MemSSABundle(llvm::Function &F)
+      : AC(F), TLI(llvm::TargetLibraryInfoImpl{}), DT(F),
+        BAA(F.getParent()->getDataLayout(), F, TLI, AC, &DT), AA(TLI) {
+    AA.addAAResult(BAA);
+    MSSA.emplace(F, &AA, &DT);
+  }
+};
+
+static void
+collectReachingDefs(llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
+                    llvm::SmallPtrSetImpl<llvm::MemoryDef *> &Defs,
+                    bool &HasLiveOnEntry,
+                    llvm::SmallPtrSetImpl<llvm::MemoryAccess *> &Visited) {
+  if (!Visited.insert(MA).second) {
+    return;
+  }
+  if (MSSA.isLiveOnEntryDef(MA)) {
+    HasLiveOnEntry = true;
+    return;
+  }
+  if (auto *Def = llvm::dyn_cast<llvm::MemoryDef>(MA)) {
+    Defs.insert(Def);
+    return;
+  }
+  if (auto *Phi = llvm::dyn_cast<llvm::MemoryPhi>(MA)) {
+    for (unsigned I = 0, E = Phi->getNumIncomingValues(); I != E; ++I) {
+      collectReachingDefs(Phi->getIncomingValue(I), MSSA, Defs, HasLiveOnEntry,
+                          Visited);
+    }
+  }
+}
+
 } // namespace
 
 struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   const llvm::DataLayout &DL;           // NOLINT
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
+
+  const LLVMPAGBuilder::MemSSAProviderFn *MemSSAProvider = nullptr;
+  llvm::MemorySSA *CurrentMemSSA = nullptr;
 
   llvm::DenseMap<ValueId, ValueId> TheOneLoad{};
   llvm::DenseMap<std::pair<ValueId, const llvm::Function *>, ValueId>
@@ -246,6 +299,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
 
   void initializeFun(LLVMPBStrategyRef Strategy, const llvm::Function &Fun) {
+    CurrentMemSSA =
+        MemSSAProvider && *MemSSAProvider ? (*MemSSAProvider)(Fun) : nullptr;
     // XXX: RPO Order to profit from OTF-merged values
     for (const auto &BB : Fun) {
       propagateBB(Strategy, BB);
@@ -418,6 +473,36 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
     handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
+
+      if (CurrentMemSSA) {
+        if (auto *Access = CurrentMemSSA->getMemoryAccess(Ld)) {
+          auto *Clobber =
+              CurrentMemSSA->getWalker()->getClobberingMemoryAccess(Access);
+          llvm::SmallPtrSet<llvm::MemoryDef *, 4> Defs;
+          llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
+          bool HasLiveOnEntry = false;
+          collectReachingDefs(Clobber, *CurrentMemSSA, Defs, HasLiveOnEntry,
+                              Visited);
+
+          auto LoadObj = getVariable(Ld, Strategy);
+          for (auto *Def : Defs) {
+            if (const auto *St =
+                    llvm::dyn_cast<llvm::StoreInst>(Def->getMemoryInst())) {
+              handleOperand(St->getValueOperand(), [&](const auto *ValOp) {
+                Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj,
+                                   Assign{}, Ld);
+              });
+            } else {
+              HasLiveOnEntry = true;
+            }
+          }
+          if (HasLiveOnEntry) {
+            Strategy.onAddEdge(PointerObj, LoadObj, Load{}, Ld);
+          }
+          return;
+        }
+      }
+
       const auto ReuseOrCreate = [&](auto &Map, auto Key) {
         auto [It, Inserted] = Map.try_emplace(Key, ValueId{});
         if (!Inserted) {
@@ -738,6 +823,7 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
       .DL = IRDB.getModule()->getDataLayout(),
       .VC = VC,
       .MLSum = {MLSum},
+      .MemSSAProvider = MemSSAProvider ? &MemSSAProvider : nullptr,
   };
 
   const size_t NumPossibleValues = Strategy.getNumPossibleValues(IRDB);
@@ -753,4 +839,20 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
 
   BData.initializeGlobals(IRDB, Strategy);
   BData.initializeFunctions(IRDB, Strategy);
+}
+
+LLVMPAGBuilder LLVMPAGBuilder::withBuiltinMemSSA(
+    const library_summary::LLVMFunctionDataFlowFacts *MLSum) {
+  using CacheType =
+      llvm::DenseMap<const llvm::Function *, std::unique_ptr<MemSSABundle>>;
+  auto Cache = std::make_unique<CacheType>();
+  MemSSAProviderFn Provider = [Cache =
+                                   std::move(Cache)](const llvm::Function &F) {
+    auto &Entry = (*Cache)[&F];
+    if (!Entry) {
+      Entry = std::make_unique<MemSSABundle>(const_cast<llvm::Function &>(F));
+    }
+    return &*Entry->MSSA;
+  };
+  return LLVMPAGBuilder(MLSum, std::move(Provider));
 }
