@@ -144,7 +144,9 @@ struct LLVMUnionFindAliasIteratorMixin {
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      // XXX: Check exactly the conditions for must alias!
+      if (Ptr1 == Ptr2) {
+        return AliasResult::MustAlias;
+      }
       return !llvm::isa<llvm::LoadInst>(Ptr1) &&
                      !llvm::isa<llvm::LoadInst>(Ptr2)
                  ? AliasResult::MustAlias
@@ -296,7 +298,9 @@ public:
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      // XXX: Check exactly the conditions for must alias!
+      if (Ptr1 == Ptr2) {
+        return AliasResult::MustAlias;
+      }
       return !llvm::isa<llvm::LoadInst>(Ptr1) &&
                      !llvm::isa<llvm::LoadInst>(Ptr2)
                  ? AliasResult::MustAlias

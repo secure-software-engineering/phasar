@@ -136,6 +136,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   const PAGMappedLibrarySummary &MLSum; // NOLINT
 
   llvm::DenseMap<ValueId, ValueId> TheOneLoad{};
+  llvm::DenseMap<std::pair<ValueId, const llvm::Function *>, ValueId>
+      TheOneGlobalLoad{};
   BitSet<ValueId> OnlyIncomingStoresAndOutgoingLoads{};
   TypedVector<ValueId, llvm::SmallDenseMap<ValueId, Edge, 2>> IncomingStores{};
   TypedVector<ValueId, llvm::SmallDenseSet<ValueId, 2>> OutgoingLoads{};
@@ -416,18 +418,23 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
     handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
-      if (llvm::isa<llvm::Argument, llvm::Instruction>(PointerOp)) {
-        auto [It, Inserted] = TheOneLoad.try_emplace(PointerObj, ValueId{});
-
+      const auto ReuseOrCreate = [&](auto &Map, auto Key) {
+        auto [It, Inserted] = Map.try_emplace(Key, ValueId{});
         if (!Inserted) {
           VC.addAlias(Ld, It->second);
           return;
         }
-
         auto LoadObj = getVariable(Ld, Strategy);
         It->second = LoadObj;
         addEdge(Strategy, PointerObj, LoadObj, Load{}, Ld);
-        return;
+      };
+
+      if (llvm::isa<llvm::Argument, llvm::Instruction>(PointerOp)) {
+        return ReuseOrCreate(TheOneLoad, PointerObj);
+      }
+      if (llvm::isa<llvm::GlobalValue>(PointerOp)) {
+        return ReuseOrCreate(TheOneGlobalLoad,
+                             std::pair{PointerObj, Ld->getFunction()});
       }
 
       auto LoadObj = getVariable(Ld, Strategy);
@@ -600,7 +607,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
 
     std::optional<ValueId> CSVal;
-    if (Call->getType()->isPointerTy()) {
+    if (!definitelyContainsNoPointer(Call)) {
       CSVal = getVariable(Call, Strategy);
     }
 
