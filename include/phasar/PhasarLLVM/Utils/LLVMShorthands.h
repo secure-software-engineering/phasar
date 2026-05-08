@@ -309,6 +309,12 @@ definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
 /// precise in all cases.
 [[nodiscard]] bool isAddressTakenVariable(const llvm::Value *Var) noexcept;
 
+/// Like \c isAddressTakenVariable but runs the full use-traversal for
+/// function arguments regardless of their attributes.  Use this when the
+/// caller has already established that \p Arg is allocation-site-like (e.g.,
+/// for PAG field-sensitivity of pointer parameters).
+[[nodiscard]] bool isAddressTakenArg(const llvm::Argument *Arg) noexcept;
+
 /**
  * Tests for <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>
  * e.g.

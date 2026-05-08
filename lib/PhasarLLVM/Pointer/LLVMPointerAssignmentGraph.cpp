@@ -252,12 +252,15 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void addDelayedEdges(LLVMPBStrategyRef Strategy) {
     OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto VId) {
-      // TODO: Is this condition correct?
+      // Return slots always receive Assign/Return edges from handleReturn /
+      // handleCallTarget, which erases them from
+      // OnlyIncomingStoresAndOutgoingLoads before we get here. Only
+      // address-taken variables need the safety fallback: their stored value
+      // might be loaded via an alias that we have not seen yet.
       const bool NeedsStoreSafetyFallback =
           OutgoingLoads[VId].empty() &&
           llvm::any_of(VC.id2vars(VId), [](PAGVariable Var) {
-            return Var.isReturnVariable() ||
-                   isAddressTakenVariable(Var.valueOrNull());
+            return isAddressTakenVariable(Var.valueOrNull());
           });
 
       for (auto [IncStore, _] : IncomingStores[VId]) {
@@ -369,7 +372,18 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
           continue;
         }
 
-        // TODO: Handle constant GEP!
+        if (const auto *GEPOp = llvm::dyn_cast<llvm::GEPOperator>(Op)) {
+          const auto *PtrOp = GEPOp->getPointerOperand();
+          if (!definitelyContainsNoPointer(PtrOp) &&
+              Seen.insert(PtrOp).second) {
+            if (const auto *PtrUser = llvm::dyn_cast<llvm::User>(PtrOp)) {
+              WL.push_back(PtrUser);
+            } else {
+              std::invoke(Handler, PtrOp);
+            }
+          }
+          continue;
+        }
 
         if (const auto *OpUser = llvm::dyn_cast<llvm::User>(Op)) {
           WL.push_back(OpUser);
@@ -449,8 +463,12 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
   void handleGep(LLVMPBStrategyRef Strategy, const llvm::GEPOperator *Gep) {
     handleOperand(Gep->getPointerOperand(), [&](const auto *PointerOp) {
-      if (psr::isAllocaInstOrHeapAllocaFunction(PointerOp) &&
-          !isAddressTakenVariable(PointerOp) && Gep->hasAllConstantIndices() &&
+      const auto *Arg = llvm::dyn_cast<llvm::Argument>(PointerOp);
+      const bool IsAllocLike =
+          psr::isAllocaInstOrHeapAllocaFunction(PointerOp) || Arg != nullptr;
+      const bool IsAddressTaken =
+          Arg ? isAddressTakenArg(Arg) : isAddressTakenVariable(PointerOp);
+      if (IsAllocLike && !IsAddressTaken && Gep->hasAllConstantIndices() &&
           !Gep->hasAllZeroIndices()) {
         llvm::APInt Offset(64, 0);
         if (Gep->accumulateConstantOffset(DL, Offset)) {
@@ -554,7 +572,16 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       }
     }
 
-    // TODO: Varargs
+    if (Callee->isVarArg()) {
+      if (const auto *VaList = getVaListTagOrNull(*Callee)) {
+        auto VaListObj = getVariable(VaList, Strategy);
+        for (size_t I = Callee->arg_size(); I < Args.size(); ++I) {
+          for (auto ArgVal : Args[I]) {
+            addEdge(Strategy, ArgVal, VaListObj, StorePOI{}, Call);
+          }
+        }
+      }
+    }
   }
 
   void handleCall(LLVMPBStrategyRef Strategy, const llvm::CallBase *Call) {

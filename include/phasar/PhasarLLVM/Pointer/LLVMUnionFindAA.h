@@ -358,7 +358,10 @@ computeUnionFindAARaw(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
   Impl.buildPAG(IRDB, *VC, &Ana);
 
   const auto NumVars = VC->size();
-  return PSR_FWD(Ana).consumeAAResults(NumVars);
+  return PSR_FWD(Ana).consumeAAResults(NumVars, [&VC](ValueId VId) {
+    return llvm::any_of(VC->id2vars(VId),
+                        [](PAGVariable V) { return !V.isReturnVariable(); });
+  });
 }
 
 template <pag::CanOnAddEdge AnalysisT,
