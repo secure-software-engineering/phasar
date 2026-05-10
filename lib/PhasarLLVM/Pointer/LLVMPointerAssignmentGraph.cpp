@@ -7,6 +7,7 @@
 #include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/MapUtils.h"
+#include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -140,42 +141,52 @@ struct PAGMappedLibrarySummary {
 // AA.addAAResult) because MemorySSA is neither movable nor copyable.
 struct MemSSABundle {
   llvm::AssumptionCache AC;
-  llvm::TargetLibraryInfo TLI;
   llvm::DominatorTree DT;
   llvm::BasicAAResult BAA;
   llvm::AAResults AA;
-  std::optional<llvm::MemorySSA> MSSA;
+  llvm::MemorySSA MSSA;
 
-  explicit MemSSABundle(llvm::Function &F)
-      : AC(F), TLI(llvm::TargetLibraryInfoImpl{}), DT(F),
-        BAA(F.getParent()->getDataLayout(), F, TLI, AC, &DT), AA(TLI) {
-    AA.addAAResult(BAA);
-    MSSA.emplace(F, &AA, &DT);
-  }
+  explicit MemSSABundle(llvm::Function &F, const llvm::TargetLibraryInfo *TLI)
+      : AC(F), DT(F),
+        BAA(F.getParent()->getDataLayout(), F, assertNotNull(TLI), AC, &DT),
+        AA([](const auto *TLI, auto *BAA) {
+          llvm::AAResults AA(*TLI);
+          AA.addAAResult(*BAA);
+          return AA;
+        }(TLI, &BAA)),
+        MSSA(F, &AA, &DT) {}
 };
 
-static void
+// returns HasLiveOnEntry
+static bool
 collectReachingDefs(llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
-                    llvm::SmallPtrSetImpl<llvm::MemoryDef *> &Defs,
-                    bool &HasLiveOnEntry,
+                    llvm::SmallPtrSetImpl<const llvm::StoreInst *> &Defs,
                     llvm::SmallPtrSetImpl<llvm::MemoryAccess *> &Visited) {
   if (!Visited.insert(MA).second) {
-    return;
+    return false;
   }
   if (MSSA.isLiveOnEntryDef(MA)) {
-    HasLiveOnEntry = true;
-    return;
+    return true;
   }
   if (auto *Def = llvm::dyn_cast<llvm::MemoryDef>(MA)) {
-    Defs.insert(Def);
-    return;
+    // We only care about stores for now
+    if (const auto *St =
+            llvm::dyn_cast<llvm::StoreInst>(Def->getMemoryInst())) {
+      Defs.insert(St);
+      return false;
+    }
+    return true;
   }
   if (auto *Phi = llvm::dyn_cast<llvm::MemoryPhi>(MA)) {
-    for (unsigned I = 0, E = Phi->getNumIncomingValues(); I != E; ++I) {
-      collectReachingDefs(Phi->getIncomingValue(I), MSSA, Defs, HasLiveOnEntry,
-                          Visited);
+    for (const auto &Inc : Phi->incoming_values()) {
+      bool LOE = collectReachingDefs(llvm::cast<llvm::MemoryAccess>(Inc.get()),
+                                     MSSA, Defs, Visited);
+      if (LOE) {
+        return true;
+      }
     }
   }
+  return false;
 }
 
 } // namespace
@@ -185,7 +196,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
 
-  const LLVMPAGBuilder::MemSSAProviderFn *MemSSAProvider = nullptr;
+  LLVMPAGBuilder::MemSSAProviderFn *MemSSAProvider = nullptr;
   llvm::MemorySSA *CurrentMemSSA = nullptr;
 
   llvm::DenseMap<ValueId, ValueId> TheOneLoad{};
@@ -478,25 +489,20 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
         if (auto *Access = CurrentMemSSA->getMemoryAccess(Ld)) {
           auto *Clobber =
               CurrentMemSSA->getWalker()->getClobberingMemoryAccess(Access);
-          llvm::SmallPtrSet<llvm::MemoryDef *, 4> Defs;
+          llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
           llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
-          bool HasLiveOnEntry = false;
-          collectReachingDefs(Clobber, *CurrentMemSSA, Defs, HasLiveOnEntry,
-                              Visited);
+          const bool HasLiveOnEntry =
+              collectReachingDefs(Clobber, *CurrentMemSSA, Defs, Visited);
 
           auto LoadObj = getVariable(Ld, Strategy);
-          for (auto *Def : Defs) {
-            if (const auto *St =
-                    llvm::dyn_cast<llvm::StoreInst>(Def->getMemoryInst())) {
-              handleOperand(St->getValueOperand(), [&](const auto *ValOp) {
+          if (!HasLiveOnEntry) {
+            for (const auto *Def : Defs) {
+              handleOperand(Def->getValueOperand(), [&](const auto *ValOp) {
                 Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj,
                                    Assign{}, Ld);
               });
-            } else {
-              HasLiveOnEntry = true;
             }
-          }
-          if (HasLiveOnEntry) {
+          } else {
             Strategy.onAddEdge(PointerObj, LoadObj, Load{}, Ld);
           }
           return;
@@ -843,16 +849,20 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
 
 LLVMPAGBuilder LLVMPAGBuilder::withBuiltinMemSSA(
     const library_summary::LLVMFunctionDataFlowFacts *MLSum) {
-  using CacheType =
-      llvm::DenseMap<const llvm::Function *, std::unique_ptr<MemSSABundle>>;
-  auto Cache = std::make_unique<CacheType>();
-  MemSSAProviderFn Provider = [Cache =
-                                   std::move(Cache)](const llvm::Function &F) {
-    auto &Entry = (*Cache)[&F];
-    if (!Entry) {
-      Entry = std::make_unique<MemSSABundle>(const_cast<llvm::Function &>(F));
-    }
-    return &*Entry->MSSA;
+  struct MSSAImpl {
+    llvm::TargetLibraryInfoImpl TLIImpl{};
+    llvm::TargetLibraryInfo TLI{TLIImpl};
+    std::optional<MemSSABundle> Bundle{};
   };
+
+  // Note: MemorySSA is not movable, so the bundle & impl are not movable
+  // either
+  MemSSAProviderFn Provider =
+      [Impl = std::make_unique<MSSAImpl>()](const llvm::Function &F) mutable {
+        // Note: Over-write the the entry if present; this is fine as long as we
+        // don't use MemorySSA instances across provider-call boundaries.
+        Impl->Bundle.emplace(const_cast<llvm::Function &>(F), &Impl->TLI);
+        return &Impl->Bundle->MSSA;
+      };
   return LLVMPAGBuilder(MLSum, std::move(Provider));
 }

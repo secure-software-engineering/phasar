@@ -123,7 +123,7 @@ public:
   /// must remain valid for the duration of \c buildPAG. Returning null
   /// disables flow-sensitivity for that function.
   using MemSSAProviderFn =
-      llvm::unique_function<llvm::MemorySSA *(const llvm::Function &) const>;
+      llvm::unique_function<llvm::MemorySSA *(const llvm::Function &)>;
 
   constexpr LLVMPAGBuilder() noexcept = default;
 

@@ -351,10 +351,10 @@ private:
 template <pag::PBStrategy AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>
-[[nodiscard]] inline UnionFindAAResult auto
-computeUnionFindAARaw(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
-                      MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                      PAGBuilderImpl Impl = {}) {
+[[nodiscard]] inline UnionFindAAResult auto computeUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
+    PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
