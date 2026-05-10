@@ -17,6 +17,7 @@
 #include "llvm/Analysis/MemorySSA.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Instructions.h"
@@ -482,32 +483,39 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       return;
     }
 
-    handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
-      auto PointerObj = getVariable(PointerOp, Strategy);
+    if (CurrentMemSSA) {
+      if (auto *Access = CurrentMemSSA->getMemoryAccess(Ld)) {
+        auto *Clobber =
+            CurrentMemSSA->getWalker()->getClobberingMemoryAccess(Access);
+        llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
+        llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
+        const bool HasLiveOnEntry =
+            collectReachingDefs(Clobber, *CurrentMemSSA, Defs, Visited);
 
-      if (CurrentMemSSA) {
-        if (auto *Access = CurrentMemSSA->getMemoryAccess(Ld)) {
-          auto *Clobber =
-              CurrentMemSSA->getWalker()->getClobberingMemoryAccess(Access);
-          llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
-          llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
-          const bool HasLiveOnEntry =
-              collectReachingDefs(Clobber, *CurrentMemSSA, Defs, Visited);
+        if (!HasLiveOnEntry) {
+
+          if (Defs.size() == 1) {
+            const auto *ValueOp = (*Defs.begin())->getValueOperand();
+            if (!llvm::isa<llvm::ConstantExpr>(ValueOp)) {
+              VC.addAlias(Ld, getVariable(ValueOp, Strategy));
+              return;
+            }
+          }
 
           auto LoadObj = getVariable(Ld, Strategy);
-          if (!HasLiveOnEntry) {
-            for (const auto *Def : Defs) {
-              handleOperand(Def->getValueOperand(), [&](const auto *ValOp) {
-                Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj,
-                                   Assign{}, Ld);
-              });
-            }
-          } else {
-            Strategy.onAddEdge(PointerObj, LoadObj, Load{}, Ld);
+          for (const auto *Def : Defs) {
+            handleOperand(Def->getValueOperand(), [&](const auto *ValOp) {
+              Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj,
+                                 Assign{}, Ld);
+            });
           }
           return;
         }
       }
+    }
+
+    handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
+      auto PointerObj = getVariable(PointerOp, Strategy);
 
       const auto ReuseOrCreate = [&](auto &Map, auto Key) {
         auto [It, Inserted] = Map.try_emplace(Key, ValueId{});
