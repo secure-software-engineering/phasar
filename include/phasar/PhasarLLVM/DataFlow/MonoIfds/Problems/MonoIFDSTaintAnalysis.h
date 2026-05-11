@@ -10,6 +10,8 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/MonoIfds/DataFlowEnvironment.h"
+#include "phasar/DataFlow/MonoIfds/MonoIFDSProblem.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h" // for concept checking
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/MonoIfds/AliasCache.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
@@ -30,6 +32,9 @@
 #include <type_traits>
 
 namespace psr::monoifds {
+
+/// Implementation of a generic taint analysis to be solved by the
+/// MonoIFDSSolver. Conforms to the MonoIFDSProblem concept.
 class TaintAnalysis : public LLVMIFDSAnalysisDomainDefault {
 public:
   using ProblemAnalysisDomain = LLVMIFDSAnalysisDomainDefault;
@@ -39,7 +44,9 @@ public:
       const UsedGlobalsHolder<const llvm::GlobalVariable *> *UsedGlobals,
       LLVMAliasIteratorRef AI)
       : Config(&assertNotNull(Config)),
-        UsedGlobals(&assertNotNull(UsedGlobals)), AI(AI) {}
+        UsedGlobals(&assertNotNull(UsedGlobals)), AI(AI) {
+    static_assert(MonoIFDSProblem<TaintAnalysis>);
+  }
 
   void setAnalysisPrinter(
       MaybeUniquePtr<AnalysisPrinterBase<ProblemAnalysisDomain>> P) {
@@ -111,7 +118,7 @@ public:
     Printer->onFinalize(OS);
   }
 
-  // Optional API function: Filter out facts that are do not need to go into a
+  // Optional API function: Filter out facts that do not need to go into a
   // procedure summary
   [[nodiscard]] bool shouldBeInSummary(d_t ExitFact, n_t ExitInst);
 
