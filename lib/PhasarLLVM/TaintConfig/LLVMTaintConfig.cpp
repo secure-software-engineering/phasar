@@ -12,6 +12,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
+#include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/EnumFlags.h"
@@ -23,6 +24,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Metadata.h"
 
 #include <string>
 
@@ -133,14 +135,16 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
   std::unordered_map<const llvm::Type *, const std::string> StructConfigMap;
 
   // read all struct types from config
-  for (const auto &VarDesc : Config.Variables) {
-    llvm::DebugInfoFinder DIF;
-    const auto *M = Code.getModule();
+  llvm::DebugInfoFinder DIF;
+  const auto *M = Code.getModule();
 
-    DIF.processModule(*M);
+  DIF.processModule(*M);
+  for (const auto &VarDesc : Config.Variables) {
     for (const auto &Ty : DIF.types()) {
       if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-          Ty->getName().equals(VarDesc.Scope)) {
+          Ty->getName() == VarDesc.Scope) {
+        // TODO: Below loop looks wrong! Why on earth are we looping over the
+        // SAME set of types every time?
         for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
           StructConfigMap.insert(
               std::pair<const llvm::Type *, const std::string>(LlvmStructTy,
@@ -148,31 +152,63 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
         }
       }
     }
-    DIF.reset();
   }
+
   // add corresponding Allocas or getElementPtr instructions to the taint
   // category
+
+  const auto AddVariable = [this](const VariableData &VarDesc,
+                                  const llvm::Instruction &I) -> bool {
+#if LLVM_VERSION_MAJOR > 18
+    for (const llvm::DbgVariableRecord &DbR :
+         llvm::filterDbgVars(I.getDbgRecordRange())) {
+      const auto *Var = DbR.getVariable();
+      assert(Var != nullptr);
+      if (Var->getName() == VarDesc.Name && Var->getLine() == VarDesc.Line) {
+        addTaintCategory(DbR.getAddress(), VarDesc.Cat);
+        return true;
+      }
+    }
+#endif
+
+    if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
+      const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
+      // matching line number with for Allocas
+      if (LocalVar->getName() == VarDesc.Name &&
+          LocalVar->getLine() == VarDesc.Line) {
+        addTaintCategory(DbgDeclare->getAddress(), VarDesc.Cat);
+        return true;
+      }
+    }
+    return false;
+  };
+
   for (const auto &VarDesc : Config.Variables) {
     for (const auto &Fun : Code.getAllFunctions()) {
+      const bool MatchingFunScope = [&] {
+        if (VarDesc.Scope == Fun->getName()) {
+          return true;
+        }
+        const auto *Subp = Fun->getSubprogram();
+        return Subp != nullptr && VarDesc.Name == Subp->getName();
+      }();
+
       for (const auto &I : llvm::instructions(Fun)) {
-        if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-          const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
-          // matching line number with for Allocas
-          if (LocalVar->getName().equals(VarDesc.Name) &&
-              LocalVar->getLine() == VarDesc.Line) {
-            addTaintCategory(DbgDeclare->getAddress(), VarDesc.Cat);
-          }
-        } else if (!StructConfigMap.empty()) {
+        if (MatchingFunScope && AddVariable(VarDesc, I)) {
+          continue;
+        }
+
+        if (!StructConfigMap.empty()) {
           // Ignorning line numbers for getElementPtr instructions
           if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
             const auto *StType =
                 llvm::dyn_cast<llvm::StructType>(Gep->getSourceElementType());
-            if (StType && StructConfigMap.count(StType)) {
+            if (StType && StructConfigMap.contains(StType)) {
               auto VarName = StructConfigMap.at(StType);
               // using substr to cover the edge case in which same variable
               // name is present as a local variable and also as a struct
               // member variable. (Ex. JsonConfig/fun_member_02.cpp)
-              if (Gep->getName().substr(0, VarName.size()).equals(VarName)) {
+              if (Gep->getName().starts_with(VarName)) {
                 addTaintCategory(Gep, VarDesc.Cat);
               }
             }

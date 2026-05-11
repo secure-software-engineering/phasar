@@ -95,7 +95,8 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
   }
   // For PointerType delegate into its element type
   if (llvm::isa<llvm::PointerType>(Actual)) {
-    // If formal argument is void *, we can pass anything.
+// If formal argument is void *, we can pass anything.
+#if LLVM_VERSION_MAJOR <= 16
     if (Actual->isOpaquePointerTy() || Formal->isOpaquePointerTy() ||
         Formal->getNonOpaquePointerElementType()->isIntegerTy(8)) {
       return true;
@@ -103,6 +104,10 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
     return isTypeMatchForFunctionArgument(
         Actual->getNonOpaquePointerElementType(),
         Formal->getNonOpaquePointerElementType());
+#endif
+    // XXX: Add better heuristics for the commented code above that are LLVM>16
+    // compatible
+    return true;
   }
   // For structs, Formal needs to be somehow contained in Actual.
   if (llvm::isa<llvm::StructType>(Actual)) {

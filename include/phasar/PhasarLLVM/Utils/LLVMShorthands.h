@@ -70,6 +70,9 @@ bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 ///
 /// \note This function is less useful in practice than you may think. Consider
 /// using isConsistentCall() instead.
+LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
+                "isConsistentCall() instead.",
+                "psr::isConsistentCall")
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
                       bool ExactMatch = true);
 
@@ -79,6 +82,9 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
 ///
 /// \note This function is less useful in practice than you may think. Consider
 /// using isConsistentCall() instead.
+LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
+                "isConsistentCall() instead.",
+                "psr::isConsistentCall")
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 

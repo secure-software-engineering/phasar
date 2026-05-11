@@ -40,17 +40,21 @@ static ptaben::QueryId getQueryId(llvm::StringRef FileName, uint32_t SeqNo) {
   llvm::SHA256 Hasher;
   Hasher.update(FileName);
 
+  const auto LittleEndian = llvm::
+#if LLVM_VERSION_MAJOR < 18
+      support::
+#endif
+          endianness::little;
+
   {
     std::array<uint8_t, 4> Buf{};
-    llvm::support::endian::write32(Buf.data(), SeqNo,
-                                   llvm::support::endianness::little);
+    llvm::support::endian::write32(Buf.data(), SeqNo, LittleEndian);
     Hasher.update(Buf);
   }
 
   auto Hash = Hasher.final();
 
-  auto QId = llvm::support::endian::read64(Hash.data(),
-                                           llvm::support::endianness::little);
+  auto QId = llvm::support::endian::read64(Hash.data(), LittleEndian);
 
   return ptaben::QueryId(QId);
 }

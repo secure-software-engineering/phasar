@@ -34,6 +34,12 @@ auto detail::LLVMBasedCFGImpl<Derived>::getFunctionOfImpl(
 template <typename Derived>
 auto detail::LLVMBasedCFGImpl<Derived>::getPredsOfImpl(n_t I) const
     -> llvm::SmallVector<n_t, 2> {
+#if LLVM_VERSION_MAJOR > 18
+  if (const auto *PrevInst = I->getPrevNode()) {
+    return {PrevInst};
+  }
+#else
+
   if (!IgnoreDbgInstructions) {
     if (const auto *PrevInst = I->getPrevNode()) {
       return {PrevInst};
@@ -44,6 +50,7 @@ auto detail::LLVMBasedCFGImpl<Derived>::getPredsOfImpl(n_t I) const
       return {PrevNonDbgInst};
     }
   }
+#endif
   // If we do not have a predecessor yet, look for basic blocks which
   // lead to our instruction in question!
 
@@ -53,10 +60,12 @@ auto detail::LLVMBasedCFGImpl<Derived>::getPredsOfImpl(n_t I) const
                  [](const llvm::BasicBlock *BB) {
                    assert(BB && "BB under analysis was not well formed.");
                    const llvm::Instruction *Pred = BB->getTerminator();
+#if LLVM_VERSION_MAJOR <= 18
                    if (llvm::isa<llvm::DbgInfoIntrinsic>(Pred)) {
                      Pred = Pred->getPrevNonDebugInstruction(
                          false /*Only debug instructions*/);
                    }
+#endif
                    return Pred;
                  });
 
@@ -66,6 +75,11 @@ auto detail::LLVMBasedCFGImpl<Derived>::getPredsOfImpl(n_t I) const
 template <typename Derived>
 auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
     -> llvm::SmallVector<n_t, 2> {
+#if LLVM_VERSION_MAJOR > 18
+  if (const auto *NextInst = I->getNextNode()) {
+    return {NextInst};
+  }
+#else
   // case we wish to consider LLVM's debug instructions
   if (!IgnoreDbgInstructions) {
     if (const auto *NextInst = I->getNextNode()) {
@@ -75,14 +89,18 @@ auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
                  false /*Only debug instructions*/)) {
     return {NextNonDbgInst};
   }
+#endif
+
   if (const auto *Branch = llvm::dyn_cast<llvm::BranchInst>(I);
       Branch && isStaticVariableLazyInitializationBranch(Branch)) {
     // Skip the "already initialized" case, such that the analysis is always
     // aware of the initialized value.
     const auto *NextInst = &Branch->getSuccessor(0)->front();
+#if LLVM_VERSION_MAJOR <= 18
     if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(NextInst)) {
       NextInst = NextInst->getNextNonDebugInstruction(false);
     }
+#endif
     return {NextInst};
   }
 
@@ -93,10 +111,12 @@ auto detail::LLVMBasedCFGImpl<Derived>::getSuccsOfImpl(n_t I) const
       [IgnoreDbgInstructions{IgnoreDbgInstructions}](
           const llvm::BasicBlock *BB) {
         const llvm::Instruction *Succ = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
         if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(Succ)) {
           Succ = Succ->getNextNonDebugInstruction(
               false /*Only debug instructions*/);
         }
+#endif
         return Succ;
       });
   return Successors;
@@ -133,10 +153,12 @@ auto detail::LLVMBasedCFGImpl<Derived>::getStartPointsOfImpl(f_t Fun) const
   }
   if (!Fun->isDeclaration()) {
     const auto *EntryInst = &Fun->front().front();
+#if LLVM_VERSION_MAJOR <= 18
     if (IgnoreDbgInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(EntryInst)) {
       return {EntryInst->getNextNonDebugInstruction(
           false /*Only debug instructions*/)};
     }
+#endif
     return {EntryInst};
   }
   PHASAR_LOG_LEVEL_CAT(DEBUG, "LLVMBasedCFG",
@@ -170,8 +192,13 @@ bool detail::LLVMBasedCFGImpl<Derived>::isStartPointImpl(
   if (Inst == FirstInst) {
     return true;
   }
-  return llvm::isa<llvm::DbgInfoIntrinsic>(FirstInst) &&
-         Inst == FirstInst->getNextNonDebugInstruction(false);
+#if LLVM_VERSION_MAJOR <= 18
+  if (llvm::isa<llvm::DbgInfoIntrinsic>(FirstInst)) {
+    FirstInst = FirstInst->getNextNonDebugInstruction(false);
+  }
+#endif
+
+  return Inst == FirstInst;
 }
 
 template <typename Derived>

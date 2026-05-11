@@ -11,8 +11,8 @@ target_link_libraries(build-type-hierarchy PRIVATE phasar::phasar)
 
 if (TARGET run_sample_programs)
   add_custom_target(run_build_type_hierarchy
-    DEPENDS build-type-hierarchy
-    COMMAND $<TARGET_FILE:build-type-hierarchy> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/class_hierarchy.ll"
+    DEPENDS build-type-hierarchy LLFileGeneration
+    COMMAND $<TARGET_FILE:build-type-hierarchy> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/class_hierarchy_cpp_dbg.ll"
   )
 
   add_dependencies(run_sample_programs run_build_type_hierarchy)

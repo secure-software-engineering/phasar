@@ -69,6 +69,16 @@ static llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
 }
 
 llvm::DILocalVariable *psr::getDILocalVariable(const llvm::Value *V) {
+#if LLVM_VERSION_MAJOR > 18
+  if (auto *VAM = llvm::ValueAsMetadata::getIfExists(
+          const_cast<llvm::Value *>(V))) { // NOLINT FIXME when LLVM supports it
+    for (const auto &Use : VAM->getAllDbgVariableRecordUsers()) {
+      if (auto *Var = Use->getVariable()) {
+        return Var;
+      }
+    }
+  }
+#else
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
     if (auto *DDI = llvm::dyn_cast<llvm::DbgDeclareInst>(DbgIntr)) {
       return DDI->getVariable();
@@ -77,6 +87,7 @@ llvm::DILocalVariable *psr::getDILocalVariable(const llvm::Value *V) {
       return DVI->getVariable();
     }
   }
+#endif
   return nullptr;
 }
 
@@ -103,9 +114,34 @@ llvm::DILocation *psr::getDILocation(const llvm::Value *V) {
   // Arguments and Instruction such as AllocaInst
 
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto *MN = I->getMetadata(llvm::LLVMContext::MD_dbg)) {
-      return llvm::dyn_cast<llvm::DILocation>(MN);
+    if (const auto &DbgLoc = I->getDebugLoc()) {
+      return DbgLoc;
     }
+
+#if LLVM_VERSION_MAJOR > 18
+    const auto FindLocInDbgRecords =
+        [](const llvm::Value *Val) -> llvm::DILocation * {
+      if (auto *VAM = llvm::ValueAsMetadata::getIfExists(
+              const_cast<llvm::Value *>(Val))) {
+        for (const auto &DbgRec : VAM->getAllDbgVariableRecordUsers()) {
+          if (const auto &Loc = DbgRec->getDebugLoc()) {
+            return Loc;
+          }
+        }
+      }
+      return nullptr;
+    };
+
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(I);
+        Store && llvm::isa<llvm::Argument>(Store->getValueOperand())) {
+      // For each argument, clang creates an alloca + store; both have no !dbg
+      // metadata attached
+      return FindLocInDbgRecords(Store->getPointerOperand());
+    }
+    if (llvm::isa<llvm::AllocaInst>(I)) {
+      return FindLocInDbgRecords(I);
+    }
+#endif
   }
 
   if (auto *DbgIntr = getDbgVarIntrinsic(V)) {
@@ -377,11 +413,13 @@ std::pair<unsigned, unsigned> psr::getLineAndColFromIR(const llvm::Value *V) {
   if (auto *DILoc = getDILocation(V)) {
     return {DILoc->getLine(), DILoc->getColumn()};
   }
+
   if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     if (const auto *DIFun = I->getFunction()->getSubprogram()) {
       return {DIFun->getLine(), 0};
     }
   }
+
   if (auto *DISubpr = getDISubprogram(V)) { // Function
     return {DISubpr->getLine(), 0};
   }

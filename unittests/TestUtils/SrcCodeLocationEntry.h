@@ -309,6 +309,8 @@ getInstAtOrNull(const llvm::Function *F, uint32_t ReqLine,
     }
 
     auto [Line, Column] = psr::getLineAndColFromIR(&I);
+    // llvm::errs() << "For Inst at " << Line << ":" << Column << ": "
+    //              << llvmIRToString(&I) << '\n';
     if (Line == ReqLine && (ReqColumn == 0 || ReqColumn == Column) &&
         std::invoke(Pred, &I)) {
       return &I;

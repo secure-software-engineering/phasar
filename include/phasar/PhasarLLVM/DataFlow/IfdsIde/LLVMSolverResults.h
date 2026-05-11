@@ -37,9 +37,11 @@ namespace psr::detail {
   if (!Stmt->getNextNode()) {
     auto GetStartRow = [&Self](const llvm::BasicBlock *BB) -> decltype(auto) {
       const auto *First = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
       if (llvm::isa<llvm::DbgInfoIntrinsic>(First)) {
         First = First->getNextNonDebugInstruction();
       }
+#endif
       return Self.row(First);
     };
 
@@ -104,9 +106,11 @@ namespace psr::detail {
   auto GetStartVal = [&Self,
                       &Fact](const llvm::BasicBlock *BB) -> decltype(auto) {
     const auto *First = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
     if (llvm::isa<llvm::DbgInfoIntrinsic>(First)) {
       First = First->getNextNonDebugInstruction();
     }
+#endif
     return Self.resultAt(First, Fact);
   };
 

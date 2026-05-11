@@ -279,11 +279,19 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void propagateBB(LLVMPBStrategyRef Strategy, const llvm::BasicBlock &BB) {
     const auto *Inst = &BB.front();
+#if LLVM_VERSION_MAJOR <= 18
     if (Inst->isDebugOrPseudoInst()) {
       Inst = Inst->getNextNonDebugInstruction();
     }
+#endif
 
-    for (; Inst; Inst = Inst->getNextNonDebugInstruction()) {
+    for (; Inst; Inst =
+#if LLVM_VERSION_MAJOR <= 18
+                     Inst->getNextNonDebugInstruction()
+#else
+                     Inst->getNextNode()
+#endif
+    ) {
       dispatch(Strategy, *Inst);
     }
   }

@@ -262,7 +262,11 @@ TEST(CtxSensUnionFindAATest, Basic04) {
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Alloca},
                    LineColFunOp{.Line = 11,
+#if LLVM_VERSION_MAJOR <= 20
                                 .Col = 11,
+#else
+                                .Col = 10,
+#endif
                                 .InFunction = "main",
                                 .OpCode = llvm::Instruction::Load},
                    LineColFunOp{.Line = 11,

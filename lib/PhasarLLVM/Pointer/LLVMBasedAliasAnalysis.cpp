@@ -126,9 +126,11 @@ static AliasResult translateAAResult(llvm::AliasResult Res) noexcept {
 static llvm::Type *getPointeeTypeOrNull(const llvm::Value *Ptr) {
   assert(Ptr->getType()->isPointerTy());
 
+#if LLVM_VERSION_MAJOR <= 16
   if (!Ptr->getType()->isOpaquePointerTy()) {
     return Ptr->getType()->getNonOpaquePointerElementType();
   }
+#endif
 
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(Ptr)) {
     if (auto *Ty = Arg->getParamByValType()) {

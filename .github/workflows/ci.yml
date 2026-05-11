@@ -15,9 +15,9 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        compiler: [ [clang++-19, clang-19, "clang-19 libclang-rt-19-dev clang-tools-19"] ]
+        compiler: [ [clang++-20, clang-20, "clang-20 libclang-rt-20-dev clang-tools-20"] ]
         build: [ Debug, Release, DebugLibdeps, DebugCov ]
-        llvm-version: [ 16, 17 ]
+        llvm-version: [ 16, "22.1" ]
         include:
           - build: Debug
             cmake_build_type: Debug
@@ -31,7 +31,11 @@ jobs:
           - build: DebugCov
             cmake_build_type: Debug
             flags: -DCODE_COVERAGE=ON
-            extra_dependencies: llvm-19 # For coverage
+            extra_dependencies: llvm-20 # For coverage
+          - llvm-version: 16
+            llvm-major-version: 16
+          - llvm-version: "22.1"
+            llvm-major-version: 22
         exclude:
           - os: ubuntu-24.04-arm
             build: Debug
@@ -43,7 +47,7 @@ jobs:
     continue-on-error: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
@@ -56,7 +60,7 @@ jobs:
       - name: Install Phasar Dependencies
         shell: bash
         run: |
-          ./utils/InstallAptDependencies.sh --llvm-version ${{ matrix.llvm-version }} --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
+          ./utils/InstallAptDependencies.sh --llvm-version ${{ matrix.llvm-major-version }} --noninteractive tzdata ccache ${{ matrix.compiler[2] }} ${{ matrix.extra_dependencies }}
 
       - name: Building Phasar in ${{ matrix.build }} with ${{ matrix.compiler[0] }}
         env:
@@ -102,7 +106,7 @@ jobs:
 
       - name: Upload coverage HTML report artifact
         if: matrix.build == 'DebugCov'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: phasar-coverage-report-llvm-${{ matrix.llvm-version }}
           path: ./build/ccov/all-merged/
