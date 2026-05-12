@@ -14,16 +14,17 @@
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigBase.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigData.h"
 #include "phasar/PhasarLLVM/Utils/Annotation.h"
+#include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/SmallVector.h"
-#include "llvm/BinaryFormat/Dwarf.h"
+#include "llvm/ADT/StringMap.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstIterator.h"
-#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Metadata.h"
 
 #include <string>
@@ -127,64 +128,61 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
                                  const TaintConfigData &Config) {
-  // handle functions
   addAllFunctions(Code, Config);
 
-  // handle variables
-  // scope can be a function name or a struct.
-  std::unordered_map<const llvm::Type *, const std::string> StructConfigMap;
+  if (Config.Variables.empty()) {
+    return;
+  }
 
-  // read all struct types from config
-  llvm::DebugInfoFinder DIF;
-  const auto *M = Code.getModule();
+  // Map LLVM struct type → configured field name, built by correlating
+  // debug-declare records with allocas (avoids IR type naming assumptions).
+  std::unordered_map<const llvm::Type *, std::string> StructConfigMap;
 
-  DIF.processModule(*M);
-  for (const auto &VarDesc : Config.Variables) {
-    for (const auto &Ty : DIF.types()) {
-      if (Ty->getTag() == llvm::dwarf::DW_TAG_structure_type &&
-          Ty->getName() == VarDesc.Scope) {
-        // TODO: Below loop looks wrong! Why on earth are we looping over the
-        // SAME set of types every time?
-        for (const auto &LlvmStructTy : M->getIdentifiedStructTypes()) {
-          StructConfigMap.insert(
-              std::pair<const llvm::Type *, const std::string>(LlvmStructTy,
-                                                               VarDesc.Name));
-        }
+  {
+    // Pre-build scope → field name for O(1) lookup during the alloca scan.
+    llvm::StringMap<std::string> StructScopeIndex;
+    for (const auto &VarDesc : Config.Variables) {
+      StructScopeIndex.try_emplace(VarDesc.Scope, VarDesc.Name);
+    }
+
+    for (const auto *Fun : Code.getAllFunctions()) {
+      for (const auto &I : llvm::instructions(Fun)) {
+        forEachDbgDeclare(I, [&](const llvm::DILocalVariable *LocalVar,
+                                 const llvm::Value *Addr) {
+          const auto *AllocaI = llvm::dyn_cast<llvm::AllocaInst>(Addr);
+          if (!AllocaI) {
+            return;
+          }
+          const auto *StructTy =
+              llvm::dyn_cast<llvm::StructType>(AllocaI->getAllocatedType());
+          if (!StructTy) {
+            return;
+          }
+          const auto *CT = stripTypedefsToStruct(LocalVar->getType());
+          if (!CT) {
+            return;
+          }
+          if (auto It = StructScopeIndex.find(CT->getName());
+              It != StructScopeIndex.end()) {
+            StructConfigMap.try_emplace(StructTy, It->second);
+          }
+        });
       }
     }
   }
 
-  // add corresponding Allocas or getElementPtr instructions to the taint
-  // category
-
   const auto AddVariable = [this](const VariableData &VarDesc,
-                                  const llvm::Instruction &I) -> bool {
-#if LLVM_VERSION_MAJOR > 18
-    for (const llvm::DbgVariableRecord &DbR :
-         llvm::filterDbgVars(I.getDbgRecordRange())) {
-      const auto *Var = DbR.getVariable();
-      assert(Var != nullptr);
-      if (Var->getName() == VarDesc.Name && Var->getLine() == VarDesc.Line) {
-        addTaintCategory(DbR.getAddress(), VarDesc.Cat);
-        return true;
+                                  const llvm::Instruction &I) {
+    forEachDbgDeclare(I, [&](const llvm::DILocalVariable *Var,
+                             const llvm::Value *Addr) {
+      if (Var->getLine() == VarDesc.Line && Var->getName() == VarDesc.Name) {
+        addTaintCategory(Addr, VarDesc.Cat);
       }
-    }
-#endif
-
-    if (const auto *DbgDeclare = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
-      const llvm::DILocalVariable *LocalVar = DbgDeclare->getVariable();
-      // matching line number with for Allocas
-      if (LocalVar->getName() == VarDesc.Name &&
-          LocalVar->getLine() == VarDesc.Line) {
-        addTaintCategory(DbgDeclare->getAddress(), VarDesc.Cat);
-        return true;
-      }
-    }
-    return false;
+    });
   };
 
   for (const auto &VarDesc : Config.Variables) {
-    for (const auto &Fun : Code.getAllFunctions()) {
+    for (const auto *Fun : Code.getAllFunctions()) {
       const bool MatchingFunScope = [&] {
         if (VarDesc.Scope == Fun->getName()) {
           return true;
@@ -194,21 +192,22 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
       }();
 
       for (const auto &I : llvm::instructions(Fun)) {
-        if (MatchingFunScope && AddVariable(VarDesc, I)) {
-          continue;
+        if (MatchingFunScope) {
+          AddVariable(VarDesc, I);
         }
 
         if (!StructConfigMap.empty()) {
-          // Ignorning line numbers for getElementPtr instructions
+          // Ignoring line numbers for getElementPtr instructions.
+          // starts_with covers the edge case where the same name appears as
+          // both a local variable and a struct member
+          // (JsonConfig/fun_member_02)
           if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
             const auto *StType =
                 llvm::dyn_cast<llvm::StructType>(Gep->getSourceElementType());
-            if (StType && StructConfigMap.contains(StType)) {
-              auto VarName = StructConfigMap.at(StType);
-              // using substr to cover the edge case in which same variable
-              // name is present as a local variable and also as a struct
-              // member variable. (Ex. JsonConfig/fun_member_02.cpp)
-              if (Gep->getName().starts_with(VarName)) {
+            if (StType) {
+              if (auto It = StructConfigMap.find(StType);
+                  It != StructConfigMap.end() &&
+                  Gep->getName().starts_with(It->second)) {
                 addTaintCategory(Gep, VarDesc.Cat);
               }
             }
@@ -224,10 +223,10 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
   llvm::SmallVector<const llvm::Function *, 1> VarAnnotations{};
   llvm::SmallVector<const llvm::Function *, 1> PtrAnnotations{};
   for (const auto *F : AnnotatedCode.getAllFunctions()) {
-    if (F->getName().starts_with("llvm.var.annotation")) {
+    if (F->getIntrinsicID() == llvm::Intrinsic::var_annotation) {
       VarAnnotations.push_back(F);
     }
-    if (F->getName().starts_with("llvm.ptr.annotation")) {
+    if (F->getIntrinsicID() == llvm::Intrinsic::ptr_annotation) {
       PtrAnnotations.push_back(F);
     }
   }
@@ -343,13 +342,13 @@ void LLVMTaintConfig::addTaintCategory(const llvm::Value *Val,
 //
 
 bool LLVMTaintConfig::isSourceImpl(const llvm::Value *V) const {
-  return SourceValues.count(V);
+  return SourceValues.contains(V);
 }
 bool LLVMTaintConfig::isSinkImpl(const llvm::Value *V) const {
-  return SinkValues.count(V);
+  return SinkValues.contains(V);
 }
 bool LLVMTaintConfig::isSanitizerImpl(const llvm::Value *V) const {
-  return SanitizerValues.count(V);
+  return SanitizerValues.contains(V);
 }
 
 void LLVMTaintConfig::forAllGeneratedValuesAtImpl(
@@ -366,7 +365,7 @@ void LLVMTaintConfig::forAllGeneratedValuesAtImpl(
 
   if (Callee) {
     for (const auto &Arg : Callee->args()) {
-      if (SourceValues.count(&Arg)) {
+      if (SourceValues.contains(&Arg)) {
         Handler(Inst->getOperand(Arg.getArgNo()));
       }
     }
@@ -376,13 +375,13 @@ void LLVMTaintConfig::forAllGeneratedValuesAtImpl(
     /// If any function is called with a variable that was defined as source, we
     /// don't want to re-generate the value.
     for (const auto *Op : Inst->operand_values()) {
-      if (SourceValues.count(Op)) {
+      if (SourceValues.contains(Op)) {
         Handler(Op);
       }
     }
   }
 
-  if (SourceValues.count(Inst)) {
+  if (SourceValues.contains(Inst)) {
     Handler(Inst);
   }
 }
@@ -401,7 +400,7 @@ void LLVMTaintConfig::forAllLeakCandidatesAtImpl(
 
   if (Callee) {
     for (const auto &Arg : Callee->args()) {
-      if (SinkValues.count(&Arg)) {
+      if (SinkValues.contains(&Arg)) {
         Handler(Inst->getOperand(Arg.getArgNo()));
       }
     }
@@ -427,7 +426,7 @@ void LLVMTaintConfig::forAllSanitizedValuesAtImpl(
 
   if (Callee) {
     for (const auto &Arg : Callee->args()) {
-      if (SanitizerValues.count(&Arg)) {
+      if (SanitizerValues.contains(&Arg)) {
         Handler(Inst->getOperand(Arg.getArgNo()));
       }
     }
@@ -448,7 +447,7 @@ bool LLVMTaintConfig::generatesValuesAtImpl(
     return true;
   }
 
-  return SourceValues.count(Inst) ||
+  return SourceValues.contains(Inst) ||
          llvm::any_of(Inst->operand_values(), [this](const auto *Op) {
            return SourceValues.count(Op);
          });
