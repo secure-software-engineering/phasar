@@ -3,7 +3,7 @@ module;
 #include "phasar/PhasarLLVM/DataFlow/MonoIfds/AliasCache.h"
 #include "phasar/PhasarLLVM/DataFlow/MonoIfds/Problems/MonoIFDSTaintAnalysis.h"
 
-export module phasar.phasar_llvm.dataflow.monoifds;
+export module phasar.llvm.dataflow.monoifds;
 
 export namespace psr {
 using psr::monoifds::AliasCache;
