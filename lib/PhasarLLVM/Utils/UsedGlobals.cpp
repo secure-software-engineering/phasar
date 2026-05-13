@@ -15,7 +15,7 @@ using namespace psr;
 
 static bool isEffectivelyConstant(const llvm::GlobalVariable *Glob) {
   auto Name = Glob->getName();
-  if (Name.startswith("_ZTV") || Name.startswith("_ZTI")) {
+  if (Name.starts_with("_ZTV") || Name.starts_with("_ZTI")) {
     return true;
   }
 
@@ -48,8 +48,23 @@ static bool isEffectivelyConstant(const llvm::GlobalVariable *Glob) {
       }
 
       auto Idx = Use.getOperandNo();
+
+      const bool IsNocaptureParam =
+#if LLVM_VERSION_MAJOR <= 20
+          Call->paramHasAttr(Idx, llvm::Attribute::NoCapture);
+#else
+          [&] {
+            auto Captures = Call->getCaptureInfo(Idx);
+            auto CComp =
+                Captures.getOtherComponents() | Captures.getRetComponents();
+            return !(llvm::capturesAnyProvenance(CComp) ||
+                     (llvm::capturesAddress(CComp) &&
+                      !llvm::capturesAddressIsNullOnly(CComp)));
+          }();
+#endif
+
       bool IsReadonlyParam =
-          Call->paramHasAttr(Idx, llvm::Attribute::NoCapture) &&
+          IsNocaptureParam &&
           (Call->paramHasAttr(Idx, llvm::Attribute::ReadOnly) ||
            Call->paramHasAttr(Idx, llvm::Attribute::ReadNone));
 
