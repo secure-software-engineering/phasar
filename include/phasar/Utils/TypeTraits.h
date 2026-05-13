@@ -111,7 +111,7 @@ template <typename T>
 concept Foreachable = requires(T &Val) { Val.foreach ([](auto &&...Elem) {}); };
 template <typename T, typename... Over>
 concept ForeachableOver =
-    requires(T &Val) { Val.foreach ([](const Over & ...Elem) {}); };
+    requires(T &Val) { Val.foreach ([](const Over &...Elem) {}); };
 
 template <typename T>
 concept is_pair_v = detail::is_pair<T>::value; // NOLINT
