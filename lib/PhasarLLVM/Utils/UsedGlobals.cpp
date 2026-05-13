@@ -86,16 +86,16 @@ static bool isEffectivelyConstant(const llvm::GlobalVariable *Glob) {
 }
 
 static llvm::SmallDenseSet<const llvm::GlobalVariable *>
-computeEffectivelyConstGlobals(const LLVMProjectIRDB &IRDB) {
+computeEffectivelyConstGlobals(const llvm::Module &Mod) {
   llvm::SmallDenseSet<const llvm::GlobalVariable *> Ret;
 
-  for (const auto *Glob : IRDB.getAllGlobals()) {
-    if (Glob->isConstant()) {
+  for (const auto &Glob : Mod.globals()) {
+    if (Glob.isConstant()) {
       continue;
     }
 
-    if (isEffectivelyConstant(Glob)) {
-      Ret.insert(Glob);
+    if (isEffectivelyConstant(&Glob)) {
+      Ret.insert(&Glob);
     }
   }
 
@@ -172,7 +172,7 @@ propagateGlobals(UsedGlobalsHolder<const llvm::GlobalVariable *> &Ret,
 }
 
 UsedGlobalsHolder<const llvm::GlobalVariable *> psr::computeUsedGlobals(
-    const LLVMProjectIRDB &IRDB,
+    const llvm::Module &Mod,
     const Compressor<const llvm::Function *, FunctionId> &Functions,
     const SCCHolder<FunctionId> &SCCs,
     const SCCDependencyGraph<FunctionId> &Callers) {
@@ -180,7 +180,7 @@ UsedGlobalsHolder<const llvm::GlobalVariable *> psr::computeUsedGlobals(
   Ret.InitialGlobsPerSCC.resize(SCCs.size());
   Ret.GlobsPerSCC.resize(SCCs.size());
 
-  auto EffectivelyConstGlobals = computeEffectivelyConstGlobals(IRDB);
+  auto EffectivelyConstGlobals = computeEffectivelyConstGlobals(Mod);
 
   initialize(Ret, Functions, SCCs, EffectivelyConstGlobals);
   propagateGlobals(Ret, Callers);
