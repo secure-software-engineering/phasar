@@ -29,7 +29,7 @@ UsedGlobalsHolder<const llvm::GlobalVariable *> computeUsedGlobals(
     const SCCDependencyGraph<FunctionId> &Callers);
 
 // Same as above overload, but uses LLVMProjectIRDB. We cannot directly use
-// LLVMProjectIARDB here, as it would create a circular dependency between
+// LLVMProjectIRDB here, as it would create a circular dependency between
 // phasar_llvm_utils and phasar_llvm_db
 UsedGlobalsHolder<const llvm::GlobalVariable *> computeUsedGlobals(
     const ProjectIRDB auto &IRDB,
