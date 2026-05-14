@@ -4,6 +4,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
+#include "phasar/Utils/DebugOutput.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/ValueCompressor.h"
 
@@ -144,15 +145,20 @@ void doAnalysisAndCheckExact(
     const RawAliasSet<ValueId> &Computed = Results.getRawAliasSet(PtrId);
 
     RawAliasSet<ValueId> Expected;
+    // llvm::errs() << "For PtrId: #" << uint32_t(PtrId) << ":\n";
     for (const auto &AliasVar : ExpectedAliasVars) {
-      Expected.insert(asId(*Compressor, IRDB, AliasVar));
+      auto AliasId = asId(*Compressor, IRDB, AliasVar);
+      Expected.insert(AliasId);
+      // llvm::errs() << "> Insert #" << uint32_t(AliasId)
+      //              << " into Expected due to " << AliasVar << '\n';
     }
 
     // Soundness.
     Expected.foreach ([&](ValueId AliasId) {
       if (!Computed.contains(AliasId)) {
         ADD_FAILURE_AT(Loc.file_name(), Loc.line())
-            << "Missing expected alias of " << PtrVar << ": "
+            << "Missing expected alias of " << PtrVar << "(#" << uint32_t(PtrId)
+            << "): #" << uint32_t(AliasId) << " as "
             << stringifyVal(*Compressor, AliasId);
       }
     });
@@ -244,7 +250,7 @@ TEST(AndersenOTFAATest, ContextInsensitiveCallsMerge) {
       {Call1, {Arg, Ret, Call1, Call2}},
       {Call2, {Arg, Ret, Call1, Call2}},
   };
-  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults, true);
+  doAnalysisAndCheckExact("context_01_c_dbg.ll", ExpectedResults);
 }
 
 TEST(AndersenOTFAATest, SeparateFunctionsDontAlias) {
@@ -290,6 +296,343 @@ TEST(AndersenOTFAATest, TransitiveCallChain) {
         TSL(RetVal{.InFunction = "id2"})}},
   };
   doAnalysisAndCheckExact("context_03_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, DeepChainTwoObjectsMerge) {
+  // context_04_1: three-level identity chain (id3→id2→id1) called with both
+  // &x and &y.  Context-insensitive: all params and rets of id1/id2/id3 and
+  // all four call sites alias each other AND with x/y (they share x_obj or
+  // y_obj as common pointee).  x and y themselves do NOT alias each other.
+  const TSL Id1Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id1"});
+  const TSL Id2Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id2"});
+  const TSL Id3Arg = TSL(ArgInFun{.Idx = 0, .InFunction = "id3"});
+  const TSL Id1Ret = TSL(RetVal{.InFunction = "id1"});
+  const TSL Id2Ret = TSL(RetVal{.InFunction = "id2"});
+  const TSL Id3Ret = TSL(RetVal{.InFunction = "id3"});
+  const TSL XX1 = TSL(LineColFunOp{.Line = 10,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL XX2 = TSL(LineColFunOp{.Line = 11,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY1 = TSL(LineColFunOp{.Line = 12,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY2 = TSL(LineColFunOp{.Line = 13,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  // %x / %y: the alloca pointers passed to id3; recovered as arg 0 of
+  // respective call sites (operand 0 of a CallInst = first argument).
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 10,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 12,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {Id1Arg, Id2Arg, Id3Arg, Id1Ret, Id2Ret,
+                                  Id3Ret, XX1,    XX2,    YY1,    YY2};
+  // Chain members alias each other and both allocas (share x_obj or y_obj).
+  std::vector<TSL> ChainWithBoth = Chain;
+  ChainWithBoth.push_back(XAlloca);
+  ChainWithBoth.push_back(YAlloca);
+  GTMap ExpectedResults;
+  for (const auto &ChainV : Chain) {
+    ExpectedResults[ChainV] = ChainWithBoth;
+  }
+  // x alloca aliases the chain (via x_obj) but NOT y.
+  std::vector<TSL> XAliases = Chain;
+  XAliases.push_back(XAlloca);
+  ExpectedResults[XAlloca] = XAliases;
+  // y alloca aliases the chain (via y_obj) but NOT x.
+  std::vector<TSL> YAliases = Chain;
+  YAliases.push_back(YAlloca);
+  ExpectedResults[YAlloca] = YAliases;
+
+  // llvm::errs() << "ExpectedResults[XAlloca]: "
+  //              << PrettyPrinter{ExpectedResults[XAlloca]} << '\n';
+  // llvm::errs() << "ExpectedResults[YAlloca]: "
+  //              << PrettyPrinter{ExpectedResults[YAlloca]} << '\n';
+
+  doAnalysisAndCheckExact("context_04_1_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, RecursiveSelfAlias) {
+  // context_08: selfRecursion(Ptr) calls itself with Ptr, forming a cycle in
+  // the constraint graph.  SCC collapsing must merge the recursive call result
+  // with the formal parameter and the two call-site results in main.
+  const TSL Ptr = TSL(ArgInFun{.Idx = 0, .InFunction = "selfRecursion"});
+  const TSL Ret = TSL(RetVal{.InFunction = "selfRecursion"});
+  // int *x = selfRecursion(kptr)  at line 15
+  const TSL X = TSL(LineColFunOp{.Line = 15,
+                                 .Col = 0,
+                                 .InFunction = "main",
+                                 .OpCode = llvm::Instruction::Call});
+  // int *y = selfRecursion(kptr)  at line 19
+  const TSL Y = TSL(LineColFunOp{.Line = 19,
+                                 .Col = 0,
+                                 .InFunction = "main",
+                                 .OpCode = llvm::Instruction::Call});
+  const std::vector<TSL> All = {Ptr, Ret, X, Y};
+  GTMap ExpectedResults;
+  for (const auto &V : All) {
+    ExpectedResults[V] = All;
+  }
+  doAnalysisAndCheckExact("context_08_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, MutualRecursionAlias) {
+  // context_10_0: Forth and Back call each other with the same pointer; both
+  // called from main with &k.  The mutual recursion forces all four
+  // param/ret nodes and the two call-site results to alias.
+  const TSL ForthPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Forth"});
+  const TSL BackPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Back"});
+  const TSL ForthRet = TSL(RetVal{.InFunction = "Forth"});
+  const TSL BackRet = TSL(RetVal{.InFunction = "Back"});
+  // int *x = Back(&k)  at line 26
+  const TSL X = TSL(LineColFunOp{.Line = 26,
+                                 .Col = 0,
+                                 .InFunction = "main",
+                                 .OpCode = llvm::Instruction::Call});
+  // int *y = Back(&k)  at line 30
+  const TSL Y = TSL(LineColFunOp{.Line = 30,
+                                 .Col = 0,
+                                 .InFunction = "main",
+                                 .OpCode = llvm::Instruction::Call});
+  const std::vector<TSL> All = {ForthPtr, BackPtr, ForthRet, BackRet, X, Y};
+  GTMap ExpectedResults;
+  for (const auto &V : All) {
+    ExpectedResults[V] = All;
+  }
+  doAnalysisAndCheckExact("context_10_0_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, ReturnSecondArgContextInsensitive) {
+  // context_12_1: argretq(p,q) returns q.  Two call sites swap which
+  // argument is &x and which is &y.  Context-insensitive: p, q, and the
+  // return value all receive both &x and &y, so they all alias each other.
+  const TSL P = TSL(ArgInFun{.Idx = 0, .InFunction = "argretq"});
+  const TSL Q = TSL(ArgInFun{.Idx = 1, .InFunction = "argretq"});
+  const TSL Ret = TSL(RetVal{.InFunction = "argretq"});
+  // int *xx1 = argretq(&y, &x)  at line 8
+  const TSL XX1 = TSL(LineColFunOp{.Line = 8,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  // int *yy1 = argretq(&x, &y)  at line 9
+  const TSL YY1 = TSL(LineColFunOp{.Line = 9,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const std::vector<TSL> All = {P, Q, Ret, XX1, YY1};
+  GTMap ExpectedResults;
+  for (const auto &V : All) {
+    ExpectedResults[V] = All;
+  }
+  doAnalysisAndCheckExact("context_12_1_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, FuncPtrCallbackIdentity) {
+  // context_14_1: callback(Func) returns Func — identity on function pointers.
+  // Two call sites pass &ret0 and &ret1 respectively.  OTF must discover
+  // both callees.  The formal parameter and return value of callback must
+  // alias (they point to the same set of function objects).
+  const TSL Func = TSL(ArgInFun{.Idx = 0, .InFunction = "callback"});
+  const TSL Ret = TSL(RetVal{.InFunction = "callback"});
+  const GTMap ExpectedResults = {
+      {Func, {Func, Ret}},
+      {Ret, {Func, Ret}},
+  };
+  doAnalysisAndCheckExact("context_14_1_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, RecursionTwoObjectsMerge) {
+  // context_09_0: selfRecursion called with &k and &l.
+  // Context-insensitive: Ptr receives both; all four alias.
+  // k and l alias the chain (via their objects) but not each other.
+  const TSL Ptr = TSL(ArgInFun{.Idx = 0, .InFunction = "selfRecursion"});
+  const TSL Ret = TSL(RetVal{.InFunction = "selfRecursion"});
+  const TSL CallX = TSL(LineColFunOp{.Line = 15, .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL CallY = TSL(LineColFunOp{.Line = 16, .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL KAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 15, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 16, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {Ptr, Ret, CallX, CallY};
+  GTMap ExpectedResults;
+  std::vector<TSL> ChainAndBoth = Chain;
+  ChainAndBoth.push_back(KAlloca);
+  ChainAndBoth.push_back(LAlloca);
+  for (const auto &Item : Chain) {
+    ExpectedResults[Item] = ChainAndBoth;
+  }
+  std::vector<TSL> KAliases = Chain;
+  KAliases.push_back(KAlloca);
+  ExpectedResults[KAlloca] = KAliases;
+  std::vector<TSL> LAliases = Chain;
+  LAliases.push_back(LAlloca);
+  ExpectedResults[LAlloca] = LAliases;
+  doAnalysisAndCheckExact("context_09_0_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, MutualRecursionTwoObjects) {
+  // context_10_1: Forth↔Back mutual recursion, called with &k and &l.
+  // All four params/rets and four call-site results alias.
+  // k and l each alias all eight but not each other.
+  const TSL ForthPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Forth"});
+  const TSL BackPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Back"});
+  const TSL ForthRet = TSL(RetVal{.InFunction = "Forth"});
+  const TSL BackRet = TSL(RetVal{.InFunction = "Back"});
+  // xx1=Back(&k) line 27, xx2=Back(&k) line 29, yy1=Back(&l) line 31, yy2=Back(&l) line 33
+  const auto MkCall = [](uint32_t Line) {
+    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
+                             .OpCode = llvm::Instruction::Call});
+  };
+  const TSL XX1 = MkCall(27);
+  const TSL XX2 = MkCall(29);
+  const TSL YY1 = MkCall(31);
+  const TSL YY2 = MkCall(33);
+  const TSL KAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 27, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 31, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {ForthPtr, BackPtr, ForthRet, BackRet,
+                                   XX1, XX2, YY1, YY2};
+  GTMap ExpectedResults;
+  std::vector<TSL> ChainAndBoth = Chain;
+  ChainAndBoth.push_back(KAlloca);
+  ChainAndBoth.push_back(LAlloca);
+  for (const auto &Item : Chain) {
+    ExpectedResults[Item] = ChainAndBoth;
+  }
+  std::vector<TSL> KAliases = Chain;
+  KAliases.push_back(KAlloca);
+  ExpectedResults[KAlloca] = KAliases;
+  std::vector<TSL> LAliases = Chain;
+  LAliases.push_back(LAlloca);
+  ExpectedResults[LAlloca] = LAliases;
+  doAnalysisAndCheckExact("context_10_1_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, ThreeWayMutualRecursion) {
+  // context_11_0: Forth↔Back↔Stop three-way mutual recursion.
+  // All six params/rets and both call-site results alias.
+  const TSL ForthPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Forth"});
+  const TSL BackPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Back"});
+  const TSL StopPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Stop"});
+  const TSL ForthRet = TSL(RetVal{.InFunction = "Forth"});
+  const TSL BackRet = TSL(RetVal{.InFunction = "Back"});
+  const TSL StopRet = TSL(RetVal{.InFunction = "Stop"});
+  // x=Back(&k) line 36, y=Forth(&l) line 37
+  const TSL CallX = TSL(LineColFunOp{.Line = 36, .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL CallY = TSL(LineColFunOp{.Line = 37, .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL KAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 36, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 37, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {ForthPtr, BackPtr, StopPtr,
+                                   ForthRet, BackRet, StopRet,
+                                   CallX, CallY};
+  GTMap ExpectedResults;
+  std::vector<TSL> ChainAndBoth = Chain;
+  ChainAndBoth.push_back(KAlloca);
+  ChainAndBoth.push_back(LAlloca);
+  for (const auto &Item : Chain) {
+    ExpectedResults[Item] = ChainAndBoth;
+  }
+  std::vector<TSL> KAliases = Chain;
+  KAliases.push_back(KAlloca);
+  ExpectedResults[KAlloca] = KAliases;
+  std::vector<TSL> LAliases = Chain;
+  LAliases.push_back(LAlloca);
+  ExpectedResults[LAlloca] = LAliases;
+  doAnalysisAndCheckExact("context_11_0_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, ThreeArgReturnQContextInsensitive) {
+  // context_13_1: argretq(p,q,r) returns q.  Two call sites pass all-x and
+  // all-y.  Context-insensitive: all three params and the return merge.
+  // x and y allocas alias the group but not each other.
+  const TSL ArgP = TSL(ArgInFun{.Idx = 0, .InFunction = "argretq"});
+  const TSL ArgQ = TSL(ArgInFun{.Idx = 1, .InFunction = "argretq"});
+  const TSL ArgR = TSL(ArgInFun{.Idx = 2, .InFunction = "argretq"});
+  const TSL Ret = TSL(RetVal{.InFunction = "argretq"});
+  // xx1=argretq(&x,&x,&x) line 8, yy1=argretq(&y,&y,&y) line 9
+  const TSL XX1 = TSL(LineColFunOp{.Line = 8, .Col = 0, .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Call});
+  const TSL YY1 = TSL(LineColFunOp{.Line = 9, .Col = 0, .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Call});
+  const TSL XAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 8, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 9, .Col = 0, .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {ArgP, ArgQ, ArgR, Ret, XX1, YY1};
+  GTMap ExpectedResults;
+  std::vector<TSL> ChainAndBoth = Chain;
+  ChainAndBoth.push_back(XAlloca);
+  ChainAndBoth.push_back(YAlloca);
+  for (const auto &Item : Chain) {
+    ExpectedResults[Item] = ChainAndBoth;
+  }
+  std::vector<TSL> XAliases = Chain;
+  XAliases.push_back(XAlloca);
+  ExpectedResults[XAlloca] = XAliases;
+  std::vector<TSL> YAliases = Chain;
+  YAliases.push_back(YAlloca);
+  ExpectedResults[YAlloca] = YAliases;
+  doAnalysisAndCheckExact("context_13_1_c_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, FuncPtrCallbackThreeWayMerge) {
+  // context_14_2: callback(Func) returns Func, called with &ret0, &ret1,
+  // &ret2.  Func and Ret alias all three function values.  The individual
+  // function values alias Func and Ret but NOT each other (disjoint pts sets).
+  const TSL Func = TSL(ArgInFun{.Idx = 0, .InFunction = "callback"});
+  const TSL Ret = TSL(RetVal{.InFunction = "callback"});
+  const TSL Ret0 = TSL(FuncByName{.FuncName = "ret0"});
+  const TSL Ret1 = TSL(FuncByName{.FuncName = "ret1"});
+  const TSL Ret2 = TSL(FuncByName{.FuncName = "ret2"});
+  const GTMap ExpectedResults = {
+      {Func, {Func, Ret, Ret0, Ret1, Ret2}},
+      {Ret, {Func, Ret, Ret0, Ret1, Ret2}},
+      {Ret0, {Ret0, Func, Ret}},
+      {Ret1, {Ret1, Func, Ret}},
+      {Ret2, {Ret2, Func, Ret}},
+  };
+  doAnalysisAndCheckExact("context_14_2_c_dbg.ll", ExpectedResults);
 }
 
 } // namespace
