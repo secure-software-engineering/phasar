@@ -294,8 +294,8 @@ struct IdentityFn {
   }
 };
 
-template <typename ArgT> struct DummyFn {
-  void operator()(ArgT Arg) const noexcept {}
+template <typename... ArgsT> struct DummyFn {
+  void operator()(ArgsT... Arg) const noexcept {}
 };
 
 /// True if T can be relocated by copying its bytes (e.g. via memcpy) without

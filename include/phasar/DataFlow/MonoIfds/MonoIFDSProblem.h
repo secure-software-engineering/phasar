@@ -105,29 +105,28 @@ concept LocalMonoIFDSProblem = requires(
   /// fact that should be generated from zero there.
   ///
   /// Useful for taint sources.
-  Problem.generateFactsAtCall(Inst, Fun,
-                              [](const typename Dom::d_t &GenFact) {});
+  Problem.generateFactsAtCall(Inst, Fun, DummyFn<const typename Dom::d_t &>{});
 
   /// At a non-call-site Inst, invokes the given callback for each
   /// fact that should be generated from zero there.
   ///
   /// Useful for taint sources.
-  Problem.generateFacts(Inst, [](const typename Dom::d_t &GenFact) {});
+  Problem.generateFacts(Inst, DummyFn<const typename Dom::d_t &>{});
 
   /// Invokes the given callback for each LeakFact for which the solver
   /// should later call onResult(Inst, LeakFact), if LeakFacts holds at
   /// Inst. Here, Inst is assumed to be a call-site that may call Fun.
   ///
   /// Useful for taint sinks.
-  Problem.requestResultCallbackAtCallSite(
-      Inst, Fun, [](const typename Dom::d_t &LeakFact) {});
+  Problem.requestResultCallbackAtCallSite(Inst, Fun,
+                                          DummyFn<const typename Dom::d_t &>{});
 
   /// Invokes the given callback for each LeakFact for which the solver
   /// should later call onResult(Inst, LeakFact), if LeakFacts holds at
   /// Inst.
   ///
   /// Useful for taint sinks.
-  Problem.requestResultCallback(Inst, [](const typename Dom::d_t &LeakFact) {});
+  Problem.requestResultCallback(Inst, DummyFn<const typename Dom::d_t &>{});
 
   /// Notifies the problem that a previously requested leak-Fact now is
   /// known to hold at Inst.
