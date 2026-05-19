@@ -18,7 +18,9 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/EnumFlags.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/MapUtils.h"
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/IR/DebugInfo.h"
@@ -126,9 +128,8 @@ void LLVMTaintConfig::addAllFunctions(const LLVMProjectIRDB &IRDB,
   }
 }
 
-LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
-                                 const TaintConfigData &Config) {
-  addAllFunctions(Code, Config);
+void LLVMTaintConfig::addAllVariables(const LLVMProjectIRDB &IRDB,
+                                      const TaintConfigData &Config) {
 
   if (Config.Variables.empty()) {
     return;
@@ -136,16 +137,16 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
 
   // Map LLVM struct type → configured field name, built by correlating
   // debug-declare records with allocas (avoids IR type naming assumptions).
-  std::unordered_map<const llvm::Type *, std::string> StructConfigMap;
+  llvm::DenseMap<const llvm::Type *, std::string_view> StructConfigMap;
 
   {
     // Pre-build scope → field name for O(1) lookup during the alloca scan.
-    llvm::StringMap<std::string> StructScopeIndex;
+    llvm::StringMap<std::string_view> StructScopeIndex;
     for (const auto &VarDesc : Config.Variables) {
       StructScopeIndex.try_emplace(VarDesc.Scope, VarDesc.Name);
     }
 
-    for (const auto *Fun : Code.getAllFunctions()) {
+    for (const auto *Fun : IRDB.getAllFunctions()) {
       for (const auto &I : llvm::instructions(Fun)) {
         forEachDbgDeclare(I, [&](const llvm::DILocalVariable *LocalVar,
                                  const llvm::Value *Addr) {
@@ -162,9 +163,8 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
           if (!CT) {
             return;
           }
-          if (auto It = StructScopeIndex.find(CT->getName());
-              It != StructScopeIndex.end()) {
-            StructConfigMap.try_emplace(StructTy, It->second);
+          if (const auto *Scope = getOrNull(StructScopeIndex, CT->getName())) {
+            StructConfigMap.try_emplace(StructTy, *Scope);
           }
         });
       }
@@ -182,7 +182,7 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
   };
 
   for (const auto &VarDesc : Config.Variables) {
-    for (const auto *Fun : Code.getAllFunctions()) {
+    for (const auto *Fun : IRDB.getAllFunctions()) {
       const bool MatchingFunScope = [&] {
         if (VarDesc.Scope == Fun->getName()) {
           return true;
@@ -197,17 +197,14 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
         }
 
         if (!StructConfigMap.empty()) {
-          // Ignoring line numbers for getElementPtr instructions.
-          // starts_with covers the edge case where the same name appears as
-          // both a local variable and a struct member
-          // (JsonConfig/fun_member_02)
           if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I)) {
-            const auto *StType =
-                llvm::dyn_cast<llvm::StructType>(Gep->getSourceElementType());
-            if (StType) {
-              if (auto It = StructConfigMap.find(StType);
-                  It != StructConfigMap.end() &&
-                  Gep->getName().starts_with(It->second)) {
+            if (const auto *StType = llvm::dyn_cast<llvm::StructType>(
+                    Gep->getSourceElementType())) {
+              // using substr to cover the edge case in which same variable
+              // name is present as a local variable and also as a struct
+              // member variable. (Ex. JsonConfig/fun_member_02.cpp)
+              if (const auto *Scope = getOrNull(StructConfigMap, StType);
+                  Scope && Gep->getName().starts_with(*Scope)) {
                 addTaintCategory(Gep, VarDesc.Cat);
               }
             }
@@ -216,6 +213,12 @@ LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
       }
     }
   }
+}
+
+LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &Code,
+                                 const TaintConfigData &Config) {
+  addAllFunctions(Code, Config);
+  addAllVariables(Code, Config);
 }
 
 LLVMTaintConfig::LLVMTaintConfig(const psr::LLVMProjectIRDB &AnnotatedCode) {
