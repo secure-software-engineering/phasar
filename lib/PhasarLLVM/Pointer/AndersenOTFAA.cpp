@@ -79,6 +79,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   struct NodeInfo {
     RawAliasSet<ValueId> PtsSet;
+    RawAliasSet<ValueId> PendingPts;
     // Assignment edges: pts(this) ⊆ pts(dst) for each dst.
     llvm::SmallVector<ValueId, 2> AssignDsts;
     llvm::SmallDenseSet<ValueId, 4> AssignDstSet; // dedup guard
@@ -202,6 +203,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     // Merge pts sets.
     const bool PtsGrew = Nodes[Rep].PtsSet.tryMergeWith(NRPts);
     if (PtsGrew) {
+      Nodes[Rep].PendingPts |= NRPts;
       PropWorklist.push_back(Rep);
     }
 
@@ -319,6 +321,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     grow(Ptr);
     grow(Obj); // grow before indexing Nodes[Ptr]
     if (Nodes[Ptr].PtsSet.tryInsert(Obj)) {
+      Nodes[Ptr].PendingPts.insert(Obj);
       PropWorklist.push_back(Ptr);
     }
   }
@@ -334,6 +337,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (Nodes[Src].AssignDstSet.insert(Dst).second) {
       Nodes[Src].AssignDsts.push_back(Dst);
       if (!Nodes[Src].PtsSet.empty()) {
+        // New edge: Dst has never seen Src's pts history, so mark all of
+        // Src's current pts as pending (not just the incremental delta).
+        Nodes[Src].PendingPts |= Nodes[Src].PtsSet;
         PropWorklist.push_back(Src);
       }
     }
@@ -423,7 +429,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   void propagate() {
     while (!PropWorklist.empty()) {
       ValueId U = rep(PropWorklist.pop_back_val());
-      if (!Nodes.inbounds(U)) {
+      if (!Nodes.inbounds(U) || Nodes[U].PendingPts.empty()) {
         continue;
       }
 
@@ -433,6 +439,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         Dsts.push_back(rep(V));
       }
 
+      // Drain before iterating Dsts: onNewPointee → addPointee may write
+      // to Nodes[U].PendingPts while we iterate, and merge() may resize Nodes.
+      RawAliasSet<ValueId> UPending = std::move(Nodes[U].PendingPts);
+
       for (ValueId VSnap : Dsts) {
         // Re-resolve: a prior iteration's merge() may have changed the rep.
         const ValueId V = rep(VSnap);
@@ -440,17 +450,22 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           continue;
         }
 
-        RawAliasSet<ValueId> NewPts = Nodes[U].PtsSet - Nodes[V].PtsSet;
-        if (NewPts.empty()) {
-          // LCD: direct back-edge V→U with pts(U)⊆pts(V) → 2-cycle, collapse.
+        bool AddedAny = false;
+        UPending.foreach([&](ValueId Obj) {
+          if (Nodes[V].PtsSet.tryInsert(Obj)) {
+            Nodes[V].PendingPts.insert(Obj);
+            onNewPointee(V, Obj);
+            AddedAny = true;
+          }
+        });
+        if (!AddedAny) {
+          // LCD: V has all of U's pending wave, so V.PtsSet ⊇ U.PtsSet.
           if (Nodes[V].AssignDstSet.contains(U)) {
             U = merge(U, V);
           }
           continue;
         }
-        Nodes[V].PtsSet |= NewPts;
         PropWorklist.push_back(V);
-        NewPts.foreach ([&](ValueId NewObj) { onNewPointee(V, NewObj); });
       }
     }
   }
