@@ -19,6 +19,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/PointerIntPair.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Function.h"
@@ -439,8 +440,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           continue;
         }
 
-        RawAliasSet<ValueId> NewPts = Nodes[U].PtsSet;
-        NewPts -= Nodes[V].PtsSet;
+        RawAliasSet<ValueId> NewPts = Nodes[U].PtsSet - Nodes[V].PtsSet;
         if (NewPts.empty()) {
           // LCD: direct back-edge V→U with pts(U)⊆pts(V) → 2-cycle, collapse.
           if (Nodes[V].AssignDstSet.contains(U)) {
@@ -685,7 +685,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       const RawAliasSet<ValueId> FPPts = Nodes[FPId].PtsSet;
       FPPts.foreach ([&](ValueId ObjId) {
         if (!Nodes.inbounds(ObjId)) {
-          return;
+          // Iteration is in sorted order
+          return false;
         }
         for (const auto &Var : LocalVC.id2vars(ObjId)) {
           const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
@@ -694,6 +695,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
             connectCallee(C, Fun, Args, CSRetVal);
           }
         }
+        return true;
       });
     };
 
@@ -715,7 +717,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       const RawAliasSet<ValueId> FPPts = Nodes[Rec.FPId].PtsSet;
       FPPts.foreach ([&](ValueId ObjId) {
         if (!Nodes.inbounds(ObjId)) {
-          return;
+          // Iteration is in sorted order
+          return false;
         }
         for (const auto &Var : LocalVC.id2vars(ObjId)) {
           const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
@@ -724,6 +727,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
             connectCallee(Rec.CS, Fun, Rec.Args, Rec.CSRetVal);
           }
         }
+        return true;
       });
     }
   }
@@ -732,20 +736,6 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   AndersenOTFResult buildResult() {
     const size_t NumLocal = LocalVC.size();
-
-    // Reverse map: abstract object → all local IDs that point to it.
-    TypedVector<ValueId, RawAliasSet<ValueId>> Obj2Ptrs(NumLocal);
-    for (auto VId : iota<ValueId>(NumLocal)) {
-      const ValueId RepId = rep(VId);
-      if (!Nodes.inbounds(RepId)) {
-        continue;
-      }
-      Nodes[RepId].PtsSet.foreach ([&](ValueId Obj) {
-        if (size_t(Obj) < NumLocal) {
-          Obj2Ptrs[Obj].insert(VId);
-        }
-      });
-    }
 
     // Map variable local IDs → external VC IDs.
     // Object nodes are internal only and do not appear in the external result.
@@ -767,30 +757,89 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       }
     }
 
-    AndersenOTFResult Result;
-    Result.NumVars = ExternalVC.size();
-    Result.AliasSets.resize(Result.NumVars);
-
+    // Build rep → bitset of external IDs for all vars in that SCC.
+    TypedVector<ValueId, llvm::SmallVector<ValueId>> RepToExtVIds(NumLocal);
     for (auto VId : iota<ValueId>(NumLocal)) {
       if (!LocalToExt[VId]) {
         continue;
       }
-      const ValueId ExtVId = *LocalToExt[VId];
       const ValueId RepId = rep(VId);
       if (!Nodes.inbounds(RepId)) {
         continue;
       }
+      RepToExtVIds[RepId].push_back(*LocalToExt[VId]);
+    }
 
+    // Reverse map: abstract object → bitset of representatives pointing to it.
+    // Only representatives with at least one external variable are inserted.
+    TypedVector<ValueId, RawAliasSet<ValueId>> Obj2Reps(NumLocal);
+    for (auto RepId : iota<ValueId>(NumLocal)) {
+      if (RepToExtVIds[RepId].empty()) {
+        continue;
+      }
+      if (!Nodes.inbounds(RepId)) {
+        continue;
+      }
       Nodes[RepId].PtsSet.foreach ([&](ValueId Obj) {
-        if (size_t(Obj) >= NumLocal) {
-          return;
+        if (size_t(Obj) < NumLocal) {
+          Obj2Reps[Obj].insert(RepId);
+          return true;
         }
-        Obj2Ptrs[Obj].foreach ([&](ValueId AliasLocalId) {
-          if (const auto &AliasExt = LocalToExt[AliasLocalId]) {
-            Result.AliasSets[ExtVId].insert(*AliasExt);
+        // Iteration is in sorted order
+        return false;
+      });
+    }
+
+    // Precompute per-object alias set: for each abstract object, the union of
+    // all external IDs of every representative that points to it.  Built once
+    // here via sort+insertSorted so the main loop below can use fast |=.
+    TypedVector<ValueId, RawAliasSet<ValueId>> ObjToAliasExtVIds(NumLocal);
+    {
+      llvm::SmallVector<uint32_t, 64> Buf;
+      for (auto Obj : iota<ValueId>(NumLocal)) {
+        if (Obj2Reps[Obj].empty()) {
+          continue;
+        }
+        Obj2Reps[Obj].foreach ([&](ValueId AliasRepId) {
+          for (auto EId : RepToExtVIds[AliasRepId]) {
+            Buf.push_back(uint32_t(EId));
           }
         });
+        std::ranges::sort(Buf);
+        // Buf.erase(std::ranges::unique(Buf).begin(), Buf.end());
+        ObjToAliasExtVIds[Obj].insertSorted(Buf);
+        Buf.clear();
+      }
+    }
+
+    AndersenOTFResult Result;
+    Result.NumVars = ExternalVC.size();
+    Result.AliasSets.resize(Result.NumVars);
+
+    for (auto RepId : iota<ValueId>(NumLocal)) {
+      const auto &MyExtVIds = RepToExtVIds[RepId];
+      if (MyExtVIds.empty()) {
+        continue;
+      }
+      if (!Nodes.inbounds(RepId)) {
+        break;
+      }
+
+      // Union the pre-built per-object alias sets for all pointees.
+      RawAliasSet<ValueId> AliasExtVIds;
+      Nodes[RepId].PtsSet.foreach ([&](ValueId Obj) {
+        if (size_t(Obj) >= NumLocal) {
+          // Iteration is in sorted order
+          return false;
+        }
+        AliasExtVIds |= ObjToAliasExtVIds[Obj];
+        return true;
       });
+
+      // Broadcast to every external ID mapped to this representative.
+      for (auto ExtVId : MyExtVIds) {
+        Result.AliasSets[ExtVId] |= AliasExtVIds;
+      }
     }
 
     return Result;

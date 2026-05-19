@@ -11,9 +11,13 @@
 
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SparseBitVector.h"
 
+#include "roaring/roaring.hh"
+
 #include <concepts>
+#include <type_traits>
 
 namespace psr {
 
@@ -33,6 +37,8 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
   { ConstSet.contains(ValId) } -> std::convertible_to<bool>;
   // ConstSet.begin();
   // ConstSet.end();
+
+  /// Iteration must be in ascending order
   ConstSet.foreach (DummyFn<typename ASet::value_type>{});
   MutSet |= ConstSet;
   MutSet &= ConstSet;
@@ -52,11 +58,11 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
 /// Satisfies \c IsRawAliasSet.
 ///
 /// \tparam IdT Integer-like id type (e.g., \c ValueId).
-template <SmallIdType IdT> class RawAliasSet {
+template <SmallIdType IdT> class LLVMRawAliasSet {
 public:
   using value_type = IdT;
 
-  RawAliasSet() = default;
+  LLVMRawAliasSet() = default;
 
   void insert(IdT Id) { Bits.set(uint32_t(Id)); }
 
@@ -66,16 +72,23 @@ public:
 
   [[nodiscard]] bool contains(IdT Id) const { return Bits.test(uint32_t(Id)); }
 
-  LLVM_ATTRIBUTE_ALWAYS_INLINE void foreach (
-      std::invocable<IdT> auto Handler) const {
+  template <std::invocable<IdT> HandlerFn>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE void foreach (HandlerFn Handler) const {
     for (auto Bit : Bits) {
-      std::invoke(Handler, IdT(Bit));
+      if constexpr (std::convertible_to<std::invoke_result_t<HandlerFn &, IdT>,
+                                        bool>) {
+        if (!std::invoke(Handler, IdT(Bit))) {
+          break;
+        }
+      } else {
+        std::invoke(Handler, IdT(Bit));
+      }
     }
   }
 
-  void operator|=(const RawAliasSet &Other) { Bits |= Other.Bits; }
-  void operator&=(const RawAliasSet &Other) { Bits &= Other.Bits; }
-  void operator-=(const RawAliasSet &Other) {
+  void operator|=(const LLVMRawAliasSet &Other) { Bits |= Other.Bits; }
+  void operator&=(const LLVMRawAliasSet &Other) { Bits &= Other.Bits; }
+  void operator-=(const LLVMRawAliasSet &Other) {
     Bits.intersectWithComplement(Other.Bits);
   }
 
@@ -87,13 +100,13 @@ public:
   [[nodiscard]] auto begin() const noexcept { return Bits.begin(); }
   [[nodiscard]] auto end() const noexcept { return Bits.end(); }
 
-  [[nodiscard]] bool tryMergeWith(const RawAliasSet &Other) {
+  [[nodiscard]] bool tryMergeWith(const LLVMRawAliasSet &Other) {
     return Bits |= Other.Bits;
   }
 
   void erase(IdT Id) { Bits.reset(uint32_t(Id)); }
 
-  [[nodiscard]] bool operator==(const RawAliasSet &Other) const noexcept {
+  [[nodiscard]] bool operator==(const LLVMRawAliasSet &Other) const noexcept {
     return Bits == Other.Bits;
   }
 
@@ -101,4 +114,78 @@ private:
   llvm::SparseBitVector<> Bits;
   // TODO: roaring::Roaring Bits;
 };
+
+template <SmallIdType IdT> class RoaringAliasSet {
+public:
+  using value_type = IdT;
+
+  RoaringAliasSet() = default;
+
+  void insert(IdT Id) { Bits.add(uint32_t(Id)); }
+
+  [[nodiscard]] bool tryInsert(IdT Id) { return Bits.addChecked(uint32_t(Id)); }
+
+  [[nodiscard]] bool contains(IdT Id) const {
+    return Bits.contains(uint32_t(Id));
+  }
+
+  template <std::invocable<IdT> HandlerFn>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE void foreach (HandlerFn Handler) const {
+    return Bits.iterate(
+        [](uint32_t Id, void *HandlerPtr) {
+          auto &Handler = *(HandlerFn *)HandlerPtr;
+          if constexpr (std::convertible_to<
+                            std::invoke_result_t<HandlerFn &, IdT>, bool>) {
+            if (!std::invoke(Handler, IdT(Id))) {
+              return false;
+            }
+          } else {
+            std::invoke(Handler, IdT(Id));
+          }
+          return true;
+        },
+        &Handler);
+  }
+
+  void operator|=(const RoaringAliasSet &Other) { Bits |= Other.Bits; }
+  void operator&=(const RoaringAliasSet &Other) { Bits &= Other.Bits; }
+  void operator-=(const RoaringAliasSet &Other) { Bits -= Other.Bits; }
+  [[nodiscard]] RoaringAliasSet operator-(const RoaringAliasSet &Other) {
+    return Bits - Other.Bits;
+  }
+
+  [[nodiscard]] bool empty() const noexcept { return Bits.isEmpty(); }
+  [[nodiscard]] size_t size() const noexcept { return Bits.cardinality(); }
+
+  void clear() noexcept { Bits.clear(); }
+
+  [[nodiscard]] auto begin() const noexcept { return Bits.begin(); }
+  [[nodiscard]] auto end() const noexcept { return Bits.end(); }
+
+  [[nodiscard]] bool tryMergeWith(const RoaringAliasSet &Other) {
+    auto OldSz = size();
+    Bits |= Other.Bits;
+    return size() != OldSz;
+  }
+
+  void erase(IdT Id) { Bits.remove(uint32_t(Id)); }
+
+  // Bulk-inserts from a sorted, deduplicated array.
+  // Roaring constructs containers in O(N) for sorted input.
+  void insertSorted(llvm::ArrayRef<uint32_t> Sorted) {
+    Bits.addMany(Sorted.size(), Sorted.data());
+  }
+
+  [[nodiscard]] bool operator==(const RoaringAliasSet &Other) const noexcept {
+    return Bits == Other.Bits;
+  }
+
+private:
+  RoaringAliasSet(roaring::Roaring &&RR) : Bits(std::move(RR)) {}
+
+  roaring::Roaring Bits{};
+};
+
+template <SmallIdType IdT> using RawAliasSet = RoaringAliasSet<IdT>;
+
 } // namespace psr
