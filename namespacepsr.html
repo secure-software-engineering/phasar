@@ -1751,6 +1751,10 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
 <tr class="separator:a4b77ecb9895623cd0046923126690989"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4151344c9856c5f3fdf6f3c4e73b722" id="r_af4151344c9856c5f3fdf6f3c4e73b722"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structpsr_1_1DebugLocation.html">DebugLocation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#af4151344c9856c5f3fdf6f3c4e73b722">getDebugLocation</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *V)</td></tr>
 <tr class="separator:af4151344c9856c5f3fdf6f3c4e73b722"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5e5e716d45c225bb16a3042c889f54e" id="r_ab5e5e716d45c225bb16a3042c889f54e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab5e5e716d45c225bb16a3042c889f54e">forEachDbgDeclare</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">I</a>, llvm::function_ref&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DILocalVariable *, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *)&gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Callback</a>)</td></tr>
+<tr class="separator:ab5e5e716d45c225bb16a3042c889f54e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa80481d8026b7ac329301612649665ea" id="r_aa80481d8026b7ac329301612649665ea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DICompositeType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aa80481d8026b7ac329301612649665ea">stripTypedefsToStruct</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>)</td></tr>
+<tr class="separator:aa80481d8026b7ac329301612649665ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a889cd97fc98ad755f631d6f636366bbd" id="r_a889cd97fc98ad755f631d6f636366bbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a889cd97fc98ad755f631d6f636366bbd">isIntegerLikeType</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Type *T) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
 <tr class="memdesc:a889cd97fc98ad755f631d6f636366bbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the given LLVM Type is a integer like struct.  <br /></td></tr>
 <tr class="separator:a889cd97fc98ad755f631d6f636366bbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -6261,6 +6265,35 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p class="definition">Definition at line <a class="el" href="EntryPointUtils_8h_source.html#l00067">67</a> of file <a class="el" href="EntryPointUtils_8h_source.html">EntryPointUtils.h</a>.</p>
 
 <p class="reference">References <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, and <a class="el" href="EntryPointUtils_8h_source.html#l00026">psr::detail::forallStartingPoints()</a>.</p>
+
+</div>
+</div>
+<a id="ab5e5e716d45c225bb16a3042c889f54e" name="ab5e5e716d45c225bb16a3042c889f54e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5e5e716d45c225bb16a3042c889f54e">&#9670;&#160;</a></span>forEachDbgDeclare()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> psr::forEachDbgDeclare </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction &amp;&#160;</td>
+          <td class="paramname"><em>I</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">llvm::function_ref&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DILocalVariable *, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *)&gt;&#160;</td>
+          <td class="paramname"><em>Callback</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Callback(DILocalVariable *, Value *)</a></code> for every dbg.declare record attached to <code>I</code>. Handles both the legacy intrinsic form and the DbgVariableRecord form introduced in LLVM 19. </p>
 
 </div>
 </div>
@@ -11761,6 +11794,25 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
+<a id="aa80481d8026b7ac329301612649665ea" name="aa80481d8026b7ac329301612649665ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa80481d8026b7ac329301612649665ea">&#9670;&#160;</a></span>stripTypedefsToStruct()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DICompositeType * psr::stripTypedefsToStruct </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Ty</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Strip DW_TAG_typedef chains from <code>Ty</code> and return the underlying DICompositeType if it is a DW_TAG_structure_type; return null otherwise. </p>
+
+</div>
+</div>
 <a id="aa59e41f42491509243d6cb71c719fc5a" name="aa59e41f42491509243d6cb71c719fc5a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa59e41f42491509243d6cb71c719fc5a">&#9670;&#160;</a></span>strongUpdateStore() <span class="overload">[1/2]</span></h2>
 
@@ -13163,7 +13215,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu May 7 2026 17:51:22 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue May 19 2026 16:08:54 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
