@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
@@ -35,67 +36,6 @@ std::string psr::to_string(PAGVariable Var) {
 
 namespace {
 
-struct GlobalCache {
-  const llvm::DataLayout &DL; // NOLINT
-  // Due to the recursion in getOrCreateGCacheEntry, we need pointer stability
-  std::unordered_map<const llvm::Constant *, llvm::SmallVector<ValueId, 1>>
-      Cache{};
-
-  [[nodiscard]] llvm::ArrayRef<ValueId> getOrCreateGCacheEntry(
-      LLVMPBStrategyRef Strategy, const llvm::Constant *Const,
-      std::invocable<const llvm::Value *, LLVMPBStrategyRef> auto GetVariable) {
-    if (definitelyContainsNoPointer(Const)) {
-      return {};
-    }
-
-    auto [It, Inserted] = Cache.try_emplace(Const);
-    if (!Inserted) {
-      return It->second;
-    }
-
-    auto &Vec = It->second;
-
-    // We do not care about null here
-    if (llvm::isa<llvm::ConstantPointerNull>(Const)) {
-      return {};
-    }
-
-    if (const auto *CGep = llvm::dyn_cast<llvm::GEPOperator>(Const)) {
-      // TODO: Properly handle constant GEPs
-      return getOrCreateGCacheEntry(
-          Strategy, llvm::cast<llvm::Constant>(CGep->getPointerOperand()),
-          GetVariable);
-    }
-
-    if (Const->getType()->isPointerTy()) {
-      Vec.push_back(GetVariable(Const, Strategy));
-
-      return Vec;
-    }
-
-    // TODO: Get rid of the recursion
-
-    if (const auto *Arr = llvm::dyn_cast<llvm::ConstantAggregate>(Const)) {
-      if (Arr->getType()->isArrayTy() &&
-          definitelyContainsNoPointer(Arr->getType()->getArrayElementType())) {
-        return {};
-      }
-
-      size_t ArrayLen = Arr->getNumOperands();
-      for (size_t I = 0; I < ArrayLen; ++I) {
-        auto *Elem = llvm::cast<llvm::Constant>(
-            Arr->getAggregateElement(I)->stripPointerCastsAndAliases());
-        auto ElemVars = getOrCreateGCacheEntry(Strategy, Elem, GetVariable);
-        Vec.append(ElemVars.begin(), ElemVars.end());
-      }
-      return Vec;
-    }
-
-    // TODO: more
-
-    return Vec;
-  }
-};
 
 struct PAGMappedLibrarySummary {
   const library_summary::LLVMFunctionDataFlowFacts &Facts; // NOLINT
@@ -202,7 +142,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void initializeGlobals(const LLVMProjectIRDB &IRDB,
                          LLVMPBStrategyRef Strategy) {
-    GlobalCache GCache{IRDB.getModule()->getDataLayout()};
+    GlobalInitCache GCache;
 
     for (const auto &Glob : IRDB.getModule()->globals()) {
       if (definitelyContainsNoPointer(Glob.getValueType())) {
@@ -215,12 +155,12 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
   }
 
-  void initializeGlobal(GlobalCache &GCache, LLVMPBStrategyRef Strategy,
+  void initializeGlobal(GlobalInitCache &GCache, LLVMPBStrategyRef Strategy,
                         const llvm::GlobalVariable &Glob) {
     auto GlobObj = getVariable(&Glob, Strategy);
-    auto Stores = GCache.getOrCreateGCacheEntry(
-        Strategy, Glob.getInitializer(),
-        [this](const llvm::Value *V, LLVMPBStrategyRef Strategy) {
+    auto Stores = GCache.getOrCreate(
+        Glob.getInitializer(),
+        [this, Strategy](const llvm::Value *V) {
           return getVariable(V, Strategy);
         });
 

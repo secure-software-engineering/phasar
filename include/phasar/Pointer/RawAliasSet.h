@@ -150,7 +150,7 @@ public:
   void operator|=(const RoaringAliasSet &Other) { Bits |= Other.Bits; }
   void operator&=(const RoaringAliasSet &Other) { Bits &= Other.Bits; }
   void operator-=(const RoaringAliasSet &Other) { Bits -= Other.Bits; }
-  [[nodiscard]] RoaringAliasSet operator-(const RoaringAliasSet &Other) {
+  [[nodiscard]] RoaringAliasSet operator-(const RoaringAliasSet &Other) const {
     return Bits - Other.Bits;
   }
 

@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IotaIterator.h"
@@ -179,18 +180,13 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
     // Snapshot all NonRep data before any addAssignEdge / grow calls that
     // may reallocate Nodes and invalidate references.
-    llvm::SmallVector<ValueId, 2> NRAssignDsts =
-        std::move(Nodes[NonRep].AssignDsts);
+    auto NRAssignDsts = std::move(Nodes[NonRep].AssignDsts);
     Nodes[NonRep].AssignDstSet.clear();
     const RawAliasSet<ValueId> NRPts = Nodes[NonRep].PtsSet;
-    llvm::SmallVector<ValueId, 2> NRLoadDsts =
-        std::move(Nodes[NonRep].LoadDsts);
-    llvm::SmallVector<ValueId, 2> NRStoreSrcs =
-        std::move(Nodes[NonRep].StoreSrcs);
-    llvm::SmallVector<ValueId, 2> NRMemCopyAsSrc =
-        std::move(Nodes[NonRep].MemCopyAsSrc);
-    llvm::SmallVector<ValueId, 2> NRMemCopyAsDst =
-        std::move(Nodes[NonRep].MemCopyAsDst);
+    auto NRLoadDsts = std::move(Nodes[NonRep].LoadDsts);
+    auto NRStoreSrcs = std::move(Nodes[NonRep].StoreSrcs);
+    auto NRMemCopyAsSrc = std::move(Nodes[NonRep].MemCopyAsSrc);
+    auto NRMemCopyAsDst = std::move(Nodes[NonRep].MemCopyAsDst);
 
     // Re-register NonRep's assign edges under Rep.
     for (ValueId Dst : NRAssignDsts) {
@@ -201,14 +197,19 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     // Merge pts sets.
+    const auto OldRepPts = Nodes[Rep].PtsSet;
     const bool PtsGrew = Nodes[Rep].PtsSet.tryMergeWith(NRPts);
     if (PtsGrew) {
       Nodes[Rep].PendingPts |= NRPts;
       PropWorklist.push_back(Rep);
+      // Fire Rep's pre-existing load/store/memcopy constraints for pointees
+      // absorbed from NonRep that Rep didn't previously have.
+      const auto Diff = NRPts - OldRepPts;
+      Diff.foreach ([&](ValueId NewObj) { onNewPointee(Rep, NewObj); });
     }
 
     // Snapshot Rep's pts (after merge) for retroactive constraint firing.
-    const RawAliasSet<ValueId> RepPts = Nodes[Rep].PtsSet;
+    const auto RepPts = Nodes[Rep].PtsSet;
 
     // Transfer NonRep's load constraints and retroactively fire them for
     // Rep's existing pts members.
@@ -451,7 +452,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         }
 
         bool AddedAny = false;
-        UPending.foreach([&](ValueId Obj) {
+        UPending.foreach ([&](ValueId Obj) {
           if (Nodes[V].PtsSet.tryInsert(Obj)) {
             Nodes[V].PendingPts.insert(Obj);
             onNewPointee(V, Obj);
@@ -473,6 +474,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- IR translation -------------------------------------------------
 
   void initGlobals() {
+    GlobalInitCache GCache;
     for (const auto &G : IRDB.getModule()->globals()) {
       if (definitelyContainsNoPointer(G.getValueType())) {
         continue;
@@ -480,6 +482,15 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       const ValueId VarId = getOrInsertVar(PAGVariable(&G));
       const ValueId ObjId = getOrInsertObj(PAGVariable(&G));
       addPointee(VarId, ObjId);
+      if (!G.hasInitializer()) {
+        continue;
+      }
+      for (ValueId SrcId :
+           GCache.getOrCreate(G.getInitializer(), [&](const llvm::Value *V) {
+             return getOrInsertVar(PAGVariable(V));
+           })) {
+        addStore(VarId, SrcId);
+      }
     }
     propagate();
   }
