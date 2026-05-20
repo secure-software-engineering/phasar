@@ -23,6 +23,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/TargetParser/Triple.h"
 
 #include <concepts>
 #include <memory>
@@ -858,7 +859,7 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
 LLVMPAGBuilder LLVMPAGBuilder::withBuiltinMemSSA(
     const library_summary::LLVMFunctionDataFlowFacts *MLSum) {
   struct MSSAImpl {
-    llvm::TargetLibraryInfoImpl TLIImpl{};
+    llvm::TargetLibraryInfoImpl TLIImpl{llvm::Triple()};
     llvm::TargetLibraryInfo TLI{TLIImpl};
     std::optional<MemSSABundle> Bundle{};
   };
