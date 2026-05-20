@@ -21,7 +21,7 @@ Of course, you can extend this tool and provide your own analyses here.
 
 ## Results (as of 20.05.2026)
 
-The analyses were run on the LLVM-16 IR of the tests in the PTABen folders `basic_c_tests`, `basic_cpp_tests`, `cs_tests`, and `fs_tests`.
+The analyses were run on the LLVM-16 IR of the tests in the PTABen folders `basic_c_tests`, `basic_cpp_tests`, `cs_tests`, and `fs_tests`, using PTABen version [be523f7](https://github.com/SVF-tools/Test-Suite/commit/be523f7a86cad840591a31e338baa313de40fa33).
 
 |           | cfl-anders | cfl-steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens |
 |-----------|------------|------------|----------|----------|----------|--------------|------------------|
