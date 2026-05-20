@@ -29,6 +29,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <cassert>
 #include <optional>
@@ -233,8 +234,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (Nodes[Rep].MemCopyAsSrcSet.insert(D).second) {
         Nodes[Rep].MemCopyAsSrc.push_back(D);
         if (Nodes.inbounds(D)) {
-          // Snapshot DstPtr's pts: addAssignEdge may resize Nodes.
-          const RawAliasSet<ValueId> DstPts = Nodes[D].PtsSet;
+          const auto &DstPts = Nodes[D].PtsSet;
           RepPts.foreach ([&](ValueId O1) {
             DstPts.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
           });
@@ -247,8 +247,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (Nodes[Rep].MemCopyAsDstSet.insert(S).second) {
         Nodes[Rep].MemCopyAsDst.push_back(S);
         if (Nodes.inbounds(S)) {
-          // Snapshot SrcPtr's pts: addAssignEdge may resize Nodes.
-          const RawAliasSet<ValueId> SrcPts = Nodes[S].PtsSet;
+          const auto &SrcPts = Nodes[S].PtsSet;
           SrcPts.foreach ([&](ValueId O1) {
             RepPts.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
           });
@@ -311,10 +310,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // INVARIANT: every method resolves all ids through rep() first, then calls
   // grow() for all ids before accessing Nodes by reference.  Any grow() call
   // may reallocate the Nodes backing array, so no NodeInfo& must be held
-  // across a grow() call or across any call that may invoke grow() (i.e.
-  // addAssignEdge, addPointee, etc.).  Where the existing pts set must be
-  // iterated while addAssignEdge is called inside, the pts set is first
-  // copied into a local snapshot.
+  // across a grow() call.  addAssignEdge does not call grow(), so references
+  // into Nodes remain valid across it.
 
   void addPointee(ValueId Ptr, ValueId Obj) {
     Ptr = rep(Ptr);
@@ -333,8 +330,15 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (Src == Dst) {
       return;
     }
-    grow(Src);
-    grow(Dst); // grow before indexing Nodes[Src]
+
+    if (!Nodes.inbounds(Src) || !Nodes.inbounds(Dst)) [[unlikely]] {
+      llvm::report_fatal_error(
+          "Connecting nodes which are not allocated yet. Node allocation "
+          "should happen through getOrInsertVar or getOrInsertObj");
+    }
+
+    // grow(Src);
+    // grow(Dst); // grow before indexing Nodes[Src]
     if (Nodes[Src].AssignDstSet.insert(Dst).second) {
       Nodes[Src].AssignDsts.push_back(Dst);
       if (!Nodes[Src].PtsSet.empty()) {
@@ -350,9 +354,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     Ptr = rep(Ptr);
     Dst = rep(Dst);
     grow(Ptr);
-    grow(Dst); // grow before accessing Nodes[Ptr]
-    // Snapshot pts: addAssignEdge inside the lambda may resize Nodes.
-    const RawAliasSet<ValueId> ExistingPts = Nodes[Ptr].PtsSet;
+    grow(Dst);
+    const auto &ExistingPts = Nodes[Ptr].PtsSet;
     ExistingPts.foreach ([&](ValueId Obj) { addAssignEdge(Obj, Dst); });
     if (Nodes[Ptr].LoadDstSet.insert(Dst).second) {
       Nodes[Ptr].LoadDsts.push_back(Dst);
@@ -363,9 +366,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     Ptr = rep(Ptr);
     Src = rep(Src);
     grow(Ptr);
-    grow(Src); // grow before accessing Nodes[Ptr]
-    // Snapshot pts: addAssignEdge inside the lambda may resize Nodes.
-    const RawAliasSet<ValueId> ExistingPts = Nodes[Ptr].PtsSet;
+    grow(Src);
+    const auto &ExistingPts = Nodes[Ptr].PtsSet;
     ExistingPts.foreach ([&](ValueId Obj) { addAssignEdge(Src, Obj); });
     if (Nodes[Ptr].StoreSrcSet.insert(Src).second) {
       Nodes[Ptr].StoreSrcs.push_back(Src);
@@ -376,11 +378,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     SrcPtr = rep(SrcPtr);
     DstPtr = rep(DstPtr);
     grow(SrcPtr);
-    grow(DstPtr); // grow before accessing Nodes[SrcPtr/DstPtr]
-    // Snapshot both pts sets: addAssignEdge inside the lambdas may resize
-    // Nodes, invalidating any reference into it.
-    const RawAliasSet<ValueId> SrcPts = Nodes[SrcPtr].PtsSet;
-    const RawAliasSet<ValueId> DstPts = Nodes[DstPtr].PtsSet;
+    grow(DstPtr);
+    const auto &SrcPts = Nodes[SrcPtr].PtsSet;
+    const auto &DstPts = Nodes[DstPtr].PtsSet;
     SrcPts.foreach ([&](ValueId O1) {
       DstPts.foreach ([&](ValueId O2) { addAssignEdge(O1, O2); });
     });
@@ -396,12 +396,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   void onNewPointee(ValueId PtrRep, ValueId NewObj) {
     assert(Nodes.inbounds(PtrRep));
-    // Snapshot all constraint lists before any addAssignEdge call: grow()
-    // inside addAssignEdge may reallocate Nodes, invalidating references.
-    const auto LoadDsts = Nodes[PtrRep].LoadDsts;
-    const auto StoreSrcs = Nodes[PtrRep].StoreSrcs;
-    const auto MemSrcs = Nodes[PtrRep].MemCopyAsSrc;
-    const auto MemDsts = Nodes[PtrRep].MemCopyAsDst;
+    const auto &LoadDsts = Nodes[PtrRep].LoadDsts;
+    const auto &StoreSrcs = Nodes[PtrRep].StoreSrcs;
+    const auto &MemSrcs = Nodes[PtrRep].MemCopyAsSrc;
+    const auto &MemDsts = Nodes[PtrRep].MemCopyAsDst;
 
     for (ValueId Dst : LoadDsts) {
       addAssignEdge(NewObj, Dst);
@@ -413,16 +411,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!Nodes.inbounds(DstPtr)) {
         continue;
       }
-      // Snapshot DstPtr's pts: addAssignEdge may resize Nodes.
-      const RawAliasSet<ValueId> DstPts = Nodes[DstPtr].PtsSet;
+      const auto &DstPts = Nodes[DstPtr].PtsSet;
       DstPts.foreach ([&](ValueId O2) { addAssignEdge(NewObj, O2); });
     }
     for (ValueId SrcPtr : MemDsts) {
       if (!Nodes.inbounds(SrcPtr)) {
         continue;
       }
-      // Snapshot SrcPtr's pts: addAssignEdge may resize Nodes.
-      const RawAliasSet<ValueId> SrcPts = Nodes[SrcPtr].PtsSet;
+      const auto &SrcPts = Nodes[SrcPtr].PtsSet;
       SrcPts.foreach ([&](ValueId O1) { addAssignEdge(O1, NewObj); });
     }
   }
@@ -440,8 +436,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         Dsts.push_back(rep(V));
       }
 
-      // Drain before iterating Dsts: onNewPointee → addPointee may write
-      // to Nodes[U].PendingPts while we iterate, and merge() may resize Nodes.
+      // Drain before iterating Dsts: addAssignEdge inside onNewPointee/merge()
+      // may write to Nodes[U].PendingPts while we iterate.
       RawAliasSet<ValueId> UPending = std::move(Nodes[U].PendingPts);
 
       for (ValueId VSnap : Dsts) {
