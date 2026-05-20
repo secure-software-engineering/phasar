@@ -15,6 +15,7 @@
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -24,6 +25,9 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#if LLVM_VERSION_MAJOR > 18
+#include "llvm/IR/DebugProgramInstruction.h"
+#endif
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
@@ -548,4 +552,34 @@ std::optional<DebugLocation> psr::getDebugLocation(const llvm::Value *V) {
   }
 
   return std::nullopt;
+}
+
+void psr::forEachDbgDeclare(
+    const llvm::Instruction &I,
+    llvm::function_ref<void(const llvm::DILocalVariable *, const llvm::Value *)>
+        Callback) {
+#if LLVM_VERSION_MAJOR > 18
+  for (const llvm::DbgVariableRecord &DbR :
+       llvm::filterDbgVars(I.getDbgRecordRange())) {
+    if (DbR.isDbgDeclare()) {
+      Callback(DbR.getVariable(), DbR.getAddress());
+    }
+  }
+#endif
+  if (const auto *D = llvm::dyn_cast<llvm::DbgDeclareInst>(&I)) {
+    Callback(D->getVariable(), D->getAddress());
+  }
+}
+
+const llvm::DICompositeType *
+psr::stripTypedefsToStruct(const llvm::DIType *Ty) {
+  while (const auto *D = llvm::dyn_cast_or_null<llvm::DIDerivedType>(Ty)) {
+    if (D->getTag() != llvm::dwarf::DW_TAG_typedef) {
+      return nullptr;
+    }
+    Ty = D->getBaseType();
+  }
+  const auto *CT = llvm::dyn_cast_or_null<llvm::DICompositeType>(Ty);
+  return (CT && CT->getTag() == llvm::dwarf::DW_TAG_structure_type) ? CT
+                                                                    : nullptr;
 }

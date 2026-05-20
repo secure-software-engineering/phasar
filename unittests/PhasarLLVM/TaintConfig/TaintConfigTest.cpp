@@ -340,6 +340,29 @@ TEST_F(TaintConfigTest, DataMember_01_Json) {
   ASSERT_TRUE(TConfig.isSource(I));
 }
 
+TEST_F(TaintConfigTest, DataMember_02_Json) {
+  // Regression test for
+  // https://github.com/secure-software-engineering/phasar/issues/835 Two
+  // structs (X and Y) both have a field named "A". Only X::A is configured as a
+  // source. Verify X::A GEPs are sources and Y::A GEPs are not.
+  const std::string File = "data_member_02_cpp_dbg.ll";
+  const std::string Config = "data_member_02_config.json";
+  auto JsonConfig =
+      psr::parseTaintConfig(PathToJsonTaintConfigTestCode + Config);
+  psr::LLVMProjectIRDB IR({PathToJsonTaintConfigTestCode + File});
+  psr::LLVMTaintConfig TConfig(IR, JsonConfig);
+
+  // GEP for X::A in X's default constructor — should be source
+  const llvm::Value *XFieldA =
+      testingLocInIR(LineColFun{7, 7, "_ZN1XC2Ev"}, IR);
+  ASSERT_TRUE(TConfig.isSource(XFieldA));
+
+  // GEP for Y::A in Y's default constructor — must NOT be source
+  const llvm::Value *YFieldA =
+      testingLocInIR(LineColFun{3, 7, "_ZN1YC2Ev"}, IR);
+  ASSERT_FALSE(TConfig.isSource(YFieldA));
+}
+
 TEST_F(TaintConfigTest, FunMember_01_Json) {
   const std::string File = "fun_member_01_cpp_dbg.ll";
   const std::string Config = "fun_member_01_config.json";

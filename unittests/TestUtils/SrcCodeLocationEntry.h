@@ -168,7 +168,7 @@ struct OperandOf {
   LineColFunOp Inst{};
 
   friend bool operator<(OperandOf R1, OperandOf R2) noexcept {
-    return std::tie(R1.OperandIndex, R2.Inst) <
+    return std::tie(R1.OperandIndex, R1.Inst) <
            std::tie(R2.OperandIndex, R2.Inst);
   }
   friend bool operator==(OperandOf R1, OperandOf R2) noexcept {
