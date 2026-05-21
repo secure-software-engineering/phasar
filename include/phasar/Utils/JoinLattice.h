@@ -38,6 +38,20 @@ concept HasJoinLatticeTraits = requires(const L &Val) {
   { JoinLatticeTraits<L>::join(Val, Val) } -> std::convertible_to<L>;
 };
 
+template <typename T>
+concept IsJoinLattice = requires(T &Lat, const typename T::l_t &Val) {
+  typename T::l_t;
+
+  { Lat.topElement() } -> std::convertible_to<typename T::l_t>;
+  { Lat.bottomElement() } -> std::convertible_to<typename T::l_t>;
+  { Lat.join(Val, Val) } -> std::convertible_to<typename T::l_t>;
+};
+
+template <typename T, typename L>
+concept IsJoinLatticeFor = IsJoinLattice<T> && requires {
+  requires std::convertible_to<typename T::l_t, L>;
+};
+
 template <typename AnalysisDomainTy> class JoinLattice {
 public:
   using l_t = typename AnalysisDomainTy::l_t;

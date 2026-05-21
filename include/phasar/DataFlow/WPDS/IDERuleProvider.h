@@ -9,7 +9,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "phasar/ControlFlow/SparseCFGProvider.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/WPDS/RuleProvider.h"
 #include "phasar/Utils/ByRef.h"
@@ -21,6 +21,8 @@
 
 namespace psr::wpds {
 template <typename ProblemT, typename ICFGTy> class IDERuleProvider {
+  using l_t = typename ProblemT::l_t;
+
 public:
   using control_location_type = typename ProblemT::d_t;
   using stack_element_type = typename ProblemT::n_t;
@@ -155,12 +157,21 @@ public:
   }
 
   [[nodiscard]] auto initialSeeds() {
-    llvm::SmallVector<std::tuple<control_location_type, stack_element_type>>
+    llvm::SmallVector<
+        std::tuple<control_location_type, stack_element_type, weight_type>>
         Outs;
 
     for (const auto &[Inst, Facts] : Problem->initialSeeds().getSeeds()) {
-      for (const auto &[Fact, _] : Facts) {
-        Outs.emplace_back(Fact, Inst);
+      for (const auto &[Fact, Val] : Facts) {
+        if (Val.isTop()) {
+          continue;
+        }
+        if (Val.isBottom()) {
+          Outs.emplace_back(Fact, Inst, AllBottom<l_t>{});
+        } else {
+          Outs.emplace_back(Fact, Inst,
+                            ConstantEdgeFunction<l_t>{Val.assertGetValue()});
+        }
       }
     }
 

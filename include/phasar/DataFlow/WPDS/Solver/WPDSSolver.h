@@ -41,6 +41,7 @@ class WPDSSolver : private wpds::detail::SolverResultsData<
   using base_t::ESGNodeCompressor;
   using base_t::Incoming;
   using base_t::PathEdges;
+  using base_t::Seeds;
 
 public:
   using cl_t = typename RuleProviderT::control_location_type;
@@ -235,9 +236,14 @@ private:
   }
 
   void submitInitialSeeds() {
-    for (const auto &[InitCL, InitSE] : RP->initialSeeds()) {
+    for (const auto &[InitCL, InitSE, InitWeight] : RP->initialSeeds()) {
       auto Init = compressNode(InitCL, InitSE);
       propagate({Init, InitSE, InitCL}, SR->identity());
+
+      auto [It, Inserted] = Seeds.try_emplace(Init, InitWeight);
+      if (!Inserted) {
+        It->second = SR->combine(It->second, InitWeight);
+      }
     }
   }
 

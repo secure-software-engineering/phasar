@@ -4,16 +4,33 @@
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/SemiRing.h"
 #include "phasar/Utils/StrongTypeDef.h"
+#include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLExtras.h"
 
+#include <concepts>
+#include <type_traits>
+
 PHASAR_STRONG_TYPEDEF(psr::wpds, uint32_t, ESGNodeId);
 
 namespace psr::wpds {
+
+template <typename WeightTy> struct ComputeWeightsCache {
+  using weight_t = WeightTy;
+
+  /// Don't call this ctor directly. Use createWeightCache() from the
+  /// SolverResults instead
+  explicit ComputeWeightsCache(std::true_type /*For internal use only*/) {}
+
+  llvm::DenseMap<ESGNodeId, std::optional<weight_t>> Data{};
+};
+
 namespace detail {
 
 template <typename CLTy, typename SETy, typename WeightTy>
@@ -29,6 +46,7 @@ struct SolverResultsData {
   TypedVector<wpds::ESGNodeId,
               llvm::SmallDenseMap<std::pair<wpds::ESGNodeId, se_t>, weight_t>>
       Incoming;
+  llvm::SmallDenseMap<ESGNodeId, weight_t> Seeds{};
 };
 
 template <typename Derived, typename CLTy, typename SETy, typename WeightTy>
@@ -109,6 +127,55 @@ public:
     return true;
   }
 
+  /// Computes the weight for the given <Fact, At> pair, accumulated over all
+  /// accepting paths starting there. Re-use the WeightCache across calls to
+  /// this function for better performance.
+  ///
+  /// Should only be called if isInResultSet(Fact, At) is true.
+  [[nodiscard]] weight_t
+  computeWeightAt(ByConstRef<cl_t> Fact, ByConstRef<se_t> At,
+                  IsSemiRing auto &SR,
+                  ComputeWeightsCache<weight_t> &WeightCache) const {
+
+    const auto &PEs = getOrDefault(self().pathEdges(), std::pair{Fact, At});
+    return mapCombine(
+        PEs, SR,
+        [this, &SR, &WeightCache](const auto &SrcAndWeight) {
+          const auto &[Src, Weight] = SrcAndWeight;
+          auto IncVal = this->computeWeightAtRec(Src, SR, WeightCache);
+          return SR.extend(std::move(IncVal), Weight);
+        },
+        SecondFn{});
+  }
+
+  /// Computes the weight for the given <Fact, At> pair, accumulated over all
+  /// accepting paths starting there.
+  ///
+  /// Use the overload of this function taking a ComputeWeightsCache (can be
+  /// initialized via createWeightCache()) for better batch performance if
+  /// calling this function multiple times.
+  ///
+  /// Should only be called if isInResultSet(Fact, At) is true.
+  [[nodiscard]] weight_t computeWeightAt(ByConstRef<cl_t> Fact,
+                                         ByConstRef<se_t> At,
+                                         IsSemiRing auto &SR) const {
+    auto WeightCache = createWeightCache();
+    return computeWeightAt(Fact, At, SR, WeightCache);
+  }
+
+  /// Creates and initializes a new ComputeWeightsCache that can be used to
+  /// speed-up consecutive calls to computeWeightAt()
+  [[nodiscard]] auto createWeightCache() const {
+    ComputeWeightsCache<weight_t> WeightCache{std::true_type{}};
+    WeightCache.Data.reserve(self().seeds().size());
+
+    for (const auto &[SeedNod, SeedWeight] : self().seeds()) {
+      WeightCache.Data.try_emplace(SeedNod, SeedWeight);
+    }
+
+    return WeightCache;
+  }
+
   [[nodiscard]] auto getAllIFDSResultEntries() const {
     return llvm::make_filter_range(self().esgNodeCompressor(),
                                    [this](const auto &Entry) {
@@ -123,6 +190,54 @@ public:
   void dumpResults(llvm::raw_ostream &OS = llvm::outs());
 
 private:
+  [[nodiscard]] weight_t
+  computeWeightAtRec(ESGNodeId Src, IsSemiRing auto &SR,
+                     ComputeWeightsCache<weight_t> &WeightCache) const {
+    auto [It, Inserted] = WeightCache.Data.try_emplace(Src);
+    if (It->second) {
+      return *It->second;
+    }
+    if (!Inserted) {
+      // cycle detection
+
+      // TODO: Is that correct?
+      return SR.identity();
+    }
+
+    const auto &Inc = self().incoming()[Src];
+
+    auto Ret = mapCombine(
+        Inc, SR,
+        [this, &SR, &WeightCache](const auto &SrcSEAndWeight) {
+          const auto &[SrcSE, Weight] = SrcSEAndWeight;
+          const auto &[SrcSrc, _] = SrcSE;
+
+          // XXX: Can we get rid of this recursion?
+          auto IncVal = this->computeWeightAtRec(SrcSrc, SR, WeightCache);
+          return SR.extend(std::move(IncVal), Weight);
+        },
+        SecondFn{});
+    It->second.emplace(std::move(Ret));
+    return *It->second;
+  }
+
+  [[nodiscard]] weight_t mapCombine(auto &&Range, IsSemiRing auto &SR,
+                                    auto Transform,
+                                    auto Projection = IdentityFn{}) const {
+    auto It = llvm::adl_begin(Range);
+    auto End = llvm::adl_end(Range);
+
+    if (It == End) {
+      return SR.identity();
+    }
+
+    auto Ret = std::invoke(Transform, *It);
+    for (++It; It != End; ++It) {
+      Ret = SR.combine(std::move(Ret), std::invoke(Projection, *It));
+    }
+    return Ret;
+  }
+
   constexpr SolverResultsBase() noexcept = default;
   friend Derived;
 
@@ -253,6 +368,7 @@ private:
   [[nodiscard]] const auto &esgNodeCompressor() const noexcept {
     return Data.ESGNodeCompressor;
   }
+  [[nodiscard]] const auto &seeds() const noexcept { return Data.Seeds; }
 
   detail::SolverResultsData<CLTy, SETy, WeightTy> Data;
 };
@@ -278,6 +394,7 @@ private:
   [[nodiscard]] const auto &esgNodeCompressor() const noexcept {
     return Data->ESGNodeCompressor;
   }
+  [[nodiscard]] const auto &seeds() const noexcept { return Data->Seeds; }
 
   NonNullPtr<const detail::SolverResultsData<CLTy, SETy, WeightTy>> Data;
 };

@@ -42,8 +42,9 @@ concept RuleProvider = requires(T &RP, typename T::control_location_type CL,
 
   {
     RP.initialSeeds()
-  } -> psr::is_iterable_over_v<std::tuple<typename T::control_location_type,
-                                          typename T::stack_element_type>>;
+  } -> psr::is_iterable_over_v<
+      std::tuple<typename T::control_location_type,
+                 typename T::stack_element_type, typename T::weight_type>>;
 };
 
 template <typename T>

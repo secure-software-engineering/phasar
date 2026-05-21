@@ -1,11 +1,7 @@
 
 #include "phasar/DataFlow/WPDS/Solver/WPDSSolver.h"
 
-#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
-#include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h"
-#include "phasar/DataFlow/IfdsIde/Solver/StaticIDESolverConfig.h"
-#include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/DataFlow/WPDS/IDERuleProvider.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -17,13 +13,11 @@
 #include "phasar/Utils/Printer.h"
 
 #include "llvm/IR/IntrinsicInst.h"
-#include "llvm/Support/TypeName.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
 #include <chrono>
-#include <type_traits>
 
 using namespace psr;
 
@@ -65,11 +59,11 @@ protected:
     }
 
     checkEquality(BaselineSolver.getSolverResults(),
-                  NewSolver.getSolverResults());
+                  NewSolver.getSolverResults(), Problem);
   }
 
-  template <typename SR1, typename SR2>
-  void checkEquality(const SR1 &LHS, const SR2 &RHS) {
+  template <typename SR1, typename SR2, typename ProblemT>
+  void checkEquality(const SR1 &LHS, const SR2 &RHS, ProblemT &Problem) {
     for (const auto &[Row, ColVal] : LHS.getAllResultEntries()) {
       for (const auto &[Col, Val] : ColVal) {
         bool Holds = RHS.isInResultSet(Col, Row);
@@ -77,16 +71,13 @@ protected:
                            << llvmIRToString(Col) << " at inst "
                            << llvmIRToString(Row);
 
-        // TODO: Compare values
+        auto RHSWeight = RHS.computeWeightAt(Col, Row, Problem);
+        auto RHSVal = RHSWeight.computeTarget(Bottom{});
 
-        // auto It = RHSColVal.find(Col);
-        // if (It != RHSColVal.end()) {
-        //   EXPECT_TRUE(Val == It->second)
-        //       << "The edge values at inst " << llvmIRToString(Row)
-        //       << " and fact " << llvmIRToString(Col) << " do not match: " <<
-        //       Val
-        //       << " vs " << It->second;
-        // }
+        EXPECT_TRUE(Val == RHSVal)
+            << "The edge values at inst " << llvmIRToString(Row) << " and fact "
+            << llvmIRToString(Col) << " do not match: " << Val << " vs "
+            << RHSVal;
       }
     }
     for (const auto &[ColVal, Row] : RHS.getAllIFDSResultEntries()) {
