@@ -75,8 +75,8 @@ public:
   }
 
   [[nodiscard]] wpds::OwningSolverResults<cl_t, se_t, weight_t>
-  consumeSolverResults() const noexcept {
-    return {std::move(this)};
+  consumeSolverResults() noexcept {
+    return {std::move(static_cast<base_t &>(*this))};
   }
 
 private:
@@ -199,11 +199,6 @@ private:
             });
       }
 
-      // else {
-
-      //   llvm::errs() << "NO injectAdditionalPushEdges:\n";
-      // }
-
       if (RP->hasPopRules(CurrTgtFact, CurrTarget)) {
 
         if (!addEndSummary(CurrSrc, CurrTgtFact, CurrTarget, CurrWeight)) {
@@ -306,7 +301,7 @@ private:
         std::pair{std::move(TgtFact), std::move(TgtSE)}, std::move(TgtWeight));
     if (!Inserted) {
       auto Merged = SR->combine(It->second, TgtWeight);
-      if (It->second != TgtWeight) {
+      if (It->second != Merged) {
         It->second = std::move(Merged);
         Inserted = true;
       }

@@ -7,8 +7,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_SEMIRING_H
-#define PHASAR_UTILS_SEMIRING_H
+#pragma once
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
@@ -74,5 +73,3 @@ struct BinarySemiRing {
 
 inline constinit BinarySemiRing BinarySemiRing::Instance{};
 } // namespace psr
-
-#endif // PHASAR_UTILS_SEMIRING_H

@@ -40,8 +40,8 @@ protected:
     auto Start = std::chrono::steady_clock::now();
     BaselineSolver.solve();
     auto End = std::chrono::steady_clock::now();
-    auto NewTime = End - Start;
-    llvm::errs() << "IterativeIDESolver Elapsed:\t" << NewTime.count()
+    auto BaselineTime = End - Start;
+    llvm::errs() << "IterativeIDESolver Elapsed:\t" << BaselineTime.count()
                  << "ns\n";
 
     wpds::IDERuleProvider LCARules(&Problem, &ICFG);
@@ -50,8 +50,8 @@ protected:
     NewSolver.solve();
     End = std::chrono::steady_clock::now();
 
-    auto OldTime = End - Start;
-    llvm::errs() << "WPDSSolver Elapsed:\t\t" << OldTime.count() << "ns\n";
+    auto WPDSTime = End - Start;
+    llvm::errs() << "WPDSSolver Elapsed:\t\t" << WPDSTime.count() << "ns\n";
 
     if (PrintDump) {
       BaselineSolver.dumpResults();

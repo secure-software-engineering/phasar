@@ -139,13 +139,11 @@ public:
 
     const auto &PEs = getOrDefault(self().pathEdges(), std::pair{Fact, At});
     return mapCombine(
-        PEs, SR,
-        [this, &SR, &WeightCache](const auto &SrcAndWeight) {
+        PEs, SR, [this, &SR, &WeightCache](const auto &SrcAndWeight) {
           const auto &[Src, Weight] = SrcAndWeight;
           auto IncVal = this->computeWeightAtRec(Src, SR, WeightCache);
           return SR.extend(std::move(IncVal), Weight);
-        },
-        SecondFn{});
+        });
   }
 
   /// Computes the weight for the given <Fact, At> pair, accumulated over all
@@ -207,23 +205,20 @@ private:
     const auto &Inc = self().incoming()[Src];
 
     auto Ret = mapCombine(
-        Inc, SR,
-        [this, &SR, &WeightCache](const auto &SrcSEAndWeight) {
+        Inc, SR, [this, &SR, &WeightCache](const auto &SrcSEAndWeight) {
           const auto &[SrcSE, Weight] = SrcSEAndWeight;
           const auto &[SrcSrc, _] = SrcSE;
 
           // XXX: Can we get rid of this recursion?
           auto IncVal = this->computeWeightAtRec(SrcSrc, SR, WeightCache);
           return SR.extend(std::move(IncVal), Weight);
-        },
-        SecondFn{});
+        });
     It->second.emplace(std::move(Ret));
     return *It->second;
   }
 
   [[nodiscard]] weight_t mapCombine(auto &&Range, IsSemiRing auto &SR,
-                                    auto Transform,
-                                    auto Projection = IdentityFn{}) const {
+                                    auto Transform) const {
     auto It = llvm::adl_begin(Range);
     auto End = llvm::adl_end(Range);
 
@@ -233,7 +228,7 @@ private:
 
     auto Ret = std::invoke(Transform, *It);
     for (++It; It != End; ++It) {
-      Ret = SR.combine(std::move(Ret), std::invoke(Projection, *It));
+      Ret = SR.combine(std::move(Ret), std::invoke(Transform, *It));
     }
     return Ret;
   }

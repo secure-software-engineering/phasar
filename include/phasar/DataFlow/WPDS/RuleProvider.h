@@ -11,6 +11,8 @@
 
 #include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/ArrayRef.h"
+
 #include <concepts>
 
 namespace psr::wpds {
