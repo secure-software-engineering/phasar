@@ -48,7 +48,8 @@ public:
 
     if (ICF->isCallSite(SE)) {
       auto Callees = ICF->getCalleesOfCallAt(SE);
-      for (const auto &Succ : ICF->getReturnSitesOfCallAt(SE)) {
+      auto RetSites = ICF->getReturnSitesOfCallAt(SE);
+      for (const auto &Succ : RetSites) {
         auto Facts = FECache.getCallToRetFlowFunction(SE, Succ, Callees)
                          ->computeTargets(CL);
         for (auto &Fct : Facts) {
@@ -60,7 +61,7 @@ public:
       for (const auto &DestFun : Callees) {
         if (auto SumFF = FECache.getSummaryFlowFunction(SE, DestFun)) {
           auto Facts = SumFF->computeTargets(CL);
-          for (const auto &Succ : ICF->getReturnSitesOfCallAt(SE)) {
+          for (const auto &Succ : RetSites) {
             for (auto &Fct : Facts) {
               auto W = FECache.getSummaryEdgeFunction(SE, CL, Succ, Fct);
               Outs.emplace_back(Fct, Succ, std::move(W));
@@ -97,6 +98,7 @@ public:
                                                << "; SE=" << NToString(SE));
 
     auto Callees = ICF->getCalleesOfCallAt(SE);
+    auto RetSites = ICF->getReturnSitesOfCallAt(SE);
     for (const auto &DestFun : Callees) {
       if (FECache.getSummaryFlowFunction(SE, DestFun)) {
         // Handled in getNormalRules()
@@ -104,11 +106,12 @@ public:
       }
 
       auto Facts = FECache.getCallFlowFunction(SE, DestFun)->computeTargets(CL);
-      for (const auto &EntrySE : ICF->getStartPointsOf(DestFun)) {
-        for (const auto &Succ : ICF->getReturnSitesOfCallAt(SE)) {
-          for (auto &&Fct : Facts) {
-            auto W = FECache.getCallEdgeFunction(SE, CL, DestFun, Fct);
-            Outs.emplace_back(Fct, Succ, EntrySE, std::move(W));
+      auto EntrySEs = ICF->getStartPointsOf(DestFun);
+      for (auto &&Fct : Facts) {
+        auto W = FECache.getCallEdgeFunction(SE, CL, DestFun, Fct);
+        for (const auto &EntrySE : EntrySEs) {
+          for (const auto &Succ : RetSites) {
+            Outs.emplace_back(Fct, Succ, EntrySE, W);
           }
         }
       }
