@@ -12,6 +12,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/WPDS/RuleProvider.h"
+#include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
@@ -20,25 +21,40 @@
 
 #include "llvm/ADT/SmallVector.h"
 
-namespace psr::wpds {
-template <typename ProblemT, typename ICFGTy> class IDERuleProvider {
-  using l_t = typename ProblemT::l_t;
+#include <type_traits>
 
+namespace psr::wpds {
+
+namespace detail {
+template <bool ComputeWeights, typename ProblemT> struct WeightTypeOf {
+  using type = EdgeIdentity<BinaryDomain>;
+};
+template <typename ProblemT> struct WeightTypeOf<true, ProblemT> {
+  using type = typename ProblemT::EdgeFunctionType;
+};
+} // namespace detail
+
+template <typename ProblemT, typename ICFGTy, bool ComputeWeights>
+class IfdsIdeRuleProvider {
 public:
   using control_location_type = typename ProblemT::d_t;
   using stack_element_type = typename ProblemT::n_t;
-  using weight_type = typename ProblemT::EdgeFunctionType;
+  using weight_type =
+      typename detail::WeightTypeOf<ComputeWeights, ProblemT>::type;
 
-  static constexpr llvm::StringLiteral LogCategory = "IDERuleProvider";
+  static constexpr auto LogCategory =
+      ComputeWeights ? llvm::StringLiteral("IDERuleProvider")
+                     : llvm::StringLiteral("IFDSRuleProvider");
 
-  IDERuleProvider(ProblemT *Problem, const ICFGTy *ICF) noexcept
+  IfdsIdeRuleProvider(
+      ProblemT *Problem, const ICFGTy *ICF,
+      std::bool_constant<ComputeWeights> /*unused*/ = {}) noexcept
       : Problem(&assertNotNull(Problem)), ICF(&assertNotNull(ICF)) {
-    static_assert(RuleProvider<IDERuleProvider>);
+    static_assert(RuleProvider<IfdsIdeRuleProvider>);
   }
 
   [[nodiscard]] auto getNormalRules(ByConstRef<control_location_type> CL,
                                     ByConstRef<stack_element_type> SE) {
-
     llvm::SmallVector<
         std::tuple<control_location_type, stack_element_type, weight_type>>
         Outs;
@@ -54,8 +70,13 @@ public:
         auto Facts = FECache.getCallToRetFlowFunction(SE, Succ, Callees)
                          ->computeTargets(CL);
         for (auto &Fct : Facts) {
-          auto W = FECache.getCallToRetEdgeFunction(SE, CL, Succ, Fct, Callees);
-          Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+          if constexpr (ComputeWeights) {
+            auto W =
+                FECache.getCallToRetEdgeFunction(SE, CL, Succ, Fct, Callees);
+            Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+          } else {
+            Outs.emplace_back(std::move(Fct), Succ, weight_type{});
+          }
         }
       }
 
@@ -64,8 +85,12 @@ public:
           auto Facts = SumFF->computeTargets(CL);
           for (const auto &Succ : RetSites) {
             for (auto &Fct : Facts) {
-              auto W = FECache.getSummaryEdgeFunction(SE, CL, Succ, Fct);
-              Outs.emplace_back(Fct, Succ, std::move(W));
+              if constexpr (ComputeWeights) {
+                auto W = FECache.getSummaryEdgeFunction(SE, CL, Succ, Fct);
+                Outs.emplace_back(Fct, Succ, std::move(W));
+              } else {
+                Outs.emplace_back(Fct, Succ, weight_type{});
+              }
             }
           }
         }
@@ -76,8 +101,12 @@ public:
         auto Facts =
             FECache.getNormalFlowFunction(SE, Succ)->computeTargets(CL);
         for (auto &Fct : Facts) {
-          auto W = FECache.getNormalEdgeFunction(SE, CL, Succ, Fct);
-          Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+          if constexpr (ComputeWeights) {
+            auto W = FECache.getNormalEdgeFunction(SE, CL, Succ, Fct);
+            Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+          } else {
+            Outs.emplace_back(std::move(Fct), Succ, weight_type{});
+          }
         }
       }
     }
@@ -109,7 +138,13 @@ public:
       auto Facts = FECache.getCallFlowFunction(SE, DestFun)->computeTargets(CL);
       auto EntrySEs = ICF->getStartPointsOf(DestFun);
       for (auto &&Fct : Facts) {
-        auto W = FECache.getCallEdgeFunction(SE, CL, DestFun, Fct);
+        auto W = [&] {
+          if constexpr (ComputeWeights) {
+            return FECache.getCallEdgeFunction(SE, CL, DestFun, Fct);
+          } else {
+            return weight_type{};
+          }
+        }();
         for (const auto &EntrySE : EntrySEs) {
           for (const auto &Succ : RetSites) {
             Outs.emplace_back(Fct, Succ, EntrySE, W);
@@ -151,9 +186,13 @@ public:
       auto Facts = FECache.getRetFlowFunction(CS, DestFun, ExitSE, RetSiteSE)
                        ->computeTargets(CL);
       for (auto &Fct : Facts) {
-        auto W = FECache.getReturnEdgeFunction(CS, DestFun, ExitSE, CL,
-                                               RetSiteSE, Fct);
-        Outs.emplace_back(std::move(Fct), std::move(W));
+        if constexpr (ComputeWeights) {
+          auto W = FECache.getReturnEdgeFunction(CS, DestFun, ExitSE, CL,
+                                                 RetSiteSE, Fct);
+          Outs.emplace_back(std::move(Fct), std::move(W));
+        } else {
+          Outs.emplace_back(std::move(Fct), weight_type{});
+        }
       }
     }
 
@@ -167,19 +206,24 @@ public:
 
     for (const auto &[Inst, Facts] : Problem->initialSeeds().getSeeds()) {
       for (const auto &[Fact, Val] : Facts) {
-        if (Val == Problem->topElement()) {
-          continue;
-        }
-        if (Val == Problem->bottomElement()) {
-          if constexpr (HasJoinLatticeTraits<l_t>) {
-            Outs.emplace_back(Fact, Inst, AllBottom<l_t>{});
+        if constexpr (ComputeWeights) {
+          using l_t = typename ProblemT::l_t;
+          if (Val == Problem->topElement()) {
+            continue;
+          }
+          if (Val == Problem->bottomElement()) {
+            if constexpr (HasJoinLatticeTraits<l_t>) {
+              Outs.emplace_back(Fact, Inst, AllBottom<l_t>{});
+            } else {
+              Outs.emplace_back(Fact, Inst, AllBottom<l_t>{Val});
+            }
           } else {
-            Outs.emplace_back(Fact, Inst, AllBottom<l_t>{Val});
+            Outs.emplace_back(
+                Fact, Inst,
+                ConstantEdgeFunction<l_t>{NonTopBotValue<l_t>::unwrap(Val)});
           }
         } else {
-          Outs.emplace_back(
-              Fact, Inst,
-              ConstantEdgeFunction<l_t>{NonTopBotValue<l_t>::unwrap(Val)});
+          Outs.emplace_back(Fact, Inst, weight_type{});
         }
       }
     }
@@ -187,7 +231,7 @@ public:
     return Outs;
   }
 
-  [[nodiscard]] constexpr auto &ideProblem() const noexcept { return *Problem; }
+  [[nodiscard]] constexpr auto &problem() const noexcept { return *Problem; }
 
 private:
   ProblemT *Problem{};
@@ -196,4 +240,11 @@ private:
   FlowEdgeFunctionCache<typename ProblemT::ProblemAnalysisDomain> FECache{
       *Problem};
 };
+
+template <typename ProblemT, typename ICFGTy>
+using IDERuleProvider = IfdsIdeRuleProvider<ProblemT, ICFGTy, true>;
+
+template <typename ProblemT, typename ICFGTy>
+using IFDSRuleProvider = IfdsIdeRuleProvider<ProblemT, ICFGTy, false>;
+
 } // namespace psr::wpds

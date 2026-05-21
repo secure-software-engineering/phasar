@@ -2,8 +2,7 @@
 #include "phasar/DataFlow/WPDS/Solver/WPDSSolver.h"
 
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h"
-#include "phasar/DataFlow/WPDS/IDERuleProvider.h"
-#include "phasar/DataFlow/WPDS/IFDSRuleProvider.h"
+#include "phasar/DataFlow/WPDS/IfdsIdeRuleProvider.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -13,6 +12,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/SemiRing.h"
+#include "phasar/Utils/Timer.h"
 
 #include "llvm/IR/IntrinsicInst.h"
 
@@ -30,24 +30,22 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("linear_constant/");
 
-  auto doWPDSAnalysis(auto &Problem, auto &ICFG) {
-    wpds::IDERuleProvider LCARules(&Problem, &ICFG);
-    WPDSSolver NewSolver(&LCARules, &Problem);
-    auto Start = std::chrono::steady_clock::now();
-    NewSolver.solve();
-    auto End = std::chrono::steady_clock::now();
-    llvm::errs() << "WPDSSolver Elapsed:\t\t" << (End - Start).count()
-                 << "ns\n";
-    return NewSolver.consumeSolverResults();
-  }
-  auto doPDSAnalysis(auto &Problem, auto &ICFG) {
-    wpds::IFDSRuleProvider LCARules(&Problem, &ICFG);
-    WPDSSolver NewSolver(&LCARules, &BinarySemiRing::Instance);
-    auto Start = std::chrono::steady_clock::now();
-    NewSolver.solve();
-    auto End = std::chrono::steady_clock::now();
-    llvm::errs() << "PDSSolver Elapsed:\t\t" << (End - Start).count() << "ns\n";
-    return NewSolver.consumeSolverResults();
+  template <bool DoIDEAnalysis>
+  auto doWPDSAnalysis(auto &Problem, auto &ICFG,
+                      std::bool_constant<DoIDEAnalysis> ComputeWeights) {
+    wpds::IfdsIdeRuleProvider LCARules(&Problem, &ICFG, ComputeWeights);
+    Timer Tm([](auto Elapsed) {
+      llvm::errs() << "WPDSSolver Elapsed:\t\t" << Elapsed.count() << "ns\n";
+    });
+    if constexpr (DoIDEAnalysis) {
+      WPDSSolver NewSolver(&LCARules, &Problem);
+      NewSolver.solve();
+      return NewSolver.consumeSolverResults();
+    } else {
+      WPDSSolver NewSolver(&LCARules, &BinarySemiRing::Instance);
+      NewSolver.solve();
+      return NewSolver.consumeSolverResults();
+    }
   }
 
   template <bool DoIDEAnalysis = true>
@@ -68,13 +66,8 @@ protected:
     llvm::errs() << "IterativeIDESolver Elapsed:\t" << BaselineTime.count()
                  << "ns\n";
 
-    auto NewResults = [&] {
-      if constexpr (DoIDEAnalysis) {
-        return doWPDSAnalysis(Problem, ICFG);
-      } else {
-        return doPDSAnalysis(Problem, ICFG);
-      }
-    }();
+    auto NewResults =
+        doWPDSAnalysis(Problem, ICFG, std::bool_constant<DoIDEAnalysis>{});
 
     if (PrintDump) {
       BaselineSolver.dumpResults();
