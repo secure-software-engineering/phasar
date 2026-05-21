@@ -44,6 +44,9 @@ template <typename L> struct EdgeIdentity final {
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, EdgeIdentity) {
     return OS << "EdgeIdentity";
   }
+
+  friend constexpr bool operator==(EdgeIdentity,
+                                   EdgeIdentity) noexcept = default;
 };
 
 template <typename L> struct ConstantEdgeFunction {

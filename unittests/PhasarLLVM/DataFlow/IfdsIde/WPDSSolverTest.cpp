@@ -3,6 +3,7 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IterativeIDESolver.h"
 #include "phasar/DataFlow/WPDS/IDERuleProvider.h"
+#include "phasar/DataFlow/WPDS/IFDSRuleProvider.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
@@ -11,6 +12,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/SemiRing.h"
 
 #include "llvm/IR/IntrinsicInst.h"
 
@@ -18,6 +20,7 @@
 #include "gtest/gtest.h"
 
 #include <chrono>
+#include <type_traits>
 
 using namespace psr;
 
@@ -27,6 +30,27 @@ protected:
   static constexpr auto PathToLlFiles =
       PHASAR_BUILD_SUBFOLDER("linear_constant/");
 
+  auto doWPDSAnalysis(auto &Problem, auto &ICFG) {
+    wpds::IDERuleProvider LCARules(&Problem, &ICFG);
+    WPDSSolver NewSolver(&LCARules, &Problem);
+    auto Start = std::chrono::steady_clock::now();
+    NewSolver.solve();
+    auto End = std::chrono::steady_clock::now();
+    llvm::errs() << "WPDSSolver Elapsed:\t\t" << (End - Start).count()
+                 << "ns\n";
+    return NewSolver.consumeSolverResults();
+  }
+  auto doPDSAnalysis(auto &Problem, auto &ICFG) {
+    wpds::IFDSRuleProvider LCARules(&Problem, &ICFG);
+    WPDSSolver NewSolver(&LCARules, &BinarySemiRing::Instance);
+    auto Start = std::chrono::steady_clock::now();
+    NewSolver.solve();
+    auto End = std::chrono::steady_clock::now();
+    llvm::errs() << "PDSSolver Elapsed:\t\t" << (End - Start).count() << "ns\n";
+    return NewSolver.consumeSolverResults();
+  }
+
+  template <bool DoIDEAnalysis = true>
   void doAnalysis(const llvm::Twine &LlvmFilePath, bool PrintDump = false) {
     LLVMProjectIRDB IRDB(PathToLlFiles + LlvmFilePath);
     DIBasedTypeHierarchy TH(IRDB);
@@ -44,40 +68,41 @@ protected:
     llvm::errs() << "IterativeIDESolver Elapsed:\t" << BaselineTime.count()
                  << "ns\n";
 
-    wpds::IDERuleProvider LCARules(&Problem, &ICFG);
-    WPDSSolver NewSolver(&LCARules, &Problem);
-    Start = std::chrono::steady_clock::now();
-    NewSolver.solve();
-    End = std::chrono::steady_clock::now();
-
-    auto WPDSTime = End - Start;
-    llvm::errs() << "WPDSSolver Elapsed:\t\t" << WPDSTime.count() << "ns\n";
+    auto NewResults = [&] {
+      if constexpr (DoIDEAnalysis) {
+        return doWPDSAnalysis(Problem, ICFG);
+      } else {
+        return doPDSAnalysis(Problem, ICFG);
+      }
+    }();
 
     if (PrintDump) {
       BaselineSolver.dumpResults();
-      NewSolver.getSolverResults().dumpResults();
+      NewResults.dumpResults();
     }
 
-    checkEquality(BaselineSolver.getSolverResults(),
-                  NewSolver.getSolverResults(), Problem);
+    checkEquality(BaselineSolver.getSolverResults(), NewResults, Problem,
+                  std::bool_constant<DoIDEAnalysis>{});
   }
 
-  template <typename SR1, typename SR2, typename ProblemT>
-  void checkEquality(const SR1 &LHS, const SR2 &RHS, ProblemT &Problem) {
+  template <typename SR1, typename SR2, typename ProblemT, bool CompareValues>
+  void checkEquality(const SR1 &LHS, const SR2 &RHS, ProblemT &Problem,
+                     std::bool_constant<CompareValues>) {
     for (const auto &[Row, ColVal] : LHS.getAllResultEntries()) {
       for (const auto &[Col, Val] : ColVal) {
         bool Holds = RHS.isInResultSet(Col, Row);
         EXPECT_TRUE(Holds) << "The RHS does not contain fact "
                            << llvmIRToString(Col) << " at inst "
                            << llvmIRToString(Row);
+        if constexpr (CompareValues) {
+          auto RHSWeight = RHS.computeWeightAt(Col, Row, Problem);
+          auto RHSVal = RHSWeight.computeTarget(Bottom{});
 
-        auto RHSWeight = RHS.computeWeightAt(Col, Row, Problem);
-        auto RHSVal = RHSWeight.computeTarget(Bottom{});
-
-        EXPECT_TRUE(Val == RHSVal)
-            << "The edge values at inst " << llvmIRToString(Row) << " and fact "
-            << llvmIRToString(Col) << " do not match: " << Val << " vs "
-            << RHSVal;
+          EXPECT_TRUE(Val == RHSVal)
+              << "The edge values at inst " << llvmIRToString(Row)
+              << " and fact " << llvmIRToString(Col) << " do not match: " << Val
+              << " vs " << RHSVal;
+        }
       }
     }
     for (const auto &[ColVal, Row] : RHS.getAllIFDSResultEntries()) {
@@ -95,6 +120,7 @@ protected:
 
 // Using IDESolverConfig
 TEST_P(WPDSSolverTest, IDESolverTestLCA) { doAnalysis(GetParam()); }
+TEST_P(WPDSSolverTest, IFDSSolverTestLCA) { doAnalysis<false>(GetParam()); }
 
 static constexpr std::string_view LCATestFiles[] = {
     "basic_01_cpp_dbg.ll",

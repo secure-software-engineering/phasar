@@ -12,8 +12,8 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/WPDS/RuleProvider.h"
+#include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
-#include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
@@ -21,19 +21,19 @@
 #include "llvm/ADT/SmallVector.h"
 
 namespace psr::wpds {
-template <typename ProblemT, typename ICFGTy> class IDERuleProvider {
-  using l_t = typename ProblemT::l_t;
+template <typename ProblemT, typename ICFGTy> class IFDSRuleProvider {
+  using l_t = BinaryDomain;
 
 public:
   using control_location_type = typename ProblemT::d_t;
   using stack_element_type = typename ProblemT::n_t;
-  using weight_type = typename ProblemT::EdgeFunctionType;
+  using weight_type = EdgeIdentity<l_t>;
 
   static constexpr llvm::StringLiteral LogCategory = "IDERuleProvider";
 
-  IDERuleProvider(ProblemT *Problem, const ICFGTy *ICF) noexcept
+  IFDSRuleProvider(ProblemT *Problem, const ICFGTy *ICF) noexcept
       : Problem(&assertNotNull(Problem)), ICF(&assertNotNull(ICF)) {
-    static_assert(RuleProvider<IDERuleProvider>);
+    static_assert(RuleProvider<IFDSRuleProvider>);
   }
 
   [[nodiscard]] auto getNormalRules(ByConstRef<control_location_type> CL,
@@ -54,8 +54,7 @@ public:
         auto Facts = FECache.getCallToRetFlowFunction(SE, Succ, Callees)
                          ->computeTargets(CL);
         for (auto &Fct : Facts) {
-          auto W = FECache.getCallToRetEdgeFunction(SE, CL, Succ, Fct, Callees);
-          Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+          Outs.emplace_back(std::move(Fct), Succ, weight_type{});
         }
       }
 
@@ -64,8 +63,7 @@ public:
           auto Facts = SumFF->computeTargets(CL);
           for (const auto &Succ : RetSites) {
             for (auto &Fct : Facts) {
-              auto W = FECache.getSummaryEdgeFunction(SE, CL, Succ, Fct);
-              Outs.emplace_back(Fct, Succ, std::move(W));
+              Outs.emplace_back(Fct, Succ, weight_type{});
             }
           }
         }
@@ -76,8 +74,7 @@ public:
         auto Facts =
             FECache.getNormalFlowFunction(SE, Succ)->computeTargets(CL);
         for (auto &Fct : Facts) {
-          auto W = FECache.getNormalEdgeFunction(SE, CL, Succ, Fct);
-          Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+          Outs.emplace_back(std::move(Fct), Succ, weight_type{});
         }
       }
     }
@@ -108,11 +105,10 @@ public:
 
       auto Facts = FECache.getCallFlowFunction(SE, DestFun)->computeTargets(CL);
       auto EntrySEs = ICF->getStartPointsOf(DestFun);
-      for (auto &&Fct : Facts) {
-        auto W = FECache.getCallEdgeFunction(SE, CL, DestFun, Fct);
-        for (const auto &EntrySE : EntrySEs) {
-          for (const auto &Succ : RetSites) {
-            Outs.emplace_back(Fct, Succ, EntrySE, W);
+      for (const auto &EntrySE : EntrySEs) {
+        for (const auto &Succ : RetSites) {
+          for (auto &&Fct : Facts) {
+            Outs.emplace_back(Fct, Succ, EntrySE, weight_type{});
           }
         }
       }
@@ -151,9 +147,7 @@ public:
       auto Facts = FECache.getRetFlowFunction(CS, DestFun, ExitSE, RetSiteSE)
                        ->computeTargets(CL);
       for (auto &Fct : Facts) {
-        auto W = FECache.getReturnEdgeFunction(CS, DestFun, ExitSE, CL,
-                                               RetSiteSE, Fct);
-        Outs.emplace_back(std::move(Fct), std::move(W));
+        Outs.emplace_back(std::move(Fct), weight_type{});
       }
     }
 
@@ -166,28 +160,17 @@ public:
         Outs;
 
     for (const auto &[Inst, Facts] : Problem->initialSeeds().getSeeds()) {
-      for (const auto &[Fact, Val] : Facts) {
-        if (Val == Problem->topElement()) {
-          continue;
-        }
-        if (Val == Problem->bottomElement()) {
-          if constexpr (HasJoinLatticeTraits<l_t>) {
-            Outs.emplace_back(Fact, Inst, AllBottom<l_t>{});
-          } else {
-            Outs.emplace_back(Fact, Inst, AllBottom<l_t>{Val});
-          }
-        } else {
-          Outs.emplace_back(
-              Fact, Inst,
-              ConstantEdgeFunction<l_t>{NonTopBotValue<l_t>::unwrap(Val)});
-        }
+      for (const auto &[Fact, _] : Facts) {
+        Outs.emplace_back(Fact, Inst, weight_type{});
       }
     }
 
     return Outs;
   }
 
-  [[nodiscard]] constexpr auto &ideProblem() const noexcept { return *Problem; }
+  [[nodiscard]] constexpr auto &ifdsProblem() const noexcept {
+    return *Problem;
+  }
 
 private:
   ProblemT *Problem{};
