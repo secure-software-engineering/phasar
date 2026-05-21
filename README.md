@@ -19,6 +19,7 @@ You can find available literature on PhASAR [here](https://github.com/secure-sof
 - **IFDS/IDE solver**: Interprocedural data-flow analysis based on the IFDS/IDE algorithm
 - **Sparse analysis**: SparseIFDS/SparseIDE for improved performance
 - **Call-graph construction**: Several algorithms (CHA, RTA, VTA, alias-based)
+- **Type-hierarchy construction**: Extract high-level C*+ type information from LLVM IR
 - **Points-to/alias infrastructure**: High-performance alias analyses for LLVM IR. Integration with state-of-the-art alias/points-to information from SVF possible
 - **Interprocedural CFG (ICFG)**: Connecting control-flow with call-graph information
 - **Path-tracking**: Improve results-reporting by reconstruct concrete data-flow paths from IFDS/IDE results
@@ -61,12 +62,39 @@ Please refer to [BUILD.md](./BUILD.md) for instructions on how to build PhASAR.
 
 ## How to use PhASAR?
 
-We recommend using PhASAR as a library with `cmake` or `conan`.
+The following example shows how to use PhASAR's core concepts of IFDS/IDE analysis, alias analysis, type-hierarchy, call-graph, and taint analysis:
 
-If you already have PhASAR installed, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
+```cpp
+#include "phasar.h"
 
-Otherwise, we recommend adding PhASAR as a git submodule to your repository.
-In this case, just `add_subdirectory` the phasar submodule directory within your `CMakeLists.txt`.
+// Load the target LLVM IR
+auto IRDB = psr::LLVMProjectIRDB::loadOrExit("target.ll");
+
+// Build alias information, a type-hierarchy, and a taint configuration
+// (sources/sinks can come from IR annotations, a JSON file, or callbacks)
+psr::LLVMAliasSet AS(&IRDB);
+psr::DIBasedTypeHierarchy TH(IRDB);
+psr::LLVMTaintConfig TC(IRDB);
+
+// Build the interprocedural CFG using VTA call-graph construction
+psr::LLVMBasedICFG ICFG(&IRDB, psr::CallGraphAnalysisType::VTA,
+                         {"main"}, &TH, &AS);
+
+// Instantiate and solve the taint analysis
+psr::IFDSTaintAnalysis Problem(&IRDB, &AS, &TC, {"main"});
+psr::solveIFDSProblem(Problem, ICFG);
+
+// Inspect detected leaks
+for (const auto &[Inst, Facts] : Problem.Leaks) {
+  llvm::outs() << "Leak at: " << psr::llvmIRToString(Inst) << '\n';
+}
+```
+
+For more examples, including how to write a custom analysis, see [examples/how-to/](./examples/how-to/).
+
+### Integrating PhASAR into your build
+
+We recommend using PhASAR as a library with `cmake`, using `FetchContent` or as git submodule.
 
 Assuming you have checked out phasar in `external/phasar`, the phasar-related cmake commands may look like this:
 
@@ -83,7 +111,10 @@ target_link_libraries(yourphasartool
 
 Depending on your use of PhASAR you also may need to add LLVM to your build.
 
+
 For more information please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
+
+If you have PhASAR *installed*, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
 
 ### Using PhASAR with Conan v2
 
