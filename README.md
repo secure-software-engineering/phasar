@@ -8,53 +8,52 @@
 
 ## What is PhASAR?
 
-PhASAR is a LLVM-based static analysis framework written in C++. It allows users
-to specify arbitrary data-flow problems which are then solved in a
-fully-automated manner on the specified LLVM IR target code. Computing points-to
-information, call-graph(s), etc. is done by the framework, thus you can focus on
-what matters.
+PhASAR is a LLVM-based static analysis framework written in C++.
+It allows users to specify arbitrary data-flow problems which are then solved in a fully-automated manner on the specified LLVM IR target code.
+Computing points-to information, call-graph(s), etc. is done by the framework, thus you can focus on what matters.
 
 You can find available literature on PhASAR [here](https://github.com/secure-software-engineering/phasar/wiki/Useful-Literature#papers-on-phasar).
+
+### Key Features
+
+- **IFDS/IDE solver**: Interprocedural data-flow analysis based on the IFDS/IDE algorithm
+- **Sparse analysis**: SparseIFDS/SparseIDE for improved performance
+- **Call-graph construction**: Several algorithms (CHA, RTA, VTA, alias-based)
+- **Points-to/alias infrastructure**: High-performance alias analyses for LLVM IR. Integration with state-of-the-art alias/points-to information from SVF possible
+- **Interprocedural CFG (ICFG)**: Connecting control-flow with call-graph information
+- **Path-tracking**: Improve results-reporting by reconstruct concrete data-flow paths from IFDS/IDE results
+- **Monotone solver**: Simple intra-procedural analysis engine, based on Monotone Frameworks
+- **Taint analysis**: Infrastructure for taint-configuration & IFDS/IDE-based taint analysis
+- **Modern C++20 API**: Easy-to use interfaces, also for non C++ experts
 
 ### How do I get started with PhASAR?
 
 We have some documentation on PhASAR in our [***Wiki***](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read
 this README first.
-<!-- and then have a look on the material provided on <https://phasar.org/>
-as well. -->
-Please also have a look on PhASAR's project directory and notice the project directory [examples](./examples/) as well as the custom tool `tools/example-tool/myphasartool.cpp`.
+
+Please also have a look at PhASAR's project directory, in particular the
+[examples](./examples/) directory and the custom tool
+`tools/example-tool/myphasartool.cpp`.
 
 You can find PhASAR's API reference [here](https://secure-software-engineering.github.io/phasar/).
 
+## Requirements
 
-## Secure Software Engineering Group
+### C++ Standard
 
-PhASAR is primarily developed and maintained by the Secure Software Engineering Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
-
-PhASAR was initially developed by Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>).
-
-Currently, PhASAR is maintained by
-- Fabian Schiebel (@fabianbs96)(<fabian.schiebel@uni-paderborn.de>)
-- Sriteja Kummita (@sritejakv)
-- Lucas Briese (@jusito)
-- Martin Mory (@MMory)(<martin.mory@upb.de>)
-- *others*
-
-## Required Version of the C++ Standard
-
-**NEW**: PhASAR requires at least C++-20.
+PhASAR requires at least C++20.
 
 PhASAR supports C++20 modules as an experimental feature.
 
-## Currently Supported Version of LLVM
+### LLVM Version
 
-**NEW**: PhASAR is currently set up to support LLVM versions **between LLVM-16 and LLVM-22.1**, using LLVM 16 by default. We actively test PHASAR with LLVM-16 and LLVM-22.1, so if something does not work, try these versions instead.<br>
-Specify the `PHASAR_LLVM_VERSION` cmake-variable to change the LLVM version to use.
-
+PhASAR supports LLVM versions **between LLVM-16 and LLVM-22.1**, using LLVM-16 by default.
+We actively test PhASAR with LLVM-16 and LLVM-22.1, so if something does not work, try these versions instead.
+Specify the `PHASAR_LLVM_VERSION` cmake variable to change the LLVM version to use.
 
 ## Breaking Changes
 
-To keep PhASAR in a state that it is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.
+To keep PhASAR in a state that is well suited for state-of-the-art research in static analysis, as well as for productive use, we have to make breaking changes. Please refer to [Breaking Changes](./BreakingChanges.md) for detailed information on what was broken recently and how to migrate.
 
 ## Building PhASAR
 
@@ -62,9 +61,9 @@ Please refer to [BUILD.md](./BUILD.md) for instructions on how to build PhASAR.
 
 ## How to use PhASAR?
 
-We recomment using phasar as a library with `cmake` or `conan`.
+We recommend using PhASAR as a library with `cmake` or `conan`.
 
-If you already have installed phasar, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
+If you already have PhASAR installed, [Use-PhASAR-as-a-library](https://github.com/secure-software-engineering/phasar/wiki/Using-Phasar-as-a-Library) may be a good start.
 
 Otherwise, we recommend adding PhASAR as a git submodule to your repository.
 In this case, just `add_subdirectory` the phasar submodule directory within your `CMakeLists.txt`.
@@ -86,39 +85,39 @@ Depending on your use of PhASAR you also may need to add LLVM to your build.
 
 For more information please consult our [PhASAR wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
 
-## How to use with Conan v2 ?
+### Using PhASAR with Conan v2
 
-To export the recipe and dependencies execute from repo root:
+To export the recipe and dependencies, execute from the repo root:
+
 - `conan export utils/conan/llvm-core/ --version 15.0.7 --user secure-software-engineering`
 - `conan export utils/conan/clang/ --version 15.0.7 --user secure-software-engineering`
 - `conan export .`
-- View exported `conan list "phasar/*"`
+- View exported: `conan list "phasar/*"`
 - [Consume the package](https://docs.conan.io/2/tutorial/consuming_packages.html)
 
 If you just want to use phasar-cli:
+
 - `conan install --tool-requires phasar/... --build=missing -of .`
 - `source conanbuild.sh`
 - `phasar-cli --help`
 
-## Please help us to improve PhASAR
+## Contributing
 
-You are using PhASAR and would like to help us in the future? Then please
-support us by filling out this [web form](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
+You are very welcome to contribute to the PhASAR project.
+Just raise an issue or a pull request on GitHub.
 
-By giving us feedback you help to decide in what direction PhASAR should stride in
-the future and give us clues about our user base. Thank you very much!
+For details see [Contributing to PhASAR](https://github.com/secure-software-engineering/phasar/wiki/Contributing-to-PhASAR) and [Coding Conventions](https://github.com/secure-software-engineering/phasar/wiki/Coding-Conventions).
 
-### Installing PhASAR's Git pre-commit hook
+## Secure Software Engineering Group
 
-You are very much welcome to contribute to the PhASAR project.
-Please make sure that you install our pre-commit hook that ensures your commit adheres to the most important coding rules of the PhASAR project.
-For more details please consult [Coding Conventions](https://github.com/secure-software-engineering/phasar/wiki/Coding-Conventions) and [Contributing to PhASAR](https://github.com/secure-software-engineering/phasar/wiki/Contributing-to-PhASAR).
+PhASAR is primarily developed and maintained by the Secure Software Engineering Group at Heinz Nixdorf Institute (University of Paderborn) and Fraunhofer IEM.
 
-To install the pre-commit hook, please run the following commands in PhASAR's root directory:
+PhASAR was initially developed by Philipp Dominik Schubert (@pdschubert)(<philipp.schubert@upb.de>).
 
-```bash
-pip install pre-commit
-pre-commit install
-```
+Currently, PhASAR is maintained by
 
-Thanks. And have fun with the project.
+- Fabian Schiebel (@fabianbs96)(<fabian.schiebel@uni-paderborn.de>)
+- Sriteja Kummita (@sritejakv)
+- Lucas Briese (@jusito)
+- Martin Mory (@MMory)(<martin.mory@upb.de>)
+- *others*
