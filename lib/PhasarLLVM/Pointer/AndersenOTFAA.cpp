@@ -269,12 +269,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
     if (!llvm::isa<llvm::ConstantExpr>(V)) {
       const ValueId VId = getOrInsertVar(PAGVariable(V));
-      // A function used as a value (e.g. stored into a function-pointer
-      // variable) is an addressable abstract object: pts(F) = {F}.
-      // Without this, pts(fp_alloca) never gains F and OTF call resolution
-      // silently produces no callees.
       if (llvm::isa<llvm::Function>(V)) {
+        // Function address is its own abstract object: pts(F) = {F}.
         addPointee(VId, VId);
+      } else if (const auto *GVar = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+        // Global variable used as a pointer: ensure its object exists so
+        // pts(var_G) = {obj_G} (e.g. `return &x` where x is a global).
+        const ValueId OId = getOrInsertObj(PAGVariable(GVar));
+        addPointee(VId, OId);
       }
       std::invoke(Handler, VId);
       return;
@@ -294,6 +296,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           const ValueId GId = getOrInsertVar(PAGVariable(GObj));
           if (llvm::isa<llvm::Function>(GObj)) {
             addPointee(GId, GId);
+          } else if (const auto *GVar =
+                         llvm::dyn_cast<llvm::GlobalVariable>(GObj)) {
+            const ValueId OId = getOrInsertObj(PAGVariable(GVar));
+            addPointee(GId, OId);
           }
           std::invoke(Handler, GId);
           continue;
@@ -481,10 +487,19 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!G.hasInitializer()) {
         continue;
       }
-      for (ValueId SrcId :
-           GCache.getOrCreate(G.getInitializer(), [&](const llvm::Value *V) {
-             return getOrInsertVar(PAGVariable(V));
-           })) {
+      for (ValueId SrcId : GCache.getOrCreate(
+               G.getInitializer(), [&](const llvm::Value *V) {
+                 const ValueId VId = getOrInsertVar(PAGVariable(V));
+                 if (llvm::isa<llvm::Function>(V)) {
+                   // Function address is its own abstract object (self-pointing).
+                   addPointee(VId, VId);
+                 } else if (const auto *GV =
+                                llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+                   const ValueId OId = getOrInsertObj(PAGVariable(GV));
+                   addPointee(VId, OId);
+                 }
+                 return VId;
+               })) {
         addStore(VarId, SrcId);
       }
     }

@@ -838,6 +838,60 @@ TEST(AndersenOTFAATest, TwoArgSecondRetFourCallSites) {
   doAnalysisAndCheckExact("context_12_0_c_dbg.ll", ExpectedResults);
 }
 
+TEST(AndersenOTFAATest, VTableDispatch) {
+  // Virtual call via A* in call_get must resolve through the vtable.
+  // A::get() returns @x, so call_get's return must alias @x.
+  const TSL CallGetRet =
+      TSL(RetVal{.InFunction = "_ZL8call_getP1A"});
+  const TSL X = TSL(GlobalVar{.Name = "x"});
+  const GTMap ExpectedResults = {
+      {CallGetRet, {CallGetRet, X}},
+      {X, {X, CallGetRet}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_vtable_cpp_dbg.ll", ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, GlobalPtrInitializer) {
+  // @p = global ptr @x; loading from @p must alias @x (Bug 2 soundness).
+  const TSL LoadQ =
+      TSL(LineColFunOp{.Line = 7,
+                       .Col = 12,
+                       .InFunction = "main",
+                       .OpCode = llvm::Instruction::Load});
+  const TSL X = TSL(GlobalVar{.Name = "x"});
+  const GTMap ExpectedResults = {
+      {LoadQ, {LoadQ, X}},
+      {X, {X, LoadQ}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_global_init_c_dbg.ll",
+                          ExpectedResults);
+}
+
+TEST(AndersenOTFAATest, MergeLoadConstraint) {
+  // h->f->h cycle; h returns *p.
+  // ret(h) must alias x and y after h(&px) and h(&py) (Bug 1 soundness).
+  const TSL RetH = TSL(RetVal{.InFunction = "h"});
+  const TSL VarX = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 17,
+                            .Col = 8,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Store}});
+  const TSL VarY = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 18,
+                            .Col = 8,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Store}});
+  const GTMap ExpectedResults = {
+      {RetH, {RetH, VarX, VarY}},
+      {VarX, {RetH, VarX}},
+      {VarY, {RetH, VarY}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_merge_load_c_dbg.ll",
+                          ExpectedResults);
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {

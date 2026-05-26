@@ -1,6 +1,9 @@
 set(lca_files
   andersen_otf_interproc.c
   andersen_otf_fp.c
+  andersen_otf_global_init.c
+  andersen_otf_merge_load.c
+  andersen_otf_vtable.cpp
   basic_01.c
   basic_02.c
   basic_03.c
