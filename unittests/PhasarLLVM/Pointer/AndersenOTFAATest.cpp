@@ -892,6 +892,22 @@ TEST(AndersenOTFAATest, MergeLoadConstraint) {
                           ExpectedResults);
 }
 
+TEST(AndersenOTFAATest, VTableDispatchPrecision) {
+  // B has two virtual methods: getX (slot 0) returns @x, getY (slot 1)
+  // returns @y. Per-slot dispatch must keep the two return values separate.
+  const TSL RetGetX = TSL(RetVal{.InFunction = "_ZL9call_getXP1B"});
+  const TSL RetGetY = TSL(RetVal{.InFunction = "_ZL9call_getYP1B"});
+  const TSL X = TSL(GlobalVar{.Name = "x"});
+  const TSL Y = TSL(GlobalVar{.Name = "y"});
+  const GTMap ExpectedResults = {
+      {RetGetX, {RetGetX, X}},
+      {X, {X, RetGetX}},
+      {RetGetY, {RetGetY, Y}},
+      {Y, {Y, RetGetY}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_vtable2_cpp_dbg.ll", ExpectedResults);
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {

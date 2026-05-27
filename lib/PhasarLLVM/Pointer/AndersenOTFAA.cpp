@@ -9,13 +9,17 @@
 
 #include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
 
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/UnionFind.h"
+#include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
@@ -109,6 +113,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     std::optional<ValueId> CSRetVal;
   };
 
+  struct VCallRecord {
+    const llvm::CallBase *CS;
+    ValueId VtablePtrId;
+    uint64_t VtableIndex;
+    ArgList Args;
+    std::optional<ValueId> CSRetVal;
+  };
+
   // ---- Data fields ----------------------------------------------------
 
   const LLVMProjectIRDB &IRDB;              // NOLINT
@@ -124,6 +136,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   TypedVector<ValueId, NodeInfo> Nodes;
 
   llvm::SmallVector<FPCallRecord> UnresolvedFPCalls;
+  llvm::SmallVector<VCallRecord> UnresolvedVCalls;
   llvm::DenseMap<const llvm::CallBase *, llvm::SmallDenseSet<ValueId, 4>>
       ConnectedCallees;
   llvm::SmallVector<ValueId, 64> PropWorklist;
@@ -487,19 +500,19 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       if (!G.hasInitializer()) {
         continue;
       }
-      for (ValueId SrcId : GCache.getOrCreate(
-               G.getInitializer(), [&](const llvm::Value *V) {
-                 const ValueId VId = getOrInsertVar(PAGVariable(V));
-                 if (llvm::isa<llvm::Function>(V)) {
-                   // Function address is its own abstract object (self-pointing).
-                   addPointee(VId, VId);
-                 } else if (const auto *GV =
-                                llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-                   const ValueId OId = getOrInsertObj(PAGVariable(GV));
-                   addPointee(VId, OId);
-                 }
-                 return VId;
-               })) {
+      for (ValueId SrcId :
+           GCache.getOrCreate(G.getInitializer(), [&](const llvm::Value *V) {
+             const ValueId VId = getOrInsertVar(PAGVariable(V));
+             if (llvm::isa<llvm::Function>(V)) {
+               // Function address is its own abstract object (self-pointing).
+               addPointee(VId, VId);
+             } else if (const auto *GV =
+                            llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+               const ValueId OId = getOrInsertObj(PAGVariable(GV));
+               addPointee(VId, OId);
+             }
+             return VId;
+           })) {
         addStore(VarId, SrcId);
       }
     }
@@ -676,6 +689,70 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     propagate();
   }
 
+  void resolveVtableCall(const llvm::CallBase *CS, ValueId VtablePtrId,
+                         uint64_t VtableIndex, const ArgList &Args,
+                         std::optional<ValueId> CSRetVal) {
+    if (!Nodes.inbounds(VtablePtrId)) {
+      // return;
+      llvm::report_fatal_error("Invalid Vtable Id #" +
+                               llvm::Twine(uint32_t(VtablePtrId)));
+    }
+    // Snapshot: connectCallee→propagate() may grow pts(VtablePtrId).
+    const RawAliasSet<ValueId> VPPts = Nodes[VtablePtrId].PtsSet;
+    VPPts.foreach ([&](ValueId ObjId) {
+      if (!Nodes.inbounds(ObjId)) {
+        return false;
+      }
+      for (const auto &Var : LocalVC.id2vars(ObjId)) {
+        const auto *GV = llvm::dyn_cast_or_null<llvm::GlobalVariable>(
+            Var.getBase().valueOrNull());
+        if (!GV || !GV->hasName() ||
+            !GV->getName().starts_with(DIBasedTypeHierarchy::VTablePrefix) ||
+            !GV->hasInitializer()) {
+          continue;
+        }
+        const auto *VTStruct =
+            llvm::dyn_cast<llvm::ConstantStruct>(GV->getInitializer());
+        if (!VTStruct) {
+          continue;
+        }
+        auto VFs = LLVMVFTable::getVFVectorFromIRVTable(*VTStruct);
+        if (VtableIndex >= VFs.size()) {
+          continue;
+        }
+        const auto *Callee = VFs[VtableIndex];
+        if (!Callee || !isConsistentCall(CS, Callee)) {
+          continue;
+        }
+        connectCallee(CS, Callee, Args, CSRetVal);
+      }
+      return true;
+    });
+  }
+
+  void resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
+                     const ArgList &Args, std::optional<ValueId> CSRetVal) {
+    if (!Nodes.inbounds(FPId)) {
+      llvm::report_fatal_error("Invalid FPId");
+    }
+    // Snapshot pts(FPId): connectCallee→propagate() may grow pts(FPId).
+    const RawAliasSet<ValueId> FPPts = Nodes[FPId].PtsSet;
+    FPPts.foreach ([&](ValueId ObjId) {
+      if (!Nodes.inbounds(ObjId)) {
+        // Iteration is in sorted order
+        return false;
+      }
+      for (const auto &Var : LocalVC.id2vars(ObjId)) {
+        const auto *Fun =
+            llvm::dyn_cast_or_null<llvm::Function>(Var.getBase().valueOrNull());
+        if (Fun && isConsistentCall(CS, Fun)) {
+          connectCallee(CS, Fun, Args, CSRetVal);
+        }
+      }
+      return true;
+    });
+  }
+
   void handleCall(const llvm::CallBase *C) {
     if (C->isInlineAsm() || C->isDebugOrPseudoInst()) {
       return;
@@ -711,61 +788,42 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return;
     }
 
+    // Virtual call: read the concrete vtable at the specific slot index.
+    if (auto VCallInfo = getVFTIndexAndVT(C)) {
+      auto [VtablePtr, VtableIndex] = *VCallInfo;
+      const ValueId VtablePtrId = getOrInsertVar(PAGVariable(VtablePtr));
+      resolveVtableCall(C, VtablePtrId, VtableIndex, Args, CSRetVal);
+      UnresolvedVCalls.push_back(VCallRecord{
+          .CS = C,
+          .VtablePtrId = VtablePtrId,
+          .VtableIndex = VtableIndex,
+          .Args = std::move(Args),
+          .CSRetVal = CSRetVal,
+      });
+      return;
+    }
+
     // Indirect call: connect already-known targets, record for fixpoint.
     const ValueId FPId = getOrInsertVar(PAGVariable(FnPtr));
-
-    const auto ConnectKnownTargets = [&]() {
-      if (!Nodes.inbounds(FPId)) {
-        return;
-      }
-      // Snapshot pts(FPId): connectCallee→propagate() may grow pts(FPId).
-      const RawAliasSet<ValueId> FPPts = Nodes[FPId].PtsSet;
-      FPPts.foreach ([&](ValueId ObjId) {
-        if (!Nodes.inbounds(ObjId)) {
-          // Iteration is in sorted order
-          return false;
-        }
-        for (const auto &Var : LocalVC.id2vars(ObjId)) {
-          const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
-              Var.getBase().valueOrNull());
-          if (Fun) {
-            connectCallee(C, Fun, Args, CSRetVal);
-          }
-        }
-        return true;
-      });
-    };
-
-    ConnectKnownTargets();
+    resolveFPCall(C, FPId, Args, CSRetVal);
     UnresolvedFPCalls.push_back(FPCallRecord{
         .CS = C,
         .FPId = FPId,
-        .Args = {Args.begin(), Args.end()},
+        .Args = std::move(Args),
         .CSRetVal = CSRetVal,
     });
   }
 
   void checkUnresolvedFPCalls() {
     for (const auto &Rec : UnresolvedFPCalls) {
-      if (!Nodes.inbounds(Rec.FPId)) {
-        continue;
-      }
-      // Snapshot pts(FPId): connectCallee→propagate() may grow it.
-      const RawAliasSet<ValueId> FPPts = Nodes[Rec.FPId].PtsSet;
-      FPPts.foreach ([&](ValueId ObjId) {
-        if (!Nodes.inbounds(ObjId)) {
-          // Iteration is in sorted order
-          return false;
-        }
-        for (const auto &Var : LocalVC.id2vars(ObjId)) {
-          const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
-              Var.getBase().valueOrNull());
-          if (Fun) {
-            connectCallee(Rec.CS, Fun, Rec.Args, Rec.CSRetVal);
-          }
-        }
-        return true;
-      });
+      resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
+    }
+  }
+
+  void checkUnresolvedVCalls() {
+    for (const auto &Rec : UnresolvedVCalls) {
+      resolveVtableCall(Rec.CS, Rec.VtablePtrId, Rec.VtableIndex, Rec.Args,
+                        Rec.CSRetVal);
     }
   }
 
@@ -897,6 +955,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         propagate();
       }
       checkUnresolvedFPCalls();
+      checkUnresolvedVCalls();
     } while (!FunctionWorklist.empty());
 
     return buildResult();
