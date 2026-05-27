@@ -655,16 +655,16 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   // ---- Call-graph co-refinement ---------------------------------------
 
-  void connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
+  bool connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
                      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
                      std::optional<ValueId> CSRetVal) {
     if (Callee->isDeclaration()) {
-      return;
+      return false;
     }
 
     const ValueId CalleeId = getOrInsertVar(PAGVariable(Callee));
     if (!ConnectedCallees[CS].insert(CalleeId).second) {
-      return;
+      return false;
     }
 
     if (Reachable.insert(Callee).second) {
@@ -687,9 +687,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     propagate();
+    return true;
   }
 
-  void resolveVtableCall(const llvm::CallBase *CS, ValueId VtablePtrId,
+  bool resolveVtableCall(const llvm::CallBase *CS, ValueId VtablePtrId,
                          uint64_t VtableIndex, const ArgList &Args,
                          std::optional<ValueId> CSRetVal) {
     VtablePtrId = rep(VtablePtrId);
@@ -697,6 +698,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       llvm::report_fatal_error("Invalid Vtable Id #" +
                                llvm::Twine(uint32_t(VtablePtrId)));
     }
+    bool NewEdge = false;
     // Snapshot: connectCallee→propagate() may grow pts(VtablePtrId).
     const RawAliasSet<ValueId> VPPts = Nodes[VtablePtrId].PtsSet;
     VPPts.foreach ([&](ValueId ObjId) {
@@ -724,18 +726,20 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         if (!Callee || !isConsistentCall(CS, Callee)) {
           continue;
         }
-        connectCallee(CS, Callee, Args, CSRetVal);
+        NewEdge |= connectCallee(CS, Callee, Args, CSRetVal);
       }
       return true;
     });
+    return NewEdge;
   }
 
-  void resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
+  bool resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
                      const ArgList &Args, std::optional<ValueId> CSRetVal) {
     FPId = rep(FPId);
     if (!Nodes.inbounds(FPId)) {
       llvm::report_fatal_error("Invalid FPId");
     }
+    bool NewEdge = false;
     // Snapshot pts(FPId): connectCallee→propagate() may grow pts(FPId).
     const RawAliasSet<ValueId> FPPts = Nodes[FPId].PtsSet;
     FPPts.foreach ([&](ValueId ObjId) {
@@ -747,11 +751,12 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         const auto *Fun =
             llvm::dyn_cast_or_null<llvm::Function>(Var.getBase().valueOrNull());
         if (Fun && isConsistentCall(CS, Fun)) {
-          connectCallee(CS, Fun, Args, CSRetVal);
+          NewEdge |= connectCallee(CS, Fun, Args, CSRetVal);
         }
       }
       return true;
     });
+    return NewEdge;
   }
 
   void handleCall(const llvm::CallBase *C) {
@@ -815,17 +820,21 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     });
   }
 
-  void checkUnresolvedFPCalls() {
+  bool checkUnresolvedFPCalls() {
+    bool NewEdge = false;
     for (const auto &Rec : UnresolvedFPCalls) {
-      resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
+      NewEdge |= resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
     }
+    return NewEdge;
   }
 
-  void checkUnresolvedVCalls() {
+  bool checkUnresolvedVCalls() {
+    bool NewEdge = false;
     for (const auto &Rec : UnresolvedVCalls) {
-      resolveVtableCall(Rec.CS, Rec.VtablePtrId, Rec.VtableIndex, Rec.Args,
-                        Rec.CSRetVal);
+      NewEdge |= resolveVtableCall(Rec.CS, Rec.VtablePtrId, Rec.VtableIndex,
+                                   Rec.Args, Rec.CSRetVal);
     }
+    return NewEdge;
   }
 
   // ---- Result construction --------------------------------------------
@@ -946,6 +955,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   AndersenOTFResult run() {
     initGlobals();
 
+    bool Changed{};
     do {
       while (!FunctionWorklist.empty()) {
         const auto *F = FunctionWorklist.pop_back_val();
@@ -955,9 +965,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         processFunction(F);
         propagate();
       }
-      checkUnresolvedFPCalls();
-      checkUnresolvedVCalls();
-    } while (!FunctionWorklist.empty());
+      Changed = checkUnresolvedFPCalls();
+      Changed |= checkUnresolvedVCalls();
+    } while (!FunctionWorklist.empty() || Changed);
 
     return buildResult();
   }
