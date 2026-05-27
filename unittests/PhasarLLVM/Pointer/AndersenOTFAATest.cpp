@@ -892,6 +892,25 @@ TEST(AndersenOTFAATest, MergeLoadConstraint) {
                           ExpectedResults);
 }
 
+TEST(AndersenOTFAATest, AlreadyProcessedCalleePropagation) {
+  // andersen_otf_fp_already_processed: main pushes D, A, B → LIFO processes
+  // B first (call2 deferred, pts={}), A second (call1 deferred, pts={}),
+  // D third (relay/get_x/get_y processed, g_fp1=relay, g_fp2=get_x set).
+  // checkUnresolvedFPCalls: call2 sees pts={get_x}, call1 connects already-
+  // processed relay with get_y → g_fp2 gains get_y — but call2 already ran.
+  // The outer loop must re-check so ret(B) aliases both &x and &y.
+  const TSL RetB = TSL(RetVal{.InFunction = "B"});
+  const TSL X = TSL(GlobalVar{.Name = "x"});
+  const TSL Y = TSL(GlobalVar{.Name = "y"});
+  const GTMap ExpectedResults = {
+      {RetB, {RetB, X, Y}},
+      {X, {X, RetB}},
+      {Y, {Y, RetB}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_fp_already_processed_c_dbg.ll",
+                          ExpectedResults);
+}
+
 TEST(AndersenOTFAATest, VTableDispatchPrecision) {
   // B has two virtual methods: getX (slot 0) returns @x, getY (slot 1)
   // returns @y. Per-slot dispatch must keep the two return values separate.

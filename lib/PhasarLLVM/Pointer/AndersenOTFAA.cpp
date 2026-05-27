@@ -692,8 +692,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   void resolveVtableCall(const llvm::CallBase *CS, ValueId VtablePtrId,
                          uint64_t VtableIndex, const ArgList &Args,
                          std::optional<ValueId> CSRetVal) {
+    VtablePtrId = rep(VtablePtrId);
     if (!Nodes.inbounds(VtablePtrId)) {
-      // return;
       llvm::report_fatal_error("Invalid Vtable Id #" +
                                llvm::Twine(uint32_t(VtablePtrId)));
     }
@@ -732,6 +732,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   void resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
                      const ArgList &Args, std::optional<ValueId> CSRetVal) {
+    FPId = rep(FPId);
     if (!Nodes.inbounds(FPId)) {
       llvm::report_fatal_error("Invalid FPId");
     }

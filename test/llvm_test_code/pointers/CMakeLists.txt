@@ -3,6 +3,7 @@ set(lca_files
   andersen_otf_fp.c
   andersen_otf_global_init.c
   andersen_otf_merge_load.c
+  andersen_otf_fp_already_processed.c
   andersen_otf_vtable.cpp
   andersen_otf_vtable2.cpp
   basic_01.c
