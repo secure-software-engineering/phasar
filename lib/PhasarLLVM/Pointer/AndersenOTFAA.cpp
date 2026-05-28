@@ -37,6 +37,7 @@
 
 #include <cassert>
 #include <optional>
+#include <utility>
 
 using namespace psr;
 
@@ -452,7 +453,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
       // Drain before iterating Dsts: addAssignEdge inside onNewPointee/merge()
       // may write to Nodes[U].PendingPts while we iterate.
-      RawAliasSet<ValueId> UPending = std::move(Nodes[U].PendingPts);
+      RawAliasSet<ValueId> UPending = std::exchange(Nodes[U].PendingPts, {});
 
       for (ValueId VSnap : Dsts) {
         // Re-resolve: a prior iteration's merge() may have changed the rep.
@@ -757,11 +758,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     // Build one entry per call argument: empty inner vector = non-pointer.
     ArgList Args;
     for (const auto &Arg : C->args()) {
-      llvm::SmallVector<ValueId, 2> ArgIds;
+      auto &ArgIds = Args.emplace_back();
       if (!definitelyContainsNoPointer(Arg.get())) {
         forEachOpId(Arg.get(), [&](ValueId Id) { ArgIds.push_back(Id); });
       }
-      Args.push_back(std::move(ArgIds));
     }
 
     std::optional<ValueId> CSRetVal;
