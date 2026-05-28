@@ -18,6 +18,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/LibrarySummary.h"
+#include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/UnionFind.h"
 #include "phasar/Utils/ValueCompressor.h"
 
@@ -128,6 +129,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   const llvm::DataLayout &DL;               // NOLINT
   ValueCompressor<PAGVariable> &ExternalVC; // NOLINT – caller-visible output
   ValueCompressor<AndersenVar> LocalVC{};   // internal variable+object nodes
+  Soundness SoundnessFlag;
 
   llvm::SmallVector<const llvm::Function *, 8> FunctionWorklist;
   llvm::DenseSet<const llvm::Function *> Queued; // ever pushed to worklist
@@ -140,17 +142,25 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   llvm::SmallVector<VCallRecord> UnresolvedVCalls;
   llvm::DenseMap<const llvm::CallBase *, llvm::SmallDenseSet<ValueId, 4>>
       ConnectedCallees;
+  CallGraphBuilder<const llvm::Instruction *, const llvm::Function *> CGBuilder;
   llvm::SmallVector<ValueId, 64> PropWorklist;
 
   // ---- Constructor ----------------------------------------------------
 
   SolverData(const LLVMProjectIRDB &IRDB,
              llvm::ArrayRef<const llvm::Function *> Entries,
-             ValueCompressor<PAGVariable> &VC)
-      : IRDB(IRDB), DL(IRDB.getModule()->getDataLayout()), ExternalVC(VC) {
+             ValueCompressor<PAGVariable> &VC, Soundness S)
+      : IRDB(IRDB), DL(IRDB.getModule()->getDataLayout()), ExternalVC(VC),
+        SoundnessFlag(S) {
+
+    CGBuilder.reserve(IRDB.getNumFunctions());
     for (const auto *F : Entries) {
       if (Queued.insert(F).second) {
         FunctionWorklist.push_back(F);
+
+        // entry functions may be missed in the CG, if they are never called
+        // explicitly in the code
+        std::ignore = CGBuilder.addFunctionVertex(F);
       }
     }
   }
@@ -646,10 +656,43 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   // ---- Call-graph co-refinement ---------------------------------------
 
+  // For each argument, add every function in pts(ArgId) to the worklist
+  // as an entry point.  Used when a callee is a declaration and we want to
+  // treat fn-ptr arguments as reachable callbacks (Soundy / Sound mode).
+  void addFnPtrArgsAsEntries(
+      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args) {
+    for (const auto &ArgIds : Args) {
+      for (ValueId ArgId : ArgIds) {
+        ArgId = rep(ArgId);
+        if (!Nodes.inbounds(ArgId)) {
+          continue;
+        }
+        Nodes[ArgId].PtsSet.foreach ([&](ValueId ObjId) {
+          if (!Nodes.inbounds(ObjId)) {
+            return false;
+          }
+          for (const auto &Var : LocalVC.id2vars(ObjId)) {
+            const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
+                Var.getBase().valueOrNull());
+            if (Fun && !Fun->isDeclaration() &&
+                Queued.insert(Fun).second) {
+              FunctionWorklist.push_back(Fun);
+              std::ignore = CGBuilder.addFunctionVertex(Fun);
+            }
+          }
+          return true;
+        });
+      }
+    }
+  }
+
   bool connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
                      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
                      std::optional<ValueId> CSRetVal) {
     if (Callee->isDeclaration()) {
+      if (SoundnessFlag != Soundness::Unsound) {
+        addFnPtrArgsAsEntries(Args);
+      }
       return false;
     }
 
@@ -657,6 +700,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     if (!ConnectedCallees[CS].insert(CalleeId).second) {
       return false;
     }
+    CGBuilder.addCallEdge(CS, Callee);
 
     if (Queued.insert(Callee).second) {
       FunctionWorklist.push_back(Callee);
@@ -934,6 +978,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       }
     }
 
+    Result.CG = CGBuilder.consumeCallGraph();
     return Result;
   }
 
@@ -966,11 +1011,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
 AndersenOTFSolver::AndersenOTFSolver(
     const LLVMProjectIRDB &IRDB, llvm::ArrayRef<const llvm::Function *> Entries,
-    ValueCompressor<PAGVariable> &VC) noexcept
-    : IRDB(IRDB), Entries(Entries), VC(VC) {}
+    ValueCompressor<PAGVariable> &VC, Soundness S) noexcept
+    : IRDB(IRDB), Entries(Entries), VC(VC), S(S) {}
 
 AndersenOTFResult AndersenOTFSolver::solve() {
-  SolverData Impl{*IRDB, Entries, *VC};
+  SolverData Impl{*IRDB, Entries, *VC, S};
   return Impl.run();
 }
 
@@ -979,22 +1024,24 @@ AndersenOTFResult AndersenOTFSolver::solve() {
 AndersenOTFResult
 psr::computeAndersenOTFRaw(const LLVMProjectIRDB &IRDB,
                            llvm::ArrayRef<const llvm::Function *> EntryPoints,
-                           MaybeUniquePtr<ValueCompressor<PAGVariable>> VC) {
+                           MaybeUniquePtr<ValueCompressor<PAGVariable>> VC,
+                           Soundness S) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
-  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC);
+  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S);
   return Solver.solve();
 }
 
 LLVMUnionFindAliasIterator<AndersenOTFResult>
 psr::computeAndersenOTF(const LLVMProjectIRDB &IRDB,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
-                        MaybeUniquePtr<ValueCompressor<PAGVariable>> VC) {
+                        MaybeUniquePtr<ValueCompressor<PAGVariable>> VC,
+                        Soundness S) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
-  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC);
+  AndersenOTFSolver Solver(IRDB, EntryPoints, *VC, S);
   auto Res = Solver.solve();
   return LLVMUnionFindAliasIterator{std::move(Res), std::move(VC)};
 }

@@ -927,6 +927,48 @@ TEST(AndersenOTFAATest, VTableDispatchPrecision) {
   doAnalysisAndCheckExact("andersen_otf_vtable2_cpp_dbg.ll", ExpectedResults);
 }
 
+TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
+  // andersen_otf_extern_callback: main passes @close_stdout to the
+  // declaration-only register_callback.  close_stdout calls flush_impl.
+  //
+  // Soundy: both must appear as CG vertices (entry-point promotion).
+  // Unsound: neither must appear (no processing of external callbacks).
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_extern_callback_c_dbg.ll");
+
+  const auto *CloseStdout = IRDB.getFunctionDefinition("close_stdout");
+  const auto *FlushImpl = IRDB.getFunctionDefinition("flush_impl");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(CloseStdout, nullptr);
+  ASSERT_NE(FlushImpl, nullptr);
+
+  auto HasCGVertex = [](const LLVMBasedCallGraph &Graph,
+                        const llvm::Function *Fun) {
+    return llvm::is_contained(Graph.getAllVertexFunctions(), Fun);
+  };
+
+  {
+    auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
+    auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(),
+                                     Soundness::Soundy);
+    EXPECT_TRUE(HasCGVertex(Res.CG, CloseStdout))
+        << "close_stdout must be a CG vertex at Soundy";
+    EXPECT_TRUE(HasCGVertex(Res.CG, FlushImpl))
+        << "flush_impl must be a CG vertex at Soundy";
+  }
+
+  {
+    auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
+    auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(),
+                                     Soundness::Unsound);
+    EXPECT_FALSE(HasCGVertex(Res.CG, CloseStdout))
+        << "close_stdout must not be a CG vertex at Unsound";
+    EXPECT_FALSE(HasCGVertex(Res.CG, FlushImpl))
+        << "flush_impl must not be a CG vertex at Unsound";
+  }
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {

@@ -9,12 +9,14 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
 #include "phasar/Pointer/RawAliasSet.h"
 #include "phasar/Pointer/UnionFindAA.h"
 #include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/NonNullPtr.h"
+#include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/ValueCompressor.h"
 
@@ -36,6 +38,7 @@ class LLVMProjectIRDB;
 struct AndersenOTFResult {
   TypedVector<ValueId, RawAliasSet<ValueId>> AliasSets;
   size_t NumVars{};
+  LLVMBasedCallGraph CG;
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
   [[nodiscard]] constexpr size_t size() const noexcept { return NumVars; }
@@ -73,7 +76,8 @@ class AndersenOTFSolver {
 public:
   explicit AndersenOTFSolver(const LLVMProjectIRDB &IRDB,
                              llvm::ArrayRef<const llvm::Function *> Entries,
-                             ValueCompressor<PAGVariable> &VC) noexcept;
+                             ValueCompressor<PAGVariable> &VC,
+                             Soundness S = Soundness::Soundy) noexcept;
 
   /// Run the full OTF fixpoint and return the alias-analysis result.
   [[nodiscard]] AndersenOTFResult solve();
@@ -84,6 +88,7 @@ private:
   NonNullPtr<const LLVMProjectIRDB> IRDB;
   llvm::ArrayRef<const llvm::Function *> Entries;
   NonNullPtr<ValueCompressor<PAGVariable>> VC;
+  Soundness S;
 };
 
 // ---- Factory functions ------------------------------------------------
@@ -93,13 +98,15 @@ private:
 [[nodiscard]] AndersenOTFResult computeAndersenOTFRaw(
     const LLVMProjectIRDB &IRDB,
     llvm::ArrayRef<const llvm::Function *> EntryPoints,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
+    Soundness S = Soundness::Soundy);
 
 /// Runs the Andersen OTF fixpoint and returns an \c LLVMUnionFindAliasIterator
 /// that implements \c IsLLVMAliasIterator.
 [[nodiscard]] LLVMUnionFindAliasIterator<AndersenOTFResult>
 computeAndersenOTF(const LLVMProjectIRDB &IRDB,
                    llvm::ArrayRef<const llvm::Function *> EntryPoints,
-                   MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr);
+                   MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
+                   Soundness S = Soundness::Soundy);
 
 } // namespace psr
