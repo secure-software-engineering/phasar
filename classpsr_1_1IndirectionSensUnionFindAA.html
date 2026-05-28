@@ -113,9 +113,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a452200a2181a37319986fd81d051734c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6b8e720757b50a55b0e9add2887ce50" id="r_aa6b8e720757b50a55b0e9add2887ce50"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IndirectionSensUnionFindAA.html#aa6b8e720757b50a55b0e9add2887ce50">onAddValue</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1IndirectionSensUnionFindAA.html#aee41ff9fdae7800ed94baf1b9f2b75db">v_t</a> &gt;, ValueId <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VId</a>)</td></tr>
 <tr class="separator:aa6b8e720757b50a55b0e9add2887ce50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a228df376dad29e321a5efd9e89249902" id="r_a228df376dad29e321a5efd9e89249902"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1IndirectionSensUnionFindAA.html#a228df376dad29e321a5efd9e89249902">consumeAAResults</a> (<a class="el" href="classsize__t.html">size_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NumVars</a>) &amp;&amp;</td></tr>
-<tr class="memdesc:a228df376dad29e321a5efd9e89249902"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the analysis results after buildPAG() has returned.  <br /></td></tr>
-<tr class="separator:a228df376dad29e321a5efd9e89249902"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeec1a7ff71d8b40cc27b3dbafbd703a3" id="r_aeec1a7ff71d8b40cc27b3dbafbd703a3"><td class="memTemplParams" colspan="2">template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </td></tr>
+<tr class="memitem:aeec1a7ff71d8b40cc27b3dbafbd703a3"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1IndirectionSensUnionFindAA.html#aeec1a7ff71d8b40cc27b3dbafbd703a3">consumeAAResults</a> (<a class="el" href="classsize__t.html">size_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NumVars</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FilterFn</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ShouldInclude</a>={}) &amp;&amp;</td></tr>
+<tr class="memdesc:aeec1a7ff71d8b40cc27b3dbafbd703a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the analysis results after buildPAG() has returned.  <br /></td></tr>
+<tr class="separator:aeec1a7ff71d8b40cc27b3dbafbd703a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AnalysisDomainT</a>, unsigned K = 5&gt;<br />
@@ -128,7 +129,7 @@ class psr::IndirectionSensUnionFindAA&lt; AnalysisDomainT, K &gt;</div><p>Union-
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00474">474</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00491">491</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ae5e0b019760fdcca337fe9f92dd4d77e" name="ae5e0b019760fdcca337fe9f92dd4d77e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae5e0b019760fdcca337fe9f92dd4d77e">&#9670;&#160;</a></span>db_t</h2>
@@ -144,7 +145,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00484">484</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00501">501</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -162,7 +163,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00483">483</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00500">500</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -180,7 +181,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00481">481</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00498">498</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -198,7 +199,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00482">482</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00499">499</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -225,7 +226,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00479">479</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00496">496</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -251,18 +252,20 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00478">478</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00495">495</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a228df376dad29e321a5efd9e89249902" name="a228df376dad29e321a5efd9e89249902"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a228df376dad29e321a5efd9e89249902">&#9670;&#160;</a></span>consumeAAResults()</h2>
+<a id="aeec1a7ff71d8b40cc27b3dbafbd703a3" name="aeec1a7ff71d8b40cc27b3dbafbd703a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeec1a7ff71d8b40cc27b3dbafbd703a3">&#9670;&#160;</a></span>consumeAAResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AnalysisDomainT</a> , unsigned K = 5&gt; </div>
+<div class="memtemplate">
+template&lt;std::predicate&lt; ValueId &gt; FilterFn = TrueFn&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -271,8 +274,18 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
           <td class="memname"><a class="el" href="structpsr_1_1BasicUnionFindAAResult.html">BasicUnionFindAAResult</a> <a class="el" href="classpsr_1_1IndirectionSensUnionFindAA.html">psr::IndirectionSensUnionFindAA</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">AnalysisDomainT</a>, K &gt;::consumeAAResults </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classsize__t.html">size_t</a>&#160;</td>
-          <td class="paramname"><em>NumVars</em></td><td>)</td>
-          <td> &amp;&amp;</td>
+          <td class="paramname"><em>NumVars</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">FilterFn</a>&#160;</td>
+          <td class="paramname"><em>ShouldInclude</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> &amp;&amp;</td>
         </tr>
       </table>
   </td>
@@ -284,7 +297,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p>Retrieve the analysis results after buildPAG() has returned. </p>
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00547">547</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00568">568</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -336,7 +349,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00486">486</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00503">503</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 </div>
 </div>
@@ -376,7 +389,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00533">533</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00550">550</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
 <p class="reference">References <a class="el" href="TypedVector_8h_source.html#l00087">psr::TypedVector&lt; IdT, ValueT, SmallSize &gt;::emplace_back()</a>, <a class="el" href="TypedArray_8h_source.html#l00025">psr::generate_tag</a>, and <a class="el" href="TypedVector_8h_source.html#l00059">psr::TypedVector&lt; IdT, ValueT, SmallSize &gt;::size()</a>.</p>
 
@@ -388,7 +401,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue May 19 2026 16:08:54 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu May 28 2026 18:10:01 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
