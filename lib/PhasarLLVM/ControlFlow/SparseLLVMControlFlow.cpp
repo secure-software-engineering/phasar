@@ -136,7 +136,12 @@ bool SparseLLVMControlFlow::shouldKeepInst(n_t Inst, v_t Val,
 auto psr::SparseLLVMControlFlow::advanceToNextUserImplInternal(
     n_t Succ, v_t Fact, LLVMAliasInfoRef AI) -> n_t {
   while (!shouldKeepInst(Succ, Fact, AI)) {
-    n_t NextSucc = Succ->getNextNonDebugInstruction();
+    n_t NextSucc =
+#if LLVM_VERSION_MAJOR <= 18
+        Succ->getNextNonDebugInstruction();
+#else
+        Succ->getNextNode();
+#endif
     if (!NextSucc) {
       break;
     }
