@@ -36,7 +36,7 @@ struct SVFGCache {
   std::unordered_map<std::pair<f_t, v_t>, SparseLLVMBasedCFG, FVHasher> Cache{};
   llvm::DenseMap<std::pair<n_t, v_t>, n_t> SameOrNextUserCache{};
 
-  LLVM_LIBRARY_VISIBILITY [[nodiscard]] const SparseLLVMBasedCFG &
+  [[nodiscard]] LLVM_LIBRARY_VISIBILITY const SparseLLVMBasedCFG &
   getOrCreate(const LLVMBasedCFG &CFG, const llvm::Function *Fun,
               const llvm::Value *Val, LLVMAliasInfoRef AliasAnalysis);
 
