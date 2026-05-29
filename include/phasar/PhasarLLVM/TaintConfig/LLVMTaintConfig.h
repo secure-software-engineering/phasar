@@ -96,6 +96,9 @@ private:
   void addAllFunctions(const LLVMProjectIRDB &IRDB,
                        const TaintConfigData &Config);
 
+  void addAllVariables(const LLVMProjectIRDB &IRDB,
+                       const TaintConfigData &Config);
+
   // --- data members
 
   std::unordered_set<const llvm::Value *> SourceValues;

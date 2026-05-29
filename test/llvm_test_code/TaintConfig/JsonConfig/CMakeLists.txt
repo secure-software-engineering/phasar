@@ -6,6 +6,7 @@ set(JsonTaintConfigTestSources
   basic_03.c
   basic_04.c
   data_member_01.cpp
+  data_member_02.cpp
   fun_member_01.cpp
   fun_member_02.cpp
   name_mangling_01.cpp
@@ -25,6 +26,7 @@ set(JsonTaintConfigFiles
   basic_03_config.json
   basic_04_config.json
   data_member_01_config.json
+  data_member_02_config.json
   fun_member_01_config.json
   fun_member_02_config.json
   name_mangling_01_config.json

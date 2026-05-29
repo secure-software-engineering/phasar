@@ -475,7 +475,9 @@ static void handleCall(const llvm::CallBase *Call, TypeAssignmentGraph &TAG,
   }
 
   const auto HandleCallTarget = [&](const llvm::Function *Callee) {
-    handleEntryForCall(Call, *CSNod, TAG, Callee, VTP);
+    if (CSNod) {
+      handleEntryForCall(Call, *CSNod, TAG, Callee, VTP);
+    }
 
     if (Callee->isDeclaration()) {
       // XXX: Integrate with getLibCSummary()

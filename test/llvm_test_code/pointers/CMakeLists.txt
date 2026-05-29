@@ -42,6 +42,8 @@ set(lca_files
   indirection_08.cpp
   indirection_09.cpp
   indirection_10.cpp
+  memssa_kill_01.c
+  memssa_branch_01.c
 )
 
 set(lca_files_mem2reg

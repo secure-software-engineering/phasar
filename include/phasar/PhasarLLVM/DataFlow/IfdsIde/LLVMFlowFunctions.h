@@ -99,7 +99,7 @@ auto mapFactsAlongsideCallSite(const llvm::CallBase *CallSite,
     [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
   };
 
-  return std::make_shared<Mapper>(CallSite, PropagateGlobals,
+  return std::make_unique<Mapper>(CallSite, PropagateGlobals,
                                   std::forward<Fn>(PropagateArgs),
                                   std::forward<DCtor>(FactConstructor));
 }
@@ -205,7 +205,7 @@ mapFactsToCallee(const llvm::CallBase *CallSite, const llvm::Function *DestFun,
     [[no_unique_address]] std::decay_t<DCtor> FactConstructor;
   };
 
-  return std::make_shared<Mapper>(CallSite, DestFun, PropagateGlobals,
+  return std::make_unique<Mapper>(CallSite, DestFun, PropagateGlobals,
                                   PropagateZeroToCallee,
                                   std::forward<Fn>(PropagateArgumentWithSource),
                                   std::forward<DCtor>(FactConstructor));
@@ -315,7 +315,7 @@ FlowFunctionPtrType<D, Container> mapFactsToCaller(
     [[no_unique_address]] std::decay_t<PostProcessFn> PostProcess;
   };
 
-  return std::make_shared<Mapper>(
+  return std::make_unique<Mapper>(
       CallSite, ExitInst, PropagateGlobals,
       std::forward<FnParam>(PropagateParameter),
       std::forward<FnRet>(PropagateRet), std::forward<DCtor>(FactConstructor),
@@ -364,7 +364,7 @@ strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
       [[no_unique_address]] std::decay_t<Fn> Pred;
     };
 
-    return std::make_shared<StrongUpdateFlow>(
+    return std::make_unique<StrongUpdateFlow>(
         Store->getPointerOperand(), BasePtrOp,
         std::forward<Fn>(GeneratePointerOpIf));
   }
@@ -389,7 +389,7 @@ strongUpdateStore(const llvm::StoreInst *Store, Fn &&GeneratePointerOpIf) {
     [[no_unique_address]] std::decay_t<Fn> Pred;
   };
 
-  return std::make_shared<StrongUpdateFlow>(
+  return std::make_unique<StrongUpdateFlow>(
       Store, std::forward<Fn>(GeneratePointerOpIf));
 }
 
@@ -439,7 +439,7 @@ strongUpdateStore(const llvm::StoreInst *Store) {
       const llvm::Value *BasePtrOp;
     };
 
-    return std::make_shared<StrongUpdateFlow>(Store, BasePtrOp);
+    return std::make_unique<StrongUpdateFlow>(Store, BasePtrOp);
   }
 
   struct StrongUpdateFlow
@@ -460,7 +460,7 @@ strongUpdateStore(const llvm::StoreInst *Store) {
     const llvm::StoreInst *Store;
   };
 
-  return std::make_shared<StrongUpdateFlow>(Store);
+  return std::make_unique<StrongUpdateFlow>(Store);
 }
 
 } // namespace psr

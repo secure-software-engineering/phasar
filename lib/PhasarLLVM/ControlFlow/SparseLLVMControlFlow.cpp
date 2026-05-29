@@ -7,6 +7,7 @@
 
 using namespace psr;
 
+#if LLVM_VERSION_MAJOR <= 20
 static bool isNonPointerType(const llvm::Type *Ty) {
   if (const auto *Struct = llvm::dyn_cast<llvm::StructType>(Ty)) {
     for (const auto *ElemTy : Struct->elements()) {
@@ -22,6 +23,7 @@ static bool isNonPointerType(const llvm::Type *Ty) {
   }
   return Ty->isSingleValueType();
 }
+#endif
 
 static bool isNonAddressTakenVariable(const llvm::Value *Val) {
   const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Val);
@@ -39,10 +41,20 @@ static bool isNonAddressTakenVariable(const llvm::Value *Val) {
       if (Call->paramHasAttr(ArgNo, llvm::Attribute::StructRet)) {
         continue;
       }
+#if LLVM_VERSION_MAJOR <= 20
       if (Call->paramHasAttr(ArgNo, llvm::Attribute::NoCapture) &&
           isNonPointerType(Call->getType())) {
         continue;
       }
+#else
+      auto Captures = Call->getCaptureInfo(ArgNo);
+      auto CComp = Captures.getOtherComponents() | Captures.getRetComponents();
+      if (llvm::capturesAnyProvenance(CComp) ||
+          (llvm::capturesAddress(CComp) &&
+           !llvm::capturesAddressIsNullOnly(CComp))) {
+        return false;
+      }
+#endif
       return false;
     }
   }

@@ -70,6 +70,9 @@ bool isHeapAllocatingFunction(const llvm::Function *F) noexcept;
 ///
 /// \note This function is less useful in practice than you may think. Consider
 /// using isConsistentCall() instead.
+LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
+                "isConsistentCall() instead.",
+                "psr::isConsistentCall")
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
                       bool ExactMatch = true);
 
@@ -79,6 +82,9 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType,
 ///
 /// \note This function is less useful in practice than you may think. Consider
 /// using isConsistentCall() instead.
+LLVM_DEPRECATED("With opaque pointers, this function is not very useful. Use "
+                "isConsistentCall() instead.",
+                "psr::isConsistentCall")
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2);
 
@@ -302,6 +308,12 @@ definitelyContainsNoPointer(const llvm::Type *Ty) noexcept {
 /// This check is designed to be rather lightweight and may therefore not be
 /// precise in all cases.
 [[nodiscard]] bool isAddressTakenVariable(const llvm::Value *Var) noexcept;
+
+/// Like \c isAddressTakenVariable but runs the full use-traversal for
+/// function arguments regardless of their attributes.  Use this when the
+/// caller has already established that \p Arg is allocation-site-like (e.g.,
+/// for PAG field-sensitivity of pointer parameters).
+[[nodiscard]] bool isAddressTakenArg(const llvm::Argument *Arg) noexcept;
 
 /**
  * Tests for <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>

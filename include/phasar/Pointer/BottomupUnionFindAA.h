@@ -150,7 +150,9 @@ public:
     Base.onAddValue(Var, VId);
   }
 
-  [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
+  template <std::predicate<ValueId> FilterFn = TrueFn>
+  [[nodiscard]] BasicUnionFindAAResult
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
 
     bottomupPropagation(NumVars);
 
@@ -159,7 +161,8 @@ public:
       topdownPropagation();
     }
 
-    return std::move(Base).consumeAAResults(NumVars);
+    return std::move(Base).consumeAAResults(NumVars, IdentityFn{},
+                                            std::move(ShouldInclude));
   }
 
 private:

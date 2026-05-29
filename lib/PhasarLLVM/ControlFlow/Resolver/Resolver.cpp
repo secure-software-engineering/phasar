@@ -29,6 +29,7 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
@@ -146,9 +147,58 @@ bool psr::isConsistentCall(const llvm::CallBase *CallSite,
   if (CallSite->arg_size() != DestFun->arg_size() && !DestFun->isVarArg()) {
     return false;
   }
-  if (!matchesSignature(DestFun, CallSite->getFunctionType(), false)) {
+
+  for (const auto &[Param, ArgOp] :
+       llvm::zip_first(DestFun->args(), CallSite->args())) {
+
+    const auto *ParamTy = Param.getType();
+    const auto *ArgTy = ArgOp->getType();
+
+    if (ParamTy == ArgTy) {
+      // Trivial equality
+      continue;
+    }
+
+    if (ParamTy->getTypeID() != ArgTy->getTypeID()) {
+      // Trivial non-equality, e.g. PointerType and IntegerType
+      return false;
+    }
+
+    if (ParamTy->isPointerTy()) {
+      if (Param.hasByValAttr() !=
+          CallSite->isByValArgument(ArgOp.getOperandNo())) {
+        return false;
+      }
+
+      const auto *ParamSRetTy = Param.getParamStructRetType();
+      const auto *ArgSRetTy =
+          CallSite->getParamStructRetType(ArgOp.getOperandNo());
+      if ((ParamSRetTy != nullptr) != (ArgSRetTy != nullptr)) {
+        return false;
+      }
+
+      if (ParamSRetTy && ArgSRetTy) {
+        // TODO: For better precision, compare the sret types as well
+        // Trivial non-equality, e.g. PointerType and IntegerType
+        if (ParamSRetTy->getTypeID() != ArgSRetTy->getTypeID()) {
+          // Trivial non-equality, e.g. PointerType and IntegerType
+          return false;
+        }
+      }
+    }
+
+    if (ParamTy->isStructTy()) {
+      // Copied comment from struct-case in isTypeMatchForFunctionArgument():
+      // > Well, we could do sanity checks here, but if the analysed code is
+      // > insane we would miss callees, so we don't do that.
+
+      continue;
+    }
+
+    // Types are non-equal and we could not find a reason to treat the same
     return false;
   }
+
   return true;
 }
 

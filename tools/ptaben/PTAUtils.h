@@ -61,7 +61,7 @@ checkDir(const llvm::Twine &DirName,
   size_t NumTests = 0;
 
   static constexpr auto IsLLVMIRFile = [](llvm::StringRef Path) {
-    return Path.endswith(".ll") || Path.endswith(".bc");
+    return Path.ends_with(".ll") || Path.ends_with(".bc");
   };
 
   for (; It != End && !EC; It.increment(EC)) {

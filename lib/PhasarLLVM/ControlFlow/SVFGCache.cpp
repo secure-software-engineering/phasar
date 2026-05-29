@@ -7,6 +7,7 @@
 
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ModRef.h"
 
 using namespace psr;
 
@@ -21,9 +22,11 @@ static void buildSparseCFG(const LLVMBasedCFG &CFG,
   // -- Initialization
 
   const auto *Entry = &Fun->getEntryBlock().front();
+#if LLVM_VERSION_MAJOR <= 18
   if (llvm::isa<llvm::DbgInfoIntrinsic>(Entry)) {
     Entry = Entry->getNextNonDebugInstruction();
   }
+#endif
 
   for (const auto *Succ : CFG.getSuccsOf(Entry)) {
     WL.emplace_back(Entry, Succ);

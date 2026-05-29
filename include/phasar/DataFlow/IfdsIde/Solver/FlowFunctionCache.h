@@ -123,7 +123,7 @@ template <typename ProblemTy> struct FlowFunctionCacheBase {
 
   template <typename T>
   static constexpr bool needs_cache_v =
-      std::is_same_v<std::shared_ptr<FlowFunction<d_t>>, T> ||
+      std::is_same_v<std::unique_ptr<FlowFunction<d_t>>, T> ||
       std::is_same_v<GenericFlowFunction<d_t>, T> ||
       (detail::IsFlowFunctionPtr<T, d_t> && !std::is_pointer_v<T>);
 };

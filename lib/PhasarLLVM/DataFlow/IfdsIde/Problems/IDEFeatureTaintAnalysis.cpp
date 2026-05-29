@@ -271,7 +271,7 @@ auto IDEFeatureTaintAnalysis::getCallToRetFlowFunction(
     return identityFlow();
   }
 
-  auto Mapper = mapFactsAlongsideCallSite(
+  FlowFunctionPtrType Mapper = mapFactsAlongsideCallSite(
       Call,
       [RetVal](d_t Arg) {
         if (RetVal == Arg) {

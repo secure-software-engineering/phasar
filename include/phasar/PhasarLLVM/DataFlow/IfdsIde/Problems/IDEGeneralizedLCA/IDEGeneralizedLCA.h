@@ -53,22 +53,22 @@ public:
   IDEGeneralizedLCA(const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
                     std::vector<std::string> EntryPoints, size_t MaxSetSize);
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t Curr,
-                                                           n_t Succ) override;
+  MaybeUniquePtr<FlowFunction<d_t>> getNormalFlowFunction(n_t Curr,
+                                                          n_t Succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t CallStmt,
-                                                         f_t DestMthd) override;
+  MaybeUniquePtr<FlowFunction<d_t>> getCallFlowFunction(n_t CallStmt,
+                                                        f_t DestMthd) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t CallSite,
-                                                        f_t CalleeMthd,
-                                                        n_t ExitStmt,
-                                                        n_t RetSite) override;
+  MaybeUniquePtr<FlowFunction<d_t>> getRetFlowFunction(n_t CallSite,
+                                                       f_t CalleeMthd,
+                                                       n_t ExitStmt,
+                                                       n_t RetSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  MaybeUniquePtr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
                            llvm::ArrayRef<f_t> Callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  MaybeUniquePtr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t CallStmt, f_t DestMthd) override;
 
   InitialSeeds<n_t, d_t, l_t> initialSeeds() override;

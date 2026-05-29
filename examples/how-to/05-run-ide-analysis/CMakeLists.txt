@@ -17,10 +17,10 @@ target_link_libraries(run-ide-analysis-ide-solver PRIVATE phasar::phasar)
 
 if (TARGET run_sample_programs)
   add_custom_target(run_run_ide_analysis
-    DEPENDS run-ide-analysis-simple run-ide-analysis-helper-analyses run-ide-analysis-ide-solver
-    COMMAND $<TARGET_FILE:run-ide-analysis-simple> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/call2.ll"
-    COMMAND $<TARGET_FILE:run-ide-analysis-helper-analyses> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/call2.ll"
-    COMMAND $<TARGET_FILE:run-ide-analysis-ide-solver> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/call2.ll"
+    DEPENDS run-ide-analysis-simple run-ide-analysis-helper-analyses run-ide-analysis-ide-solver LLFileGeneration
+    COMMAND $<TARGET_FILE:run-ide-analysis-simple> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/call2_cpp_dbg.ll"
+    COMMAND $<TARGET_FILE:run-ide-analysis-helper-analyses> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/call2_cpp_dbg.ll"
+    COMMAND $<TARGET_FILE:run-ide-analysis-ide-solver> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/call2_cpp_dbg.ll"
   )
 
   add_dependencies(run_sample_programs run_run_ide_analysis)

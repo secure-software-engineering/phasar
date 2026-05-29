@@ -95,7 +95,8 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
   }
   // For PointerType delegate into its element type
   if (llvm::isa<llvm::PointerType>(Actual)) {
-    // If formal argument is void *, we can pass anything.
+// If formal argument is void *, we can pass anything.
+#if LLVM_VERSION_MAJOR <= 16
     if (Actual->isOpaquePointerTy() || Formal->isOpaquePointerTy() ||
         Formal->getNonOpaquePointerElementType()->isIntegerTy(8)) {
       return true;
@@ -103,6 +104,10 @@ static bool isTypeMatchForFunctionArgument(llvm::Type *Actual,
     return isTypeMatchForFunctionArgument(
         Actual->getNonOpaquePointerElementType(),
         Formal->getNonOpaquePointerElementType());
+#endif
+    // XXX: Add better heuristics for the commented code above that are LLVM>16
+    // compatible
+    return true;
   }
   // For structs, Formal needs to be somehow contained in Actual.
   if (llvm::isa<llvm::StructType>(Actual)) {
@@ -505,16 +510,9 @@ static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
   return isAllocaInstOrHeapAllocaFunction(V);
 }
 
-bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
-  if (!Var) {
-    return false;
-  }
-  if (!isAllocationSiteOrSimilar(Var)) {
-    return true;
-  }
-
-  llvm::SmallVector<const llvm::Value *> WL = {Var};
-  llvm::SmallDenseSet<const llvm::Value *> Seen = {Var};
+static bool isAddressTakenImpl(const llvm::Value *Root) noexcept {
+  llvm::SmallVector<const llvm::Value *> WL = {Root};
+  llvm::SmallDenseSet<const llvm::Value *> Seen = {Root};
 
   while (!WL.empty()) {
     const auto *CurrVal = WL.pop_back_val();
@@ -553,6 +551,20 @@ bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
   }
 
   return false;
+}
+
+bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
+  if (!Var) {
+    return false;
+  }
+  if (!isAllocationSiteOrSimilar(Var)) {
+    return true;
+  }
+  return isAddressTakenImpl(Var);
+}
+
+bool psr::isAddressTakenArg(const llvm::Argument *Arg) noexcept {
+  return isAddressTakenImpl(Arg);
 }
 
 bool psr::isStaticVariableLazyInitializationBranch(

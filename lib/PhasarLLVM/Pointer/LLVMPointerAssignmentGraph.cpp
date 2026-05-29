@@ -7,17 +7,26 @@
 #include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/MapUtils.h"
+#include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/AssumptionCache.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/MemorySSA.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Dominators.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/TargetParser/Triple.h"
 
 #include <concepts>
-#include <functional>
+#include <memory>
 
 using namespace psr;
 using namespace psr::pag;
@@ -128,6 +137,60 @@ struct PAGMappedLibrarySummary {
   }
 };
 
+// Bundle of per-function analyses for the built-in MemorySSA provider.
+// Members are declared in initialization order: each field depends only on
+// the ones before it.  MSSA is constructed last in the body (after
+// AA.addAAResult) because MemorySSA is neither movable nor copyable.
+struct MemSSABundle {
+  llvm::AssumptionCache AC;
+  llvm::DominatorTree DT;
+  llvm::BasicAAResult BAA;
+  llvm::AAResults AA;
+  llvm::MemorySSA MSSA;
+
+  explicit MemSSABundle(llvm::Function &F, const llvm::TargetLibraryInfo *TLI)
+      : AC(F), DT(F),
+        BAA(F.getParent()->getDataLayout(), F, assertNotNull(TLI), AC, &DT),
+        AA([](const auto *TLI, auto *BAA) {
+          llvm::AAResults AA(*TLI);
+          AA.addAAResult(*BAA);
+          return AA;
+        }(TLI, &BAA)),
+        MSSA(F, &AA, &DT) {}
+};
+
+// returns HasLiveOnEntry
+static bool
+collectReachingDefs(llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
+                    llvm::SmallPtrSetImpl<const llvm::StoreInst *> &Defs,
+                    llvm::SmallPtrSetImpl<llvm::MemoryAccess *> &Visited) {
+  if (!Visited.insert(MA).second) {
+    return false;
+  }
+  if (MSSA.isLiveOnEntryDef(MA)) {
+    return true;
+  }
+  if (auto *Def = llvm::dyn_cast<llvm::MemoryDef>(MA)) {
+    // We only care about stores for now
+    if (const auto *St =
+            llvm::dyn_cast<llvm::StoreInst>(Def->getMemoryInst())) {
+      Defs.insert(St);
+      return false;
+    }
+    return true;
+  }
+  if (auto *Phi = llvm::dyn_cast<llvm::MemoryPhi>(MA)) {
+    for (const auto &Inc : Phi->incoming_values()) {
+      bool LOE = collectReachingDefs(llvm::cast<llvm::MemoryAccess>(Inc.get()),
+                                     MSSA, Defs, Visited);
+      if (LOE) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 } // namespace
 
 struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
@@ -135,7 +198,12 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
 
+  LLVMPAGBuilder::MemSSAProviderFn *MemSSAProvider = nullptr;
+  llvm::MemorySSA *CurrentMemSSA = nullptr;
+
   llvm::DenseMap<ValueId, ValueId> TheOneLoad{};
+  llvm::DenseMap<std::pair<ValueId, const llvm::Function *>, ValueId>
+      TheOneGlobalLoad{};
   BitSet<ValueId> OnlyIncomingStoresAndOutgoingLoads{};
   TypedVector<ValueId, llvm::SmallDenseMap<ValueId, Edge, 2>> IncomingStores{};
   TypedVector<ValueId, llvm::SmallDenseSet<ValueId, 2>> OutgoingLoads{};
@@ -244,6 +312,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
 
   void initializeFun(LLVMPBStrategyRef Strategy, const llvm::Function &Fun) {
+    CurrentMemSSA =
+        MemSSAProvider && *MemSSAProvider ? (*MemSSAProvider)(Fun) : nullptr;
     // XXX: RPO Order to profit from OTF-merged values
     for (const auto &BB : Fun) {
       propagateBB(Strategy, BB);
@@ -252,12 +322,15 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void addDelayedEdges(LLVMPBStrategyRef Strategy) {
     OnlyIncomingStoresAndOutgoingLoads.foreach ([this, &Strategy](auto VId) {
-      // TODO: Is this condition correct?
+      // Return slots always receive Assign/Return edges from handleReturn /
+      // handleCallTarget, which erases them from
+      // OnlyIncomingStoresAndOutgoingLoads before we get here. Only
+      // address-taken variables need the safety fallback: their stored value
+      // might be loaded via an alias that we have not seen yet.
       const bool NeedsStoreSafetyFallback =
           OutgoingLoads[VId].empty() &&
           llvm::any_of(VC.id2vars(VId), [](PAGVariable Var) {
-            return Var.isReturnVariable() ||
-                   isAddressTakenVariable(Var.valueOrNull());
+            return isAddressTakenVariable(Var.valueOrNull());
           });
 
       for (auto [IncStore, _] : IncomingStores[VId]) {
@@ -279,11 +352,19 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   void propagateBB(LLVMPBStrategyRef Strategy, const llvm::BasicBlock &BB) {
     const auto *Inst = &BB.front();
+#if LLVM_VERSION_MAJOR <= 18
     if (Inst->isDebugOrPseudoInst()) {
       Inst = Inst->getNextNonDebugInstruction();
     }
+#endif
 
-    for (; Inst; Inst = Inst->getNextNonDebugInstruction()) {
+    for (; Inst; Inst =
+#if LLVM_VERSION_MAJOR <= 18
+                     Inst->getNextNonDebugInstruction()
+#else
+                     Inst->getNextNode()
+#endif
+    ) {
       dispatch(Strategy, *Inst);
     }
   }
@@ -361,7 +442,18 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
           continue;
         }
 
-        // TODO: Handle constant GEP!
+        if (const auto *GEPOp = llvm::dyn_cast<llvm::GEPOperator>(Op)) {
+          const auto *PtrOp = GEPOp->getPointerOperand();
+          if (!definitelyContainsNoPointer(PtrOp) &&
+              Seen.insert(PtrOp).second) {
+            if (const auto *PtrUser = llvm::dyn_cast<llvm::User>(PtrOp)) {
+              WL.push_back(PtrUser);
+            } else {
+              std::invoke(Handler, PtrOp);
+            }
+          }
+          continue;
+        }
 
         if (const auto *OpUser = llvm::dyn_cast<llvm::User>(Op)) {
           WL.push_back(OpUser);
@@ -392,20 +484,57 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       return;
     }
 
+    if (CurrentMemSSA) {
+      if (auto *Access = CurrentMemSSA->getMemoryAccess(Ld)) {
+        auto *Clobber =
+            CurrentMemSSA->getWalker()->getClobberingMemoryAccess(Access);
+        llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
+        llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
+        const bool HasLiveOnEntry =
+            collectReachingDefs(Clobber, *CurrentMemSSA, Defs, Visited);
+
+        if (!HasLiveOnEntry) {
+
+          if (Defs.size() == 1) {
+            const auto *ValueOp = (*Defs.begin())->getValueOperand();
+            if (!llvm::isa<llvm::ConstantExpr>(ValueOp)) {
+              VC.addAlias(Ld, getVariable(ValueOp, Strategy));
+              return;
+            }
+          }
+
+          auto LoadObj = getVariable(Ld, Strategy);
+          for (const auto *Def : Defs) {
+            handleOperand(Def->getValueOperand(), [&](const auto *ValOp) {
+              Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj,
+                                 Assign{}, Ld);
+            });
+          }
+          return;
+        }
+      }
+    }
+
     handleOperand(Ld->getPointerOperand(), [&](const auto *PointerOp) {
       auto PointerObj = getVariable(PointerOp, Strategy);
-      if (llvm::isa<llvm::Argument, llvm::Instruction>(PointerOp)) {
-        auto [It, Inserted] = TheOneLoad.try_emplace(PointerObj, ValueId{});
 
+      const auto ReuseOrCreate = [&](auto &Map, auto Key) {
+        auto [It, Inserted] = Map.try_emplace(Key, ValueId{});
         if (!Inserted) {
           VC.addAlias(Ld, It->second);
           return;
         }
-
         auto LoadObj = getVariable(Ld, Strategy);
         It->second = LoadObj;
         addEdge(Strategy, PointerObj, LoadObj, Load{}, Ld);
-        return;
+      };
+
+      if (llvm::isa<llvm::Argument, llvm::Instruction>(PointerOp)) {
+        return ReuseOrCreate(TheOneLoad, PointerObj);
+      }
+      if (llvm::isa<llvm::GlobalValue>(PointerOp)) {
+        return ReuseOrCreate(TheOneGlobalLoad,
+                             std::pair{PointerObj, Ld->getFunction()});
       }
 
       auto LoadObj = getVariable(Ld, Strategy);
@@ -441,8 +570,12 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   }
   void handleGep(LLVMPBStrategyRef Strategy, const llvm::GEPOperator *Gep) {
     handleOperand(Gep->getPointerOperand(), [&](const auto *PointerOp) {
-      if (psr::isAllocaInstOrHeapAllocaFunction(PointerOp) &&
-          !isAddressTakenVariable(PointerOp) && Gep->hasAllConstantIndices() &&
+      const auto *Arg = llvm::dyn_cast<llvm::Argument>(PointerOp);
+      const bool IsAllocLike =
+          psr::isAllocaInstOrHeapAllocaFunction(PointerOp) || Arg != nullptr;
+      const bool IsAddressTaken =
+          Arg ? isAddressTakenArg(Arg) : isAddressTakenVariable(PointerOp);
+      if (IsAllocLike && !IsAddressTaken && Gep->hasAllConstantIndices() &&
           !Gep->hasAllZeroIndices()) {
         llvm::APInt Offset(64, 0);
         if (Gep->accumulateConstantOffset(DL, Offset)) {
@@ -546,7 +679,16 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
       }
     }
 
-    // TODO: Varargs
+    if (Callee->isVarArg()) {
+      if (const auto *VaList = getVaListTagOrNull(*Callee)) {
+        auto VaListObj = getVariable(VaList, Strategy);
+        for (size_t I = Callee->arg_size(); I < Args.size(); ++I) {
+          for (auto ArgVal : Args[I]) {
+            addEdge(Strategy, ArgVal, VaListObj, StorePOI{}, Call);
+          }
+        }
+      }
+    }
   }
 
   void handleCall(LLVMPBStrategyRef Strategy, const llvm::CallBase *Call) {
@@ -565,7 +707,7 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
 
     std::optional<ValueId> CSVal;
-    if (Call->getType()->isPointerTy()) {
+    if (!definitelyContainsNoPointer(Call)) {
       CSVal = getVariable(Call, Strategy);
     }
 
@@ -696,6 +838,7 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
       .DL = IRDB.getModule()->getDataLayout(),
       .VC = VC,
       .MLSum = {MLSum},
+      .MemSSAProvider = MemSSAProvider ? &MemSSAProvider : nullptr,
   };
 
   const size_t NumPossibleValues = Strategy.getNumPossibleValues(IRDB);
@@ -711,4 +854,24 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
 
   BData.initializeGlobals(IRDB, Strategy);
   BData.initializeFunctions(IRDB, Strategy);
+}
+
+LLVMPAGBuilder LLVMPAGBuilder::withBuiltinMemSSA(
+    const library_summary::LLVMFunctionDataFlowFacts *MLSum) {
+  struct MSSAImpl {
+    llvm::TargetLibraryInfoImpl TLIImpl{llvm::Triple()};
+    llvm::TargetLibraryInfo TLI{TLIImpl};
+    std::optional<MemSSABundle> Bundle{};
+  };
+
+  // Note: MemorySSA is not movable, so the bundle & impl are not movable
+  // either
+  MemSSAProviderFn Provider =
+      [Impl = std::make_unique<MSSAImpl>()](const llvm::Function &F) mutable {
+        // Note: Over-write the the entry if present; this is fine as long as we
+        // don't use MemorySSA instances across provider-call boundaries.
+        Impl->Bundle.emplace(const_cast<llvm::Function &>(F), &Impl->TLI);
+        return &Impl->Bundle->MSSA;
+      };
+  return LLVMPAGBuilder(MLSum, std::move(Provider));
 }
