@@ -46,6 +46,7 @@ static bool isNonAddressTakenVariable(const llvm::Value *Val) {
           isNonPointerType(Call->getType())) {
         continue;
       }
+      return false;
 #else
       auto Captures = Call->getCaptureInfo(ArgNo);
       auto CComp = Captures.getOtherComponents() | Captures.getRetComponents();
@@ -54,8 +55,8 @@ static bool isNonAddressTakenVariable(const llvm::Value *Val) {
            !llvm::capturesAddressIsNullOnly(CComp))) {
         return false;
       }
+      continue;
 #endif
-      return false;
     }
   }
   return true;
@@ -102,7 +103,7 @@ bool SparseLLVMControlFlow::shouldKeepInst(n_t Inst, v_t Val,
   if (llvm::isa<llvm::CallBase>(Inst)) {
     if (llvm::isa<llvm::GlobalValue>(Val)) {
       // We cannot know, whether the callee uses the global
-      return Inst;
+      return true;
     }
   }
 

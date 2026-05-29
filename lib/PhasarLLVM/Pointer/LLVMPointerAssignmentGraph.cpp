@@ -859,19 +859,18 @@ void psr::LLVMPAGBuilder::buildPAG(const LLVMProjectIRDB &IRDB,
 LLVMPAGBuilder LLVMPAGBuilder::withBuiltinMemSSA(
     const library_summary::LLVMFunctionDataFlowFacts *MLSum) {
   struct MSSAImpl {
-    llvm::TargetLibraryInfoImpl TLIImpl{llvm::Triple()};
-    llvm::TargetLibraryInfo TLI{TLIImpl};
+    llvm::TargetLibraryInfoWrapperPass TLA{};
     std::optional<MemSSABundle> Bundle{};
   };
 
   // Note: MemorySSA is not movable, so the bundle & impl are not movable
   // either
-  MemSSAProviderFn Provider =
-      [Impl = std::make_unique<MSSAImpl>()](const llvm::Function &F) mutable {
-        // Note: Over-write the the entry if present; this is fine as long as we
-        // don't use MemorySSA instances across provider-call boundaries.
-        Impl->Bundle.emplace(const_cast<llvm::Function &>(F), &Impl->TLI);
-        return &Impl->Bundle->MSSA;
-      };
+  MemSSAProviderFn Provider = [Impl = std::make_unique<MSSAImpl>()](
+                                  const llvm::Function &F) mutable {
+    // Note: Over-write the the entry if present; this is fine as long as we
+    // don't use MemorySSA instances across provider-call boundaries.
+    Impl->Bundle.emplace(const_cast<llvm::Function &>(F), &Impl->TLA.getTLI(F));
+    return &Impl->Bundle->MSSA;
+  };
   return LLVMPAGBuilder(MLSum, std::move(Provider));
 }
