@@ -472,14 +472,30 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           continue;
         }
 
-        bool AddedAny = false;
-        UPending.foreach ([&](ValueId Obj) {
-          if (Nodes[V].PtsSet.tryInsert(Obj)) {
-            Nodes[V].PendingPts.insert(Obj);
-            onNewPointee(V, Obj);
-            AddedAny = true;
+        const bool AddedAny = [&] {
+          bool AddedAny = false;
+          constexpr size_t DiffThreshold = 32;
+          // operator- is expensive, but it is definitely a lot faster than the
+          // foreach loop if UPending is large
+          if (UPending.size() > DiffThreshold) {
+            auto Diff = UPending - Nodes[V].PtsSet;
+            AddedAny = !Diff.empty();
+            if (AddedAny) {
+              Nodes[V].PtsSet |= Diff;
+              Nodes[V].PendingPts |= Diff;
+              Diff.foreach ([this, V](ValueId Obj) { onNewPointee(V, Obj); });
+            }
+          } else {
+            UPending.foreach ([&](ValueId Obj) {
+              if (Nodes[V].PtsSet.tryInsert(Obj)) {
+                Nodes[V].PendingPts.insert(Obj);
+                onNewPointee(V, Obj);
+                AddedAny = true;
+              }
+            });
           }
-        });
+          return AddedAny;
+        }();
         if (!AddedAny) {
           // LCD: V has all of U's pending wave, so V.PtsSet ⊇ U.PtsSet.
           if (Nodes[V].AssignDstSet.contains(U)) {
