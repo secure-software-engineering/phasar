@@ -231,15 +231,17 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     // Merge pts sets.
-    const auto OldRepPts = Nodes[Rep].PtsSet;
-    const bool PtsGrew = Nodes[Rep].PtsSet.tryMergeWith(NRPts);
-    if (PtsGrew) {
-      Nodes[Rep].PendingPts |= NRPts;
-      PropWorklist.push_back(Rep);
-      // Fire Rep's pre-existing load/store/memcopy constraints for pointees
-      // absorbed from NonRep that Rep didn't previously have.
-      const auto Diff = NRPts - OldRepPts;
-      Diff.foreach ([&](ValueId NewObj) { onNewPointee(Rep, NewObj); });
+    {
+      const auto OldRepPts = Nodes[Rep].PtsSet;
+      const bool PtsGrew = Nodes[Rep].PtsSet.tryMergeWith(NRPts);
+      if (PtsGrew) {
+        // Fire Rep's pre-existing load/store/memcopy constraints for pointees
+        // absorbed from NonRep that Rep didn't previously have.
+        const auto Diff = NRPts - OldRepPts;
+        Nodes[Rep].PendingPts |= Diff;
+        PropWorklist.push_back(Rep);
+        Diff.foreach ([&](ValueId NewObj) { onNewPointee(Rep, NewObj); });
+      }
     }
 
     // Snapshot Rep's pts (after merge) for retroactive constraint firing.
@@ -474,7 +476,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
         const bool AddedAny = [&] {
           bool AddedAny = false;
-          constexpr size_t DiffThreshold = 32;
+          constexpr size_t DiffThreshold = 16;
           // operator- is expensive, but it is definitely a lot faster than the
           // foreach loop if UPending is large
           if (UPending.size() > DiffThreshold) {

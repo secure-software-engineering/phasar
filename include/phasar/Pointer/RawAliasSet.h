@@ -43,6 +43,7 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
   MutSet |= ConstSet;
   MutSet &= ConstSet;
   MutSet -= ConstSet;
+  { ConstSet - ConstSet } -> std::convertible_to<ASet>;
   { ConstSet == ConstSet } noexcept -> std::convertible_to<bool>;
   { ConstSet != ConstSet } noexcept -> std::convertible_to<bool>;
   { MutSet.tryMergeWith(ConstSet) } -> std::convertible_to<bool>;
@@ -92,6 +93,12 @@ public:
     Bits.intersectWithComplement(Other.Bits);
   }
 
+  [[nodiscard]] LLVMRawAliasSet operator-(const LLVMRawAliasSet &Other) const {
+    LLVMRawAliasSet Ret;
+    Ret.Bits = Bits - Other.Bits;
+    return Ret;
+  }
+
   [[nodiscard]] bool empty() const noexcept { return Bits.empty(); }
   [[nodiscard]] size_t size() const noexcept { return Bits.count(); }
 
@@ -112,7 +119,6 @@ public:
 
 private:
   llvm::SparseBitVector<> Bits;
-  // TODO: roaring::Roaring Bits;
 };
 
 template <SmallIdType IdT> class RoaringAliasSet {
