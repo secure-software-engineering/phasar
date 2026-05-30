@@ -13,7 +13,9 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/InstrTypes.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "SrcCodeLocationEntry.h"
@@ -967,6 +969,43 @@ TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
     EXPECT_FALSE(HasCGVertex(Res.CG, FlushImpl))
         << "flush_impl must not be a CG vertex at Unsound";
   }
+}
+
+TEST(AndersenOTFAATest, FnPtrStoredInStructField) {
+  // Function pointer stored into a struct field by an initializer, then
+  // retrieved and called indirectly.  The indirect call in do_call() must
+  // have target() as a callee.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_fp_struct_field_c_dbg.ll");
+
+  const auto *DoCall = IRDB.getFunctionDefinition("do_call");
+  const auto *Target = IRDB.getFunctionDefinition("target");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(DoCall, nullptr);
+  ASSERT_NE(Target, nullptr);
+
+  auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get());
+
+  // Find the indirect call instruction in do_call.
+  const llvm::CallBase *IndirectCS = nullptr;
+  for (const auto &I : llvm::instructions(DoCall)) {
+    const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I);
+    if (!CS || CS->isDebugOrPseudoInst()) {
+      continue;
+    }
+    if (!llvm::isa<llvm::Function>(
+            CS->getCalledOperand()->stripPointerCastsAndAliases())) {
+      IndirectCS = CS;
+      break;
+    }
+  }
+  ASSERT_NE(IndirectCS, nullptr) << "No indirect call found in do_call";
+
+  const auto &Callees = Res.CG.getCalleesOfCallAt(IndirectCS);
+  EXPECT_TRUE(llvm::is_contained(Callees, Target))
+      << "target() must be a callee of the indirect call in do_call()";
 }
 
 } // namespace

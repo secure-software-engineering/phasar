@@ -77,7 +77,9 @@ psr::getVFTIndexAndVT(const llvm::CallBase *CallSite) {
 
   const auto *GEP =
       llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
-  if (GEP == nullptr) {
+  // Vtable GEPs index into a pointer array with a single index.
+  // Multi-index GEPs (e.g. struct field access) are not vtable patterns.
+  if (GEP == nullptr || GEP->getNumOperands() != 2) {
     return std::nullopt;
   }
 

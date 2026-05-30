@@ -659,8 +659,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // For each argument, add every function in pts(ArgId) to the worklist
   // as an entry point.  Used when a callee is a declaration and we want to
   // treat fn-ptr arguments as reachable callbacks (Soundy / Sound mode).
-  void addFnPtrArgsAsEntries(
-      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args) {
+  void
+  addFnPtrArgsAsEntries(llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args) {
     for (const auto &ArgIds : Args) {
       for (ValueId ArgId : ArgIds) {
         ArgId = rep(ArgId);
@@ -674,8 +674,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           for (const auto &Var : LocalVC.id2vars(ObjId)) {
             const auto *Fun = llvm::dyn_cast_or_null<llvm::Function>(
                 Var.getBase().valueOrNull());
-            if (Fun && !Fun->isDeclaration() &&
-                Queued.insert(Fun).second) {
+            if (Fun && !Fun->isDeclaration() && Queued.insert(Fun).second) {
               FunctionWorklist.push_back(Fun);
               std::ignore = CGBuilder.addFunctionVertex(Fun);
             }
@@ -689,18 +688,18 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   bool connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
                      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
                      std::optional<ValueId> CSRetVal) {
+    const ValueId CalleeId = getOrInsertVar(PAGVariable(Callee));
+    if (!ConnectedCallees[CS].insert(CalleeId).second) {
+      return false;
+    }
+    CGBuilder.addCallEdge(CS, Callee);
+
     if (Callee->isDeclaration()) {
       if (SoundnessFlag != Soundness::Unsound) {
         addFnPtrArgsAsEntries(Args);
       }
       return false;
     }
-
-    const ValueId CalleeId = getOrInsertVar(PAGVariable(Callee));
-    if (!ConnectedCallees[CS].insert(CalleeId).second) {
-      return false;
-    }
-    CGBuilder.addCallEdge(CS, Callee);
 
     if (Queued.insert(Callee).second) {
       FunctionWorklist.push_back(Callee);
