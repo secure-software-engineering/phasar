@@ -480,7 +480,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00352" name="l00352"></a><span class="lineno"><a class="line" href="classpsr_1_1IDESolver.html#ab51f18bf0d3a4290c4b700997a20a8dd">  352</a></span>  [[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Nullable&lt;n_t&gt;</a> <a class="code hl_function" href="classpsr_1_1IDESolver.html#ab51f18bf0d3a4290c4b700997a20a8dd">getNextUserOrNull</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;f_t&gt;</a> Fun,</div>
 <div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>                                                <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;d_t&gt;</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">d3</a>,</div>
 <div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>                                                <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;n_t&gt;</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">n</a>) {</div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">has_getSparseCFG_v&lt;ICFGTy, d_t&gt;</a>) {</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1has__getSparseCFG__v.html">has_getSparseCFG_v&lt;ICFGTy, d_t&gt;</a>) {</div>
 <div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>      <span class="keywordflow">if</span> (IDEProblem.isZeroValue(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">d3</a>)) {</div>
 <div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>        <span class="keywordflow">return</span> {};</div>
 <div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>      }</div>
@@ -2264,6 +2264,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclasspsr_1_1Table_html_ae273aa714e587a53c68a9d23b8ea44d1"><div class="ttname"><a href="classpsr_1_1Table.html#ae273aa714e587a53c68a9d23b8ea44d1">psr::Table::cellSet</a></div><div class="ttdeci">std::set&lt; Cell &gt; cellSet() const</div><div class="ttdef"><b>Definition</b> <a href="Table_8h_source.html#l00104">Table.h:104</a></div></div>
 <div class="ttc" id="aclasssize__t_html"><div class="ttname"><a href="classsize__t.html">size_t</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1ICFG_html"><div class="ttname"><a href="conceptpsr_1_1ICFG.html">psr::ICFG</a></div><div class="ttdef"><b>Definition</b> <a href="ICFG_8h_source.html#l00022">ICFG.h:22</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1has__getSparseCFG__v_html"><div class="ttname"><a href="conceptpsr_1_1has__getSparseCFG__v.html">psr::has_getSparseCFG_v</a></div><div class="ttdef"><b>Definition</b> <a href="SparseCFGProvider_8h_source.html#l00042">SparseCFGProvider.h:42</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1same__as__decay_html"><div class="ttname"><a href="conceptpsr_1_1same__as__decay.html">psr::same_as_decay</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00089">TypeTraits.h:89</a></div></div>
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
@@ -2303,7 +2304,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu May 28 2026 18:10:00 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun May 31 2026 15:32:18 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

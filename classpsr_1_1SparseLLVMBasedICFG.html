@@ -134,6 +134,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a16359880139b49ab8c2e779db9f73805"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a361339a258206ed122a47da642840d03" id="r_a361339a258206ed122a47da642840d03"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMBasedICFG.html#a361339a258206ed122a47da642840d03">~SparseLLVMBasedICFG</a> ()</td></tr>
 <tr class="separator:a361339a258206ed122a47da642840d03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab06bb5902b79917b01410f4099c0febe" id="r_ab06bb5902b79917b01410f4099c0febe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1SparseLLVMBasedICFG.html#a65eab27c5107f849ddc0b55836911a10">n_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMBasedICFG.html#ab06bb5902b79917b01410f4099c0febe">advanceToNextUser</a> (<a class="el" href="classpsr_1_1SparseLLVMBasedICFG.html#a65eab27c5107f849ddc0b55836911a10">n_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Succ</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;Fact)</td></tr>
+<tr class="separator:ab06bb5902b79917b01410f4099c0febe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classpsr_1_1LLVMBasedICFG"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpsr_1_1LLVMBasedICFG')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpsr_1_1LLVMBasedICFG.html">psr::LLVMBasedICFG</a></td></tr>
 <tr class="memitem:a3856befd4197e7cb355d293ebb22e2a7 inherit pub_methods_classpsr_1_1LLVMBasedICFG" id="r_a3856befd4197e7cb355d293ebb22e2a7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1LLVMBasedICFG.html#a3856befd4197e7cb355d293ebb22e2a7">LLVMBasedICFG</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> *IRDB, <a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CGType</a>, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>={}, <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> *TH=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nullptr</a>, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> PT=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nullptr</a>, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">IncludeGlobals</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">true</a>)</td></tr>
 <tr class="separator:a3856befd4197e7cb355d293ebb22e2a7 inherit pub_methods_classpsr_1_1LLVMBasedICFG"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -245,7 +247,7 @@ Additional Inherited Members</h2></td></tr>
 <p>Use this in the <a class="el" href="classpsr_1_1IDESolver.html">IDESolver</a> or <a class="el" href="classpsr_1_1IFDSSolver.html" title="Solves the given IFDSTabulationProblem as described in the 1995 paper by Reps, Horwitz and Sagiv....">IFDSSolver</a> to profit from the SparseIFDS or SparseIDE optimization after Karakaya et al. "Symbol-Specific Sparsification
 of Interprocedural Distributive Environment Problems" <a href="https://doi.org/10.48550/arXiv.2401.14813">https://doi.org/10.48550/arXiv.2401.14813</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="SparseLLVMBasedICFG_8h_source.html#l00030">30</a> of file <a class="el" href="SparseLLVMBasedICFG_8h_source.html">SparseLLVMBasedICFG.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="SparseLLVMBasedICFG_8h_source.html#l00031">31</a> of file <a class="el" href="SparseLLVMBasedICFG_8h_source.html">SparseLLVMBasedICFG.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a33862216c4765f118386143c510b1191" name="a33862216c4765f118386143c510b1191"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a33862216c4765f118386143c510b1191">&#9670;&#160;</a></span>f_t</h2>
@@ -451,13 +453,54 @@ of Interprocedural Distributive Environment Problems" <a href="https://doi.org/1
 
 </div>
 </div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab06bb5902b79917b01410f4099c0febe" name="ab06bb5902b79917b01410f4099c0febe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab06bb5902b79917b01410f4099c0febe">&#9670;&#160;</a></span>advanceToNextUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1SparseLLVMBasedICFG.html#a65eab27c5107f849ddc0b55836911a10">n_t</a> psr::SparseLLVMBasedICFG::advanceToNextUser </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1SparseLLVMBasedICFG.html#a65eab27c5107f849ddc0b55836911a10">n_t</a>&#160;</td>
+          <td class="paramname"><em>Succ</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td>
+          <td class="paramname"><em>Fact</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="SparseLLVMBasedICFG_8h_source.html#l00059">59</a> of file <a class="el" href="SparseLLVMBasedICFG_8h_source.html">SparseLLVMBasedICFG.h</a>.</p>
+
+<p class="reference">References <a class="el" href="SparseCFGProvider_8h_source.html#l00019">psr::valueOf()</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/phasar/PhasarLLVM/ControlFlow/<a class="el" href="SparseLLVMBasedICFG_8h_source.html">SparseLLVMBasedICFG.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu May 28 2026 18:10:01 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun May 31 2026 15:32:19 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

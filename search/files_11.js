@@ -15,12 +15,13 @@ var searchData=
   ['sparsellvmbasedcfgprovider_2eh_12',['SparseLLVMBasedCFGProvider.h',['../SparseLLVMBasedCFGProvider_8h.html',1,'']]],
   ['sparsellvmbasedicfg_2eh_13',['SparseLLVMBasedICFG.h',['../SparseLLVMBasedICFG_8h.html',1,'']]],
   ['sparsellvmbasedicfgview_2eh_14',['SparseLLVMBasedICFGView.h',['../SparseLLVMBasedICFGView_8h.html',1,'']]],
-  ['specialmemberfunctiontype_2edef_15',['SpecialMemberFunctionType.def',['../SpecialMemberFunctionType_8def.html',1,'']]],
-  ['specialmemberfunctiontype_2eh_16',['SpecialMemberFunctionType.h',['../SpecialMemberFunctionType_8h.html',1,'']]],
-  ['stablevector_2eh_17',['StableVector.h',['../StableVector_8h.html',1,'']]],
-  ['staticidesolverconfig_2eh_18',['StaticIDESolverConfig.h',['../StaticIDESolverConfig_8h.html',1,'']]],
-  ['strategies_2edef_19',['Strategies.def',['../Strategies_8def.html',1,'']]],
-  ['strategies_2eh_20',['Strategies.h',['../Strategies_8h.html',1,'']]],
-  ['strongtypedef_2eh_21',['StrongTypeDef.h',['../StrongTypeDef_8h.html',1,'']]],
-  ['svfpointstoset_2eh_22',['SVFPointsToSet.h',['../SVFPointsToSet_8h.html',1,'']]]
+  ['sparsellvmcontrolflow_2eh_15',['SparseLLVMControlFlow.h',['../SparseLLVMControlFlow_8h.html',1,'']]],
+  ['specialmemberfunctiontype_2edef_16',['SpecialMemberFunctionType.def',['../SpecialMemberFunctionType_8def.html',1,'']]],
+  ['specialmemberfunctiontype_2eh_17',['SpecialMemberFunctionType.h',['../SpecialMemberFunctionType_8h.html',1,'']]],
+  ['stablevector_2eh_18',['StableVector.h',['../StableVector_8h.html',1,'']]],
+  ['staticidesolverconfig_2eh_19',['StaticIDESolverConfig.h',['../StaticIDESolverConfig_8h.html',1,'']]],
+  ['strategies_2edef_20',['Strategies.def',['../Strategies_8def.html',1,'']]],
+  ['strategies_2eh_21',['Strategies.h',['../Strategies_8h.html',1,'']]],
+  ['strongtypedef_2eh_22',['StrongTypeDef.h',['../StrongTypeDef_8h.html',1,'']]],
+  ['svfpointstoset_2eh_23',['SVFPointsToSet.h',['../SVFPointsToSet_8h.html',1,'']]]
 ];
