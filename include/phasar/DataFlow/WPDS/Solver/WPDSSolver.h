@@ -70,7 +70,7 @@ public:
   }
 
   [[nodiscard]] wpds::SolverResults<cl_t, se_t, weight_t>
-  getSolverResults() const noexcept [[clang::lifetimebound]] {
+  getSolverResults() const noexcept PSR_LIFETIMEBOUND {
     return {this};
   }
 
