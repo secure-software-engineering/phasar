@@ -8,5 +8,5 @@ var searchData=
   ['otfresolver_5',['OTFResolver',['../classpsr_1_1OTFResolver.html',1,'psr']]],
   ['overloaded_6',['Overloaded',['../structpsr_1_1Overloaded.html',1,'psr']]],
   ['owningidbasedsolverresults_7',['OwningIdBasedSolverResults',['../classpsr_1_1OwningIdBasedSolverResults.html',1,'psr']]],
-  ['owningsolverresults_8',['OwningSolverResults',['../classpsr_1_1OwningSolverResults.html',1,'psr']]]
+  ['owningsolverresults_8',['owningsolverresults',['../classpsr_1_1OwningSolverResults.html',1,'psr::OwningSolverResults&lt; N, D, L &gt;'],['../classpsr_1_1wpds_1_1OwningSolverResults.html',1,'psr::wpds::OwningSolverResults&lt; CLTy, SETy, WeightTy &gt;']]]
 ];

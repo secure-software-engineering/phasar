@@ -8,5 +8,6 @@ var searchData=
   ['registerpasses_2eh_5',['RegisterPasses.h',['../RegisterPasses_8h.html',1,'']]],
   ['repeatiterator_2eh_6',['RepeatIterator.h',['../RepeatIterator_8h.html',1,'']]],
   ['resolver_2eh_7',['Resolver.h',['../Resolver_8h.html',1,'']]],
-  ['rtaresolver_2eh_8',['RTAResolver.h',['../RTAResolver_8h.html',1,'']]]
+  ['rtaresolver_2eh_8',['RTAResolver.h',['../RTAResolver_8h.html',1,'']]],
+  ['ruleprovider_2eh_9',['RuleProvider.h',['../RuleProvider_8h.html',1,'']]]
 ];

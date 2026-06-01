@@ -9,5 +9,7 @@ var searchData=
   ['psr_3a_3apag_6',['pag',['../namespacepsr_1_1pag.html',1,'psr']]],
   ['psr_3a_3apmr_7',['pmr',['../namespacepsr_1_1pmr.html',1,'psr']]],
   ['psr_3a_3avta_8',['vta',['../namespacepsr_1_1vta.html',1,'psr']]],
-  ['psr_3a_3axtaint_9',['XTaint',['../namespacepsr_1_1XTaint.html',1,'psr']]]
+  ['psr_3a_3awpds_9',['wpds',['../namespacepsr_1_1wpds.html',1,'psr']]],
+  ['psr_3a_3awpds_3a_3adetail_10',['detail',['../namespacepsr_1_1wpds_1_1detail.html',1,'psr::wpds']]],
+  ['psr_3a_3axtaint_11',['XTaint',['../namespacepsr_1_1XTaint.html',1,'psr']]]
 ];
