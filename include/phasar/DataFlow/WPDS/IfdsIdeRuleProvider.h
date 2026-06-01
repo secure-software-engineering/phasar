@@ -9,6 +9,7 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/WPDS/RuleProvider.h"
@@ -70,12 +71,13 @@ public:
         auto Facts = FECache.getCallToRetFlowFunction(SE, Succ, Callees)
                          ->computeTargets(CL);
         for (auto &Fct : Facts) {
+          const auto FctSucc = factSucc(Succ, Fct);
           if constexpr (ComputeWeights) {
             auto W =
                 FECache.getCallToRetEdgeFunction(SE, CL, Succ, Fct, Callees);
-            Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+            Outs.emplace_back(std::move(Fct), FctSucc, std::move(W));
           } else {
-            Outs.emplace_back(std::move(Fct), Succ, weight_type{});
+            Outs.emplace_back(std::move(Fct), FctSucc, weight_type{});
           }
         }
       }
@@ -85,11 +87,12 @@ public:
           auto Facts = SumFF->computeTargets(CL);
           for (const auto &Succ : RetSites) {
             for (auto &Fct : Facts) {
+              const auto FctSucc = factSucc(Succ, Fct);
               if constexpr (ComputeWeights) {
                 auto W = FECache.getSummaryEdgeFunction(SE, CL, Succ, Fct);
-                Outs.emplace_back(Fct, Succ, std::move(W));
+                Outs.emplace_back(Fct, FctSucc, std::move(W));
               } else {
-                Outs.emplace_back(Fct, Succ, weight_type{});
+                Outs.emplace_back(Fct, FctSucc, weight_type{});
               }
             }
           }
@@ -101,11 +104,12 @@ public:
         auto Facts =
             FECache.getNormalFlowFunction(SE, Succ)->computeTargets(CL);
         for (auto &Fct : Facts) {
+          const auto FctSucc = factSucc(Succ, Fct);
           if constexpr (ComputeWeights) {
             auto W = FECache.getNormalEdgeFunction(SE, CL, Succ, Fct);
-            Outs.emplace_back(std::move(Fct), Succ, std::move(W));
+            Outs.emplace_back(std::move(Fct), FctSucc, std::move(W));
           } else {
-            Outs.emplace_back(std::move(Fct), Succ, weight_type{});
+            Outs.emplace_back(std::move(Fct), FctSucc, weight_type{});
           }
         }
       }
@@ -145,9 +149,10 @@ public:
             return weight_type{};
           }
         }();
-        for (const auto &EntrySE : EntrySEs) {
-          for (const auto &Succ : RetSites) {
-            Outs.emplace_back(Fct, Succ, EntrySE, W);
+        for (const auto &Succ : RetSites) {
+          const auto FctSucc = factSucc(Succ, Fct);
+          for (const auto &EntrySE : EntrySEs) {
+            Outs.emplace_back(Fct, FctSucc, EntrySE, W);
           }
         }
       }
@@ -234,6 +239,15 @@ public:
   [[nodiscard]] constexpr auto &problem() const noexcept { return *Problem; }
 
 private:
+  [[nodiscard]] auto factSucc(stack_element_type Succ,
+                              ByConstRef<control_location_type> CL) {
+    if constexpr (has_advanceToNextUser_v<ICFGTy, control_location_type>) {
+      return ICF->advancetoNextUser(Succ, CL);
+    } else {
+      return Succ;
+    }
+  }
+
   ProblemT *Problem{};
   const ICFGTy *ICF{};
 
