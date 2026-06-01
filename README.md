@@ -16,16 +16,17 @@ You can find available literature on PhASAR [here](https://github.com/secure-sof
 
 ### Key Features
 
-- **IFDS/IDE solver**: Interprocedural data-flow analysis based on the IFDS/IDE algorithm
-- **Sparse analysis**: SparseIFDS/SparseIDE for improved performance
+- **IFDS/IDE solver**: Interprocedural data-flow solvers based on the IFDS/IDE algorithm
+- **WPDS solver (experimental)**: Data-flow solver based on weighted pushdown systems. Can solve any IFDS/IDE problem
+- **Sparse analysis**: SparseIFDS/SparseIDE/SparseWPDS for improved performance
 - **Call-graph construction**: Several algorithms (CHA, RTA, VTA, alias-based)
-- **Type-hierarchy construction**: Extract high-level C*+ type information from LLVM IR
-- **Points-to/alias infrastructure**: High-performance alias analyses for LLVM IR. Integration with state-of-the-art alias/points-to information from SVF possible
+- **Type-hierarchy construction**: Extract high-level C++ type information from LLVM IR
+- **Points-to/alias infrastructure**: High-performance alias analyses for LLVM IR. Integration with state-of-the-art alias/points-to information from SVF supported
 - **Interprocedural CFG (ICFG)**: Connecting control-flow with call-graph information
 - **Path-tracking**: Improve results-reporting by reconstruct concrete data-flow paths from IFDS/IDE results
 - **Monotone solver**: Simple intra-procedural analysis engine, based on Monotone Frameworks
 - **Taint analysis**: Infrastructure for taint-configuration & IFDS/IDE-based taint analysis
-- **Modern C++20 API**: Easy-to use interfaces, also for non C++ experts
+- **Modern C++20 API**: Modular, easy-to use interfaces, also for non C++ experts
 
 ### How do I get started with PhASAR?
 
