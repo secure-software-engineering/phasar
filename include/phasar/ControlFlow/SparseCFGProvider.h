@@ -12,6 +12,7 @@
 
 #include "phasar/Utils/ByRef.h"
 
+#include <concepts>
 #include <type_traits>
 
 namespace psr {
@@ -38,11 +39,19 @@ private:
 };
 
 template <typename T, typename D>
-// NOLINTNEXTLINE
-constexpr bool has_getSparseCFG_v =
+concept has_getSparseCFG_v =
     requires(const T &ICF, typename T::f_t Fun, D Fact) { //
       ICF.getSparseCFG(Fun, Fact);
     };
+
+template <typename T, typename D>
+concept has_advanceToNextUser_v =
+    requires(const T &ICF, typename T::n_t Inst, D Fact) {
+      {
+        ICF.advanceToNextUser(Inst, Fact)
+      } -> std::convertible_to<typename T::n_t>;
+    };
+
 } // namespace psr
 
 #endif // PHASAR_CONTROLFLOW_SPARSECFGPROVIDER_H

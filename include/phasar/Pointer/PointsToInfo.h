@@ -78,8 +78,6 @@ public:
     return PointsToIteratorRef<v_t, o_t, n_t>(PT, VT);
   }
 
-  constexpr operator PointsToIteratorRef<v_t, o_t, n_t>() && noexcept = delete;
-
 private:
   struct VTableBase : public PointsToIteratorRef<v_t, o_t, n_t>::VTable {
 
@@ -267,6 +265,9 @@ public:
       this->PT = nullptr;
     }
   }
+
+  using base_t::operator PointsToIteratorRef<v_t, o_t, n_t>;
+  constexpr operator PointsToIteratorRef<v_t, o_t, n_t>() && noexcept = delete;
 };
 
 } // namespace psr

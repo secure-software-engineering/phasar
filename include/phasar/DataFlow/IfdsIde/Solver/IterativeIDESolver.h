@@ -1,6 +1,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_ITERATIVEIDESOLVER_H
 
+#include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/Solver/Compressor.h"
 #include "phasar/DataFlow/IfdsIde/Solver/EdgeFunctionCache.h"
@@ -401,9 +402,8 @@ private:
       auto Fun = FunCompressor.getOrInsert(ICFG.getFunctionOf(Inst));
       for (const auto &[Fact, Val] : SeedMap) {
         auto FactId = FactCompressor.getOrInsert(Fact);
-        auto &JumpFns = JumpFunctions[InstId];
 
-        storeResultsAndPropagate(JumpFns, InstId, FactId, FactId, Fun, IdFun);
+        storeResultsAndPropagate(InstId, FactId, FactId, Fun, IdFun);
       }
     }
   }
@@ -453,9 +453,9 @@ private:
     }
   }
 
-  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                                uint32_t SourceFact, uint32_t LocalFact,
-                                uint32_t FunId, EdgeFunctionPtrType LocalEF)
+  bool storeResultsAndPropagate(uint32_t SuccId, uint32_t SourceFact,
+                                uint32_t LocalFact, uint32_t FunId,
+                                EdgeFunctionPtrType LocalEF)
     requires ComputeValues
   {
 
@@ -464,6 +464,14 @@ private:
       // killed fact
       return false;
     }
+
+    if constexpr (has_advanceToNextUser_v<i_t, d_t>) {
+      auto &&FactSucc = ICFG.advanceToNextUser(NodeCompressor[SuccId],
+                                               FactCompressor[LocalFact]);
+      SuccId = NodeCompressor.getOrInsert(PSR_FWD(FactSucc));
+    }
+
+    auto &JumpFns = JumpFunctions[SuccId];
 
     auto &EF = JumpFns.getOrCreate(combineIds(SourceFact, LocalFact));
     if (!EF) {
@@ -511,11 +519,19 @@ private:
     return false;
   }
 
-  bool storeResultsAndPropagate(SummaryEdges &JumpFns, uint32_t SuccId,
-                                uint32_t SourceFact, uint32_t LocalFact,
-                                uint32_t FunId, EdgeFunctionPtrType /*LocalEF*/)
+  bool storeResultsAndPropagate(uint32_t SuccId, uint32_t SourceFact,
+                                uint32_t LocalFact, uint32_t FunId,
+                                EdgeFunctionPtrType /*LocalEF*/)
     requires(!ComputeValues)
   {
+
+    if constexpr (has_advanceToNextUser_v<i_t, d_t>) {
+      auto &&FactSucc = ICFG.advanceToNextUser(NodeCompressor[SuccId],
+                                               FactCompressor[LocalFact]);
+      SuccId = NodeCompressor.getOrInsert(PSR_FWD(FactSucc));
+    }
+    auto &JumpFns = JumpFunctions[SuccId];
+
     if (JumpFns.insert(combineIds(SourceFact, LocalFact)).second) {
       WorkList.emplace(PropagationJob{{}, SuccId, SourceFact, LocalFact});
 
@@ -635,8 +651,6 @@ private:
                                      combineIds(AtInstructionId, SuccId))
               .computeTargets(CSFact);
 
-      auto &JumpFns = JumpFunctions[SuccId];
-
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
         auto EF = [&] {
@@ -651,7 +665,7 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFns, SuccId, SourceFactId, FactId, FunId,
+        storeResultsAndPropagate(SuccId, SourceFactId, FactId, FunId,
                                  std::move(EF));
       }
     }
@@ -707,8 +721,6 @@ private:
                            combineIds(AtInstructionId, RetSiteId))
                        .computeTargets(CSFact);
 
-      auto &JumpFns = JumpFunctions[RetSiteId];
-
       for (ByConstRef<d_t> Fact : Facts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
 
@@ -724,8 +736,8 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFns, RetSiteId, SourceFactId, FactId,
-                                 FunId, std::move(EF));
+        storeResultsAndPropagate(RetSiteId, SourceFactId, FactId, FunId,
+                                 std::move(EF));
       }
     }
 
@@ -845,7 +857,6 @@ private:
     }();
     for (ByConstRef<n_t> SP : ICFG.getStartPointsOf(Callee)) {
       auto SPId = NodeCompressor.getOrInsert(SP);
-      auto &JumpFn = JumpFunctions[SPId];
 
       for (ByConstRef<d_t> Fact : CalleeFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -862,7 +873,7 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFn, SPId, FactId, FactId, CalleeId, IdEF);
+        storeResultsAndPropagate(SPId, FactId, FactId, CalleeId, IdEF);
 
         auto It = &AllInterPropagationsOwner.emplace_back(InterPropagationJob{
             CallEF, SourceFactId, CalleeId, AtInstructionId, FactId});
@@ -905,7 +916,6 @@ private:
                         uint32_t FunId) {
     for (ByConstRef<n_t> RetSite : ICFG.getReturnSitesOfCallAt(AtInstruction)) {
       auto RetSiteId = NodeCompressor.getOrInsert(RetSite);
-      auto &JumpFns = JumpFunctions[RetSiteId];
 
       for (ByConstRef<d_t> Fact : SummaryFacts) {
         auto FactId = FactCompressor.getOrInsert(Fact);
@@ -922,8 +932,8 @@ private:
           }
         }();
 
-        storeResultsAndPropagate(JumpFns, RetSiteId, SourceFactId, FactId,
-                                 FunId, std::move(EF));
+        storeResultsAndPropagate(RetSiteId, SourceFactId, FactId, FunId,
+                                 std::move(EF));
       }
     }
   }
@@ -939,8 +949,6 @@ private:
       auto RetFF = FECache.getRetFlowFunction(
           Problem, CallSite, Callee, ExitInst, RetSite,
           combineIds(CSId, ExitId), combineIds(CalleeId, RSId));
-
-      auto &RSJumpFns = JumpFunctions[RSId];
 
       for (const auto &Summary : Summaries) {
         uint32_t SummaryFactId{Summary.first};
@@ -962,8 +970,8 @@ private:
             }
           }();
 
-          storeResultsAndPropagate(RSJumpFns, RSId, SourceFact, RetFactId,
-                                   CallerId, std::move(EF));
+          storeResultsAndPropagate(RSId, SourceFact, RetFactId, CallerId,
+                                   std::move(EF));
         }
       }
     }

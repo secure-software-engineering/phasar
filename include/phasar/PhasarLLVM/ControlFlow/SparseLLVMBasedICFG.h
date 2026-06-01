@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
 #define PHASAR_PHASARLLVM_CONTROLFLOW_SPARSELLVMBASEDICFG_H
 
+#include "phasar/ControlFlow/SparseCFGProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/SparseLLVMBasedCFGProvider.h"
 
@@ -55,9 +56,16 @@ public:
 
   ~SparseLLVMBasedICFG();
 
+  [[nodiscard]] n_t advanceToNextUser(n_t Succ, const auto &Fact) {
+    using psr::valueOf;
+    return advanceToNextUserImpl(Succ, valueOf(Fact));
+  }
+
 private:
   [[nodiscard]] const SparseLLVMBasedCFG &
   getSparseCFGImpl(const llvm::Function *Fun, const llvm::Value *Val) const;
+
+  [[nodiscard]] n_t advanceToNextUserImpl(n_t Succ, v_t Fact);
 
   std::unique_ptr<SVFGCache> SparseCFGCache;
   LLVMAliasInfoRef AliasAnalysis;

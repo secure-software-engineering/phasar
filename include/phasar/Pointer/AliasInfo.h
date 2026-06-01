@@ -96,7 +96,6 @@ public:
     assert(VT != nullptr);
     return AliasIteratorRef<V, N>(AA, VT->ForallAliasesOf);
   }
-  constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 
   // -- Impl for IsAliasInfo:
 
@@ -359,6 +358,9 @@ public:
   [[nodiscard]] base_t get() & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() const & noexcept { return asRef(); }
   [[nodiscard]] AliasInfoRef<V, N> get() && = delete;
+
+  using base_t::operator psr::AliasIteratorRef<V, N>;
+  constexpr operator AliasIteratorRef<V, N>() && noexcept = delete;
 };
 
 extern template class AliasInfoRef<const llvm::Value *,
