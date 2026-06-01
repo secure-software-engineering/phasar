@@ -19,10 +19,14 @@ Currently, the benchmark tool supports the following analyses:
 
 Of course, you can extend this tool and provide your own analyses here.
 
-## Preliminary Results
+## Results (as of 20.05.2026)
 
-|           | anders | steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens |
-|-----------|--------|--------|----------|----------|----------|--------------|------------------|
-| precision | 0.712  | 0.709  | 0.803    | 0.800    | 0.681    | 0.803        | 0.800            |
-| recall    | 0.961  | 0.975  | 0.929    | 0.667    | 0.960    | 0.929        | 0.667            |
-| f1score   | 0.818  | 0.821  | 0.862    | 0.728    | 0.796    | 0.862        | 0.728            |
+The analyses were run on the LLVM-16 IR of the tests in the PTABen folders `basic_c_tests`, `basic_cpp_tests`, `cs_tests`, and `fs_tests`, using PTABen version [be523f7](https://github.com/SVF-tools/Test-Suite/commit/be523f7a86cad840591a31e338baa313de40fa33).
+
+Note that we treat `EXPECTEDFAIL_*` assertions as-if the `EXPECTEDFAIL_`-part was not there.
+
+|           | cfl-anders | cfl-steens | ctx-sens | bot-sens | ind-sens | ctx-ind-sens | bot-ctx-ind-sens |
+|-----------|------------|------------|----------|----------|----------|--------------|------------------|
+| precision | 0.712      | 0.709      | 0.819    | 0.793    | 0.684    | 0.819        | 0.793            |
+| recall    | 0.961      | 0.975      | 0.930    | 0.874    | 0.963    | 0.930        | 0.874            |
+| F1-score  | 0.818      | 0.821      | 0.871    | 0.832    | 0.800    | 0.871        | 0.832            |

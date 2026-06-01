@@ -34,7 +34,7 @@ protected:
 
 template <typename ICF, typename Domain>
 // NOLINTNEXTLINE(readability-identifier-naming)
-constexpr bool is_sparse_cfg_v =
+concept is_sparse_cfg_v =
     is_crtp_base_of_v<SparseCFGBase, ICF> &&
     std::is_same_v<typename ICF::n_t, typename Domain::n_t> &&
     std::is_same_v<typename ICF::f_t, typename Domain::f_t>;

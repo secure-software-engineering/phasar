@@ -510,16 +510,9 @@ static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
   return isAllocaInstOrHeapAllocaFunction(V);
 }
 
-bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
-  if (!Var) {
-    return false;
-  }
-  if (!isAllocationSiteOrSimilar(Var)) {
-    return true;
-  }
-
-  llvm::SmallVector<const llvm::Value *> WL = {Var};
-  llvm::SmallDenseSet<const llvm::Value *> Seen = {Var};
+static bool isAddressTakenImpl(const llvm::Value *Root) noexcept {
+  llvm::SmallVector<const llvm::Value *> WL = {Root};
+  llvm::SmallDenseSet<const llvm::Value *> Seen = {Root};
 
   while (!WL.empty()) {
     const auto *CurrVal = WL.pop_back_val();
@@ -558,6 +551,20 @@ bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
   }
 
   return false;
+}
+
+bool psr::isAddressTakenVariable(const llvm::Value *Var) noexcept {
+  if (!Var) {
+    return false;
+  }
+  if (!isAllocationSiteOrSimilar(Var)) {
+    return true;
+  }
+  return isAddressTakenImpl(Var);
+}
+
+bool psr::isAddressTakenArg(const llvm::Argument *Arg) noexcept {
+  return isAddressTakenImpl(Arg);
 }
 
 bool psr::isStaticVariableLazyInitializationBranch(

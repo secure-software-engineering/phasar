@@ -44,3 +44,8 @@ SparseLLVMBasedICFG::getSparseCFGImpl(const llvm::Function *Fun,
   assert(SparseCFGCache != nullptr);
   return SparseCFGCache->getOrCreate(*this, Fun, Val, AliasAnalysis);
 }
+
+auto SparseLLVMBasedICFG::advanceToNextUserImpl(n_t Succ, v_t Fact) -> n_t {
+  assert(SparseCFGCache != nullptr);
+  return SparseCFGCache->advanceToNextUser(Succ, Fact, AliasAnalysis);
+}
