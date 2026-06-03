@@ -15,8 +15,10 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/IotaIterator.h"
+#include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/UnionFind.h"
@@ -130,6 +132,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   ValueCompressor<PAGVariable> &ExternalVC; // NOLINT – caller-visible output
   ValueCompressor<AndersenVar> LocalVC{};   // internal variable+object nodes
   Soundness SoundnessFlag;
+  library_summary::LLVMFunctionDataFlowFacts LibFacts;
 
   llvm::SmallVector<const llvm::Function *, 8> FunctionWorklist;
   llvm::DenseSet<const llvm::Function *> Queued; // ever pushed to worklist
@@ -151,7 +154,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
              llvm::ArrayRef<const llvm::Function *> Entries,
              ValueCompressor<PAGVariable> &VC, Soundness S)
       : IRDB(IRDB), DL(IRDB.getModule()->getDataLayout()), ExternalVC(VC),
-        SoundnessFlag(S) {
+        SoundnessFlag(S), LibFacts(library_summary::readFromFDFF(
+                              getLibCSummary(), [&IRDB](llvm::StringRef Name) {
+                                return IRDB.getFunction(Name);
+                              })) {
 
     CGBuilder.reserve(IRDB.getNumFunctions());
     for (const auto *F : Entries) {
@@ -703,6 +709,41 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
   }
 
+  void applyLibrarySummary(
+      const library_summary::LLVMFunctionDataFlowFacts::ParameterMappingTy
+          &LibSum,
+      const llvm::Function *Fun,
+      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
+      std::optional<ValueId> CSRetVal) {
+    const size_t NumParams = Fun->arg_size();
+    for (const auto &[ParamIdx, Dests] : LibSum) {
+      if (ParamIdx >= NumParams || ParamIdx >= Args.size() ||
+          !Fun->getArg(ParamIdx)->getType()->isPointerTy()) {
+        continue;
+      }
+      for (const auto &DestFact : Dests) {
+        if (const auto *DestParam =
+                DestFact.dyn_cast<library_summary::Parameter>()) {
+          if (DestParam->Index >= Args.size()) {
+            continue;
+          }
+          for (ValueId DstId : Args[DestParam->Index]) {
+            for (ValueId SrcId : Args[ParamIdx]) {
+              addStore(DstId, SrcId);
+            }
+          }
+        } else {
+          if (!CSRetVal) {
+            continue;
+          }
+          for (ValueId SrcId : Args[ParamIdx]) {
+            addAssignEdge(SrcId, *CSRetVal);
+          }
+        }
+      }
+    }
+  }
+
   bool connectCallee(const llvm::CallBase *CS, const llvm::Function *Callee,
                      llvm::ArrayRef<llvm::SmallVector<ValueId, 2>> Args,
                      std::optional<ValueId> CSRetVal) {
@@ -713,6 +754,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     CGBuilder.addCallEdge(CS, Callee);
 
     if (Callee->isDeclaration()) {
+      if (const auto *LibSum = LibFacts.getFactsForFunctionOrNull(Callee)) {
+        applyLibrarySummary(*LibSum, Callee, Args, CSRetVal);
+        return false;
+      }
       if (SoundnessFlag != Soundness::Unsound) {
         addFnPtrArgsAsEntries(Args);
       }

@@ -971,6 +971,27 @@ TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
   }
 }
 
+TEST(AndersenOTFAATest, LibCSummaryStrcpyReturnAliasesDst) {
+  // strcpy(buf, "hello") summary: param 0 (dst) -> ReturnValue.
+  // The call result must alias buf (arg 0); they share the same buffer object.
+  // This exercises the ReturnValue branch of applyLibrarySummary().
+  const TSL Call = TSL(LineColFunOp{.Line = 9,
+                                    .Col = 0,
+                                    .InFunction = "main",
+                                    .OpCode = llvm::Instruction::Call});
+  const TSL Buf = TSL(OperandOf{
+      .OperandIndex = 0,
+      .Inst = LineColFunOp{.Line = 9,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call}});
+  const GTMap ExpectedResults = {
+      {Call, {Call, Buf}},
+      {Buf, {Buf, Call}},
+  };
+  doAnalysisAndCheckExact("andersen_otf_libc_c_m2r_dbg.ll", ExpectedResults);
+}
+
 TEST(AndersenOTFAATest, FnPtrStoredInStructField) {
   // Function pointer stored into a struct field by an initializer, then
   // retrieved and called indirectly.  The indirect call in do_call() must
