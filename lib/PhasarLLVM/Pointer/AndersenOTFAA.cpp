@@ -31,6 +31,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalAlias.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
@@ -125,6 +126,16 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     std::optional<ValueId> CSRetVal;
   };
 
+  struct StructVCallRecord {
+    const llvm::CallBase *CS;
+    ValueId BaseId; // pts(BaseId) = struct objects
+    ValueId FPId;   // pts(FPId) = fn objects (field-insensitive fallback)
+    llvm::SmallVector<uint64_t, 3> Indices; // all GEP indices
+    llvm::Type *GEPElemTy; // GEP source element type (for type check)
+    ArgList Args;
+    std::optional<ValueId> CSRetVal;
+  };
+
   // ---- Data fields ----------------------------------------------------
 
   const LLVMProjectIRDB &IRDB;              // NOLINT
@@ -143,6 +154,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
 
   llvm::SmallVector<FPCallRecord> UnresolvedFPCalls;
   llvm::SmallVector<VCallRecord> UnresolvedVCalls;
+  llvm::SmallVector<StructVCallRecord> UnresolvedStructVCalls;
   llvm::DenseMap<const llvm::CallBase *, llvm::SmallDenseSet<ValueId, 4>>
       ConnectedCallees;
   CallGraphBuilder<const llvm::Instruction *, const llvm::Function *> CGBuilder;
@@ -830,6 +842,55 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     return NewEdge;
   }
 
+  bool resolveStructVCall(const StructVCallRecord &Rec) {
+    const ValueId BaseId = rep(Rec.BaseId);
+    if (!Nodes.inbounds(BaseId)) {
+      llvm::report_fatal_error("Invalid BaseId in resolveStructVCall");
+    }
+    bool NewEdge = false;
+    bool NeedFPFallback = false;
+    // Snapshot: connectCallee->propagate() may grow pts(BaseId).
+    const RawAliasSet<ValueId> BasePts = Nodes[BaseId].PtsSet;
+    BasePts.foreach ([&](ValueId ObjId) {
+      if (!Nodes.inbounds(ObjId)) {
+        return false;
+      }
+      for (const auto &Var : LocalVC.id2vars(ObjId)) {
+        // Resolve GlobalAlias to the underlying GlobalVariable.
+        const llvm::Value *Val = Var.getBase().valueOrNull();
+        if (const auto *GA = llvm::dyn_cast_or_null<llvm::GlobalAlias>(Val)) {
+          Val = GA->getAliaseeObject();
+        }
+        const auto *GV = llvm::dyn_cast_or_null<llvm::GlobalVariable>(Val);
+        if (!GV || !GV->isConstant() || !GV->hasInitializer()) {
+          NeedFPFallback = true;
+          continue;
+        }
+        // Type check: GV must be of GEPElemTy or [N x GEPElemTy].
+        // Field-insensitive aliasing can put wrong-type objects in pts.
+        llvm::Type *const GVTy = GV->getValueType();
+        if (GVTy != Rec.GEPElemTy) {
+          const auto *ArrTy = llvm::dyn_cast<llvm::ArrayType>(GVTy);
+          if (!ArrTy || ArrTy->getElementType() != Rec.GEPElemTy) {
+            NeedFPFallback = true;
+            continue;
+          }
+        }
+        const auto *Callee =
+            walkConstInitPath(GV->getInitializer(), Rec.Indices);
+        if (!Callee || !isConsistentCall(Rec.CS, Callee)) {
+          continue;
+        }
+        NewEdge |= connectCallee(Rec.CS, Callee, Rec.Args, Rec.CSRetVal);
+      }
+      return true;
+    });
+    if (NeedFPFallback) {
+      NewEdge |= resolveFPCall(Rec.CS, Rec.FPId, Rec.Args, Rec.CSRetVal);
+    }
+    return NewEdge;
+  }
+
   bool resolveFPCall(const llvm::CallBase *CS, ValueId FPId,
                      const ArgList &Args, std::optional<ValueId> CSRetVal) {
     FPId = rep(FPId);
@@ -905,6 +966,31 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       return;
     }
 
+    // Struct-field vtable call: call(load(GEP(base, const_indices...)))
+    // with a typed (>=3-operand) GEP. Resolve via global initializer for
+    // const globals; fall back to FP resolution for non-const objects.
+    if (auto SVInfo = getStructVCallInfo(C)) {
+      auto &[BasePtr, Indices, GEPElemTy] = *SVInfo;
+      const auto *Load = llvm::cast<llvm::LoadInst>(C->getCalledOperand());
+      const ValueId BaseId = getOrInsertVar(PAGVariable(BasePtr));
+      const ValueId FPId = getOrInsertVar(PAGVariable(Load));
+      StructVCallRecord Rec{
+          .CS = C,
+          .BaseId = BaseId,
+          .FPId = FPId,
+          .Indices = std::move(Indices),
+          .GEPElemTy = GEPElemTy,
+          .Args = std::move(Args),
+          .CSRetVal = CSRetVal,
+      };
+      resolveStructVCall(Rec);
+      // llvm::errs() << "[handleCall]: Adding struct-vcall-record #"
+      //              << UnresolvedStructVCalls.size() << " at "
+      //              << llvmIRToString(C) << '\n';
+      UnresolvedStructVCalls.push_back(std::move(Rec));
+      return;
+    }
+
     // Indirect call: connect already-known targets, record for fixpoint.
     const ValueId FPId = getOrInsertVar(PAGVariable(FnPtr));
     resolveFPCall(C, FPId, Args, CSRetVal);
@@ -929,6 +1015,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     for (const auto &Rec : UnresolvedVCalls) {
       NewEdge |= resolveVtableCall(Rec.CS, Rec.VtablePtrId, Rec.VtableIndex,
                                    Rec.Args, Rec.CSRetVal);
+    }
+    return NewEdge;
+  }
+
+  bool checkUnresolvedStructVCalls() {
+    bool NewEdge = false;
+    for (const auto &Rec : UnresolvedStructVCalls) {
+      NewEdge |= resolveStructVCall(Rec);
     }
     return NewEdge;
   }
@@ -1063,6 +1157,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       }
       Changed = checkUnresolvedFPCalls();
       Changed |= checkUnresolvedVCalls();
+      Changed |= checkUnresolvedStructVCalls();
     } while (!FunctionWorklist.empty() || Changed);
 
     return buildResult();

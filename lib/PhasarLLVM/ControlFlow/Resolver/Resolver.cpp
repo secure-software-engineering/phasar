@@ -37,12 +37,14 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 #include <optional>
+#include <tuple>
 
 using namespace psr;
 
@@ -319,4 +321,25 @@ Resolver::create(CallGraphAnalysisType Ty, const LLVMProjectIRDB *IRDB,
 
   llvm_unreachable("All possible callgraph algorithms should be handled in the "
                    "above switch");
+}
+
+std::optional<std::tuple<const llvm::Value *, llvm::SmallVector<uint64_t, 3>,
+                         llvm::Type *>>
+psr::getStructVCallInfo(const llvm::CallBase *CallSite) {
+  const auto *Load =
+      llvm::dyn_cast<llvm::LoadInst>(CallSite->getCalledOperand());
+  if (!Load) {
+    return std::nullopt;
+  }
+  const auto *GEP =
+      llvm::dyn_cast<llvm::GEPOperator>(Load->getPointerOperand());
+  if (!GEP || GEP->getNumOperands() < 3 || !GEP->hasAllConstantIndices()) {
+    return std::nullopt;
+  }
+  llvm::SmallVector<uint64_t, 3> Indices;
+  for (const llvm::Use &Idx : GEP->indices()) {
+    Indices.push_back(llvm::cast<llvm::ConstantInt>(Idx.get())->getZExtValue());
+  }
+  return {{GEP->getPointerOperand(), std::move(Indices),
+           GEP->getSourceElementType()}};
 }

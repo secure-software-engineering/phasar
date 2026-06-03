@@ -19,6 +19,7 @@
 
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
@@ -360,6 +361,18 @@ getVaListTagOrNull(const llvm::Function &Fun);
 [[nodiscard]] bool isVaListAlloca(const llvm::AllocaInst &Alloc);
 
 [[nodiscard]] const llvm::DIType *stripPointerTypes(const llvm::DIType *DITy);
+
+/// Walk a constant initializer along a GEP index path and return the
+/// \c Function* at the leaf, or nullptr.
+///
+/// \p Indices mirrors GEP index semantics:
+///   - \c Indices[0] is the outer "pointer-array" index:
+///     \c ConstantArray -> selects the element; \c ConstantStruct ->
+///     must be 0 (pointer-arithmetic no-op, struct is not an array).
+///   - \c Indices[1+] navigate recursively through ConstantAggregate.
+[[nodiscard]] const llvm::Function *
+walkConstInitPath(const llvm::Constant *Init,
+                  llvm::ArrayRef<uint64_t> Indices);
 } // namespace psr
 
 #endif

@@ -734,3 +734,36 @@ const llvm::DIType *psr::stripPointerTypes(const llvm::DIType *DITy) {
   }
   return DITy;
 }
+
+const llvm::Function *
+psr::walkConstInitPath(const llvm::Constant *Init,
+                       llvm::ArrayRef<uint64_t> Indices) {
+  if (Indices.empty()) {
+    return llvm::dyn_cast<llvm::Function>(
+        Init->stripPointerCastsAndAliases());
+  }
+  const uint64_t Idx0 = Indices[0];
+  const llvm::Constant *Elem = nullptr;
+  if (const auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Init)) {
+    if (Idx0 >= CA->getNumOperands()) {
+      return nullptr;
+    }
+    Elem = CA->getOperand(Idx0);
+  } else if (llvm::isa<llvm::ConstantStruct>(Init)) {
+    if (Idx0 != 0) {
+      return nullptr;
+    }
+    Elem = Init; // struct: idx0 is pointer-arithmetic no-op, stay here
+  } else {
+    return nullptr;
+  }
+  for (const uint64_t Idx : Indices.drop_front(1)) {
+    const auto *Agg = llvm::dyn_cast<llvm::ConstantAggregate>(Elem);
+    if (!Agg || Idx >= Agg->getNumOperands()) {
+      return nullptr;
+    }
+    Elem = Agg->getOperand(Idx);
+  }
+  return llvm::dyn_cast_or_null<llvm::Function>(
+      Elem->stripPointerCastsAndAliases());
+}

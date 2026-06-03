@@ -57,6 +57,7 @@ set(lca_files_mem2reg
   andersen_otf_interproc.c
   andersen_otf_fp.c
   andersen_otf_libc.c
+  andersen_otf_struct_vtable.c
   basic_01.c
   basic_02.c
   basic_03.c

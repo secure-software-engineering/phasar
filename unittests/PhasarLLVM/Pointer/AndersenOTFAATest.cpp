@@ -1029,6 +1029,46 @@ TEST(AndersenOTFAATest, FnPtrStoredInStructField) {
       << "target() must be a callee of the indirect call in do_call()";
 }
 
+TEST(AndersenOTFAATest, StructVtableDispatch) {
+  // Hand-rolled C vtable: const struct Ops { read, write }.
+  // ops->write(...) must resolve to myWrite only, not myRead.
+  // Without the struct-vtable path, field-insensitive analysis adds both.
+  auto IRDB = LLVMProjectIRDB::loadOrExit(
+      PathToLLFiles + "andersen_otf_struct_vtable_c_m2r_dbg.ll");
+
+  const auto *DispatchFn = IRDB.getFunctionDefinition("dispatch");
+  const auto *MyRead = IRDB.getFunctionDefinition("myRead");
+  const auto *MyWrite = IRDB.getFunctionDefinition("myWrite");
+  const auto *MainFn = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(MainFn, nullptr);
+  ASSERT_NE(DispatchFn, nullptr);
+  ASSERT_NE(MyRead, nullptr);
+  ASSERT_NE(MyWrite, nullptr);
+
+  auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get());
+
+  const llvm::CallBase *IndirectCS = nullptr;
+  for (const auto &I : llvm::instructions(DispatchFn)) {
+    const auto *CS = llvm::dyn_cast<llvm::CallBase>(&I);
+    if (!CS || CS->isDebugOrPseudoInst()) {
+      continue;
+    }
+    if (!llvm::isa<llvm::Function>(
+            CS->getCalledOperand()->stripPointerCastsAndAliases())) {
+      IndirectCS = CS;
+      break;
+    }
+  }
+  ASSERT_NE(IndirectCS, nullptr) << "No indirect call found in dispatch()";
+
+  const auto &Callees = Res.CG.getCalleesOfCallAt(IndirectCS);
+  EXPECT_TRUE(llvm::is_contained(Callees, MyWrite))
+      << "myWrite must be a callee of ops->write(...)";
+  EXPECT_FALSE(llvm::is_contained(Callees, MyRead))
+      << "myRead must not be a callee of ops->write(...) (field 1, not 0)";
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {
