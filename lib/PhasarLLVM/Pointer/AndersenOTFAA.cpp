@@ -22,6 +22,7 @@
 #include "phasar/Utils/LibrarySummary.h"
 #include "phasar/Utils/Soundness.h"
 #include "phasar/Utils/UnionFind.h"
+#include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -315,41 +316,18 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   // ---- Operand traversal ----------------------------------------------
 
   void forEachOpId(const llvm::Value *V, std::invocable<ValueId> auto Handler) {
-    V = V->stripPointerCastsAndAliases();
-    if (definitelyContainsNoPointer(V)) {
+    const llvm::Value *Stripped = V->stripPointerCastsAndAliases();
+    if (definitelyContainsNoPointer(Stripped)) {
       return;
     }
-
-    if (!llvm::isa<llvm::ConstantExpr>(V)) {
-      const ValueId VId = getOrInsertVar(PAGVariable(V));
-      if (const auto *GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
-        addGlobalPointee(GO, VId);
-      }
-      std::invoke(Handler, VId);
-      return;
-    }
-
-    // Walk ConstantExpr chains to find the underlying GlobalObject(s).
-    llvm::SmallDenseSet<const llvm::Value *> Seen = {V};
-    llvm::SmallVector<const llvm::User *> WL = {
-        llvm::cast<llvm::ConstantExpr>(V)};
-    do {
-      const auto *Curr = WL.pop_back_val();
-      for (const auto *Op : Curr->operand_values()) {
-        if (definitelyContainsNoPointer(Op) || !Seen.insert(Op).second) {
-          continue;
-        }
-        if (const auto *GObj = llvm::dyn_cast<llvm::GlobalObject>(Op)) {
-          const ValueId GId = getOrInsertVar(PAGVariable(GObj));
-          addGlobalPointee(GObj, GId);
-          std::invoke(Handler, GId);
-          continue;
-        }
-        if (const auto *User = llvm::dyn_cast<llvm::User>(Op)) {
-          WL.push_back(User);
-        }
-      }
-    } while (!WL.empty());
+    psr::forEachPointerOperand(
+        Stripped, [this, Handler = copyOrRef(Handler)](const llvm::Value *Op) {
+          const ValueId VId = getOrInsertVar(PAGVariable(Op));
+          if (const auto *GO = llvm::dyn_cast<llvm::GlobalObject>(Op)) {
+            addGlobalPointee(GO, VId);
+          }
+          std::invoke(Handler, VId);
+        });
   }
 
   // ---- Constraint insertion -------------------------------------------

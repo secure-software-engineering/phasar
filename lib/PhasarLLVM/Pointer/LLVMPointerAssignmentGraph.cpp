@@ -8,6 +8,7 @@
 #include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/MapUtils.h"
+#include "phasar/Utils/Utilities.h"
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/STLExtras.h"
@@ -35,7 +36,6 @@ std::string psr::to_string(PAGVariable Var) {
 }
 
 namespace {
-
 
 struct PAGMappedLibrarySummary {
   const library_summary::LLVMFunctionDataFlowFacts &Facts; // NOLINT
@@ -158,11 +158,10 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
   void initializeGlobal(GlobalInitCache &GCache, LLVMPBStrategyRef Strategy,
                         const llvm::GlobalVariable &Glob) {
     auto GlobObj = getVariable(&Glob, Strategy);
-    auto Stores = GCache.getOrCreate(
-        Glob.getInitializer(),
-        [this, Strategy](const llvm::Value *V) {
-          return getVariable(V, Strategy);
-        });
+    auto Stores = GCache.getOrCreate(Glob.getInitializer(),
+                                     [this, Strategy](const llvm::Value *V) {
+                                       return getVariable(V, Strategy);
+                                     });
 
     for (auto Src : Stores) {
       // NOTE: We don't consider this a POI for now; probably, that's fine
@@ -280,36 +279,8 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
 
   static void handleOperand(const llvm::Value *RawOp,
                             std::invocable<const llvm::Value *> auto Handler) {
-    RawOp = RawOp->stripPointerCastsAndAliases();
-    const auto *RawOpCExpr = llvm::dyn_cast<llvm::ConstantExpr>(RawOp);
-    if (!RawOpCExpr) [[likely]] {
-      // fast-path:
-      return (void)std::invoke(Handler, RawOp);
-    }
-
-    llvm::SmallDenseSet<const llvm::Value *> Seen = {RawOp};
-    llvm::SmallVector<const llvm::User *> WL = {RawOpCExpr};
-    do {
-      const auto *Curr = WL.pop_back_val();
-      for (const auto *Op : Curr->operand_values()) {
-        if (definitelyContainsNoPointer(Op) || !Seen.insert(Op).second) {
-          continue;
-        }
-
-        if (const auto *GObj = llvm::dyn_cast<llvm::GlobalObject>(Op)) {
-          std::invoke(Handler, GObj);
-          continue;
-        }
-
-        // TODO: Handle constant GEP!
-
-        if (const auto *OpUser = llvm::dyn_cast<llvm::User>(Op)) {
-          WL.push_back(OpUser);
-          continue;
-        }
-      }
-
-    } while (!WL.empty());
+    // TODO: Handle constant GEP!
+    psr::forEachPointerOperand(RawOp, copyOrRef(Handler));
   }
 
   void handleStore(LLVMPBStrategyRef Strategy, const llvm::StoreInst *Store) {
