@@ -2,6 +2,7 @@
 
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
+#include "phasar/PhasarLLVM/Pointer/MemSSAUtils.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Pointer/PointerAssignmentGraph.h"
@@ -12,15 +13,11 @@
 #include "phasar/Utils/ValueCompressor.h"
 
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/MemorySSA.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
-#include "llvm/IR/Dominators.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Operator.h"
@@ -75,60 +72,6 @@ struct PAGMappedLibrarySummary {
     return true;
   }
 };
-
-// Bundle of per-function analyses for the built-in MemorySSA provider.
-// Members are declared in initialization order: each field depends only on
-// the ones before it.  MSSA is constructed last in the body (after
-// AA.addAAResult) because MemorySSA is neither movable nor copyable.
-struct MemSSABundle {
-  llvm::AssumptionCache AC;
-  llvm::DominatorTree DT;
-  llvm::BasicAAResult BAA;
-  llvm::AAResults AA;
-  llvm::MemorySSA MSSA;
-
-  explicit MemSSABundle(llvm::Function &F, const llvm::TargetLibraryInfo *TLI)
-      : AC(F), DT(F),
-        BAA(F.getParent()->getDataLayout(), F, assertNotNull(TLI), AC, &DT),
-        AA([](const auto *TLI, auto *BAA) {
-          llvm::AAResults AA(*TLI);
-          AA.addAAResult(*BAA);
-          return AA;
-        }(TLI, &BAA)),
-        MSSA(F, &AA, &DT) {}
-};
-
-// returns HasLiveOnEntry
-static bool
-collectReachingDefs(llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
-                    llvm::SmallPtrSetImpl<const llvm::StoreInst *> &Defs,
-                    llvm::SmallPtrSetImpl<llvm::MemoryAccess *> &Visited) {
-  if (!Visited.insert(MA).second) {
-    return false;
-  }
-  if (MSSA.isLiveOnEntryDef(MA)) {
-    return true;
-  }
-  if (auto *Def = llvm::dyn_cast<llvm::MemoryDef>(MA)) {
-    // We only care about stores for now
-    if (const auto *St =
-            llvm::dyn_cast<llvm::StoreInst>(Def->getMemoryInst())) {
-      Defs.insert(St);
-      return false;
-    }
-    return true;
-  }
-  if (auto *Phi = llvm::dyn_cast<llvm::MemoryPhi>(MA)) {
-    for (const auto &Inc : Phi->incoming_values()) {
-      bool LOE = collectReachingDefs(llvm::cast<llvm::MemoryAccess>(Inc.get()),
-                                     MSSA, Defs, Visited);
-      if (LOE) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 } // namespace
 
@@ -384,33 +327,33 @@ struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
     }
 
     if (CurrentMemSSA) {
-      if (auto *Access = CurrentMemSSA->getMemoryAccess(Ld)) {
-        auto *Clobber =
-            CurrentMemSSA->getWalker()->getClobberingMemoryAccess(Access);
-        llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
-        llvm::SmallPtrSet<llvm::MemoryAccess *, 8> Visited;
-        const bool HasLiveOnEntry =
-            collectReachingDefs(Clobber, *CurrentMemSSA, Defs, Visited);
-
-        if (!HasLiveOnEntry) {
-
-          if (Defs.size() == 1) {
-            const auto *ValueOp = (*Defs.begin())->getValueOperand();
-            if (!llvm::isa<llvm::ConstantExpr>(ValueOp)) {
-              VC.addAlias(Ld, getVariable(ValueOp, Strategy));
-              return;
-            }
+      llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
+      const bool HasLiveOnEntry = collectReachingDefs(Ld, *CurrentMemSSA, Defs);
+      if (!HasLiveOnEntry) {
+        if (Defs.size() == 1) {
+          const auto *ValueOp = (*Defs.begin())->getValueOperand();
+          if (!llvm::isa<llvm::ConstantExpr>(ValueOp) &&
+              !definitelyContainsNoPointer(ValueOp)) {
+            VC.addAlias(Ld, getVariable(ValueOp, Strategy));
+            return;
           }
+        }
 
-          auto LoadObj = getVariable(Ld, Strategy);
-          for (const auto *Def : Defs) {
-            handleOperand(Def->getValueOperand(), [&](const auto *ValOp) {
-              Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj,
-                                 Assign{}, Ld);
-            });
-          }
+        auto LoadObj = getVariable(Ld, Strategy);
+        bool AddedAny = false;
+        for (const auto *Def : Defs) {
+          handleOperand(Def->getValueOperand(), [&](const auto *ValOp) {
+            Strategy.onAddEdge(getVariable(ValOp, Strategy), LoadObj, Assign{},
+                               Ld);
+            AddedAny = true;
+          });
+        }
+
+        if (AddedAny) {
           return;
         }
+        // All reaching stores have non-pointer value operands:
+        // fall through to addEdge.
       }
     }
 

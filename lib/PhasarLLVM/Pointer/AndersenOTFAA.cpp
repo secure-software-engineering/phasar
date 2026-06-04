@@ -13,6 +13,7 @@
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
+#include "phasar/PhasarLLVM/Pointer/MemSSAUtils.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
@@ -29,7 +30,11 @@
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Analysis/MemorySSA.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalAlias.h"
@@ -145,6 +150,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   ValueCompressor<AndersenVar> LocalVC{};   // internal variable+object nodes
   Soundness SoundnessFlag;
   library_summary::LLVMFunctionDataFlowFacts LibFacts;
+
+  llvm::TargetLibraryInfoWrapperPass TLA{};
+  std::optional<MemSSABundle> MSSABundle{};
+  llvm::MemorySSA *CurrentMemSSA = nullptr;
 
   llvm::SmallVector<const llvm::Function *, 8> FunctionWorklist;
   llvm::DenseSet<const llvm::Function *> Queued; // ever pushed to worklist
@@ -506,6 +515,8 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   }
 
   void processFunction(const llvm::Function *F) {
+    MSSABundle.emplace(const_cast<llvm::Function &>(*F), &TLA.getTLI(*F));
+    CurrentMemSSA = &MSSABundle->MSSA;
     for (const auto &Arg : F->args()) {
       if (!definitelyContainsNoPointer(&Arg)) {
         (void)getOrInsertVar(PAGVariable(&Arg));
@@ -586,6 +597,35 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   void handleLoad(const llvm::LoadInst *L) {
     if (definitelyContainsNoPointer(L)) {
       return;
+    }
+    if (CurrentMemSSA) {
+      llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
+      const bool HasLiveOnEntry = collectReachingDefs(L, *CurrentMemSSA, Defs);
+      if (!HasLiveOnEntry) {
+        if (Defs.size() == 1) {
+          const auto *ValueOp = (*Defs.begin())->getValueOperand();
+          if (!llvm::isa<llvm::ConstantExpr>(ValueOp) &&
+              !definitelyContainsNoPointer(ValueOp)) {
+            addPtrAlias(L, ValueOp);
+            return;
+          }
+          // Non-pointer or ConstantExpr store value: fall through to addLoad.
+        } else {
+          const ValueId DstId = getOrInsertVar(PAGVariable(L));
+          bool AnyEdge = false;
+          for (const auto *Def : Defs) {
+            forEachOpId(Def->getValueOperand(), [&](ValueId SrcId) {
+              addAssignEdge(SrcId, DstId);
+              AnyEdge = true;
+            });
+          }
+          if (AnyEdge) {
+            return;
+          }
+          // All reaching stores have non-pointer value operands:
+          // fall through to addLoad.
+        }
+      }
     }
     const ValueId DstId = getOrInsertVar(PAGVariable(L));
     forEachOpId(L->getPointerOperand(),
