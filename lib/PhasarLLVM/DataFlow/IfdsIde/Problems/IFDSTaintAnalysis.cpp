@@ -422,7 +422,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
   // $sSS1poiyS2S_SStFZ is Swift's String append method
   // if concat a tainted string with something else the
   // result should be tainted
-  if (DestFun->getName().equals("$sSS1poiyS2S_SStFZ")) {
+  if (DestFun->getName() == "$sSS1poiyS2S_SStFZ") {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
     return generateFlowIf(CallSite, [CS](d_t Source) {

@@ -385,7 +385,7 @@ void PAMM::exportMeasuredData(
 
   llvm::SmallString<128> Buf;
   OutputPath.toStringRef(Buf);
-  if (!Buf.endswith(".json")) {
+  if (!llvm::StringRef(Buf).ends_with(".json")) {
     Buf.append(".json");
   }
 

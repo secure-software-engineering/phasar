@@ -160,7 +160,7 @@ public:
     if (auto It = ToInt.find(&Elem); It != ToInt.end()) {
       return {It->second, false};
     }
-    auto Ret = Id(FromInt.size());
+    auto Ret = IdT(FromInt.size());
     auto *Ins = &FromInt.emplace_back(std::move(Elem));
     ToInt[Ins] = Ret;
     return {Ret, true};

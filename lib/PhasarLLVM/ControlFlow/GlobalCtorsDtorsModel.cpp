@@ -379,10 +379,9 @@ bool GlobalCtorsDtorsModel::isPhasarGenerated(
     const llvm::Function &F) noexcept {
   if (F.hasName()) {
     llvm::StringRef FunctionName = F.getName();
-    return llvm::StringSwitch<bool>(FunctionName)
-        .Cases(ModelName, DtorModelName, DtorsCallerName, UserEntrySelectorName,
-               true)
-        .Default(false);
+    const auto Cases = {ModelName, DtorModelName, DtorsCallerName,
+                        UserEntrySelectorName};
+    return llvm::is_contained(Cases, FunctionName);
   }
 
   return false;

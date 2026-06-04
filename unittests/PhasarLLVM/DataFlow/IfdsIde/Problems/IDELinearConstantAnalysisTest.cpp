@@ -11,6 +11,7 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+#include <source_location>
 #include <tuple>
 
 using namespace psr;
@@ -59,8 +60,10 @@ protected:
    * @param groundTruth results to compare against
    * @param solver provides the results
    */
-  static void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
-                             std::set<LCACompactResult_t> &GroundTruth) {
+  static void compareResults(
+      IDELinearConstantAnalysis::lca_results_t &Results,
+      std::set<LCACompactResult_t> &GroundTruth,
+      std::source_location SrcLoc = std::source_location::current()) {
     std::set<LCACompactResult_t> RelevantResults;
     for (auto G : GroundTruth) {
       std::string FName = std::get<0>(G);
@@ -74,7 +77,9 @@ protected:
         }
       }
     }
-    EXPECT_EQ(RelevantResults, GroundTruth);
+    EXPECT_EQ(RelevantResults, GroundTruth)
+        << "Called from " << SrcLoc.file_name() << ":" << SrcLoc.line() << ":"
+        << SrcLoc.column();
   }
 }; // Test Fixture
 
@@ -433,8 +438,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_08) {
   GroundTruth.emplace("main", 6, "i", 10);
   GroundTruth.emplace("main", 7, "i", 10);
   GroundTruth.emplace("main", 7, "j", 1);
+#if LLVM_VERSION_MAJOR <= 18
+  // With >18 there is no llvm::Instruction for line 8
   GroundTruth.emplace("main", 8, "i", 10);
   GroundTruth.emplace("main", 8, "j", 1);
+#endif
   GroundTruth.emplace("main", 9, "i", 10);
   GroundTruth.emplace("main", 9, "j", 1);
   GroundTruth.emplace("main", 10, "i", 10);

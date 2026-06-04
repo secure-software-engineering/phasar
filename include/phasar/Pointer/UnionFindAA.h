@@ -96,10 +96,13 @@ struct UnionFindAACombinator
       : pag::PBStrategyCombinator<FirstT, SecondT>{PSR_FWD(First),
                                                    PSR_FWD(Second)} {}
 
-  [[nodiscard]] UnionFindAAResult auto consumeAAResults(size_t NumVars) && {
+  template <std::predicate<ValueId> FilterFn = TrueFn>
+  [[nodiscard]] UnionFindAAResult auto
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
     return UnionFindAAResultIntersection{
-        std::move(this->First).consumeAAResults(NumVars),
-        std::move(this->Second).consumeAAResults(NumVars),
+        std::move(this->First).consumeAAResults(NumVars, ShouldInclude),
+        std::move(this->Second)
+            .consumeAAResults(NumVars, std::move(ShouldInclude)),
     };
   }
 };
@@ -275,6 +278,13 @@ struct BasicUnionFindAA {
   using f_t = typename AnalysisDomainT::f_t;
   using db_t = typename AnalysisDomainT::db_t;
 
+  /// Joins \p From and \p To unconditionally, ignoring the edge type.
+  /// This is intentional: a flow-insensitive union-find without an indirection
+  /// dimension must merge across Store/Load boundaries to stay sound.  The
+  /// resulting imprecision (pointers merged with pointees) is recovered when
+  /// this analysis is intersected with \c IndirectionSensUnionFindAA via
+  /// \c UnionFindAACombinator.  Do not use \c BasicUnionFindAA standalone
+  /// where pointer/pointee distinction matters.
   void onAddEdge(ObjectId From, ObjectId To, pag::Edge /*E*/,
                  Nullable<n_t> /*AtInstruction*/) {
     AliasSets.join(From, To);
@@ -284,9 +294,11 @@ struct BasicUnionFindAA {
     AliasSets.grow(size_t(VId) + 1);
   }
 
-  template <std::invocable<ValueId> Var2ObjFn = IdentityFn>
+  template <std::invocable<ValueId> Var2ObjFn = IdentityFn,
+            std::predicate<ValueId> FilterFn = TrueFn>
   [[nodiscard]] BasicUnionFindAAResult
-  consumeAAResults(size_t NumVars, Var2ObjFn Var2Obj = {}) && {
+  consumeAAResults(size_t NumVars, Var2ObjFn Var2Obj = {},
+                   FilterFn ShouldInclude = {}) && {
     auto Equiv = std::move(AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
@@ -298,13 +310,14 @@ struct BasicUnionFindAA {
     Result.Var2Rep.resize(NumVars, InvalidRep);
 
     for (auto VId : iota<ValueId>(NumVars)) {
-      // XXX: We should skip only-ret val-ids
       auto ObjId = std::invoke(Var2Obj, VId);
       auto Rep = Equiv[ObjId];
       assert(Result.Var2Rep[VId] == InvalidRep &&
              "Mapping from ValueId to AliasSet-Id must be injective!");
       Result.Var2Rep[VId] = Rep;
-      Result.BackwardView[Rep].insert(VId);
+      if (std::invoke(ShouldInclude, VId)) {
+        Result.BackwardView[Rep].insert(VId);
+      }
     }
 
     return Result;
@@ -397,8 +410,9 @@ public:
   }
 
   /// Retrieve the analysis results after buildPAG() has returned.
+  template <std::predicate<ValueId> FilterFn = TrueFn>
   [[nodiscard]] CallingContextSensUnionFindAAResult
-  consumeAAResults(size_t NumVars) && {
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
     auto Equiv = std::move(Base.AliasSets)
                      .template compress<BasicUnionFindAAResult::ObjectRepId>();
 
@@ -407,11 +421,14 @@ public:
     Result.Var2Rep.resize(NumVars);
 
     for (const auto &[ValId, Objects] : Var2Obj.enumerate()) {
-      // XXX: We should skip only-ret val-ids
-
+      const bool Include = std::invoke(ShouldInclude, ValId);
       for (const auto &[_, Obj] : Objects) {
         auto Rep = Equiv[Obj];
-        if (Result.BackwardView[Rep].tryInsert(ValId)) {
+        if (Include) {
+          if (Result.BackwardView[Rep].tryInsert(ValId)) {
+            Result.Var2Rep[ValId].push_back(Rep);
+          }
+        } else if (!llvm::is_contained(Result.Var2Rep[ValId], Rep)) {
           Result.Var2Rep[ValId].push_back(Rep);
         }
       }
@@ -536,19 +553,27 @@ public:
     Var2Obj.emplace_back(generate_tag, [Obj](IndDepth Depth) {
       return IndObjectId(Obj + size_t(Depth));
     });
-    // XXX: For some values, we can already see that depth>=2 does not make
-    // sense, so we could exit the below loop early
+    // Always allocate K depth slots per value. Lazy/reduced allocation would
+    // require TypedArray to become dynamically-sized, which is a larger
+    // structural change. A two-pass variant that counts max observed depth
+    // first would be an opt-in improvement but is not needed for correctness.
     for (auto Depth : iota<IndDepth>(K)) {
       Obj2Var.emplace_back(VId, Depth);
     }
   }
 
   /// Retrieve the analysis results after buildPAG() has returned.
-  [[nodiscard]] BasicUnionFindAAResult consumeAAResults(size_t NumVars) && {
-    return std::move(Base).consumeAAResults(NumVars, [this](ValueId VId) {
-      // When presenting the results, we only care about the values at depth 0
-      return Var2Obj[VId][IndDepth{}];
-    });
+  template <std::predicate<ValueId> FilterFn = TrueFn>
+  [[nodiscard]] BasicUnionFindAAResult
+  consumeAAResults(size_t NumVars, FilterFn ShouldInclude = {}) && {
+    return std::move(Base).consumeAAResults(
+        NumVars,
+        [this](ValueId VId) {
+          // When presenting the results, we only care about the values at depth
+          // 0
+          return Var2Obj[VId][IndDepth{}];
+        },
+        std::move(ShouldInclude));
   }
 
 private:
