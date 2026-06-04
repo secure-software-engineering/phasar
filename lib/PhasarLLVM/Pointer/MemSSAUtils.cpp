@@ -15,7 +15,12 @@ using namespace psr;
 
 MemSSABundle::MemSSABundle(llvm::Function &F,
                            const llvm::TargetLibraryInfo *TLI)
-    : AC(F), DT(F), TBAA(), SNA(),
+    : AC(F), DT(F), TBAA(
+#if LLVM_VERSION_MAJOR > 19
+                        /*UsingTypeSanitizer=*/false
+#endif
+                        ),
+      SNA(),
       BAA(F.getParent()->getDataLayout(), F, assertNotNull(TLI), AC, &DT),
       AA([](const auto *TLI, auto *TBAA, auto *SNA, auto *BAA) {
         llvm::AAResults AA(*TLI);
@@ -24,7 +29,8 @@ MemSSABundle::MemSSABundle(llvm::Function &F,
         AA.addAAResult(*BAA);
         return AA;
       }(TLI, &TBAA, &SNA, &BAA)),
-      MSSA(F, &AA, &DT) {}
+      MSSA(F, &AA, &DT) {
+}
 
 bool psr::collectReachingDefs(
     llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
