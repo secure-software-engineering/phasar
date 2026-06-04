@@ -15,13 +15,15 @@ using namespace psr;
 
 MemSSABundle::MemSSABundle(llvm::Function &F,
                            const llvm::TargetLibraryInfo *TLI)
-    : AC(F), DT(F),
+    : AC(F), DT(F), TBAA(), SNA(),
       BAA(F.getParent()->getDataLayout(), F, assertNotNull(TLI), AC, &DT),
-      AA([](const auto *TLI, auto *BAA) {
+      AA([](const auto *TLI, auto *TBAA, auto *SNA, auto *BAA) {
         llvm::AAResults AA(*TLI);
+        AA.addAAResult(*TBAA);
+        AA.addAAResult(*SNA);
         AA.addAAResult(*BAA);
         return AA;
-      }(TLI, &BAA)),
+      }(TLI, &TBAA, &SNA, &BAA)),
       MSSA(F, &AA, &DT) {}
 
 bool psr::collectReachingDefs(

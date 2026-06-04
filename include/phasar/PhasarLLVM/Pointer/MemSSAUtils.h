@@ -14,7 +14,9 @@
 #include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/MemorySSA.h"
+#include "llvm/Analysis/ScopedNoAliasAA.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/Analysis/TypeBasedAliasAnalysis.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Instructions.h"
 
@@ -26,6 +28,8 @@ namespace psr {
 struct MemSSABundle {
   llvm::AssumptionCache AC;
   llvm::DominatorTree DT;
+  llvm::TypeBasedAAResult TBAA;
+  llvm::ScopedNoAliasAAResult SNA;
   llvm::BasicAAResult BAA;
   llvm::AAResults AA;
   llvm::MemorySSA MSSA;
