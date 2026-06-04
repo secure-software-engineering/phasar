@@ -26,6 +26,7 @@ using psr::getEntryFunctionsMut;
 using psr::getNonPureVirtualVFTEntry;
 using psr::getReceiverType;
 using psr::getReceiverTypeName;
+using psr::getStructVCallInfo;
 using psr::getVFTIndex;
 using psr::GlobalCtorsDtorsModel;
 using psr::ICFGBase;
