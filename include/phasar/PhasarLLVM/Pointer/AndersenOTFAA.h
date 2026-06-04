@@ -37,11 +37,12 @@ class LLVMProjectIRDB;
 /// \c LLVMUnionFindAliasIterator.
 struct AndersenOTFResult {
   TypedVector<ValueId, RawAliasSet<ValueId>> AliasSets;
-  size_t NumVars{};
   LLVMBasedCallGraph CG;
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
-  [[nodiscard]] constexpr size_t size() const noexcept { return NumVars; }
+  [[nodiscard]] constexpr size_t size() const noexcept {
+    return AliasSets.size();
+  }
 
   [[nodiscard]] RawAliasSet<ValueId>
   getRawAliasSet(ValueId Var) const noexcept {
@@ -95,11 +96,11 @@ private:
 
 /// Runs the Andersen OTF fixpoint and returns the raw alias-analysis result
 /// (no LLVM-value wrapping).  If \p VC is null, a fresh one is allocated.
-[[nodiscard]] AndersenOTFResult computeAndersenOTFRaw(
-    const LLVMProjectIRDB &IRDB,
-    llvm::ArrayRef<const llvm::Function *> EntryPoints,
-    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-    Soundness S = Soundness::Soundy);
+[[nodiscard]] AndersenOTFResult
+computeAndersenOTFRaw(const LLVMProjectIRDB &IRDB,
+                      llvm::ArrayRef<const llvm::Function *> EntryPoints,
+                      MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
+                      Soundness S = Soundness::Soundy);
 
 /// Runs the Andersen OTF fixpoint and returns an \c LLVMUnionFindAliasIterator
 /// that implements \c IsLLVMAliasIterator.

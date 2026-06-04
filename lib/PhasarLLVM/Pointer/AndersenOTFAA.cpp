@@ -250,18 +250,9 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     // Merge pts sets.
-    {
-      const auto OldRepPts = Nodes[Rep].PtsSet;
-      const bool PtsGrew = Nodes[Rep].PtsSet.tryMergeWith(NRPts);
-      if (PtsGrew) {
-        // Fire Rep's pre-existing load/store/memcopy constraints for pointees
-        // absorbed from NonRep that Rep didn't previously have.
-        const auto Diff = NRPts - OldRepPts;
-        Nodes[Rep].PendingPts |= Diff;
-        PropWorklist.push_back(Rep);
-        Diff.foreach ([&](ValueId NewObj) { onNewPointee(Rep, NewObj); });
-      }
-    }
+    Nodes[Rep].PtsSet.mergeWithDiff(
+        NRPts, [&](ValueId NewObj) { onNewPointee(Rep, NewObj); },
+        Nodes[Rep].PendingPts);
 
     // Snapshot Rep's pts (after merge) for retroactive constraint firing.
     const auto RepPts = Nodes[Rep].PtsSet;
@@ -470,30 +461,10 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           continue;
         }
 
-        const bool AddedAny = [&] {
-          bool AddedAny = false;
-          constexpr size_t DiffThreshold = 16;
-          // operator- is expensive, but it is definitely a lot faster than the
-          // foreach loop if UPending is large
-          if (UPending.size() > DiffThreshold) {
-            auto Diff = UPending - Nodes[V].PtsSet;
-            AddedAny = !Diff.empty();
-            if (AddedAny) {
-              Nodes[V].PtsSet |= Diff;
-              Nodes[V].PendingPts |= Diff;
-              Diff.foreach ([this, V](ValueId Obj) { onNewPointee(V, Obj); });
-            }
-          } else {
-            UPending.foreach ([&](ValueId Obj) {
-              if (Nodes[V].PtsSet.tryInsert(Obj)) {
-                Nodes[V].PendingPts.insert(Obj);
-                onNewPointee(V, Obj);
-                AddedAny = true;
-              }
-            });
-          }
-          return AddedAny;
-        }();
+        const bool AddedAny = Nodes[V].PtsSet.mergeWithDiff(
+            UPending, [this, V](ValueId Obj) { onNewPointee(V, Obj); },
+            Nodes[V].PendingPts);
+
         if (!AddedAny) {
           // LCD: V has all of U's pending wave, so V.PtsSet ⊇ U.PtsSet.
           if (Nodes[V].AssignDstSet.contains(U)) {
@@ -1052,7 +1023,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         continue;
       }
       Nodes[RepId].PtsSet.foreach ([&](ValueId Obj) {
-        if (size_t(Obj) < NumLocal) {
+        if (Obj2Reps.inbounds(Obj)) {
           Obj2Reps[Obj].insert(RepId);
           return true;
         }
@@ -1067,11 +1038,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     TypedVector<ValueId, RawAliasSet<ValueId>> ObjToAliasExtVIds(NumLocal);
     {
       llvm::SmallVector<uint32_t, 64> Buf;
-      for (auto Obj : iota<ValueId>(NumLocal)) {
-        if (Obj2Reps[Obj].empty()) {
+      for (const auto &[Obj, Reps] : Obj2Reps.enumerate()) {
+        if (Reps.empty()) {
           continue;
         }
-        Obj2Reps[Obj].foreach ([&](ValueId AliasRepId) {
+        Reps.foreach ([&](ValueId AliasRepId) {
           for (auto EId : RepToExtVIds[AliasRepId]) {
             Buf.push_back(uint32_t(EId));
           }
@@ -1082,13 +1053,11 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       }
     }
 
-    AndersenOTFResult Result;
-    Result.NumVars = ExternalVC.size();
-    Result.AliasSets.resize(Result.NumVars);
+    AndersenOTFResult Result{};
+    Result.AliasSets.resize(ExternalVC.size());
 
-    for (auto RepId : iota<ValueId>(NumLocal)) {
-      const auto &MyExtVIds = RepToExtVIds[RepId];
-      if (MyExtVIds.empty()) {
+    for (const auto &[RepId, ExtVIds] : RepToExtVIds.enumerate()) {
+      if (ExtVIds.empty()) {
         continue;
       }
       if (!Nodes.inbounds(RepId)) {
@@ -1107,7 +1076,7 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
       });
 
       // Broadcast to every external ID mapped to this representative.
-      for (auto ExtVId : MyExtVIds) {
+      for (auto ExtVId : ExtVIds) {
         Result.AliasSets[ExtVId] |= AliasExtVIds;
       }
     }

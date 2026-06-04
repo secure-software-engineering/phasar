@@ -14,8 +14,8 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/InstIterator.h"
-#include "llvm/IR/Instruction.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "SrcCodeLocationEntry.h"
@@ -71,11 +71,7 @@ void dumpAnalysisState(const ValueCompressor<PAGVariable> &Compressor,
   }
   llvm::errs() << "}\n";
   llvm::errs() << "AliasSets: {\n";
-  for (auto VId : iota<ValueId>(Results.NumVars)) {
-    if (!Results.AliasSets.inbounds(VId)) {
-      continue;
-    }
-
+  for (const auto &[VId, Aliases] : Results.AliasSets.enumerate()) {
     bool First = true;
     for (const auto &Var : Compressor.id2vars(VId)) {
       llvm::errs() << "  " << to_string(Var);
@@ -88,13 +84,13 @@ void dumpAnalysisState(const ValueCompressor<PAGVariable> &Compressor,
         continue;
       }
 
-      if (Results.AliasSets[VId].empty()) {
+      if (Aliases.empty()) {
         llvm::errs() << " aliases: EMPTY\n";
         continue;
       }
 
       llvm::errs() << " aliases: {\n";
-      Results.AliasSets[VId].foreach ([&](ValueId AId) {
+      Aliases.foreach ([&](ValueId AId) {
         llvm::errs() << "    " << stringifyVal(Compressor, AId) << '\n';
       });
       llvm::errs() << "  }\n";
@@ -463,20 +459,26 @@ TEST(AndersenOTFAATest, RecursionTwoObjectsMerge) {
   // k and l alias the chain (via their objects) but not each other.
   const TSL Ptr = TSL(ArgInFun{.Idx = 0, .InFunction = "selfRecursion"});
   const TSL Ret = TSL(RetVal{.InFunction = "selfRecursion"});
-  const TSL CallX = TSL(LineColFunOp{.Line = 15, .Col = 0,
+  const TSL CallX = TSL(LineColFunOp{.Line = 15,
+                                     .Col = 0,
                                      .InFunction = "main",
                                      .OpCode = llvm::Instruction::Call});
-  const TSL CallY = TSL(LineColFunOp{.Line = 16, .Col = 0,
+  const TSL CallY = TSL(LineColFunOp{.Line = 16,
+                                     .Col = 0,
                                      .InFunction = "main",
                                      .OpCode = llvm::Instruction::Call});
-  const TSL KAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 15, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL LAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 16, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL KAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 15,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 16,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   const std::vector<TSL> Chain = {Ptr, Ret, CallX, CallY};
   GTMap ExpectedResults;
   std::vector<TSL> ChainAndBoth = Chain;
@@ -502,25 +504,32 @@ TEST(AndersenOTFAATest, MutualRecursionTwoObjects) {
   const TSL BackPtr = TSL(ArgInFun{.Idx = 0, .InFunction = "Back"});
   const TSL ForthRet = TSL(RetVal{.InFunction = "Forth"});
   const TSL BackRet = TSL(RetVal{.InFunction = "Back"});
-  // xx1=Back(&k) line 27, xx2=Back(&k) line 29, yy1=Back(&l) line 31, yy2=Back(&l) line 33
+  // xx1=Back(&k) line 27, xx2=Back(&k) line 29, yy1=Back(&l) line 31,
+  // yy2=Back(&l) line 33
   const auto MkCall = [](uint32_t Line) {
-    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call});
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
   };
   const TSL XX1 = MkCall(27);
   const TSL XX2 = MkCall(29);
   const TSL YY1 = MkCall(31);
   const TSL YY2 = MkCall(33);
-  const TSL KAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 27, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL LAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 31, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL KAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 27,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 31,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   const std::vector<TSL> Chain = {ForthPtr, BackPtr, ForthRet, BackRet,
-                                   XX1, XX2, YY1, YY2};
+                                  XX1,      XX2,     YY1,      YY2};
   GTMap ExpectedResults;
   std::vector<TSL> ChainAndBoth = Chain;
   ChainAndBoth.push_back(KAlloca);
@@ -547,23 +556,28 @@ TEST(AndersenOTFAATest, ThreeWayMutualRecursion) {
   const TSL BackRet = TSL(RetVal{.InFunction = "Back"});
   const TSL StopRet = TSL(RetVal{.InFunction = "Stop"});
   // x=Back(&k) line 36, y=Forth(&l) line 37
-  const TSL CallX = TSL(LineColFunOp{.Line = 36, .Col = 0,
+  const TSL CallX = TSL(LineColFunOp{.Line = 36,
+                                     .Col = 0,
                                      .InFunction = "main",
                                      .OpCode = llvm::Instruction::Call});
-  const TSL CallY = TSL(LineColFunOp{.Line = 37, .Col = 0,
+  const TSL CallY = TSL(LineColFunOp{.Line = 37,
+                                     .Col = 0,
                                      .InFunction = "main",
                                      .OpCode = llvm::Instruction::Call});
-  const TSL KAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 36, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL LAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 37, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const std::vector<TSL> Chain = {ForthPtr, BackPtr, StopPtr,
-                                   ForthRet, BackRet, StopRet,
-                                   CallX, CallY};
+  const TSL KAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 36,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 37,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {ForthPtr, BackPtr, StopPtr, ForthRet,
+                                  BackRet,  StopRet, CallX,   CallY};
   GTMap ExpectedResults;
   std::vector<TSL> ChainAndBoth = Chain;
   ChainAndBoth.push_back(KAlloca);
@@ -589,18 +603,26 @@ TEST(AndersenOTFAATest, ThreeArgReturnQContextInsensitive) {
   const TSL ArgR = TSL(ArgInFun{.Idx = 2, .InFunction = "argretq"});
   const TSL Ret = TSL(RetVal{.InFunction = "argretq"});
   // xx1=argretq(&x,&x,&x) line 8, yy1=argretq(&y,&y,&y) line 9
-  const TSL XX1 = TSL(LineColFunOp{.Line = 8, .Col = 0, .InFunction = "main",
-                                    .OpCode = llvm::Instruction::Call});
-  const TSL YY1 = TSL(LineColFunOp{.Line = 9, .Col = 0, .InFunction = "main",
-                                    .OpCode = llvm::Instruction::Call});
-  const TSL XAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 8, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL YAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 9, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL XX1 = TSL(LineColFunOp{.Line = 8,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL YY1 = TSL(LineColFunOp{.Line = 9,
+                                   .Col = 0,
+                                   .InFunction = "main",
+                                   .OpCode = llvm::Instruction::Call});
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 8,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 9,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   const std::vector<TSL> Chain = {ArgP, ArgQ, ArgR, Ret, XX1, YY1};
   GTMap ExpectedResults;
   std::vector<TSL> ChainAndBoth = Chain;
@@ -639,8 +661,8 @@ TEST(AndersenOTFAATest, FuncPtrCallbackThreeWayMerge) {
 
 TEST(AndersenOTFAATest, FourLevelChainTwoObjects) {
   // context_05_1: 4-level identity chain (id4→id3→id2→id1), called 4 times
-  // with &x and &y.  All params/rets and call sites merge (context-insensitive).
-  // x and y allocas alias the chain but not each other.
+  // with &x and &y.  All params/rets and call sites merge
+  // (context-insensitive). x and y allocas alias the chain but not each other.
   const auto MkArg = [](llvm::StringRef Fn) {
     return TSL(ArgInFun{.Idx = 0, .InFunction = Fn});
   };
@@ -648,23 +670,29 @@ TEST(AndersenOTFAATest, FourLevelChainTwoObjects) {
     return TSL(RetVal{.InFunction = Fn});
   };
   const auto MkCall = [](uint32_t Line) {
-    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call});
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
   };
   const std::vector<TSL> Chain = {
       MkArg("id1"), MkArg("id2"), MkArg("id3"), MkArg("id4"),
       MkRet("id1"), MkRet("id2"), MkRet("id3"), MkRet("id4"),
-      MkCall(11), MkCall(12), MkCall(13), MkCall(14),
+      MkCall(11),   MkCall(12),   MkCall(13),   MkCall(14),
   };
   // arg 0 of call at line 11 is &x; arg 0 of call at line 13 is &y.
-  const TSL XAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 11, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL YAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 13, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 11,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 13,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   GTMap ExpectedResults;
   auto ChainAndBoth = Chain;
   ChainAndBoth.push_back(XAlloca);
@@ -691,22 +719,27 @@ TEST(AndersenOTFAATest, FourLevelChainVariantTwoObjects) {
     return TSL(RetVal{.InFunction = Fn});
   };
   const auto MkCall = [](uint32_t Line) {
-    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call});
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
   };
   const std::vector<TSL> Chain = {
-      MkArg("buzz"), MkArg("baz"), MkArg("bar"), MkArg("foo"),
-      MkRet("buzz"), MkRet("baz"), MkRet("bar"), MkRet("foo"),
-      MkCall(11), MkCall(12),
+      MkArg("buzz"), MkArg("baz"), MkArg("bar"), MkArg("foo"), MkRet("buzz"),
+      MkRet("baz"),  MkRet("bar"), MkRet("foo"), MkCall(11),   MkCall(12),
   };
-  const TSL XAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 11, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL YAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 12, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 11,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 12,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   GTMap ExpectedResults;
   auto ChainAndBoth = Chain;
   ChainAndBoth.push_back(XAlloca);
@@ -730,19 +763,25 @@ TEST(AndersenOTFAATest, RecursionFourCallSites) {
   const TSL Ptr = TSL(ArgInFun{.Idx = 0, .InFunction = "selfRecursion"});
   const TSL Ret = TSL(RetVal{.InFunction = "selfRecursion"});
   const auto MkCall = [](uint32_t Line) {
-    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call});
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
   };
-  const std::vector<TSL> Chain = {Ptr, Ret, MkCall(15), MkCall(17),
-                                   MkCall(18), MkCall(20)};
-  const TSL KAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 15, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL LAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 18, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {Ptr,        Ret,        MkCall(15),
+                                  MkCall(17), MkCall(18), MkCall(20)};
+  const TSL KAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 15,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 18,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   GTMap ExpectedResults;
   auto ChainAndBoth = Chain;
   ChainAndBoth.push_back(KAlloca);
@@ -770,21 +809,26 @@ TEST(AndersenOTFAATest, ThreeWayMutualRecursionFourCallSites) {
   const TSL BackRet = TSL(RetVal{.InFunction = "Back"});
   const TSL StopRet = TSL(RetVal{.InFunction = "Stop"});
   const auto MkCall = [](uint32_t Line) {
-    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call});
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
   };
-  const std::vector<TSL> Chain = {ForthPtr, BackPtr,  StopPtr,
-                                   ForthRet, BackRet,  StopRet,
-                                   MkCall(36), MkCall(37),
-                                   MkCall(38), MkCall(39)};
-  const TSL KAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 36, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL LAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 38, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const std::vector<TSL> Chain = {ForthPtr,   BackPtr,   StopPtr,    ForthRet,
+                                  BackRet,    StopRet,   MkCall(36), MkCall(37),
+                                  MkCall(38), MkCall(39)};
+  const TSL KAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 36,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL LAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 38,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   GTMap ExpectedResults;
   auto ChainAndBoth = Chain;
   ChainAndBoth.push_back(KAlloca);
@@ -810,20 +854,26 @@ TEST(AndersenOTFAATest, TwoArgSecondRetFourCallSites) {
   const TSL Q = TSL(ArgInFun{.Idx = 1, .InFunction = "argretq"});
   const TSL Ret = TSL(RetVal{.InFunction = "argretq"});
   const auto MkCall = [](uint32_t Line) {
-    return TSL(LineColFunOp{.Line = Line, .Col = 0, .InFunction = "main",
-                             .OpCode = llvm::Instruction::Call});
+    return TSL(LineColFunOp{.Line = Line,
+                            .Col = 0,
+                            .InFunction = "main",
+                            .OpCode = llvm::Instruction::Call});
   };
-  const std::vector<TSL> Chain = {P, Q, Ret, MkCall(8), MkCall(9),
-                                   MkCall(10), MkCall(11)};
+  const std::vector<TSL> Chain = {P,         Q,          Ret,       MkCall(8),
+                                  MkCall(9), MkCall(10), MkCall(11)};
   // arg 1 of call at line 8 is &x (argretq(&y, &x)); arg 0 is &y.
-  const TSL XAlloca = TSL(OperandOf{
-      .OperandIndex = 1,
-      .Inst = LineColFunOp{.Line = 8, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
-  const TSL YAlloca = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 8, .Col = 0, .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL XAlloca =
+      TSL(OperandOf{.OperandIndex = 1,
+                    .Inst = LineColFunOp{.Line = 8,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
+  const TSL YAlloca =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 8,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   GTMap ExpectedResults;
   auto ChainAndBoth = Chain;
   ChainAndBoth.push_back(XAlloca);
@@ -843,8 +893,7 @@ TEST(AndersenOTFAATest, TwoArgSecondRetFourCallSites) {
 TEST(AndersenOTFAATest, VTableDispatch) {
   // Virtual call via A* in call_get must resolve through the vtable.
   // A::get() returns @x, so call_get's return must alias @x.
-  const TSL CallGetRet =
-      TSL(RetVal{.InFunction = "_ZL8call_getP1A"});
+  const TSL CallGetRet = TSL(RetVal{.InFunction = "_ZL8call_getP1A"});
   const TSL X = TSL(GlobalVar{.Name = "x"});
   const GTMap ExpectedResults = {
       {CallGetRet, {CallGetRet, X}},
@@ -855,43 +904,40 @@ TEST(AndersenOTFAATest, VTableDispatch) {
 
 TEST(AndersenOTFAATest, GlobalPtrInitializer) {
   // @p = global ptr @x; loading from @p must alias @x (Bug 2 soundness).
-  const TSL LoadQ =
-      TSL(LineColFunOp{.Line = 7,
-                       .Col = 12,
-                       .InFunction = "main",
-                       .OpCode = llvm::Instruction::Load});
+  const TSL LoadQ = TSL(LineColFunOp{.Line = 7,
+                                     .Col = 12,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Load});
   const TSL X = TSL(GlobalVar{.Name = "x"});
   const GTMap ExpectedResults = {
       {LoadQ, {LoadQ, X}},
       {X, {X, LoadQ}},
   };
-  doAnalysisAndCheckExact("andersen_otf_global_init_c_dbg.ll",
-                          ExpectedResults);
+  doAnalysisAndCheckExact("andersen_otf_global_init_c_dbg.ll", ExpectedResults);
 }
 
 TEST(AndersenOTFAATest, MergeLoadConstraint) {
   // h->f->h cycle; h returns *p.
   // ret(h) must alias x and y after h(&px) and h(&py) (Bug 1 soundness).
   const TSL RetH = TSL(RetVal{.InFunction = "h"});
-  const TSL VarX = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 17,
-                            .Col = 8,
-                            .InFunction = "main",
-                            .OpCode = llvm::Instruction::Store}});
-  const TSL VarY = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 18,
-                            .Col = 8,
-                            .InFunction = "main",
-                            .OpCode = llvm::Instruction::Store}});
+  const TSL VarX =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 17,
+                                         .Col = 8,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Store}});
+  const TSL VarY =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 18,
+                                         .Col = 8,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Store}});
   const GTMap ExpectedResults = {
       {RetH, {RetH, VarX, VarY}},
       {VarX, {RetH, VarX}},
       {VarY, {RetH, VarY}},
   };
-  doAnalysisAndCheckExact("andersen_otf_merge_load_c_dbg.ll",
-                          ExpectedResults);
+  doAnalysisAndCheckExact("andersen_otf_merge_load_c_dbg.ll", ExpectedResults);
 }
 
 TEST(AndersenOTFAATest, AlreadyProcessedCalleePropagation) {
@@ -952,8 +998,8 @@ TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
 
   {
     auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
-    auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(),
-                                     Soundness::Soundy);
+    auto Res =
+        computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(), Soundness::Soundy);
     EXPECT_TRUE(HasCGVertex(Res.CG, CloseStdout))
         << "close_stdout must be a CG vertex at Soundy";
     EXPECT_TRUE(HasCGVertex(Res.CG, FlushImpl))
@@ -962,8 +1008,8 @@ TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
 
   {
     auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
-    auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(),
-                                     Soundness::Unsound);
+    auto Res =
+        computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(), Soundness::Unsound);
     EXPECT_FALSE(HasCGVertex(Res.CG, CloseStdout))
         << "close_stdout must not be a CG vertex at Unsound";
     EXPECT_FALSE(HasCGVertex(Res.CG, FlushImpl))
@@ -979,12 +1025,12 @@ TEST(AndersenOTFAATest, LibCSummaryStrcpyReturnAliasesDst) {
                                     .Col = 0,
                                     .InFunction = "main",
                                     .OpCode = llvm::Instruction::Call});
-  const TSL Buf = TSL(OperandOf{
-      .OperandIndex = 0,
-      .Inst = LineColFunOp{.Line = 9,
-                            .Col = 0,
-                            .InFunction = "main",
-                            .OpCode = llvm::Instruction::Call}});
+  const TSL Buf =
+      TSL(OperandOf{.OperandIndex = 0,
+                    .Inst = LineColFunOp{.Line = 9,
+                                         .Col = 0,
+                                         .InFunction = "main",
+                                         .OpCode = llvm::Instruction::Call}});
   const GTMap ExpectedResults = {
       {Call, {Call, Buf}},
       {Buf, {Buf, Call}},

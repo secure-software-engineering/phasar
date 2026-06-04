@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SparseBitVector.h"
@@ -50,6 +51,17 @@ concept IsRawAliasSet = requires(ASet &MutSet, const ASet &ConstSet,
   { MutSet.clear() } noexcept;
   { ConstSet.empty() } noexcept -> std::convertible_to<bool>;
   { ConstSet.size() } noexcept -> std::convertible_to<size_t>;
+  {
+    // Merges the ConstSet into MutSet, as with tryMergeWith, but invokes a
+    // callback for each element that was newly inserted.The Diff will be
+    // materialized and merged into that out-param
+    MutSet.mergeWithDiff(ConstSet, DummyFn<typename ASet::value_type>{}, MutSet)
+  } -> std::convertible_to<bool>;
+  {
+    // Merges the ConstSet into MutSet, as with tryMergeWith, but invokes a
+    // callback for each element that was newly inserted.
+    MutSet.mergeWithDiff(ConstSet, DummyFn<typename ASet::value_type>{})
+  } -> std::convertible_to<bool>;
 };
 
 /// Sparse bit-set used to represent alias sets in union-find analyses.
@@ -117,7 +129,36 @@ public:
     return Bits == Other.Bits;
   }
 
+  bool mergeWithDiff(const LLVMRawAliasSet &Other,
+                     std::invocable<IdT> auto WithNewElem,
+                     LLVMRawAliasSet &IntoDiff) {
+    return mergeWithDiffImpl(Other, copyOrRef(WithNewElem), &IntoDiff);
+  }
+
+  bool mergeWithDiff(const LLVMRawAliasSet &Other,
+                     std::invocable<IdT> auto WithNewElem) {
+    return mergeWithDiffImpl(Other, copyOrRef(WithNewElem), nullptr);
+  }
+
 private:
+  bool mergeWithDiffImpl(const LLVMRawAliasSet &Other,
+                         std::invocable<IdT> auto WithNewElem,
+                         LLVMRawAliasSet *IntoDiff) {
+    auto Diff = Other.Bits - Bits;
+    if (Diff.empty()) {
+      return false;
+    }
+
+    Bits |= Diff;
+    if (IntoDiff) {
+      IntoDiff->Bits |= Diff;
+    }
+    for (auto Elem : Diff) {
+      std::invoke(WithNewElem, IdT(Elem));
+    }
+    return true;
+  }
+
   llvm::SparseBitVector<> Bits;
 };
 
@@ -184,6 +225,66 @@ public:
 
   [[nodiscard]] bool operator==(const RoaringAliasSet &Other) const noexcept {
     return Bits == Other.Bits;
+  }
+
+  bool mergeWithDiff(const RoaringAliasSet &Other,
+                     std::invocable<IdT> auto WithNewElem) {
+    constexpr size_t DiffThreshold = 16;
+    // operator- is expensive, but it is definitely a lot faster than the
+    // foreach loop if UPending is large
+
+    if (Other.size() > DiffThreshold) {
+      RoaringAliasSet Diff = Other - *this;
+      if (Diff.empty()) {
+        return false;
+      }
+
+      *this |= Diff;
+
+      Diff.foreach (copyOrRef(WithNewElem));
+      return true;
+    }
+
+    bool Ret = false;
+    Other.foreach ([&](IdT Elem) {
+      if (tryInsert(Elem)) {
+        std::invoke(WithNewElem, Elem);
+        Ret = true;
+      }
+    });
+    return Ret;
+  }
+
+  bool mergeWithDiff(const RoaringAliasSet &Other,
+                     std::invocable<IdT> auto WithNewElem,
+                     RoaringAliasSet &IntoDiff) {
+    constexpr size_t DiffThreshold = 16;
+    // operator- is expensive, but it is definitely a lot faster than the
+    // foreach loop if Other is large
+
+    if (Other.size() > DiffThreshold) {
+      RoaringAliasSet Diff = Other - *this;
+      if (Diff.empty()) {
+        return false;
+      }
+
+      *this |= Diff;
+      IntoDiff |= Diff;
+
+      Diff.foreach (copyOrRef(WithNewElem));
+      return true;
+    }
+
+    bool Ret = false;
+    Other.foreach ([&](IdT Elem) {
+      if (tryInsert(Elem)) {
+        IntoDiff.insert(Elem);
+        std::invoke(WithNewElem, Elem);
+        Ret = true;
+      }
+    });
+
+    return Ret;
   }
 
 private:
