@@ -125,27 +125,26 @@ void doAnalysisAndCheckExact(
     Entries.push_back(Func);
   }
 
-  auto Compressor = std::make_unique<ValueCompressor<PAGVariable>>();
-  AndersenOTFResult Results =
-      computeAndersenOTFRaw(IRDB, Entries, Compressor.get());
+  ValueCompressor<PAGVariable> Compressor;
+  AndersenOTFResult Results = computeAndersenOTFRaw(IRDB, Entries, &Compressor);
 
   // Build domain from all values explicitly named in the GT.
   llvm::SmallDenseSet<ValueId, 16> Domain;
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
-    Domain.insert(asId(*Compressor, IRDB, PtrVar));
+    Domain.insert(asId(Compressor, IRDB, PtrVar));
     for (const auto &AliasVar : ExpectedAliasVars) {
-      Domain.insert(asId(*Compressor, IRDB, AliasVar));
+      Domain.insert(asId(Compressor, IRDB, AliasVar));
     }
   }
 
   for (const auto &[PtrVar, ExpectedAliasVars] : ExpectedResults) {
-    const auto PtrId = asId(*Compressor, IRDB, PtrVar);
-    const RawAliasSet<ValueId> &Computed = Results.getRawAliasSet(PtrId);
+    const auto PtrId = asId(Compressor, IRDB, PtrVar);
+    const auto &Computed = Results.getRawAliasSet(PtrId);
 
     RawAliasSet<ValueId> Expected;
     // llvm::errs() << "For PtrId: #" << uint32_t(PtrId) << ":\n";
     for (const auto &AliasVar : ExpectedAliasVars) {
-      auto AliasId = asId(*Compressor, IRDB, AliasVar);
+      auto AliasId = asId(Compressor, IRDB, AliasVar);
       Expected.insert(AliasId);
       // llvm::errs() << "> Insert #" << uint32_t(AliasId)
       //              << " into Expected due to " << AliasVar << '\n';
@@ -157,7 +156,7 @@ void doAnalysisAndCheckExact(
         ADD_FAILURE_AT(Loc.file_name(), Loc.line())
             << "Missing expected alias of " << PtrVar << "(#" << uint32_t(PtrId)
             << "): #" << uint32_t(AliasId) << " as "
-            << stringifyVal(*Compressor, AliasId);
+            << stringifyVal(Compressor, AliasId);
       }
     });
 
@@ -168,12 +167,12 @@ void doAnalysisAndCheckExact(
       }
       ADD_FAILURE_AT(Loc.file_name(), Loc.line())
           << "Unexpected alias of " << PtrVar << ": "
-          << stringifyVal(*Compressor, VId);
+          << stringifyVal(Compressor, VId);
     });
   }
 
   if (DumpResults || ::testing::Test::HasFailure()) {
-    dumpAnalysisState(*Compressor, Results);
+    dumpAnalysisState(Compressor, Results);
   }
 }
 
@@ -215,13 +214,13 @@ TEST(AndersenOTFAATest, FuncByNameInVC) {
   const auto *MainFn = IRDB.getFunctionDefinition("main");
   ASSERT_NE(MainFn, nullptr);
 
-  auto Compressor = std::make_unique<ValueCompressor<PAGVariable>>();
+  ValueCompressor<PAGVariable> Compressor;
   [[maybe_unused]] auto Results =
-      computeAndersenOTFRaw(IRDB, {MainFn}, Compressor.get());
+      computeAndersenOTFRaw(IRDB, {MainFn}, &Compressor);
 
   const auto *IdFn = IRDB.getFunctionDefinition("id");
   ASSERT_NE(IdFn, nullptr);
-  auto MaybeId = Compressor->getOrNull(IdFn);
+  auto MaybeId = Compressor.getOrNull(IdFn);
   EXPECT_TRUE(MaybeId.has_value())
       << "Function 'id' not in VC — address-taken functions must be inserted";
 }
@@ -997,9 +996,8 @@ TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
   };
 
   {
-    auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
     auto Res =
-        computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(), Soundness::Soundy);
+        computeAndersenOTFRaw(IRDB, {MainFn}, nullptr, Soundness::Soundy);
     EXPECT_TRUE(HasCGVertex(Res.CG, CloseStdout))
         << "close_stdout must be a CG vertex at Soundy";
     EXPECT_TRUE(HasCGVertex(Res.CG, FlushImpl))
@@ -1007,9 +1005,8 @@ TEST(AndersenOTFAATest, SoundnessFnPtrToExternalDecl) {
   }
 
   {
-    auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
     auto Res =
-        computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get(), Soundness::Unsound);
+        computeAndersenOTFRaw(IRDB, {MainFn}, nullptr, Soundness::Unsound);
     EXPECT_FALSE(HasCGVertex(Res.CG, CloseStdout))
         << "close_stdout must not be a CG vertex at Unsound";
     EXPECT_FALSE(HasCGVertex(Res.CG, FlushImpl))
@@ -1052,8 +1049,7 @@ TEST(AndersenOTFAATest, FnPtrStoredInStructField) {
   ASSERT_NE(DoCall, nullptr);
   ASSERT_NE(Target, nullptr);
 
-  auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
-  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get());
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
 
   // Find the indirect call instruction in do_call.
   const llvm::CallBase *IndirectCS = nullptr;
@@ -1091,8 +1087,7 @@ TEST(AndersenOTFAATest, StructVtableDispatch) {
   ASSERT_NE(MyRead, nullptr);
   ASSERT_NE(MyWrite, nullptr);
 
-  auto Cmp = std::make_unique<ValueCompressor<PAGVariable>>();
-  auto Res = computeAndersenOTFRaw(IRDB, {MainFn}, Cmp.get());
+  auto Res = computeAndersenOTFRaw(IRDB, {MainFn});
 
   const llvm::CallBase *IndirectCS = nullptr;
   for (const auto &I : llvm::instructions(DispatchFn)) {
