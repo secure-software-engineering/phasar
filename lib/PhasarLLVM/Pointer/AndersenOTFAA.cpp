@@ -9,7 +9,6 @@
 
 #include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
 
-#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMGlobalInitCache.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
@@ -18,6 +17,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/VirtualCallUtils.h"
 #include "phasar/Utils/IotaIterator.h"
 #include "phasar/Utils/LibCSummary.h"
 #include "phasar/Utils/LibrarySummary.h"
