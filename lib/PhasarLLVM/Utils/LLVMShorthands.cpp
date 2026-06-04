@@ -747,12 +747,10 @@ const llvm::DIType *psr::stripPointerTypes(const llvm::DIType *DITy) {
   return DITy;
 }
 
-const llvm::Function *
-psr::walkConstInitPath(const llvm::Constant *Init,
-                       llvm::ArrayRef<uint64_t> Indices) {
+const llvm::Function *psr::walkConstInitPath(const llvm::Constant *Init,
+                                             llvm::ArrayRef<uint64_t> Indices) {
   if (Indices.empty()) {
-    return llvm::dyn_cast<llvm::Function>(
-        Init->stripPointerCastsAndAliases());
+    return llvm::dyn_cast<llvm::Function>(Init->stripPointerCastsAndAliases());
   }
   const uint64_t Idx0 = Indices[0];
   const llvm::Constant *Elem = nullptr;

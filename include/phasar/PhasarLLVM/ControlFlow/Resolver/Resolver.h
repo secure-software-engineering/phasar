@@ -58,9 +58,8 @@ getVFTIndexAndVT(const llvm::CallBase *CallSite);
 ///
 /// Returns \c {base_ptr, all_GEP_indices, gep_source_elem_ty} on match,
 /// or \c std::nullopt otherwise.
-[[nodiscard]] std::optional<
-    std::tuple<const llvm::Value *, llvm::SmallVector<uint64_t, 3>,
-               llvm::Type *>>
+[[nodiscard]] std::optional<std::tuple<
+    const llvm::Value *, llvm::SmallVector<uint64_t, 3>, llvm::Type *>>
 getStructVCallInfo(const llvm::CallBase *CallSite);
 
 /// Assuming that `CallSite` is a call to a non-static member function,

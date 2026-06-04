@@ -6,9 +6,12 @@
 static int myRead(void *ctx) { return 0; }
 static int myWrite(void *ctx, int v) { return v; }
 
-struct Ops { int (*read)(void *); int (*write)(void *, int); };
+struct Ops {
+  int (*read)(void *);
+  int (*write)(void *, int);
+};
 
-static const struct Ops myOps = { myRead, myWrite };
+static const struct Ops myOps = {myRead, myWrite};
 
 int dispatch(const struct Ops *ops, void *ctx, int v) {
   return ops->write(ctx, v);

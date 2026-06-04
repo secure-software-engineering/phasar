@@ -40,8 +40,8 @@ struct GlobalInitCache {
   /// from \p Const.  \p GetVar maps an \c llvm::Value* to a \c ValueId
   /// (typically \c getOrInsertVar).
   template <std::invocable<const llvm::Value *> GetVarFn>
-  [[nodiscard]] llvm::ArrayRef<ValueId>
-  getOrCreate(const llvm::Constant *Const, GetVarFn &&GetVar) {
+  [[nodiscard]] llvm::ArrayRef<ValueId> getOrCreate(const llvm::Constant *Const,
+                                                    GetVarFn &&GetVar) {
     if (definitelyContainsNoPointer(Const)) {
       return {};
     }
@@ -58,8 +58,8 @@ struct GlobalInitCache {
 
     if (const auto *CGep = llvm::dyn_cast<llvm::GEPOperator>(Const)) {
       // TODO: Properly handle constant GEPs
-      return getOrCreate(
-          llvm::cast<llvm::Constant>(CGep->getPointerOperand()), GetVar);
+      return getOrCreate(llvm::cast<llvm::Constant>(CGep->getPointerOperand()),
+                         GetVar);
     }
 
     if (Const->getType()->isPointerTy()) {
@@ -71,8 +71,7 @@ struct GlobalInitCache {
 
     if (const auto *Agg = llvm::dyn_cast<llvm::ConstantAggregate>(Const)) {
       if (Agg->getType()->isArrayTy() &&
-          definitelyContainsNoPointer(
-              Agg->getType()->getArrayElementType())) {
+          definitelyContainsNoPointer(Agg->getType()->getArrayElementType())) {
         return {};
       }
       for (size_t I = 0, N = Agg->getNumOperands(); I < N; ++I) {

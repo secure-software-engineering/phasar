@@ -7,9 +7,7 @@ static int *h(int **p) {
   return *p;
 }
 
-static int *f(int **p) {
-  return h(p);
-}
+static int *f(int **p) { return h(p); }
 
 int main() {
   int x = 0;

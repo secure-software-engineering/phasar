@@ -8,12 +8,10 @@ struct Ctx {
 
 static void *target(void *arg) { return arg; }
 
-static void init_ctx(struct Ctx *ctx, void *(*fn)(void *)) {
-  ctx->fn = fn;
-}
+static void init_ctx(struct Ctx *ctx, void *(*fn)(void *)) { ctx->fn = fn; }
 
 static void *do_call(struct Ctx *ctx, void *arg) {
-  return ctx->fn(arg);  // indirect call via struct field
+  return ctx->fn(arg); // indirect call via struct field
 }
 
 int main(void) {
