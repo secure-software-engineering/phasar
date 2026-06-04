@@ -343,8 +343,13 @@ include(add_llvm)
 add_llvm()
 
 # Roaring
-set(ENABLE_ROARING_TESTS OFF)
-add_subdirectory(external/CRoaring EXCLUDE_FROM_ALL)
+
+find_package(roaring QUIET)
+if(NOT TARGET roaring::roaring)
+  set(ENABLE_ROARING_TESTS OFF)
+  add_subdirectory(external/CRoaring)
+  set(PHASAR_PROVIDE_CROARING ON)
+endif()
 
 # SVF
 option(PHASAR_USE_SVF "Use SVF for more options in alias analysis (default is OFF)" OFF)
