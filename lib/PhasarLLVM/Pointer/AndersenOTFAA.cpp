@@ -973,9 +973,6 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
           .CSRetVal = CSRetVal,
       };
       resolveStructVCall(Rec);
-      // llvm::errs() << "[handleCall]: Adding struct-vcall-record #"
-      //              << UnresolvedStructVCalls.size() << " at "
-      //              << llvmIRToString(C) << '\n';
       UnresolvedStructVCalls.push_back(std::move(Rec));
       return;
     }
