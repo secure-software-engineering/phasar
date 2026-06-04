@@ -919,16 +919,19 @@ TEST(AndersenOTFAATest, MergeLoadConstraint) {
   // h->f->h cycle; h returns *p.
   // ret(h) must alias x and y after h(&px) and h(&py) (Bug 1 soundness).
   const TSL RetH = TSL(RetVal{.InFunction = "h"});
+  // Operand 1 (pointer) of "int x = 0" / "int y = 0" stores — stable across
+  // LLVM versions (unlike the px/py initialization stores whose debug
+  // location moved from first-use to declaration site between LLVM 16 and 22).
   const TSL VarX =
-      TSL(OperandOf{.OperandIndex = 0,
-                    .Inst = LineColFunOp{.Line = 17,
-                                         .Col = 8,
+      TSL(OperandOf{.OperandIndex = 1,
+                    .Inst = LineColFunOp{.Line = 13,
+                                         .Col = 7,
                                          .InFunction = "main",
                                          .OpCode = llvm::Instruction::Store}});
   const TSL VarY =
-      TSL(OperandOf{.OperandIndex = 0,
-                    .Inst = LineColFunOp{.Line = 18,
-                                         .Col = 8,
+      TSL(OperandOf{.OperandIndex = 1,
+                    .Inst = LineColFunOp{.Line = 14,
+                                         .Col = 7,
                                          .InFunction = "main",
                                          .OpCode = llvm::Instruction::Store}});
   const GTMap ExpectedResults = {
