@@ -17,15 +17,20 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 #define PHASAR_PHASARLLVM_UTILS_LLVMSHORTHANDS_H
 
+#include "phasar/Utils/BitSet.h"
 #include "phasar/Utils/Utilities.h"
 
+#include "llvm/ADT/SmallBitVector.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/Casting.h"
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace llvm {
@@ -42,6 +47,8 @@ class CallInst;
 class AllocaInst;
 class DIType;
 class DIDerivedType;
+class DICompositeType;
+class DataLayout;
 } // namespace llvm
 
 namespace psr {
@@ -342,6 +349,30 @@ inline const llvm::Function *getFunction(const llvm::Instruction *Inst) {
 
   return Inst->getFunction();
 }
+
+const llvm::DIType *stripMemberAndTypedef(const llvm::DIType *Ty);
+
+inline bool isPointerTy(const llvm::DIType *Ty) {
+  if (const auto *DerivedTy =
+          llvm::dyn_cast<llvm::DIDerivedType>(stripMemberAndTypedef(Ty))) {
+    return DerivedTy->getTag() == llvm::dwarf::DW_TAG_pointer_type ||
+           DerivedTy->getTag() == llvm::dwarf::DW_TAG_reference_type;
+  }
+  return false;
+}
+
+struct PointerIndicesCache {
+  std::unordered_map<const llvm::DIType *,
+                     BitSet<uint32_t, llvm::SmallBitVector>>
+      Cache;
+};
+
+[[nodiscard]] BitSet<uint32_t, llvm::SmallBitVector>
+getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL);
+
+[[nodiscard]] BitSet<uint32_t, llvm::SmallBitVector> &
+getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL,
+                        PointerIndicesCache &PIC);
 
 /**
  * Retrieves String annotation value as per
