@@ -277,6 +277,8 @@ function(add_phasar_library name)
   add_library(phasar::${component_name} ALIAS ${name})
   set_target_properties(${name} PROPERTIES
     EXPORT_NAME ${component_name}
+    VERSION ${PHASAR_VERSION}
+    SOVERSION ${PHASAR_VERSION}
   )
 
   target_compile_features(${name} PUBLIC cxx_std_20)
