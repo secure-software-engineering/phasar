@@ -144,7 +144,9 @@ struct LLVMUnionFindAliasIteratorMixin {
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      // XXX: Check exactly the conditions for must alias!
+      if (Ptr1 == Ptr2) {
+        return AliasResult::MustAlias;
+      }
       return !llvm::isa<llvm::LoadInst>(Ptr1) &&
                      !llvm::isa<llvm::LoadInst>(Ptr2)
                  ? AliasResult::MustAlias
@@ -296,7 +298,9 @@ public:
       return AliasResult::NoAlias;
     }
     if (*ValId1 == *ValId2) {
-      // XXX: Check exactly the conditions for must alias!
+      if (Ptr1 == Ptr2) {
+        return AliasResult::MustAlias;
+      }
       return !llvm::isa<llvm::LoadInst>(Ptr1) &&
                      !llvm::isa<llvm::LoadInst>(Ptr2)
                  ? AliasResult::MustAlias
@@ -347,10 +351,10 @@ private:
 template <pag::PBStrategy AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>
-[[nodiscard]] inline UnionFindAAResult auto
-computeUnionFindAARaw(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
-                      MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                      PAGBuilderImpl Impl = {}) {
+[[nodiscard]] inline UnionFindAAResult auto computeUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
+    PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
@@ -358,17 +362,19 @@ computeUnionFindAARaw(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
   Impl.buildPAG(IRDB, *VC, &Ana);
 
   const auto NumVars = VC->size();
-  return PSR_FWD(Ana).consumeAAResults(NumVars);
+  return PSR_FWD(Ana).consumeAAResults(NumVars, [&VC](ValueId VId) {
+    return llvm::any_of(VC->id2vars(VId),
+                        [](PAGVariable V) { return !V.isReturnVariable(); });
+  });
 }
 
 template <pag::CanOnAddEdge AnalysisT,
           std::derived_from<PAGBuilder<LLVMPAGDomain>> PAGBuilderImpl =
               LLVMPAGBuilder>
-[[nodiscard]] inline UnionFindAAResult auto
-computeUnionFindAARaw(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
-                      const LLVMBasedCallGraph &CG,
-                      MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                      PAGBuilderImpl Impl = {}) {
+[[nodiscard]] inline UnionFindAAResult auto computeUnionFindAARaw(
+    const LLVMProjectIRDB &IRDB, AnalysisT &&Ana, const LLVMBasedCallGraph &CG,
+    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
+    PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   auto Strategy = pag::PBMixin{
       PSR_FWD(Ana),
       pag::LLVMCGProvider{&CG},
@@ -411,7 +417,7 @@ template <pag::PBStrategy AnalysisT,
 [[nodiscard]] inline IsLLVMAliasIterator auto
 computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
                    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                   PAGBuilderImpl Impl = {}) {
+                   PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   if (!VC) {
     VC = std::make_unique<ValueCompressor<PAGVariable>>();
   }
@@ -431,7 +437,7 @@ template <pag::CanOnAddEdge AnalysisT,
 computeUnionFindAA(const LLVMProjectIRDB &IRDB, AnalysisT &&Ana,
                    const LLVMBasedCallGraph &CG,
                    MaybeUniquePtr<ValueCompressor<PAGVariable>> VC = nullptr,
-                   PAGBuilderImpl Impl = {}) {
+                   PAGBuilderImpl Impl = LLVMPAGBuilder::withBuiltinMemSSA()) {
   auto Strategy = pag::PBMixin{
       PSR_FWD(Ana),
       pag::LLVMCGProvider{&CG},

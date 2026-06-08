@@ -284,6 +284,27 @@ struct identity {
   }
 };
 
+struct FirstFn {
+  [[nodiscard]] constexpr decltype(auto)
+  operator()(const auto &PairLike) const noexcept {
+    if constexpr (requires { PairLike.first; }) {
+      return PairLike.first;
+    } else {
+      return std::get<0>(PairLike);
+    }
+  }
+};
+struct SecondFn {
+  [[nodiscard]] constexpr decltype(auto)
+  operator()(const auto &PairLike) const noexcept {
+    if constexpr (requires { PairLike.second; }) {
+      return PairLike.second;
+    } else {
+      return std::get<1>(PairLike);
+    }
+  }
+};
+
 template <is_llvm_printable_v T>
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                               const std::optional<T> &Opt) {

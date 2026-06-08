@@ -6,6 +6,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/DebugOutput.h"
 
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
@@ -50,9 +51,11 @@ TEST(LLVMBasedICFG_RTATest, VirtualCallSite_10) {
   const auto *BarF = IRDB.getFunction("_ZThn8_N6ABImpl3barEv");
   ASSERT_TRUE(BarF);
 
+  ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBar));
+
   auto BarCallees = ICFG.getCalleesOfCallAt(CallToBar);
   // non-virtual thunk to ABImpl::bar()
-  EXPECT_EQ(llvm::ArrayRef{BarF}, BarCallees);
+  EXPECT_EQ(llvm::ArrayRef{BarF}, BarCallees) << PrettyPrinter{BarCallees};
 
   // --- At Line 21: delete ABptr;
 

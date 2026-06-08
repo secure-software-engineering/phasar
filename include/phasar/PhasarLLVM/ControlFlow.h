@@ -21,5 +21,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/SparseLLVMControlFlow.h"
 
 #endif // PHASAR_PHASARLLVM_CONTROLFLOW_H

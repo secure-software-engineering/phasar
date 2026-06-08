@@ -27,7 +27,6 @@ public:
   static constexpr bool ComputeValues = StaticSolverConfigTy::ComputeValues;
   static constexpr bool EnableStatistics =
       StaticSolverConfigTy::EnableStatistics;
-
   using EdgeFunctionPtrType =
       std::conditional_t<ComputeValues, EdgeFunPtrTy, EmptyType>;
 

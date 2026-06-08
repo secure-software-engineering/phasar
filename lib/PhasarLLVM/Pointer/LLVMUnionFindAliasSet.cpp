@@ -212,6 +212,13 @@ auto LLVMUnionFindAliasSet::getEmptyAliasSet() -> BoxedPtr<AliasSetTy> {
 
 void LLVMUnionFindAliasSet::print(llvm::raw_ostream &OS) const {
   assert(isValid());
+  // OS << "ValueCompressor: {\n";
+  // for (const auto &[VId, Values] : AARes->VC->id2vars().enumerate()) {
+  //   OS << "  #" << uint32_t(VId) << ":\n";
+  //   for (const auto Val : Values) {
+  //     OS << "    " << to_string(Val) << '\n';
+  //   }
+  // }
   AARes->print(OS, Cfg);
 }
 

@@ -56,15 +56,15 @@ protected:
   }
 
   void compareResultsImpl(const std::set<const llvm::Value *> &GroundTruth,
-                          IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                          auto &&SR) {
     std::set<const llvm::Value *> AllMutableAllocas;
 
     for (const auto *RR : getRetOrResInstructions()) {
-      std::set<const llvm::Value *> Facts = Solver.ifdsResultsAt(RR);
+      std::set<const llvm::Value *> Facts = SR.ifdsResultsAt(RR);
       for (const auto *Fact : Facts) {
         if (isAllocaInstOrHeapAllocaFunction(Fact) ||
             (llvm::isa<llvm::GlobalValue>(Fact) &&
-             !Constproblem->isZeroValue(Fact))) {
+             !llvm::cast<llvm::GlobalVariable>(Fact)->isConstant())) {
           llvm::outs() << "Found *Fact: " << *Fact << "\n";
           AllMutableAllocas.insert(Fact);
         }
@@ -75,18 +75,18 @@ protected:
   }
 
   void compareResults(const std::set<TestingSrcLocation> &GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                      auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationSetInIR(GroundTruth, HA->getProjectIRDB());
 
-    compareResultsImpl(GroundTruthEntries, Solver);
+    compareResultsImpl(GroundTruthEntries, Solver.getSolverResults());
   }
   void compareResults(std::initializer_list<TestingSrcLocation> GroundTruth,
-                      IFDSSolver_P<IFDSConstAnalysis> &Solver) {
+                      auto &Solver) {
     auto GroundTruthEntries =
         convertTestingLocationSetInIR(GroundTruth, HA->getProjectIRDB());
 
-    compareResultsImpl(GroundTruthEntries, Solver);
+    compareResultsImpl(GroundTruthEntries, Solver.getSolverResults());
   }
 };
 
@@ -439,7 +439,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
   Llvmconstsolver.solve();
   std::set<TestingSrcLocation> GroundTruth = {
       LineColFun{4, 0, "main"},
-      GlobalVar{"__const.main.a"},
+      // GlobalVar{"__const.main.a"}, -- not portable across libstdc++ versions
   };
 
   compareResults(GroundTruth, Llvmconstsolver);
@@ -454,8 +454,9 @@ PHASAR_SKIP_TEST(TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   Llvmconstsolver.solve();
   compareResults(
       {
-          GlobalVar{"__const.main.a"},
-          GlobalVar{".str"},
+          // GlobalVar{"__const.main.a"},-- not portable across libstdc++
+          // versions
+          // GlobalVar{".str"},-- not portable across libstdc++ versions
           LineColFun{4, 0, "main"},
       },
       Llvmconstsolver);

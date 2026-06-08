@@ -11,8 +11,8 @@ target_link_libraries(load-llvm-ir PRIVATE phasar::phasar)
 
 if (TARGET run_sample_programs)
   add_custom_target(run_load_llvm_ir
-    DEPENDS load-llvm-ir
-    COMMAND $<TARGET_FILE:load-llvm-ir> "${CMAKE_CURRENT_LIST_DIR}/../../llvm-hello-world/target/simple.ll"
+    DEPENDS load-llvm-ir LLFileGeneration
+    COMMAND $<TARGET_FILE:load-llvm-ir> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/simple_cpp_dbg.ll"
   )
 
   add_dependencies(run_sample_programs run_load_llvm_ir)

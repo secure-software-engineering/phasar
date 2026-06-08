@@ -9,13 +9,29 @@
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-using namespace std;
 using namespace psr;
+using namespace psr::unittest;
+
+static constexpr auto printCallees // NOLINT
+    = [](auto &&Callees) {
+        std::string Ret;
+        llvm::raw_string_ostream OS(Ret);
+
+        OS << "{ ";
+        llvm::interleaveComma(
+            llvm::map_range(
+                Callees, [](const auto *Callee) { return Callee->getName(); }),
+            OS);
+        OS << " }";
+        return Ret;
+      };
 
 TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
@@ -32,17 +48,22 @@ TEST(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ASSERT_TRUE(VFuncA);
   ASSERT_TRUE(VFuncB);
 
-  const auto *CallToAFunc = getNthInstruction(F, 17);
+  const auto *CallToAFunc = llvm::cast<llvm::Instruction>(testingLocInIR(
+      LineColFunOp{19, 0, "main", llvm::Instruction::Call}, IRDB));
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToAFunc));
   const auto &AsCallees = ICFG.getCalleesOfCallAt(CallToAFunc);
-  ASSERT_EQ(AsCallees.size(), 2U);
+  ASSERT_EQ(AsCallees.size(), 2U)
+      << "Computed A's Callees: " << printCallees(AsCallees);
+  ;
   ASSERT_TRUE(llvm::is_contained(AsCallees, VFuncA));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncA), CallToAFunc));
 
-  const auto *CallToBFunc = getNthInstruction(F, 22);
+  const auto *CallToBFunc = llvm::cast<llvm::Instruction>(testingLocInIR(
+      LineColFunOp{20, 0, "main", llvm::Instruction::Call}, IRDB));
   ASSERT_TRUE(ICFG.isVirtualFunctionCall(CallToBFunc));
   const auto &BsCallees = ICFG.getCalleesOfCallAt(CallToBFunc);
-  ASSERT_EQ(BsCallees.size(), 2U);
+  ASSERT_EQ(BsCallees.size(), 2U)
+      << "Computed B's Callees: " << printCallees(BsCallees);
 
   ASSERT_TRUE(llvm::is_contained(BsCallees, VFuncB));
   ASSERT_TRUE(llvm::is_contained(ICFG.getCallersOf(VFuncB), CallToBFunc));
@@ -76,34 +97,14 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_2) {
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
-  const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Bar = IRDB.getFunctionDefinition("_Z3barv");
 
-  const auto *FPtrCall = getNthInstruction(Main, 9);
+  const auto *FPtrCall = llvm::cast<llvm::Instruction>(testingLocInIR(
+      LineColFunOp{8, 0, "main", llvm::Instruction::Call}, IRDB));
   const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
-  auto printCallees // NOLINT
-      = [&]() {
-          std::string Ret;
-          llvm::raw_string_ostream OS(Ret);
-
-          OS << "{ ";
-          bool First = true;
-          for (const auto *Callee : Callees) {
-            if (First) {
-              First = false;
-            } else {
-              OS << ", ";
-            }
-
-            OS << Callee->getName();
-          }
-
-          OS << " }";
-          return Ret;
-        };
-
-  ASSERT_EQ(Callees.size(), 1U) << "Too many callees: " << printCallees();
+  ASSERT_EQ(Callees.size(), 1U)
+      << "Too many callees: " << printCallees(Callees);
   ASSERT_EQ(llvm::is_contained(Callees, Bar), 1U);
 }
 
@@ -114,14 +115,15 @@ TEST(LLVMBasedICFG_OTFTest, FunctionPtrCall_3) {
   LLVMAliasSet PT(&IRDB, false);
   LLVMBasedICFG ICFG(&IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 
-  const llvm::Function *Main = IRDB.getFunctionDefinition("main");
   const llvm::Function *Foo = IRDB.getFunctionDefinition("_Z3foov");
 
-  const auto *FPtrCall = getNthInstruction(Main, 10);
+  const auto *FPtrCall = llvm::cast<llvm::Instruction>(testingLocInIR(
+      LineColFunOp{10, 0, "main", llvm::Instruction::Call}, IRDB));
 
   const auto &Callees = ICFG.getCalleesOfCallAt(FPtrCall);
 
-  ASSERT_EQ(Callees.size(), 1U);
+  ASSERT_EQ(Callees.size(), 1U)
+      << "Computed  Callees: " << printCallees(Callees);
   ASSERT_EQ(llvm::is_contained(Callees, Foo), 1U);
 }
 

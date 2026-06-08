@@ -2,17 +2,26 @@
 
 #include "phasar/DataFlow/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSUninitializedVariables.h"
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/SimpleAnalysisConstructor.h"
+#include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringRef.h"
 
+#include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
+namespace {
+
 using namespace psr;
+using namespace psr::unittest;
+
+using GroundTruthTy =
+    std::map<TestingSrcLocation, std::set<TestingSrcLocation>>;
 
 class GroundTruthCollector
     : public OnTheFlyAnalysisPrinter<LLVMIFDSAnalysisDomainDefault> {
@@ -22,35 +31,40 @@ class GroundTruthCollector
 
 public:
   // constructor init Groundtruth in each fixture
-  GroundTruthCollector(llvm::DenseMap<int, std::set<std::string>> &GroundTruth)
-      : GroundTruth(GroundTruth) {};
+  GroundTruthCollector(GroundTruthTy GroundTruth)
+      : GroundTruth(std::move(GroundTruth)) {};
 
-  void findAndRemove(int LeakId, const std::string &LeakedFactId) {
-
-    auto It = GroundTruth.find(LeakId);
-    ASSERT_NE(It, GroundTruth.end())
-        << "Found leak at unexpected location: " << LeakId << ": '"
-        << LeakedFactId << "'";
-
-    bool Erased = It->second.erase(LeakedFactId);
-    ASSERT_TRUE(Erased) << "Did not expect leak '" << LeakedFactId
-                        << "' at instruction " << LeakId;
-
-    if (It->second.empty()) {
-      GroundTruth.erase(It);
-    }
+  void convertGT(const LLVMProjectIRDB &IRDB) {
+    LLVMGroundTruth = convertTestingLocationSetMapInIR(GroundTruth, IRDB);
   }
 
 private:
   void doOnResult(n_t Instr, d_t DfFact, l_t /*LatticeElement*/,
                   DataFlowAnalysisType /*AnalysisType*/) override {
-    int LeakId = stoi(getMetaDataID(Instr));
-    findAndRemove(LeakId, getMetaDataID(DfFact));
+    assert(LLVMGroundTruth);
+    auto It = LLVMGroundTruth->find(Instr);
+    ASSERT_NE(It, LLVMGroundTruth->end())
+        << "Found leak at unexpected location: " << llvmIRToString(Instr)
+        << ": '" << llvmIRToString(DfFact) << "'";
+
+    bool Erased = It->second.erase(DfFact);
+    ASSERT_TRUE(Erased) << "Did not expect leak '" << llvmIRToString(DfFact)
+                        << "' at instruction " << llvmIRToString(Instr);
+
+    if (It->second.empty()) {
+      LLVMGroundTruth->erase(It);
+    }
   }
 
-  void doOnFinalize() override { EXPECT_TRUE(GroundTruth.empty()); }
+  void doOnFinalize() override {
+    assert(LLVMGroundTruth);
+    EXPECT_TRUE(LLVMGroundTruth->empty());
+  }
 
-  llvm::DenseMap<int, std::set<std::string>> GroundTruth{};
+  GroundTruthTy GroundTruth{};
+  std::optional<
+      std::map<const llvm::Instruction *, std::set<const llvm::Value *>>>
+      LLVMGroundTruth;
 };
 
 class OnTheFlyAnalysisPrinterTest : public ::testing::Test {
@@ -70,6 +84,7 @@ protected:
 
   void doAnalysisTest(llvm::StringRef IRFile, GroundTruthCollector &GTPrinter) {
     initialize(IRFile);
+    GTPrinter.convertGT(HA->getProjectIRDB());
     UnInitProblem->setAnalysisPrinter(&GTPrinter);
     IFDSSolver Solver(*UnInitProblem, &HA->getICFG());
     Solver.solve();
@@ -81,22 +96,23 @@ protected:
 
 TEST_F(OnTheFlyAnalysisPrinterTest, UninitTest_01_LEAK) {
 
-  llvm::DenseMap<int, std::set<std::string>> GroundTruth;
-  // %4 = load i32, i32* %2, ID: 6 ;  %2 is the uninitialized variable i
-  GroundTruth[6] = {"1"};
-  // %5 = add nsw i32 %4, 10 ;        %4 is undef, since it is loaded from
-  // undefined alloca; not sure if it is necessary to report again
-  GroundTruth[7] = {"6"};
+  GroundTruthTy GroundTruth;
+  const auto Entry = LineColFun{2, 0, "main"};
+  const auto EntryTwo = LineColFun{3, 11, "main"};
+  const auto EntryThree = LineColFun{3, 13, "main"};
+  GroundTruth.insert({EntryTwo, {Entry}});
+  GroundTruth.insert({EntryThree, {EntryTwo}});
 
   GroundTruthCollector GroundTruthPrinter = {GroundTruth};
   doAnalysisTest("binop_uninit_cpp_dbg.ll", GroundTruthPrinter);
 }
 
 TEST_F(OnTheFlyAnalysisPrinterTest, UninitTest_02_NOLEAK) {
-  llvm::DenseMap<int, std::set<std::string>> GroundTruth;
+  GroundTruthTy GroundTruth;
   GroundTruthCollector GroundTruthPrinter = {GroundTruth};
   doAnalysisTest("ctor_default_cpp_dbg.ll", GroundTruthPrinter);
 }
+} // namespace
 
 // main function for the test case
 int main(int Argc, char **Argv) {

@@ -120,4 +120,11 @@ template <typename T>
 concept ProjectIRDBConstPtr =
     std::is_const_v<std::remove_reference_t<decltype(*std::declval<T>())>> &&
     ProjectIRDB<std::remove_cvref_t<decltype(*std::declval<T>())>>;
+
+// NOLINTNEXTLINE(readability-identifier-naming)
+auto IRDBGetFunctionDef(const ProjectIRDB auto *IRDB) noexcept {
+  return [IRDB](llvm::StringRef Name) {
+    return IRDB->getFunctionDefinition(Name);
+  };
+}
 } // namespace psr

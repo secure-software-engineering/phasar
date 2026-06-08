@@ -121,7 +121,6 @@ using psr::getPointerFrom;
 using psr::GraphTraits;
 using psr::has_adl_to_string_v;
 using psr::has_erase_iterator_v;
-using psr::has_getAsJson;
 using psr::has_getHashCode;
 using psr::has_isInteresting_v;
 using psr::has_llvm_dense_map_info;

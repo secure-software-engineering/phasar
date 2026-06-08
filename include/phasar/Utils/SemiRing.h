@@ -7,12 +7,11 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_SEMIRING_H
-#define PHASAR_UTILS_SEMIRING_H
+#pragma once
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/Utils/JoinLattice.h"
+#include "phasar/Domain/BinaryDomain.h"
 
 #include <concepts>
 
@@ -71,6 +70,31 @@ concept IsSemiRing = requires(T &SR, const typename T::EdgeFunctionType &CEF) {
   { SR.allTopFunction() } -> std::convertible_to<typename T::EdgeFunctionType>;
 };
 
-} // namespace psr
+struct BinarySemiRing {
+  using EdgeFunctionType = EdgeIdentity<BinaryDomain>;
 
-#endif // PHASAR_UTILS_SEMIRING_H
+  [[nodiscard]] constexpr EdgeFunctionType
+  extend(EdgeFunctionType /*L*/, EdgeFunctionType /*R*/) const noexcept {
+    return {};
+  }
+
+  [[nodiscard]] constexpr EdgeFunctionType
+  combine(EdgeFunctionType /*L*/, EdgeFunctionType /*R*/) const noexcept {
+    return {};
+  }
+
+  [[nodiscard]] constexpr EdgeFunctionType identity() const noexcept {
+    return {};
+  }
+
+  [[nodiscard]] constexpr EdgeFunctionType allTopFunction() const noexcept {
+    // technically not 100% correct, but works in practice
+    return {};
+  }
+
+  static constinit BinarySemiRing Instance;
+};
+
+inline constinit BinarySemiRing BinarySemiRing::Instance{};
+
+} // namespace psr

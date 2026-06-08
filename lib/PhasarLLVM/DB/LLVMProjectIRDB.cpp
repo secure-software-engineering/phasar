@@ -27,19 +27,6 @@ namespace psr {
 
 static_assert(ProjectIRDB<LLVMProjectIRDB>);
 
-[[deprecated]]
-static void setOpaquePointersForCtx(llvm::LLVMContext &Ctx, bool Enable) {
-#if LLVM_VERSION_MAJOR >= 15 && LLVM_VERSION_MAJOR < 17
-  if (!Enable) {
-    Ctx.setOpaquePointers(false);
-  }
-#elif LLVM_VERSION_MAJOR < 15
-  if (Enable) {
-    Ctx.enableOpaquePointers();
-  }
-#endif
-}
-
 namespace {
 enum class IRDBParsingError {
   CouldNotParse = 1,
@@ -153,25 +140,6 @@ LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName)
   preprocessModule(NonConst);
 }
 
-LLVMProjectIRDB::LLVMProjectIRDB(const llvm::Twine &IRFileName,
-                                 bool EnableOpaquePointers)
-    : Ctx(new llvm::LLVMContext()) {
-  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrErr(IRFileName, *Ctx);
-
-  if (!M) {
-    llvm::WithColor::error()
-        << "Could not load LLVM-" << LLVM_VERSION_MAJOR << " IR file "
-        << IRFileName << ": " << M.getError().message() << '\n';
-    return;
-  }
-
-  auto *NonConst = M->get();
-  Mod = std::move(M.get());
-  ModulesToSlotTracker::setMSTForModule(Mod.get());
-  preprocessModule(NonConst);
-}
-
 void LLVMProjectIRDB::initInstructionIds() {
   assert(Mod != nullptr);
   size_t Id = 0;
@@ -271,23 +239,6 @@ LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf)
   ModulesToSlotTracker::setMSTForModule(Mod.get());
   preprocessModule(NonConst);
 }
-LLVMProjectIRDB::LLVMProjectIRDB(llvm::MemoryBufferRef Buf,
-                                 bool EnableOpaquePointers)
-    : Ctx(new llvm::LLVMContext()) {
-  setOpaquePointersForCtx(*Ctx, EnableOpaquePointers);
-  auto M = getParsedIRModuleOrErr(Buf, *Ctx);
-  if (!M) {
-    llvm::WithColor::error() << "Could not load " << LLVM_VERSION_MAJOR
-                             << " IR buffer: " << Buf.getBufferIdentifier()
-                             << ": " << M.getError().message() << '\n';
-    return;
-  }
-
-  auto *NonConst = M->get();
-  Mod = std::move(M.get());
-  ModulesToSlotTracker::setMSTForModule(Mod.get());
-  preprocessModule(NonConst);
-}
 
 LLVMProjectIRDB::~LLVMProjectIRDB() {
   if (Mod) {
@@ -305,29 +256,32 @@ internalGetFunctionDefinition(const llvm::Module &M,
   return nullptr;
 }
 
-[[nodiscard]] bool LLVMProjectIRDB::debugInfoAvailableImpl() const {
+[[nodiscard]] bool LLVMProjectIRDB::debugInfoAvailable() const {
+  assert(isValid());
   return Mod->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 /// Non-const overload
 [[nodiscard]] llvm::Function *
 LLVMProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) {
+  assert(isValid());
   return internalGetFunctionDefinition(*Mod, FunctionName);
 }
 
 [[nodiscard]] const llvm::Function *
-LLVMProjectIRDB::getFunctionDefinitionImpl(llvm::StringRef FunctionName) const {
+LLVMProjectIRDB::getFunctionDefinition(llvm::StringRef FunctionName) const {
+  assert(isValid());
   return internalGetFunctionDefinition(*Mod, FunctionName);
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
-LLVMProjectIRDB::getGlobalVariableImpl(
-    llvm::StringRef GlobalVariableName) const {
+LLVMProjectIRDB::getGlobalVariable(llvm::StringRef GlobalVariableName) const {
+  assert(isValid());
   return Mod->getGlobalVariable(GlobalVariableName, true);
 }
 
 [[nodiscard]] const llvm::GlobalVariable *
-LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
+LLVMProjectIRDB::getGlobalVariableDefinition(
     llvm::StringRef GlobalVariableName) const {
   const auto *G = getGlobalVariable(GlobalVariableName);
   if (G && !G->isDeclaration()) {
@@ -336,9 +290,14 @@ LLVMProjectIRDB::getGlobalVariableDefinitionImpl(
   return nullptr;
 }
 
-bool LLVMProjectIRDB::isValidImpl() const noexcept { return Mod != nullptr; }
+bool LLVMProjectIRDB::isValid() const noexcept { return Mod != nullptr; }
 
-void LLVMProjectIRDB::dumpImpl() const {
+void LLVMProjectIRDB::dump() const {
+  if (!isValid()) {
+    llvm::dbgs() << "<Invalid Module>\n";
+    llvm::dbgs().flush();
+    return;
+  }
   llvm::dbgs() << *Mod;
   llvm::dbgs().flush();
 }
@@ -382,8 +341,6 @@ void LLVMProjectIRDB::insertFunction(llvm::Function *F, bool DoPreprocessing) {
   }
   assert(InstToId.size() == IdToInst.size());
 }
-
-template class ProjectIRDBBase<LLVMProjectIRDB>;
 
 } // namespace psr
 

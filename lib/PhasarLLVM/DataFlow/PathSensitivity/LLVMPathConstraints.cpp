@@ -27,11 +27,14 @@ auto LLVMPathConstraints::internalGetConstraintAndVariablesFromEdge(
     return std::nullopt;
   }
 
+#if LLVM_VERSION_MAJOR <= 18
   if (IgnoreDebugInstructions) {
     while (const auto *Prev = To->getPrevNonDebugInstruction(false)) {
       To = Prev;
     }
-  } else {
+  } else
+#endif
+  {
     while (const auto *Prev = To->getPrevNode()) {
       To = Prev;
     }
@@ -171,9 +174,11 @@ auto LLVMPathConstraints::handleCondBrInst(const llvm::BranchInst *Br,
   auto GetFirstInst = [IgnoreDebugInstructions{IgnoreDebugInstructions}](
                           const llvm::BasicBlock *BB) {
     const auto *Ret = &BB->front();
+#if LLVM_VERSION_MAJOR <= 18
     if (IgnoreDebugInstructions && llvm::isa<llvm::DbgInfoIntrinsic>(Ret)) {
       Ret = Ret->getNextNonDebugInstruction(false);
     }
+#endif
     return Ret;
   };
 

@@ -3,7 +3,9 @@ add_custom_target(LLFileGeneration ALL)
 # Use phasar's capabilities to automate the LLVM-IR file generation
 
 include(../../../cmake/phasar_macros.cmake)
-set(PHASAR_LLVM_VERSION 15)
+if (NOT PHASAR_LLVM_VERSION)
+  set(PHASAR_LLVM_VERSION 15)
+endif()
 
 file(GLOB target_files RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.cpp)
 
