@@ -83,6 +83,8 @@ template <typename L> struct NonTopBotValue {
   unwrap(L Value) noexcept(std::is_nothrow_move_constructible_v<L>) {
     return Value;
   }
+
+  constexpr static const L *tryUnwrap(const L *Value) noexcept { return Value; }
 };
 
 } // namespace psr

@@ -217,9 +217,8 @@ namespace psr {
 /// computations.
 template <IsSolverResults SRTy>
   requires std::same_as<const llvm::Instruction *, typename SRTy::n_t>
-inline std::unordered_set<typename SRTy::d_t>
-removeVariablesWithoutEmptySetValue(
-    const SRTy &SR, std::unordered_set<typename SRTy::d_t> Variables) {
+inline auto removeVariablesWithoutEmptySetValue(const SRTy &SR,
+                                                auto Variables) {
   // Check the solver results and remove all variables for which a
   // non-empty set has been computed
   // auto Results = Solution.getAllResultEntries();
@@ -235,7 +234,9 @@ removeVariablesWithoutEmptySetValue(
     if (!Variables.count(Variable)) {
       return;
     }
-    if (const auto *Values = Val.getValueOrNull(); Values && !Values->empty()) {
+    if (const auto *Values =
+            NonTopBotValue<typename SRTy::l_t>::tryUnwrap(&Val);
+        Values && !Values->empty()) {
       Variables.erase(Variable);
     }
   });
@@ -247,8 +248,8 @@ removeVariablesWithoutEmptySetValue(
 /// edge functions (and respective value domain).
 template <IsSolverResults SRTy>
   requires std::same_as<const llvm::Instruction *, typename SRTy::n_t>
-[[nodiscard]] std::unordered_set<typename SRTy::d_t>
-getAllVariablesWithEmptySetValue(const LLVMProjectIRDB &IRDB, const SRTy &SR) {
+[[nodiscard]] auto getAllVariablesWithEmptySetValue(const LLVMProjectIRDB &IRDB,
+                                                    const SRTy &SR) {
   return removeVariablesWithoutEmptySetValue(SR, getAllVariables(IRDB));
 }
 } // namespace psr

@@ -32,7 +32,6 @@ concept IsSolverResults = requires(const T &SR, typename T::n_t Inst,
     SR.resultsAt(Inst)
   }
   -> std::convertible_to<std::unordered_map<typename T::d_t, typename T::l_t>>;
-  { SR.ifdsResultsAt(Inst) } -> std::convertible_to<std::set<typename T::d_t>>;
 
   { SR.size() } -> std::convertible_to<size_t>;
 
@@ -40,6 +39,8 @@ concept IsSolverResults = requires(const T &SR, typename T::n_t Inst,
 
   SR.foreachResultEntry(
       DummyFn<std::tuple<typename T::n_t, typename T::d_t, typename T::l_t>>{});
+
+  // TODO: Add ifdsResultsAt IFF l_t==BinaryDomain
 };
 
 /// \brief A type-erased version of the main functionality of SolverResults.
@@ -266,6 +267,7 @@ bool checkSREquality(const SR1 &LHS, const SR2 &RHS) {
   }
   return !HasError;
 }
+
 } // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_SOLVER_GENERICSOLVERRESULTS_H

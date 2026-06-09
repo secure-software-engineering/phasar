@@ -1124,14 +1124,14 @@ public:
 
   /// Computes all variables where a result set has been computed using the
   /// edge functions (and respective value domain).
-  std::unordered_set<d_t>
+  auto
   getAllVariables(GenericSolverResults<n_t, d_t, l_t> /* Solution */) const {
     return psr::getAllVariables(*this->getProjectIRDB());
   }
 
   /// Computes all variables for which an empty set has been computed using the
   /// edge functions (and respective value domain).
-  std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
+  auto getAllVariablesWithEmptySetValue(
       GenericSolverResults<n_t, d_t, l_t> Solution) const {
     return psr::getAllVariablesWithEmptySetValue(*this->getProjectIRDB(),
                                                  Solution);

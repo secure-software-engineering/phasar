@@ -222,6 +222,10 @@ struct NonTopBotValue<LatticeDomain<L>> {
       std::is_nothrow_move_constructible_v<L>) {
     return std::get<L>(std::move(Value));
   }
+
+  constexpr static const L *tryUnwrap(const LatticeDomain<L> *Value) noexcept {
+    return Value->getValueOrNull();
+  }
 };
 
 } // namespace psr

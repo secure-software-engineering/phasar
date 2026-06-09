@@ -100,6 +100,12 @@ template <> struct NonTopBotValue<XTaint::EdgeDomain> {
   static type unwrap(XTaint::EdgeDomain Value) noexcept {
     return Value.getSanitizer();
   }
+
+  static std::optional<type>
+  tryUnwrap(const XTaint::EdgeDomain *Value) noexcept {
+    return Value->hasSanitizer() ? std::optional(Value->getSanitizer())
+                                 : std::nullopt;
+  }
 };
 
 template <> struct JoinLatticeTraits<XTaint::EdgeDomain> {
