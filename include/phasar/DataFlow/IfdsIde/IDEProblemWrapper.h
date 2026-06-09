@@ -45,7 +45,11 @@ public:
   // --- IFDSProblem:
 
   [[nodiscard]] constexpr bool isZeroValue(ByConstRef<d_t> Fact) const {
-    return Problem->isZeroValue(Fact);
+    if constexpr (requires { Problem->isZeroValue(Fact); }) {
+      return Problem->isZeroValue(Fact);
+    } else {
+      return Fact == getZeroValue();
+    }
   }
 
   [[nodiscard]] constexpr decltype(auto) getZeroValue() const {
@@ -207,7 +211,7 @@ public:
     }
   }
 
-private:
+protected:
   NonNullPtr<ProblemTy> Problem;
 };
 

@@ -51,6 +51,7 @@ public:
 
   using container_type = Container;
   using value_type = typename container_type::value_type;
+  using d_t = D;
 
   virtual ~FlowFunction() = default;
 
@@ -68,10 +69,49 @@ public:
   virtual container_type computeTargets(D Source) = 0;
 };
 
+template <typename T>
+concept IsFlowFunctionLike = requires(T &FF, typename T::d_t Source) {
+  typename T::d_t;
+  typename T::container_type;
+  requires is_iterable_over_v<typename T::container_type, typename T::d_t>;
+  {
+    FF.computeTargets(Source)
+  } -> std::convertible_to<typename T::container_type>;
+};
+
+template <typename T>
+concept IsFlowFunctionPtr =
+    IsFlowFunctionLike<std::remove_reference_t<decltype(*std::declval<T>())>>;
+
+template <typename T, typename D>
+concept IsFlowFunctionOf =
+    IsFlowFunctionLike<T> && std::same_as<D, typename T::d_t>;
+
+template <typename T, typename D>
+concept IsFlowFunctionPtrOf =
+    IsFlowFunctionOf<std::remove_reference_t<decltype(*std::declval<T>())>, D>;
+
+template <typename T>
+concept IsFlowFunctionOrFFPtr = IsFlowFunctionLike<T> || IsFlowFunctionPtr<T>;
+
+template <typename T, typename D>
+concept IsFlowFunctionOrFFPtrOf =
+    IsFlowFunctionOf<T, D> || IsFlowFunctionPtrOf<T, D>;
+
+template <IsFlowFunctionOrFFPtr T>
+using FFContainerType = typename decltype([] {
+  if constexpr (IsFlowFunctionLike<T>) {
+    return std::type_identity<typename T::container_type>{};
+  } else {
+    return std::type_identity<typename std::remove_reference_t<
+        decltype(*std::declval<T>())>::container_type>{};
+  }
+}())::type;
+
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 ///
-/// Use is_flowfunction_v instead.
+/// Use IsFlowFunctionLike instead.
 template <typename FF> struct IsFlowFunction {
   template <typename D, typename Container>
   static std::true_type test(const FlowFunction<D, Container> &);
@@ -85,10 +125,12 @@ template <typename FF> struct IsFlowFunction {
 /// Helper template to check at compile-time whether a type implements the
 /// FlowFunction interface, no matter which data-flow fact type it uses.
 template <typename FF>
-concept is_flowfunction_v = IsFlowFunction<FF>::value; // NOLINT
+concept is_flowfunction_v
+    [[deprecated("Use IsFlowFunctionLike instead. It is more flexible")]] =
+        IsFlowFunction<FF>::value; // NOLINT
 
 /// Given a flow-function type FF, returns a (smart) pointer type pointing to FF
-template <is_flowfunction_v FF>
+template <IsFlowFunctionLike FF>
 using FlowFunctionPtrTypeOf = MaybeUniquePtr<FF>;
 
 /// Given a dataflow-fact type and optionally a container-type, returns a
@@ -900,6 +942,10 @@ concept FlowFunctionFactory =
       typename T::container_type;
 
       requires is_iterable_over_v<typename T::container_type, typename T::d_t>;
+      requires IsFlowFunctionPtrOf<typename T::FlowFunctionPtrType,
+                                   typename T::d_t>;
+      requires std::same_as<typename T::container_type,
+                            FFContainerType<typename T::FlowFunctionPtrType>>;
 
       ///
       /// Describes the effects of the current instruction, i.e. data-flows,
