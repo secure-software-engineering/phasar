@@ -29,12 +29,10 @@ concept IsSolverResults = requires(const T &SR, typename T::n_t Inst,
 
   { SR.resultAt(Inst, Fact) } -> std::convertible_to<typename T::l_t>;
   {
-    SR.resultsAt(Inst, Fact)
+    SR.resultsAt(Inst)
   }
   -> std::convertible_to<std::unordered_map<typename T::d_t, typename T::l_t>>;
-  {
-    SR.ifdsResultsAt(Inst, Fact)
-  } -> std::convertible_to<std::set<typename T::d_t>>;
+  { SR.ifdsResultsAt(Inst) } -> std::convertible_to<std::set<typename T::d_t>>;
 
   { SR.size() } -> std::convertible_to<size_t>;
 
