@@ -14,7 +14,6 @@
 #include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IdBasedSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
-#include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/JoinLattice.h"
@@ -22,6 +21,7 @@
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/ErrorHandling.h"
 
@@ -215,10 +215,11 @@ namespace psr {
 
 /// Filters out all variables that had a non-empty set during edge functions
 /// computations.
-template <typename D, typename L>
-inline std::unordered_set<D> removeVariablesWithoutEmptySetValue(
-    GenericSolverResults<const llvm::Instruction *, D, LatticeDomain<L>> SR,
-    std::unordered_set<D> Variables) {
+template <IsSolverResults SRTy>
+  requires std::same_as<const llvm::Instruction *, typename SRTy::n_t>
+inline std::unordered_set<typename SRTy::d_t>
+removeVariablesWithoutEmptySetValue(
+    const SRTy &SR, std::unordered_set<typename SRTy::d_t> Variables) {
   // Check the solver results and remove all variables for which a
   // non-empty set has been computed
   // auto Results = Solution.getAllResultEntries();
@@ -244,10 +245,10 @@ inline std::unordered_set<D> removeVariablesWithoutEmptySetValue(
 
 /// Computes all variables for which an empty set has been computed using the
 /// edge functions (and respective value domain).
-template <typename D, typename L>
-[[nodiscard]] std::unordered_set<D> getAllVariablesWithEmptySetValue(
-    const LLVMProjectIRDB &IRDB,
-    GenericSolverResults<const llvm::Instruction *, D, LatticeDomain<L>> SR) {
+template <IsSolverResults SRTy>
+  requires std::same_as<const llvm::Instruction *, typename SRTy::n_t>
+[[nodiscard]] std::unordered_set<typename SRTy::d_t>
+getAllVariablesWithEmptySetValue(const LLVMProjectIRDB &IRDB, const SRTy &SR) {
   return removeVariablesWithoutEmptySetValue(SR, getAllVariables(IRDB));
 }
 } // namespace psr

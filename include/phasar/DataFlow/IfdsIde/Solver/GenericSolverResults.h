@@ -3,6 +3,7 @@
 
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Utils/ByRef.h"
+#include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/STLFunctionalExtras.h"
 #include "llvm/IR/Instruction.h"
@@ -10,6 +11,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <array>
+#include <concepts>
 #include <cstddef>
 #include <cstring>
 #include <set>
@@ -18,8 +20,29 @@
 
 namespace psr {
 
-/// XXX (#734): When upgrading to C++20, create a concept checking valid
-/// SolverResults types
+template <typename T>
+concept IsSolverResults = requires(const T &SR, typename T::n_t Inst,
+                                   typename T::d_t Fact) {
+  typename T::n_t;
+  typename T::d_t;
+  typename T::l_t;
+
+  { SR.resultAt(Inst, Fact) } -> std::convertible_to<typename T::l_t>;
+  {
+    SR.resultsAt(Inst, Fact)
+  }
+  -> std::convertible_to<std::unordered_map<typename T::d_t, typename T::l_t>>;
+  {
+    SR.ifdsResultsAt(Inst, Fact)
+  } -> std::convertible_to<std::set<typename T::d_t>>;
+
+  { SR.size() } -> std::convertible_to<size_t>;
+
+  { SR.containsNode(Inst) } -> std::convertible_to<bool>;
+
+  SR.foreachResultEntry(
+      DummyFn<std::tuple<typename T::n_t, typename T::d_t, typename T::l_t>>{});
+};
 
 /// \brief A type-erased version of the main functionality of SolverResults.
 /// Can be accepted by consumers that don't need deep access to the internals
