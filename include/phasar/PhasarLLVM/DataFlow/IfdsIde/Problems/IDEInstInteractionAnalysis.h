@@ -167,6 +167,10 @@ public:
     FlowFact.print(Rso);
     return OS;
   }
+
+  friend const llvm::Value *valueOf(const IDEIIAFlowFact &FlowFact) {
+    return FlowFact.BaseVal;
+  }
 };
 
 } // namespace psr
@@ -900,7 +904,7 @@ public:
         //
         //               0
         //                \
-          // %i = call H     \ \x.x \cup { commit of('%i = call H') }
+        // %i = call H     \ \x.x \cup { commit of('%i = call H') }
         //                  v
         //                  i
         //
@@ -1120,35 +1124,17 @@ public:
 
   /// Computes all variables where a result set has been computed using the
   /// edge functions (and respective value domain).
-  inline std::unordered_set<d_t>
+  std::unordered_set<d_t>
   getAllVariables(GenericSolverResults<n_t, d_t, l_t> /* Solution */) const {
-    std::unordered_set<d_t> Variables;
-    // collect all variables that are available
-    const llvm::Module *M = this->IRDB->getModule();
-    for (const auto &G : M->globals()) {
-      Variables.insert(&G);
-    }
-    for (const auto *I : this->IRDB->getAllInstructions()) {
-      if (const auto *A = llvm::dyn_cast<llvm::AllocaInst>(I)) {
-        Variables.insert(A);
-      }
-      if (const auto *H = llvm::dyn_cast<llvm::CallBase>(I)) {
-        if (!H->isIndirectCall() && H->getCalledFunction() &&
-            psr::isHeapAllocatingFunction(H->getCalledFunction())) {
-          Variables.insert(H);
-        }
-      }
-    }
-
-    return Variables;
+    return psr::getAllVariables(*this->getProjectIRDB());
   }
 
   /// Computes all variables for which an empty set has been computed using the
   /// edge functions (and respective value domain).
-  inline std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
+  std::unordered_set<d_t> getAllVariablesWithEmptySetValue(
       GenericSolverResults<n_t, d_t, l_t> Solution) const {
-    return removeVariablesWithoutEmptySetValue(Solution,
-                                               getAllVariables(Solution));
+    return psr::getAllVariablesWithEmptySetValue(*this->getProjectIRDB(),
+                                                 Solution);
   }
 
 protected:
@@ -1183,35 +1169,6 @@ protected:
   }
 
 private:
-  /// Filters out all variables that had a non-empty set during edge functions
-  /// computations.
-  inline std::unordered_set<d_t> removeVariablesWithoutEmptySetValue(
-      GenericSolverResults<n_t, d_t, l_t> Solution,
-      std::unordered_set<d_t> Variables) const {
-    // Check the solver results and remove all variables for which a
-    // non-empty set has been computed
-    // auto Results = Solution.getAllResultEntries();
-    Solution.foreachResultEntry([&Variables](const auto &Result) {
-      // We do not care for the concrete instruction at which data-flow facts
-      // hold, instead we just wish to find out if a variable has been
-      // generated at some point. Therefore, we only care for the variables
-      // and their associated values and ignore at which point a variable may
-      // holds as a data-flow fact.
-      const d_t &Variable = std::get<1>(Result);
-      const l_t &Value = std::get<2>(Result);
-      // skip result entry if variable is not in the set of all variables
-      if (!Variables.count(Variable)) {
-        return;
-      }
-      if (const auto *Values = Value.getValueOrNull();
-          Values && !Values->empty()) {
-        Variables.erase(Variable);
-      }
-    });
-
-    return Variables;
-  }
-
   DefaultEdgeFunctionSingletonCache<IIAAAddLabelsEF> IIAAAddLabelsEFCache;
   DefaultEdgeFunctionSingletonCache<IIAAKillOrReplaceEF>
       IIAAKillOrReplaceEFCache;

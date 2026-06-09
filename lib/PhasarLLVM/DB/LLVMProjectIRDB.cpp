@@ -8,8 +8,11 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/AssemblyAnnotationWriter.h"
+#include "llvm/IR/GlobalObject.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
@@ -383,4 +386,32 @@ const llvm::Value *psr::fromMetaDataId(const LLVMProjectIRDB &IRDB,
 
   auto IdNr = ParseInt(Id);
   return IdNr ? IRDB.getValueFromId(*IdNr) : nullptr;
+}
+
+std::unordered_set<const llvm::Value *>
+psr::getAllVariables(const LLVMProjectIRDB &IRDB) {
+  std::unordered_set<const llvm::Value *> Variables;
+  // collect all variables that are available
+  const llvm::Module *M = IRDB.getModule();
+  for (const auto &G : M->globals()) {
+    Variables.insert(&G);
+  }
+  for (const auto *I : IRDB.getAllInstructions()) {
+    if (isVariable(I)) {
+      Variables.insert(I);
+    }
+  }
+
+  return Variables;
+}
+
+[[nodiscard]] bool psr::isVariable(const llvm::Value *V) {
+  if (llvm::isa<llvm::GlobalObject, llvm::AllocaInst>(V)) {
+    return true;
+  }
+  if (const auto *H = llvm::dyn_cast<llvm::CallBase>(V)) {
+    return !H->isIndirectCall() && H->getCalledFunction() &&
+           psr::isHeapAllocatingFunction(H->getCalledFunction());
+  }
+  return false;
 }

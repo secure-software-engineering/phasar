@@ -26,6 +26,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
+#include <unordered_set>
 
 namespace psr {
 
@@ -98,6 +99,11 @@ public:
   [[nodiscard]] f_t getFunction(llvm::StringRef FunctionName) const {
     assert(isValid());
     return Mod->getFunction(FunctionName);
+  }
+
+  [[nodiscard]] llvm::StringRef getFunctionName(f_t Fun) const {
+    assert(Fun != nullptr);
+    return Fun->getName();
   }
 
   /// Returns a mutable pointer to the function's definition if available, null
@@ -227,6 +233,14 @@ private:
  */
 const llvm::Value *fromMetaDataId(const LLVMProjectIRDB &IRDB,
                                   llvm::StringRef Id);
+
+/// Computes all variables where the analysis may compute a result set
+[[nodiscard]] std::unordered_set<const llvm::Value *>
+getAllVariables(const LLVMProjectIRDB &IRDB);
+
+/// Checks if a llvm-value qualifies as "Variable", i.e., a global, an alloca,
+/// or a heap-alloc
+[[nodiscard]] bool isVariable(const llvm::Value *V);
 
 } // namespace psr
 

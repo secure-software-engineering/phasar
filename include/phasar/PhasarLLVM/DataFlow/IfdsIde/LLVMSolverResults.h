@@ -10,8 +10,12 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMSOLVERRESULTS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMSOLVERRESULTS_H
 
+#include "phasar/ControlFlow/SparseCFGProvider.h"
+#include "phasar/DataFlow/IfdsIde/Solver/GenericSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IdBasedSolverResults.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
+#include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
@@ -206,5 +210,46 @@ auto IdBasedSolverResultsBase<Derived, N, D, L>::resultAtInLLVMSSA(
                                AllowOverapproximation);
 }
 } // namespace psr::detail
+
+namespace psr {
+
+/// Filters out all variables that had a non-empty set during edge functions
+/// computations.
+template <typename D, typename L>
+inline std::unordered_set<D> removeVariablesWithoutEmptySetValue(
+    GenericSolverResults<const llvm::Instruction *, D, LatticeDomain<L>> SR,
+    std::unordered_set<D> Variables) {
+  // Check the solver results and remove all variables for which a
+  // non-empty set has been computed
+  // auto Results = Solution.getAllResultEntries();
+  SR.foreachResultEntry([&Variables](const auto &ResTup) {
+    // We do not care for the concrete instruction at which data-flow facts
+    // hold, instead we just wish to find out if a variable has been
+    // generated at some point. Therefore, we only care for the variables
+    // and their associated values and ignore at which point a variable may
+    // holds as a data-flow fact.
+    const auto &[Inst, Fact, Val] = ResTup;
+    const llvm::Value *Variable = valueOf(Fact);
+    // skip result entry if variable is not in the set of all variables
+    if (!Variables.count(Variable)) {
+      return;
+    }
+    if (const auto *Values = Val.getValueOrNull(); Values && !Values->empty()) {
+      Variables.erase(Variable);
+    }
+  });
+
+  return Variables;
+}
+
+/// Computes all variables for which an empty set has been computed using the
+/// edge functions (and respective value domain).
+template <typename D, typename L>
+[[nodiscard]] std::unordered_set<D> getAllVariablesWithEmptySetValue(
+    const LLVMProjectIRDB &IRDB,
+    GenericSolverResults<const llvm::Instruction *, D, LatticeDomain<L>> SR) {
+  return removeVariablesWithoutEmptySetValue(SR, getAllVariables(IRDB));
+}
+} // namespace psr
 
 #endif // PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_LLVMSOLVERRESULTS_H
