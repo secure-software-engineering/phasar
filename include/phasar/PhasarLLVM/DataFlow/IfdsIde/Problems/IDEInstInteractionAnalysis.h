@@ -17,6 +17,7 @@
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/SolverResults.h"
 #include "phasar/Domain/LatticeDomain.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMFlowFunctions.h"
@@ -241,13 +242,24 @@ public:
       std::variant<n_t, const llvm::GlobalVariable *> InstOrGlobal);
 
   IDEInstInteractionAnalysisT(
-      const LLVMProjectIRDB *IRDB, const LLVMBasedICFG *ICF,
+      const LLVMProjectIRDB *IRDB, const LLVMBasedICFG * /*ICF*/,
       LLVMAliasInfoRef PT, std::vector<std::string> EntryPoints = {"main"},
       std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
       : IDETabulationProblem<AnalysisDomainTy, container_type>(
             IRDB, std::move(EntryPoints), createZeroValue()),
-        ICF(ICF), PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
-    assert(ICF != nullptr);
+        PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
+    assert(PT);
+    // IIAAAddLabelsEF::initEdgeFunctionCleaner();
+    // IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
+  }
+
+  IDEInstInteractionAnalysisT(
+      const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
+      std::vector<std::string> EntryPoints = {"main"},
+      std::function<EdgeFactGeneratorTy> EdgeFactGenerator = nullptr)
+      : IDETabulationProblem<AnalysisDomainTy, container_type>(
+            IRDB, std::move(EntryPoints), createZeroValue()),
+        PT(PT), EdgeFactGen(std::move(EdgeFactGenerator)) {
     assert(PT);
     // IIAAAddLabelsEF::initEdgeFunctionCleaner();
     // IIAAKillOrReplaceEF::initEdgeFunctionCleaner();
@@ -489,7 +501,7 @@ public:
 
   inline FlowFunctionPtrType getCallFlowFunction(n_t CallSite,
                                                  f_t DestFun) override {
-    if (this->ICF->isHeapAllocatingFunction(DestFun)) {
+    if (psr::isHeapAllocatingFunction(DestFun)) {
       // Kill add facts and model the effects in getCallToRetFlowFunction().
       return this->killAllFlows();
     }
@@ -557,7 +569,7 @@ public:
     // only model direct calls, though.
     if (Callees.size() == 1) {
       const auto *Callee = Callees.front();
-      if (this->ICF->isHeapAllocatingFunction(Callee)) {
+      if (psr::isHeapAllocatingFunction(Callee)) {
         // In case a heap allocating function is called, generate the pointer
         // that is returned.
         //
@@ -632,27 +644,29 @@ public:
   inline InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
     InitialSeeds<n_t, d_t, l_t> Seeds;
 
-    forallStartingPoints(this->EntryPoints, ICF, [this, &Seeds](n_t SP) {
-      // Set initial seeds at the required entry points and generate the global
-      // variables using generalized initial seeds
+    LLVMBasedCFG CF;
+    forallStartingPoints(
+        this->EntryPoints, this->getProjectIRDB(), CF, [this, &Seeds](n_t SP) {
+          // Set initial seeds at the required entry points and generate the
+          // global variables using generalized initial seeds
 
-      // Generate zero value at the entry points
-      Seeds.addSeed(SP, this->getZeroValue(), Bottom{});
-      // Generate formal parameters of entry points, e.g. main(). Formal
-      // parameters will otherwise cause trouble by overriding alloca
-      // instructions without being valid data-flow facts themselves.
-      for (const auto &Arg : SP->getFunction()->args()) {
-        Seeds.addSeed(SP, &Arg, BitVectorSet<e_t>());
-      }
-      // Generate all global variables using generalized initial seeds
+          // Generate zero value at the entry points
+          Seeds.addSeed(SP, this->getZeroValue(), Bottom{});
+          // Generate formal parameters of entry points, e.g. main(). Formal
+          // parameters will otherwise cause trouble by overriding alloca
+          // instructions without being valid data-flow facts themselves.
+          for (const auto &Arg : SP->getFunction()->args()) {
+            Seeds.addSeed(SP, &Arg, BitVectorSet<e_t>());
+          }
+          // Generate all global variables using generalized initial seeds
 
-      for (const auto &G : this->IRDB->getModule()->globals()) {
-        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
-          l_t InitialValues = bvSetFrom(invoke_or_default(EdgeFactGen, GV));
-          Seeds.addSeed(SP, GV, std::move(InitialValues));
-        }
-      }
-    });
+          for (const auto &G : this->IRDB->getModule()->globals()) {
+            if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+              l_t InitialValues = bvSetFrom(invoke_or_default(EdgeFactGen, GV));
+              Seeds.addSeed(SP, GV, std::move(InitialValues));
+            }
+          }
+        });
 
     return Seeds;
   }
@@ -895,7 +909,7 @@ public:
     if (Callees.size() == 1) {
       const auto *Callee = Callees.front();
 
-      if (this->ICF->isHeapAllocatingFunction(Callee)) {
+      if (psr::isHeapAllocatingFunction(Callee)) {
         // Let H be a heap allocating function.
         //
         // 0 --> x
@@ -1173,7 +1187,7 @@ private:
   DefaultEdgeFunctionSingletonCache<IIAAKillOrReplaceEF>
       IIAAKillOrReplaceEFCache;
 
-  const LLVMBasedICFG *ICF{};
+  // const LLVMBasedICFG *ICF{};
   LLVMAliasInfoRef PT{};
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline const bool OnlyConsiderLocalAliases = true;
