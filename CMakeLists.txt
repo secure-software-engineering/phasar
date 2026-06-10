@@ -225,16 +225,6 @@ endif()
 
 if (PHASAR_USE_CONAN)
 elseif (NOT PHASAR_IN_TREE)
-  # RPATH
-  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-
-  if (NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "lib")
-    message(STATUS "Detected CMAKE_INSTALL_LIBDIR that deviates from 'lib': ${CMAKE_INSTALL_LIBDIR}. Add ${CMAKE_INSTALL_PREFIX}/lib to the RPATH as json-schema-validator needs it")
-    list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
-  endif()
-
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
   # Export set
   set(PHASAR_DEPS_EXPORT_SET PhasarDepsExports)
 else()
