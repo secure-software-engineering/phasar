@@ -1,3 +1,11 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structstd_1_1hash_3_01psr_1_1BoxedConstPtr_3_01C_01_4_01_4.html" title=" " alt="" coords="5,5,207,45"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,109,124,134"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1has__getHashCode.html" title=" " alt="" coords="200,5,367,45"/>
+<area shape="poly" id="edge354_Node000000_Node000001" title=" " alt="" coords="94,99,130,76,171,55,203,43,205,48,173,60,132,81,97,103"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1has__std__hash.html" title=" " alt="" coords="209,69,358,109"/>
+<area shape="poly" id="edge355_Node000000_Node000002" title=" " alt="" coords="138,108,208,98,209,103,139,113"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1is__pathtracingfilter__for.html" title=" " alt="" coords="172,133,395,173"/>
+<area shape="poly" id="edge356_Node000000_Node000003" title=" " alt="" coords="138,129,172,134,172,140,138,135"/>
+<area shape="rect" id="Node000004" href="$structpsr_1_1is__variant.html" title=" " alt="" coords="207,198,359,223"/>
+<area shape="poly" id="edge357_Node000000_Node000004" title=" " alt="" coords="96,140,132,162,173,183,213,195,211,201,171,188,129,167,93,144"/>
 </map>

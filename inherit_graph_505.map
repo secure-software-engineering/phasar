@@ -1,3 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classtypename_01std_1_1allocator__traits_3_01std_1_1allocator_3_01InstructionVertexTy_01_4_01_4_eb1374506985b76338e64ded06235d17.html" title=" " alt="" coords="5,5,183,45"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,70,101,95"/>
+<area shape="rect" id="Node000001" href="$structpsr_1_1LatticeDomain.html" title=" " alt="" coords="168,5,313,45"/>
+<area shape="poly" id="edge373_Node000000_Node000001" title=" " alt="" coords="108,63,174,43,176,48,110,68"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1LatticeDomain.html" title="A easy shorthand to construct a complete lattice of L." alt="" coords="149,70,332,95"/>
+<area shape="poly" id="edge374_Node000000_Node000002" title=" " alt="" coords="115,80,149,80,149,85,115,85"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1pag_1_1Edge.html" title="Tagged union of all PAG edge kinds, see above." alt="" coords="183,119,298,145"/>
+<area shape="poly" id="edge375_Node000000_Node000003" title=" " alt="" coords="115,96,192,117,191,122,114,101"/>
 </map>

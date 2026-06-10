@@ -796,6 +796,8 @@ C/C++" by Schubert et al.  <a href="classpsr_1_1GlobalCtorsDtorsModel.html#detai
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PhasarPrinterPass.html">PhasarPrinterPass</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1PointerIndicesCache.html">PointerIndicesCache</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1PointerProxy.html">PointerProxy</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1PointsToInfo.html">PointsToInfo</a></td></tr>
@@ -1872,6 +1874,14 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
 <tr class="separator:a748acccfdd95bc6696788e0fc77f507a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ac5a3519658c74dd03b2e91468f12fc" id="r_a2ac5a3519658c74dd03b2e91468f12fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2ac5a3519658c74dd03b2e91468f12fc">getFunction</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *Inst)</td></tr>
 <tr class="separator:a2ac5a3519658c74dd03b2e91468f12fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d2d980af08e299e8d6cb6b219b78a2d" id="r_a4d2d980af08e299e8d6cb6b219b78a2d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4d2d980af08e299e8d6cb6b219b78a2d">stripMemberAndTypedef</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>)</td></tr>
+<tr class="separator:a4d2d980af08e299e8d6cb6b219b78a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a224bff0e07cab6cba534a85bdabf939e" id="r_a224bff0e07cab6cba534a85bdabf939e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a224bff0e07cab6cba534a85bdabf939e">isPointerTy</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>)</td></tr>
+<tr class="separator:a224bff0e07cab6cba534a85bdabf939e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb0e45c12f0170fdd020cb752635b0af" id="r_acb0e45c12f0170fdd020cb752635b0af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; uint32_t, llvm::SmallBitVector &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#acb0e45c12f0170fdd020cb752635b0af">getPointerIndicesOfType</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DataLayout &amp;DL)</td></tr>
+<tr class="separator:acb0e45c12f0170fdd020cb752635b0af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f77b0677eda50a3ad208b00a1cd56b5" id="r_a2f77b0677eda50a3ad208b00a1cd56b5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; uint32_t, llvm::SmallBitVector &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2f77b0677eda50a3ad208b00a1cd56b5">getPointerIndicesOfType</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ty</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DataLayout &amp;DL, <a class="el" href="structpsr_1_1PointerIndicesCache.html">PointerIndicesCache</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">PIC</a>)</td></tr>
+<tr class="separator:a2f77b0677eda50a3ad208b00a1cd56b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3141b3346b69dfb0ba5c60fadb3b4bc" id="r_ab3141b3346b69dfb0ba5c60fadb3b4bc"><td class="memItemLeft" align="right" valign="top">llvm::StringRef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ab3141b3346b69dfb0ba5c60fadb3b4bc">getVarAnnotationIntrinsicName</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallInst *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallInst</a>)</td></tr>
 <tr class="separator:ab3141b3346b69dfb0ba5c60fadb3b4bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b5168e705e4c6d4b1fb17d9cd451bc4" id="r_a9b5168e705e4c6d4b1fb17d9cd451bc4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::AllocaInst *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a9b5168e705e4c6d4b1fb17d9cd451bc4">getVaListTagOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Function &amp;Fun)</td></tr>
@@ -5944,11 +5954,11 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Approximates, whether the given LLVM type may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Ty does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00287">287</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00294">294</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00272">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00279">definitelyContainsNoPointerFast()</a>, and <a class="el" href="namespacepsr_1_1detail.html#a2a884f2fee0e2ce1b0d8c14b2f14c06f">psr::detail::definitelyContainsNoPointerImpl()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00299">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00306">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -5978,9 +5988,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <p>Approximates, whether the given LLVM value may not contain a pointer. This check is designed to be extremely lightweight and is therefore not very precise.</p>
 <dl class="section return"><dt>Returns</dt><dd>True, iff it can be proven that Val does <em>not</em> contain a pointer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00299">299</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00306">306</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00287">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">References <a class="el" href="LLVMShorthands_8h_source.html#l00294">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -6008,9 +6018,9 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00272">272</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00279">279</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00287">definitelyContainsNoPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00294">definitelyContainsNoPointer()</a>.</p>
 
 </div>
 </div>
@@ -6774,7 +6784,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00338">338</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00345">345</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 </div>
 </div>
@@ -6802,7 +6812,7 @@ requires std::is_default_constructible_v&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00326">326</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00333">333</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="LLVMUnionFindAA_8h_source.html#l00264">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00270">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, <a class="el" href="LLVMUnionFindAA_8h_source.html#l00258">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::forallAliasesOf()</a>, and <a class="el" href="LLVMUnionFindAA_8h_source.html#l00231">psr::LLVMLocalUnionFindAliasIteratorMixin&lt; Derived, AAResT &gt;::getRawAliasSet()</a>.</p>
 
@@ -8275,6 +8285,68 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
+<a id="acb0e45c12f0170fdd020cb752635b0af" name="acb0e45c12f0170fdd020cb752635b0af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb0e45c12f0170fdd020cb752635b0af">&#9670;&#160;</a></span>getPointerIndicesOfType() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; uint32_t, llvm::SmallBitVector &gt; psr::getPointerIndicesOfType </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Ty</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DataLayout &amp;&#160;</td>
+          <td class="paramname"><em>DL</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2f77b0677eda50a3ad208b00a1cd56b5" name="a2f77b0677eda50a3ad208b00a1cd56b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f77b0677eda50a3ad208b00a1cd56b5">&#9670;&#160;</a></span>getPointerIndicesOfType() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpsr_1_1BitSet.html">BitSet</a>&lt; uint32_t, llvm::SmallBitVector &gt; &amp; psr::getPointerIndicesOfType </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Ty</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DataLayout &amp;&#160;</td>
+          <td class="paramname"><em>DL</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpsr_1_1PointerIndicesCache.html">PointerIndicesCache</a> &amp;&#160;</td>
+          <td class="paramname"><em>PIC</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a525c1623c5f37d06002abd3de5de71ca" name="a525c1623c5f37d06002abd3de5de71ca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a525c1623c5f37d06002abd3de5de71ca">&#9670;&#160;</a></span>getReceiverType()</h2>
 
@@ -9422,6 +9494,36 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a224bff0e07cab6cba534a85bdabf939e" name="a224bff0e07cab6cba534a85bdabf939e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a224bff0e07cab6cba534a85bdabf939e">&#9670;&#160;</a></span>isPointerTy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classbool.html">bool</a> psr::isPointerTy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Ty</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="LLVMShorthands_8h_source.html#l00355">355</a> of file <a class="el" href="LLVMShorthands_8h_source.html">LLVMShorthands.h</a>.</p>
+
+<p class="reference">References <a class="el" href="namespacepsr.html#a4d2d980af08e299e8d6cb6b219b78a2d">stripMemberAndTypedef()</a>.</p>
 
 </div>
 </div>
@@ -11837,6 +11939,26 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 </div>
 </div>
+<a id="a4d2d980af08e299e8d6cb6b219b78a2d" name="a4d2d980af08e299e8d6cb6b219b78a2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d2d980af08e299e8d6cb6b219b78a2d">&#9670;&#160;</a></span>stripMemberAndTypedef()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType * psr::stripMemberAndTypedef </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::DIType *&#160;</td>
+          <td class="paramname"><em>Ty</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="LLVMShorthands_8h_source.html#l00355">isPointerTy()</a>.</p>
+
+</div>
+</div>
 <a id="a03415155db9f1bbab43632f0135bd1ac" name="a03415155db9f1bbab43632f0135bd1ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a03415155db9f1bbab43632f0135bd1ac">&#9670;&#160;</a></span>stripPointerTypes()</h2>
 
@@ -13215,7 +13337,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Jun 9 2026 16:08:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Wed Jun 10 2026 18:27:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

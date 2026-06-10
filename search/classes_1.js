@@ -9,10 +9,11 @@ var searchData=
   ['binaryedgefunction_6',['BinaryEdgeFunction',['../structpsr_1_1glca_1_1BinaryEdgeFunction.html',1,'psr::glca']]],
   ['binarysemiring_7',['BinarySemiRing',['../structpsr_1_1BinarySemiRing.html',1,'psr']]],
   ['bitset_8',['BitSet',['../classpsr_1_1BitSet.html',1,'psr']]],
-  ['bitvectorset_9',['BitVectorSet',['../classpsr_1_1BitVectorSet.html',1,'psr']]],
-  ['bottom_10',['Bottom',['../structpsr_1_1Bottom.html',1,'psr']]],
-  ['bottomupunionfindaa_11',['BottomupUnionFindAA',['../classpsr_1_1BottomupUnionFindAA.html',1,'psr']]],
-  ['bottomupunionfindaabase_12',['BottomupUnionFindAABase',['../structpsr_1_1BottomupUnionFindAABase.html',1,'psr']]],
-  ['boxedconstptr_13',['BoxedConstPtr',['../classpsr_1_1BoxedConstPtr.html',1,'psr']]],
-  ['boxedptr_14',['BoxedPtr',['../classpsr_1_1BoxedPtr.html',1,'psr']]]
+  ['bitset_3c_20uint32_5ft_2c_20llvm_3a_3asmallbitvector_20_3e_9',['BitSet&lt; uint32_t, llvm::SmallBitVector &gt;',['../classpsr_1_1BitSet.html',1,'psr']]],
+  ['bitvectorset_10',['BitVectorSet',['../classpsr_1_1BitVectorSet.html',1,'psr']]],
+  ['bottom_11',['Bottom',['../structpsr_1_1Bottom.html',1,'psr']]],
+  ['bottomupunionfindaa_12',['BottomupUnionFindAA',['../classpsr_1_1BottomupUnionFindAA.html',1,'psr']]],
+  ['bottomupunionfindaabase_13',['BottomupUnionFindAABase',['../structpsr_1_1BottomupUnionFindAABase.html',1,'psr']]],
+  ['boxedconstptr_14',['BoxedConstPtr',['../classpsr_1_1BoxedConstPtr.html',1,'psr']]],
+  ['boxedptr_15',['BoxedPtr',['../classpsr_1_1BoxedPtr.html',1,'psr']]]
 ];

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['cache_0',['cache',['../structpsr_1_1CachedEdgeFunction.html#a7ad49ac2e29d6597f7aaa01714bc5e08',1,'psr::CachedEdgeFunction::Cache'],['../structpsr_1_1EdgeFunctionBase_1_1CachedRefCounted.html#ad125d415c1cada541ce88f326cc554b2',1,'psr::EdgeFunctionBase::CachedRefCounted::Cache']]],
+  ['cache_0',['cache',['../structpsr_1_1CachedEdgeFunction.html#a7ad49ac2e29d6597f7aaa01714bc5e08',1,'psr::CachedEdgeFunction::Cache'],['../structpsr_1_1PointerIndicesCache.html#ad0a8a8365affce509ce69824b1529e32',1,'psr::PointerIndicesCache::Cache'],['../structpsr_1_1EdgeFunctionBase_1_1CachedRefCounted.html#ad125d415c1cada541ce88f326cc554b2',1,'psr::EdgeFunctionBase::CachedRefCounted::Cache']]],
   ['callee_1',['callee',['../structpsr_1_1IterativeIDESolverBase_1_1InterPropagationJob.html#a273d875d0132659cf708aed6825711d2',1,'psr::IterativeIDESolverBase::InterPropagationJob::Callee'],['../classpsr_1_1glca_1_1MapFactsToCalleeFlowFunction.html#abad0a5973120e69fc4377878ca6fdba5',1,'psr::glca::MapFactsToCalleeFlowFunction::Callee']]],
   ['callefcachecumulsize_2',['CallEFCacheCumulSize',['../structpsr_1_1EdgeFunctionCacheStats.html#aaf526bd3974748a5ce41ad91a03a4c08',1,'psr::EdgeFunctionCacheStats']]],
   ['callers_3',['Callers',['../structpsr_1_1CallingContext.html#a3e595efc7a95794537863885ad41eac8',1,'psr::CallingContext']]],
