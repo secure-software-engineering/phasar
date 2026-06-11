@@ -1,0 +1,5 @@
+<map id="psr::SCCDependencyGraph&lt; GraphNodeId &gt;" name="psr::SCCDependencyGraph&lt; GraphNodeId &gt;">
+<area shape="rect" id="Node000001" title="Holds a graph where the SCCs are collapsed to a single node. Conforms to the is_const_graph concept." alt="" coords="5,5,201,45"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1SCCDependencyGraph.html" title=" " alt="" coords="5,108,201,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,59,106,108,101,108,101,59"/>
+</map>

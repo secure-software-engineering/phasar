@@ -103,21 +103,23 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#define PHASAR_PHASARLLVM_CONTROLFLOW_H</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="EntryFunctionUtils_8h.html">phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedBackwardCFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h</a>&quot;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedBackwardICFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h</a>&quot;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedCFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h</a>&quot;</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedICFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h</a>&quot;</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="CHAResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;<a class="code" href="NOResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="OTFResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="RTAResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="Resolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="VTAResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h</a>&quot;</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="SparseLLVMControlFlow_8h.html">phasar/PhasarLLVM/ControlFlow/SparseLLVMControlFlow.h</a>&quot;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_CONTROLFLOW_H</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="FunctionCompressor_8h.html">phasar/PhasarLLVM/ControlFlow/FunctionCompressor.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedBackwardCFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h</a>&quot;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedBackwardICFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h</a>&quot;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedCFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h</a>&quot;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="LLVMBasedICFG_8h.html">phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h</a>&quot;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;<a class="code" href="CHAResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="NOResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="OTFResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="RTAResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="Resolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="VTAResolver_8h.html">phasar/PhasarLLVM/ControlFlow/Resolver/VTAResolver.h</a>&quot;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="SparseLLVMControlFlow_8h.html">phasar/PhasarLLVM/ControlFlow/SparseLLVMControlFlow.h</a>&quot;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_PHASARLLVM_CONTROLFLOW_H</span></div>
 <div class="ttc" id="aCHAResolver_8h_html"><div class="ttname"><a href="CHAResolver_8h.html">CHAResolver.h</a></div></div>
 <div class="ttc" id="aEntryFunctionUtils_8h_html"><div class="ttname"><a href="EntryFunctionUtils_8h.html">EntryFunctionUtils.h</a></div></div>
+<div class="ttc" id="aFunctionCompressor_8h_html"><div class="ttname"><a href="FunctionCompressor_8h.html">FunctionCompressor.h</a></div></div>
 <div class="ttc" id="aLLVMBasedBackwardCFG_8h_html"><div class="ttname"><a href="LLVMBasedBackwardCFG_8h.html">LLVMBasedBackwardCFG.h</a></div></div>
 <div class="ttc" id="aLLVMBasedBackwardICFG_8h_html"><div class="ttname"><a href="LLVMBasedBackwardICFG_8h.html">LLVMBasedBackwardICFG.h</a></div></div>
 <div class="ttc" id="aLLVMBasedCFG_8h_html"><div class="ttname"><a href="LLVMBasedCFG_8h.html">LLVMBasedCFG.h</a></div></div>
@@ -131,7 +133,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:53 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

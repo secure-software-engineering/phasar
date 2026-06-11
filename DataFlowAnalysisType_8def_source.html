@@ -107,27 +107,28 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>DATA_FLOW_ANALYSIS_TYPES(IFDSConstAnalysis, &quot;ifds-const&quot;, &quot;Find variables that are actually mutated through the program&quot;)</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>DATA_FLOW_ANALYSIS_TYPES(IFDSTaintAnalysis, &quot;ifds-taint&quot;, &quot;Simple, alias-aware taint-analysis. Use with --analysis-config&quot;)</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>DATA_FLOW_ANALYSIS_TYPES(IFDSCFLEnvTaintAnalysis, &quot;ifds-fieldsens-taint&quot;, &quot;Same base analysis as ifds-taint, but uses CFL-Environment-Transformers to achieve field sensitivity. Use with --analysis-config&quot;)</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>DATA_FLOW_ANALYSIS_TYPES(SparseIFDSTaintAnalysis, &quot;sparse-ifds-taint&quot;, &quot;Simple, alias-aware taint-analysis utilizing SparseIFDS. Use with --analysis-config&quot;)</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>DATA_FLOW_ANALYSIS_TYPES(IDEExtendedTaintAnalysis, &quot;ide-xtaint&quot;, &quot;More advanced alias-aware taint analysis that provides limited field-sensitivity. Use with --analysis-config&quot;)</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>DATA_FLOW_ANALYSIS_TYPES(IFDSTypeAnalysis, &quot;ifds-type&quot;, &quot;Simple type analysis&quot;)</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>DATA_FLOW_ANALYSIS_TYPES(IDECSTDIOTypeStateAnalysis, &quot;ide-stdio-ts&quot;, &quot;Find invalid usages of the libc file-io&quot;)</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>DATA_FLOW_ANALYSIS_TYPES(IDEOpenSSLTypeStateAnalysis, &quot;ide-openssl-ts&quot;, &quot;Find invalid usages of a subset of the OpenSSL EVP library&quot;)</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>DATA_FLOW_ANALYSIS_TYPES(IFDSSolverTest, &quot;ifds-solvertest&quot;, &quot;Empty analysis. Just to see that the IFDS solver works&quot;)</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>DATA_FLOW_ANALYSIS_TYPES(IDELinearConstantAnalysis, &quot;ide-lca&quot;, &quot;Simple linear constant propagation&quot;)</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>DATA_FLOW_ANALYSIS_TYPES(IDESolverTest, &quot;ide-solvertest&quot;, &quot;Empty analysis. Just to see that the IDE solver works&quot;)</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>DATA_FLOW_ANALYSIS_TYPES(IDEInstInteractionAnalysis, &quot;ide-iia&quot;, &quot;Which instruction has influence on which other instructions?&quot;)</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>DATA_FLOW_ANALYSIS_TYPES(IDEFeatureTaintAnalysis, &quot;ide-fiia&quot;, &quot;Which instruction has influence on which other instructions?&quot;)</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>DATA_FLOW_ANALYSIS_TYPES(IntraMonoFullConstantPropagation, &quot;intra-mono-fca&quot;, &quot;Simple constant propagation without the restriction to linear binary operations. Only works inTRA-procedurally&quot;)</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>DATA_FLOW_ANALYSIS_TYPES(IntraMonoSolverTest, &quot;intra-mono-solvertest&quot;, &quot;Empty analysis. Just to see that the intraprocedural monotone solver works&quot;)</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>DATA_FLOW_ANALYSIS_TYPES(InterMonoSolverTest, &quot;inter-mono-solvertest&quot;, &quot;Empty analysis. Just to see that the interprocedural monotone solver works&quot;)</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>DATA_FLOW_ANALYSIS_TYPES(InterMonoTaintAnalysis, &quot;inter-mono-taint&quot;, &quot;Simple taint analysis using the monotone framework with k-limited call-strings. Use ifds-taint or ide-xtaint instead.&quot;)</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>DATA_FLOW_ANALYSIS_TYPES(MonoIFDSTaintAnalysis, &quot;monoifds-taint&quot;, &quot;Simple, alias-aware taint-analysis as POC for the MonoIFDS solver. Use with --analysis-config&quot;)</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>DATA_FLOW_ANALYSIS_TYPES(SparseIFDSTaintAnalysis, &quot;sparse-ifds-taint&quot;, &quot;Simple, alias-aware taint-analysis utilizing SparseIFDS. Use with --analysis-config&quot;)</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>DATA_FLOW_ANALYSIS_TYPES(IDEExtendedTaintAnalysis, &quot;ide-xtaint&quot;, &quot;More advanced alias-aware taint analysis that provides limited field-sensitivity. Use with --analysis-config&quot;)</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>DATA_FLOW_ANALYSIS_TYPES(IFDSTypeAnalysis, &quot;ifds-type&quot;, &quot;Simple type analysis&quot;)</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>DATA_FLOW_ANALYSIS_TYPES(IDECSTDIOTypeStateAnalysis, &quot;ide-stdio-ts&quot;, &quot;Find invalid usages of the libc file-io&quot;)</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>DATA_FLOW_ANALYSIS_TYPES(IDEOpenSSLTypeStateAnalysis, &quot;ide-openssl-ts&quot;, &quot;Find invalid usages of a subset of the OpenSSL EVP library&quot;)</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>DATA_FLOW_ANALYSIS_TYPES(IFDSSolverTest, &quot;ifds-solvertest&quot;, &quot;Empty analysis. Just to see that the IFDS solver works&quot;)</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>DATA_FLOW_ANALYSIS_TYPES(IDELinearConstantAnalysis, &quot;ide-lca&quot;, &quot;Simple linear constant propagation&quot;)</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>DATA_FLOW_ANALYSIS_TYPES(IDESolverTest, &quot;ide-solvertest&quot;, &quot;Empty analysis. Just to see that the IDE solver works&quot;)</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>DATA_FLOW_ANALYSIS_TYPES(IDEInstInteractionAnalysis, &quot;ide-iia&quot;, &quot;Which instruction has influence on which other instructions?&quot;)</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>DATA_FLOW_ANALYSIS_TYPES(IDEFeatureTaintAnalysis, &quot;ide-fiia&quot;, &quot;Which instruction has influence on which other instructions?&quot;)</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>DATA_FLOW_ANALYSIS_TYPES(IntraMonoFullConstantPropagation, &quot;intra-mono-fca&quot;, &quot;Simple constant propagation without the restriction to linear binary operations. Only works inTRA-procedurally&quot;)</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>DATA_FLOW_ANALYSIS_TYPES(IntraMonoSolverTest, &quot;intra-mono-solvertest&quot;, &quot;Empty analysis. Just to see that the intraprocedural monotone solver works&quot;)</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>DATA_FLOW_ANALYSIS_TYPES(InterMonoSolverTest, &quot;inter-mono-solvertest&quot;, &quot;Empty analysis. Just to see that the interprocedural monotone solver works&quot;)</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>DATA_FLOW_ANALYSIS_TYPES(InterMonoTaintAnalysis, &quot;inter-mono-taint&quot;, &quot;Simple taint analysis using the monotone framework with k-limited call-strings. Use ifds-taint or ide-xtaint instead.&quot;)</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>#undef DATA_FLOW_ANALYSIS_TYPES</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>#undef DATA_FLOW_ANALYSIS_TYPES</div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:54 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -89,22 +89,23 @@ $(function() {
 <p><code>#include &quot;<a class="el" href="CFG_8h_source.html">phasar/ControlFlow/CFG.h</a>&quot;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1CFGDump.html">psr::CFGDump</a> =  <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;CF, <span class="keyword">typename</span> T::n_t Inst,</div>
-<div class="line">                           <span class="keyword">typename</span> T::f_t Fun, llvm::raw_ostream &amp;OS) {</div>
-<div class="line">  { CF.getStatementId(Inst) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a>;</div>
-<div class="line">  { CF.getFunctionName(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a>;</div>
-<div class="line">  { CF.getDemangledFunctionName(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a>;</div>
-<div class="line">  CF.print(Fun, OS);</div>
-<div class="line">}</div>
-<div class="ttc" id="aconceptpsr_1_1CFGDump_html"><div class="ttname"><a href="conceptpsr_1_1CFGDump.html">psr::CFGDump</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00076">CFG.h:76</a></div></div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1CFGDump.html">psr::CFGDump</a> = </div>
+<div class="line">    <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;CF, <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::n_t Inst,</div>
+<div class="line">             <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::f_t Fun, llvm::raw_ostream &amp;OS) {</div>
+<div class="line">      { CF.getStatementId(Inst) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a>;</div>
+<div class="line">      { CF.getFunctionName(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a>;</div>
+<div class="line">      { CF.getDemangledFunctionName(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a>;</div>
+<div class="line">      CF.print(Fun, OS);</div>
+<div class="line">    }</div>
+<div class="ttc" id="aconceptpsr_1_1CFGDump_html"><div class="ttname"><a href="conceptpsr_1_1CFGDump.html">psr::CFGDump</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00098">CFG.h:98</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1is__string__like__v_html"><div class="ttname"><a href="conceptpsr_1_1is__string__like__v.html">psr::is_string_like_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00175">TypeTraits.h:175</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="CFG_8h_source.html#l00076">76</a> of file <a class="el" href="CFG_8h_source.html">CFG.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFG_8h_source.html#l00098">98</a> of file <a class="el" href="CFG_8h_source.html">CFG.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:55 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

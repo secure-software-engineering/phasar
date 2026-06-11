@@ -152,8 +152,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keyword">static_assert</span>(std::is_base_of_v&lt;AnalysisPropertiesMixin&lt;Derived&gt;, Derived&gt;,</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>                  <span class="stringliteral">&quot;Invalid CRTP instantiation! Derived must inherit from &quot;</span></div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                  <span class="stringliteral">&quot;AnalysisPropertiesMixin&lt;Derived&gt;&quot;</span>);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">int</a>(<span class="keyword">static_cast&lt;</span><span class="keyword">const </span>Derived *<span class="keyword">&gt;</span>(<span class="keyword">this</span>)-&gt;getAnalysisProperties()) &amp;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>           <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">int</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Prop</a>);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">return</span> int(<span class="keyword">static_cast&lt;</span><span class="keyword">const </span>Derived *<span class="keyword">&gt;</span>(<span class="keyword">this</span>)-&gt;getAnalysisProperties()) &amp;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>           int(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Prop</a>);</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  }</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>};</div>
 </div>
@@ -177,7 +177,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:54 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -44,8 +44,9 @@ var searchData=
   ['io_2eh_41',['IO.h',['../IO_8h.html',1,'']]],
   ['iotaiterator_2eh_42',['IotaIterator.h',['../IotaIterator_8h.html',1,'']]],
   ['irdomain_2eh_43',['IRDomain.h',['../IRDomain_8h.html',1,'']]],
-  ['iterativeidesolver_2eh_44',['IterativeIDESolver.h',['../IterativeIDESolver_8h.html',1,'']]],
-  ['iterativeidesolverbase_2eh_45',['IterativeIDESolverBase.h',['../IterativeIDESolverBase_8h.html',1,'']]],
-  ['iterativeidesolverresults_2eh_46',['IterativeIDESolverResults.h',['../IterativeIDESolverResults_8h.html',1,'']]],
-  ['iterativeidesolverstats_2eh_47',['IterativeIDESolverStats.h',['../IterativeIDESolverStats_8h.html',1,'']]]
+  ['iterationstrategy_2eh_44',['IterationStrategy.h',['../IterationStrategy_8h.html',1,'']]],
+  ['iterativeidesolver_2eh_45',['IterativeIDESolver.h',['../IterativeIDESolver_8h.html',1,'']]],
+  ['iterativeidesolverbase_2eh_46',['IterativeIDESolverBase.h',['../IterativeIDESolverBase_8h.html',1,'']]],
+  ['iterativeidesolverresults_2eh_47',['IterativeIDESolverResults.h',['../IterativeIDESolverResults_8h.html',1,'']]],
+  ['iterativeidesolverstats_2eh_48',['IterativeIDESolverStats.h',['../IterativeIDESolverStats_8h.html',1,'']]]
 ];

@@ -1,7 +1,9 @@
 <map id="LLVMIFDSAnalysisDomainDefault" name="LLVMIFDSAnalysisDomainDefault">
-<area shape="rect" id="Node000001" title=" " alt="" coords="33,5,274,31"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1cfl__fieldsens_1_1IFDSDomain.html" title=" " alt="" coords="5,79,136,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,42,92,80,89,77,130,38"/>
-<area shape="rect" id="Node000003" href="$structpsr_1_1cfl__fieldsens_1_1IFDSProblemConfig.html" title="Configures, how the CFLFieldSensIFDSProblem should handle strong updates." alt="" coords="160,79,315,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,38,219,77,215,80,174,42"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,247,102"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1cfl__fieldsens_1_1IFDSDomain.html" title=" " alt="" coords="332,5,463,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,71,331,38,333,43,195,76"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1cfl__fieldsens_1_1IFDSProblemConfig.html" title="Configures, how the CFLFieldSensIFDSProblem should handle strong updates." alt="" coords="320,69,475,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,87,320,87,320,92,260,92"/>
+<area shape="rect" id="Node000004" href="$classpsr_1_1monoifds_1_1TaintAnalysis.html" title=" " alt="" coords="295,134,500,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,102,337,131,336,137,200,108"/>
 </map>

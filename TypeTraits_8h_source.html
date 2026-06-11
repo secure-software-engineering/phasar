@@ -445,8 +445,8 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
 <div class="foldopen" id="foldopen00297" data-start="{" data-end="};">
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno"><a class="line" href="structpsr_1_1DummyFn.html">  297</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ArgT&gt; <span class="keyword">struct </span><a class="code hl_struct" href="structpsr_1_1DummyFn.html">DummyFn</a> {</div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno"><a class="line" href="structpsr_1_1DummyFn.html#a0867a8ac86431832dc39592ec0a7531c">  298</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structpsr_1_1DummyFn.html#a0867a8ac86431832dc39592ec0a7531c">operator()</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgT</a> Arg) <span class="keyword">const</span> <span class="keyword">noexcept</span> {}</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno"><a class="line" href="structpsr_1_1DummyFn.html">  297</a></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span>... <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a>&gt; <span class="keyword">struct </span><a class="code hl_struct" href="structpsr_1_1DummyFn.html">DummyFn</a> {</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno"><a class="line" href="structpsr_1_1DummyFn.html#ae8e48393e999372d150652d85871b82b">  298</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structpsr_1_1DummyFn.html#ae8e48393e999372d150652d85871b82b">operator()</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a>... Arg) <span class="keyword">const</span> <span class="keyword">noexcept</span> {}</div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>};</div>
 </div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span><span class="comment"></span> </div>
@@ -531,7 +531,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="astructpsr_1_1DefaultConstruct_html"><div class="ttname"><a href="structpsr_1_1DefaultConstruct.html">psr::DefaultConstruct</a></div><div class="ttdoc">Delegates to the ctor of T.</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00257">TypeTraits.h:257</a></div></div>
 <div class="ttc" id="astructpsr_1_1DefaultConstruct_html_a3f8db804724471b2affa3cda0037d38c"><div class="ttname"><a href="structpsr_1_1DefaultConstruct.html#a3f8db804724471b2affa3cda0037d38c">psr::DefaultConstruct::operator()</a></div><div class="ttdeci">T operator()(U &amp;&amp;...Val) noexcept(std::is_nothrow_constructible_v&lt; T, U... &gt;)</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00260">TypeTraits.h:260</a></div></div>
 <div class="ttc" id="astructpsr_1_1DummyFn_html"><div class="ttname"><a href="structpsr_1_1DummyFn.html">psr::DummyFn</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00297">TypeTraits.h:297</a></div></div>
-<div class="ttc" id="astructpsr_1_1DummyFn_html_a0867a8ac86431832dc39592ec0a7531c"><div class="ttname"><a href="structpsr_1_1DummyFn.html#a0867a8ac86431832dc39592ec0a7531c">psr::DummyFn::operator()</a></div><div class="ttdeci">void operator()(ArgT Arg) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00298">TypeTraits.h:298</a></div></div>
+<div class="ttc" id="astructpsr_1_1DummyFn_html_ae8e48393e999372d150652d85871b82b"><div class="ttname"><a href="structpsr_1_1DummyFn.html#ae8e48393e999372d150652d85871b82b">psr::DummyFn::operator()</a></div><div class="ttdeci">void operator()(ArgsT... Arg) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00298">TypeTraits.h:298</a></div></div>
 <div class="ttc" id="astructpsr_1_1FalseFn_html"><div class="ttname"><a href="structpsr_1_1FalseFn.html">psr::FalseFn</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00249">TypeTraits.h:249</a></div></div>
 <div class="ttc" id="astructpsr_1_1FalseFn_html_a1f7d19cd2b674ecf06bed5df20b4e65a"><div class="ttname"><a href="structpsr_1_1FalseFn.html#a1f7d19cd2b674ecf06bed5df20b4e65a">psr::FalseFn::operator()</a></div><div class="ttdeci">bool operator()(const Args &amp;...) const noexcept</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00251">TypeTraits.h:251</a></div></div>
 <div class="ttc" id="astructpsr_1_1IdentityFn_html"><div class="ttname"><a href="structpsr_1_1IdentityFn.html">psr::IdentityFn</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00291">TypeTraits.h:291</a></div></div>
@@ -543,7 +543,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:45 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:54 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

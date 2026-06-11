@@ -90,23 +90,28 @@ $(function() {
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1BidiCFG.html">psr::BidiCFG</a> = </div>
-<div class="line">    <a class="code hl_concept" href="conceptpsr_1_1CFG.html">CFG&lt;T&gt;</a> &amp;&amp; <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;CF, <span class="keyword">typename</span> T::n_t Inst, <span class="keyword">typename</span> T::f_t Fun) {</div>
+<div class="line">    <a class="code hl_concept" href="conceptpsr_1_1CFG.html">CFG&lt;T&gt;</a> &amp;&amp; <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;CF, <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::n_t Inst,</div>
+<div class="line">                       <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::f_t Fun) {</div>
 <div class="line">      </div>
-<div class="line">      { CF.getPredsOf(Inst) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename T::n_t&gt;</a>;</div>
+<div class="line">      {</div>
+<div class="line">        CF.getPredsOf(Inst)</div>
+<div class="line">      } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::n_t</a>&gt;;</div>
 <div class="line"> </div>
 <div class="line">      </div>
-<div class="line">      { CF.getExitPointsOf(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename T::n_t&gt;</a>;</div>
+<div class="line">      {</div>
+<div class="line">        CF.getExitPointsOf(Fun)</div>
+<div class="line">      } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::n_t</a>&gt;;</div>
 <div class="line">    }</div>
-<div class="ttc" id="aconceptpsr_1_1BidiCFG_html"><div class="ttname"><a href="conceptpsr_1_1BidiCFG.html">psr::BidiCFG</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00063">CFG.h:63</a></div></div>
-<div class="ttc" id="aconceptpsr_1_1CFG_html"><div class="ttname"><a href="conceptpsr_1_1CFG.html">psr::CFG</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00031">CFG.h:31</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1BidiCFG_html"><div class="ttname"><a href="conceptpsr_1_1BidiCFG.html">psr::BidiCFG</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00080">CFG.h:80</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1CFG_html"><div class="ttname"><a href="conceptpsr_1_1CFG.html">psr::CFG</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00034">CFG.h:34</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1is__iterable__over__v_html"><div class="ttname"><a href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00106">TypeTraits.h:106</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="CFG_8h_source.html#l00063">63</a> of file <a class="el" href="CFG_8h_source.html">CFG.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CFG_8h_source.html#l00080">80</a> of file <a class="el" href="CFG_8h_source.html">CFG.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:55 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -1,5 +1,7 @@
 <map id="psr::SCCHolder&lt; GraphNodeId &gt;" name="psr::SCCHolder&lt; GraphNodeId &gt;">
-<area shape="rect" id="Node000001" title="Holds the SCCs of a given graph. Each SCC is assigned a unique sequential id." alt="" coords="5,5,240,31"/>
-<area shape="rect" id="Node000002" href="$structpsr_1_1SCCHolder.html" title=" " alt="" coords="45,93,200,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,44,125,93,120,93,120,44"/>
+<area shape="rect" id="Node000001" title="Holds the SCCs of a given graph. Each SCC is assigned a unique sequential id." alt="" coords="100,5,335,31"/>
+<area shape="rect" id="Node000002" href="$structpsr_1_1SCCHolder.html" title=" " alt="" coords="5,101,221,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,42,128,103,124,99,193,38"/>
+<area shape="rect" id="Node000003" href="$structpsr_1_1SCCHolder.html" title=" " alt="" coords="245,93,400,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,35,283,53,301,72,314,92,310,95,297,75,280,57,254,39"/>
 </map>

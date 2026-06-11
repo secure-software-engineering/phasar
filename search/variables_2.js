@@ -31,5 +31,6 @@ var searchData=
   ['cumulnuminterjobsperrelevantcall_28',['CumulNumInterJobsPerRelevantCall',['../structpsr_1_1IterativeIDESolverStats.html#a24d3d10720fe89a3b0f38e0748f6fed1',1,'psr::IterativeIDESolverStats']]],
   ['cumulreldiffnumsummariesfound_29',['CumulRelDiffNumSummariesFound',['../structpsr_1_1IterativeIDESolverStats.html#abee13a809fffa930b52dfbbc17b3befc',1,'psr::IterativeIDESolverStats']]],
   ['curr_30',['Curr',['../structpsr_1_1Sampler.html#a59fdbea6f2a5e346f29d8f9943bbc58c',1,'psr::Sampler']]],
-  ['customallocpolicy_31',['CustomAllocPolicy',['../classpsr_1_1EdgeFunctionBase.html#a6b327d0d99b16ca1976a3853c0be02d9',1,'psr::EdgeFunctionBase']]]
+  ['currscc_31',['CurrSCC',['../structpsr_1_1monoifds_1_1TaintAnalysis_1_1LocalAnalysis.html#a69ddd598c0e0675e18f13655d29991a1',1,'psr::monoifds::TaintAnalysis::LocalAnalysis']]],
+  ['customallocpolicy_32',['CustomAllocPolicy',['../classpsr_1_1EdgeFunctionBase.html#a6b327d0d99b16ca1976a3853c0be02d9',1,'psr::EdgeFunctionBase']]]
 ];

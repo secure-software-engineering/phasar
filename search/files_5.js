@@ -10,5 +10,7 @@ var searchData=
   ['flowfunctions_2eh_7',['FlowFunctions.h',['../FlowFunctions_8h.html',1,'']]],
   ['flowpath_2eh_8',['FlowPath.h',['../FlowPath_8h.html',1,'']]],
   ['fn_2eh_9',['Fn.h',['../Fn_8h.html',1,'']]],
-  ['functiondataflowfacts_2eh_10',['FunctionDataFlowFacts.h',['../FunctionDataFlowFacts_8h.html',1,'']]]
+  ['functioncompressor_2eh_10',['FunctionCompressor.h',['../FunctionCompressor_8h.html',1,'']]],
+  ['functiondataflowfacts_2eh_11',['FunctionDataFlowFacts.h',['../FunctionDataFlowFacts_8h.html',1,'']]],
+  ['functionid_2eh_12',['FunctionId.h',['../FunctionId_8h.html',1,'']]]
 ];

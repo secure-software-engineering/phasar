@@ -89,15 +89,20 @@ $(function() {
 <p><code>#include &quot;<a class="el" href="ICFG_8h_source.html">phasar/ControlFlow/ICFG.h</a>&quot;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1ICFG.html">psr::ICFG</a> =  <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;ICF, llvm::StringRef Name,</div>
-<div class="line">                        <span class="keyword">typename</span> T::n_t Inst, <span class="keyword">typename</span> T::f_t Fun) {</div>
-<div class="line">  <span class="keyword">typename</span> T::f_t;</div>
-<div class="line">  <span class="keyword">typename</span> T::n_t;</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1ICFG.html">psr::ICFG</a> =  <a class="code hl_concept" href="conceptpsr_1_1CFG.html">CFG&lt;T&gt;</a> &amp;&amp; <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;ICF, llvm::StringRef Name,</div>
+<div class="line">                                  <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::n_t Inst,</div>
+<div class="line">                                  <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::f_t Fun) {</div>
+<div class="line">  <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::f_t;</div>
+<div class="line">  <span class="keyword">typename</span> std::remove_cvref_t&lt;T&gt;::n_t;</div>
 <div class="line"> </div>
 <div class="line">  </div>
-<div class="line">  { ICF.getAllFunctions() } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">is_iterable_over_v&lt;typename T::f_t&gt;</a>;</div>
+<div class="line">  {</div>
+<div class="line">    ICF.getAllFunctions()</div>
+<div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::f_t</a>&gt;;</div>
 <div class="line">  </div>
-<div class="line">  { ICF.getFunction(Name) } -&gt; std::convertible_to&lt;Nullable&lt;typename T::f_t&gt;&gt;;</div>
+<div class="line">  {</div>
+<div class="line">    ICF.getFunction(Name)</div>
+<div class="line">  } -&gt; std::convertible_to&lt;Nullable&lt;typename std::remove_cvref_t&lt;T&gt;::f_t&gt;&gt;;</div>
 <div class="line"> </div>
 <div class="line">  { ICF.isIndirectFunctionCall(Inst) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  { ICF.isVirtualFunctionCall(Inst) } -&gt; std::convertible_to&lt;bool&gt;;</div>
@@ -105,30 +110,39 @@ $(function() {
 <div class="line">  </div>
 <div class="line">  { ICF.getCallGraph() } -&gt; <a class="code hl_concept" href="conceptpsr_1_1IsCallGraphRef.html">psr::IsCallGraphRef</a>;</div>
 <div class="line">  </div>
-<div class="line">  { ICF.getCalleesOfCallAt(Inst) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename T::f_t&gt;</a>;</div>
+<div class="line">  {</div>
+<div class="line">    ICF.getCalleesOfCallAt(Inst)</div>
+<div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::f_t</a>&gt;;</div>
 <div class="line">  </div>
-<div class="line">  { ICF.getCallersOf(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename T::n_t&gt;</a>;</div>
+<div class="line">  {</div>
+<div class="line">    ICF.getCallersOf(Fun)</div>
+<div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::n_t</a>&gt;;</div>
 <div class="line"> </div>
 <div class="line">  </div>
-<div class="line">  { ICF.getCallsFromWithin(Fun) } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename T::n_t&gt;</a>;</div>
+<div class="line">  {</div>
+<div class="line">    ICF.getCallsFromWithin(Fun)</div>
+<div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::n_t</a>&gt;;</div>
 <div class="line"> </div>
 <div class="line">  </div>
 <div class="line">  </div>
-<div class="line">  { ICF.allNonCallStartNodes() } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename T::n_t&gt;</a>;</div>
+<div class="line">  {</div>
+<div class="line">    ICF.allNonCallStartNodes()</div>
+<div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v&lt;typename std::remove_cvref_t&lt;T&gt;::n_t</a>&gt;;</div>
 <div class="line"> </div>
 <div class="line">  </div>
 <div class="line">  { ICF.getNumCallSites() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;size_t&gt;;</div>
 <div class="line">}</div>
-<div class="ttc" id="aconceptpsr_1_1ICFG_html"><div class="ttname"><a href="conceptpsr_1_1ICFG.html">psr::ICFG</a></div><div class="ttdef"><b>Definition</b> <a href="ICFG_8h_source.html#l00022">ICFG.h:22</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1CFG_html"><div class="ttname"><a href="conceptpsr_1_1CFG.html">psr::CFG</a></div><div class="ttdef"><b>Definition</b> <a href="CFG_8h_source.html#l00034">CFG.h:34</a></div></div>
+<div class="ttc" id="aconceptpsr_1_1ICFG_html"><div class="ttname"><a href="conceptpsr_1_1ICFG.html">psr::ICFG</a></div><div class="ttdef"><b>Definition</b> <a href="ICFG_8h_source.html#l00024">ICFG.h:24</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1IsCallGraphRef_html"><div class="ttname"><a href="conceptpsr_1_1IsCallGraphRef.html">psr::IsCallGraphRef</a></div><div class="ttdef"><b>Definition</b> <a href="CallGraphBase_8h_source.html#l00069">CallGraphBase.h:69</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1is__iterable__over__v_html"><div class="ttname"><a href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00106">TypeTraits.h:106</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="ICFG_8h_source.html#l00022">22</a> of file <a class="el" href="ICFG_8h_source.html">ICFG.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ICFG_8h_source.html#l00024">24</a> of file <a class="el" href="ICFG_8h_source.html">ICFG.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 10 2026 18:27:46 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jun 11 2026 16:55:55 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
