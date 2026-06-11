@@ -12,7 +12,9 @@
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/Utils/EquivalenceClassMap.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/NonNullPtr.h"
@@ -75,29 +77,34 @@ private:
  * version is used if existend, otherwise a new one is created and inserted
  * into the cache.
  */
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class FlowEdgeFunctionCache {
-  using IDEProblemType = IDETabulationProblem<AnalysisDomainTy, Container>;
-  using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
+template <IDEProblem ProblemTy> class FlowEdgeFunctionCache {
+  using FlowFunctionPtrType = typename ProblemTy::FlowFunctionPtrType;
 
-  using n_t = typename AnalysisDomainTy::n_t;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using f_t = typename AnalysisDomainTy::f_t;
-  using t_t = typename AnalysisDomainTy::t_t;
-  using l_t = typename AnalysisDomainTy::l_t;
+  using n_t = typename ProblemTy::n_t;
+  using d_t = typename ProblemTy::d_t;
+  using f_t = typename ProblemTy::f_t;
+  using t_t = typename ProblemTy::t_t;
+  using l_t = typename ProblemTy::l_t;
+  using container_type = typename ProblemTy::container_type;
 
-  using FlowFunctionType = FlowFunction<d_t, Container>;
+  using FlowFunctionType = FlowFunction<d_t, container_type>;
   using EdgeFunctionType = EdgeFunction<l_t>;
+
+  static bool doAutoAddZero(NonNullPtr<ProblemTy> Problem) {
+    if constexpr (requires { Problem->getIFDSIDESolverConfig(); }) {
+      return Problem->getIFDSIDESolverConfig().autoAddZero();
+    } else {
+      IFDSIDESolverConfig DefaultConfig{};
+      return DefaultConfig.autoAddZero();
+    }
+  }
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
-  FlowEdgeFunctionCache(
-      IDETabulationProblem<AnalysisDomainTy, Container> &Problem)
-      : Problem(Problem),
-        AutoAddZero(Problem.getIFDSIDESolverConfig().autoAddZero()),
-        ZV(Problem.getZeroValue()) {
+  FlowEdgeFunctionCache(NonNullPtr<ProblemTy> Problem)
+      : Problem(Problem), AutoAddZero(doAutoAddZero(Problem)),
+        ZV(Problem->getZeroValue()) {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Normal-FF Construction", 0, Full);
     REG_COUNTER("Normal-FF Cache Hit", 0, Full);
@@ -156,7 +163,7 @@ public:
     auto &NormalFE = NormalFunctionCache[std::move(Key)];
     if (!NormalFE.FlowFuncPtr) {
       INC_COUNTER("Normal-FF Construction", 1, Full);
-      auto FF = Problem.getNormalFlowFunction(Curr, Succ);
+      auto FF = Problem->getNormalFlowFunction(Curr, Succ);
       NormalFE.FlowFuncPtr = AutoAddZero
                                  ? std::make_unique<ZFF>(std::move(FF), ZV)
                                  : std::move(FF);
@@ -183,7 +190,7 @@ public:
     auto [It, Inserted] = CallFlowFunctionCache.try_emplace(std::move(Key));
     if (Inserted) {
       INC_COUNTER("Call-FF Construction", 1, Full);
-      auto FF = Problem.getCallFlowFunction(CallSite, DestFun);
+      auto FF = Problem->getCallFlowFunction(CallSite, DestFun);
       It->second = AutoAddZero ? std::make_unique<ZFF>(std::move(FF), ZV)
                                : std::move(FF);
       PHASAR_LOG_LEVEL(DEBUG, "Flow function constructed");
@@ -214,7 +221,7 @@ public:
     if (Inserted) {
       INC_COUNTER("Return-FF Construction", 1, Full);
       auto FF =
-          Problem.getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite);
+          Problem->getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite);
       It->second = AutoAddZero ? std::make_unique<ZFF>(std::move(FF), ZV)
                                : std::move(FF);
 
@@ -248,7 +255,7 @@ public:
         CallToRetFlowFunctionCache.try_emplace(std::move(Key));
     if (Inserted) {
       INC_COUNTER("CallToRet-FF Construction", 1, Full);
-      auto FF = Problem.getCallToRetFlowFunction(CallSite, RetSite, Callees);
+      auto FF = Problem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
       It->second = AutoAddZero ? std::make_unique<ZFF>(std::move(FF), ZV)
                                : std::move(FF);
 
@@ -276,7 +283,7 @@ public:
         PHASAR_LOG_LEVEL(DEBUG, "(N) Call Stmt : " << NToString(CallSite));
         PHASAR_LOG_LEVEL(DEBUG, "(F) Dest Mthd : " << FToString(DestFun));
         PHASAR_LOG_LEVEL(DEBUG, ' '));
-    auto FF = Problem.getSummaryFlowFunction(CallSite, DestFun);
+    auto FF = Problem->getSummaryFlowFunction(CallSite, DestFun);
     return FF;
   }
 
@@ -300,7 +307,7 @@ public:
         [&] {
           INC_COUNTER("Normal-EF Construction", 1, Full);
           auto EF =
-              Problem.getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+              Problem->getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
           PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
           return EF;
         },
@@ -333,8 +340,8 @@ public:
     auto [It, Inserted] = CallEdgeFunctionCache.try_emplace(std::move(Key));
     if (Inserted) {
       INC_COUNTER("Call-EF Construction", 1, Full);
-      It->second = Problem.getCallEdgeFunction(CallSite, SrcNode,
-                                               DestinationFunction, DestNode);
+      It->second = Problem->getCallEdgeFunction(CallSite, SrcNode,
+                                                DestinationFunction, DestNode);
 
       PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
     } else {
@@ -370,7 +377,7 @@ public:
 
     if (Inserted) {
       INC_COUNTER("Return-EF Construction", 1, Full);
-      It->second = Problem.getReturnEdgeFunction(
+      It->second = Problem->getReturnEdgeFunction(
           CallSite, CalleeFunction, ExitInst, ExitNode, RetSite, RetNode);
       PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
     }
@@ -407,7 +414,7 @@ public:
         std::move(createEdgeFunctionNodeKey(CallNode, RetSiteNode)),
         [&] {
           INC_COUNTER("CallToRet-EF Construction", 1, Full);
-          auto Ret = Problem.getCallToRetEdgeFunction(
+          auto Ret = Problem->getCallToRetEdgeFunction(
               CallSite, CallNode, RetSite, RetSiteNode, Callees);
           PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
           return Ret;
@@ -439,8 +446,8 @@ public:
     auto [It, Inserted] = SummaryEdgeFunctionCache.try_emplace(std::move(Key));
     if (Inserted) {
       INC_COUNTER("Summary-EF Construction", 1, Full);
-      It->second = Problem.getSummaryEdgeFunction(CallSite, CallNode, RetSite,
-                                                  RetSiteNode);
+      It->second = Problem->getSummaryEdgeFunction(CallSite, CallNode, RetSite,
+                                                   RetSiteNode);
       PHASAR_LOG_LEVEL(DEBUG, "Edge function constructed");
     } else {
       INC_COUNTER("Summary-EF Cache Hit", 1, Full);
@@ -569,7 +576,7 @@ private:
   using InnerEdgeFunctionMapType =
       EquivalenceClassMap<EdgeFuncNodeKey, EdgeFunctionType>;
 
-  using ZFF = ZeroedFlowFunction<d_t, Container>;
+  using ZFF = ZeroedFlowFunction<d_t, container_type>;
 
   struct NormalEdgeFlowData {
     NormalEdgeFlowData() noexcept = default;
@@ -603,9 +610,9 @@ private:
 
   MapKeyCompressorType KeyCompressor;
 
-  IDETabulationProblem<AnalysisDomainTy, Container> &Problem;
+  NonNullPtr<ProblemTy> Problem;
   // Auto add zero
-  bool AutoAddZero;
+  bool AutoAddZero{};
   d_t ZV;
 
   // Caches for the flow/edge functions

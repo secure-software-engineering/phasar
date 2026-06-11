@@ -12,6 +12,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/Domain/BinaryDomain.h"
+#include "phasar/Utils/JoinLattice.h"
 
 #include <concepts>
 
@@ -96,5 +97,28 @@ struct BinarySemiRing {
 };
 
 inline constinit BinarySemiRing BinarySemiRing::Instance{};
+
+template <typename L> struct DefaultSemiRing {
+  using l_t = L;
+  using EdgeFunctionType = EdgeFunction<l_t>;
+
+  [[nodiscard]] constexpr EdgeFunction<l_t>
+  extend(const EdgeFunction<l_t> &Lhs, const EdgeFunction<l_t> &Rhs) {
+    return Lhs.composeWith(Rhs);
+  }
+
+  [[nodiscard]] constexpr EdgeFunction<l_t>
+  combine(const EdgeFunction<l_t> &Lhs, const EdgeFunction<l_t> &Rhs) {
+    return Lhs.joinWith(Rhs);
+  }
+
+  [[nodiscard]] constexpr auto identity() { return EdgeIdentity<l_t>{}; }
+
+  [[nodiscard]] constexpr auto allTopFunction()
+    requires HasJoinLatticeTraits<L>
+  {
+    return AllTop<l_t>{};
+  }
+};
 
 } // namespace psr

@@ -75,7 +75,7 @@ protected:
   constexpr IDESolverProblemWrapperStorage() = default;
 
   template <IFDSProblem ProblemTy>
-  IDESolverProblemWrapperStorage(NonNullPtr<ProblemTy> Problem)
+  IDESolverProblemWrapperStorage(ProblemTy *Problem)
       : ProblemOwner(
             std::make_unique<LegacyIDEProblemWrapper<ProblemTy>>(Problem)) {}
 
@@ -114,7 +114,7 @@ public:
       : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
         ICF(&assertNotNull(ICF)),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
-        CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
+        CachedFlowEdgeFunctions(&Problem), AllTop(Problem.allTopFunction()),
         Seeds(Problem.initialSeeds()) {}
 
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
@@ -126,13 +126,13 @@ public:
                 ProblemTy,
                 IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
                                      typename ProblemTy::container_type>>)
-  IDESolver(ProblemTy *Problem)
+  IDESolver(ProblemTy *Problem, const i_t *ICF)
       : detail::IDESolverProblemWrapperStorage<AnalysisDomainTy, Container>(
             Problem),
         IDEProblem(*this->ProblemOwner), ZeroValue(Problem->getZeroValue()),
         ICF(&assertNotNull(ICF)),
         SolverConfig(this->ProblemOwner->getIFDSIDESolverConfig()),
-        CachedFlowEdgeFunctions(Problem),
+        CachedFlowEdgeFunctions(this->ProblemOwner.get()),
         AllTop(this->ProblemOwner->allTopFunction()),
         Seeds(Problem->initialSeeds()) {}
 
@@ -1901,7 +1901,8 @@ private:
 
   size_t PathEdgeCount = 0;
 
-  FlowEdgeFunctionCache<AnalysisDomainTy, Container> CachedFlowEdgeFunctions;
+  FlowEdgeFunctionCache<IDETabulationProblem<AnalysisDomainTy, Container>>
+      CachedFlowEdgeFunctions;
 
   Table<n_t, n_t, std::map<d_t, Container>> ComputedIntraPathEdges;
 
@@ -1951,12 +1952,11 @@ using IDESolver_P
         IDESolver<typename Problem::ProblemAnalysisDomain,
                   typename Problem::container_type>;
 
-template <typename AnalysisDomainTy, typename Container>
-OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t,
-                    typename AnalysisDomainTy::l_t>
-solveIDEProblem(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-                const ICFG auto &ICF) {
+template <IDEProblem ProblemTy>
+auto solveIDEProblem(ProblemTy &Problem, const ICFG auto &ICF)
+    -> OwningSolverResults<typename ProblemTy::ProblemAnalysisDomain::n_t,
+                           typename ProblemTy::ProblemAnalysisDomain::d_t,
+                           typename ProblemTy::ProblemAnalysisDomain::l_t> {
   IDESolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();

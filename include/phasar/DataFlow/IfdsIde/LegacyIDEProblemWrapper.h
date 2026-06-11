@@ -20,6 +20,7 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/NonNullPtr.h"
+#include "phasar/Utils/PointerUtils.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
@@ -61,7 +62,7 @@ public:
   using typename base_t::v_t;
 
   LegacyIDEProblemWrapper(NonNullPtr<ProblemTy> Problem) noexcept
-      : base_t(Problem->getProjectIRDB(),
+      : base_t(getPointerFrom(Problem->getProjectIRDB()),
                makeEntryVec(Problem->getEntryPoints()),
                Problem->getZeroValue()),
         Problem(Problem) {}
@@ -71,7 +72,7 @@ public:
 
   // --- IFDSProblem:
 
-  [[nodiscard]] bool isZeroValue(d_t Fact) const final {
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept final {
     if constexpr (requires { Problem->isZeroValue(Fact); }) {
       return Problem->isZeroValue(Fact);
     } else {

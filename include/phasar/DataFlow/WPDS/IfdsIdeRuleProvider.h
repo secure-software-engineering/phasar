@@ -251,8 +251,7 @@ private:
   ProblemT *Problem{};
   const ICFGTy *ICF{};
 
-  FlowEdgeFunctionCache<typename ProblemT::ProblemAnalysisDomain> FECache{
-      *Problem};
+  FlowEdgeFunctionCache<ProblemT> FECache{Problem};
 };
 
 template <typename ProblemT, typename ICFGTy>
