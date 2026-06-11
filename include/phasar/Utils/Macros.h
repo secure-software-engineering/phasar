@@ -35,4 +35,10 @@
 #define PSR_LIFETIMEBOUND
 #endif
 
+#if __has_cpp_attribute(clang::internal_linkage)
+#define PSR_INTERNAL_LINKAGE [[clang::internal_linkage]]
+#else
+#define PSR_INTERNAL_LINKAGE
+#endif
+
 #endif // PHASAR_UTILS_MACROS_H

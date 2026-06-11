@@ -43,7 +43,7 @@ static inline bool isPotentialAllocSite(const llvm::Value *Val) {
 }
 
 template <template <typename, typename> typename AAResIterT, typename AAResT>
-struct [[clang::internal_linkage]] LLVMUnionFindAliasSet::UnionFindAAResultModel
+struct PSR_INTERNAL_LINKAGE LLVMUnionFindAliasSet::UnionFindAAResultModel
     : public UnionFindAAResultConcept,
       public AAResIterT<UnionFindAAResultModel<AAResIterT, AAResT>, AAResT> {
 

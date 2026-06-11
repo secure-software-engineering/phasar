@@ -193,7 +193,7 @@ collectReachingDefs(llvm::MemoryAccess *MA, const llvm::MemorySSA &MSSA,
 
 } // namespace
 
-struct [[clang::internal_linkage]] LLVMPAGBuilder::PAGBuildData {
+struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
   const llvm::DataLayout &DL;           // NOLINT
   ValueCompressor<v_t> &VC;             // NOLINT
   const PAGMappedLibrarySummary &MLSum; // NOLINT
