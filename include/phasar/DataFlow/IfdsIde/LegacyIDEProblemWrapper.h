@@ -11,9 +11,11 @@
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
+#include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Macros.h"
@@ -28,10 +30,11 @@ namespace psr {
 
 /// \brief A simple wrapper over a pointer to an IFDS/IDE problem, implementing
 /// the legacy IDETabulationProblem
-template <IDEProblem ProblemTy>
+template <IFDSProblem ProblemTy>
 class LegacyIDEProblemWrapper
-    : public IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
-                                  typename ProblemTy::container_type> {
+    : public IDETabulationProblem<
+          detail::ValueDomainAdder<typename ProblemTy::ProblemAnalysisDomain>,
+          typename ProblemTy::container_type> {
   using base_t = IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
                                       typename ProblemTy::container_type>;
   static std::vector<std::string> makeEntryVec(auto &&Range) {
@@ -45,15 +48,17 @@ class LegacyIDEProblemWrapper
   }
 
 public:
-  using ProblemAnalysisDomain = typename ProblemTy::ProblemAnalysisDomain;
-  using d_t = typename ProblemAnalysisDomain::d_t;
-  using n_t = typename ProblemAnalysisDomain::n_t;
-  using f_t = typename ProblemAnalysisDomain::f_t;
-  using t_t = typename ProblemAnalysisDomain::t_t;
-  using v_t = typename ProblemAnalysisDomain::v_t;
-  using l_t = typename ProblemAnalysisDomain::l_t;
-  using i_t = typename ProblemAnalysisDomain::i_t;
-  using db_t = typename ProblemAnalysisDomain::db_t;
+  using typename base_t::container_type;
+  using typename base_t::d_t;
+  using typename base_t::db_t;
+  using typename base_t::f_t;
+  using typename base_t::FlowFunctionPtrType;
+  using typename base_t::i_t;
+  using typename base_t::l_t;
+  using typename base_t::n_t;
+  using typename base_t::ProblemAnalysisDomain;
+  using typename base_t::t_t;
+  using typename base_t::v_t;
 
   LegacyIDEProblemWrapper(NonNullPtr<ProblemTy> Problem) noexcept
       : base_t(Problem->getProjectIRDB(),
@@ -106,9 +111,6 @@ public:
 
   // --- FlowFunctionFactory:
 
-  using container_type = typename ProblemTy::container_type;
-  using FlowFunctionPtrType = typename ProblemTy::FlowFunctionPtrType;
-
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
                                                           n_t Succ) final {
     return Problem->getNormalFlowFunction(Curr, Succ);
@@ -145,44 +147,64 @@ public:
 
   // --- EdgeFunctionFactory:
 
-  using EdgeFunctionType = typename ProblemTy::EdgeFunctionType;
+  using EdgeFunctionType = EdgeFunction<l_t>;
 
   [[nodiscard]] EdgeFunctionType
   getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) final {
-    return Problem->getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+    if constexpr (EdgeFunctionFactory<ProblemTy>) {
+      return Problem->getNormalEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+    } else {
+      return EdgeIdentity<l_t>{};
+    }
   }
 
   [[nodiscard]] EdgeFunctionType getCallEdgeFunction(n_t CallSite, d_t CSNode,
                                                      f_t CalleeFun,
                                                      d_t CalleeNode) final {
-    return Problem->getCallEdgeFunction(CallSite, CSNode, CalleeFun,
-                                        CalleeNode);
+    if constexpr (EdgeFunctionFactory<ProblemTy>) {
+      return Problem->getCallEdgeFunction(CallSite, CSNode, CalleeFun,
+                                          CalleeNode);
+    } else {
+      return EdgeIdentity<l_t>{};
+    }
   }
 
   [[nodiscard]] EdgeFunctionType
   getReturnEdgeFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, d_t ExitNode,
                         n_t RetSite, d_t RSNode) final {
-    return Problem->getReturnEdgeFunction(CallSite, CalleeFun, ExitInst,
-                                          ExitNode, RetSite, RSNode);
+    if constexpr (EdgeFunctionFactory<ProblemTy>) {
+      return Problem->getReturnEdgeFunction(CallSite, CalleeFun, ExitInst,
+                                            ExitNode, RetSite, RSNode);
+    } else {
+      return EdgeIdentity<l_t>{};
+    }
   }
 
   [[nodiscard]] EdgeFunctionType
   getCallToRetEdgeFunction(n_t CallSite, d_t CSNode, n_t RetSite, d_t RSNode,
                            llvm::ArrayRef<f_t> Callees) final {
-    return Problem->getCallToRetEdgeFunction(CallSite, CSNode, RetSite, RSNode,
-                                             Callees);
+    if constexpr (EdgeFunctionFactory<ProblemTy>) {
+      return Problem->getCallToRetEdgeFunction(CallSite, CSNode, RetSite,
+                                               RSNode, Callees);
+    } else {
+      return EdgeIdentity<l_t>{};
+    }
   }
 
   [[nodiscard]] EdgeFunctionType
   getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) final {
-    if constexpr (requires {
-                    Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ,
-                                                    SuccNode);
-                  }) {
+    if constexpr (EdgeFunctionFactory<ProblemTy>) {
+      if constexpr (requires {
+                      Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ,
+                                                      SuccNode);
+                    }) {
 
-      return Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+        return Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ, SuccNode);
+      } else {
+        return getDefaultValue<EdgeFunctionType>();
+      }
     } else {
-      return getDefaultValue<EdgeFunctionType>();
+      return EdgeIdentity<l_t>{};
     }
   }
 

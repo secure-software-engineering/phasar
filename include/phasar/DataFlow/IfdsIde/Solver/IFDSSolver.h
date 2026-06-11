@@ -17,6 +17,7 @@
 #ifndef PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 #define PHASAR_DATAFLOW_IFDSIDE_SOLVER_IFDSSOLVER_H
 
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolver.h"
 #include "phasar/Domain/BinaryDomain.h"
@@ -57,11 +58,11 @@ public:
              const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
 
-  template <typename IfdsDomainTy>
-    requires(std::same_as<WithBinaryValueDomain<AnalysisDomainTy>,
-                          WithBinaryValueDomain<IfdsDomainTy>>)
-  IFDSSolver(IFDSTabulationProblem<IfdsDomainTy, Container> *IFDSProblem,
-             const ICFGTy *ICF)
+  template <IFDSProblem ProblemTy>
+    requires(std::same_as<
+             WithBinaryValueDomain<AnalysisDomainTy>,
+             WithBinaryValueDomain<typename ProblemTy::ProblemAnalysisDomain>>)
+  IFDSSolver(ProblemTy *IFDSProblem, const ICFGTy *ICF)
       : Base(IFDSProblem, ICF) {}
 
   ~IFDSSolver() override = default;

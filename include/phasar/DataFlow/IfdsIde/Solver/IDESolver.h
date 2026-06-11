@@ -25,9 +25,11 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
+#include "phasar/DataFlow/IfdsIde/LegacyIDEProblemWrapper.h"
 #include "phasar/DataFlow/IfdsIde/Solver/ESGEdgeKind.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/IfdsIde/Solver/IDESolverAPIMixin.h"
@@ -41,6 +43,7 @@
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Table.h"
@@ -64,6 +67,23 @@
 
 namespace psr {
 
+namespace detail {
+
+template <typename AnalysisDomainTy, typename Container>
+class IDESolverProblemWrapperStorage {
+protected:
+  constexpr IDESolverProblemWrapperStorage() = default;
+
+  template <IFDSProblem ProblemTy>
+  IDESolverProblemWrapperStorage(NonNullPtr<ProblemTy> Problem)
+      : ProblemOwner(
+            std::make_unique<LegacyIDEProblemWrapper<ProblemTy>>(Problem)) {}
+
+  std::unique_ptr<IDETabulationProblem<AnalysisDomainTy, Container>>
+      ProblemOwner{};
+};
+} // namespace detail
+
 /// Solves the given IDETabulationProblem as described in the 1996 paper by
 /// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
 /// can then be queried by using resultAt() and resultsAt().
@@ -71,7 +91,9 @@ template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
           ICFG ICFGTy = typename AnalysisDomainTy::i_t>
 class IDESolver
-    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
+    : private detail::IDESolverProblemWrapperStorage<AnalysisDomainTy,
+                                                     Container>,
+      public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
   friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>>;
 
 public:
@@ -93,12 +115,26 @@ public:
         ICF(&assertNotNull(ICF)),
         SolverConfig(Problem.getIFDSIDESolverConfig()),
         CachedFlowEdgeFunctions(Problem), AllTop(Problem.allTopFunction()),
-        JumpFn(std::make_unique<JumpFunctions<AnalysisDomainTy, Container>>()),
         Seeds(Problem.initialSeeds()) {}
 
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
             const i_t *ICF)
       : IDESolver(assertNotNull(Problem), ICF) {}
+
+  template <IFDSProblem ProblemTy>
+    requires(!std::derived_from<
+                ProblemTy,
+                IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
+                                     typename ProblemTy::container_type>>)
+  IDESolver(ProblemTy *Problem)
+      : detail::IDESolverProblemWrapperStorage<AnalysisDomainTy, Container>(
+            Problem),
+        IDEProblem(*this->ProblemOwner), ZeroValue(Problem->getZeroValue()),
+        ICF(&assertNotNull(ICF)),
+        SolverConfig(this->ProblemOwner->getIFDSIDESolverConfig()),
+        CachedFlowEdgeFunctions(Problem),
+        AllTop(this->ProblemOwner->allTopFunction()),
+        Seeds(Problem->initialSeeds()) {}
 
   IDESolver(const IDESolver &) = delete;
   IDESolver &operator=(const IDESolver &) = delete;
@@ -1873,7 +1909,8 @@ private:
 
   EdgeFunction<l_t> AllTop;
 
-  std::unique_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn;
+  std::unique_ptr<JumpFunctions<AnalysisDomainTy, Container>> JumpFn =
+      std::make_unique<JumpFunctions<AnalysisDomainTy, Container>>();
 
   std::map<std::tuple<n_t, d_t, n_t, d_t>, std::vector<EdgeFunction<l_t>>>
       IntermediateEdgeFunctions;
