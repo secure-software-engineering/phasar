@@ -374,6 +374,12 @@ getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL);
 getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL,
                         PointerIndicesCache &PIC);
 
+[[nodiscard]] bool walkLoadChainTo(const llvm::Value *Start,
+                                   const llvm::Value *Target,
+                                   const llvm::DataLayout &DL,
+                                   uint32_t MaxDepth,
+                                   llvm::function_ref<void(int64_t)> OnDeref);
+
 /**
  * Retrieves String annotation value as per
  * <https://llvm.org/docs/LangRef.html#llvm-var-annotation-intrinsic>

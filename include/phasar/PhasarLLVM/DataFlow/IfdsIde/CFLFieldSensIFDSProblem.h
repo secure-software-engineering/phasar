@@ -156,7 +156,8 @@ struct AccessPath {
   [[nodiscard]] constexpr bool
   operator==(const AccessPath &Other) const noexcept {
     return EmptyTombstone == Other.EmptyTombstone && Loads == Other.Loads &&
-           Stores == Other.Stores && Kills == Other.Kills;
+           Stores == Other.Stores && Kills == Other.Kills &&
+           Offset == Other.Offset;
   }
 
   bool operator!=(const AccessPath &Other) const noexcept {

@@ -135,7 +135,12 @@ void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
     if (Src.count(*It)) {
       ++It;
     } else {
-      It = Dest.erase(It);
+      if constexpr (std::is_void_v<decltype(Dest.erase(It))>) {
+        auto OldIt = It++;
+        Dest.erase(OldIt);
+      } else {
+        It = Dest.erase(It);
+      }
     }
   }
 }

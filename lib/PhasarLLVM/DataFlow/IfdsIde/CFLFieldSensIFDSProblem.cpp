@@ -8,6 +8,7 @@
 #include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Printer.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/DenseSet.h"
@@ -158,15 +159,16 @@ struct CFLFieldSensEdgeFunction {
     Full.erase(Full.begin());
     F.Stores = Mgr.fromFullFieldString(Full);
   }
-  F.Stores = Mgr.prepend(std::exchange(F.Offset, 0) + Field, F.Stores);
+  F.Stores = Mgr.prepend(Field, F.Stores);
+  // F.Stores = Mgr.prepend(std::exchange(F.Offset, 0) + Field, F.Stores);
   return std::true_type{};
 }
 
 // Returns whether to retain F
 [[nodiscard]] auto applyOneGepAndLoad(FieldStringManager &Mgr, AccessPath &F,
                                       int32_t Field, uint8_t DepthKLimit) {
-  auto Offs = F.Offset + Field;
   if (F.Stores == FieldStringNodeId::None) {
+    auto Offs = F.Offset + Field;
 
     if (F.kills(Offs)) {
       return false;
@@ -187,13 +189,16 @@ struct CFLFieldSensEdgeFunction {
 
   auto StoresHead = Mgr[F.Stores];
 
-  if (StoresHead.Offset != Offs && StoresHead.Offset != AccessPath::TopOffset) {
+  if (StoresHead.Offset != Field &&
+      StoresHead.Offset != AccessPath::TopOffset) {
+    // F.print(llvm::errs() << "For AccesPath ", Mgr);
+    // llvm::errs() << ": Load " << Field << " invalid offset\n";
     return false;
   }
 
-  assert(StoresHead.Offset == Offs ||
+  assert(StoresHead.Offset == Field ||
          StoresHead.Offset == AccessPath::TopOffset);
-  F.Offset = 0;
+  // F.Offset = 0;
   F.Stores = StoresHead.Next;
   // llvm::errs() << "> pop_back\n";
   return true;
@@ -201,13 +206,18 @@ struct CFLFieldSensEdgeFunction {
 
 [[nodiscard]] auto applyOneGepAndKill(FieldStringManager &Mgr, AccessPath &F,
                                       int32_t Field, uint8_t /*DepthKLimit*/) {
-  auto Offs = addOffsets(F.Offset, Field);
-  if (Offs == AccessPath::TopOffset) {
+  if (Field == AccessPath::TopOffset) {
     // We cannot kill Top
     return true;
   }
 
   if (F.Stores == FieldStringNodeId::None) {
+    auto Offs = addOffsets(F.Offset, Field);
+    if (Offs == AccessPath::TopOffset) {
+      // We cannot kill Top
+      return true;
+    }
+
     F.Kills.insert(Offs);
     PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory, "> add K" << Offs);
     return true;
@@ -215,7 +225,7 @@ struct CFLFieldSensEdgeFunction {
 
   auto StoresHead = Mgr[F.Stores];
 
-  if (StoresHead.Offset == Offs) {
+  if (StoresHead.Offset == Field) {
     PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory,
                          "> Kill " << storesToString(F, Mgr));
     return false;
@@ -224,7 +234,7 @@ struct CFLFieldSensEdgeFunction {
   PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory,
                        "> Retain " << storesToString(F, Mgr));
 
-  assert(StoresHead.Offset != Offs);
+  assert(StoresHead.Offset != Field);
   return true;
 }
 
@@ -339,7 +349,8 @@ size_t psr::cfl_fieldsens::hash_value(const AccessPath &FieldString) noexcept {
   // Xor does not care about the order
   auto HCK = std::reduce(FieldString.Kills.begin(), FieldString.Kills.end(), 0,
                          std::bit_xor<>{});
-  return llvm::hash_combine(FieldString.Loads, FieldString.Stores, HCK);
+  return llvm::hash_combine(FieldString.Loads, FieldString.Stores,
+                            FieldString.Offset, HCK);
 }
 
 llvm::raw_ostream &
@@ -365,8 +376,8 @@ psr::cfl_fieldsens::operator<<(llvm::raw_ostream &OS,
     OS << 'K' << Kl << '.';
   }
 
-  if (FieldString.Loads != FieldStringNodeId::None) {
-    OS << "S#" << uint32_t(FieldString.Loads) << '.';
+  if (FieldString.Stores != FieldStringNodeId::None) {
+    OS << "S#" << uint32_t(FieldString.Stores) << '.';
   }
 
   return OS;
@@ -441,43 +452,40 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
     -> EdgeFunction<l_t> {
   auto [BasePtr, Offset] = getBaseAndOffset(PointerOp, DL);
 
-  // TODO;: How to deal with BasePtr?
+  // Trace the pointer chain from BasePtr toward SuccNode. DerefOffsets[0] is
+  // the outermost GEP offset (closest to SuccNode). The -O0 alloca-copy
+  // pattern is stripped transparently. The Stores chain is built with
+  // the outermost offset as HEAD so applyOneGepAndLoad matches in traversal
+  // order (outermost first, matching the actual memory access sequence).
+  llvm::SmallVector<int32_t> DerefOffsets;
+  const bool FoundSuccNode = walkLoadChainTo(
+      BasePtr, SuccNode, DL, DepthKLimit, [&](int64_t ByteOffset) {
+        DerefOffsets.push_back(ByteOffset != INT64_MIN ? int32_t(ByteOffset)
+                                                       : AccessPath::TopOffset);
+      });
 
-  auto [BaseBasePtr,
-        BaseOffset] = [&]() -> std::pair<const llvm::Value *, int32_t> {
-    if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
-      return getBaseAndOffset(
-          llvm::cast<llvm::LoadInst>(BasePtr)->getPointerOperand(), DL);
-    }
-
-    return {nullptr, INT32_MIN};
-  }();
-  if (CurrNode == SuccNode &&
-      (BasePtr == CurrNode || BaseBasePtr == CurrNode)) {
+  if (CurrNode == SuccNode && FoundSuccNode) {
     // Kill
-
     AccessPath FieldString{};
     FieldString.Kills.insert(Offset);
     return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
                                           DepthKLimit);
   }
 
-  if (ValueOp == CurrNode && CurrNode != SuccNode) {
-    // Store
+  // Also match when ValueOp is a zero-offset GEP of CurrNode (e.g. the -O0
+  // arraydecay pattern where `%arraydecay = gep arr, 0, 0` is stored but the
+  // tainted fact is `arr` itself).
+  auto [ValueBase, ValueGepOff] = getBaseAndOffset(ValueOp, DL);
+  const bool IsValueCurrNode =
+      ValueOp == CurrNode || (ValueGepOff == 0 && ValueBase == CurrNode);
 
+  if (IsValueCurrNode && CurrNode != SuccNode && FoundSuccNode) {
+    // Store: prepend innermost first so the outermost becomes the HEAD.
     AccessPath FieldString{};
-    if (BasePtr != SuccNode && llvm::isa<llvm::LoadInst>(BasePtr)) {
-      // This is a hack, to be more correct with field-insensitive alias
-      // information
-
-      if (BaseBasePtr == SuccNode) {
-        // push before Offset, or after?
-        FieldString.Stores = Mgr.prepend(BaseOffset, FieldString.Stores);
-      }
-    }
-
     FieldString.Stores = Mgr.prepend(Offset, FieldString.Stores);
-
+    for (int32_t DerefOffset : llvm::reverse(DerefOffsets)) {
+      FieldString.Stores = Mgr.prepend(DerefOffset, FieldString.Stores);
+    }
     return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
                                           DepthKLimit);
   }
@@ -647,30 +655,105 @@ auto CFLFieldSensIFDSProblem::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
 }
 
 static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
-
-  llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
-                      AccessPathDMI>
-      ToInsert;
-  for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
-    auto It = IIt++;
-    if (It->Stores != FieldStringNodeId::None) {
-      AccessPath Approx = *It;
-      auto StoresHead = Mgr[Approx.Stores];
-      Approx.Stores = Mgr.prepend(AccessPath::TopOffset, StoresHead.Next);
-      ToInsert[std::move(Approx)].push_back(*It);
-      Paths.erase(It);
+  // Merge stores
+  {
+    llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
+                        AccessPathDMI>
+        ToInsert;
+    for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
+      auto It = IIt++;
+      if (It->Stores != FieldStringNodeId::None) {
+        AccessPath Approx = *It;
+        auto StoresHead = Mgr[Approx.Stores];
+        Approx.Stores = Mgr.prepend(AccessPath::TopOffset, StoresHead.Next);
+        ToInsert[std::move(Approx)].push_back(*It);
+        Paths.erase(It);
+      }
+    }
+    for (auto &&[Approx, OrigPaths] : ToInsert) {
+      if (OrigPaths.size() > 2) {
+        Paths.insert(Approx);
+      } else {
+        Paths.insert(OrigPaths.begin(), OrigPaths.end());
+      }
     }
   }
-  for (auto &&[Approx, OrigPaths] : ToInsert) {
-    if (OrigPaths.size() > 2) {
-      Paths.insert(Approx);
-    } else {
-      Paths.insert(OrigPaths.begin(), OrigPaths.end());
+
+  // Merge geps
+  {
+    llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
+                        AccessPathDMI>
+        ToInsert;
+    for (const AccessPath &AP : Paths) {
+      auto NoOffs = AP;
+      NoOffs.Offset = AccessPath::TopOffset;
+      ToInsert[NoOffs].push_back(AP);
+    }
+    Paths.clear();
+    for (auto &&[Approx, OrigPaths] : ToInsert) {
+      if (OrigPaths.size() > 2) {
+        Paths.insert(Approx);
+      } else {
+        Paths.insert(OrigPaths.begin(), OrigPaths.end());
+      }
+    }
+  }
+
+  // Merge loads
+  {
+    llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
+                        AccessPathDMI>
+        ToInsert;
+    for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
+      auto It = IIt++;
+      if (It->Loads != FieldStringNodeId::None) {
+        AccessPath Approx = *It;
+        auto LoadsHead = Mgr[Approx.Loads];
+        Approx.Loads = Mgr.prepend(AccessPath::TopOffset, LoadsHead.Next);
+        ToInsert[Approx].push_back(*It);
+        Paths.erase(It);
+      }
+    }
+    for (auto &&[Approx, OrigPaths] : ToInsert) {
+      if (OrigPaths.size() > 2) {
+        Paths.insert(Approx);
+      } else {
+        Paths.insert(OrigPaths.begin(), OrigPaths.end());
+      }
+    }
+  }
+
+  // Merge Kills
+  {
+    llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
+                        AccessPathDMI>
+        ToInsert;
+    for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
+      auto It = IIt++;
+
+      AccessPath Approx = *It;
+      Approx.Kills = {};
+      ToInsert[Approx].push_back(*It);
+      Paths.erase(It);
+    }
+    for (auto &&[Approx, OrigPaths] : ToInsert) {
+      if (OrigPaths.size() > 2) {
+        auto ApproxMut = Approx;
+        ApproxMut.Kills = OrigPaths.front().Kills;
+        for (const auto &AP : llvm::drop_begin(OrigPaths)) {
+          intersectWith(ApproxMut.Kills, AP.Kills);
+        }
+
+        Paths.insert(std::move(ApproxMut));
+      } else {
+        Paths.insert(OrigPaths.begin(), OrigPaths.end());
+      }
     }
   }
 }
 
 static constexpr ptrdiff_t BreadthKLimit = 5;
+static constexpr ptrdiff_t WidenLimit = 1024;
 
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                      const EdgeFunction<l_t> &R)
@@ -756,7 +839,12 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
               Union.insert(It, End);
 
               if (Union.size() > BreadthKLimit) {
+                // llvm::errs() << "Union.size(): " << Union.size() << '\n';
                 klimitPaths(Union, Mgr);
+
+                if (Union.size() > WidenLimit) {
+                  return AllBottom<l_t>{};
+                }
               }
 
               return CFLFieldSensEdgeFunction::from(
