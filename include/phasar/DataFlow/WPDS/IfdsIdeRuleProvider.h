@@ -35,7 +35,7 @@ template <typename ProblemT> struct WeightTypeOf<true, ProblemT> {
 };
 } // namespace detail
 
-template <typename ProblemT, typename ICFGTy, bool ComputeWeights>
+template <IFDSProblem ProblemT, typename ICFGTy, bool ComputeWeights>
 class IfdsIdeRuleProvider {
 public:
   using control_location_type = typename ProblemT::d_t;
