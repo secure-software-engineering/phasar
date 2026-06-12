@@ -277,9 +277,20 @@ function(add_phasar_library name)
   add_library(phasar::${component_name} ALIAS ${name})
   set_target_properties(${name} PROPERTIES
     EXPORT_NAME ${component_name}
+    VERSION ${PHASAR_VERSION}
+    SOVERSION ${PHASAR_VERSION}
   )
 
   target_compile_features(${name} PUBLIC cxx_std_20)
+
+  if (BUILD_SHARED_LIBS AND UNIX)
+    target_link_options(${name} INTERFACE "LINKER:-rpath,\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}:\$ORIGIN/../${PHASAR_DEPS_INSTALL_DESTINATION}/lib")
+
+    set_target_properties(${name} PROPERTIES
+      INSTALL_RPATH
+        "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR};\$ORIGIN/../${PHASAR_DEPS_INSTALL_DESTINATION}/lib"
+    )
+  endif()
 
   set(install_module)
   if(PHASAR_LIB_MODULE_FILES)

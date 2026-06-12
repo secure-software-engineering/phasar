@@ -96,6 +96,10 @@ public:
     Vec.push_back(std::move(Val));
   }
 
+  void append(auto &&Range) {
+    Vec.append(llvm::adl_begin(Range), llvm::adl_end(Range));
+  }
+
   void pop_back() { Vec.pop_back(); }
   [[nodiscard]] ValueT pop_back_val() { return Vec.pop_back_val(); }
 

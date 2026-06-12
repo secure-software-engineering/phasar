@@ -131,6 +131,9 @@ static void executeWholeProgram(AnalysisController &Data) {
     case DataFlowAnalysisType::IFDSCFLEnvTaintAnalysis:
       executeIFDSCFLEnvTaint(Data);
       continue;
+    case DataFlowAnalysisType::MonoIFDSTaintAnalysis:
+      executeMonoIFDSTaint(Data);
+      continue;
     case DataFlowAnalysisType::SparseIFDSTaintAnalysis:
       executeSparseIFDSTaint(Data);
       continue;

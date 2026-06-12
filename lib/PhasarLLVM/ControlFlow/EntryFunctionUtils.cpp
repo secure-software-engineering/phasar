@@ -1,6 +1,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
 
 #include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/Utils/Logger.h"
 
@@ -25,6 +26,39 @@ psr::getEntryFunctions(const LLVMProjectIRDB &IRDB,
     for (const auto &EntryPoint : EntryPoints) {
       const auto *F = IRDB.getFunctionDefinition(EntryPoint);
       if (F == nullptr) {
+        PHASAR_LOG_LEVEL(WARNING,
+                         "Could not retrieve function for entry point '"
+                             << EntryPoint << "'");
+        continue;
+      }
+      UserEntryPointFns.push_back(F);
+    }
+  }
+  return UserEntryPointFns;
+}
+
+// TODO: Reduce code duplication:
+[[nodiscard]] std::vector<const llvm::Function *>
+psr::getEntryFunctions(const LLVMBasedICFG &ICF,
+                       llvm::ArrayRef<std::string> EntryPoints) {
+  std::vector<const llvm::Function *> UserEntryPointFns;
+  if (EntryPoints.size() == 1 && EntryPoints.front() == "__ALL__") {
+    UserEntryPointFns.reserve(ICF.getNumVertexFunctions());
+    // Handle the special case in which a user wishes to treat all functions as
+    // entry points.
+    for (const auto *Fun : ICF.getAllFunctions()) {
+      // Only functions with external linkage (or 'main') can be called from the
+      // outside!
+      if (!Fun->isDeclaration() && Fun->hasName() &&
+          (Fun->hasExternalLinkage() || Fun->getName() == "main")) {
+        UserEntryPointFns.push_back(Fun);
+      }
+    }
+  } else {
+    UserEntryPointFns.reserve(EntryPoints.size());
+    for (const auto &EntryPoint : EntryPoints) {
+      const auto *F = ICF.getFunction(EntryPoint);
+      if (F == nullptr || F->isDeclaration()) {
         PHASAR_LOG_LEVEL(WARNING,
                          "Could not retrieve function for entry point '"
                              << EntryPoint << "'");
