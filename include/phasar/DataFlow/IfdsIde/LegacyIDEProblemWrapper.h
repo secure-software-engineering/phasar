@@ -14,6 +14,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/DefaultValue.h"
@@ -33,9 +34,129 @@ namespace psr {
 /// the legacy IDETabulationProblem
 template <IFDSProblem ProblemTy>
 class LegacyIDEProblemWrapper
-    : public IDETabulationProblem<
-          detail::ValueDomainAdder<typename ProblemTy::ProblemAnalysisDomain>,
-          typename ProblemTy::container_type> {
+    : public IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
+                                   typename ProblemTy::container_type> {
+  using base_t =
+      IFDSTabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
+                            typename ProblemTy::container_type>;
+  static std::vector<std::string> makeEntryVec(auto &&Range) {
+    if constexpr (std::is_convertible_v<decltype(Range),
+                                        std::vector<std::string>>) {
+      return PSR_FWD(Range);
+    } else {
+      return std::vector<std::string>(llvm::adl_begin(Range),
+                                      llvm::adl_end(Range));
+    }
+  }
+
+public:
+  using typename base_t::container_type;
+  using typename base_t::d_t;
+  using typename base_t::db_t;
+  using typename base_t::f_t;
+  using typename base_t::FlowFunctionPtrType;
+  using typename base_t::i_t;
+  using typename base_t::l_t;
+  using typename base_t::n_t;
+  using typename base_t::ProblemAnalysisDomain;
+  using typename base_t::t_t;
+  using typename base_t::v_t;
+
+  LegacyIDEProblemWrapper(NonNullPtr<ProblemTy> Problem) noexcept
+      : base_t(getPointerFrom(Problem->getProjectIRDB()),
+               makeEntryVec(Problem->getEntryPoints()),
+               Problem->getZeroValue()),
+        Problem(Problem) {}
+
+  LegacyIDEProblemWrapper(ProblemTy *Problem) noexcept
+      : LegacyIDEProblemWrapper(NonNullPtr<ProblemTy>(Problem)) {}
+
+  // --- IFDSProblem:
+
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept final {
+    if constexpr (requires { Problem->isZeroValue(Fact); }) {
+      return Problem->isZeroValue(Fact);
+    } else {
+      return this->base_t::getZeroValue() == Fact;
+    }
+  }
+
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() final {
+    return Problem->initialSeeds();
+  }
+
+  void emitTextReport(GenericSolverResults<n_t, d_t, l_t> Results,
+                      llvm::raw_ostream &OS = llvm::outs()) final {
+    if constexpr (requires { Problem->emitTextReport(Results, OS); }) {
+      Problem->emitTextReport(Results, OS);
+    } else {
+      this->base_t::emitTextReport(Results, OS);
+    }
+  }
+
+  void emitGraphicalReport(GenericSolverResults<n_t, d_t, l_t> Results,
+                           llvm::raw_ostream &OS = llvm::outs()) final {
+    if constexpr (requires { Problem->emitGraphicalReport(Results, OS); }) {
+      Problem->emitGraphicalReport(Results, OS);
+    } else {
+      this->base_t::emitGraphicalReport(Results, OS);
+    }
+  }
+
+  bool setSoundness(Soundness S) final {
+    if constexpr (requires { Problem->setSoundness(S); }) {
+      return Problem->setSoundness(S);
+    } else {
+      return false;
+    }
+  }
+
+  // --- FlowFunctionFactory:
+
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
+                                                          n_t Succ) final {
+    return Problem->getNormalFlowFunction(Curr, Succ);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunction(n_t Curr,
+                                                        f_t CalleeFun) final {
+    return Problem->getCallFlowFunction(Curr, CalleeFun);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
+                                                       f_t CalleeFun,
+                                                       n_t ExitInst,
+                                                       n_t RetSite) final {
+    return Problem->getRetFlowFunction(CallSite, CalleeFun, ExitInst, RetSite);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) final {
+    return Problem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
+  }
+
+  [[nodiscard]] FlowFunctionPtrType
+  getSummaryFlowFunction(n_t Curr, f_t CalleeFun) final {
+    if constexpr (requires {
+                    Problem->getSummaryFlowFunction(Curr, CalleeFun);
+                  }) {
+      return Problem->getSummaryFlowFunction(Curr, CalleeFun);
+    } else {
+      return nullptr;
+    }
+  }
+
+protected:
+  NonNullPtr<ProblemTy> Problem;
+};
+
+/// \brief A simple wrapper over a pointer to an IFDS/IDE problem, implementing
+/// the legacy IDETabulationProblem
+template <IDEProblem ProblemTy>
+class LegacyIDEProblemWrapper<ProblemTy>
+    : public IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
+                                  typename ProblemTy::container_type> {
   using base_t = IDETabulationProblem<typename ProblemTy::ProblemAnalysisDomain,
                                       typename ProblemTy::container_type>;
   static std::vector<std::string> makeEntryVec(auto &&Range) {

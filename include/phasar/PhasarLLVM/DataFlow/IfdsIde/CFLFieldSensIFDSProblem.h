@@ -10,8 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FIELDSENSALLOCSITESAWAREIFDSPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FIELDSENSALLOCSITESAWAREIFDSPROBLEM_H
 
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
+#include "phasar/DataFlow/IfdsIde/LegacyIDEProblemWrapper.h"
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -21,6 +23,7 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
+#include "phasar/Utils/MaybeUniquePtr.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
@@ -214,7 +217,7 @@ struct IFDSEdgeValue {
     return !(*this == Other);
   }
 
-  [[nodiscard]] friend auto hash_value(const IFDSEdgeValue EV) {
+  [[nodiscard]] friend auto hash_value(const IFDSEdgeValue &EV) {
     return llvm::hash_combine_range(EV.Paths.begin(), EV.Paths.end());
   }
 
@@ -376,8 +379,8 @@ bool filterFieldSensFacts(
 /// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
 /// implementation.
 class CFLFieldSensIFDSProblem
-    : public IDETabulationProblem<cfl_fieldsens::IFDSDomain> {
-  using Base = IDETabulationProblem<cfl_fieldsens::IFDSDomain>;
+    : public IfdsIdeProblemMixin<cfl_fieldsens::IFDSDomain> {
+  using Base = IfdsIdeProblemMixin<cfl_fieldsens::IFDSDomain>;
 
   static decltype(cfl_fieldsens::IFDSProblemConfig::KillsAt)
   deriveKillsAt(auto *UserProblem) {
@@ -419,22 +422,35 @@ public:
 
   /// Constructs an IDETabulationProblem with the usual arguments, forwarded
   /// from UserProblem
+  template <IFDSProblem ProblemTy>
+    requires std::same_as<LLVMIFDSAnalysisDomainDefault,
+                          typename ProblemTy::ProblemAnalysisDomain>
   explicit CFLFieldSensIFDSProblem(
-      IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem,
+      ProblemTy *UserProblem,
       cfl_fieldsens::IFDSProblemConfig
           Config) noexcept(std::is_nothrow_move_constructible_v<d_t>)
       : Base(assertNotNull(UserProblem).getProjectIRDB(),
              assertNotNull(UserProblem).getEntryPoints(),
              UserProblem->getZeroValue()),
-        UserProblem(UserProblem), Config(std::move(Config)) {}
+        UserProblem([UserProblem] {
+          if constexpr (std::derived_from<ProblemTy,
+                                          IFDSTabulationProblem<
+                                              LLVMIFDSAnalysisDomainDefault>>) {
+            return UserProblem;
+          } else {
+            return std::make_unique<LegacyIDEProblemWrapper<ProblemTy>>(
+                UserProblem);
+          }
+        }()),
+        Config(std::move(Config)) {}
 
   /// Constructs an IDETabulationProblem with the usual arguments, forwarded
   /// from UserProblem and tries to automatically derive the config from
   /// additional functions specified by UserProblem
-  explicit CFLFieldSensIFDSProblem(
-      proper_subclass_of<
-          IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>> auto
-          *UserProblem)
+  template <IFDSProblem ProblemTy>
+    requires std::same_as<LLVMIFDSAnalysisDomainDefault,
+                          typename ProblemTy::ProblemAnalysisDomain>
+  explicit CFLFieldSensIFDSProblem(ProblemTy *UserProblem)
       : CFLFieldSensIFDSProblem(UserProblem,
                                 cfl_fieldsens::IFDSProblemConfig{
                                     .KillsAt = deriveKillsAt(UserProblem),
@@ -449,36 +465,33 @@ public:
   // offsets to the edge-functions (generating from zero currently always
   // generates at epsilon!)
 
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() {
     return cfl_fieldsens::makeInitialSeeds(UserProblem->initialSeeds(), Mgr);
   }
 
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     return UserProblem->getNormalFlowFunction(Curr, Succ);
   }
 
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
+                                                        f_t CalleeFun) {
     return UserProblem->getCallFlowFunction(CallInst, CalleeFun);
   }
 
-  [[nodiscard]] FlowFunctionPtrType
-  getSummaryFlowFunction(n_t CallInst, f_t CalleeFun) override {
+  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t CallInst,
+                                                           f_t CalleeFun) {
     return UserProblem->getSummaryFlowFunction(CallInst, CalleeFun);
   }
 
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
+  [[nodiscard]] FlowFunctionPtrType
+  getRetFlowFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, n_t RetSite) {
     return UserProblem->getRetFlowFunction(CallSite, CalleeFun, ExitInst,
                                            RetSite);
   }
 
   [[nodiscard]] FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
+                           llvm::ArrayRef<f_t> Callees) {
     return UserProblem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
   }
 
@@ -488,35 +501,35 @@ public:
                                          const llvm::DataLayout &DL);
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                          d_t SuccNode) override;
+                                          d_t SuccNode);
 
   EdgeFunction<l_t> getCallEdgeFunction(n_t CallSite, d_t SrcNode,
-                                        f_t DestinationFunction,
-                                        d_t DestNode) override;
+                                        f_t DestinationFunction, d_t DestNode);
 
   EdgeFunction<l_t> getReturnEdgeFunction(n_t CallSite, f_t CalleeFunction,
                                           n_t ExitStmt, d_t ExitNode,
-                                          n_t RetSite, d_t RetNode) override;
+                                          n_t RetSite, d_t RetNode);
 
-  EdgeFunction<l_t>
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode,
-                           llvm::ArrayRef<f_t> Callees) override;
+  EdgeFunction<l_t> getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                             n_t RetSite, d_t RetSiteNode,
+                                             llvm::ArrayRef<f_t> Callees);
 
   EdgeFunction<l_t> getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                           d_t SuccNode) override;
+                                           d_t SuccNode);
 
   EdgeFunction<l_t> extend(const EdgeFunction<l_t> &L,
-                           const EdgeFunction<l_t> &R) override;
+                           const EdgeFunction<l_t> &R);
 
   EdgeFunction<l_t> combine(const EdgeFunction<l_t> &L,
-                            const EdgeFunction<l_t> &R) override;
+                            const EdgeFunction<l_t> &R);
 
   /// The wrapped user-problem
   [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
 
 private:
-  IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
+  // XXX: Avoid the type-erasure here
+  MaybeUniquePtr<IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>>
+      UserProblem{};
   cfl_fieldsens::FieldStringManager Mgr{};
   cfl_fieldsens::IFDSProblemConfig Config{};
 

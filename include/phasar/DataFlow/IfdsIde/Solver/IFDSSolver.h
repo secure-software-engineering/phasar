@@ -132,11 +132,11 @@ using IFDSSolver_P
         IFDSSolver<typename Problem::ProblemAnalysisDomain,
                    typename Problem::container_type>;
 
-template <typename AnalysisDomainTy, typename Container>
-OwningSolverResults<typename AnalysisDomainTy::n_t,
-                    typename AnalysisDomainTy::d_t, BinaryDomain>
-solveIFDSProblem(IFDSTabulationProblem<AnalysisDomainTy, Container> &Problem,
-                 const ICFG auto &ICF) {
+template <IFDSProblem ProblemTy>
+auto solveIFDSProblem(ProblemTy &Problem, const ICFG auto &ICF)
+    -> OwningSolverResults<typename ProblemTy::ProblemAnalysisDomain::n_t,
+                           typename ProblemTy::ProblemAnalysisDomain::d_t,
+                           BinaryDomain> {
   IFDSSolver Solver(&Problem, &ICF);
   Solver.solve();
   return Solver.consumeSolverResults();

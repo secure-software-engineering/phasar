@@ -49,7 +49,8 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
                                      std::vector<std::string> EntryPoints,
                                      bool TaintMainArgs,
                                      bool EnableStrongUpdateStore)
-    : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
+    : IfdsIdeProblemMixin<LLVMIFDSAnalysisDomainDefault>(
+          IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
       EnableStrongUpdateStore(EnableStrongUpdateStore),
       Llvmfdff(library_summary::readFromFDFF(
@@ -318,8 +319,7 @@ auto IFDSTaintAnalysis::getNormalFlowFunction(n_t Curr,
       return lambdaFlow([this, Store, Ret = std::move(Ret)](d_t Source) {
         if (Store->getValueOperand() == Source) {
           if (Leaks[Store].insert(Source).second) {
-            Printer->onResult(Store, Source,
-                              DataFlowAnalysisType::IFDSTaintAnalysis);
+            onResult(Store, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
 
@@ -495,8 +495,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
                          CallSite](d_t Source) -> container_type {
         if (Leak.count(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
-            Printer->onResult(CallSite, Source,
-                              DataFlowAnalysisType::IFDSTaintAnalysis);
+            onResult(CallSite, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
 
@@ -523,8 +522,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
     if (Leak.count(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
-        Printer->onResult(CallSite, Source,
-                          DataFlowAnalysisType::IFDSTaintAnalysis);
+        onResult(CallSite, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
       }
     }
 
@@ -541,7 +539,7 @@ auto IFDSTaintAnalysis::initialSeeds() -> InitialSeeds<n_t, d_t, l_t> {
       Config->makeInitialSeeds(LLVMTaintConfig::SeedConfig::Arguments);
 
   LLVMBasedCFG C;
-  addSeedsForStartingPoints(EntryPoints, IRDB, C, Seeds, getZeroValue(),
+  addSeedsForStartingPoints(EntryPoints, IRDB.get(), C, Seeds, getZeroValue(),
                             psr::BinaryDomain::BOTTOM);
 
   if (TaintMainArgs && llvm::is_contained(EntryPoints, "main")) {
@@ -572,15 +570,11 @@ auto IFDSTaintAnalysis::createZeroValue() const -> d_t {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTaintAnalysis::isZeroValue(d_t FlowFact) const noexcept {
-  return LLVMZeroValue::isLLVMZeroValue(FlowFact);
-}
-
 void IFDSTaintAnalysis::emitTextReport(
     GenericSolverResults<n_t, d_t, BinaryDomain> /*SR*/,
     llvm::raw_ostream &OS) {
   OS << "\n----- Found the following leaks -----\n";
-  Printer->onFinalize(OS);
+  printer().onFinalize(OS);
 }
 
 bool IFDSTaintAnalysis::isInteresting(

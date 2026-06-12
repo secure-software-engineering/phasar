@@ -17,8 +17,6 @@
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/SemiRing.h"
-#include "phasar/Utils/Utilities.h"
-
 namespace psr {
 template <IfdsAnalysisDomain AnalysisDomainTy>
 class IfdsIdeProblemMixin
@@ -73,6 +71,11 @@ protected:
                                 d_t ZeroValue)
       : IRDB(IRDB), ZeroValue(std::move(ZeroValue)),
         EntryPoints(std::move(EntryPoints)) {}
+
+  typename FlowFunctions<AnalysisDomainTy, container_type>::FlowFunctionPtrType
+  generateFromZero(d_t FactToGenerate) {
+    return FFTemplates::generateFlow(std::move(FactToGenerate), getZeroValue());
+  }
 
   NonNullPtr<const db_t> IRDB{};
   Nullable<d_t> ZeroValue{};

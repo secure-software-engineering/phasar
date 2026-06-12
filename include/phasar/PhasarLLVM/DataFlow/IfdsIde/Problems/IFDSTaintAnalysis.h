@@ -10,12 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H
 
-#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
+#include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Utils/LLVMFunctionDataFlowFacts.h"
+#include "phasar/Utils/WithAnalysisPrinterMixin.h"
 
 #include <map>
 #include <set>
@@ -40,7 +42,8 @@ class LLVMTaintConfig;
  * taint-sensitive source and sink functions.
  */
 class IFDSTaintAnalysis
-    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> {
+    : public IfdsIdeProblemMixin<LLVMIFDSAnalysisDomainDefault>,
+      public WithAnalysisPrinterMixin<LLVMIFDSAnalysisDomainDefault> {
   struct KillsAtFn {
     const IFDSTaintAnalysis *Self{};
 
@@ -67,28 +70,24 @@ public:
                     bool TaintMainArgs = true,
                     bool EnableStrongUpdateStore = true);
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ);
 
-  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallSite, f_t DestFun);
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitStmt, n_t RetSite) override;
+                                         n_t ExitStmt, n_t RetSite);
 
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               llvm::ArrayRef<f_t> Callees);
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
-                                             f_t DestFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite, f_t DestFun);
 
-  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds();
 
   [[nodiscard]] d_t createZeroValue() const;
 
-  bool isZeroValue(d_t FlowFact) const noexcept override;
-
   void emitTextReport(GenericSolverResults<n_t, d_t, BinaryDomain> SR,
-                      llvm::raw_ostream &OS = llvm::outs()) override;
+                      llvm::raw_ostream &OS = llvm::outs());
 
   [[nodiscard]] bool
   isInteresting(const llvm::Instruction *Inst) const noexcept;

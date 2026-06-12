@@ -112,7 +112,7 @@ protected:
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{6, 3, "main"};
@@ -124,7 +124,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{6, 3, "main"};
@@ -136,7 +136,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{5, 3, "main"};
@@ -148,7 +148,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{6, 3, "main"};
@@ -160,7 +160,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{6, 3, "main"};
@@ -177,7 +177,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{6, 3, "main"};
@@ -189,7 +189,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{5, 3, "main"};
@@ -201,7 +201,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
 
 TEST_F(IFDSTaintAnalysisTest, SRetTest_01) {
   initialize({PathToLlFiles + "dummy_source_sink/sret_c_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto SinkCall = LineColFun{21, 3, "main"};
@@ -214,7 +214,7 @@ TEST_F(IFDSTaintAnalysisTest, SRetTest_01) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{12, 3, "main"};
@@ -227,7 +227,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_01_cpp_m2r_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{12, 3, "main"};
@@ -240,7 +240,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_01_m2r) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_02_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{11, 3, "main"};
@@ -253,7 +253,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_02) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_03_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{11, 3, "main"};
@@ -271,7 +271,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_03) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_04_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{16, 3, "main"};
@@ -284,7 +284,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_04) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_05_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{16, 3, "main"};
@@ -297,7 +297,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_05) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_06_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{13, 5, "main"};
@@ -310,7 +310,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_06) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_07_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{14, 5, "main"};
@@ -323,7 +323,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_07) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_08_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{19, 3, "main"};
@@ -336,7 +336,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_08) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_09_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{20, 3, "main"};
@@ -349,7 +349,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_09) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
   initialize(
       {PathToLlFiles + "dummy_source_sink/taint_exception_10_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{19, 5, "main"};
@@ -362,7 +362,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_ExceptionHandling_10) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
   auto DoubleFreeConf = getDoubleFreeConfig();
   initialize({PathToLlFiles + "double_free_01_c_dbg.ll"}, &DoubleFreeConf);
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{6, 3, "main"};
@@ -375,7 +375,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_01) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
   auto DoubleFreeConf = getDoubleFreeConfig();
   initialize({PathToLlFiles + "double_free_02_c_dbg.ll"}, &DoubleFreeConf);
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{8, 3, "main"};
@@ -387,7 +387,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_DoubleFree_02) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_LibSummary_01) {
   initialize({PathToLlFiles + "dummy_source_sink/taint_lib_sum_01_cpp_dbg.ll"});
-  IFDSSolver TaintSolver(*TaintProblem, &HA->getICFG());
+  IFDSSolver TaintSolver(&*TaintProblem, &HA->getICFG());
   TaintSolver.solve();
 
   auto Entry = LineColFun{8, 3, "main"};
