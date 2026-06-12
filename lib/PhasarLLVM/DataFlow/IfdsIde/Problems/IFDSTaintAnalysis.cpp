@@ -78,7 +78,7 @@ bool IFDSTaintAnalysis::isSourceCall(const llvm::CallBase *CB,
     return false;
   }
 
-  if (AdditionalFacts.count(CB)) {
+  if (AdditionalFacts.contains(CB)) {
     return true;
   }
 
@@ -106,7 +106,7 @@ bool IFDSTaintAnalysis::isSinkCall(const llvm::CallBase *CB,
     return false;
   }
 
-  if (AdditionalLeaks.count(CB)) {
+  if (AdditionalLeaks.contains(CB)) {
     return true;
   }
 
@@ -483,7 +483,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
 
   if (CS->hasStructRetAttr()) {
     const auto *SRet = CS->getArgOperand(0);
-    if (!Gen.count(SRet)) {
+    if (!Gen.contains(SRet)) {
       // SRet is guaranteed to be written to by the call. If it does not
       // generate it, we can freely kill it
       Kill.insert(SRet);
@@ -493,13 +493,13 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
     if (!Leak.empty() || !Kill.empty()) {
       return lambdaFlow([Leak{std::move(Leak)}, Kill{std::move(Kill)}, this,
                          CallSite](d_t Source) -> container_type {
-        if (Leak.count(Source)) {
+        if (Leak.contains(Source)) {
           if (Leaks[CallSite].insert(Source).second) {
             onResult(CallSite, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
           }
         }
 
-        if (Kill.count(Source)) {
+        if (Kill.contains(Source)) {
           return {};
         }
 
@@ -520,7 +520,7 @@ auto IFDSTaintAnalysis::getSummaryFlowFunction([[maybe_unused]] n_t CallSite,
       return Gen;
     }
 
-    if (Leak.count(Source)) {
+    if (Leak.contains(Source)) {
       if (Leaks[CallSite].insert(Source).second) {
         onResult(CallSite, Source, DataFlowAnalysisType::IFDSTaintAnalysis);
       }
