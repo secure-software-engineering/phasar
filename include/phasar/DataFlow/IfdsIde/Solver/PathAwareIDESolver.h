@@ -16,6 +16,8 @@
 #include "phasar/DataFlow/PathSensitivity/ExplodedSuperGraph.h"
 #include "phasar/Utils/Logger.h"
 
+#include <concepts>
+
 namespace psr {
 template <typename AnalysisDomainTy,
           typename Container = std::set<typename AnalysisDomainTy::d_t>,
@@ -31,11 +33,14 @@ public:
   using i_t = typename base_t::i_t;
   using container_type = typename base_t::container_type;
 
-  explicit PathAwareIDESolver(
-      IDETabulationProblem<domain_t, container_type> *Problem, const i_t *ICF)
+  template <IDEProblem ProblemTy>
+    requires(std::same_as<domain_t,
+                          typename ProblemTy::ProblemAnalysisDomain> &&
+             std::same_as<container_type, typename ProblemTy::container_type>)
+  explicit PathAwareIDESolver(ProblemTy *Problem, const i_t *ICF)
       : base_t(Problem, ICF), ESG(Problem->getZeroValue()) {
 
-    if (Problem->getIFDSIDESolverConfig().autoAddZero()) {
+    if (doesAutoAddZero(*Problem)) {
       PHASAR_LOG_LEVEL(
           WARNING,
           "The PathAwareIDESolver is initialized with the option 'autoAddZero' "

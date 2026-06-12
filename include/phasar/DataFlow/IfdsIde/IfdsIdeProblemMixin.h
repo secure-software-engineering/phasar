@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/JoinLattice.h"
@@ -19,7 +20,7 @@
 #include "phasar/Utils/Utilities.h"
 
 namespace psr {
-template <typename AnalysisDomainTy>
+template <IfdsAnalysisDomain AnalysisDomainTy>
 class IfdsIdeProblemMixin
     : protected FlowFunctionTemplates<typename AnalysisDomainTy::d_t,
                                       std::set<typename AnalysisDomainTy::d_t>>,

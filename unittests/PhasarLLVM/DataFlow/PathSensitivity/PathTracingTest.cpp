@@ -87,7 +87,7 @@ protected:
                             {"main"}, &TH, &PT, psr::Soundness::Soundy,
                             /*IncludeGlobals*/ false);
     psr::IDELinearConstantAnalysis LCAProblem(IRDB.get(), &ICFG, {"main"});
-    psr::PathAwareIDESolver LCASolver(LCAProblem, &ICFG);
+    psr::PathAwareIDESolver LCASolver(&LCAProblem, &ICFG);
     LCASolver.solve();
     if (PrintDump) {
       // IRDB->print();
@@ -122,7 +122,7 @@ protected:
     psr::LLVMTaintConfig Config(*IRDB);
     psr::IDEExtendedTaintAnalysis<3, false> Analysis(IRDB.get(), &ICFG, &PT,
                                                      Config, {"main"});
-    psr::PathAwareIDESolver Solver(Analysis, &ICFG);
+    psr::PathAwareIDESolver Solver(&Analysis, &ICFG);
     Solver.solve();
 
     auto *Main = IRDB->getFunctionDefinition("main");
@@ -835,7 +835,7 @@ TEST(PathsDAGTest, InLLVMSSA) {
                           &PT, psr::Soundness::Soundy,
                           /*IncludeGlobals*/ false);
   psr::IDELinearConstantAnalysis LCAProblem(&IRDB, &ICFG, {"main"});
-  psr::PathAwareIDESolver LCASolver(LCAProblem, &ICFG);
+  psr::PathAwareIDESolver LCASolver(&LCAProblem, &ICFG);
   LCASolver.solve();
   // if (PrintDump) {
   //   // IRDB->print();

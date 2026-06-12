@@ -32,49 +32,49 @@ public:
   [[nodiscard]] constexpr decltype(auto)
   getNormalEdgeFunction(ByConstRef<n_t> /*Curr*/, ByConstRef<d_t> /*CurrNode*/,
                         ByConstRef<n_t> /*Succ*/,
-                        ByConstRef<d_t> /*SuccNode*/) {
+                        ByConstRef<d_t> /*SuccNode*/) noexcept {
     return EdgeFunctionType{};
   }
 
   [[nodiscard]] constexpr decltype(auto)
   getCallEdgeFunction(ByConstRef<n_t> /*CallSite*/, ByConstRef<d_t> /*CSNode*/,
                       ByConstRef<f_t> /*CalleeFun*/,
-                      ByConstRef<d_t> /*CalleeNode*/) {
+                      ByConstRef<d_t> /*CalleeNode*/) noexcept {
     return EdgeFunctionType{};
   }
 
   [[nodiscard]] constexpr decltype(auto) getReturnEdgeFunction(
       ByConstRef<n_t> /*CallSite*/, ByConstRef<f_t> /*CalleeFun*/,
       ByConstRef<n_t> /*ExitInst*/, ByConstRef<d_t> /*ExitNode*/,
-      ByConstRef<n_t> /*RetSite*/, ByConstRef<d_t> /*RSNode*/) {
+      ByConstRef<n_t> /*RetSite*/, ByConstRef<d_t> /*RSNode*/) noexcept {
     return EdgeFunctionType{};
   }
 
   [[nodiscard]] constexpr decltype(auto) getCallToRetEdgeFunction(
       ByConstRef<n_t> /*CallSite*/, ByConstRef<d_t> /*CSNode*/,
       ByConstRef<n_t> /*RetSite*/, ByConstRef<d_t> /*RSNode*/,
-      llvm::ArrayRef<f_t> /*Callees*/) {
+      llvm::ArrayRef<f_t> /*Callees*/) noexcept {
     return EdgeFunctionType{};
   }
 
   [[nodiscard]] constexpr decltype(auto)
   getSummaryEdgeFunction(ByConstRef<n_t> /*Curr*/, ByConstRef<d_t> /*CurrNode*/,
                          ByConstRef<n_t> /*Succ*/,
-                         ByConstRef<d_t> /*SuccNode*/) {
+                         ByConstRef<d_t> /*SuccNode*/) noexcept {
     return EdgeFunctionType{};
   }
 
   // --- IsJoinLattice:
 
-  [[nodiscard]] constexpr decltype(auto) topElement() {
+  [[nodiscard]] constexpr auto topElement() noexcept {
     return std::integral_constant<BinaryDomain, BinaryDomain::TOP>{};
   }
 
-  [[nodiscard]] constexpr decltype(auto) bottomElement() {
+  [[nodiscard]] constexpr auto bottomElement() noexcept {
     return std::integral_constant<BinaryDomain, BinaryDomain::BOTTOM>{};
   }
 
-  [[nodiscard]] constexpr l_t join(auto L, auto R) {
+  [[nodiscard]] constexpr l_t join(l_t L, l_t R) noexcept {
     if (L != R) {
       return bottomElement();
     }
@@ -83,19 +83,21 @@ public:
 
   // --- IsSemiRing:
 
-  [[nodiscard]] constexpr decltype(auto)
-  extend(IsEdgeFunctionFor<l_t> auto && /*First*/,
-         IsEdgeFunctionFor<l_t> auto && /*Second*/) {
+  [[nodiscard]] constexpr auto extend(EdgeFunctionType /*First*/,
+                                      EdgeFunctionType /*Second*/) noexcept {
     return EdgeFunctionType{};
   }
 
-  [[nodiscard]] constexpr decltype(auto)
-  combine(IsEdgeFunctionFor<l_t> auto && /*First*/,
-          IsEdgeFunctionFor<l_t> auto && /*Second*/) {
+  [[nodiscard]] constexpr auto combine(EdgeFunctionType /*First*/,
+                                       EdgeFunctionType /*Second*/) noexcept {
     return EdgeFunctionType{};
   }
 
-  [[nodiscard]] constexpr decltype(auto) identity() {
+  [[nodiscard]] constexpr auto identity() noexcept {
+    return EdgeFunctionType{};
+  }
+
+  [[nodiscard]] constexpr auto allTopFunction() noexcept {
     return EdgeFunctionType{};
   }
 };

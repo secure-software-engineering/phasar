@@ -90,20 +90,11 @@ template <IDEProblem ProblemTy> class FlowEdgeFunctionCache {
   using FlowFunctionType = FlowFunction<d_t, container_type>;
   using EdgeFunctionType = EdgeFunction<l_t>;
 
-  static bool doAutoAddZero(NonNullPtr<ProblemTy> Problem) {
-    if constexpr (requires { Problem->getIFDSIDESolverConfig(); }) {
-      return Problem->getIFDSIDESolverConfig().autoAddZero();
-    } else {
-      IFDSIDESolverConfig DefaultConfig{};
-      return DefaultConfig.autoAddZero();
-    }
-  }
-
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
   FlowEdgeFunctionCache(NonNullPtr<ProblemTy> Problem)
-      : Problem(Problem), AutoAddZero(doAutoAddZero(Problem)),
+      : Problem(Problem), AutoAddZero(doesAutoAddZero(*Problem)),
         ZV(Problem->getZeroValue()) {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Normal-FF Construction", 0, Full);

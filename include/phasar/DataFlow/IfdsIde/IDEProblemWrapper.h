@@ -12,6 +12,7 @@
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/JoinLattice.h"
@@ -26,7 +27,7 @@ namespace psr {
 ///
 /// Useful for adding intermediate layers, e.g., IFDS->IDE translation, caching,
 /// etc.
-template <typename ProblemTy> class IDEProblemWrapper {
+template <IDEProblem ProblemTy> class IDEProblemWrapper {
 public:
   using ProblemAnalysisDomain = typename ProblemTy::ProblemAnalysisDomain;
   using d_t = typename ProblemAnalysisDomain::d_t;

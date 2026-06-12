@@ -68,6 +68,9 @@ public:
 
   using config_callback_t = LLVMTaintConfig::TaintDescriptionCallBackTy;
 
+  // Need SemiRing::identity; below static identity() conflicts
+  using base_t::identity;
+
 private:
   struct SourceSinkInfo {
     llvm::SmallBitVector SourceIndices, SinkIndices;

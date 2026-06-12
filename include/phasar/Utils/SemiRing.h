@@ -55,6 +55,8 @@ public:
   }
 
   virtual EdgeFunction<l_t> identity() { return EdgeIdentity<l_t>{}; }
+
+  using AllTopFnProvider<AnalysisDomainTy>::allTopFunction;
 };
 
 template <typename T>

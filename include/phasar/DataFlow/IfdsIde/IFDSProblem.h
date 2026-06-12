@@ -11,6 +11,7 @@
 
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/DataFlow/IfdsIde/FlowFunctions.h"
+#include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/IfdsIdeDomain.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/Domain/AnalysisDomain.h"
@@ -43,4 +44,13 @@ concept IFDSProblem =
       { CP.getProjectIRDB() } -> ProjectIRDBConstPtr;
       { CP.getEntryPoints() } -> is_iterable_over_v<std::string>;
     };
+
+template <typename ProblemTy> inline bool doesAutoAddZero(ProblemTy &Problem) {
+  if constexpr (requires { Problem.getIFDSIDESolverConfig(); }) {
+    return Problem.getIFDSIDESolverConfig().autoAddZero();
+  } else {
+    IFDSIDESolverConfig DefaultConfig{};
+    return DefaultConfig.autoAddZero();
+  }
+}
 } // namespace psr
