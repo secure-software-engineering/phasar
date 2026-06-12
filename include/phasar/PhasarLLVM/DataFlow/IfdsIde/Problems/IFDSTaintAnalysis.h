@@ -38,7 +38,7 @@ class LLVMTaintConfig;
  * dedicated sink functions. A leak is reported once a tainted value
  * reached a sink function.
  *
- * @see TaintConfiguration on how to specify your own
+ * @see LLVMTaintConfig on how to specify your own
  * taint-sensitive source and sink functions.
  */
 class IFDSTaintAnalysis
@@ -58,12 +58,6 @@ public:
   /// Holds all leaks found during the analysis
   std::map<n_t, std::set<d_t>> Leaks;
 
-  /**
-   *
-   * @param icfg
-   * @param TSF
-   * @param EntryPoints
-   */
   IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB, LLVMAliasInfoRef PT,
                     const LLVMTaintConfig *Config,
                     std::vector<std::string> EntryPoints = {"main"},

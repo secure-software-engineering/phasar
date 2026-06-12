@@ -51,14 +51,14 @@ public:
     this->disableStrongUpdateStore();
   }
 
-  [[nodiscard]] psr::InitialSeeds<n_t, d_t, l_t> initialSeeds() override {
+  [[nodiscard]] psr::InitialSeeds<n_t, d_t, l_t> initialSeeds() {
 
     psr::InitialSeeds<n_t, d_t, l_t> Seeds = Config->makeInitialSeeds();
 
     psr::LLVMBasedCFG CFG;
 
-    addSeedsForStartingPoints(EntryPoints, IRDB, CFG, Seeds, getZeroValue(),
-                              psr::BinaryDomain::BOTTOM);
+    addSeedsForStartingPoints(EntryPoints, IRDB.get(), CFG, Seeds,
+                              getZeroValue(), psr::BinaryDomain::BOTTOM);
 
     return Seeds;
   };
@@ -92,8 +92,8 @@ public:
     };
   }
 
-  [[nodiscard]] FlowFunctionPtrType
-  getSummaryFlowFunction(n_t CallSite, f_t DestFun) override {
+  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t CallSite,
+                                                           f_t DestFun) {
     const auto *CS = llvm::cast<llvm::CallBase>(CallSite);
 
     container_type Gen;
@@ -105,8 +105,7 @@ public:
     psr::collectSanitizedFacts(Kill, *Config, CS, DestFun);
 
     if (Gen.empty() && Leak.empty() && Kill.empty()) {
-      return DefaultAllocSitesAwareIFDSProblem::getSummaryFlowFunction(CS,
-                                                                       DestFun);
+      return nullptr;
     }
 
     populateWithMayAliases(getAliasInfo(), Gen, CallSite);

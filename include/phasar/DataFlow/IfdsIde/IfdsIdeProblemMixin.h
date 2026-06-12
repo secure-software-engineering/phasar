@@ -65,6 +65,16 @@ public:
     return EntryPoints;
   }
 
+  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t /*CallSite*/,
+                                                           f_t /*DestFun*/) {
+    return nullptr;
+  }
+
+  EdgeFunctionType getSummaryEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
+                                          n_t /*Succ*/, d_t /*SuccNode*/) {
+    return EdgeIdentity<l_t>{};
+  }
+
 protected:
   constexpr IfdsIdeProblemMixin(NonNullPtr<const db_t> IRDB,
                                 std::vector<std::string> EntryPoints,

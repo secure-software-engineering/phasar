@@ -13,7 +13,7 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultNoAliasIDEProblem.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
+#include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 // Forward declaration of types for which we only use its pointer or ref type
@@ -64,14 +64,14 @@ protected:
 
 template <typename AnalysisDomainTy>
 class DefaultReachableAllocationSitesIDEProblem
-    : public IDETabulationProblem<AnalysisDomainTy>,
+    : public IfdsIdeProblemMixin<AnalysisDomainTy>,
       protected detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl {
 public:
-  using typename IDETabulationProblem<AnalysisDomainTy>::db_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::d_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::f_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::n_t;
-  using typename IDETabulationProblem<AnalysisDomainTy>::FlowFunctionPtrType;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::db_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::d_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::f_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::n_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::FlowFunctionPtrType;
 
   /// Constructs an IDETabulationProblem with the usual arguments + alias
   /// information.
@@ -81,81 +81,34 @@ public:
   explicit DefaultReachableAllocationSitesIDEProblem(
       const db_t *IRDB, LLVMPointsToIteratorRef AS,
       std::vector<std::string> EntryPoints,
-      std::optional<d_t>
-          ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : IDETabulationProblem<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
-                                               ZeroValue),
-        detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl(AS) {}
-
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
-    return getNormalFlowFunctionImpl(Curr, Succ);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
-    return getCallFlowFunctionImpl(CallInst, CalleeFun);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
-    return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
-    return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
-  }
-};
-
-class DefaultReachableAllocationSitesIFDSProblem
-    : public IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>,
-      protected detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl {
-public:
-  using typename IFDSTabulationProblem::d_t;
-  using typename IFDSTabulationProblem::db_t;
-  using typename IFDSTabulationProblem::f_t;
-  using typename IFDSTabulationProblem::FlowFunctionPtrType;
-  using typename IFDSTabulationProblem::n_t;
-
-  /// Constructs an IFDSTabulationProblem with the usual arguments + alias
-  /// information.
-  ///
-  /// \note It is useful to use an instance of FilteredAliasSet for the alias
-  /// information to lower suprious aliases
-  explicit DefaultReachableAllocationSitesIFDSProblem(
-      const db_t *IRDB, LLVMPointsToIteratorRef AS,
-      std::vector<std::string> EntryPoints,
       d_t ZeroValue) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : IFDSTabulationProblem(IRDB, std::move(EntryPoints), ZeroValue),
+      : IfdsIdeProblemMixin<AnalysisDomainTy>(IRDB, std::move(EntryPoints),
+                                              std::move(ZeroValue)),
         detail::IDEReachableAllocationSitesDefaultFlowFunctionsImpl(AS) {}
 
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr,
-                                                          n_t Succ) override {
+  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     return getNormalFlowFunctionImpl(Curr, Succ);
   }
 
-  [[nodiscard]] FlowFunctionPtrType
-  getCallFlowFunction(n_t CallInst, f_t CalleeFun) override {
+  [[nodiscard]] FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
+                                                        f_t CalleeFun) {
     return getCallFlowFunctionImpl(CallInst, CalleeFun);
   }
 
-  [[nodiscard]] FlowFunctionPtrType getRetFlowFunction(n_t CallSite,
-                                                       f_t CalleeFun,
-                                                       n_t ExitInst,
-                                                       n_t RetSite) override {
+  [[nodiscard]] FlowFunctionPtrType
+  getRetFlowFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, n_t RetSite) {
     return getRetFlowFunctionImpl(CallSite, CalleeFun, ExitInst, RetSite);
   }
 
   [[nodiscard]] FlowFunctionPtrType
   getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override {
+                           llvm::ArrayRef<f_t> Callees) {
     return getCallToRetFlowFunctionImpl(CallSite, RetSite, Callees);
   }
 };
+
+using DefaultReachableAllocationSitesIFDSProblem =
+    DefaultReachableAllocationSitesIDEProblem<LLVMIFDSAnalysisDomainDefault>;
 
 } // namespace psr
 
