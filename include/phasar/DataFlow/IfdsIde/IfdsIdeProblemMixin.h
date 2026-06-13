@@ -103,8 +103,8 @@ protected:
     InitialSeeds<n_t, d_t, l_t> Seeds;
     typename AnalysisDomainTy::c_t C{};
 
-    addSeedsForStartingPoints(Self.EntryPoints, Self.getProjectIRDB(), C, Seeds,
-                              Self.getZeroValue(), Self.bottomElement());
+    addSeedsForStartingPoints(Self.getEntryPoints(), Self.getProjectIRDB(), C,
+                              Seeds, Self.getZeroValue(), Self.bottomElement());
 
     return Seeds;
   }
