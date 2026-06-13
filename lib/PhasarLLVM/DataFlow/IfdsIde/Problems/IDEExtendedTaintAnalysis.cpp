@@ -10,6 +10,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IDEExtendedTaintAnalysis.h"
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
+#include "phasar/DataFlow/IfdsIde/EntryPointUtils.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/GenEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/ExtendedTaintAnalysis/Helpers.h"

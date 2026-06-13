@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
-#include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
 #include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
+#include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
