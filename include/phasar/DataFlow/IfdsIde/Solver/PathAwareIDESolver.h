@@ -40,7 +40,7 @@ public:
   explicit PathAwareIDESolver(ProblemTy *Problem, const i_t *ICF)
       : base_t(Problem, ICF), ESG(Problem->getZeroValue()) {
 
-    if (doesAutoAddZero(*Problem)) {
+    if (getProblemSolverConfig(*Problem).autoAddZero()) {
       PHASAR_LOG_LEVEL(
           WARNING,
           "The PathAwareIDESolver is initialized with the option 'autoAddZero' "

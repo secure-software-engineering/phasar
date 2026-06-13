@@ -45,12 +45,13 @@ concept IFDSProblem =
       { CP.getEntryPoints() } -> is_iterable_over_v<std::string>;
     };
 
-template <typename ProblemTy> inline bool doesAutoAddZero(ProblemTy &Problem) {
+template <typename ProblemTy>
+inline IFDSIDESolverConfig getProblemSolverConfig(ProblemTy &Problem) noexcept {
   if constexpr (requires { Problem.getIFDSIDESolverConfig(); }) {
-    return Problem.getIFDSIDESolverConfig().autoAddZero();
+    return Problem.getIFDSIDESolverConfig();
   } else {
-    IFDSIDESolverConfig DefaultConfig{};
-    return DefaultConfig.autoAddZero();
+    return IFDSIDESolverConfig{};
   }
 }
+
 } // namespace psr
