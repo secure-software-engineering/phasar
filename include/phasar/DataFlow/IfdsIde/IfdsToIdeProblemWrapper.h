@@ -98,6 +98,7 @@ public:
   }
 
   [[nodiscard]] constexpr auto allTopFunction() noexcept {
+    // technically not 100% correct, but should work in practice
     return EdgeFunctionType{};
   }
 };

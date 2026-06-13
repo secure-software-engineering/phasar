@@ -14,6 +14,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
 #include "phasar/Domain/AnalysisDomain.h"
@@ -66,7 +67,9 @@ public:
       : base_t(getPointerFrom(Problem->getProjectIRDB()),
                makeEntryVec(Problem->getEntryPoints()),
                Problem->getZeroValue()),
-        Problem(Problem) {}
+        Problem(Problem) {
+    this->getIFDSIDESolverConfig() = getProblemSolverConfig(*Problem);
+  }
 
   LegacyIDEProblemWrapper(ProblemTy *Problem) noexcept
       : LegacyIDEProblemWrapper(NonNullPtr<ProblemTy>(Problem)) {}

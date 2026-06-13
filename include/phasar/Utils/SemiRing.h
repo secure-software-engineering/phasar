@@ -74,7 +74,8 @@ concept IsSemiRing = requires(T &SR, const typename T::EdgeFunctionType &CEF) {
 };
 
 struct BinarySemiRing {
-  using EdgeFunctionType = EdgeIdentity<BinaryDomain>;
+  using l_t = BinaryDomain;
+  using EdgeFunctionType = EdgeIdentity<l_t>;
 
   [[nodiscard]] constexpr EdgeFunctionType
   extend(EdgeFunctionType /*L*/, EdgeFunctionType /*R*/) const noexcept {
