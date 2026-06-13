@@ -46,8 +46,7 @@ public:
   using typename ProblemAnalysisDomain::v_t;
   using EdgeFunctionType = EdgeFunction<l_t>;
 
-  [[nodiscard]] constexpr auto getZeroValue() const noexcept {
-    assert(ZeroValue);
+  [[nodiscard]] constexpr ByConstRef<d_t> getZeroValue() const noexcept {
     return ZeroValue;
   }
 
@@ -88,7 +87,7 @@ protected:
   }
 
   NonNullPtr<const db_t> IRDB{};
-  Nullable<d_t> ZeroValue{};
+  d_t ZeroValue{};
   std::vector<std::string> EntryPoints;
 };
 } // namespace psr

@@ -11,7 +11,8 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_PROBLEMS_IDEEXTENDEDTAINTANALYSIS_H
 
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
-#include "phasar/Domain/LatticeDomain.h"
+#include "phasar/DataFlow/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
@@ -24,21 +25,17 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/BasicBlockOrdering.h"
+#include "phasar/Utils/WithAnalysisPrinterMixin.h"
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
 
 #include <concepts>
 #include <functional>
-#include <memory>
 #include <set>
 #include <string>
-#include <type_traits>
 
 namespace psr {
 
@@ -53,17 +50,17 @@ namespace XTaint {
 /// \brief An IDE-based taint analysis that uses k-limited field-access paths to
 /// achieve field sensitivity
 class IDEExtendedTaintAnalysis
-    : public IDETabulationProblem<IDEExtendedTaintAnalysisDomain>,
-      public AnalysisBase {
-  using base_t = IDETabulationProblem<IDEExtendedTaintAnalysisDomain>;
+    : public AnalysisBase,
+      public IfdsIdeProblemMixin<IDEExtendedTaintAnalysisDomain>,
+      public WithAnalysisPrinterMixin<IDEExtendedTaintAnalysisDomain> {
+  using base_t = IfdsIdeProblemMixin<IDEExtendedTaintAnalysisDomain>;
 
 public:
-  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::n_t;
-  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::f_t;
-  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::d_t;
-  using typename IDETabulationProblem<IDEExtendedTaintAnalysisDomain>::l_t;
-  using typename IDETabulationProblem<
-      IDEExtendedTaintAnalysisDomain>::FlowFunctionPtrType;
+  using typename base_t::d_t;
+  using typename base_t::f_t;
+  using typename base_t::FlowFunctionPtrType;
+  using typename base_t::l_t;
+  using typename base_t::n_t;
   using EdgeFunctionType = EdgeFunction<l_t>;
 
   using config_callback_t = LLVMTaintConfig::TaintDescriptionCallBackTy;
@@ -96,12 +93,12 @@ private:
                                               const llvm::Instruction *CurrInst,
                                               bool AddGlobals = true);
 
-  [[nodiscard]] static inline bool equivalent(d_t LHS, d_t RHS) {
+  [[nodiscard]] static bool equivalent(d_t LHS, d_t RHS) {
     return LHS->equivalent(RHS);
   }
 
-  [[nodiscard]] static inline bool equivalentExceptPointerArithmetics(d_t LHS,
-                                                                      d_t RHS) {
+  [[nodiscard]] static bool equivalentExceptPointerArithmetics(d_t LHS,
+                                                               d_t RHS) {
     return LHS->equivalentExceptPointerArithmetics(RHS);
   }
 
@@ -184,105 +181,72 @@ public:
                            std::vector<std::string> EntryPoints, unsigned Bound,
                            bool DisableStrongUpdates,
                            GetDomTree &&GDT = DefaultDominatorTreeAnalysis{})
-      : base_t(IRDB, std::move(EntryPoints), std::nullopt), AnalysisBase(TSF),
-        PT(PT), ICF(ICF), BBO(std::forward<GetDomTree>(GDT)),
-        FactFactory(IRDB->getNumInstructions()),
+      : AnalysisBase(TSF, IRDB->getNumInstructions()),
+        base_t(IRDB, std::move(EntryPoints), createZeroValue()), PT(PT),
+        ICF(ICF), BBO(std::forward<GetDomTree>(GDT)),
         DL(IRDB->getModule()->getDataLayout()), Bound(Bound),
         PostProcessed(DisableStrongUpdates),
         DisableStrongUpdates(DisableStrongUpdates) {
     assert(PT);
     assert(ICF != nullptr);
-    initializeZeroValue(createZeroValue());
 
     FactFactory.setDataLayout(DL);
 
-    this->getIFDSIDESolverConfig().setAutoAddZero(false);
+    getIFDSIDESolverConfig().setAutoAddZero(false);
 
     /// TODO: Once we have better AliasInfo, do a dynamic_cast over PT and
     /// set HasPreciseAliasInfo accordingly
   }
 
-  ~IDEExtendedTaintAnalysis() override = default;
-
   // Flow functions
 
-  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) override;
+  FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ);
 
-  FlowFunctionPtrType getCallFlowFunction(n_t CallStmt, f_t DestFun) override;
+  FlowFunctionPtrType getCallFlowFunction(n_t CallStmt, f_t DestFun);
 
   FlowFunctionPtrType getRetFlowFunction(n_t CallSite, f_t CalleeFun,
-                                         n_t ExitStmt, n_t RetSite) override;
+                                         n_t ExitStmt, n_t RetSite);
 
-  FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) override;
+  FlowFunctionPtrType getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                                               llvm::ArrayRef<f_t> Callees);
 
-  FlowFunctionPtrType getSummaryFlowFunction(n_t CallStmt,
-                                             f_t DestFun) override;
+  FlowFunctionPtrType getSummaryFlowFunction(n_t CallStmt, f_t DestFun);
 
   // Edge functions
 
   EdgeFunctionType getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                         d_t SuccNode) override;
+                                         d_t SuccNode);
 
   EdgeFunctionType getCallEdgeFunction(n_t CallInst, d_t SrcNode, f_t CalleeFun,
-                                       d_t DestNode) override;
+                                       d_t DestNode);
 
   EdgeFunctionType getReturnEdgeFunction(n_t CallSite, f_t CalleeFun,
                                          n_t ExitInst, d_t ExitNode,
-                                         n_t RetSite, d_t RetNode) override;
+                                         n_t RetSite, d_t RetNode);
 
-  EdgeFunctionType
-  getCallToRetEdgeFunction(n_t CallSite, d_t CallNode, n_t RetSite,
-                           d_t RetSiteNode,
-                           llvm::ArrayRef<f_t> Callees) override;
+  EdgeFunctionType getCallToRetEdgeFunction(n_t CallSite, d_t CallNode,
+                                            n_t RetSite, d_t RetSiteNode,
+                                            llvm::ArrayRef<f_t> Callees);
 
   EdgeFunctionType getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
-                                          d_t SuccNode) override;
+                                          d_t SuccNode);
 
   // Misc
 
-  InitialSeeds<n_t, d_t, l_t> initialSeeds() override;
+  InitialSeeds<n_t, d_t, l_t> initialSeeds();
 
-  [[nodiscard]] d_t createZeroValue() const;
-
-  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept override;
+  [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept;
 
   // Printing functions
 
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
-                      llvm::raw_ostream &OS = llvm::outs()) override;
+                      llvm::raw_ostream &OS = llvm::outs());
 
-private:
-  LLVMAliasInfoRef PT{};
-  const LLVMBasedICFG *ICF{};
+  [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() noexcept {
+    return SolverConfig;
+  }
+  // ---
 
-  /// Save all leaks here that were found using the IFDS part if the analysis.
-  /// Hence, this map may contain sanitized facts.
-  XTaint::LeakMap_t Leaks;
-
-  // Used for determining whether a dataflow fact is still tained or already
-  // sanitized
-  BasicBlockOrdering BBO;
-
-  AbstractMemoryLocationFactory<d_t> FactFactory;
-  const llvm::DataLayout &DL;
-
-#ifdef XTAINT_DIAGNOSTICS
-  llvm::DenseSet<d_t> allTaintedValues;
-#endif
-
-  /// The k-limit for field-access paths
-  unsigned Bound;
-
-  /// Does the Leaks map still contain sanitized facts?
-  bool PostProcessed = false;
-
-  bool DisableStrongUpdates = false;
-
-  bool HasPreciseAliasInfo = false;
-
-public:
   BasicBlockOrdering &getBasicBlockOrdering() { return BBO; }
 
   /// Return a map from llvm::Instruction to sets of leaks (llvm::Values) that
@@ -302,7 +266,7 @@ public:
   /// This function does NOT involve a post-processing step.
   LeakMap_t &getAllLeaks() { return Leaks; }
 
-  [[nodiscard]] inline size_t getNumDataflowFacts() const {
+  [[nodiscard]] size_t getNumDataflowFacts() const {
     return FactFactory.size();
   }
 #ifdef XTAINT_DIAGNOSTICS
@@ -312,6 +276,36 @@ public:
     return FactFactory.getNumOverApproximatedFacts();
   }
 #endif
+
+private:
+  LLVMAliasInfoRef PT{};
+  const LLVMBasedICFG *ICF{};
+
+  /// Save all leaks here that were found using the IFDS part if the analysis.
+  /// Hence, this map may contain sanitized facts.
+  XTaint::LeakMap_t Leaks;
+
+  // Used for determining whether a dataflow fact is still tained or already
+  // sanitized
+  BasicBlockOrdering BBO;
+
+  const llvm::DataLayout &DL;
+
+#ifdef XTAINT_DIAGNOSTICS
+  llvm::DenseSet<d_t> allTaintedValues;
+#endif
+
+  IFDSIDESolverConfig SolverConfig{};
+
+  /// The k-limit for field-access paths
+  unsigned Bound;
+
+  /// Does the Leaks map still contain sanitized facts?
+  bool PostProcessed = false;
+
+  bool DisableStrongUpdates = false;
+
+  bool HasPreciseAliasInfo = false;
 };
 
 } // namespace XTaint

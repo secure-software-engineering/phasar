@@ -26,9 +26,10 @@
 #include "TestConfig.h"
 #include "gtest/gtest.h"
 
-#include <tuple>
 #include <utility>
 #include <variant>
+
+namespace {
 
 using namespace psr;
 using namespace psr::unittest;
@@ -73,7 +74,7 @@ protected:
     auto TaintProblem =
         createAnalysisProblem<IDEExtendedTaintAnalysis<>>(HA, TC, EntryPoints);
 
-    IDESolver Solver(TaintProblem, &HA.getICFG());
+    IDESolver Solver(&TaintProblem, &HA.getICFG());
     Solver.solve();
     // Solver.printAnnotatedIR();
     if (DumpResults) {
@@ -320,6 +321,7 @@ TEST_F(IDETaintAnalysisTest, XTaint21) {
   doAnalysis("xtaint21_cpp_dbg.ll", GroundTruth,
              CallBackPairTy{std::move(SourceCB), std::move(SinkCB)});
 }
+} // namespace
 
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);
