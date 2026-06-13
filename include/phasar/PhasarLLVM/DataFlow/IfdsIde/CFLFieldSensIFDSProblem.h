@@ -11,9 +11,7 @@
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FIELDSENSALLOCSITESAWAREIFDSPROBLEM_H
 
 #include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
-#include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IfdsIdeProblemMixin.h"
-#include "phasar/DataFlow/IfdsIde/LegacyIDEProblemWrapper.h"
 #include "phasar/Domain/BinaryDomain.h"
 #include "phasar/Domain/LatticeDomain.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
@@ -23,7 +21,7 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
-#include "phasar/Utils/MaybeUniquePtr.h"
+#include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
@@ -263,14 +261,6 @@ struct IFDSProblemConfig : LLVMIFDSAnalysisDomainDefault {
   // XXX: more
 };
 
-/// Transforms user-defined seeds from usual IFDS seeds to field-sensitive IFDS
-/// seeds
-[[nodiscard]] InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t, IFDSDomain::l_t>
-makeInitialSeeds(const InitialSeeds<LLVMIFDSAnalysisDomainDefault::n_t,
-                                    LLVMIFDSAnalysisDomainDefault::d_t,
-                                    BinaryDomain> &UserSeeds,
-                 FieldStringManager &Mgr);
-
 /// Utility to strip off potential pointer-arithmetic from V and accumulating
 /// the byte-offset.
 [[nodiscard]] inline std::pair<const llvm::Value *, int32_t>
@@ -366,134 +356,10 @@ bool filterFieldSensFacts(
   return true;
 }
 
-} // namespace cfl_fieldsens
-
-/// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
-/// field-sensitive. Just wrap your IFDS problem with
-/// FieldSensAllocSitesAwareIFDSProblem and use the IterativeIDESolver instead
-/// of the IFDSSolver.
-///
-/// The only thing to change in your usual IFDS problem is not to kill data-flow
-/// facts when only parts of the fields should be killed. This is now handled by
-/// the FieldSensAllocSitesAwareIFDSProblem. For that, provide a
-/// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
-/// implementation.
-class CFLFieldSensIFDSProblem
+class CFLFieldSensEdgeFunctions
     : public IfdsIdeProblemMixin<cfl_fieldsens::IFDSDomain> {
-  using Base = IfdsIdeProblemMixin<cfl_fieldsens::IFDSDomain>;
-
-  static decltype(cfl_fieldsens::IFDSProblemConfig::KillsAt)
-  deriveKillsAt(auto *UserProblem) {
-    assert(UserProblem != nullptr);
-    if constexpr (requires() {
-                    {
-                      UserProblem->killsAt()
-                    } -> psr::invocable_r<std::optional<int32_t>, n_t, d_t>;
-                  }) {
-      return UserProblem->killsAt();
-    } else if constexpr (requires() {
-                           {
-                             UserProblem->killsAt()
-                           } -> std::invocable<n_t, d_t>;
-                         }) {
-      // Intentionally leaving an unused variable, so that the compiler emits a
-      // warning here
-      auto KillsAtHasWrongReturnType = UserProblem->killsAt();
-      return nullptr;
-    } else {
-      return nullptr;
-    }
-  }
-
 public:
-  using typename Base::container_type;
-  using typename Base::d_t;
-  using typename Base::db_t;
-  using typename Base::f_t;
-  using typename Base::FlowFunctionPtrType;
-  using typename Base::i_t;
-  using typename Base::l_t;
-  using typename Base::n_t;
-  using typename Base::ProblemAnalysisDomain;
-  using typename Base::t_t;
-  using typename Base::v_t;
-
   static constexpr llvm::StringLiteral LogCategory = "CFLFieldSensIFDSProblem";
-
-  /// Constructs an IDETabulationProblem with the usual arguments, forwarded
-  /// from UserProblem
-  template <IFDSProblem ProblemTy>
-    requires std::same_as<LLVMIFDSAnalysisDomainDefault,
-                          typename ProblemTy::ProblemAnalysisDomain>
-  explicit CFLFieldSensIFDSProblem(
-      ProblemTy *UserProblem,
-      cfl_fieldsens::IFDSProblemConfig
-          Config) noexcept(std::is_nothrow_move_constructible_v<d_t>)
-      : Base(assertNotNull(UserProblem).getProjectIRDB(),
-             assertNotNull(UserProblem).getEntryPoints(),
-             UserProblem->getZeroValue()),
-        UserProblem([UserProblem] {
-          if constexpr (std::derived_from<ProblemTy,
-                                          IFDSTabulationProblem<
-                                              LLVMIFDSAnalysisDomainDefault>>) {
-            return UserProblem;
-          } else {
-            return std::make_unique<LegacyIDEProblemWrapper<ProblemTy>>(
-                UserProblem);
-          }
-        }()),
-        Config(std::move(Config)) {}
-
-  /// Constructs an IDETabulationProblem with the usual arguments, forwarded
-  /// from UserProblem and tries to automatically derive the config from
-  /// additional functions specified by UserProblem
-  template <IFDSProblem ProblemTy>
-    requires std::same_as<LLVMIFDSAnalysisDomainDefault,
-                          typename ProblemTy::ProblemAnalysisDomain>
-  explicit CFLFieldSensIFDSProblem(ProblemTy *UserProblem)
-      : CFLFieldSensIFDSProblem(UserProblem,
-                                cfl_fieldsens::IFDSProblemConfig{
-                                    .KillsAt = deriveKillsAt(UserProblem),
-                                }) {}
-
-  CFLFieldSensIFDSProblem(std::nullptr_t,
-                          cfl_fieldsens::IFDSProblemConfig Config) = delete;
-
-  CFLFieldSensIFDSProblem(std::nullptr_t) = delete;
-
-  // XXX: Perhaps we need a way to provide a customization-point to specify gen
-  // offsets to the edge-functions (generating from zero currently always
-  // generates at epsilon!)
-
-  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() {
-    return cfl_fieldsens::makeInitialSeeds(UserProblem->initialSeeds(), Mgr);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
-    return UserProblem->getNormalFlowFunction(Curr, Succ);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getCallFlowFunction(n_t CallInst,
-                                                        f_t CalleeFun) {
-    return UserProblem->getCallFlowFunction(CallInst, CalleeFun);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t CallInst,
-                                                           f_t CalleeFun) {
-    return UserProblem->getSummaryFlowFunction(CallInst, CalleeFun);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getRetFlowFunction(n_t CallSite, f_t CalleeFun, n_t ExitInst, n_t RetSite) {
-    return UserProblem->getRetFlowFunction(CallSite, CalleeFun, ExitInst,
-                                           RetSite);
-  }
-
-  [[nodiscard]] FlowFunctionPtrType
-  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
-                           llvm::ArrayRef<f_t> Callees) {
-    return UserProblem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
-  }
 
   EdgeFunction<l_t> getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
                                          d_t PointerOp, d_t ValueOp,
@@ -523,17 +389,148 @@ public:
   EdgeFunction<l_t> combine(const EdgeFunction<l_t> &L,
                             const EdgeFunction<l_t> &R);
 
+protected:
+  template <typename ProblemTy>
+  CFLFieldSensEdgeFunctions(ProblemTy &Problem,
+                            cfl_fieldsens::IFDSProblemConfig &&Config,
+                            uint8_t DepthKLimit = 5)
+      : psr::IfdsIdeProblemMixin<IFDSDomain>(Problem.getProjectIRDB(),
+                                             Problem.getEntryPoints(),
+                                             Problem.getZeroValue()),
+        Config(std::move(Config)), DepthKLimit(DepthKLimit) {}
+
+  /// Transforms user-defined seeds from usual IFDS seeds to field-sensitive
+  /// IFDS
+  /// seeds
+  [[nodiscard]] InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t, IFDSDomain::l_t>
+  makeInitialSeeds(const InitialSeeds<LLVMIFDSAnalysisDomainDefault::n_t,
+                                      LLVMIFDSAnalysisDomainDefault::d_t,
+                                      BinaryDomain> &UserSeeds);
+
+private:
+  FieldStringManager Mgr{};
+  IFDSProblemConfig Config{};
+  uint8_t DepthKLimit = 5; // Original from the paper
+};
+
+} // namespace cfl_fieldsens
+
+/// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
+/// field-sensitive. Just wrap your IFDS problem with
+/// FieldSensAllocSitesAwareIFDSProblem and use the IterativeIDESolver instead
+/// of the IFDSSolver.
+///
+/// The only thing to change in your usual IFDS problem is not to kill data-flow
+/// facts when only parts of the fields should be killed. This is now handled by
+/// the FieldSensAllocSitesAwareIFDSProblem. For that, provide a
+/// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
+/// implementation.
+template <IFDSProblem ProblemTy>
+  requires std::same_as<LLVMIFDSAnalysisDomainDefault,
+                        typename ProblemTy::ProblemAnalysisDomain>
+class CFLFieldSensIFDSProblem
+    : public cfl_fieldsens::CFLFieldSensEdgeFunctions {
+  using Base = cfl_fieldsens::CFLFieldSensEdgeFunctions;
+
+  static decltype(cfl_fieldsens::IFDSProblemConfig::KillsAt)
+  deriveKillsAt(ProblemTy *UserProblem) {
+    assert(UserProblem != nullptr);
+    if constexpr (requires {
+                    {
+                      UserProblem->killsAt()
+                    } -> psr::invocable_r<std::optional<int32_t>, n_t, d_t>;
+                  }) {
+      return UserProblem->killsAt();
+    } else if constexpr (requires {
+                           {
+                             UserProblem->killsAt()
+                           } -> std::invocable<n_t, d_t>;
+                         }) {
+      // Intentionally leaving an unused variable, so that the compiler emits a
+      // warning here
+      auto KillsAtHasWrongReturnType = UserProblem->killsAt();
+      return nullptr;
+    } else {
+      return nullptr;
+    }
+  }
+
+public:
+  using typename Base::container_type;
+  using typename Base::d_t;
+  using typename Base::db_t;
+  using typename Base::f_t;
+  using typename Base::FlowFunctionPtrType;
+  using typename Base::i_t;
+  using typename Base::l_t;
+  using typename Base::n_t;
+  using typename Base::ProblemAnalysisDomain;
+  using typename Base::t_t;
+  using typename Base::v_t;
+
+  /// Constructs an IDETabulationProblem with the usual arguments, forwarded
+  /// from UserProblem
+  explicit CFLFieldSensIFDSProblem(
+      ProblemTy *UserProblem,
+      cfl_fieldsens::IFDSProblemConfig
+          Config) noexcept(std::is_nothrow_move_constructible_v<d_t>)
+      : Base(assertNotNull(UserProblem), std::move(Config)),
+        UserProblem(UserProblem) {}
+
+  /// Constructs an IDETabulationProblem with the usual arguments, forwarded
+  /// from UserProblem and tries to automatically derive the config from
+  /// additional functions specified by UserProblem
+
+  explicit CFLFieldSensIFDSProblem(ProblemTy *UserProblem)
+      : CFLFieldSensIFDSProblem(UserProblem,
+                                cfl_fieldsens::IFDSProblemConfig{
+                                    .KillsAt = deriveKillsAt(UserProblem),
+                                }) {}
+
+  CFLFieldSensIFDSProblem(std::nullptr_t,
+                          cfl_fieldsens::IFDSProblemConfig Config) = delete;
+
+  CFLFieldSensIFDSProblem(std::nullptr_t) = delete;
+
+  // XXX: Perhaps we need a way to provide a customization-point to specify gen
+  // offsets to the edge-functions (generating from zero currently always
+  // generates at epsilon!)
+
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() {
+    return this->makeInitialSeeds(UserProblem->initialSeeds());
+  }
+
+  [[nodiscard]] decltype(auto) getNormalFlowFunction(n_t Curr, n_t Succ) {
+    return UserProblem->getNormalFlowFunction(Curr, Succ);
+  }
+
+  [[nodiscard]] decltype(auto) getCallFlowFunction(n_t CallInst,
+                                                   f_t CalleeFun) {
+    return UserProblem->getCallFlowFunction(CallInst, CalleeFun);
+  }
+
+  [[nodiscard]] decltype(auto) getSummaryFlowFunction(n_t CallInst,
+                                                      f_t CalleeFun) {
+    return UserProblem->getSummaryFlowFunction(CallInst, CalleeFun);
+  }
+
+  [[nodiscard]] decltype(auto) getRetFlowFunction(n_t CallSite, f_t CalleeFun,
+                                                  n_t ExitInst, n_t RetSite) {
+    return UserProblem->getRetFlowFunction(CallSite, CalleeFun, ExitInst,
+                                           RetSite);
+  }
+
+  [[nodiscard]] decltype(auto)
+  getCallToRetFlowFunction(n_t CallSite, n_t RetSite,
+                           llvm::ArrayRef<f_t> Callees) {
+    return UserProblem->getCallToRetFlowFunction(CallSite, RetSite, Callees);
+  }
+
   /// The wrapped user-problem
   [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
 
 private:
-  // XXX: Avoid the type-erasure here
-  MaybeUniquePtr<IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault>>
-      UserProblem{};
-  cfl_fieldsens::FieldStringManager Mgr{};
-  cfl_fieldsens::IFDSProblemConfig Config{};
-
-  uint8_t DepthKLimit = 5; // Original from the paper
+  NonNullPtr<ProblemTy> UserProblem{};
 };
 } // namespace psr
 
