@@ -18,10 +18,11 @@
 #include "phasar/Utils/Nullable.h"
 #include "phasar/Utils/SemiRing.h"
 namespace psr {
-template <IfdsAnalysisDomain AnalysisDomainTy>
+template <IfdsAnalysisDomain AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
 class IfdsIdeProblemMixin
     : protected FlowFunctionTemplates<typename AnalysisDomainTy::d_t,
-                                      std::set<typename AnalysisDomainTy::d_t>>,
+                                      Container>,
       public AnalysisDomainTy,
       public DerivedJoinLattice<
           typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t>,
@@ -29,8 +30,7 @@ class IfdsIdeProblemMixin
           typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t> {
 protected:
   using FFTemplates =
-      FlowFunctionTemplates<typename AnalysisDomainTy::d_t,
-                            std::set<typename AnalysisDomainTy::d_t>>;
+      FlowFunctionTemplates<typename AnalysisDomainTy::d_t, Container>;
 
 public:
   using ProblemAnalysisDomain = detail::ValueDomainAdder<AnalysisDomainTy>;
