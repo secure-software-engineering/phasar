@@ -39,11 +39,7 @@ public:
   // --- IFDSProblem:
 
   [[nodiscard]] constexpr bool isZeroValue(ByConstRef<d_t> Fact) const {
-    if constexpr (requires { Problem->isZeroValue(Fact); }) {
-      return Problem->isZeroValue(Fact);
-    } else {
-      return Fact == getZeroValue();
-    }
+    return Problem->isZeroValue(Fact);
   }
 
   [[nodiscard]] constexpr decltype(auto) getZeroValue() const {
@@ -91,13 +87,7 @@ public:
 
   [[nodiscard]] constexpr decltype(auto)
   getSummaryFlowFunction(ByConstRef<n_t> Curr, ByConstRef<f_t> CalleeFun) {
-    if constexpr (requires {
-                    Problem->getSummaryFlowFunction(Curr, CalleeFun);
-                  }) {
-      return Problem->getSummaryFlowFunction(Curr, CalleeFun);
-    } else {
-      return nullptr;
-    }
+    return Problem->getSummaryFlowFunction(Curr, CalleeFun);
   }
 
   // ---

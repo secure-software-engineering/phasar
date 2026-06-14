@@ -76,23 +76,6 @@ concept HasAllTopFunction = requires(T &SR) {
   { SR.allTopFunction() } -> std::convertible_to<typename T::EdgeFunctionType>;
 };
 
-/// \brief Derives an allTopFunction() for a wrapper around \p Problem: uses
-/// Problem's own allTopFunction() if it has one, otherwise AllTop<l_t>,
-/// constructed from Problem's topElement() if necessary.
-template <typename ProblemTy>
-  requires IsJoinLattice<ProblemTy>
-[[nodiscard]] constexpr decltype(auto)
-deriveAllTopFunction(ProblemTy &Problem) {
-  using l_t = typename ProblemTy::l_t;
-  if constexpr (HasAllTopFunction<ProblemTy>) {
-    return Problem.allTopFunction();
-  } else if constexpr (HasJoinLatticeTraits<l_t>) {
-    return AllTop<l_t>{};
-  } else {
-    return AllTop<l_t>{Problem.topElement()};
-  }
-}
-
 struct BinarySemiRing {
   using l_t = BinaryDomain;
   using EdgeFunctionType = EdgeIdentity<l_t>;

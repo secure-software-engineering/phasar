@@ -15,7 +15,6 @@
 #include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
-#include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/NonNullPtr.h"
@@ -76,11 +75,7 @@ public:
   // --- IFDSProblem:
 
   [[nodiscard]] bool isZeroValue(d_t Fact) const noexcept final {
-    if constexpr (requires { Problem->isZeroValue(Fact); }) {
-      return Problem->isZeroValue(Fact);
-    } else {
-      return this->base_t::getZeroValue() == Fact;
-    }
+    return Problem->isZeroValue(Fact);
   }
 
   [[nodiscard]] InitialSeeds<n_t, d_t, l_t> initialSeeds() final {
@@ -140,13 +135,7 @@ public:
 
   [[nodiscard]] FlowFunctionPtrType
   getSummaryFlowFunction(n_t Curr, f_t CalleeFun) final {
-    if constexpr (requires {
-                    Problem->getSummaryFlowFunction(Curr, CalleeFun);
-                  }) {
-      return Problem->getSummaryFlowFunction(Curr, CalleeFun);
-    } else {
-      return nullptr;
-    }
+    return Problem->getSummaryFlowFunction(Curr, CalleeFun);
   }
 
 protected:
@@ -223,40 +212,17 @@ public:
 
   [[nodiscard]] EdgeFunctionType
   getSummaryEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ, d_t SuccNode) final {
-    if constexpr (requires {
-                    Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ,
-                                                    SuccNode);
-                  }) {
-      return Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ, SuccNode);
-    } else {
-      return getDefaultValue<EdgeFunctionType>();
-    }
+    return Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ, SuccNode);
   }
 
   // --- IsJoinLattice:
 
-  [[nodiscard]] l_t topElement() final {
-    if constexpr (requires { Problem->topElement(); }) {
-      return Problem->topElement();
-    } else {
-      return JoinLatticeTraits<l_t>::top();
-    }
-  }
+  [[nodiscard]] l_t topElement() final { return Problem->topElement(); }
 
-  [[nodiscard]] l_t bottomElement() final {
-    if constexpr (requires { Problem->bottomElement(); }) {
-      return Problem->bottomElement();
-    } else {
-      return JoinLatticeTraits<l_t>::bottom();
-    }
-  }
+  [[nodiscard]] l_t bottomElement() final { return Problem->bottomElement(); }
 
   [[nodiscard]] l_t join(l_t L, l_t R) final {
-    if constexpr (requires(l_t Val) { Problem->join(Val, Val); }) {
-      return Problem->join(std::move(L), std::move(R));
-    } else {
-      return JoinLatticeTraits<l_t>::join(std::move(L), std::move(R));
-    }
+    return Problem->join(std::move(L), std::move(R));
   }
 
   // --- IsSemiRing:
@@ -272,15 +238,17 @@ public:
   }
 
   [[nodiscard]] EdgeFunctionType identity() final {
-    if constexpr (requires { Problem->identity(); }) {
-      return Problem->identity();
-    } else {
-      return EdgeIdentity<l_t>{};
-    }
+    return Problem->identity();
   }
 
   [[nodiscard]] EdgeFunctionType allTopFunction() final {
-    return deriveAllTopFunction(*Problem);
+    if constexpr (HasAllTopFunction<ProblemTy>) {
+      return Problem->allTopFunction();
+    } else if constexpr (HasJoinLatticeTraits<l_t>) {
+      return AllTop<l_t>{};
+    } else {
+      return AllTop<l_t>{Problem->topElement()};
+    }
   }
 };
 

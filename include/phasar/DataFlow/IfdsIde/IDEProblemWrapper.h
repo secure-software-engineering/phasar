@@ -10,13 +10,10 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
-#include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSProblemWrapper.h"
 #include "phasar/DataFlow/IfdsIde/IfdsToIdeProblemAdapter.h"
 #include "phasar/Utils/ByRef.h"
-#include "phasar/Utils/DefaultValue.h"
-#include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/SemiRing.h"
 
@@ -81,42 +78,22 @@ public:
   [[nodiscard]] constexpr decltype(auto)
   getSummaryEdgeFunction(ByConstRef<n_t> Curr, ByConstRef<d_t> CurrNode,
                          ByConstRef<n_t> Succ, ByConstRef<d_t> SuccNode) {
-    if constexpr (requires {
-                    this->Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ,
-                                                          SuccNode);
-                  }) {
-
-      return this->Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ,
-                                                   SuccNode);
-    } else {
-      return getDefaultValue<EdgeFunctionType>();
-    }
+    return this->Problem->getSummaryEdgeFunction(Curr, CurrNode, Succ,
+                                                 SuccNode);
   }
 
   // --- IsJoinLattice:
 
   [[nodiscard]] constexpr decltype(auto) topElement() {
-    if constexpr (requires { this->Problem->topElement(); }) {
-      return this->Problem->topElement();
-    } else {
-      return JoinLatticeTraits<l_t>::top();
-    }
+    return this->Problem->topElement();
   }
 
   [[nodiscard]] constexpr decltype(auto) bottomElement() {
-    if constexpr (requires { this->Problem->bottomElement(); }) {
-      return this->Problem->bottomElement();
-    } else {
-      return JoinLatticeTraits<l_t>::bottom();
-    }
+    return this->Problem->bottomElement();
   }
 
   [[nodiscard]] constexpr decltype(auto) join(auto &&L, auto &&R) {
-    if constexpr (requires { this->Problem->join(PSR_FWD(L), PSR_FWD(R)); }) {
-      return this->Problem->join(PSR_FWD(L), PSR_FWD(R));
-    } else {
-      return JoinLatticeTraits<l_t>::join(PSR_FWD(L), PSR_FWD(R));
-    }
+    return this->Problem->join(PSR_FWD(L), PSR_FWD(R));
   }
 
   // --- IsSemiRing:
@@ -134,15 +111,13 @@ public:
   }
 
   [[nodiscard]] constexpr decltype(auto) identity() {
-    if constexpr (requires { this->Problem->identity(); }) {
-      return this->Problem->identity();
-    } else {
-      return EdgeIdentity<l_t>{};
-    }
+    return this->Problem->identity();
   }
 
-  [[nodiscard]] constexpr decltype(auto) allTopFunction() {
-    return deriveAllTopFunction(*this->Problem);
+  [[nodiscard]] constexpr decltype(auto) allTopFunction()
+    requires HasAllTopFunction<ProblemTy>
+  {
+    return this->Problem->allTopFunction();
   }
 };
 
