@@ -135,6 +135,36 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   EXPECT_EQ(Hist, Gt);
 }
 
+TEST_F(PAMMTest, HandleCounterRef) {
+  PAMM &Pamm = PAMM::getInstance();
+  uint64_t &Ref1 = Pamm.getOrCreateCounterRef("cached");
+  Ref1 += 5;
+  uint64_t &Ref2 = Pamm.getOrCreateCounterRef("cached");
+  EXPECT_EQ(&Ref1, &Ref2) << "getOrCreateCounterRef must return a stable "
+                             "reference to the same storage";
+  Ref2 += 7;
+  EXPECT_EQ(Pamm.getCounter("cached"), 12U);
+}
+
+TEST_F(PAMMTest, HandleHistogramRef) {
+  PAMM &Pamm = PAMM::getInstance();
+  llvm::StringMap<uint64_t> &Hist1 = Pamm.getOrCreateHistogramRef("hist");
+  Pamm.addToHistogram(Hist1, "a", 3);
+  Pamm.addToHistogram(Hist1, "b", 1);
+  Pamm.addToHistogram(Hist1, "a", 2);
+
+  llvm::StringMap<uint64_t> &Hist2 = Pamm.getOrCreateHistogramRef("hist");
+  EXPECT_EQ(&Hist1, &Hist2) << "getOrCreateHistogramRef must return a stable "
+                               "reference to the same storage";
+
+  llvm::StringMap<uint64_t> Gt = {{"a", 5}, {"b", 1}};
+  EXPECT_EQ(Hist1, Gt);
+
+  // the StringRef-based overload must still operate on the same histogram
+  Pamm.addToHistogram("hist", "a");
+  EXPECT_EQ(Hist1.lookup("a"), 6U);
+}
+
 // main function for the test case
 int main(int Argc, char **Argv) {
   ::testing::InitGoogleTest(&Argc, Argv);

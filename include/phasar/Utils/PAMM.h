@@ -56,8 +56,8 @@ namespace psr {
 /// other macro from this class.
 class PAMM final {
 public:
-  using TimePoint_t = std::chrono::high_resolution_clock::time_point;
-  using Duration_t = std::chrono::milliseconds;
+  using TimePoint_t = std::chrono::steady_clock::time_point;
+  using Duration_t = std::chrono::nanoseconds;
 
   PAMM() noexcept = default;
   ~PAMM() = default;
@@ -127,25 +127,32 @@ public:
   /// \brief Registers a new counter under the given counter id - associated
   /// macro: REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL).
   /// \param CounterId Unique counter id.
-  void regCounter(llvm::StringRef CounterId, unsigned IntialValue = 0);
+  void regCounter(llvm::StringRef CounterId, uint64_t IntialValue = 0);
 
   /// \brief Increases the count for the given counter - associated macro:
   /// INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
   /// \param CounterId Unique counter id.
   /// \param CValue to be added to the current counter.
-  void incCounter(llvm::StringRef CounterId, unsigned CValue = 1);
+  void incCounter(llvm::StringRef CounterId, uint64_t CValue = 1);
 
   /// \brief Decreases the count for the given counter - associated macro:
   /// DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
   /// \param CounterId Unique counter id.
   /// \param CValue to be subtracted from the current counter.
-  void decCounter(llvm::StringRef CounterId, unsigned CValue = 1);
+  void decCounter(llvm::StringRef CounterId, uint64_t CValue = 1);
 
   /// The associated macro does not check PAMM's severity level explicitly.
   /// \brief Returns the current count for the given counter - associated macro:
   /// GET_COUNTER(COUNTER_ID).
   /// \param CounterId Unique counter id.
-  std::optional<unsigned> getCounter(llvm::StringRef CounterId);
+  std::optional<uint64_t> getCounter(llvm::StringRef CounterId);
+
+  /// \brief Returns a reference to the storage of the given counter,
+  /// registering it with value 0 if it does not exist yet. The
+  /// returned reference remains valid for the lifetime of this PAMM
+  /// instance, even if other counters are registered afterwards.
+  /// \param CounterId Unique counter id.
+  [[nodiscard]] uint64_t &getOrCreateCounterRef(llvm::StringRef CounterId);
 
   /// The associated macro does not check PAMM's severity level explicitly.
   /// \brief Sums the counts for the given counter ids - associated macro:
@@ -171,6 +178,24 @@ public:
   /// \param DataPointValue Value of the given data point.
   void addToHistogram(llvm::StringRef HistogramId, llvm::StringRef DataPointId,
                       uint64_t DataPointValue = 1);
+
+  /// \brief Adds a new observed data point directly to the given
+  /// histogram's bucket map, skipping the histogram-id lookup.
+  /// \param Hist Reference to a histogram's bucket map, as returned by
+  /// getOrCreateHistogramRef().
+  /// \param DataPointId ID of the given data point.
+  /// \param DataPointValue Value of the given data point.
+  void addToHistogram(llvm::StringMap<uint64_t> &Hist,
+                      llvm::StringRef DataPointId, uint64_t DataPointValue = 1);
+
+  /// \brief Returns a reference to the bucket map of the given
+  /// histogram, registering an empty histogram if it does not exist
+  /// yet. The returned reference remains valid for the lifetime of
+  /// this PAMM instance, even if other histograms are registered
+  /// afterwards.
+  /// \param HistogramId Unique histogram id.
+  [[nodiscard]] llvm::StringMap<uint64_t> &
+  getOrCreateHistogramRef(llvm::StringRef HistogramId);
 
   void stopAllTimers();
 
@@ -200,7 +225,7 @@ private:
   llvm::StringMap<std::pair<TimePoint_t, TimePoint_t>> StoppedTimer;
   llvm::StringMap<std::vector<std::pair<TimePoint_t, TimePoint_t>>>
       RepeatingTimer;
-  llvm::StringMap<unsigned> Counter;
+  llvm::StringMap<uint64_t> Counter;
   llvm::StringMap<llvm::StringMap<uint64_t>> Histogram;
 };
 

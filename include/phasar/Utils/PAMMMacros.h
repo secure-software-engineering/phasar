@@ -71,11 +71,13 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
   }
 #define INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)                                \
   if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::SEV_LVL) {         \
-    pamm.incCounter(COUNTER_ID, VALUE);                                        \
+    static uint64_t &PammCounterRef = pamm.getOrCreateCounterRef(COUNTER_ID);  \
+    PammCounterRef += (VALUE);                                                 \
   }
 #define DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)                                \
   if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::SEV_LVL) {         \
-    pamm.decCounter(COUNTER_ID, VALUE);                                        \
+    static uint64_t &PammCounterRef = pamm.getOrCreateCounterRef(COUNTER_ID);  \
+    PammCounterRef -= (VALUE);                                                 \
   }
 #define GET_COUNTER(COUNTER_ID) pamm.getCounter(COUNTER_ID)
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
@@ -86,7 +88,8 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
   }
 #define ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID, DATAPOINT_VALUE, SEV_LVL) \
   if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::SEV_LVL) {         \
-    pamm.addToHistogram(HISTOGRAM_ID, adl_to_string(DATAPOINT_ID),             \
+    static auto &PammHistRef = pamm.getOrCreateHistogramRef(HISTOGRAM_ID);     \
+    pamm.addToHistogram(PammHistRef, adl_to_string(DATAPOINT_ID),              \
                         DATAPOINT_VALUE);                                      \
   }
 

@@ -57,7 +57,7 @@ void PAMM::startTimer(llvm::StringRef TimerId) {
     llvm::report_fatal_error("Do not start an already running timer");
   }
 
-  PAMM::TimePoint_t Start = std::chrono::high_resolution_clock::now();
+  PAMM::TimePoint_t Start = std::chrono::steady_clock::now();
   It->second = Start;
 }
 
@@ -81,7 +81,7 @@ void PAMM::stopTimer(llvm::StringRef TimerId, bool PauseTimer) {
   assert(TimerRunning && "stopTimer failed because timer was already stopped");
 
   if (LLVM_LIKELY(ValidTimerId)) {
-    PAMM::TimePoint_t End = std::chrono::high_resolution_clock::now();
+    PAMM::TimePoint_t End = std::chrono::steady_clock::now();
     PAMM::TimePoint_t Start = RunningIt->second;
     RunningTimer.erase(RunningIt);
     auto P = make_pair(Start, End);
@@ -97,7 +97,7 @@ uint64_t PAMM::elapsedTime(llvm::StringRef TimerId) {
   auto RunningIt = RunningTimer.find(TimerId);
 
   if (RunningIt != RunningTimer.end()) {
-    PAMM::TimePoint_t End = std::chrono::high_resolution_clock::now();
+    PAMM::TimePoint_t End = std::chrono::steady_clock::now();
     PAMM::TimePoint_t Start = RunningIt->second;
     auto Duration = std::chrono::duration_cast<Duration_t>(End - Start);
     return Duration.count();
@@ -145,16 +145,16 @@ llvm::StringMap<std::vector<uint64_t>> PAMM::elapsedTimeOfRepeatingTimer() {
 }
 
 std::string PAMM::getPrintableDuration(uint64_t Duration) {
-  return hms(std::chrono::milliseconds{Duration}).str();
+  return hms(Duration_t{Duration}).str();
 }
 
-void PAMM::regCounter(llvm::StringRef CounterId, unsigned IntialValue) {
+void PAMM::regCounter(llvm::StringRef CounterId, uint64_t IntialValue) {
   [[maybe_unused]] auto [It, Inserted] =
       Counter.try_emplace(CounterId, IntialValue);
   assert(Inserted && "regCounter failed due to an invalid counter id");
 }
 
-void PAMM::incCounter(llvm::StringRef CounterId, unsigned CValue) {
+void PAMM::incCounter(llvm::StringRef CounterId, uint64_t CValue) {
   auto It = Counter.find(CounterId);
   bool ValidCounterId = It != Counter.end();
   assert(ValidCounterId && "incCounter failed due to an invalid counter id");
@@ -163,7 +163,7 @@ void PAMM::incCounter(llvm::StringRef CounterId, unsigned CValue) {
   }
 }
 
-void PAMM::decCounter(llvm::StringRef CounterId, unsigned CValue) {
+void PAMM::decCounter(llvm::StringRef CounterId, uint64_t CValue) {
   auto It = Counter.find(CounterId);
   bool ValidCounterId = It != Counter.end();
   assert(ValidCounterId && "decCounter failed due to an invalid counter id");
@@ -172,7 +172,7 @@ void PAMM::decCounter(llvm::StringRef CounterId, unsigned CValue) {
   }
 }
 
-std::optional<unsigned> PAMM::getCounter(llvm::StringRef CounterId) {
+std::optional<uint64_t> PAMM::getCounter(llvm::StringRef CounterId) {
   auto It = Counter.find(CounterId);
   bool ValidCounterId = It != Counter.end();
   assert(ValidCounterId && "getCounter failed due to an invalid counter id");
@@ -180,6 +180,10 @@ std::optional<unsigned> PAMM::getCounter(llvm::StringRef CounterId) {
     return It->second;
   }
   return std::nullopt;
+}
+
+uint64_t &PAMM::getOrCreateCounterRef(llvm::StringRef CounterId) {
+  return Counter[CounterId];
 }
 
 template <typename ForwardIterator, typename ForwardIteratorSentinel>
@@ -228,11 +232,18 @@ void PAMM::addToHistogram(llvm::StringRef HistogramId,
     return;
   }
 
-  auto [DataIt, Inserted] =
-      HistIt->second.try_emplace(DataPointId, DataPointValue);
-  if (!Inserted) {
-    DataIt->second += DataPointValue;
-  }
+  addToHistogram(HistIt->second, DataPointId, DataPointValue);
+}
+
+void PAMM::addToHistogram(llvm::StringMap<uint64_t> &Hist,
+                          llvm::StringRef DataPointId,
+                          uint64_t DataPointValue) {
+  Hist[DataPointId] += DataPointValue;
+}
+
+llvm::StringMap<uint64_t> &
+PAMM::getOrCreateHistogramRef(llvm::StringRef HistogramId) {
+  return Histogram[HistogramId];
 }
 
 void PAMM::stopAllTimers() {
