@@ -87,10 +87,8 @@ public:
   using config_t = StaticSolverConfigTy;
 
 private:
-  using base_t = IterativeIDESolverBase<
-      StaticSolverConfigTy,
-      typename StaticSolverConfigTy::template EdgeFunctionPtrType<
-          typename domain_t::l_t>>;
+  using base_t = IterativeIDESolverBase<StaticSolverConfigTy,
+                                        typename ProblemTy::EdgeFunctionType>;
 
   using base_results_t = detail::IterativeIDESolverResults<n_t, d_t, l_t>;
 

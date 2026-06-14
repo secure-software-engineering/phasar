@@ -394,8 +394,9 @@ protected:
   CFLFieldSensEdgeFunctions(ProblemTy &Problem,
                             cfl_fieldsens::IFDSProblemConfig &&Config,
                             uint8_t DepthKLimit = 5)
-      : psr::IfdsIdeProblemMixin<IFDSDomain>(Problem.getProjectIRDB(),
-                                             Problem.getEntryPoints(),
+      // entry-points not forwarded; getEntryPoints() overriden in
+      // CFLFieldSensIFDSProblem
+      : psr::IfdsIdeProblemMixin<IFDSDomain>(Problem.getProjectIRDB(), {},
                                              Problem.getZeroValue()),
         Config(std::move(Config)), DepthKLimit(DepthKLimit) {}
 
@@ -491,6 +492,10 @@ public:
                           cfl_fieldsens::IFDSProblemConfig Config) = delete;
 
   CFLFieldSensIFDSProblem(std::nullptr_t) = delete;
+
+  [[nodiscard]] decltype(auto) getEntryPoints() const {
+    return UserProblem->getEntryPoints();
+  }
 
   // XXX: Perhaps we need a way to provide a customization-point to specify gen
   // offsets to the edge-functions (generating from zero currently always

@@ -103,6 +103,7 @@ public:
   // ---
 
   /// The wrapped problem
+  [[nodiscard]] auto &base() noexcept { return *Problem; }
   [[nodiscard]] const auto &base() const noexcept { return *Problem; }
 
 protected:

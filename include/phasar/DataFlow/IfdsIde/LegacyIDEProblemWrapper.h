@@ -188,7 +188,9 @@ public:
       : base_t(getPointerFrom(Problem->getProjectIRDB()),
                makeEntryVec(Problem->getEntryPoints()),
                Problem->getZeroValue()),
-        Problem(Problem) {}
+        Problem(Problem) {
+    this->getIFDSIDESolverConfig() = getProblemSolverConfig(*Problem);
+  }
 
   LegacyIDEProblemWrapper(ProblemTy *Problem) noexcept
       : LegacyIDEProblemWrapper(NonNullPtr<ProblemTy>(Problem)) {}

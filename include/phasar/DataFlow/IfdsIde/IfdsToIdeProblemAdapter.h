@@ -10,15 +10,12 @@
  *****************************************************************************/
 
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
-#include "phasar/DataFlow/IfdsIde/IDEProblemWrapper.h"
-#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/Domain/BinaryDomain.h"
-#include "phasar/Utils/NonNullPtr.h"
 
 #include <type_traits>
 
 namespace psr {
-template <typename Base> class IfdsToIdeProblemWrapper : public Base {
+template <typename Base> class IfdsToIdeProblemAdapter : public Base {
 public:
   using Base::Base;
 
@@ -97,13 +94,5 @@ public:
     return EdgeFunctionType{};
   }
 };
-
-template <IFDSProblem ProblemTy>
-IfdsToIdeProblemWrapper(ProblemTy *)
-    -> IfdsToIdeProblemWrapper<IDEProblemWrapper<ProblemTy>>;
-
-template <IFDSProblem ProblemTy>
-IfdsToIdeProblemWrapper(NonNullPtr<ProblemTy>)
-    -> IfdsToIdeProblemWrapper<IDEProblemWrapper<ProblemTy>>;
 
 } // namespace psr

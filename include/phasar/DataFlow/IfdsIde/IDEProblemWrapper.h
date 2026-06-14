@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSProblemWrapper.h"
+#include "phasar/DataFlow/IfdsIde/IfdsToIdeProblemAdapter.h"
 #include "phasar/Utils/ByRef.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/JoinLattice.h"
@@ -148,6 +149,32 @@ public:
     } else {
       return AllTop<l_t>{topElement()};
     }
+  }
+};
+
+template <IFDSProblem ProblemTy>
+class IfdsIdeProblemWrapper
+    : public IfdsToIdeProblemAdapter<IFDSProblemWrapper<ProblemTy>> {
+public:
+  using IfdsToIdeProblemAdapter<
+      IFDSProblemWrapper<ProblemTy>>::IfdsToIdeProblemAdapter;
+
+  using IDEProblemTy = IfdsIdeProblemWrapper;
+
+  [[nodiscard]] constexpr IDEProblem auto &ideProblem() noexcept {
+    return *this;
+  }
+};
+
+template <IDEProblem ProblemTy>
+class IfdsIdeProblemWrapper<ProblemTy> : public IDEProblemWrapper<ProblemTy> {
+public:
+  using IDEProblemWrapper<ProblemTy>::IDEProblemWrapper;
+
+  using IDEProblemTy = ProblemTy;
+
+  [[nodiscard]] constexpr IDEProblem auto &ideProblem() noexcept {
+    return this->base();
   }
 };
 
