@@ -606,7 +606,11 @@ private:
 
   std::deque<ZFF> ZFFOwner;
 
-  // Caches for the flow/edge functions
+  // Caches for the normal/CTR flow/edge functions
+  // NOTE: The key-spaces for normal and CTR functions are disjoint. The solver
+  // will never call getNormal[...]Function on call-sites, or
+  // getCallToRet[...]Function on non-call-sites. So, we can use the same cache
+  // for both here
   llvm::DenseMap<EdgeFuncInstKey, NormalEdgeFlowData> NormalFunctionCache;
 
   // Caches for the flow functions
