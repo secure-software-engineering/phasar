@@ -69,7 +69,10 @@ concept IsSemiRing = requires(T &SR, const typename T::EdgeFunctionType &CEF) {
   { SR.combine(CEF, CEF) } -> std::convertible_to<typename T::EdgeFunctionType>;
 
   { SR.identity() } -> std::convertible_to<typename T::EdgeFunctionType>;
+};
 
+template <typename T>
+concept HasAllTopFunction = requires(T &SR) {
   { SR.allTopFunction() } -> std::convertible_to<typename T::EdgeFunctionType>;
 };
 
@@ -88,11 +91,6 @@ struct BinarySemiRing {
   }
 
   [[nodiscard]] constexpr EdgeFunctionType identity() const noexcept {
-    return {};
-  }
-
-  [[nodiscard]] constexpr EdgeFunctionType allTopFunction() const noexcept {
-    // technically not 100% correct, but works in practice
     return {};
   }
 

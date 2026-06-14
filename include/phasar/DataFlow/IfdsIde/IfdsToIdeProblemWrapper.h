@@ -96,11 +96,6 @@ public:
   [[nodiscard]] constexpr auto identity() noexcept {
     return EdgeFunctionType{};
   }
-
-  [[nodiscard]] constexpr auto allTopFunction() noexcept {
-    // technically not 100% correct, but should work in practice
-    return EdgeFunctionType{};
-  }
 };
 
 template <IFDSProblem ProblemTy>

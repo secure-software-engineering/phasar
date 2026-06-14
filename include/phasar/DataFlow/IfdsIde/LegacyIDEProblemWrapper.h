@@ -9,7 +9,6 @@
  *     Fabian Schiebel and others
  *****************************************************************************/
 
-#include "phasar/DB/ProjectIRDB.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctions.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
@@ -17,12 +16,12 @@
 #include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/InitialSeeds.h"
-#include "phasar/Domain/AnalysisDomain.h"
 #include "phasar/Utils/DefaultValue.h"
 #include "phasar/Utils/JoinLattice.h"
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/PointerUtils.h"
+#include "phasar/Utils/SemiRing.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
@@ -380,7 +379,7 @@ public:
   }
 
   [[nodiscard]] EdgeFunctionType allTopFunction() final {
-    if constexpr (requires { Problem->allTopFunction(); }) {
+    if constexpr (HasAllTopFunction<ProblemTy>) {
       return Problem->allTopFunction();
     } else if constexpr (HasJoinLatticeTraits<l_t>) {
       return AllTop<l_t>{};
