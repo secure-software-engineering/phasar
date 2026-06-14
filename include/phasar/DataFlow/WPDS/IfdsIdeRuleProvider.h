@@ -13,6 +13,7 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblem.h"
 #include "phasar/DataFlow/IfdsIde/IDEProblemWrapper.h"
+#include "phasar/DataFlow/IfdsIde/IFDSProblem.h"
 #include "phasar/DataFlow/IfdsIde/Solver/FlowEdgeFunctionCache.h"
 #include "phasar/DataFlow/WPDS/RuleProvider.h"
 #include "phasar/Domain/BinaryDomain.h"
@@ -258,10 +259,10 @@ private:
       FECache{&Problem.ideProblem()};
 };
 
-template <typename ProblemT, typename ICFGTy>
+template <IDEProblem ProblemT, typename ICFGTy>
 using IDERuleProvider = IfdsIdeRuleProvider<ProblemT, ICFGTy, true>;
 
-template <typename ProblemT, typename ICFGTy>
+template <IFDSProblem ProblemT, typename ICFGTy>
 using IFDSRuleProvider = IfdsIdeRuleProvider<ProblemT, ICFGTy, false>;
 
 } // namespace psr::wpds

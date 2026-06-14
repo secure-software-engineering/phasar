@@ -394,15 +394,14 @@ protected:
   CFLFieldSensEdgeFunctions(ProblemTy &Problem,
                             cfl_fieldsens::IFDSProblemConfig &&Config,
                             uint8_t DepthKLimit = 5)
-      // entry-points not forwarded; getEntryPoints() overriden in
+      // entry-points not forwarded; getEntryPoints() overridden in
       // CFLFieldSensIFDSProblem
       : psr::IfdsIdeProblemMixin<IFDSDomain>(Problem.getProjectIRDB(), {},
                                              Problem.getZeroValue()),
         Config(std::move(Config)), DepthKLimit(DepthKLimit) {}
 
   /// Transforms user-defined seeds from usual IFDS seeds to field-sensitive
-  /// IFDS
-  /// seeds
+  /// IFDS seeds
   [[nodiscard]] InitialSeeds<IFDSDomain::n_t, IFDSDomain::d_t, IFDSDomain::l_t>
   makeInitialSeeds(const InitialSeeds<LLVMIFDSAnalysisDomainDefault::n_t,
                                       LLVMIFDSAnalysisDomainDefault::d_t,
