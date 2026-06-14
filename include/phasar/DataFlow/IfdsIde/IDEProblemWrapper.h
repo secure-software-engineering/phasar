@@ -112,7 +112,7 @@ public:
   }
 
   [[nodiscard]] constexpr decltype(auto) join(auto &&L, auto &&R) {
-    if constexpr (requires(l_t Val) { this->Problem->join(Val, Val); }) {
+    if constexpr (requires { this->Problem->join(PSR_FWD(L), PSR_FWD(R)); }) {
       return this->Problem->join(PSR_FWD(L), PSR_FWD(R));
     } else {
       return JoinLatticeTraits<l_t>::join(PSR_FWD(L), PSR_FWD(R));
@@ -142,13 +142,7 @@ public:
   }
 
   [[nodiscard]] constexpr decltype(auto) allTopFunction() {
-    if constexpr (HasAllTopFunction<ProblemTy>) {
-      return this->Problem->allTopFunction();
-    } else if constexpr (HasJoinLatticeTraits<l_t>) {
-      return AllTop<l_t>{};
-    } else {
-      return AllTop<l_t>{topElement()};
-    }
+    return deriveAllTopFunction(*this->Problem);
   }
 };
 

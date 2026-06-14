@@ -92,10 +92,6 @@ public:
         AutoAddZero(getProblemSolverConfig(*Problem).autoAddZero()),
         ZV(Problem->getZeroValue()) {
 
-    // llvm::errs() << "sizeof(NormalEdgeFlowData)" <<
-    // sizeof(NormalEdgeFlowData)
-    //              << '\n';
-
     PAMM_GET_INSTANCE;
     REG_COUNTER("Normal-FF Construction", 0, Full);
     REG_COUNTER("Normal-FF Cache Hit", 0, Full);
@@ -538,12 +534,6 @@ public:
     for (const auto &[Key, EF] : ReturnEdgeFunctionCache) {
       std::invoke(Fn, EF, EdgeFunctionKind::Return);
     }
-
-    // for (const auto &[Key, CTRFns] : CallToRetEdgeFunctionCache) {
-    //   for (const auto &[Set, EF] : CTRFns) {
-    //     std::invoke(Fn, EF, EdgeFunctionKind::CallToReturn);
-    //   }
-    // }
 
     for (const auto &[Key, EF] : SummaryEdgeFunctionCache) {
       std::invoke(Fn, EF, EdgeFunctionKind::Summary);

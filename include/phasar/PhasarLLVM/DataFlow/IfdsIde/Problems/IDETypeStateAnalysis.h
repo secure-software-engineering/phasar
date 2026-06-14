@@ -454,14 +454,6 @@ public:
     return TSD->bottom();
   }
 
-  EdgeFunction<l_t> allTopFunction() {
-    if constexpr (HasJoinLatticeTraits<l_t>) {
-      return AllTop<l_t>{};
-    } else {
-      return AllTop<l_t>{topElement()};
-    }
-  }
-
   [[nodiscard]] bool
   isAPIFunction(llvm::StringRef Name) const noexcept override {
     return TSD->isAPIFunction(Name);
