@@ -109,17 +109,21 @@ public:
   using t_t = typename AnalysisDomainTy::t_t;
   using v_t = typename AnalysisDomainTy::v_t;
 
-  IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> &Problem,
-            const ICFGTy *ICF)
-      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
-        ICF(&assertNotNull(ICF)),
-        SolverConfig(Problem.getIFDSIDESolverConfig()),
-        CachedFlowEdgeFunctions(&Problem), AllTop(Problem.allTopFunction()),
-        Seeds(Problem.initialSeeds()) {}
-
   IDESolver(IDETabulationProblem<AnalysisDomainTy, Container> *Problem,
             const i_t *ICF)
-      : IDESolver(assertNotNull(Problem), ICF) {}
+      : IDEProblem(assertNotNull(Problem)), ZeroValue(Problem->getZeroValue()),
+        ICF(&assertNotNull(ICF)),
+        SolverConfig(Problem->getIFDSIDESolverConfig()),
+        CachedFlowEdgeFunctions(Problem), AllTop(Problem->allTopFunction()),
+        Seeds(Problem->initialSeeds()) {}
+
+  template <IFDSProblem ProblemTy>
+  [[deprecated(
+      "Use the other overload of IDESolver() instead, which takes the "
+      "ide-problem by pointer. This documents better that the solver captures "
+      "the address without taking ownership")]] IDESolver(ProblemTy &Problem,
+                                                          const ICFGTy *ICF)
+      : IDESolver(&Problem, ICF) {}
 
   template <IFDSProblem ProblemTy>
     requires(!std::derived_from<
