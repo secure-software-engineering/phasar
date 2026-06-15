@@ -17,5 +17,6 @@
 #include "phasar/PhasarLLVM/Utils/LLVMCXXShorthands.h"
 #include "phasar/PhasarLLVM/Utils/LLVMIRToSrc.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/PhasarLLVM/Utils/UsedGlobals.h"
 
 #endif // PHASAR_PHASARLLVM_UTILS_H

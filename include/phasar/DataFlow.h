@@ -32,6 +32,13 @@
 #include "phasar/DataFlow/Mono/IntraMonoProblem.h"
 #include "phasar/DataFlow/Mono/Solver/InterMonoSolver.h"
 #include "phasar/DataFlow/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/DataFlow/MonoIfds/ArraySetWorkList.h"
+#include "phasar/DataFlow/MonoIfds/DataFlowEnvironment.h"
+#include "phasar/DataFlow/MonoIfds/IterationStrategy.h"
+#include "phasar/DataFlow/MonoIfds/MonoIFDSConfig.h"
+#include "phasar/DataFlow/MonoIfds/MonoIFDSProblem.h"
+#include "phasar/DataFlow/MonoIfds/MonoIFDSSolver.h"
+#include "phasar/DataFlow/MonoIfds/RPOWorkList.h"
 #include "phasar/DataFlow/PathSensitivity/PathSensitivityConfig.h"
 #include "phasar/DataFlow/PathSensitivity/PathSensitivityManager.h"
 

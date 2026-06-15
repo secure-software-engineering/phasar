@@ -1,6 +1,9 @@
 #include "phasar/PhasarLLVM/HelperAnalyses.h"
 
+#include "phasar/ControlFlow/CGSCCs.h"
+#include "phasar/DataFlow/HelperAnalyses.h"
 #include "phasar/PhasarLLVM/ControlFlow/EntryFunctionUtils.h"
+#include "phasar/PhasarLLVM/ControlFlow/FunctionCompressor.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
@@ -9,12 +12,21 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSetData.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/UsedGlobals.h"
 #include "phasar/Pointer/AliasAnalysisType.h"
 
 #include <memory>
 #include <string>
 
-namespace psr {
+using namespace psr;
+
+static_assert(CanGetICFG<HelperAnalyses>);
+static_assert(CanGetICFGOf<HelperAnalyses, const llvm::Instruction *,
+                           const llvm::Function *>);
+static_assert(
+    CanGetCompressedFunctionsOf<HelperAnalyses, const llvm::Function *>);
+static_assert(CanGetCGSCCs<HelperAnalyses>);
+
 HelperAnalyses::HelperAnalyses(std::string IRFile,
                                std::optional<LLVMAliasSetData> PrecomputedPTS,
                                AliasAnalysisType PTATy, bool AllowLazyPTS,
@@ -129,4 +141,46 @@ LLVMBasedCFG &HelperAnalyses::getCFG() {
   return *CFG;
 }
 
-} // namespace psr
+FunctionCompressor<const llvm::Function *> &
+HelperAnalyses::getCompressedFunctions() {
+  if (!FC) {
+    auto Funs = compressFunctions(
+        getICFG().getCallGraph(),
+        psr::getEntryFunctions(getProjectIRDB(), EntryPoints));
+    FC = std::make_unique<FunctionCompressor<const llvm::Function *>>(
+        std::move(Funs));
+  }
+
+  return *FC;
+}
+
+const SCCHolder<FunctionId> &HelperAnalyses::getCGSCCs() {
+  if (!SCCs) {
+    auto &ICF = getICFG();
+    auto CGSCCs = computeCGSCCs(ICF, getCompressedFunctions());
+    SCCs = std::make_unique<SCCHolder<FunctionId>>(std::move(CGSCCs));
+  }
+  return *SCCs;
+}
+
+const SCCDependencyGraph<FunctionId> &HelperAnalyses::getCGSCCCallers() {
+  if (!SCCCallers) {
+    auto SCCC =
+        computeCGSCCCallers(getICFG(), getCompressedFunctions(), getCGSCCs());
+    SCCCallers =
+        std::make_unique<SCCDependencyGraph<FunctionId>>(std::move(SCCC));
+  }
+  return *SCCCallers;
+}
+
+const UsedGlobalsHolder<const llvm::GlobalVariable *> &
+HelperAnalyses::getUsedGlobals() {
+  if (!UsedGlobals) {
+    auto UG = computeUsedGlobals(getProjectIRDB(), getCompressedFunctions(),
+                                 getCGSCCs(), getCGSCCCallers());
+    UsedGlobals =
+        std::make_unique<UsedGlobalsHolder<const llvm::GlobalVariable *>>(
+            std::move(UG));
+  }
+  return *UsedGlobals;
+}

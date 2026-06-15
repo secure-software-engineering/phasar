@@ -24,6 +24,7 @@ using Nullable =
 template <typename T>
   requires std::is_convertible_v<T, bool>
 [[nodiscard]] constexpr T unwrapNullable(T &&Val) noexcept {
+  assert(Val && "Unwrapping null-value!");
   return std::forward<T>(Val);
 }
 template <typename T>

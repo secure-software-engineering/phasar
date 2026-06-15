@@ -1,5 +1,6 @@
 add_subdirectory(IfdsIde)
 add_subdirectory(Mono)
+add_subdirectory(MonoIfds)
 add_subdirectory(PathSensitivity)
 
 file(GLOB_RECURSE DATAFLOW_SRC *.h *.cpp)
@@ -10,6 +11,7 @@ add_phasar_library(phasar_dataflow
   LINKS
     phasar_dataflow_ifdside
     phasar_dataflow_mono
+    phasar_dataflow_monoifds
     phasar_dataflow_pathsensitivity
 
   MODULE_FILES

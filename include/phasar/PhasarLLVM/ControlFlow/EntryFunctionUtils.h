@@ -18,9 +18,13 @@
 
 namespace psr {
 class LLVMProjectIRDB;
+class LLVMBasedICFG;
 
 [[nodiscard]] std::vector<const llvm::Function *>
 getEntryFunctions(const LLVMProjectIRDB &IRDB,
+                  llvm::ArrayRef<std::string> EntryPoints);
+[[nodiscard]] std::vector<const llvm::Function *>
+getEntryFunctions(const LLVMBasedICFG &ICF,
                   llvm::ArrayRef<std::string> EntryPoints);
 
 [[nodiscard]] std::vector<llvm::Function *>

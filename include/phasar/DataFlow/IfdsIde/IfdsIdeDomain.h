@@ -33,7 +33,7 @@ concept IfdsAnalysisDomain = IsAnalysisDomain<T> && requires() {
   typename T::i_t;
 
   requires IsDataFlowFact<typename T::d_t>;
-  requires ICFG<typename T::i_t>;
+  // requires ICFG<typename T::i_t>;
 };
 
 template <typename T>

@@ -29,8 +29,8 @@ concept IsAnalysisDomain = IRDomain<T> && requires() {
   requires std::same_as<typename T::t_t, typename T::ir_t::t_t>;
   requires std::same_as<typename T::db_t, typename T::ir_t::db_t>;
 
-  typename T::c_t;
-  requires CFG<typename T::c_t>;
+  // typename T::c_t;
+  // requires CFG<typename T::c_t>;
 };
 
 /// AnalysisDomain - This class should be specialized by different static
