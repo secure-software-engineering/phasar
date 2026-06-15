@@ -53,9 +53,7 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(const LLVMProjectIRDB *IRDB,
           IRDB, std::move(EntryPoints), createZeroValue()),
       Config(Config), PT(PT), TaintMainArgs(TaintMainArgs),
       EnableStrongUpdateStore(EnableStrongUpdateStore),
-      Llvmfdff(library_summary::readFromFDFF(
-          getLibCSummary(),
-          [IRDB](llvm::StringRef FName) { return IRDB->getFunction(FName); })) {
+      Llvmfdff(library_summary::readFromFDFF(getLibCSummary(), *IRDB)) {
   assert(Config != nullptr);
   assert(PT);
 }

@@ -242,10 +242,11 @@ public:
   void emitTextReport(GenericSolverResults<n_t, d_t, l_t> SR,
                       llvm::raw_ostream &OS = llvm::outs());
 
+  // ---
+
   [[nodiscard]] IFDSIDESolverConfig &getIFDSIDESolverConfig() noexcept {
     return SolverConfig;
   }
-  // ---
 
   BasicBlockOrdering &getBasicBlockOrdering() { return BBO; }
 

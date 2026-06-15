@@ -820,9 +820,7 @@ struct PSR_INTERNAL_LINKAGE LLVMPAGBuilder::PAGBuildData {
 static const auto &getMappedLibSum(
     std::optional<library_summary::LLVMFunctionDataFlowFacts> &MLSumBuf,
     const LLVMProjectIRDB &IRDB) {
-  MLSumBuf.emplace(library_summary::readFromFDFF(
-      getLibCSummary(),
-      [&IRDB](llvm::StringRef FName) { return IRDB.getFunction(FName); }));
+  MLSumBuf.emplace(library_summary::readFromFDFF(getLibCSummary(), IRDB));
   return *MLSumBuf;
 }
 
