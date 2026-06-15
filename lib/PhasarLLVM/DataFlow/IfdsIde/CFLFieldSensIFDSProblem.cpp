@@ -306,6 +306,59 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
   }
 }
 
+void applyTransformInto(const IFDSEdgeValue &EV, IFDSEdgeValue &Into,
+                        const AccessPath &Txn, uint8_t DepthKLimit) {
+  assert(&EV != &Into);
+  if (EV.Paths.empty() || Txn.empty()) {
+    // Nothing to be done here
+    return;
+  }
+  if (EV.isEpsilon()) {
+    Into.Paths.insert(Txn);
+    return;
+  }
+
+  const auto TxnOffset = Txn.Offset;
+  const auto TxnLoads = EV.Mgr->getFullFieldString(Txn.Loads);
+  const auto TxnStores = EV.Mgr->getFullFieldString(Txn.Stores);
+  const auto Kills = EV.Mgr->kills(Txn.Kills); // safety copy
+
+  for (const auto &F : EV.Paths) {
+    auto Copy = F;
+    bool Retain = [&] {
+      if (TxnOffset) {
+        if (!applyOneGep(*EV.Mgr, Copy, TxnOffset, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto Ld : TxnLoads) {
+        if (!applyOneGepAndLoad(*EV.Mgr, Copy, Ld, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto Kl : Kills) {
+        if (!applyOneGepAndKill(*EV.Mgr, Copy, Kl, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto St : TxnStores) {
+        if (!applyOneGepAndStore(*EV.Mgr, Copy, St, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      return true;
+    }();
+
+    if (Retain) {
+      Into.Paths.insert(Copy);
+    }
+  }
+}
+
 static auto &printOffset(llvm::raw_ostream &OS, int32_t Offset,
                          bool WithSign = false) {
 
@@ -348,9 +401,10 @@ void IFDSEdgeValue::applyTransforms(const IFDSEdgeValue &Txns,
 
   for (++It; It != End; ++It) {
     if (!It->empty()) {
-      auto Tmp = *this;
-      applyTransform(Tmp, *It, DepthKLimit);
-      Ret.Paths.insert(Tmp.Paths.begin(), Tmp.Paths.end());
+      // auto Tmp = *this;
+      // applyTransform(Tmp, *It, DepthKLimit);
+      // Ret.Paths.insert(Tmp.Paths.begin(), Tmp.Paths.end());
+      applyTransformInto(*this, Ret, *It, DepthKLimit);
     } else {
       Ret.Paths.insert(Paths.begin(), Paths.end());
     }
@@ -748,7 +802,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 }
 
 static constexpr ptrdiff_t BreadthKLimit = 5;
-static constexpr ptrdiff_t WidenKLimit = 1024;
+static constexpr ptrdiff_t WidenKLimit = 128;
 
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                      const EdgeFunction<l_t> &R)
@@ -779,10 +833,9 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
 
       if (Txn.Paths.size() > BreadthKLimit) {
         klimitPaths(Txn.Paths, Mgr);
-      }
-
-      if (Txn.Paths.size() > WidenKLimit) {
-        return AllBottom<l_t>{};
+        if (Txn.Paths.size() > WidenKLimit) {
+          return AllBottom<l_t>{};
+        }
       }
 
       return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
@@ -794,10 +847,10 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
                              llvm::Twine(to_string(R)));
   }();
 
-  // if (!L.isa<EdgeIdentity<l_t>>() && !R.isa<EdgeIdentity<l_t>>()) {
-  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                       "EXTEND " << L << " X " << R << " ==> " << Ret);
-  // }
+  if (!L.isa<EdgeIdentity<l_t>>() && !R.isa<EdgeIdentity<l_t>>()) {
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                         "EXTEND " << L << " X " << R << " ==> " << Ret);
+  }
 
   return Ret;
 }
@@ -805,11 +858,10 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
 auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
                                       const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
+  if (auto Dflt = defaultJoinOrNullNoId(L, R)) {
+    return Dflt;
+  }
   auto Ret = [&]() -> EdgeFunction<l_t> {
-    if (auto Dflt = defaultJoinOrNullNoId(L, R)) {
-      return Dflt;
-    }
-
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
 
@@ -840,6 +892,10 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
 
               // NOTE: No k-limit in combine()!!! Otherwise, we loose
               // monotonicity of the lattice!
+
+              if (Union.size() > WidenKLimit) {
+                return AllBottom<l_t>{};
+              }
 
               return CFLFieldSensEdgeFunction::from(
                   IFDSEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
@@ -875,8 +931,12 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
     return AllBottom<l_t>{};
   }();
 
-  PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
-                       "COMBINE " << L << " X " << R << " ==> " << Ret);
+  if (L != R) {
+    PHASAR_LOG_LEVEL_CAT(DEBUG, LogCategory,
+                         "COMBINE " << L << " X " << R << " ==> " << Ret
+                                    << "; Ret==L: " << (Ret == L)
+                                    << "; Ret==R: " << (Ret == R));
+  }
 
   return Ret;
 }

@@ -182,8 +182,14 @@ struct AccessPath {
   operator==(const AccessPath &Other) const noexcept = default;
 
   friend size_t hash_value(const AccessPath &FieldString) noexcept {
-    return llvm::hash_combine(FieldString.Loads, FieldString.Stores,
-                              FieldString.Kills, FieldString.Offset);
+    // return llvm::hash_combine(FieldString.Loads, FieldString.Stores,
+    //                           FieldString.Kills, FieldString.Offset);
+    size_t HC = 37;
+    HC = HC * 31 + size_t(FieldString.Loads);
+    HC = HC * 31 + size_t(FieldString.Stores);
+    HC = HC * 31 + size_t(FieldString.Kills);
+    HC = HC * 31 + size_t(FieldString.Offset);
+    return HC;
   }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
@@ -228,7 +234,7 @@ struct IFDSEdgeValue {
     return !(*this == Other);
   }
 
-  [[nodiscard]] friend auto hash_value(const IFDSEdgeValue EV) {
+  [[nodiscard]] friend auto hash_value(const IFDSEdgeValue &EV) {
     return llvm::hash_combine_range(EV.Paths.begin(), EV.Paths.end());
   }
 
