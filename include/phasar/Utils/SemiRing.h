@@ -122,4 +122,6 @@ template <typename L> struct DefaultSemiRing {
   }
 };
 
+template <> struct DefaultSemiRing<BinaryDomain> : public BinarySemiRing {};
+
 } // namespace psr

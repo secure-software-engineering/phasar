@@ -68,13 +68,14 @@ public:
     return EntryPoints;
   }
 
-  [[nodiscard]] FlowFunctionPtrType getSummaryFlowFunction(n_t /*CallSite*/,
-                                                           f_t /*DestFun*/) {
+  [[nodiscard]] auto getSummaryFlowFunction(n_t /*CallSite*/, f_t /*DestFun*/) {
     return nullptr;
   }
 
-  EdgeFunctionType getSummaryEdgeFunction(n_t /*Curr*/, d_t /*CurrNode*/,
-                                          n_t /*Succ*/, d_t /*SuccNode*/) {
+  [[nodiscard]] auto getSummaryEdgeFunction(n_t /*Curr*/,
+                                            ByConstRef<d_t> /*CurrNode*/,
+                                            n_t /*Succ*/,
+                                            ByConstRef<d_t> /*SuccNode*/) {
     return EdgeIdentity<l_t>{};
   }
 
@@ -108,6 +109,13 @@ protected:
 
     return Seeds;
   }
+
+#if __cpp_explicit_this_parameter >= 202110L
+  [[nodiscard]] InitialSeeds<n_t, d_t, l_t>
+  createDefaultSeeds(this auto &&Self) {
+    return createDefaultSeeds(PSR_FWD(Self));
+  }
+#endif
 
   NonNullPtr<const db_t> IRDB{};
   d_t ZeroValue{};

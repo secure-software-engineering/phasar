@@ -33,7 +33,7 @@ public:
   using i_t = typename base_t::i_t;
   using container_type = typename base_t::container_type;
 
-  template <IDEProblem ProblemTy>
+  template <IFDSProblem ProblemTy>
     requires(std::same_as<domain_t,
                           typename ProblemTy::ProblemAnalysisDomain> &&
              std::same_as<container_type, typename ProblemTy::container_type>)
@@ -48,8 +48,15 @@ public:
     }
   }
 
-  explicit PathAwareIDESolver(
-      IDETabulationProblem<domain_t, container_type> &Problem, const i_t *ICF)
+  template <IFDSProblem ProblemTy>
+    requires(
+        std::same_as<domain_t, typename ProblemTy::ProblemAnalysisDomain> &&
+        std::same_as<container_type, typename ProblemTy::container_type>)
+  [[deprecated(
+      "Use the other overload of PathAwareIDESolver() instead, which takes the "
+      "ide-problem by pointer. This documents better that the solver "
+      "captures the address without taking ownership")]]
+  explicit PathAwareIDESolver(ProblemTy &Problem, const i_t *ICF)
       : PathAwareIDESolver(&Problem, ICF) {}
 
   [[nodiscard]] const ExplodedSuperGraph<domain_t> &
