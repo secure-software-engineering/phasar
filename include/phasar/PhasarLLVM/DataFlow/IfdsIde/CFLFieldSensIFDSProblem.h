@@ -21,6 +21,8 @@
 #include "phasar/Utils/Compressor.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
+#include "phasar/Utils/SmallArraySet.h"
+#include "phasar/Utils/StrongTypeDef.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
@@ -37,21 +39,16 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace psr::cfl_fieldsens {
-
 /// \file
 /// Implements field-sensitivity after the paper "Boosting the performance
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
 /// et al. <https://doi.org/10.1145/3689804>
 
-// NOLINTNEXTLINE(performance-enum-size)
-enum class FieldStringNodeId : uint32_t {
-  None = 0,
-};
+PHASAR_STRONG_TYPEDEF(psr::cfl_fieldsens, uint32_t, FieldStringNodeId,
+                      None = 0);
 
-[[nodiscard]] inline llvm::hash_code hash_value(FieldStringNodeId NId) {
-  return llvm::hash_value(std::underlying_type_t<FieldStringNodeId>(NId));
-}
+PHASAR_STRONG_TYPEDEF(psr::cfl_fieldsens, uint32_t, KillSetId, Empty = 0);
+namespace psr::cfl_fieldsens {
 
 struct FieldStringNode {
   FieldStringNodeId Next{};
@@ -93,6 +90,8 @@ namespace cfl_fieldsens {
 /// Interns the Store- and Load field-strings
 class FieldStringManager {
 public:
+  static constexpr int32_t TopOffset = INT32_MIN;
+
   FieldStringManager();
 
   [[nodiscard]] FieldStringNodeId intern(FieldStringNode Nod) {
@@ -127,44 +126,65 @@ public:
     return Depth[NId];
   }
 
+  [[nodiscard]] KillSetId internKills(SmallArraySet<int32_t, 2> &&Kills) {
+    return KillsCompressor.getOrInsert(std::move(Kills));
+  }
+
+  [[nodiscard]] KillSetId addKill(KillSetId KS, int32_t Offs) {
+    if (Offs == TopOffset || KillsCompressor[KS].contains(Offs)) {
+      return KS;
+    }
+
+    auto Kills = KillsCompressor[KS];
+    Kills.insert(Offs);
+    return KillsCompressor.getOrInsert(std::move(Kills));
+  }
+
+  [[nodiscard]] bool isKilledBy(KillSetId KS, int32_t Offs) const {
+    if (Offs == TopOffset || KS == KillSetId::Empty) {
+      return false;
+    }
+    if (!KillsCompressor.inbounds(KS)) [[unlikely]] {
+      return false;
+    }
+
+    return KillsCompressor[KS].contains(Offs);
+  }
+
+  [[nodiscard]] const auto &kills(KillSetId KS) const {
+    return KillsCompressor[KS];
+  }
+
 private:
   Compressor<FieldStringNode, FieldStringNodeId> NodeCompressor{};
   TypedVector<FieldStringNodeId, uint32_t> Depth{};
+  Compressor<SmallArraySet<int32_t, 2>, KillSetId> KillsCompressor{};
 };
 
 /// A single CFL Field-Access String consisting of: gep, loads, kills, and
 /// stores
 struct AccessPath {
-  static constexpr int32_t TopOffset = INT32_MIN;
+  static constexpr int32_t TopOffset = FieldStringManager::TopOffset;
 
   FieldStringNodeId Loads{};
   FieldStringNodeId Stores{};
-  llvm::SmallDenseSet<int32_t, 2> Kills{};
+  KillSetId Kills{};
   // Add an offset for pending GEPs; INT32_MIN is Top
-  int32_t Offset = {0};
-  int32_t EmptyTombstone = 0;
+  int32_t Offset{};
 
   [[nodiscard]] bool empty() const noexcept {
     return Loads == FieldStringNodeId::None &&
-           Stores == FieldStringNodeId::None && Kills.empty() && Offset == 0;
-  }
-
-  [[nodiscard]] bool kills(int32_t Off) const {
-    return Off != TopOffset && Kills.contains(Off);
+           Stores == FieldStringNodeId::None && Kills == KillSetId::Empty &&
+           Offset == 0;
   }
 
   [[nodiscard]] constexpr bool
-  operator==(const AccessPath &Other) const noexcept {
-    return EmptyTombstone == Other.EmptyTombstone && Loads == Other.Loads &&
-           Stores == Other.Stores && Kills == Other.Kills &&
-           Offset == Other.Offset;
-  }
+  operator==(const AccessPath &Other) const noexcept = default;
 
-  bool operator!=(const AccessPath &Other) const noexcept {
-    return !(*this == Other);
+  friend size_t hash_value(const AccessPath &FieldString) noexcept {
+    return llvm::hash_combine(FieldString.Loads, FieldString.Stores,
+                              FieldString.Kills, FieldString.Offset);
   }
-
-  friend size_t hash_value(const AccessPath &FieldString) noexcept;
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const AccessPath &FieldString);
@@ -175,26 +195,19 @@ struct AccessPath {
 struct AccessPathDMI {
   static AccessPath getEmptyKey() {
     AccessPath Ret{};
-    Ret.EmptyTombstone = 1;
+    Ret.Loads = FieldStringNodeId(UINT32_MAX);
     return Ret;
   }
   static AccessPath getTombstoneKey() {
     AccessPath Ret{};
-    Ret.EmptyTombstone = 2;
+    Ret.Loads = FieldStringNodeId(UINT32_MAX);
+    Ret.Stores = FieldStringNodeId(UINT32_MAX);
     return Ret;
   }
-  static auto getHashValue(const AccessPath &FieldString) noexcept {
+  static auto getHashValue(AccessPath FieldString) noexcept {
     return hash_value(FieldString);
   }
-  static bool isEqual(const AccessPath &L, const AccessPath &R) noexcept {
-    if (L.EmptyTombstone != R.EmptyTombstone) {
-      return false;
-    }
-    if (L.EmptyTombstone) {
-      return true;
-    }
-    return L == R;
-  }
+  static bool isEqual(AccessPath L, AccessPath R) noexcept { return L == R; }
 };
 
 /// An edge-value consisting of a set if CFL field access strings.

@@ -352,6 +352,14 @@ template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {
   }
 }
 
+template <typename CompareFn = std::less<>>
+constexpr void sortUnique(auto &Range, CompareFn Cmp = {}) {
+  auto It = llvm::adl_begin(Range);
+  auto End = llvm::adl_end(Range);
+  std::sort(It, End, std::move(Cmp));
+  Range.erase(std::unique(It, End), End);
+}
+
 } // namespace psr
 
 #endif

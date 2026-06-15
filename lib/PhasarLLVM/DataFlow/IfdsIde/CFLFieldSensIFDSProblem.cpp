@@ -39,6 +39,8 @@ FieldStringManager::FieldStringManager() {
   NodeCompressor.insertDummy(
       FieldStringNode{.Next = FieldStringNodeId::None, .Offset = 0});
   Depth.push_back(0);
+  // Empty kill-set has index 0
+  KillsCompressor.getOrInsert({});
 }
 
 llvm::SmallVector<int32_t>
@@ -118,15 +120,12 @@ struct CFLFieldSensEdgeFunction {
     };
   }
 
-  [[nodiscard]] static auto from(AccessPath &&Txn, FieldStringManager &Mgr,
+  [[nodiscard]] static auto from(AccessPath Txn, FieldStringManager &Mgr,
                                  uint8_t DepthKLimit) {
-    // Avoid initializer_list as it prevents moving
-    auto Ret = CFLFieldSensEdgeFunction{
-        .Transform = {.Mgr = &Mgr, .Paths = {}},
+    return CFLFieldSensEdgeFunction{
+        .Transform = {.Mgr = &Mgr, .Paths = {Txn}},
         .DepthKLimit = DepthKLimit,
     };
-    Ret.Transform.Paths.insert(std::move(Txn));
-    return Ret;
   }
 
   [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit,
@@ -170,7 +169,7 @@ struct CFLFieldSensEdgeFunction {
   if (F.Stores == FieldStringNodeId::None) {
     auto Offs = F.Offset + Field;
 
-    if (F.kills(Offs)) {
+    if (Mgr.isKilledBy(F.Kills, Offs)) {
       return false;
     }
 
@@ -183,7 +182,7 @@ struct CFLFieldSensEdgeFunction {
     }
 
     F.Loads = Mgr.prepend(Offs, F.Loads);
-    F.Kills.clear();
+    F.Kills = KillSetId::Empty;
     return true;
   }
 
@@ -218,7 +217,7 @@ struct CFLFieldSensEdgeFunction {
       return true;
     }
 
-    F.Kills.insert(Offs);
+    F.Kills = Mgr.addKill(F.Kills, Offs);
     PHASAR_LOG_LEVEL_CAT(DEBUG, IFDSEdgeValue::LogCategory, "> add K" << Offs);
     return true;
   }
@@ -269,6 +268,7 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
   const auto TxnOffset = Txn.Offset;
   const auto TxnLoads = EV.Mgr->getFullFieldString(Txn.Loads);
   const auto TxnStores = EV.Mgr->getFullFieldString(Txn.Stores);
+  const auto Kills = EV.Mgr->kills(Txn.Kills); // safety copy
 
   for (const auto &F : Save) {
     auto Copy = F;
@@ -285,7 +285,7 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
         }
       }
 
-      for (auto Kl : Txn.Kills) {
+      for (auto Kl : Kills) {
         if (!applyOneGepAndKill(*EV.Mgr, Copy, Kl, DepthKLimit)) {
           return false;
         }
@@ -301,9 +301,23 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
     }();
 
     if (Retain) {
-      EV.Paths.insert(std::move(Copy));
+      EV.Paths.insert(Copy);
     }
   }
+}
+
+static auto &printOffset(llvm::raw_ostream &OS, int32_t Offset,
+                         bool WithSign = false) {
+
+  if (WithSign && (Offset > 0 || Offset == AccessPath::TopOffset)) {
+    OS << '+';
+  }
+  if (Offset == AccessPath::TopOffset) {
+    OS << 'T';
+  } else {
+    OS << Offset;
+  }
+  return OS;
 }
 } // namespace
 
@@ -345,14 +359,6 @@ void IFDSEdgeValue::applyTransforms(const IFDSEdgeValue &Txns,
   *this = std::move(Ret);
 }
 
-size_t psr::cfl_fieldsens::hash_value(const AccessPath &FieldString) noexcept {
-  // Xor does not care about the order
-  auto HCK = std::reduce(FieldString.Kills.begin(), FieldString.Kills.end(), 0,
-                         std::bit_xor<>{});
-  return llvm::hash_combine(FieldString.Loads, FieldString.Stores,
-                            FieldString.Offset, HCK);
-}
-
 llvm::raw_ostream &
 psr::cfl_fieldsens::operator<<(llvm::raw_ostream &OS,
                                const AccessPath &FieldString) {
@@ -361,19 +367,15 @@ psr::cfl_fieldsens::operator<<(llvm::raw_ostream &OS,
   }
 
   if (FieldString.Offset) {
-    if (FieldString.Offset > 0) {
-      OS << '+';
-    }
-
-    OS << FieldString.Offset << '.';
+    printOffset(OS, FieldString.Offset, true) << '.';
   }
 
   if (FieldString.Loads != FieldStringNodeId::None) {
     OS << "L#" << uint32_t(FieldString.Loads) << '.';
   }
 
-  for (auto Kl : FieldString.Kills) {
-    OS << 'K' << Kl << '.';
+  if (FieldString.Kills != KillSetId::Empty) {
+    OS << "K#" << uint32_t(FieldString.Kills) << '.';
   }
 
   if (FieldString.Stores != FieldStringNodeId::None) {
@@ -391,23 +393,19 @@ void AccessPath::print(llvm::raw_ostream &OS,
   }
 
   if (Offset != 0) {
-    if (Offset > 0) {
-      OS << '+';
-    }
-
-    OS << Offset << '.';
+    printOffset(OS, Offset, true) << '.';
   }
 
   for (auto Ld : Mgr.getFullFieldString(Loads)) {
-    OS << 'L' << Ld << '.';
+    printOffset(OS << 'L', Ld) << '.';
   }
 
-  for (auto Kl : Kills) {
-    OS << 'K' << Kl << '.';
+  for (auto Kl : Mgr.kills(Kills)) {
+    printOffset(OS << 'K', Kl) << '.';
   }
 
   for (auto St : Mgr.getFullFieldString(Stores)) {
-    OS << 'S' << St << '.';
+    printOffset(OS << 'S', St) << '.';
   }
 }
 
@@ -467,9 +465,8 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
   if (CurrNode == SuccNode && FoundSuccNode) {
     // Kill
     AccessPath FieldString{};
-    FieldString.Kills.insert(Offset);
-    return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
-                                          DepthKLimit);
+    FieldString.Kills = Mgr.addKill(FieldString.Kills, Offset);
+    return CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit);
   }
 
   // Also match when ValueOp is a zero-offset GEP of CurrNode (e.g. the -O0
@@ -486,8 +483,7 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
     for (int32_t DerefOffset : llvm::reverse(DerefOffsets)) {
       FieldString.Stores = Mgr.prepend(DerefOffset, FieldString.Stores);
     }
-    return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
-                                          DepthKLimit);
+    return CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit);
   }
 
   // unaffected by the store
@@ -528,8 +524,7 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
       AccessPath FieldString{};
       FieldString.Loads = Mgr.prepend(Offset, FieldString.Loads);
-      return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
-                                            DepthKLimit);
+      return CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit);
     }
 
     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
@@ -538,8 +533,7 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
       AccessPath FieldString{};
       FieldString.Offset = OffsVal;
-      return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
-                                            DepthKLimit);
+      return CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit);
     }
   }
 
@@ -637,9 +631,8 @@ auto CFLFieldSensIFDSProblem::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
                                                   << *KillOffs);
 
       AccessPath FieldString{};
-      FieldString.Kills.insert(*KillOffs);
-      return CFLFieldSensEdgeFunction::from(std::move(FieldString), Mgr,
-                                            DepthKLimit);
+      FieldString.Kills = Mgr.addKill(FieldString.Kills, *KillOffs);
+      return CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit);
     }
   }
 
@@ -666,7 +659,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
         AccessPath Approx = *It;
         auto StoresHead = Mgr[Approx.Stores];
         Approx.Stores = Mgr.prepend(AccessPath::TopOffset, StoresHead.Next);
-        ToInsert[std::move(Approx)].push_back(*It);
+        ToInsert[Approx].push_back(*It);
         Paths.erase(It);
       }
     }
@@ -738,12 +731,14 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
     }
     for (auto &&[Approx, OrigPaths] : ToInsert) {
       if (OrigPaths.size() > 2) {
-        auto ApproxMut = Approx;
-        ApproxMut.Kills = OrigPaths.front().Kills;
+        auto KillSet = Mgr.kills(OrigPaths.front().Kills);
+        // ApproxMut.Kills = OrigPaths.front().Kills;
         for (const auto &AP : llvm::drop_begin(OrigPaths)) {
-          intersectWith(ApproxMut.Kills, AP.Kills);
+          KillSet.intersectWith(Mgr.kills(AP.Kills));
         }
 
+        auto ApproxMut = Approx;
+        ApproxMut.Kills = Mgr.internKills(std::move(KillSet));
         Paths.insert(std::move(ApproxMut));
       } else {
         Paths.insert(OrigPaths.begin(), OrigPaths.end());
@@ -753,7 +748,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 }
 
 static constexpr ptrdiff_t BreadthKLimit = 5;
-static constexpr ptrdiff_t WidenLimit = 1024;
+static constexpr ptrdiff_t WidenKLimit = 1024;
 
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                      const EdgeFunction<l_t> &R)
@@ -785,6 +780,11 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
       if (Txn.Paths.size() > BreadthKLimit) {
         klimitPaths(Txn.Paths, Mgr);
       }
+
+      if (Txn.Paths.size() > WidenKLimit) {
+        return AllBottom<l_t>{};
+      }
+
       return CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit);
     }
 
@@ -838,14 +838,8 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
               auto Union = Larger;
               Union.insert(It, End);
 
-              if (Union.size() > BreadthKLimit) {
-                // llvm::errs() << "Union.size(): " << Union.size() << '\n';
-                klimitPaths(Union, Mgr);
-
-                if (Union.size() > WidenLimit) {
-                  return AllBottom<l_t>{};
-                }
-              }
+              // NOTE: No k-limit in combine()!!! Otherwise, we loose
+              // monotonicity of the lattice!
 
               return CFLFieldSensEdgeFunction::from(
                   IFDSEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
