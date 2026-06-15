@@ -18,6 +18,7 @@ You can find available literature on PhASAR [here](https://github.com/secure-sof
 
 - **IFDS/IDE solver**: Interprocedural data-flow solvers based on the IFDS/IDE algorithm
 - **WPDS solver (experimental)**: Data-flow solver based on weighted pushdown systems. Can solve any IFDS/IDE problem
+- **MonoIFDS solver**: High-performance data-flow solver for *bottom-up* IFDS analyses
 - **Sparse analysis**: SparseIFDS/SparseIDE/SparseWPDS for improved performance
 - **Call-graph construction**: Several algorithms (CHA, RTA, VTA, alias-based)
 - **Type-hierarchy construction**: Extract high-level C++ type information from LLVM IR
