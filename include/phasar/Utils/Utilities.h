@@ -17,6 +17,7 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <functional>
 #include <optional>
 #include <set>
 #include <string>
@@ -358,6 +359,16 @@ constexpr void sortUnique(auto &Range, CompareFn Cmp = {}) {
   auto End = llvm::adl_end(Range);
   std::sort(It, End, std::move(Cmp));
   Range.erase(std::unique(It, End), End);
+}
+
+/// \brief Similar to std::minmax, but returns by value
+template <typename T>
+[[nodiscard]] constexpr std::pair<T, T> minmaxVal(T First, T Second) noexcept {
+  if (std::less<T>{}(Second, First)) {
+    return {std::move(Second), std::move(First)};
+  }
+
+  return {std::move(First), std::move(Second)};
 }
 
 } // namespace psr

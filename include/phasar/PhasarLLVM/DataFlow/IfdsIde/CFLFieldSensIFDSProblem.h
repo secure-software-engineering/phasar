@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FIELDSENSALLOCSITESAWAREIFDSPROBLEM_H
 #define PHASAR_PHASARLLVM_DATAFLOW_IFDSIDE_FIELDSENSALLOCSITESAWAREIFDSPROBLEM_H
 
+#include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/IDETabulationProblem.h"
 #include "phasar/DataFlow/IfdsIde/IFDSTabulationProblem.h"
 #include "phasar/Domain/BinaryDomain.h"
@@ -19,10 +20,12 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/SmallArraySet.h"
 #include "phasar/Utils/StrongTypeDef.h"
+#include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
@@ -154,6 +157,19 @@ public:
   [[nodiscard]] const auto &kills(KillSetId KS) const {
     return KillsCompressor[KS];
   }
+
+  void reserve(size_t ExpectedCapacity) {
+    NodeCompressor.reserve(ExpectedCapacity);
+    Depth.reserve(ExpectedCapacity);
+    // llvm::errs() << "ExpectedCapacity: " << ExpectedCapacity << '\n';
+  }
+
+  // ~FieldStringManager() {
+  //   llvm::errs() << "NodeCompressor.size(): " << NodeCompressor.size() <<
+  //   '\n'; llvm::errs() << "Depth.size(): " << Depth.size() << '\n';
+  //   llvm::errs() << "KillsCompressor.size(): " << KillsCompressor.size()
+  //                << '\n';
+  // }
 
 private:
   Compressor<FieldStringNode, FieldStringNodeId> NodeCompressor{};
@@ -383,6 +399,54 @@ bool filterFieldSensFacts(
   return true;
 }
 
+struct CFLFieldSensEdgeFunction {
+  using l_t = LatticeDomain<IFDSEdgeValue>;
+  [[clang::require_explicit_initialization]] IFDSEdgeValue Transform;
+  [[clang::require_explicit_initialization]] uint8_t DepthKLimit{};
+
+  [[nodiscard]] l_t computeTarget(l_t Source) const {
+    Source.onValue(fn<&IFDSEdgeValue::applyTransforms>, Transform, DepthKLimit);
+    return Source;
+  }
+
+  bool operator==(const CFLFieldSensEdgeFunction &Other) const noexcept {
+    assert(DepthKLimit == Other.DepthKLimit);
+    return Transform == Other.Transform;
+  }
+
+  friend auto hash_value(const CFLFieldSensEdgeFunction &EF) noexcept {
+    return hash_value(EF.Transform);
+  }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CFLFieldSensEdgeFunction &EF) {
+    return OS << "Txn[" << EF.Transform << ']';
+  }
+
+  [[nodiscard]] static auto from(IFDSEdgeValue &&Txn, uint8_t DepthKLimit) {
+    return CFLFieldSensEdgeFunction{
+        .Transform = std::move(Txn),
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+
+  [[nodiscard]] static auto from(AccessPath Txn, FieldStringManager &Mgr,
+                                 uint8_t DepthKLimit) {
+    return CFLFieldSensEdgeFunction{
+        .Transform = {.Mgr = &Mgr, .Paths = {Txn}},
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+
+  [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit,
+                                        FieldStringManager &Mgr) {
+    return CFLFieldSensEdgeFunction{
+        .Transform = IFDSEdgeValue::epsilon(&Mgr),
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+};
+
 } // namespace cfl_fieldsens
 
 /// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
@@ -446,7 +510,9 @@ public:
       : Base(assertNotNull(UserProblem).getProjectIRDB(),
              assertNotNull(UserProblem).getEntryPoints(),
              UserProblem->getZeroValue()),
-        UserProblem(UserProblem), Config(std::move(Config)) {}
+        UserProblem(UserProblem), Config(std::move(Config)) {
+    Mgr.reserve(UserProblem->getProjectIRDB()->getNumInstructions());
+  }
 
   /// Constructs an IDETabulationProblem with the usual arguments, forwarded
   /// from UserProblem and tries to automatically derive the config from
@@ -536,9 +602,24 @@ public:
   [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
 
 private:
+  [[nodiscard]] EdgeFunction<l_t>
+  makeEF(cfl_fieldsens::CFLFieldSensEdgeFunction &&EF);
+
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   cfl_fieldsens::FieldStringManager Mgr{};
   cfl_fieldsens::IFDSProblemConfig Config{};
+
+  UnorderedTable1d<cfl_fieldsens::CFLFieldSensEdgeFunction, EdgeFunction<l_t>>
+      EFInternCache{};
+
+  llvm::DenseMap<std::pair<const cfl_fieldsens::CFLFieldSensEdgeFunction *,
+                           const cfl_fieldsens::CFLFieldSensEdgeFunction *>,
+                 EdgeFunction<l_t>>
+      ExtendCache;
+  llvm::DenseMap<std::pair<const cfl_fieldsens::CFLFieldSensEdgeFunction *,
+                           const cfl_fieldsens::CFLFieldSensEdgeFunction *>,
+                 EdgeFunction<l_t>>
+      CombineCache;
 
   uint8_t DepthKLimit = 5; // Original from the paper
 };
