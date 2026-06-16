@@ -31,7 +31,12 @@
 #include <memory>
 #include <utility>
 
-namespace psr {
+using namespace psr;
+
+namespace {
+PAMM_CATEGORY(IFDSConstAnalysis);
+REG_COUNTER(Calls_getContextRelevantAliasSet, 0, Full); // NOLINT
+} // namespace
 
 IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
                                      LLVMAliasInfoRef PT,
@@ -41,7 +46,6 @@ IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
   assert(PT);
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", Full);
-  REG_COUNTER("[Calls] getContextRelevantAliasSet", 0, Full);
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -192,7 +196,7 @@ std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
     std::set<IFDSConstAnalysis::d_t> &AliasSet,
     IFDSConstAnalysis::f_t CurrentContext) {
   PAMM_GET_INSTANCE;
-  INC_COUNTER("[Calls] getContextRelevantAliasSet", 1, Full);
+  Calls_getContextRelevantAliasSet++;
   START_TIMER("Context-Relevant-Alias-Set Computation", Full);
   std::set<IFDSConstAnalysis::d_t> ToGenerate;
   for (const auto *Alias : AliasSet) {
@@ -288,5 +292,3 @@ void IFDSConstAnalysis::emitTextReport(
   }
   OS << "\n===================================================\n";
 }
-
-} // namespace psr

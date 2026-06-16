@@ -197,10 +197,9 @@ if (PHASAR_ENABLE_PIC)
 endif (PHASAR_ENABLE_PIC)
 
 # PAMM
-if (NOT PHASAR_ENABLE_PAMM)
-  set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')" FORCE)
-  set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
-endif()
+set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')")
+set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
+
 if(PHASAR_ENABLE_PAMM STREQUAL "Core" AND NOT PHASAR_BUILD_UNITTESTS)
   set(PAMM_CORE ON)
   message(STATUS "PAMM metric severity level: Core")

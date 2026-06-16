@@ -17,15 +17,25 @@
 #ifndef PHASAR_UTILS_PAMM_H_
 #define PHASAR_UTILS_PAMM_H_
 
+#include "phasar/Utils/TemplateString.h"
+
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Twine.h"
+#include "llvm/Support/Compiler.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <chrono> // high_resolution_clock::time_point, milliseconds
+#include <concepts>
+#include <cstddef>
 #include <initializer_list>
 #include <optional>
-#include <set>    // set
+#include <set> // set
+#include <source_location>
 #include <string> // string
+#include <utility>
 #include <vector> // vector
 
 namespace llvm {
@@ -33,6 +43,136 @@ class raw_ostream;
 } // namespace llvm
 
 namespace psr {
+
+namespace pamm {
+
+class Registry;
+
+template <TemplateString Name> struct Category {
+  constexpr operator llvm::StringRef() const noexcept { return Name; }
+};
+
+namespace detail {
+struct CounterBase {
+  ptrdiff_t Ctr{};
+  std::source_location Loc{};
+  // TODO: Add thread-safe counter
+};
+} // namespace detail
+
+class Registry;
+
+template <bool Enabled, TemplateString Name, Category Cat>
+class Counter : private detail::CounterBase {
+  friend Registry;
+
+public:
+  inline explicit Counter(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  constexpr void operator++() noexcept { ++Ctr; }
+  constexpr void operator++(int) noexcept { ++Ctr; }
+  constexpr void operator+=(ptrdiff_t Offset) noexcept { Ctr += Offset; }
+  constexpr void operator-=(ptrdiff_t Offset) noexcept { Ctr -= Offset; }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Counter C) {
+    return OS << Cat << "::" << Name << ": " << C.Ctr;
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(llvm::StringRef(Cat));
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+
+  [[nodiscard]] constexpr ptrdiff_t value() const noexcept { return Ctr; }
+
+private:
+  [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
+};
+
+template <TemplateString Name, auto Cat> class Counter<false, Name, Cat> {
+public:
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  operator+=(ptrdiff_t Offset) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  operator-=(ptrdiff_t Offset) noexcept {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Counter /*C*/) {
+    return OS << Cat << "::" << Name;
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(llvm::StringRef(Cat));
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+
+  [[nodiscard]] constexpr std::nullopt_t value() const noexcept {
+    return std::nullopt;
+  }
+};
+
+namespace detail {
+struct IsCounterImpl {
+  template <bool Enabled, TemplateString Name, Category Cat>
+  static std::true_type test(Counter<Enabled, Name, Cat>);
+
+  static std::false_type test(...);
+};
+
+template <typename T>
+concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
+} // namespace detail
+
+class Registry {
+  template <bool Enabled, TemplateString Name, Category Cat>
+  friend class Counter;
+
+public:
+  static Registry &instance() {
+    static Registry Reg;
+    return Reg;
+  }
+
+  void printCounters(llvm::raw_ostream &OS) const;
+
+private:
+  template <auto Name, auto Cat>
+  void registerCounter(
+      Counter<true, Name, Cat> *Ctr,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    assert(Ctr != nullptr);
+    auto [It, Inserted] = Counters[llvm::StringRef(Cat)].try_emplace(
+        llvm::StringRef(Name), Ctr->base());
+    if (!Inserted) [[unlikely]] {
+      llvm::report_fatal_error(
+          "At " + llvm::Twine(Loc.file_name()) + ":" + llvm::Twine(Loc.line()) +
+          ":" + llvm::Twine(Loc.column()) + ": Counter " +
+          llvm::Twine(Ctr->qualifier()) +
+          " already registered! Previous definition was here: " +
+          llvm::Twine(It->second->Loc.file_name()) + ":" +
+          llvm::Twine(It->second->Loc.line()) + ":" +
+          llvm::Twine(It->second->Loc.column()));
+    }
+  }
+
+  llvm::DenseMap<llvm::StringRef,
+                 llvm::DenseMap<llvm::StringRef, detail::CounterBase *>>
+      Counters;
+};
+
+template <bool Enabled, TemplateString Name, Category Cat>
+inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
+  this->Loc = Loc;
+  Registry::instance().registerCounter(this, Loc);
+}
+
+} // namespace pamm
+
+inline constexpr pamm::Category<"<global>"> PAMMCategory{};
 
 /// This class offers functionality to measure different performance metrics.
 /// All relevant functions are wrapped into preprocessor macros and should only
@@ -160,6 +300,12 @@ public:
   /// \param CounterIds Unique counter ids.
   /// \note Macro uses variadic parameters, e.g. GET_SUM_COUNT({"foo", "bar"}).
   std::optional<uint64_t> getSumCount(const std::set<std::string> &CounterIds);
+
+  [[nodiscard]] ptrdiff_t
+  getSumCount(pamm::detail::IsCounter auto const &...Counters) {
+    return (Counters.value() + ...);
+  }
+
   std::optional<uint64_t>
   getSumCount(llvm::ArrayRef<llvm::StringRef> CounterIds);
   std::optional<uint64_t>

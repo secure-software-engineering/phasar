@@ -39,6 +39,15 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
 
 } // namespace psr
 
+#define PAMM_CATEGORY(NAME)                                                    \
+  static inline ::psr::pamm::Category<#NAME> PAMMCategory {}
+
+#define REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)                           \
+  static inline ::psr::pamm::Counter<PAMM_CURR_SEV_LEVEL >=                    \
+                                         PAMM_SEVERITY_LEVEL::SEV_LVL,         \
+                                     #COUNTER_ID, PAMMCategory>                \
+      COUNTER_ID
+
 #if defined(PAMM_FULL) || defined(PAMM_CORE)
 // Only include PAMM header if it is used
 #include "phasar/Utils/PAMM.h"
@@ -65,21 +74,6 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
 #define PRINT_TIMER(TIMER_ID)                                                  \
   pamm.getPrintableDuration(pamm.elapsedTime(TIMER_ID))
 
-#define REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)                           \
-  if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::SEV_LVL) {         \
-    pamm.regCounter(COUNTER_ID, INIT_VALUE);                                   \
-  }
-#define INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)                                \
-  if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::SEV_LVL) {         \
-    static uint64_t &PammCounterRef = pamm.getOrCreateCounterRef(COUNTER_ID);  \
-    PammCounterRef += (VALUE);                                                 \
-  }
-#define DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)                                \
-  if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::SEV_LVL) {         \
-    static uint64_t &PammCounterRef = pamm.getOrCreateCounterRef(COUNTER_ID);  \
-    PammCounterRef -= (VALUE);                                                 \
-  }
-#define GET_COUNTER(COUNTER_ID) pamm.getCounter(COUNTER_ID)
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
 
 #define REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL)                                   \
@@ -103,9 +97,6 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
 #define RESET_TIMER(TIMER_ID, SEV_LVL)
 #define PAUSE_TIMER(TIMER_ID, SEV_LVL)
 #define STOP_TIMER(TIMER_ID, SEV_LVL)
-#define REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)
-#define INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)
-#define DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL)
 #define REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL)
 #define ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID, DATAPOINT_VALUE, SEV_LVL)
 #define PRINT_MEASURED_DATA(OUTPUT_STREAM)
@@ -113,7 +104,6 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
 // The following macros could be used in log messages, thus they have to
 // provide some default value to avoid compiler errors
 #define PRINT_TIMER(TIMER_ID) "<none>"
-#define GET_COUNTER(COUNTER_ID) "<none>"
 #define GET_SUM_COUNT(...) "<none>"
 
 #endif

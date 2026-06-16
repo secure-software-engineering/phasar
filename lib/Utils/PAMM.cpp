@@ -293,17 +293,24 @@ void PAMM::printTimers(llvm::raw_ostream &OS) {
   }
 }
 
-void PAMM::printCounters(llvm::raw_ostream &OS) {
-  OS << "\nCounter\n";
-  OS << "-------\n";
-  for (const auto &Counter : Counter) {
-    OS << Counter.first() << " : " << Counter.second << '\n';
+void pamm::Registry::printCounters(llvm::raw_ostream &OS) const {
+  OS << "\nCounters\n";
+  OS << "--------\n";
+
+  for (const auto &[Cat, CatCtrs] : Counters) {
+    OS << Cat << ":\n";
+    for (const auto &[Name, C] : CatCtrs) {
+      OS << "  " << Name << ": " << C->Ctr << '\n';
+    }
+    OS << '\n';
   }
-  if (Counter.empty()) {
+  if (Counters.empty()) {
     OS << "No Counter registered!\n";
-  } else {
-    OS << "\n";
   }
+}
+
+void PAMM::printCounters(llvm::raw_ostream &OS) {
+  pamm::Registry::instance().printCounters(OS);
 }
 
 void PAMM::printHistograms(llvm::raw_ostream &OS) {
