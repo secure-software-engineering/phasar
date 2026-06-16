@@ -3,10 +3,10 @@
 #include "phasar/DataFlow/IfdsIde/EdgeFunction.h"
 #include "phasar/DataFlow/IfdsIde/EdgeFunctionUtils.h"
 #include "phasar/Domain/LatticeDomain.h"
-#include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Lazy.h"
 #include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
 #include "phasar/Utils/Printer.h"
 #include "phasar/Utils/Utilities.h"
 
@@ -668,8 +668,8 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
                       AccessPathDMI>
       ToInsert;
   ToInsert.reserve(Paths.size()); // retained across .clear() calls below
-  // Merge stores
 
+  // Merge stores
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
     if (It->Stores != FieldStringNodeId::None) {
@@ -689,7 +689,6 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
   }
 
   // Merge geps
-
   ToInsert.clear();
   for (const AccessPath &AP : Paths) {
     auto NoOffs = AP;
@@ -706,7 +705,6 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
   }
 
   // Merge loads
-
   ToInsert.clear();
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
@@ -727,7 +725,6 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
   }
 
   // Merge Kills
-
   ToInsert.clear();
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
     auto It = IIt++;
@@ -740,7 +737,6 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
   for (auto &&[Approx, OrigPaths] : ToInsert) {
     if (OrigPaths.size() > 2) {
       auto KillSet = Mgr.kills(OrigPaths.front().Kills);
-      // ApproxMut.Kills = OrigPaths.front().Kills;
       for (const auto &AP : llvm::drop_begin(OrigPaths)) {
         KillSet.intersectWith(Mgr.kills(AP.Kills));
       }
@@ -782,6 +778,19 @@ getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2> Ptr) {
   }
 }
 
+void CFLFieldSensIFDSProblem::regCounters() noexcept {
+  REG_COUNTER("ExtendCache Refs", 0, Full);
+  REG_COUNTER("ExtendCache Misses", 0, Full);
+
+  REG_COUNTER("CombineCache Refs", 0, Full);
+  REG_COUNTER("CombineCache Misses", 0, Full);
+  REG_COUNTER("Combine CallsTotal", 0, Full);
+  REG_COUNTER("Combine LIdentity", 0, Full);
+  REG_COUNTER("Combine LIdentitySlow", 0, Full);
+  REG_COUNTER("Combine RIdentity", 0, Full);
+  REG_COUNTER("Combine RIdentitySlow", 0, Full);
+}
+
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                      const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
@@ -794,7 +803,7 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
 
     if (!FldSensL || !FldSensR) {
-      llvm::report_fatal_error("[FieldSensAllocSitesAwareIFDSProblem::extend]: "
+      llvm::report_fatal_error("[CFLFieldSensIFDSProblem::extend]: "
                                "Unexpected edge functions: " +
                                llvm::Twine(to_string(L)) + " EXTEND " +
                                llvm::Twine(to_string(R)));
@@ -804,13 +813,11 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
       return L;
     }
 
-    static size_t ExtendCacheRefs = 0;
-    static size_t ExtendCacheMisses = 0;
+    INC_COUNTER("ExtendCache Refs", 1, Full);
 
-    ++ExtendCacheRefs;
     auto [It, Inserted] = ExtendCache.try_emplace(
         std::pair{FldSensL->Impl, FldSensR->Impl}, lazy{[&]() -> EFResultPtr {
-          ++ExtendCacheMisses;
+          INC_COUNTER("ExtendCache Misses", 1, Full);
 
           auto Txn = FldSensL->Impl->Transform;
           Txn.applyTransforms(FldSensR->Impl->Transform, DepthKLimit);
@@ -830,13 +837,6 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
               CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
         }});
 
-    static scope_exit PrintCacheEfficiency = [] {
-      llvm::errs() << "ExtendCache Refs:\t" << ExtendCacheRefs << '\n';
-      llvm::errs() << "ExtendCache Hits:\t"
-                   << (ExtendCacheRefs - ExtendCacheMisses) << '\n';
-      llvm::errs() << "ExtendCache Misses:\t" << ExtendCacheMisses << '\n';
-    };
-
     return getResultEF(It->second);
   }();
 
@@ -855,38 +855,20 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
     return Dflt;
   }
   auto Ret = [&]() -> EdgeFunction<l_t> {
-    static size_t CombineCacheRefs = 0;
-    static size_t CombineCacheMisses = 0;
-    static size_t CombineCallsTotal = 0;
-    static size_t CombineLIdentity = 0;
-    static size_t CombineLIdentitySlow = 0;
-    static size_t CombineRIdentity = 0;
-    static size_t CombineRIdentitySlow = 0;
-    static scope_exit PrintCacheEfficiency = [] {
-      llvm::errs() << "CombineCache Refs:\t" << CombineCacheRefs << '\n';
-      llvm::errs() << "CombineCache Hits:\t"
-                   << (CombineCacheRefs - CombineCacheMisses) << '\n';
-      llvm::errs() << "CombineCache Misses:\t" << CombineCacheMisses << '\n';
-      llvm::errs() << "CombineCallsTotal:\t" << CombineCallsTotal << '\n';
-      llvm::errs() << "CombineLIdentity:\t" << CombineLIdentity << '\n';
-      llvm::errs() << "CombineLIdentitySlow:\t" << CombineLIdentitySlow << '\n';
-      llvm::errs() << "CombineRIdentity:\t" << CombineRIdentity << '\n';
-      llvm::errs() << "CombineRIdentitySlow:\t" << CombineRIdentitySlow << '\n';
-    };
-
-    ++CombineCallsTotal;
+    INC_COUNTER("Combine CallsTotal", 1, Full);
 
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
     if (FldSensL) {
       if (FldSensR) {
 
-        ++CombineCacheRefs;
+        INC_COUNTER("CombineCache Refs", 1, Full);
         auto [CacheIt, CacheInserted] = CombineCache.try_emplace(
             psr::minmaxVal(FldSensL->Impl, FldSensR->Impl),
             lazy{[this, FldSensL{*FldSensL},
                   FldSensR{*FldSensR}]() -> EFResultPtr {
-              ++CombineCacheMisses;
+              INC_COUNTER("CombineCache Misses", 1, Full);
+
               // A complicated way of expressing set-union of LPaths and RPaths.
               // Reason being that we don't want to unnecessarily copy the sets.
               // Rather, we like just incrementing the ref-count of L or R if
@@ -931,24 +913,24 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
       }
 
       if (R.isa<EdgeIdentity<l_t>>()) {
-        ++CombineRIdentity;
+        INC_COUNTER("Combine RIdentity", 1, Full);
         if (FldSensL->Impl->Transform.Paths.contains(AccessPath{})) {
           return L;
         }
 
-        ++CombineRIdentitySlow;
+        INC_COUNTER("Combine RIdentitySlow", 1, Full);
         auto Txn = FldSensL->Impl->Transform;
         Txn.Paths.insert(AccessPath{});
         return makeEF(
             CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
       }
     } else if (FldSensR && L.isa<EdgeIdentity<l_t>>()) {
-      ++CombineLIdentity;
+      INC_COUNTER("Combine LIdentity", 1, Full);
       if (FldSensR->Impl->Transform.Paths.contains(AccessPath{})) {
         return R;
       }
 
-      ++CombineLIdentitySlow;
+      INC_COUNTER("Combine LIdentitySlow", 1, Full);
       auto Txn = FldSensR->Impl->Transform;
       Txn.Paths.insert(AccessPath{});
       return makeEF(

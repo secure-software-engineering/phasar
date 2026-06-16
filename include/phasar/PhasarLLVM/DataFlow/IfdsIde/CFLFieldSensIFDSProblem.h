@@ -465,15 +465,13 @@ struct CFLFieldSensEdgeFunction {
 } // namespace cfl_fieldsens
 
 /// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
-/// field-sensitive. Just wrap your IFDS problem with
-/// FieldSensAllocSitesAwareIFDSProblem and use the IterativeIDESolver instead
-/// of the IFDSSolver.
+/// field-sensitive. Just wrap your IFDS problem with CFLFieldSensIFDSProblem
+/// and use the IterativeIDESolver instead of the IFDSSolver.
 ///
 /// The only thing to change in your usual IFDS problem is not to kill data-flow
 /// facts when only parts of the fields should be killed. This is now handled by
-/// the FieldSensAllocSitesAwareIFDSProblem. For that, provide a
-/// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
-/// implementation.
+/// the CFLFieldSensIFDSProblem. For that, provide a CFLFieldSensIFDSProblem
+/// with a proper KillsAt implementation.
 class CFLFieldSensIFDSProblem
     : public IDETabulationProblem<cfl_fieldsens::IFDSDomain> {
   using Base = IDETabulationProblem<cfl_fieldsens::IFDSDomain>;
@@ -527,6 +525,7 @@ public:
              UserProblem->getZeroValue()),
         UserProblem(UserProblem), Config(std::move(Config)) {
     Mgr.reserve(UserProblem->getProjectIRDB()->getNumInstructions());
+    regCounters();
   }
 
   /// Constructs an IDETabulationProblem with the usual arguments, forwarded
@@ -624,6 +623,8 @@ private:
   makeEF(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
   [[nodiscard]] EFResultPtr
   makeEFPtr(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
+
+  static void regCounters() noexcept;
 
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   cfl_fieldsens::FieldStringManager Mgr{};
