@@ -438,13 +438,10 @@ cfl_fieldsens::makeInitialSeeds(
   return {std::move(Ret)};
 }
 
-EdgeFunction<l_t>
-CFLFieldSensIFDSProblem::makeEF(cfl_fieldsens::CFLFieldSensEdgeFunction &&EF) {
-  auto [It, Inserted] = EFInternCache.insert(std::move(EF), nullptr);
-  if (Inserted) {
-    It->second = cfl_fieldsens::CFLFieldSensEdgeFunction(It->first);
-  }
-  return It->second;
+EdgeFunction<l_t> CFLFieldSensIFDSProblem::makeEF(
+    cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF) {
+  auto It = EFInternCache.insert(std::move(EF));
+  return CFLFieldSensEdgeFunction{&*It.first};
 }
 
 auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
@@ -471,7 +468,7 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
     AccessPath FieldString{};
     FieldString.Kills = Mgr.addKill(FieldString.Kills, Offset);
     return makeEF(
-        CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit));
+        CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
   }
 
   // Also match when ValueOp is a zero-offset GEP of CurrNode (e.g. the -O0
@@ -489,7 +486,7 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
       FieldString.Stores = Mgr.prepend(DerefOffset, FieldString.Stores);
     }
     return makeEF(
-        CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit));
+        CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
   }
 
   // unaffected by the store
@@ -509,7 +506,7 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
-    return makeEF(CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit, Mgr));
+    return makeEF(CFLFieldSensEdgeFunctionImpl::fromEpsilon(DepthKLimit, Mgr));
   }
 
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
@@ -531,7 +528,7 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
       AccessPath FieldString{};
       FieldString.Loads = Mgr.prepend(Offset, FieldString.Loads);
       return makeEF(
-          CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit));
+          CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
     }
 
     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {
@@ -541,7 +538,7 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
       AccessPath FieldString{};
       FieldString.Offset = OffsVal;
       return makeEF(
-          CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit));
+          CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
     }
   }
 
@@ -562,7 +559,7 @@ auto CFLFieldSensIFDSProblem::getCallEdgeFunction(n_t CallSite, d_t SrcNode,
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
     // Gen from zero
 
-    return makeEF(CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit, Mgr));
+    return makeEF(CFLFieldSensEdgeFunctionImpl::fromEpsilon(DepthKLimit, Mgr));
   }
 
   // This is naturally identity
@@ -582,7 +579,7 @@ auto CFLFieldSensIFDSProblem::getReturnEdgeFunction(
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
     // Gen from zero
 
-    return makeEF(CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit, Mgr));
+    return makeEF(CFLFieldSensEdgeFunctionImpl::fromEpsilon(DepthKLimit, Mgr));
   }
 
   return EdgeIdentity<l_t>{};
@@ -612,7 +609,7 @@ auto CFLFieldSensIFDSProblem::getCallToRetEdgeFunction(
   if (isZeroValue(CallNode) && !isZeroValue(RetSiteNode)) {
     // Gen from zero
 
-    return makeEF(CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit, Mgr));
+    return makeEF(CFLFieldSensEdgeFunctionImpl::fromEpsilon(DepthKLimit, Mgr));
   }
 
   // This naturally identity
@@ -641,14 +638,14 @@ auto CFLFieldSensIFDSProblem::getSummaryEdgeFunction(n_t Curr, d_t CurrNode,
       AccessPath FieldString{};
       FieldString.Kills = Mgr.addKill(FieldString.Kills, *KillOffs);
       return makeEF(
-          CFLFieldSensEdgeFunction::from(FieldString, Mgr, DepthKLimit));
+          CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
     }
   }
 
   if (isZeroValue(CurrNode) && !isZeroValue(SuccNode)) {
     // Gen from zero
 
-    return makeEF(CFLFieldSensEdgeFunction::fromEpsilon(DepthKLimit, Mgr));
+    return makeEF(CFLFieldSensEdgeFunctionImpl::fromEpsilon(DepthKLimit, Mgr));
   }
 
   // TODO: Is that correct? -- We may need to handle field-indirections here
@@ -660,6 +657,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
   llvm::SmallDenseMap<AccessPath, llvm::SmallVector<AccessPath>, 2,
                       AccessPathDMI>
       ToInsert;
+  ToInsert.reserve(Paths.size()); // retained across .clear() calls below
   // Merge stores
 
   for (auto IIt = Paths.begin(), End = Paths.end(); IIt != End;) {
@@ -760,45 +758,46 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
 
+    if (!FldSensL || !FldSensR) {
+      llvm::report_fatal_error("[FieldSensAllocSitesAwareIFDSProblem::extend]: "
+                               "Unexpected edge functions: " +
+                               llvm::Twine(to_string(L)) + " EXTEND " +
+                               llvm::Twine(to_string(R)));
+    }
+
+    if (FldSensR->Impl->Transform.isEpsilon()) {
+      return L;
+    }
+
+    if (FldSensL->Impl->Transform.Paths.empty()) {
+      return L;
+    }
+
     static size_t ExtendCacheRefs = 0;
     static size_t ExtendCacheMisses = 0;
 
     ++ExtendCacheRefs;
     auto [It, Inserted] = ExtendCache.try_emplace(
-        std::pair{FldSensL, FldSensR}, lazy{[&]() -> EdgeFunction<l_t> {
+        std::pair{FldSensL->Impl, FldSensR->Impl},
+        lazy{[&]() -> EdgeFunction<l_t> {
           ++ExtendCacheMisses;
-          if (FldSensL && FldSensR) {
-            if (FldSensR->Transform.isEpsilon()) {
-              return L;
-            }
 
-            if (FldSensL->Transform.Paths.empty()) {
-              return L;
-            }
+          auto Txn = FldSensL->Impl->Transform;
+          Txn.applyTransforms(FldSensR->Impl->Transform, DepthKLimit);
 
-            auto Txn = FldSensL->Transform;
-            Txn.applyTransforms(FldSensR->Transform, DepthKLimit);
-
-            if (Txn.Paths.empty()) {
-              return AllTop<l_t>{};
-            }
-
-            if (Txn.Paths.size() > BreadthKLimit) {
-              klimitPaths(Txn.Paths, Mgr);
-              if (Txn.Paths.size() > WidenKLimit) {
-                return AllBottom<l_t>{};
-              }
-            }
-
-            return makeEF(
-                CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit));
+          if (Txn.Paths.empty()) {
+            return AllTop<l_t>{};
           }
 
-          llvm::report_fatal_error(
-              "[FieldSensAllocSitesAwareIFDSProblem::extend]: "
-              "Unexpected edge functions: " +
-              llvm::Twine(to_string(L)) + " EXTEND " +
-              llvm::Twine(to_string(R)));
+          if (Txn.Paths.size() > BreadthKLimit) {
+            klimitPaths(Txn.Paths, Mgr);
+            if (Txn.Paths.size() > WidenKLimit) {
+              return AllBottom<l_t>{};
+            }
+          }
+
+          return makeEF(
+              CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
         }});
 
     static scope_exit PrintCacheEfficiency = [] {
@@ -826,18 +825,35 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
     return Dflt;
   }
   auto Ret = [&]() -> EdgeFunction<l_t> {
+    static size_t CombineCacheRefs = 0;
+    static size_t CombineCacheMisses = 0;
+    static size_t CombineCallsTotal = 0;
+    static size_t CombineLIdentity = 0;
+    static size_t CombineLIdentitySlow = 0;
+    static size_t CombineRIdentity = 0;
+    static size_t CombineRIdentitySlow = 0;
+    static scope_exit PrintCacheEfficiency = [] {
+      llvm::errs() << "CombineCache Refs:\t" << CombineCacheRefs << '\n';
+      llvm::errs() << "CombineCache Hits:\t"
+                   << (CombineCacheRefs - CombineCacheMisses) << '\n';
+      llvm::errs() << "CombineCache Misses:\t" << CombineCacheMisses << '\n';
+      llvm::errs() << "CombineCallsTotal:\t" << CombineCallsTotal << '\n';
+      llvm::errs() << "CombineLIdentity:\t" << CombineLIdentity << '\n';
+      llvm::errs() << "CombineLIdentitySlow:\t" << CombineLIdentitySlow << '\n';
+      llvm::errs() << "CombineRIdentity:\t" << CombineRIdentity << '\n';
+      llvm::errs() << "CombineRIdentitySlow:\t" << CombineRIdentitySlow << '\n';
+    };
+
+    ++CombineCallsTotal;
+
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
     const auto *FldSensR = R.dyn_cast<CFLFieldSensEdgeFunction>();
-
     if (FldSensL) {
       if (FldSensR) {
 
-        static size_t CombineCacheRefs = 0;
-        static size_t CombineCacheMisses = 0;
-
         ++CombineCacheRefs;
         auto [CacheIt, CacheInserted] = CombineCache.try_emplace(
-            psr::minmaxVal(FldSensL, FldSensR),
+            psr::minmaxVal(FldSensL->Impl, FldSensR->Impl),
             lazy{[&]() -> EdgeFunction<l_t> {
               ++CombineCacheMisses;
               // A complicated way of expressing set-union of LPaths and RPaths.
@@ -845,8 +861,8 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
               // Rather, we like just incrementing the ref-count of L or R if
               // somehow possible.
 
-              const auto &LPaths = FldSensL->Transform.Paths;
-              const auto &RPaths = FldSensR->Transform.Paths;
+              const auto &LPaths = FldSensL->Impl->Transform.Paths;
+              const auto &RPaths = FldSensR->Impl->Transform.Paths;
               const auto LeftSz = LPaths.size();
               const auto RightSz = RPaths.size();
               const auto LeftSmaller = LeftSz < RightSz;
@@ -870,7 +886,7 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
                       return AllBottom<l_t>{};
                     }
 
-                    return makeEF(CFLFieldSensEdgeFunction::from(
+                    return makeEF(CFLFieldSensEdgeFunctionImpl::from(
                         IFDSEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
                         DepthKLimit));
                   }
@@ -880,35 +896,32 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
               return LeftSmaller ? R : L;
             }});
 
-        static scope_exit PrintCacheEfficiency = [] {
-          llvm::errs() << "CombineCache Refs:\t" << CombineCacheRefs << '\n';
-          llvm::errs() << "CombineCache Hits:\t"
-                       << (CombineCacheRefs - CombineCacheMisses) << '\n';
-          llvm::errs() << "CombineCache Misses:\t" << CombineCacheMisses
-                       << '\n';
-        };
         return CacheIt->second;
       }
 
       if (R.isa<EdgeIdentity<l_t>>()) {
-        if (FldSensL->Transform.Paths.contains(AccessPath{})) {
+        ++CombineRIdentity;
+        if (FldSensL->Impl->Transform.Paths.contains(AccessPath{})) {
           return L;
         }
 
-        auto Txn = FldSensL->Transform;
+        ++CombineRIdentitySlow;
+        auto Txn = FldSensL->Impl->Transform;
         Txn.Paths.insert(AccessPath{});
         return makeEF(
-            CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit));
+            CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
       }
     } else if (FldSensR && L.isa<EdgeIdentity<l_t>>()) {
-      if (FldSensR->Transform.Paths.contains(AccessPath{})) {
+      ++CombineLIdentity;
+      if (FldSensR->Impl->Transform.Paths.contains(AccessPath{})) {
         return R;
       }
 
-      auto Txn = FldSensR->Transform;
+      ++CombineLIdentitySlow;
+      auto Txn = FldSensR->Impl->Transform;
       Txn.Paths.insert(AccessPath{});
       return makeEF(
-          CFLFieldSensEdgeFunction::from(std::move(Txn), DepthKLimit));
+          CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
     }
 
     llvm::errs() << "COMBINE " << L << " X " << R << " ==> AllBottom\n";

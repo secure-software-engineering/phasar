@@ -399,32 +399,22 @@ bool filterFieldSensFacts(
   return true;
 }
 
-struct CFLFieldSensEdgeFunction {
+struct CFLFieldSensEdgeFunctionImpl {
   using l_t = LatticeDomain<IFDSEdgeValue>;
   [[clang::require_explicit_initialization]] IFDSEdgeValue Transform;
   [[clang::require_explicit_initialization]] uint8_t DepthKLimit{};
 
-  [[nodiscard]] l_t computeTarget(l_t Source) const {
-    Source.onValue(fn<&IFDSEdgeValue::applyTransforms>, Transform, DepthKLimit);
-    return Source;
-  }
-
-  bool operator==(const CFLFieldSensEdgeFunction &Other) const noexcept {
+  bool operator==(const CFLFieldSensEdgeFunctionImpl &Other) const noexcept {
     assert(DepthKLimit == Other.DepthKLimit);
     return Transform == Other.Transform;
   }
 
-  friend auto hash_value(const CFLFieldSensEdgeFunction &EF) noexcept {
+  friend auto hash_value(const CFLFieldSensEdgeFunctionImpl &EF) noexcept {
     return hash_value(EF.Transform);
   }
 
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const CFLFieldSensEdgeFunction &EF) {
-    return OS << "Txn[" << EF.Transform << ']';
-  }
-
   [[nodiscard]] static auto from(IFDSEdgeValue &&Txn, uint8_t DepthKLimit) {
-    return CFLFieldSensEdgeFunction{
+    return CFLFieldSensEdgeFunctionImpl{
         .Transform = std::move(Txn),
         .DepthKLimit = DepthKLimit,
     };
@@ -432,7 +422,7 @@ struct CFLFieldSensEdgeFunction {
 
   [[nodiscard]] static auto from(AccessPath Txn, FieldStringManager &Mgr,
                                  uint8_t DepthKLimit) {
-    return CFLFieldSensEdgeFunction{
+    return CFLFieldSensEdgeFunctionImpl{
         .Transform = {.Mgr = &Mgr, .Paths = {Txn}},
         .DepthKLimit = DepthKLimit,
     };
@@ -440,10 +430,35 @@ struct CFLFieldSensEdgeFunction {
 
   [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit,
                                         FieldStringManager &Mgr) {
-    return CFLFieldSensEdgeFunction{
+    return CFLFieldSensEdgeFunctionImpl{
         .Transform = IFDSEdgeValue::epsilon(&Mgr),
         .DepthKLimit = DepthKLimit,
     };
+  }
+};
+
+struct CFLFieldSensEdgeFunction {
+  using l_t = LatticeDomain<IFDSEdgeValue>;
+  [[clang::require_explicit_initialization]] const CFLFieldSensEdgeFunctionImpl
+      *Impl{};
+
+  [[nodiscard]] l_t computeTarget(l_t Source) const {
+    assert(Impl != nullptr);
+    Source.onValue(fn<&IFDSEdgeValue::applyTransforms>, Impl->Transform,
+                   Impl->DepthKLimit);
+    return Source;
+  }
+
+  friend bool operator==(CFLFieldSensEdgeFunction L,
+                         CFLFieldSensEdgeFunction R) noexcept = default;
+
+  friend auto hash_value(CFLFieldSensEdgeFunction EF) noexcept {
+    return llvm::hash_value(EF.Impl);
+  }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const CFLFieldSensEdgeFunction &EF) {
+    return OS << "Txn[" << EF.Impl->Transform << ']';
   }
 };
 
@@ -603,22 +618,21 @@ public:
 
 private:
   [[nodiscard]] EdgeFunction<l_t>
-  makeEF(cfl_fieldsens::CFLFieldSensEdgeFunction &&EF);
+  makeEF(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
 
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   cfl_fieldsens::FieldStringManager Mgr{};
   cfl_fieldsens::IFDSProblemConfig Config{};
 
-  UnorderedTable1d<cfl_fieldsens::CFLFieldSensEdgeFunction, EdgeFunction<l_t>>
-      EFInternCache{};
+  UnorderedSet<cfl_fieldsens::CFLFieldSensEdgeFunctionImpl> EFInternCache{};
 
-  llvm::DenseMap<std::pair<const cfl_fieldsens::CFLFieldSensEdgeFunction *,
-                           const cfl_fieldsens::CFLFieldSensEdgeFunction *>,
-                 EdgeFunction<l_t>>
+  using EFConstPtr = const cfl_fieldsens::CFLFieldSensEdgeFunctionImpl *;
+
+  // Values are stable pointers: into EFInternCache for CFL results, or to
+  // AllTopSingleton / AllBottomSingleton for the degenerate cases.
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EdgeFunction<l_t>>
       ExtendCache;
-  llvm::DenseMap<std::pair<const cfl_fieldsens::CFLFieldSensEdgeFunction *,
-                           const cfl_fieldsens::CFLFieldSensEdgeFunction *>,
-                 EdgeFunction<l_t>>
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EdgeFunction<l_t>>
       CombineCache;
 
   uint8_t DepthKLimit = 5; // Original from the paper
