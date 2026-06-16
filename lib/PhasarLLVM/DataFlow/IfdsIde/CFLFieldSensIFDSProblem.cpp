@@ -438,10 +438,20 @@ cfl_fieldsens::makeInitialSeeds(
   return {std::move(Ret)};
 }
 
+llvm::raw_ostream &cfl_fieldsens::operator<<(llvm::raw_ostream &OS,
+                                             CFLFieldSensEdgeFunction EF) {
+  return OS << "Txn[" << EF.Impl->Transform << ']';
+}
+
 EdgeFunction<l_t> CFLFieldSensIFDSProblem::makeEF(
     cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF) {
   auto It = EFInternCache.insert(std::move(EF));
   return CFLFieldSensEdgeFunction{&*It.first};
+}
+auto CFLFieldSensIFDSProblem::makeEFPtr(
+    cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF) -> EFResultPtr {
+  auto It = EFInternCache.insert(std::move(EF));
+  return EFResultPtr{&*It.first};
 }
 
 auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
@@ -747,6 +757,31 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 static constexpr ptrdiff_t BreadthKLimit = 5;
 static constexpr ptrdiff_t WidenKLimit = 128;
 
+[[nodiscard]] static llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *,
+                                          2>
+allBotPtr() noexcept {
+  return {nullptr, 1};
+}
+
+[[nodiscard]] static llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *,
+                                          2>
+allTopPtr() noexcept {
+  return {nullptr, 2};
+}
+
+[[nodiscard]] static EdgeFunction<l_t>
+getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2> Ptr) {
+  switch (Ptr.getInt()) {
+  case 1:
+    return AllBottom<l_t>{};
+  case 2:
+    return AllTop<l_t>{};
+  default:
+    assert(Ptr.getPointer() != nullptr);
+    return CFLFieldSensEdgeFunction{Ptr.getPointer()};
+  }
+}
+
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
                                      const EdgeFunction<l_t> &R)
     -> EdgeFunction<l_t> {
@@ -769,34 +804,29 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
       return L;
     }
 
-    if (FldSensL->Impl->Transform.Paths.empty()) {
-      return L;
-    }
-
     static size_t ExtendCacheRefs = 0;
     static size_t ExtendCacheMisses = 0;
 
     ++ExtendCacheRefs;
     auto [It, Inserted] = ExtendCache.try_emplace(
-        std::pair{FldSensL->Impl, FldSensR->Impl},
-        lazy{[&]() -> EdgeFunction<l_t> {
+        std::pair{FldSensL->Impl, FldSensR->Impl}, lazy{[&]() -> EFResultPtr {
           ++ExtendCacheMisses;
 
           auto Txn = FldSensL->Impl->Transform;
           Txn.applyTransforms(FldSensR->Impl->Transform, DepthKLimit);
 
           if (Txn.Paths.empty()) {
-            return AllTop<l_t>{};
+            return allTopPtr();
           }
 
           if (Txn.Paths.size() > BreadthKLimit) {
             klimitPaths(Txn.Paths, Mgr);
             if (Txn.Paths.size() > WidenKLimit) {
-              return AllBottom<l_t>{};
+              return allBotPtr();
             }
           }
 
-          return makeEF(
+          return makeEFPtr(
               CFLFieldSensEdgeFunctionImpl::from(std::move(Txn), DepthKLimit));
         }});
 
@@ -807,7 +837,7 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
       llvm::errs() << "ExtendCache Misses:\t" << ExtendCacheMisses << '\n';
     };
 
-    return It->second;
+    return getResultEF(It->second);
   }();
 
   if (!L.isa<EdgeIdentity<l_t>>() && !R.isa<EdgeIdentity<l_t>>()) {
@@ -854,15 +884,16 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
         ++CombineCacheRefs;
         auto [CacheIt, CacheInserted] = CombineCache.try_emplace(
             psr::minmaxVal(FldSensL->Impl, FldSensR->Impl),
-            lazy{[&]() -> EdgeFunction<l_t> {
+            lazy{[this, FldSensL{*FldSensL},
+                  FldSensR{*FldSensR}]() -> EFResultPtr {
               ++CombineCacheMisses;
               // A complicated way of expressing set-union of LPaths and RPaths.
               // Reason being that we don't want to unnecessarily copy the sets.
               // Rather, we like just incrementing the ref-count of L or R if
               // somehow possible.
 
-              const auto &LPaths = FldSensL->Impl->Transform.Paths;
-              const auto &RPaths = FldSensR->Impl->Transform.Paths;
+              const auto &RPaths = FldSensR.Impl->Transform.Paths;
+              const auto &LPaths = FldSensL.Impl->Transform.Paths;
               const auto LeftSz = LPaths.size();
               const auto RightSz = RPaths.size();
               const auto LeftSmaller = LeftSz < RightSz;
@@ -883,20 +914,20 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
                     // monotonicity of the lattice!
 
                     if (Union.size() > WidenKLimit) {
-                      return AllBottom<l_t>{};
+                      return allBotPtr();
                     }
 
-                    return makeEF(CFLFieldSensEdgeFunctionImpl::from(
+                    return makeEFPtr(CFLFieldSensEdgeFunctionImpl::from(
                         IFDSEdgeValue{.Mgr = &Mgr, .Paths = std::move(Union)},
                         DepthKLimit));
                   }
                 }
               }
 
-              return LeftSmaller ? R : L;
+              return EFResultPtr{LeftSmaller ? FldSensR.Impl : FldSensL.Impl};
             }});
 
-        return CacheIt->second;
+        return getResultEF(CacheIt->second);
       }
 
       if (R.isa<EdgeIdentity<l_t>>()) {

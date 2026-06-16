@@ -33,6 +33,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Operator.h"
@@ -449,17 +450,16 @@ struct CFLFieldSensEdgeFunction {
     return Source;
   }
 
-  friend bool operator==(CFLFieldSensEdgeFunction L,
-                         CFLFieldSensEdgeFunction R) noexcept = default;
+  constexpr friend bool
+  operator==(CFLFieldSensEdgeFunction L,
+             CFLFieldSensEdgeFunction R) noexcept = default;
 
   friend auto hash_value(CFLFieldSensEdgeFunction EF) noexcept {
     return llvm::hash_value(EF.Impl);
   }
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                       const CFLFieldSensEdgeFunction &EF) {
-    return OS << "Txn[" << EF.Impl->Transform << ']';
-  }
+                                       CFLFieldSensEdgeFunction EF);
 };
 
 } // namespace cfl_fieldsens
@@ -617,8 +617,13 @@ public:
   [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
 
 private:
+  using EFConstPtr = const cfl_fieldsens::CFLFieldSensEdgeFunctionImpl *;
+  using EFResultPtr = llvm::PointerIntPair<EFConstPtr, 2>;
+
   [[nodiscard]] EdgeFunction<l_t>
   makeEF(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
+  [[nodiscard]] EFResultPtr
+  makeEFPtr(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
 
   IFDSTabulationProblem<LLVMIFDSAnalysisDomainDefault> *UserProblem{};
   cfl_fieldsens::FieldStringManager Mgr{};
@@ -626,14 +631,8 @@ private:
 
   UnorderedSet<cfl_fieldsens::CFLFieldSensEdgeFunctionImpl> EFInternCache{};
 
-  using EFConstPtr = const cfl_fieldsens::CFLFieldSensEdgeFunctionImpl *;
-
-  // Values are stable pointers: into EFInternCache for CFL results, or to
-  // AllTopSingleton / AllBottomSingleton for the degenerate cases.
-  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EdgeFunction<l_t>>
-      ExtendCache;
-  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EdgeFunction<l_t>>
-      CombineCache;
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> ExtendCache;
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> CombineCache;
 
   uint8_t DepthKLimit = 5; // Original from the paper
 };
