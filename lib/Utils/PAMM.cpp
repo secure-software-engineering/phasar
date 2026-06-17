@@ -30,11 +30,6 @@
 
 #include <cassert>
 #include <chrono>
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
-#include <optional>
-#include <sstream>
 #include <system_error>
 
 using namespace psr;
@@ -148,104 +143,6 @@ std::string PAMM::getPrintableDuration(uint64_t Duration) {
   return hms(Duration_t{Duration}).str();
 }
 
-void PAMM::regCounter(llvm::StringRef CounterId, uint64_t IntialValue) {
-  [[maybe_unused]] auto [It, Inserted] =
-      Counter.try_emplace(CounterId, IntialValue);
-  assert(Inserted && "regCounter failed due to an invalid counter id");
-}
-
-void PAMM::incCounter(llvm::StringRef CounterId, uint64_t CValue) {
-  auto It = Counter.find(CounterId);
-  bool ValidCounterId = It != Counter.end();
-  assert(ValidCounterId && "incCounter failed due to an invalid counter id");
-  if (ValidCounterId) {
-    It->second += CValue;
-  }
-}
-
-void PAMM::decCounter(llvm::StringRef CounterId, uint64_t CValue) {
-  auto It = Counter.find(CounterId);
-  bool ValidCounterId = It != Counter.end();
-  assert(ValidCounterId && "decCounter failed due to an invalid counter id");
-  if (ValidCounterId) {
-    It->second -= CValue;
-  }
-}
-
-std::optional<uint64_t> PAMM::getCounter(llvm::StringRef CounterId) {
-  auto It = Counter.find(CounterId);
-  bool ValidCounterId = It != Counter.end();
-  assert(ValidCounterId && "getCounter failed due to an invalid counter id");
-  if (ValidCounterId) {
-    return It->second;
-  }
-  return std::nullopt;
-}
-
-uint64_t &PAMM::getOrCreateCounterRef(llvm::StringRef CounterId) {
-  return Counter[CounterId];
-}
-
-template <typename ForwardIterator, typename ForwardIteratorSentinel>
-static std::optional<uint64_t>
-getSumCountInternal(PAMM &P, ForwardIterator It,
-                    ForwardIteratorSentinel End) noexcept {
-  uint64_t Ctr = 0;
-  for (; It != End; ++It) {
-    auto Count = P.getCounter(*It);
-    if (!Count) {
-      return std::nullopt;
-    }
-
-    Ctr += *Count;
-  }
-
-  return Ctr;
-}
-
-std::optional<uint64_t>
-PAMM::getSumCount(const std::set<std::string> &CounterIds) {
-  return getSumCountInternal(*this, CounterIds.begin(), CounterIds.end());
-}
-
-std::optional<uint64_t>
-PAMM::getSumCount(llvm::ArrayRef<llvm::StringRef> CounterIds) {
-  return getSumCountInternal(*this, CounterIds.begin(), CounterIds.end());
-}
-
-std::optional<uint64_t>
-PAMM::getSumCount(std::initializer_list<llvm::StringRef> CounterIds) {
-  return getSumCountInternal(*this, CounterIds.begin(), CounterIds.end());
-}
-
-void PAMM::regHistogram(llvm::StringRef HistogramId) {
-  [[maybe_unused]] auto [It, Inserted] = Histogram.try_emplace(HistogramId);
-  assert(Inserted && "failed to register new histogram due to an invalid id");
-}
-
-void PAMM::addToHistogram(llvm::StringRef HistogramId,
-                          llvm::StringRef DataPointId,
-                          uint64_t DataPointValue) {
-  auto HistIt = Histogram.find(HistogramId);
-  if (HistIt == Histogram.end()) {
-    assert(false && "adding data point to histogram failed due to invalid id");
-    return;
-  }
-
-  addToHistogram(HistIt->second, DataPointId, DataPointValue);
-}
-
-void PAMM::addToHistogram(llvm::StringMap<uint64_t> &Hist,
-                          llvm::StringRef DataPointId,
-                          uint64_t DataPointValue) {
-  Hist[DataPointId] += DataPointValue;
-}
-
-llvm::StringMap<uint64_t> &
-PAMM::getOrCreateHistogramRef(llvm::StringRef HistogramId) {
-  return Histogram[HistogramId];
-}
-
 void PAMM::stopAllTimers() {
   while (!RunningTimer.empty()) {
     // safe copy
@@ -317,17 +214,27 @@ void PAMM::printCounters(llvm::raw_ostream &OS) {
 }
 
 void PAMM::printHistograms(llvm::raw_ostream &OS) {
+  pamm::Registry::instance().printHistograms(OS);
+}
+
+void pamm::Registry::printHistograms(llvm::raw_ostream &OS) const {
   OS << "\nHistograms\n";
   OS << "--------------\n";
-  for (const auto &H : Histogram) {
-    OS << H.first() << " Histogram\n";
-    OS << "Value : #Occurrences\n";
-    for (const auto &Entry : H.second) {
-      OS << Entry.first() << " : " << Entry.second << '\n';
+  for (const auto &[Cat, Hists] : Histograms) {
+    if (!Cat->isEnabled()) {
+      continue;
     }
-    OS << '\n';
+    for (const auto &[Name, H] : Hists) {
+      OS << Cat->name() << "::" << Name << " Histogram:\n";
+      OS << "  Value\t| #Occurrences\n";
+      OS << "  -----\t| ------------\n";
+      for (const auto &[Dat, Val] : H->HistData) {
+        OS << "  " << Dat << "\t| " << Val << '\n';
+      }
+      OS << '\n';
+    }
   }
-  if (Histogram.empty()) {
+  if (Histograms.empty()) {
     OS << "No histograms tracked!\n";
   }
 }

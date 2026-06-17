@@ -78,22 +78,26 @@ class IDESolver
   PAMM_CATEGORY(IDESolver);
 
   // NOLINTBEGIN
-  REG_COUNTER(Genfacts, 0, Core);
-  REG_COUNTER(Killfacts, 0, Core);
-  REG_COUNTER(Summaryreuse, 0, Core);
-  REG_COUNTER(IntraPathEdges, 0, Core);
-  REG_COUNTER(InterPathEdges, 0, Core);
-  REG_COUNTER(FFQueries, 0, Full);
-  REG_COUNTER(EFQueries, 0, Full);
-  REG_COUNTER(ValuePropagation, 0, Full);
-  REG_COUNTER(ValueComputation, 0, Full);
-  REG_COUNTER(SpecialSummaryFF_Application, 0, Full);
-  REG_COUNTER(SpecialSummaryEF_Queries, 0, Full);
-  REG_COUNTER(JumpFnConstruction, 0, Full);
-  REG_COUNTER(ProcessCall, 0, Full);
-  REG_COUNTER(ProcessNormal, 0, Full);
-  REG_COUNTER(ProcessExit, 0, Full);
-  REG_COUNTER(Calls_getAliasSet, 0, Full);
+  PAMM_COUNTER(Genfacts, 0, Core);
+  PAMM_COUNTER(Killfacts, 0, Core);
+  PAMM_COUNTER(Summaryreuse, 0, Core);
+  PAMM_COUNTER(IntraPathEdges, 0, Core);
+  PAMM_COUNTER(InterPathEdges, 0, Core);
+  PAMM_COUNTER(FFQueries, 0, Full);
+  PAMM_COUNTER(EFQueries, 0, Full);
+  PAMM_COUNTER(ValuePropagation, 0, Full);
+  PAMM_COUNTER(ValueComputation, 0, Full);
+  PAMM_COUNTER(SpecialSummaryFF_Application, 0, Full);
+  PAMM_COUNTER(SpecialSummaryEF_Queries, 0, Full);
+  PAMM_COUNTER(JumpFnConstruction, 0, Full);
+  PAMM_COUNTER(ProcessCall, 0, Full);
+  PAMM_COUNTER(ProcessNormal, 0, Full);
+  PAMM_COUNTER(ProcessExit, 0, Full);
+  PAMM_COUNTER(Calls_getAliasSet, 0, Full);
+
+  PAMM_HISTOGRAM(DataFlowFacts, Full);
+  PAMM_HISTOGRAM(PointsTo, Full);
+
   // NOLINTEND
 
 public:
@@ -404,7 +408,6 @@ protected:
   /// @param edge an edge whose target node resembles a method call
   ///
   virtual void processCall(const PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
     ProcessCall++;
     PHASAR_LOG_LEVEL(DEBUG,
                      "Process call at target: " << NToString(Edge.getTarget()));
@@ -453,7 +456,7 @@ protected:
         for (n_t ReturnSiteN : ReturnSiteNs) {
           container_type Res = computeSummaryFlowFunction(SpecialSum, d1, d2);
           SpecialSummaryFF_Application++;
-          ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
+          DataFlowFacts.add(Res.size(), 1);
           saveEdges(n, ReturnSiteN, d2, Res, ESGEdgeKind::Summary);
           for (d_t d3 : Res) {
             auto SumEdgFnE = CachedFlowEdgeFunctions.getSummaryEdgeFunction(
@@ -476,7 +479,7 @@ protected:
             CachedFlowEdgeFunctions.getCallFlowFunction(n, SCalledProcN);
         FFQueries++;
         container_type Res = computeCallFlowFunction(Function, d1, d2);
-        ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
+        DataFlowFacts.add(Res.size(), 1);
         // for each callee's start point(s)
         auto StartPointsOf = ICF->getStartPointsOf(SCalledProcN);
         if (StartPointsOf.empty()) {
@@ -525,8 +528,7 @@ protected:
                 FFQueries++;
                 const container_type ReturnedFacts = computeReturnFlowFunction(
                     RetFunction, d3, d4, n, Container{d2});
-                ADD_TO_HISTOGRAM("Data-flow facts", ReturnedFacts.size(), 1,
-                                 Full);
+                DataFlowFacts.add(ReturnedFacts.size(), 1);
                 saveEdges(eP, RetSiteN, d4, ReturnedFacts, ESGEdgeKind::Ret);
                 // for each target value of the function
                 for (d_t d5 : ReturnedFacts) {
@@ -582,7 +584,7 @@ protected:
       FFQueries++;
       container_type ReturnFacts =
           computeCallToReturnFlowFunction(CallToReturnFF, d1, d2);
-      ADD_TO_HISTOGRAM("Data-flow facts", ReturnFacts.size(), 1, Full);
+      DataFlowFacts.add(ReturnFacts.size(), 1);
       saveEdges(n, ReturnSiteN, d2, ReturnFacts,
                 HasNoCalleeInformation ? ESGEdgeKind::SkipUnknownFn
                                        : ESGEdgeKind::CallToRet);
@@ -611,7 +613,6 @@ protected:
   /// @param edge
   ///
   virtual void processNormalFlow(PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
     ProcessNormal++;
     PHASAR_LOG_LEVEL(
         DEBUG, "Process normal at target: " << NToString(Edge.getTarget()));
@@ -624,7 +625,7 @@ protected:
       auto FlowFunc = CachedFlowEdgeFunctions.getNormalFlowFunction(n, nPrime);
       FFQueries++;
       const container_type Res = computeNormalFlowFunction(FlowFunc, d1, d2);
-      ADD_TO_HISTOGRAM("Data-flow facts", Res.size(), 1, Full);
+      DataFlowFacts.add(Res.size(), 1);
       saveEdges(n, nPrime, d2, Res, ESGEdgeKind::Normal);
       for (const d_t &d3 : Res) {
         auto g =
@@ -949,7 +950,6 @@ protected:
   /// @param edge an edge whose target node resembles a method exit
   ///
   virtual void processExit(const PathEdge<n_t, d_t> Edge) {
-    PAMM_GET_INSTANCE;
     ProcessExit++;
     PHASAR_LOG_LEVEL(DEBUG,
                      "Process exit at target: " << NToString(Edge.getTarget()));
@@ -987,7 +987,7 @@ protected:
         for (d_t d4 : Entry.second) {
           const container_type Targets =
               computeReturnFlowFunction(RetFunction, d1, d2, c, Entry.second);
-          ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
+          DataFlowFacts.add(Targets.size(), 1);
           saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           // for each target value at the return site
           // line 23
@@ -1064,7 +1064,7 @@ protected:
           FFQueries++;
           const container_type Targets = computeReturnFlowFunction(
               RetFunction, d1, d2, Caller, Container{ZeroValue});
-          ADD_TO_HISTOGRAM("Data-flow facts", Targets.size(), 1, Full);
+          DataFlowFacts.add(Targets.size(), 1);
           saveEdges(n, RetSiteC, d2, Targets, ESGEdgeKind::Ret);
           for (d_t d5 : Targets) {
             auto f5 = CachedFlowEdgeFunctions.getReturnEdgeFunction(
@@ -1790,9 +1790,6 @@ private:
 
   void doInitialize() {
     PAMM_GET_INSTANCE;
-
-    REG_HISTOGRAM("Data-flow facts", Full);
-    REG_HISTOGRAM("Points-to", Full);
 
     PHASAR_LOG_LEVEL(INFO, "IDE solver is solving the specified problem");
     PHASAR_LOG_LEVEL(INFO,

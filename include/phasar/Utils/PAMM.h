@@ -19,8 +19,8 @@
 
 #include "phasar/Config/phasar-config.h"
 #include "phasar/Utils/TemplateString.h"
+#include "phasar/Utils/TypeTraits.h"
 
-#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -30,10 +30,9 @@
 #include "llvm/Support/WithColor.h"
 
 #include <chrono> // high_resolution_clock::time_point, milliseconds
+#include <concepts>
 #include <cstddef>
-#include <initializer_list>
 #include <optional>
-#include <set> // set
 #include <source_location>
 #include <string> // string
 #include <type_traits>
@@ -93,11 +92,17 @@ private:
 };
 
 namespace detail {
+
 struct CounterBase {
   ptrdiff_t Ctr{};
   Category *TheCategory{};
   std::source_location Loc{};
   // TODO: Add thread-safe counter
+};
+struct HistogramBase {
+  llvm::StringMap<uint64_t> HistData{};
+  Category *TheCategory{};
+  std::source_location Loc{};
 };
 } // namespace detail
 
@@ -146,7 +151,7 @@ public:
   }
 
   [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(llvm::StringRef(Cat));
+    auto Ret = std::string(Cat->name());
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -168,9 +173,74 @@ template <typename T>
 concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
 } // namespace detail
 
+template <bool Enabled, TemplateString Name, Category *Cat>
+class Histogram : private detail::HistogramBase {
+  friend Registry;
+
+public:
+  inline explicit Histogram(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const Histogram &H) {
+    OS << Cat->name() << "::" << Name << ":\n";
+    OS << "Value\t| #Occurrences\n";
+    for (const auto &[Dat, Val] : H.HistData) {
+      OS << Dat << "\t| " << Val << '\n';
+    }
+    return OS;
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+
+  void add(llvm::StringRef DataPointId, uint64_t Increment) {
+    this->HistData[DataPointId] += Increment;
+  }
+  template <has_adl_to_string_v T>
+    requires(!std::convertible_to<T, llvm::StringRef>)
+  void add(T &&DataPointId, uint64_t Increment) {
+    this->HistData[psr::adl_to_string(PSR_FWD(DataPointId))] += Increment;
+  }
+
+private:
+  [[nodiscard]] constexpr detail::HistogramBase *base() noexcept {
+    return this;
+  }
+};
+
+template <TemplateString Name, Category *Cat>
+class Histogram<false, Name, Cat> {
+  friend Registry;
+
+public:
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Histogram /*H*/) {
+    return OS << Cat->name() << "::" << Name << "\n";
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  add(llvm::StringRef /*DataPointId*/, uint64_t /*Increment*/) {}
+
+  template <has_adl_to_string_v T>
+    requires(!std::convertible_to<T, llvm::StringRef>)
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(T && /*DataPointId*/,
+                                                  uint64_t /*Increment*/) {}
+};
+
 class Registry {
   template <bool Enabled, TemplateString Name, Category *Cat>
   friend class Counter;
+  template <bool Enabled, TemplateString Name, Category *Cat>
+  friend class Histogram;
 
 public:
   static Registry &instance() {
@@ -179,20 +249,20 @@ public:
   }
 
   void printCounters(llvm::raw_ostream &OS) const;
+  void printHistograms(llvm::raw_ostream &OS) const;
 
 private:
-  template <TemplateString Name, Category *Cat>
-  void registerCounter(
-      Counter<true, Name, Cat> *Ctr,
-      std::source_location Loc = std::source_location::current()) noexcept {
-    assert(Ctr != nullptr);
+  static void registerImpl(auto *Elem, auto &Into, Category *Cat,
+                           llvm::StringRef Name, llvm::StringRef ElemKind,
+                           std::source_location Loc) {
+    assert(Elem != nullptr);
     auto [It, Inserted] =
-        Counters[Cat].try_emplace(llvm::StringRef(Name), Ctr->base());
+        Into[Cat].try_emplace(llvm::StringRef(Name), Elem->base());
     if (!Inserted) [[unlikely]] {
       llvm::report_fatal_error(
           "At " + llvm::Twine(Loc.file_name()) + ":" + llvm::Twine(Loc.line()) +
-          ":" + llvm::Twine(Loc.column()) + ": Counter " +
-          llvm::Twine(Ctr->qualifier()) +
+          ":" + llvm::Twine(Loc.column()) + ": " + ElemKind + " " +
+          llvm::Twine(Elem->qualifier()) +
           " already registered! Previous definition was here: " +
           llvm::Twine(It->second->Loc.file_name()) + ":" +
           llvm::Twine(It->second->Loc.line()) + ":" +
@@ -200,9 +270,27 @@ private:
     }
   }
 
+  template <TemplateString Name, Category *Cat>
+  void registerCounter(
+      Counter<true, Name, Cat> *Ctr,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Ctr, Counters, Cat, Name, "Counter", Loc);
+  }
+
+  template <TemplateString Name, Category *Cat>
+  void registerHistogram(
+      Histogram<true, Name, Cat> *Hist,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Hist, Histograms, Cat, Name, "Histogram", Loc);
+  }
+
   llvm::DenseMap<Category *,
                  llvm::DenseMap<llvm::StringRef, detail::CounterBase *>>
       Counters;
+
+  llvm::DenseMap<Category *,
+                 llvm::DenseMap<llvm::StringRef, detail::HistogramBase *>>
+      Histograms;
 };
 
 template <bool Enabled, TemplateString Name, Category *Cat>
@@ -211,6 +299,16 @@ inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
   this->Loc = Loc;
   this->TheCategory = Cat;
   Registry::instance().registerCounter(this, Loc);
+}
+
+template <bool Enabled, TemplateString Name, Category *Cat>
+inline Histogram<Enabled, Name, Cat>::Histogram(
+    std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  this->TheCategory = Cat;
+  llvm::errs() << "Registering histogram: " << Name << '\n';
+  Registry::instance().registerHistogram(this, Loc);
 }
 
 } // namespace pamm
@@ -298,8 +396,8 @@ public:
   elapsedTimeOfRepeatingTimer();
 
   /// A running timer will not be stopped. The precision for time computation
-  /// is set to milliseconds and the output is similar to a timestamp, e.g.
-  /// '4h 8m 15sec 16ms'.
+  /// is set to microseconds and the output is of the form: HH:MM:SS:XXXXXX,
+  /// where XXXXXX are 6 digits of sub-seconds.
   ///
   /// Associated macro PRINT_TIMER(TIMERID) does not check PAMM's severity level
   /// explicitly.
@@ -307,84 +405,10 @@ public:
   /// \param timerId Unique timer id.
   [[nodiscard]] static std::string getPrintableDuration(uint64_t Duration);
 
-  /// \brief Registers a new counter under the given counter id - associated
-  /// macro: REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL).
-  /// \param CounterId Unique counter id.
-  void regCounter(llvm::StringRef CounterId, uint64_t IntialValue = 0);
-
-  /// \brief Increases the count for the given counter - associated macro:
-  /// INC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
-  /// \param CounterId Unique counter id.
-  /// \param CValue to be added to the current counter.
-  void incCounter(llvm::StringRef CounterId, uint64_t CValue = 1);
-
-  /// \brief Decreases the count for the given counter - associated macro:
-  /// DEC_COUNTER(COUNTER_ID, VALUE, SEV_LVL).
-  /// \param CounterId Unique counter id.
-  /// \param CValue to be subtracted from the current counter.
-  void decCounter(llvm::StringRef CounterId, uint64_t CValue = 1);
-
-  /// The associated macro does not check PAMM's severity level explicitly.
-  /// \brief Returns the current count for the given counter - associated macro:
-  /// GET_COUNTER(COUNTER_ID).
-  /// \param CounterId Unique counter id.
-  std::optional<uint64_t> getCounter(llvm::StringRef CounterId);
-
-  /// \brief Returns a reference to the storage of the given counter,
-  /// registering it with value 0 if it does not exist yet. The
-  /// returned reference remains valid for the lifetime of this PAMM
-  /// instance, even if other counters are registered afterwards.
-  /// \param CounterId Unique counter id.
-  [[nodiscard]] uint64_t &getOrCreateCounterRef(llvm::StringRef CounterId);
-
-  /// The associated macro does not check PAMM's severity level explicitly.
-  /// \brief Sums the counts for the given counter ids - associated macro:
-  /// GET_SUM_COUNT(...).
-  /// \param CounterIds Unique counter ids.
-  /// \note Macro uses variadic parameters, e.g. GET_SUM_COUNT({"foo", "bar"}).
-  std::optional<uint64_t> getSumCount(const std::set<std::string> &CounterIds);
-
   [[nodiscard]] ptrdiff_t
   getSumCount(pamm::detail::IsCounter auto const &...Counters) {
     return (Counters.value() + ...);
   }
-
-  std::optional<uint64_t>
-  getSumCount(llvm::ArrayRef<llvm::StringRef> CounterIds);
-  std::optional<uint64_t>
-  getSumCount(std::initializer_list<llvm::StringRef> CounterIds);
-
-  /// \brief Registers a new histogram - associated macro:
-  /// REG_HISTOGRAM(HISTOGRAM_ID, SEV_LVL).
-  /// \param HistogramId Unique hitogram id.
-  void regHistogram(llvm::StringRef HistogramId);
-
-  /// \brief Adds a new observed data point to the corresponding histogram -
-  /// associated macro: ADD_TO_HISTOGRAM(HISTOGRAM_ID, DATAPOINT_ID,
-  /// DATAPOINT_VALUE, SEV_LVL).
-  /// \param HistogramId ID of the histogram that tracks given data points.
-  /// \param DataPointId ID of the given data point.
-  /// \param DataPointValue Value of the given data point.
-  void addToHistogram(llvm::StringRef HistogramId, llvm::StringRef DataPointId,
-                      uint64_t DataPointValue = 1);
-
-  /// \brief Adds a new observed data point directly to the given
-  /// histogram's bucket map, skipping the histogram-id lookup.
-  /// \param Hist Reference to a histogram's bucket map, as returned by
-  /// getOrCreateHistogramRef().
-  /// \param DataPointId ID of the given data point.
-  /// \param DataPointValue Value of the given data point.
-  void addToHistogram(llvm::StringMap<uint64_t> &Hist,
-                      llvm::StringRef DataPointId, uint64_t DataPointValue = 1);
-
-  /// \brief Returns a reference to the bucket map of the given
-  /// histogram, registering an empty histogram if it does not exist
-  /// yet. The returned reference remains valid for the lifetime of
-  /// this PAMM instance, even if other histograms are registered
-  /// afterwards.
-  /// \param HistogramId Unique histogram id.
-  [[nodiscard]] llvm::StringMap<uint64_t> &
-  getOrCreateHistogramRef(llvm::StringRef HistogramId);
 
   void stopAllTimers();
 

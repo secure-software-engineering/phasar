@@ -35,7 +35,9 @@ using namespace psr;
 
 namespace {
 PAMM_CATEGORY(IFDSConstAnalysis);
-REG_COUNTER(Calls_getContextRelevantAliasSet, 0, Full); // NOLINT
+PAMM_COUNTER(Calls_getContextRelevantAliasSet, 0, Full); // NOLINT
+
+PAMM_HISTOGRAM(ContextRelevantPointer, Full);
 } // namespace
 
 IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
@@ -44,8 +46,6 @@ IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
     : IFDSTabulationProblem(IRDB, std::move(EntryPoints), createZeroValue()),
       PT(PT) {
   assert(PT);
-  PAMM_GET_INSTANCE;
-  REG_HISTOGRAM("Context-relevant Pointer", Full);
 }
 
 IFDSConstAnalysis::FlowFunctionPtrType
@@ -226,7 +226,7 @@ std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
     } // ignore everything else
   }
   PAUSE_TIMER("Context-Relevant-Alias-Set Computation", Full);
-  ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1, Full);
+  ContextRelevantPointer.add(ToGenerate.size(), 1);
   return ToGenerate;
 }
 

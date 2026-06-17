@@ -25,10 +25,10 @@ using namespace psr;
 
 PAMM_CATEGORY(CallGraphBuilder);
 
-REG_COUNTER(CGFunctions, CGBuilder.viewCallGraph().getNumVertexFunctions(),
-            Full);
-REG_COUNTER(CGCallSites, CGBuilder.viewCallGraph().getNumVertexCallSites(),
-            Full);
+PAMM_COUNTER(CGFunctions, CGBuilder.viewCallGraph().getNumVertexFunctions(),
+             Full);
+PAMM_COUNTER(CGCallSites, CGBuilder.viewCallGraph().getNumVertexCallSites(),
+             Full);
 
 struct Builder {
   const LLVMProjectIRDB *IRDB = nullptr;
