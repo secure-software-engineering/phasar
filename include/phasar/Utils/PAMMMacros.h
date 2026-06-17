@@ -39,13 +39,15 @@ static constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
 
 } // namespace psr
 
-#define PAMM_CATEGORY(NAME)                                                    \
-  static inline ::psr::pamm::Category<#NAME> PAMMCategory {}
+#define PAMM_CATEGORY(NAME, ...)                                               \
+  static inline ::psr::pamm::Category PAMMCategory {                           \
+    #NAME __VA_OPT__(, ) __VA_ARGS__                                           \
+  }
 
 #define REG_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)                           \
   static inline ::psr::pamm::Counter<PAMM_CURR_SEV_LEVEL >=                    \
                                          PAMM_SEVERITY_LEVEL::SEV_LVL,         \
-                                     #COUNTER_ID, PAMMCategory>                \
+                                     #COUNTER_ID, &PAMMCategory>               \
       COUNTER_ID
 
 #if defined(PAMM_FULL) || defined(PAMM_CORE)

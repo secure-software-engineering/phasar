@@ -298,7 +298,10 @@ void pamm::Registry::printCounters(llvm::raw_ostream &OS) const {
   OS << "--------\n";
 
   for (const auto &[Cat, CatCtrs] : Counters) {
-    OS << Cat << ":\n";
+    if (!Cat->isEnabled()) {
+      continue;
+    }
+    OS << *Cat << ":\n";
     for (const auto &[Name, C] : CatCtrs) {
       OS << "  " << Name << ": " << C->Ctr << '\n';
     }
