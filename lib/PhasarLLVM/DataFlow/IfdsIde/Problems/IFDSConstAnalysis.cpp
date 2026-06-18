@@ -35,9 +35,10 @@ using namespace psr;
 
 namespace {
 PAMM_CATEGORY(IFDSConstAnalysis);
-PAMM_COUNTER(Calls_getContextRelevantAliasSet, 0, Full); // NOLINT
 
+PAMM_COUNTER(Calls_getContextRelevantAliasSet, 0, Full); // NOLINT
 PAMM_HISTOGRAM(ContextRelevantPointer, Full);
+PAMM_TIMER(ContextRelevantAliasComputationTm, Full);
 } // namespace
 
 IFDSConstAnalysis::IFDSConstAnalysis(const LLVMProjectIRDB *IRDB,
@@ -195,9 +196,8 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
     std::set<IFDSConstAnalysis::d_t> &AliasSet,
     IFDSConstAnalysis::f_t CurrentContext) {
-  PAMM_GET_INSTANCE;
   Calls_getContextRelevantAliasSet++;
-  START_TIMER("Context-Relevant-Alias-Set Computation", Full);
+  PAMM_SCOPED_TIMER(ContextRelevantAliasComputationTm);
   std::set<IFDSConstAnalysis::d_t> ToGenerate;
   for (const auto *Alias : AliasSet) {
     PHASAR_LOG_LEVEL(DEBUG, "Alias: " << llvmIRToString(Alias));
@@ -225,13 +225,12 @@ std::set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantAliasSet(
       }
     } // ignore everything else
   }
-  PAUSE_TIMER("Context-Relevant-Alias-Set Computation", Full);
   ContextRelevantPointer.add(ToGenerate.size(), 1);
   return ToGenerate;
 }
 
 bool IFDSConstAnalysis::isInitialized(IFDSConstAnalysis::d_t Fact) const {
-  return llvm::isa<llvm::GlobalValue>(Fact) || Initialized.count(Fact);
+  return llvm::isa<llvm::GlobalValue>(Fact) || Initialized.contains(Fact);
 }
 
 void IFDSConstAnalysis::markAsInitialized(IFDSConstAnalysis::d_t Fact) {

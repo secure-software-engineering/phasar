@@ -10,7 +10,10 @@
  *****************************************************************************/
 
 #include "phasar/Config/phasar-config.h"
+#include "phasar/Utils/ChronoUtils.h"
+#include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/TemplateString.h"
+#include "phasar/Utils/Timer.h"
 #include "phasar/Utils/TypeTraits.h"
 
 #include "llvm/ADT/DenseMap.h"
@@ -84,23 +87,50 @@ private:
 };
 
 namespace detail {
-
-struct CounterBase {
-  ptrdiff_t Ctr{};
-  Category *TheCategory{};
+struct PAMMBase {
+  const Category *TheCategory{};
   std::source_location Loc{};
+};
+struct CounterBase : PAMMBase {
+  ptrdiff_t Ctr{};
   // TODO: Add thread-safe counter
 };
-struct HistogramBase {
+struct HistogramBase : PAMMBase {
   llvm::StringMap<uint64_t> HistData{};
-  Category *TheCategory{};
-  std::source_location Loc{};
+};
+struct TimerBase : PAMMBase {
+  std::optional<SimpleTimer> Tm{};
+  std::chrono::nanoseconds Acc{};
+
+  void start() noexcept {
+    assert(!Tm.has_value() &&
+           "Starting an already running timer is not allowed");
+    Tm.emplace();
+  }
+
+  void stop() noexcept {
+    assert(Tm.has_value() && "Stopping a not-running timer is not allowed");
+    Acc += Tm->elapsedNanos();
+    Tm.reset();
+  }
+
+  void reset() noexcept {
+    Acc = {};
+    Tm.reset();
+  }
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  elapsedNanos() const noexcept {
+    return Acc;
+  }
+
+  [[nodiscard]] hms elapsed() const noexcept { return Acc; }
 };
 } // namespace detail
 
 class Registry;
 
-template <bool Enabled, TemplateString Name, Category *Cat>
+template <bool Enabled, TemplateString Name, const Category *Cat>
 class Counter : private detail::CounterBase {
   friend Registry;
 
@@ -129,7 +159,8 @@ private:
   [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
 };
 
-template <TemplateString Name, Category *Cat> class Counter<false, Name, Cat> {
+template <TemplateString Name, const Category *Cat>
+class Counter<false, Name, Cat> {
 public:
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
@@ -155,7 +186,7 @@ public:
 
 namespace detail {
 struct IsCounterImpl {
-  template <bool Enabled, TemplateString Name, Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category *Cat>
   static std::true_type test(Counter<Enabled, Name, Cat>);
 
   static std::false_type test(...);
@@ -165,7 +196,7 @@ template <typename T>
 concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
 } // namespace detail
 
-template <bool Enabled, TemplateString Name, Category *Cat>
+template <bool Enabled, TemplateString Name, const Category *Cat>
 class Histogram : private detail::HistogramBase {
   friend Registry;
 
@@ -206,7 +237,7 @@ private:
   }
 };
 
-template <TemplateString Name, Category *Cat>
+template <TemplateString Name, const Category *Cat>
 class Histogram<false, Name, Cat> {
   friend Registry;
 
@@ -230,11 +261,92 @@ public:
                                                   uint64_t /*Increment*/) {}
 };
 
+template <bool Enabled, TemplateString Name, const Category *Cat>
+class Timer : private detail::TimerBase {
+  friend Registry;
+  template <bool Enabled2> friend class ScopedTimer;
+
+public:
+  inline explicit Timer(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  using detail::TimerBase::elapsed;
+  using detail::TimerBase::elapsedNanos;
+  using detail::TimerBase::reset;
+  using detail::TimerBase::start;
+  using detail::TimerBase::stop;
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Timer &T) {
+    return OS << Cat->name() << "::" << Name << ": " << T.elapsed();
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+
+private:
+  [[nodiscard]] constexpr detail::TimerBase *base() noexcept { return this; }
+};
+
+template <TemplateString Name, const Category *Cat>
+class Timer<false, Name, Cat> {
+public:
+  LLVM_ATTRIBUTE_ALWAYS_INLINE void start() noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE void stop() noexcept {}
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  elapsedNanos() const noexcept {
+    return {};
+  }
+
+  [[nodiscard]] hms elapsed() const noexcept { return {}; }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Timer /*T*/) {
+    return OS << Cat->name() << "::" << Name;
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+};
+
+template <bool Enabled> class ScopedTimer {
+public:
+  template <TemplateString Name, const Category *Cat>
+  constexpr ScopedTimer(Timer<Enabled, Name, Cat> &Tm) : Tm(&Tm) {
+    if (Cat->isEnabled()) {
+      Tm.start();
+    }
+  }
+
+  ~ScopedTimer() { Tm->stop(); }
+
+  ScopedTimer(const ScopedTimer &) = delete;
+  ScopedTimer &operator=(const ScopedTimer &) = delete;
+  ScopedTimer(ScopedTimer &&) = delete;
+  ScopedTimer &operator=(ScopedTimer &&) = delete;
+
+private:
+  NonNullPtr<detail::TimerBase> Tm;
+};
+
+template <> class ScopedTimer<false> {
+public:
+  template <TemplateString Name, const Category *Cat>
+  constexpr ScopedTimer(Timer<false, Name, Cat> &Tm) {}
+};
+
 class Registry {
-  template <bool Enabled, TemplateString Name, Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category *Cat>
   friend class Counter;
-  template <bool Enabled, TemplateString Name, Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category *Cat>
   friend class Histogram;
+  template <bool Enabled, TemplateString Name, const Category *Cat>
+  friend class Timer;
 
 public:
   static Registry &instance() {
@@ -244,8 +356,12 @@ public:
 
   void printCounters(llvm::raw_ostream &OS) const;
   void printCounters(llvm::raw_ostream &OS, const Category &Cat) const;
+
   void printHistograms(llvm::raw_ostream &OS) const;
   void printHistograms(llvm::raw_ostream &OS, const Category &Cat) const;
+
+  void printTimers(llvm::raw_ostream &OS) const;
+  void printTimers(llvm::raw_ostream &OS, const Category &Cat) const;
 
   /// Performs a linear search on all registered elements to find the category
   /// with the given name. If none is found, returns nullptr.
@@ -254,7 +370,7 @@ public:
   [[nodiscard]] const Category *findCategory(llvm::StringRef Name) const;
 
 private:
-  static void registerImpl(auto *Elem, auto &Into, Category *Cat,
+  static void registerImpl(auto *Elem, auto &Into, const Category *Cat,
                            llvm::StringRef Name, llvm::StringRef ElemKind,
                            std::source_location Loc) {
     assert(Elem != nullptr);
@@ -272,18 +388,25 @@ private:
     }
   }
 
-  template <TemplateString Name, Category *Cat>
+  template <TemplateString Name, const Category *Cat>
   void registerCounter(
       Counter<true, Name, Cat> *Ctr,
       std::source_location Loc = std::source_location::current()) noexcept {
     registerImpl(Ctr, Counters, Cat, Name, "Counter", Loc);
   }
 
-  template <TemplateString Name, Category *Cat>
+  template <TemplateString Name, const Category *Cat>
   void registerHistogram(
       Histogram<true, Name, Cat> *Hist,
       std::source_location Loc = std::source_location::current()) noexcept {
     registerImpl(Hist, Histograms, Cat, Name, "Histogram", Loc);
+  }
+
+  template <TemplateString Name, const Category *Cat>
+  void registerTimer(
+      Timer<true, Name, Cat> *Tm,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Tm, Timers, Cat, Name, "Timer", Loc);
   }
 
   llvm::DenseMap<const Category *,
@@ -293,9 +416,13 @@ private:
   llvm::DenseMap<const Category *,
                  llvm::DenseMap<llvm::StringRef, detail::HistogramBase *>>
       Histograms;
+
+  llvm::DenseMap<const Category *,
+                 llvm::DenseMap<llvm::StringRef, detail::TimerBase *>>
+      Timers;
 };
 
-template <bool Enabled, TemplateString Name, Category *Cat>
+template <bool Enabled, TemplateString Name, const Category *Cat>
 inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
@@ -303,7 +430,7 @@ inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
   Registry::instance().registerCounter(this, Loc);
 }
 
-template <bool Enabled, TemplateString Name, Category *Cat>
+template <bool Enabled, TemplateString Name, const Category *Cat>
 inline Histogram<Enabled, Name, Cat>::Histogram(
     std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
@@ -312,6 +439,13 @@ inline Histogram<Enabled, Name, Cat>::Histogram(
   Registry::instance().registerHistogram(this, Loc);
 }
 
+template <bool Enabled, TemplateString Name, const Category *Cat>
+inline Timer<Enabled, Name, Cat>::Timer(std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  this->TheCategory = Cat;
+  Registry::instance().registerTimer(this, Loc);
+}
 } // namespace pamm
 
 /// This class offers functionality to measure different performance metrics.
@@ -351,63 +485,10 @@ public:
   /// macro: PAMM_GET_INSTANCE.
   [[nodiscard]] static PAMM &getInstance();
 
-  /// \brief Resets PAMM, i.e. discards all gathered information (timer, counter
-  /// etc.) - associated macro: RESET_PAMM.
-  /// \note Only used for unit testing to reset PAMM in between test runs.
-  void reset();
-
-  /// \brief Starts a timer under the given timer id - associated macro:
-  /// START_TIMER(TIMER_ID, SEV_LVL).
-  /// \param TimerId Unique timer id.
-  void startTimer(llvm::StringRef TimerId);
-
-  /// \brief Resets timer under the given timer id - associated macro:
-  /// RESET_TIMER(TIMER_ID, SEV_LVL).
-  /// \param TimerId Unique timer id.
-  void resetTimer(llvm::StringRef TimerId);
-
-  /// If pauseTimer is true, a running timer gets paused, its start time point
-  /// will paired with a current time point, and stored as an accumulated timer.
-  /// This enables us to repeatedly compute execution time for a certain portion
-  /// of code which is executed multiple times, e.g. a loop or a function
-  /// call, without using a different timer id for every time computation.
-  /// Times of all executions of one timer are saved as distinct time point
-  /// pairs. Associated macro:
-  ///    PAUSE_TIMER(TIMER_ID, SEV_LVL)
-  ///
-  /// Otherwise, the timer will be simply stopped. Associated macro:
-  ///    STOP_TIMER(TIMER_ID, SEV_LVL)
-  /// \brief Stops or pauses a timer under the given timer id.
-  /// \param TimerId Unique timer id.
-  /// \param PauseTimer If true, timer will be paused instead of stopped.
-  void stopTimer(llvm::StringRef TimerId, bool PauseTimer = false);
-
-  /// \brief Computes the elapsed time of the given timer up until now or up to
-  /// the moment the timer was stopped - associated macro: GET_TIMER(TIMERID)
-  /// \param TimerId Unique timer id.
-  /// \return Timer duration.
-  uint64_t elapsedTime(llvm::StringRef TimerId);
-
-  /// For each accumulated timer a vector holds all recorded durations.
-  /// \brief Computes the elapsed time for all accumulated timer being used.
-  /// \return Map containing measured durations of all accumulated timer.
-  [[nodiscard]] llvm::StringMap<std::vector<uint64_t>>
-  elapsedTimeOfRepeatingTimer();
-
-  /// A running timer will not be stopped. The precision for time computation
-  /// is set to microseconds and the output is of the form: HH:MM:SS:XXXXXX,
-  /// where XXXXXX are 6 digits of sub-seconds.
-  ///
-  /// Associated macro PRINT_TIMER(TIMERID) does not check PAMM's severity level
-  /// explicitly.
-  [[nodiscard]] static std::string getPrintableDuration(uint64_t Duration);
-
   [[nodiscard]] static ptrdiff_t
   getSumCount(pamm::detail::IsCounter auto const &...Counters) {
     return (Counters.value() + ...);
   }
-
-  void stopAllTimers();
 
   void printTimers(llvm::raw_ostream &OS);
 
@@ -415,21 +496,9 @@ public:
 
   void printHistograms(llvm::raw_ostream &OS);
 
-  /// \brief Prints the measured data to the commandline - associated macro:
-  /// PRINT_MEASURED_DATA
+  /// \brief Prints the measured data to the commandline
   void printMeasuredData(llvm::raw_ostream &OS);
   void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat);
-
-  /// \brief Exports the measured data to JSON - associated macro:
-  /// EXPORT_MEASURED_DATA(PATH).
-  /// \param OutputPath to exported JSON file.
-  void exportMeasuredData(
-      const llvm::Twine &OutputPath,
-      llvm::StringRef ProjectId = "default-phasar-project",
-      const std::vector<std::string> *Modules = nullptr,
-      const std::vector<std::string> *DataFlowAnalyses = nullptr);
-
-  [[nodiscard]] const auto &getHistogram() const noexcept { return Histogram; }
 
 private:
   llvm::StringMap<TimePoint_t> RunningTimer;

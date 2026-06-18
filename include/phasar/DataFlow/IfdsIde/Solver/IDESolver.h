@@ -98,6 +98,9 @@ class IDESolver
   PAMM_HISTOGRAM(DataFlowFacts, Full);
   PAMM_HISTOGRAM(PointsTo, Full);
 
+  PAMM_TIMER(DFAPhase1, Full);
+  PAMM_TIMER(DFAPhase2, Full);
+
   // NOLINTEND
 
 public:
@@ -433,12 +436,12 @@ protected:
     bool HasNoCalleeInformation = true;
 
     auto &&Fun = ICF->getFunctionOf(n);
-    auto GetNextUse = [this, &Fun, &n](n_t nPrime, ByConstRef<d_t> d3) {
+    auto GetNextUse = [this, &Fun, &n](n_t NPrime, ByConstRef<d_t> d3) {
       if (auto &&NextUser = getNextUserOrNull(Fun, d3, n)) {
         return psr::unwrapNullable(PSR_FWD(NextUser));
       }
 
-      return nPrime;
+      return NPrime;
     };
 
     // for each possible callee
@@ -1397,7 +1400,6 @@ protected:
   /// generated/killed facts, number of summary-reuses etc.
   ///
   void computeAndPrintStatistics() {
-    PAMM_GET_INSTANCE;
     // Stores all valid facts at return site in caller context; return-site is
     // key
     std::unordered_map<n_t, std::set<d_t>> ValidInCallerContext;
@@ -1472,8 +1474,9 @@ protected:
 
               std::set<d_t> SummaryDSet;
               EndsummaryTab.get(Edge.second, D2)
-                  .foreachCell([&SummaryDSet](const auto &Row, const auto &Col,
-                                              const auto &Val) {
+                  .foreachCell([&SummaryDSet](const auto & /*Row*/,
+                                              const auto &Col,
+                                              const auto & /*Val*/) {
                     SummaryDSet.insert(Col);
                   });
 
@@ -1548,10 +1551,8 @@ protected:
                                  << SpecialSummaryFF_Application.value());
       PHASAR_LOG_LEVEL(INFO, "Jump function construciton count: "
                                  << JumpFnConstruction.value());
-      PHASAR_LOG_LEVEL(INFO,
-                       "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
-      PHASAR_LOG_LEVEL(INFO,
-                       "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
+      PHASAR_LOG_LEVEL(INFO, "Phase I duration: " << DFAPhase1.elapsed());
+      PHASAR_LOG_LEVEL(INFO, "Phase II duration: " << DFAPhase2.elapsed());
       PHASAR_LOG_LEVEL(INFO, "----------------------------------------------");
       CachedFlowEdgeFunctions.print();
     }
@@ -1789,13 +1790,11 @@ private:
   /// -- InteractiveIDESolverMixin implementation
 
   void doInitialize() {
-    PAMM_GET_INSTANCE;
-
     PHASAR_LOG_LEVEL(INFO, "IDE solver is solving the specified problem");
     PHASAR_LOG_LEVEL(INFO,
                      "Submit initial seeds, construct exploded super graph");
     // computations starting here
-    START_TIMER("DFA Phase I", Full);
+    DFAPhase1.start();
 
     // We start our analysis and construct exploded supergraph
     submitInitialSeeds();
@@ -1817,17 +1816,15 @@ private:
   }
 
   void finalizeInternal() {
-    PAMM_GET_INSTANCE;
-    STOP_TIMER("DFA Phase I", Full);
+    DFAPhase1.stop();
     PHASAR_LOG_LEVEL(INFO, "[info]: IDE Phase I completed");
 
     if (SolverConfig.computeValues()) {
-      START_TIMER("DFA Phase II", Full);
+      PAMM_SCOPED_TIMER(DFAPhase2);
       // Computing the final values for the edge functions
       PHASAR_LOG_LEVEL(
           INFO, "Compute the final values according to the edge functions");
       computeValues();
-      STOP_TIMER("DFA Phase II", Full);
     }
 
     PHASAR_LOG_LEVEL(INFO, "Problem solved");
