@@ -17,6 +17,7 @@
 #include "phasar/Utils/PAMM.h"
 
 #include "phasar/Utils/ChronoUtils.h"
+#include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/NlohmannLogging.h"
 
 #include "llvm/ADT/SmallString.h"
@@ -190,23 +191,46 @@ void PAMM::printTimers(llvm::raw_ostream &OS) {
   }
 }
 
+static void printCountersImpl(
+    llvm::raw_ostream &OS, const pamm::Category &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::CounterBase *>
+        &CatCtrs) {
+  OS << Cat.name() << ":\n";
+  for (const auto &[Name, C] : CatCtrs) {
+    OS << "  " << Name << ": " << C->Ctr << '\n';
+  }
+  OS << '\n';
+}
+
 void pamm::Registry::printCounters(llvm::raw_ostream &OS) const {
   OS << "\nCounters\n";
   OS << "--------\n";
 
   for (const auto &[Cat, CatCtrs] : Counters) {
-    if (!Cat->isEnabled()) {
-      continue;
+    if (Cat->isEnabled()) {
+      printCountersImpl(OS, *Cat, CatCtrs);
     }
-    OS << *Cat << ":\n";
-    for (const auto &[Name, C] : CatCtrs) {
-      OS << "  " << Name << ": " << C->Ctr << '\n';
-    }
-    OS << '\n';
   }
   if (Counters.empty()) {
     OS << "No Counter registered!\n";
   }
+}
+
+void pamm::Registry::printCounters(llvm::raw_ostream &OS,
+                                   const Category &Cat) const {
+  if (!Cat.isEnabled()) {
+    OS << "Category '" << Cat.name() << "' is disabled\n";
+    return;
+  }
+  const auto *CatCtrs = getOrNull(Counters, &Cat);
+  if (!CatCtrs || CatCtrs->empty()) {
+    OS << "No Counters for category '" << Cat.name() << "' registered!\n";
+    return;
+  }
+
+  OS << "\nCounters\n";
+  OS << "--------\n";
+  printCountersImpl(OS, Cat, *CatCtrs);
 }
 
 void PAMM::printCounters(llvm::raw_ostream &OS) {
@@ -217,26 +241,49 @@ void PAMM::printHistograms(llvm::raw_ostream &OS) {
   pamm::Registry::instance().printHistograms(OS);
 }
 
+static void printHistogramsImpl(
+    llvm::raw_ostream &OS, const pamm::Category &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::HistogramBase *>
+        &Hists) {
+  for (const auto &[Name, H] : Hists) {
+    OS << Cat.name() << "::" << Name << " Histogram:\n";
+    OS << "  Value\t| #Occurrences\n";
+    OS << "  -----\t| ------------\n";
+    for (const auto &[Dat, Val] : H->HistData) {
+      OS << "  " << Dat << "\t| " << Val << '\n';
+    }
+    OS << '\n';
+  }
+}
+
 void pamm::Registry::printHistograms(llvm::raw_ostream &OS) const {
   OS << "\nHistograms\n";
   OS << "--------------\n";
   for (const auto &[Cat, Hists] : Histograms) {
-    if (!Cat->isEnabled()) {
-      continue;
-    }
-    for (const auto &[Name, H] : Hists) {
-      OS << Cat->name() << "::" << Name << " Histogram:\n";
-      OS << "  Value\t| #Occurrences\n";
-      OS << "  -----\t| ------------\n";
-      for (const auto &[Dat, Val] : H->HistData) {
-        OS << "  " << Dat << "\t| " << Val << '\n';
-      }
-      OS << '\n';
+    if (Cat->isEnabled()) {
+      printHistogramsImpl(OS, *Cat, Hists);
     }
   }
   if (Histograms.empty()) {
     OS << "No histograms tracked!\n";
   }
+}
+
+void pamm::Registry::printHistograms(llvm::raw_ostream &OS,
+                                     const Category &Cat) const {
+  if (!Cat.isEnabled()) {
+    OS << "Category '" << Cat.name() << "' is disabled\n";
+    return;
+  }
+  const auto *Hists = getOrNull(Histograms, &Cat);
+  if (!Hists || Hists->empty()) {
+    OS << "No Histograms for category '" << Cat.name() << "' registered!\n";
+    return;
+  }
+
+  OS << "\nHistograms\n";
+  OS << "--------------\n";
+  printHistogramsImpl(OS, Cat, *Hists);
 }
 
 void PAMM::printMeasuredData(llvm::raw_ostream &Os) {
@@ -327,11 +374,43 @@ void PAMM::exportMeasuredData(
   OS << JsonData << '\n';
 }
 
+void PAMM::printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
+  OS << "\n----- START OF EVALUATION DATA -----\n\n";
+  if (!Cat.isEnabled()) {
+    OS << "Category '" << Cat.name() << "' is disabled\n";
+    return;
+  }
+  auto &Reg = pamm::Registry::instance();
+  // Reg.printTimers(OS);
+  Reg.printCounters(OS, Cat);
+  Reg.printHistograms(OS, Cat);
+  OS << "\n----- END OF EVALUATION DATA -----\n\n";
+}
+
 void PAMM::reset() {
   RunningTimer.clear();
   StoppedTimer.clear();
   RepeatingTimer.clear();
   Counter.clear();
   Histogram.clear();
+}
+
+auto pamm::Registry::findCategory(llvm::StringRef Name) const
+    -> const Category * {
+  for (const auto &[Cat, _] : Counters) {
+    if (Cat->name() == Name) {
+      return Cat;
+    }
+  }
+
+  for (const auto &[Cat, _] : Histograms) {
+    if (Cat->name() == Name) {
+      return Cat;
+    }
+  }
+
+  // TODO: Timers
+
+  return nullptr;
 }
 } // namespace psr

@@ -1,21 +1,13 @@
+#pragma once
+
 /******************************************************************************
  * Copyright (c) 2017 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel, and others
  *****************************************************************************/
-
-/*
- * PAMM.h
- *
- *  Created on: 06.12.2017
- *      Author: rleer
- */
-
-#ifndef PHASAR_UTILS_PAMM_H_
-#define PHASAR_UTILS_PAMM_H_
 
 #include "phasar/Config/phasar-config.h"
 #include "phasar/Utils/TemplateString.h"
@@ -64,9 +56,9 @@ public:
 
   [[nodiscard]] constexpr llvm::StringRef name() const noexcept { return Name; }
 
-  [[nodiscard]] auto isEnabled() const noexcept { return IsEnabled; }
+  [[nodiscard]] constexpr auto isEnabled() const noexcept { return IsEnabled; }
 
-  void disable() noexcept {
+  constexpr void disable() noexcept {
 #if defined(PAMM_FULL) || defined(PAMM_CORE)
     IsEnabled = false;
 #endif
@@ -198,12 +190,14 @@ public:
   }
 
   void add(llvm::StringRef DataPointId, uint64_t Increment) {
-    this->HistData[DataPointId] += Increment;
+    if (Cat->isEnabled()) {
+      this->HistData[DataPointId] += Increment;
+    }
   }
   template <has_adl_to_string_v T>
     requires(!std::convertible_to<T, llvm::StringRef>)
   void add(T &&DataPointId, uint64_t Increment) {
-    this->HistData[psr::adl_to_string(PSR_FWD(DataPointId))] += Increment;
+    add(psr::adl_to_string(PSR_FWD(DataPointId)), Increment);
   }
 
 private:
@@ -249,7 +243,15 @@ public:
   }
 
   void printCounters(llvm::raw_ostream &OS) const;
+  void printCounters(llvm::raw_ostream &OS, const Category &Cat) const;
   void printHistograms(llvm::raw_ostream &OS) const;
+  void printHistograms(llvm::raw_ostream &OS, const Category &Cat) const;
+
+  /// Performs a linear search on all registered elements to find the category
+  /// with the given name. If none is found, returns nullptr.
+  ///
+  /// This method can be rather expensive.
+  [[nodiscard]] const Category *findCategory(llvm::StringRef Name) const;
 
 private:
   static void registerImpl(auto *Elem, auto &Into, Category *Cat,
@@ -284,11 +286,11 @@ private:
     registerImpl(Hist, Histograms, Cat, Name, "Histogram", Loc);
   }
 
-  llvm::DenseMap<Category *,
+  llvm::DenseMap<const Category *,
                  llvm::DenseMap<llvm::StringRef, detail::CounterBase *>>
       Counters;
 
-  llvm::DenseMap<Category *,
+  llvm::DenseMap<const Category *,
                  llvm::DenseMap<llvm::StringRef, detail::HistogramBase *>>
       Histograms;
 };
@@ -307,13 +309,10 @@ inline Histogram<Enabled, Name, Cat>::Histogram(
   static_assert(Cat != nullptr);
   this->Loc = Loc;
   this->TheCategory = Cat;
-  llvm::errs() << "Registering histogram: " << Name << '\n';
   Registry::instance().registerHistogram(this, Loc);
 }
 
 } // namespace pamm
-
-inline constexpr pamm::Category PAMMCategory{"<global>"};
 
 /// This class offers functionality to measure different performance metrics.
 /// All relevant functions are wrapped into preprocessor macros and should only
@@ -401,11 +400,9 @@ public:
   ///
   /// Associated macro PRINT_TIMER(TIMERID) does not check PAMM's severity level
   /// explicitly.
-  /// \brief Returns the elapsed time for a given timer id.
-  /// \param timerId Unique timer id.
   [[nodiscard]] static std::string getPrintableDuration(uint64_t Duration);
 
-  [[nodiscard]] ptrdiff_t
+  [[nodiscard]] static ptrdiff_t
   getSumCount(pamm::detail::IsCounter auto const &...Counters) {
     return (Counters.value() + ...);
   }
@@ -421,6 +418,7 @@ public:
   /// \brief Prints the measured data to the commandline - associated macro:
   /// PRINT_MEASURED_DATA
   void printMeasuredData(llvm::raw_ostream &OS);
+  void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat);
 
   /// \brief Exports the measured data to JSON - associated macro:
   /// EXPORT_MEASURED_DATA(PATH).
@@ -444,4 +442,4 @@ private:
 
 } // namespace psr
 
-#endif
+inline constexpr psr::pamm::Category PAMMCategory{"<global>"};
