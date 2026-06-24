@@ -18,25 +18,16 @@
 
 #include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/MapUtils.h"
-#include "phasar/Utils/NlohmannLogging.h"
 
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "nlohmann/json.hpp"
-
 #include <cassert>
 #include <chrono>
-#include <system_error>
 
 using namespace psr;
-using json = nlohmann::json;
-
-namespace psr {
 
 PAMM &PAMM::getInstance() {
   static PAMM Instance{};
@@ -190,7 +181,7 @@ void pamm::Registry::printTimers(llvm::raw_ostream &OS,
   printTimersImpl(OS, Cat, *CatTms);
 }
 
-void PAMM::printMeasuredData(llvm::raw_ostream &OS) {
+void pamm::printMeasuredData(llvm::raw_ostream &OS) {
   OS << "\n----- START OF EVALUATION DATA -----\n\n";
   auto &Reg = pamm::Registry::instance();
   Reg.printTimers(OS);
@@ -199,7 +190,7 @@ void PAMM::printMeasuredData(llvm::raw_ostream &OS) {
   OS << "\n----- END OF EVALUATION DATA -----\n\n";
 }
 
-void PAMM::printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
+void pamm::printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
   OS << "\n----- START OF EVALUATION DATA -----\n\n";
   scope_exit Pop = [&] { OS << "\n----- END OF EVALUATION DATA -----\n\n"; };
   if (!Cat.isEnabled()) {
@@ -214,20 +205,5 @@ void PAMM::printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
 
 auto pamm::Registry::findCategory(llvm::StringRef Name) const
     -> const Category * {
-  for (const auto &[Cat, _] : Counters) {
-    if (Cat->name() == Name) {
-      return Cat;
-    }
-  }
-
-  for (const auto &[Cat, _] : Histograms) {
-    if (Cat->name() == Name) {
-      return Cat;
-    }
-  }
-
-  // TODO: Timers
-
-  return nullptr;
+  return RegisteredCategories.lookup(Name);
 }
-} // namespace psr

@@ -19,6 +19,7 @@
 
 #include "phasar/Config/phasar-config.h"
 #include "phasar/Utils/Macros.h"
+#include "phasar/Utils/PAMM.h"
 
 namespace psr {
 /// Defines the different level of severity of PAMM's performance evaluation
@@ -63,8 +64,6 @@ inline constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
   ::psr::pamm::ScopedTimer PSR_CONCAT(PAMMScopedTimer, __COUNTER__) { TIMER_ID }
 
 #if defined(PAMM_FULL) || defined(PAMM_CORE)
-// Only include PAMM header if it is used
-#include "phasar/Utils/PAMM.h"
 
 #define PAMM_GET_INSTANCE PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()

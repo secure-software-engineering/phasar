@@ -15,6 +15,7 @@
 #include "phasar/Utils/TemplateString.h"
 #include "phasar/Utils/Timer.h"
 #include "phasar/Utils/TypeTraits.h"
+#include "phasar/Utils/Utilities.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
@@ -32,7 +33,6 @@
 #include <string> // string
 #include <type_traits>
 #include <utility>
-#include <vector> // vector
 
 namespace llvm {
 class raw_ostream;
@@ -149,6 +149,7 @@ public:
 
   [[nodiscard]] constexpr std::string qualifier() const {
     auto Ret = std::string(Cat->name());
+    Ret += "::";
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -175,6 +176,7 @@ public:
 
   [[nodiscard]] constexpr std::string qualifier() const {
     auto Ret = std::string(Cat->name());
+    Ret += "::";
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -216,6 +218,7 @@ public:
 
   [[nodiscard]] constexpr std::string qualifier() const {
     auto Ret = std::string(Cat->name());
+    Ret += "::";
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -248,6 +251,7 @@ public:
 
   [[nodiscard]] constexpr std::string qualifier() const {
     auto Ret = std::string(Cat->name());
+    Ret += "::";
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -282,6 +286,7 @@ public:
 
   [[nodiscard]] constexpr std::string qualifier() const {
     auto Ret = std::string(Cat->name());
+    Ret += "::";
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -309,6 +314,7 @@ public:
 
   [[nodiscard]] constexpr std::string qualifier() const {
     auto Ret = std::string(Cat->name());
+    Ret += "::";
     Ret += llvm::StringRef(Name);
     return Ret;
   }
@@ -363,28 +369,25 @@ public:
   void printTimers(llvm::raw_ostream &OS) const;
   void printTimers(llvm::raw_ostream &OS, const Category &Cat) const;
 
-  /// Performs a linear search on all registered elements to find the category
-  /// with the given name. If none is found, returns nullptr.
-  ///
-  /// This method can be rather expensive.
   [[nodiscard]] const Category *findCategory(llvm::StringRef Name) const;
 
 private:
-  static void registerImpl(auto *Elem, auto &Into, const Category *Cat,
-                           llvm::StringRef Name, llvm::StringRef ElemKind,
-                           std::source_location Loc) {
+  void registerImpl(auto *Elem, auto &Into, const Category *Cat,
+                    llvm::StringRef Name, llvm::StringRef ElemKind,
+                    std::source_location Loc) {
     assert(Elem != nullptr);
+    assert(Cat != nullptr);
+
+    RegisteredCategories.try_emplace(Cat->name(), Cat);
+
     auto [It, Inserted] =
         Into[Cat].try_emplace(llvm::StringRef(Name), Elem->base());
     if (!Inserted) [[unlikely]] {
       llvm::report_fatal_error(
-          "At " + llvm::Twine(Loc.file_name()) + ":" + llvm::Twine(Loc.line()) +
-          ":" + llvm::Twine(Loc.column()) + ": " + ElemKind + " " +
+          "At " + llvm::Twine(locToString(Loc)) + ": " + ElemKind + " " +
           llvm::Twine(Elem->qualifier()) +
           " already registered! Previous definition was here: " +
-          llvm::Twine(It->second->Loc.file_name()) + ":" +
-          llvm::Twine(It->second->Loc.line()) + ":" +
-          llvm::Twine(It->second->Loc.column()));
+          llvm::Twine(locToString(It->second->Loc)));
     }
   }
 
@@ -420,6 +423,8 @@ private:
   llvm::DenseMap<const Category *,
                  llvm::DenseMap<llvm::StringRef, detail::TimerBase *>>
       Timers;
+
+  llvm::StringMap<const Category *> RegisteredCategories;
 };
 
 template <bool Enabled, TemplateString Name, const Category *Cat>
@@ -446,6 +451,15 @@ inline Timer<Enabled, Name, Cat>::Timer(std::source_location Loc) noexcept {
   this->TheCategory = Cat;
   Registry::instance().registerTimer(this, Loc);
 }
+
+/// \brief Prints the measured data from all registered categories into the
+/// given output stream
+void printMeasuredData(llvm::raw_ostream &OS);
+
+/// \brief Prints the measured data from the given category into the given
+/// output stream
+void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat);
+
 } // namespace pamm
 
 /// This class offers functionality to measure different performance metrics.
@@ -497,16 +511,10 @@ public:
   void printHistograms(llvm::raw_ostream &OS);
 
   /// \brief Prints the measured data to the commandline
-  void printMeasuredData(llvm::raw_ostream &OS);
-  void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat);
-
-private:
-  llvm::StringMap<TimePoint_t> RunningTimer;
-  llvm::StringMap<std::pair<TimePoint_t, TimePoint_t>> StoppedTimer;
-  llvm::StringMap<std::vector<std::pair<TimePoint_t, TimePoint_t>>>
-      RepeatingTimer;
-  llvm::StringMap<uint64_t> Counter;
-  llvm::StringMap<llvm::StringMap<uint64_t>> Histogram;
+  void printMeasuredData(llvm::raw_ostream &OS) { pamm::printMeasuredData(OS); }
+  void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
+    pamm::printMeasuredData(OS, Cat);
+  }
 };
 
 } // namespace psr

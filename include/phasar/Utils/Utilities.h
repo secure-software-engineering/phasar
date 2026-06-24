@@ -19,6 +19,7 @@
 
 #include <optional>
 #include <set>
+#include <source_location>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -334,6 +335,8 @@ template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {
     assertNotNull(Elem);
   }
 }
+
+[[nodiscard]] std::string locToString(std::source_location Loc);
 
 } // namespace psr
 
