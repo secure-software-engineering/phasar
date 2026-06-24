@@ -753,28 +753,34 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 static constexpr ptrdiff_t BreadthKLimit = 5;
 static constexpr ptrdiff_t WidenKLimit = 128;
 
+static constexpr unsigned AllBottomId = 1;
+static constexpr unsigned AllTopId = 2;
+
 [[nodiscard]] static llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *,
                                           2>
 allBotPtr() noexcept {
-  return {nullptr, 1};
+  return {nullptr, AllBottomId};
 }
 
 [[nodiscard]] static llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *,
                                           2>
 allTopPtr() noexcept {
-  return {nullptr, 2};
+  return {nullptr, AllTopId};
 }
 
 [[nodiscard]] static EdgeFunction<l_t>
 getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2> Ptr) {
   switch (Ptr.getInt()) {
-  case 1:
+  case AllBottomId:
     return AllBottom<l_t>{};
-  case 2:
+  case AllTopId:
     return AllTop<l_t>{};
   default:
     assert(Ptr.getPointer() != nullptr);
-    return CFLFieldSensEdgeFunction{Ptr.getPointer()};
+    assert(Ptr.getPointer() == Ptr.getOpaqueValue());
+    return CFLFieldSensEdgeFunction{
+        static_cast<const CFLFieldSensEdgeFunctionImpl *>(
+            Ptr.getOpaqueValue())};
   }
 }
 
