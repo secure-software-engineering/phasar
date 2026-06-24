@@ -753,6 +753,7 @@ static void klimitPaths(auto &Paths, FieldStringManager &Mgr) {
 static constexpr ptrdiff_t BreadthKLimit = 5;
 static constexpr ptrdiff_t WidenKLimit = 128;
 
+static constexpr unsigned AllEFPtrId = 0;
 static constexpr unsigned AllBottomId = 1;
 static constexpr unsigned AllTopId = 2;
 
@@ -769,22 +770,32 @@ allTopPtr() noexcept {
 }
 
 [[nodiscard]] static EdgeFunction<l_t>
-getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2> Ptr) {
+getResultEF(llvm::PointerIntPair<const CFLFieldSensEdgeFunctionImpl *, 2>
+                Ptr) noexcept {
+  PAMM_GET_INSTANCE;
   switch (Ptr.getInt()) {
-  case AllBottomId:
-    return AllBottom<l_t>{};
-  case AllTopId:
-    return AllTop<l_t>{};
-  default:
+  [[likely]] case AllEFPtrId:
+    INC_COUNTER("getResultEF Ptr", 1, Full);
     assert(Ptr.getPointer() != nullptr);
-    assert(Ptr.getPointer() == Ptr.getOpaqueValue());
+    assert(Ptr.getPointer() == Ptr.getOpaqueValue() &&
+           "Zero-tag does not pollute the alignment bits");
     return CFLFieldSensEdgeFunction{
         static_cast<const CFLFieldSensEdgeFunctionImpl *>(
             Ptr.getOpaqueValue())};
+  case AllBottomId:
+    INC_COUNTER("getResultEF Bot", 1, Full);
+    return AllBottom<l_t>{};
+  case AllTopId:
+    INC_COUNTER("getResultEF Top", 1, Full);
+    return AllTop<l_t>{};
+  default:
+    llvm_unreachable("All valid tags should be handled explicitly");
   }
 }
 
 void CFLFieldSensIFDSProblem::regCounters() noexcept {
+  PAMM_GET_INSTANCE;
+
   REG_COUNTER("ExtendCache Refs", 0, Full);
   REG_COUNTER("ExtendCache Misses", 0, Full);
 
@@ -795,6 +806,10 @@ void CFLFieldSensIFDSProblem::regCounters() noexcept {
   REG_COUNTER("Combine LIdentitySlow", 0, Full);
   REG_COUNTER("Combine RIdentity", 0, Full);
   REG_COUNTER("Combine RIdentitySlow", 0, Full);
+
+  REG_COUNTER("getResultEF Top", 0, Full);
+  REG_COUNTER("getResultEF Bot", 0, Full);
+  REG_COUNTER("getResultEF Ptr", 0, Full);
 }
 
 auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
@@ -818,6 +833,8 @@ auto CFLFieldSensIFDSProblem::extend(const EdgeFunction<l_t> &L,
     if (FldSensR->Impl->Transform.isEpsilon()) {
       return L;
     }
+
+    PAMM_GET_INSTANCE;
 
     INC_COUNTER("ExtendCache Refs", 1, Full);
 
@@ -861,6 +878,7 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
     return Dflt;
   }
   auto Ret = [&]() -> EdgeFunction<l_t> {
+    PAMM_GET_INSTANCE;
     INC_COUNTER("Combine CallsTotal", 1, Full);
 
     const auto *FldSensL = L.dyn_cast<CFLFieldSensEdgeFunction>();
@@ -873,6 +891,7 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
             psr::minmaxVal(FldSensL->Impl, FldSensR->Impl),
             lazy{[this, FldSensL{*FldSensL},
                   FldSensR{*FldSensR}]() -> EFResultPtr {
+              PAMM_GET_INSTANCE;
               INC_COUNTER("CombineCache Misses", 1, Full);
 
               // A complicated way of expressing set-union of LPaths and RPaths.

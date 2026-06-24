@@ -311,18 +311,6 @@ struct SecondFn {
   }
 };
 
-template <is_llvm_printable_v T>
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                              const std::optional<T> &Opt) {
-  if (Opt) {
-    OS << *Opt;
-  } else {
-    OS << "<none>";
-  }
-
-  return OS;
-}
-
 template <typename T>
   requires(!std::is_pointer_v<T>)
 LLVM_ATTRIBUTE_ALWAYS_INLINE T &assertNotNull(T &Value) {
