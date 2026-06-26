@@ -748,16 +748,33 @@ bool psr::walkLoadChainTo(const llvm::Value *Start, const llvm::Value *Target,
                              ? INT64_MIN // non-constant GEP
                              : Offset.getSExtValue();
 
-    // Alloca-copy pattern (-O0 IR): load from alloca uniquely storing Target.
-    // Strip transparently without recording an offset level.
+    // -O0 mem2reg artifact: clang copies every argument/local into an alloca
+    // and re-loads it at each use. If the alloca has exactly one store and
+    // that store holds Target, the load is a transparent SSA copy -- not a
+    // real dereference of Target. Skipping OnDeref here keeps the indirection
+    // depth consistent with post-mem2reg IR (where the alloca disappears).
+    // Require Offset==0 and no other stores to avoid spurious kills when the
+    // alloca is reassigned to a different pointer.
     if (const auto *AI = llvm::dyn_cast<llvm::AllocaInst>(Base);
-        AI && llvm::any_of(AI->users(), [&](const llvm::User *U) {
-          const auto *SI = llvm::dyn_cast<llvm::StoreInst>(U);
-          return SI && SI->getPointerOperand() == AI &&
-                 SI->getValueOperand() == Target;
-        })) {
-      Cur = Target;
-      break;
+        AI && Offset.isZero()) {
+      bool HasTargetStore = false;
+      bool HasOtherStore = false;
+      for (const auto *U : AI->users()) {
+        const auto *SI = llvm::dyn_cast<llvm::StoreInst>(U);
+        if (!SI || SI->getPointerOperand() != AI) {
+          continue;
+        }
+        if (SI->getValueOperand() == Target) {
+          HasTargetStore = true;
+        } else {
+          HasOtherStore = true;
+          break;
+        }
+      }
+      if (HasTargetStore && !HasOtherStore) {
+        Cur = Target;
+        break;
+      }
     }
 
     OnDeref(ByteOffset);

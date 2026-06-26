@@ -162,15 +162,7 @@ public:
   void reserve(size_t ExpectedCapacity) {
     NodeCompressor.reserve(ExpectedCapacity);
     Depth.reserve(ExpectedCapacity);
-    // llvm::errs() << "ExpectedCapacity: " << ExpectedCapacity << '\n';
   }
-
-  // ~FieldStringManager() {
-  //   llvm::errs() << "NodeCompressor.size(): " << NodeCompressor.size() <<
-  //   '\n'; llvm::errs() << "Depth.size(): " << Depth.size() << '\n';
-  //   llvm::errs() << "KillsCompressor.size(): " << KillsCompressor.size()
-  //                << '\n';
-  // }
 
 private:
   Compressor<FieldStringNode, FieldStringNodeId> NodeCompressor{};
@@ -198,9 +190,7 @@ struct AccessPath {
   [[nodiscard]] constexpr bool
   operator==(const AccessPath &Other) const noexcept = default;
 
-  friend size_t hash_value(const AccessPath &FieldString) noexcept {
-    // return llvm::hash_combine(FieldString.Loads, FieldString.Stores,
-    //                           FieldString.Kills, FieldString.Offset);
+  friend constexpr size_t hash_value(const AccessPath &FieldString) noexcept {
     size_t HC = 37;
     HC = HC * 31 + size_t(FieldString.Loads);
     HC = HC * 31 + size_t(FieldString.Stores);
@@ -235,8 +225,10 @@ struct AccessPathDMI {
 
 /// An edge-value consisting of a set if CFL field access strings.
 struct IFDSEdgeValue {
+  using container_type = llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI>;
+
   [[clang::require_explicit_initialization]] FieldStringManager *Mgr{};
-  llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI> Paths;
+  container_type Paths;
 
   static constexpr llvm::StringLiteral LogCategory = "IFDSEdgeValue";
 

@@ -94,13 +94,12 @@ constexpr static int32_t addOffsets(int32_t L, int32_t R) noexcept {
 [[nodiscard]] auto applyOneGepAndStore(FieldStringManager &Mgr, AccessPath &F,
                                        int32_t Field, uint8_t DepthKLimit) {
   if (Mgr.depth(F.Stores) == DepthKLimit) {
-    // TODO: Optimize:
+    // XXX: Optimize:
     auto Full = Mgr.getFullFieldString(F.Stores);
     Full.erase(Full.begin());
     F.Stores = Mgr.fromFullFieldString(Full);
   }
   F.Stores = Mgr.prepend(Field, F.Stores);
-  // F.Stores = Mgr.prepend(std::exchange(F.Offset, 0) + Field, F.Stores);
   return std::true_type{};
 }
 
@@ -116,7 +115,6 @@ constexpr static int32_t addOffsets(int32_t L, int32_t R) noexcept {
 
     F.Offset = 0;
 
-    // TODO: Is this application of k-limiting correct here?
     // cf. Section 4.2.3 "K-Limiting" in the paper
     if (Mgr.depth(F.Loads) == DepthKLimit) {
       return true;
@@ -131,16 +129,12 @@ constexpr static int32_t addOffsets(int32_t L, int32_t R) noexcept {
 
   if (StoresHead.Offset != Field &&
       StoresHead.Offset != AccessPath::TopOffset) {
-    // F.print(llvm::errs() << "For AccesPath ", Mgr);
-    // llvm::errs() << ": Load " << Field << " invalid offset\n";
     return false;
   }
 
   assert(StoresHead.Offset == Field ||
          StoresHead.Offset == AccessPath::TopOffset);
-  // F.Offset = 0;
   F.Stores = StoresHead.Next;
-  // llvm::errs() << "> pop_back\n";
   return true;
 }
 
@@ -190,9 +184,53 @@ constexpr static int32_t addOffsets(int32_t L, int32_t R) noexcept {
   return std::true_type{};
 }
 
+static void applyTransformImpl(const IFDSEdgeValue::container_type &EV,
+                               IFDSEdgeValue::container_type &Into,
+                               FieldStringManager &Mgr, const AccessPath &Txn,
+                               uint8_t DepthKLimit) {
+  const auto TxnOffset = Txn.Offset;
+  const auto TxnLoads = Mgr.getFullFieldString(Txn.Loads);
+  const auto TxnStores = Mgr.getFullFieldString(Txn.Stores);
+  const auto Kills = Mgr.kills(Txn.Kills); // safety copy
+
+  for (const auto &F : EV) {
+    auto Copy = F;
+    bool Retain = [&] {
+      if (TxnOffset) {
+        if (!applyOneGep(Mgr, Copy, TxnOffset, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto Ld : TxnLoads) {
+        if (!applyOneGepAndLoad(Mgr, Copy, Ld, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto Kl : Kills) {
+        if (!applyOneGepAndKill(Mgr, Copy, Kl, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      for (auto St : TxnStores) {
+        if (!applyOneGepAndStore(Mgr, Copy, St, DepthKLimit)) {
+          return false;
+        }
+      }
+
+      return true;
+    }();
+
+    if (Retain) {
+      Into.insert(Copy);
+    }
+  }
+}
+
 void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
                     uint8_t DepthKLimit) {
-
   if (EV.Paths.empty() || Txn.empty()) {
     // Nothing to be done here
     return;
@@ -206,50 +244,13 @@ void applyTransform(IFDSEdgeValue &EV, const AccessPath &Txn,
   auto Save = std::exchange(EV.Paths, {});
   EV.Paths.reserve(Save.size());
 
-  const auto TxnOffset = Txn.Offset;
-  const auto TxnLoads = EV.Mgr->getFullFieldString(Txn.Loads);
-  const auto TxnStores = EV.Mgr->getFullFieldString(Txn.Stores);
-  const auto Kills = EV.Mgr->kills(Txn.Kills); // safety copy
-
-  for (const auto &F : Save) {
-    auto Copy = F;
-    bool Retain = [&] {
-      if (TxnOffset) {
-        if (!applyOneGep(*EV.Mgr, Copy, TxnOffset, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      for (auto Ld : TxnLoads) {
-        if (!applyOneGepAndLoad(*EV.Mgr, Copy, Ld, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      for (auto Kl : Kills) {
-        if (!applyOneGepAndKill(*EV.Mgr, Copy, Kl, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      for (auto St : TxnStores) {
-        if (!applyOneGepAndStore(*EV.Mgr, Copy, St, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      return true;
-    }();
-
-    if (Retain) {
-      EV.Paths.insert(Copy);
-    }
-  }
+  applyTransformImpl(Save, EV.Paths, *EV.Mgr, Txn, DepthKLimit);
 }
 
 void applyTransformInto(const IFDSEdgeValue &EV, IFDSEdgeValue &Into,
                         const AccessPath &Txn, uint8_t DepthKLimit) {
   assert(&EV != &Into);
+  assert(EV.Mgr == Into.Mgr);
   if (EV.Paths.empty() || Txn.empty()) {
     // Nothing to be done here
     return;
@@ -259,45 +260,7 @@ void applyTransformInto(const IFDSEdgeValue &EV, IFDSEdgeValue &Into,
     return;
   }
 
-  const auto TxnOffset = Txn.Offset;
-  const auto TxnLoads = EV.Mgr->getFullFieldString(Txn.Loads);
-  const auto TxnStores = EV.Mgr->getFullFieldString(Txn.Stores);
-  const auto Kills = EV.Mgr->kills(Txn.Kills); // safety copy
-
-  for (const auto &F : EV.Paths) {
-    auto Copy = F;
-    bool Retain = [&] {
-      if (TxnOffset) {
-        if (!applyOneGep(*EV.Mgr, Copy, TxnOffset, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      for (auto Ld : TxnLoads) {
-        if (!applyOneGepAndLoad(*EV.Mgr, Copy, Ld, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      for (auto Kl : Kills) {
-        if (!applyOneGepAndKill(*EV.Mgr, Copy, Kl, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      for (auto St : TxnStores) {
-        if (!applyOneGepAndStore(*EV.Mgr, Copy, St, DepthKLimit)) {
-          return false;
-        }
-      }
-
-      return true;
-    }();
-
-    if (Retain) {
-      Into.Paths.insert(Copy);
-    }
-  }
+  applyTransformImpl(EV.Paths, Into.Paths, *EV.Mgr, Txn, DepthKLimit);
 }
 
 static auto &printOffset(llvm::raw_ostream &OS, int32_t Offset,
@@ -342,9 +305,6 @@ void IFDSEdgeValue::applyTransforms(const IFDSEdgeValue &Txns,
 
   for (++It; It != End; ++It) {
     if (!It->empty()) {
-      // auto Tmp = *this;
-      // applyTransform(Tmp, *It, DepthKLimit);
-      // Ret.Paths.insert(Tmp.Paths.begin(), Tmp.Paths.end());
       applyTransformInto(*this, Ret, *It, DepthKLimit);
     } else {
       Ret.Paths.insert(Paths.begin(), Paths.end());
@@ -462,10 +422,10 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
   auto [BasePtr, Offset] = getBaseAndOffset(PointerOp, DL);
 
   // Trace the pointer chain from BasePtr toward SuccNode. DerefOffsets[0] is
-  // the outermost GEP offset (closest to SuccNode). The -O0 alloca-copy
-  // pattern is stripped transparently. The Stores chain is built with
-  // the outermost offset as HEAD so applyOneGepAndLoad matches in traversal
-  // order (outermost first, matching the actual memory access sequence).
+  // the outermost GEP offset (closest to SuccNode). The Stores chain is built
+  // with the outermost offset as HEAD so applyOneGepAndLoad matches in
+  // traversal order (outermost first, matching the actual memory access
+  // sequence).
   llvm::SmallVector<int32_t> DerefOffsets;
   const bool FoundSuccNode = walkLoadChainTo(
       BasePtr, SuccNode, DL, DepthKLimit, [&](int64_t ByteOffset) {
@@ -527,16 +487,12 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
   if (Curr == SuccNode) {
 
-    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+    if (llvm::isa<llvm::LoadInst>(Curr)) {
       // Load
 
-      auto [BasePtr, Offset] = getBaseAndOffset(
-          Load->getPointerOperand(), IRDB->getModule()->getDataLayout());
-
-      // TODO;: How to deal with BasePtr?
-
+      // Note: Offsets handled in GEP below
       AccessPath FieldString{};
-      FieldString.Loads = Mgr.prepend(Offset, FieldString.Loads);
+      FieldString.Loads = Mgr.prepend(/*Offset*/ 0, FieldString.Loads);
       return makeEF(
           CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
     }
@@ -917,7 +873,7 @@ auto CFLFieldSensIFDSProblem::combine(const EdgeFunction<l_t> &L,
                     auto Union = Larger;
                     Union.insert(It, End);
 
-                    // NOTE: No k-limit in combine()!!! Otherwise, we loose
+                    // NOTE: No k-limit in combine()!!! Otherwise, we may loose
                     // monotonicity of the lattice!
 
                     if (Union.size() > WidenKLimit) {
