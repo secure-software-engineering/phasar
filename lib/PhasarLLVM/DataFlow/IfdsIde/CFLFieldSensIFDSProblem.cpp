@@ -444,9 +444,8 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
   // Also match when ValueOp is a zero-offset GEP of CurrNode (e.g. the -O0
   // arraydecay pattern where `%arraydecay = gep arr, 0, 0` is stored but the
   // tainted fact is `arr` itself).
-  auto [ValueBase, ValueGepOff] = getBaseAndOffset(ValueOp, DL);
-  const bool IsValueCurrNode =
-      ValueOp == CurrNode || (ValueGepOff == 0 && ValueBase == CurrNode);
+  const auto *ValueBase = ValueOp->stripPointerCastsAndAliases();
+  const bool IsValueCurrNode = ValueOp == CurrNode || ValueBase == CurrNode;
 
   if (IsValueCurrNode && CurrNode != SuccNode && FoundSuccNode) {
     // Store: prepend innermost first so the outermost becomes the HEAD.
@@ -461,6 +460,33 @@ auto CFLFieldSensIFDSProblem::getStoreEdgeFunction(d_t CurrNode, d_t SuccNode,
 
   // unaffected by the store
   return EdgeIdentity<l_t>{};
+}
+
+auto CFLFieldSensIFDSProblem::getLoadEdgeFunction(d_t CurrNode, d_t PointerOp,
+                                                  uint8_t DepthKLimit,
+                                                  const llvm::DataLayout &DL)
+    -> EdgeFunction<l_t> {
+
+  const auto *ZeroOffsBase = PointerOp->stripPointerCastsAndAliases();
+  if (CurrNode == PointerOp || CurrNode == ZeroOffsBase) {
+    // Note: Offsets handled in GEP below
+    AccessPath FieldString{};
+    FieldString.Loads = Mgr.prepend(/*Offset*/ 0, FieldString.Loads);
+    return makeEF(
+        CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
+  }
+
+  // In case CurrNode!=PointerOp, we filter llvm values for allocation sites.
+  // GEPs are no alloc-sites!
+  // => we must handle the offsetting here in the load, without relying it being
+  //    handled in the GEP-EF
+
+  auto [BasePtr, Offset] = getBaseAndOffset(ZeroOffsBase, DL);
+
+  AccessPath FieldString{};
+  FieldString.Loads = Mgr.prepend(Offset, FieldString.Stores);
+  return makeEF(
+      CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
 }
 
 auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
@@ -487,14 +513,10 @@ auto CFLFieldSensIFDSProblem::getNormalEdgeFunction(n_t Curr, d_t CurrNode,
 
   if (Curr == SuccNode) {
 
-    if (llvm::isa<llvm::LoadInst>(Curr)) {
-      // Load
-
-      // Note: Offsets handled in GEP below
-      AccessPath FieldString{};
-      FieldString.Loads = Mgr.prepend(/*Offset*/ 0, FieldString.Loads);
-      return makeEF(
-          CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
+    if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+      return getLoadEdgeFunction(CurrNode, Load->getPointerOperand(),
+                                 DepthKLimit,
+                                 IRDB->getModule()->getDataLayout());
     }
 
     if (const auto *Gep = llvm::dyn_cast<llvm::GEPOperator>(Curr)) {

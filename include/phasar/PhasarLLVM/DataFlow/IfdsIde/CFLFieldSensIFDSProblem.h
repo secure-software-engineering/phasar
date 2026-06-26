@@ -579,6 +579,10 @@ public:
                                          uint8_t DepthKLimit,
                                          const llvm::DataLayout &DL);
 
+  EdgeFunction<l_t> getLoadEdgeFunction(d_t CurrNode, d_t PointerOp,
+                                        uint8_t DepthKLimit,
+                                        const llvm::DataLayout &DL);
+
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                           d_t SuccNode) override;
 

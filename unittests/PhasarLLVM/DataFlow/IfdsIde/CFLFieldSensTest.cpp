@@ -8,6 +8,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
@@ -15,6 +16,7 @@
 
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "SrcCodeLocationEntry.h"
 #include "TestConfig.h"
@@ -119,7 +121,7 @@ public:
       }
 
       if (Leak.contains(Source)) {
-        Leaks[CS] = Source;
+        Leaks[CS].insert(Source);
       }
 
       if (Kill.contains(Source)) {
@@ -130,7 +132,7 @@ public:
     });
   }
 
-  llvm::DenseMap<n_t, d_t> Leaks{};
+  llvm::DenseMap<n_t, std::set<d_t>> Leaks{};
 
 private:
   const psr::LLVMTaintConfig *Config{};
@@ -138,13 +140,34 @@ private:
 
 using namespace psr::unittest;
 
-class CFLFieldSensTest : public ::testing::Test {
+template <typename T>
+T makeIFDSTA(const psr::LLVMProjectIRDB *IRDB, psr::LLVMAliasInfoRef AS,
+             const psr::LLVMTaintConfig *TC);
+
+template <>
+psr::IFDSTaintAnalysis
+makeIFDSTA<psr::IFDSTaintAnalysis>(const psr::LLVMProjectIRDB *IRDB,
+                                   psr::LLVMAliasInfoRef AS,
+                                   const psr::LLVMTaintConfig *TC) {
+  return psr::IFDSTaintAnalysis(IRDB, AS, TC, {"main"},
+                                /*TaintMainArgs=*/false,
+                                /*EnableStrongUpdateStore=*/false);
+}
+
+template <>
+ExampleTaintAnalysis
+makeIFDSTA<ExampleTaintAnalysis>(const psr::LLVMProjectIRDB *IRDB,
+                                 psr::LLVMAliasInfoRef AS,
+                                 const psr::LLVMTaintConfig *TC) {
+  return ExampleTaintAnalysis(IRDB, AS, TC, {"main"});
+}
+
+using TaintSetT = std::set<TestingSrcLocation>;
+static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("xtaint/");
+const std::vector<std::string> EntryPoints = {"main"};
+
+template <typename ProblemT> class CFLFieldSensTest : public ::testing::Test {
 protected:
-  static constexpr auto PathToLLFiles = PHASAR_BUILD_SUBFOLDER("xtaint/");
-  const std::vector<std::string> EntryPoints = {"main"};
-
-  using TaintSetT = std::set<TestingSrcLocation>;
-
   void run(const llvm::Twine &IRFileName,
            const std::map<TestingSrcLocation, TaintSetT> &GroundTruth,
            bool ShouldDumpResults = false) {
@@ -156,10 +179,7 @@ protected:
     psr::LLVMAliasSet BaseAS(&IRDB);
     psr::FilteredLLVMAliasSet AS(&BaseAS);
     psr::LLVMTaintConfig TC(IRDB);
-    // ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
-    psr::IFDSTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"},
-                                        /*TaintMainArgs=*/false,
-                                        /*EnableStrongUpdateStore=*/false);
+    auto TaintProblem = makeIFDSTA<ProblemT>(&IRDB, &AS, &TC);
 
     psr::CFLFieldSensIFDSProblem FsTaintProblem(&TaintProblem);
 
@@ -202,70 +222,74 @@ protected:
   }
 };
 
-TEST_F(CFLFieldSensTest, Basic_01) {
+using ProblemTypes =
+    ::testing::Types<psr::IFDSTaintAnalysis, ExampleTaintAnalysis>;
+TYPED_TEST_SUITE(CFLFieldSensTest, ProblemTypes);
+
+TYPED_TEST(CFLFieldSensTest, Basic_01) {
 
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{8, 3, "main"},
        {LineColFunOp{8, 9, "main", llvm::Instruction::Load}}},
   };
 
-  run({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint01_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_02) {
+TYPED_TEST(CFLFieldSensTest, Basic_02) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{9, 3, "main"},
        {LineColFunOp{9, 9, "main", llvm::Instruction::Load}}},
   };
 
-  run({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint02_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_03) {
+TYPED_TEST(CFLFieldSensTest, Basic_03) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{10, 3, "main"},
        {LineColFunOp{10, 9, "main", llvm::Instruction::Load}}},
   };
 
-  run({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint03_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_04) {
+TYPED_TEST(CFLFieldSensTest, Basic_04) {
   auto Call = LineColFun{6, 3, "_Z3barPi"};
 
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {Call, {OperandOf{0, Call}}},
   };
 
-  run({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint04_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_06) {
+TYPED_TEST(CFLFieldSensTest, Basic_06) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       // no leaks expected
   };
 
-  run({PathToLLFiles + "xtaint06_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint06_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_09_1) {
+TYPED_TEST(CFLFieldSensTest, Basic_09_1) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{14, 3, "main"}, {LineColFun{14, 8, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint09_1_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_09) {
+TYPED_TEST(CFLFieldSensTest, Basic_09) {
   auto SinkCall = LineColFun{16, 3, "main"};
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {SinkCall, {OperandOf{0, SinkCall}}},
   };
 
-  run({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint09_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_12) {
+TYPED_TEST(CFLFieldSensTest, Basic_12) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{19, 3, "main"}, {LineColFun{19, 8, "main"}}},
   };
@@ -273,72 +297,72 @@ TEST_F(CFLFieldSensTest, Basic_12) {
   // We sanitize an alias - since we don't have must-alias relations, we cannot
   // kill aliases at all
 
-  run({PathToLLFiles + "xtaint12_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint12_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_13) {
+TYPED_TEST(CFLFieldSensTest, Basic_13) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint13_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint13_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_14) {
+TYPED_TEST(CFLFieldSensTest, Basic_14) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{24, 3, "main"}, {LineColFun{24, 8, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint14_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_16) {
+TYPED_TEST(CFLFieldSensTest, Basic_16) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint16_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint16_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_17) {
+TYPED_TEST(CFLFieldSensTest, Basic_17) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{17, 3, "main"}, {LineColFun{17, 8, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint17_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint17_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_18) {
+TYPED_TEST(CFLFieldSensTest, Basic_18) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       // no leaks expected
   };
 
-  run({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint18_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_20) {
+TYPED_TEST(CFLFieldSensTest, Basic_20) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{12, 3, "main"}, {LineColFun{6, 7, "main"}}},
       {LineColFun{13, 3, "main"}, {LineColFun{13, 8, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint20_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_22) {
+TYPED_TEST(CFLFieldSensTest, Basic_22) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{9, 5, "main"}, {LineColFun{9, 11, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint22_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint22_cpp_dbg.ll"}, GroundTruth);
 }
 
-TEST_F(CFLFieldSensTest, Basic_23) {
+TYPED_TEST(CFLFieldSensTest, Basic_23) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{17, 5, "main"}, {LineColFun{17, 11, "main"}}},
   };
 
-  run({PathToLLFiles + "xtaint23_cpp_dbg.ll"}, GroundTruth);
+  this->run({PathToLLFiles + "xtaint23_cpp_dbg.ll"}, GroundTruth);
 }
 
 } // namespace
