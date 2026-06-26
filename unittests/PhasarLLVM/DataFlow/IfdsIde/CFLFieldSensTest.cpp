@@ -6,6 +6,7 @@
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/CFLFieldSensIFDSProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/DefaultAllocSitesAwareIDEProblem.h"
 #include "phasar/PhasarLLVM/DataFlow/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlow/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/FilteredLLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
@@ -156,7 +157,10 @@ protected:
     psr::LLVMAliasSet BaseAS(&IRDB);
     psr::FilteredLLVMAliasSet AS(&BaseAS);
     psr::LLVMTaintConfig TC(IRDB);
-    ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
+    // ExampleTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"});
+    psr::IFDSTaintAnalysis TaintProblem(&IRDB, &AS, &TC, {"main"},
+                                        /*TaintMainArgs=*/false,
+                                        /*EnableStrongUpdateStore=*/false);
 
     psr::CFLFieldSensIFDSProblem FsTaintProblem(&TaintProblem);
 
@@ -176,7 +180,10 @@ protected:
     for (auto IIt = TaintProblem.Leaks.begin(), End = TaintProblem.Leaks.end();
          IIt != End;) {
       auto It = IIt++;
-      const auto &[LeakInst, LeakFact] = *It;
+      const auto &[LeakInst, LeakFacts] = *It;
+
+      ASSERT_EQ(LeakFacts.size(), 1);
+      const auto *LeakFact = *LeakFacts.begin();
 
       const auto &Res = Results.resultAt(LeakInst, LeakFact);
       if (const auto *FieldStrings = Res.getValueOrNull()) {
