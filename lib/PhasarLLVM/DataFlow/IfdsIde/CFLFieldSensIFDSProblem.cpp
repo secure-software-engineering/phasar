@@ -24,7 +24,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstring>
 #include <type_traits>
 #include <utility>
 
@@ -476,8 +475,8 @@ auto CFLFieldSensIFDSProblem::getLoadEdgeFunction(d_t CurrNode, d_t PointerOp,
         CFLFieldSensEdgeFunctionImpl::from(FieldString, Mgr, DepthKLimit));
   }
 
-  // In case CurrNode!=PointerOp, we filter llvm values for allocation sites.
-  // GEPs are no alloc-sites!
+  // In case CurrNode!=PointerOp, we are filtering llvm values for allocation
+  // sites. GEPs are no alloc-sites!
   // => we must handle the offsetting here in the load, without relying it being
   //    handled in the GEP-EF
 

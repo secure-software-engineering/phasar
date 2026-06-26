@@ -628,8 +628,8 @@ private:
 
   UnorderedSet<cfl_fieldsens::CFLFieldSensEdgeFunctionImpl> EFInternCache{};
 
-  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> ExtendCache;
-  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> CombineCache;
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> ExtendCache{};
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> CombineCache{};
 
   uint8_t DepthKLimit = 5; // Original from the paper
 };
