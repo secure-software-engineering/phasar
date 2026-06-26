@@ -12,7 +12,6 @@
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/TaintConfig/TaintConfigUtilities.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
-#include "phasar/Utils/Logger.h"
 
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/Instruction.h"
@@ -170,9 +169,6 @@ protected:
     psr::IterativeIDESolver Solver(&FsTaintProblem, &ICFG);
     Solver.solve();
     auto Results = Solver.getSolverResults();
-
-    // auto Results = psr::solveIDEProblem(FsTaintProblem, ICFG);
-    // Results.dumpResults(ICFG);
 
     std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
         ComputedLeaks;
@@ -333,10 +329,6 @@ TEST_F(CFLFieldSensTest, Basic_22) {
   std::map<TestingSrcLocation, TaintSetT> GroundTruth = {
       {LineColFun{9, 5, "main"}, {LineColFun{9, 11, "main"}}},
   };
-
-  // psr::Logger::initializeStderrLogger(
-  //     psr::SeverityLevel::DEBUG,
-  //     psr::FieldSensAllocSitesAwareIFDSProblem::LogCategory.str());
 
   run({PathToLLFiles + "xtaint22_cpp_dbg.ll"}, GroundTruth);
 }
