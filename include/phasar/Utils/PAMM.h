@@ -10,7 +10,6 @@
  *****************************************************************************/
 
 #include "phasar/Config/phasar-config.h"
-#include "phasar/Utils/Average.h"
 #include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/TemplateString.h"
@@ -37,9 +36,44 @@
 #include <type_traits>
 #include <utility>
 
+#ifdef PHASAR_THREAD_SAFE_PAMM
+#include <atomic>
+#include <mutex>
+#else
+#include "phasar/Utils/Average.h"
+#endif
+
 namespace llvm {
 class raw_ostream;
 } // namespace llvm
+
+/// \file
+/// PhASAR's performance measurement mechanism (PAMM).
+/// Provides counters, histograms, and timers for fine-grained performance
+/// tracking. Use the macros from PAMMMacros.h to declare static instances
+/// of these metrics. On construction, they are automatically registered in the
+/// static pamm::Registry, so that report-generation can be automated.
+/// The macros expect a valid C++ identifier as name, and a severify-level
+/// (Core/Full) under which the metric should be active.
+///
+/// Metrics are categorizable via a pamm::Category. The
+/// performance report groups by category; categories can be enabled/disabled at
+/// runtime. By convention, the macros register the metrics under the category
+/// 'PAMMCategory'; create a new category with PAMM_CATEGORY(name).
+///
+/// Currently, PAMM can be run with all metrics (severity level 2 = Full) or
+/// only core metrics (severity level 1 = Core) enabled. The severity level can
+/// be changed when building PhASAR. The CMake option is
+/// -DPHASAR_ENABLE_PAMM=[Off/Core/Full].
+///
+/// Thread-safety:
+/// If PhASAR is configured with the cmake-option -DPHASAR_THREAD_SAFE_PAMM=ON,
+/// PAMM provides some thread-safety guarentees. Generally, construction and
+/// destruction of metrics is NOT thread-safe. The pamm::Registry is therefore
+/// also NOT thread-safe. Adding data, i.e, incrementing counters, adding to
+/// histograms, starting/stopping timers is protected by suitable
+/// synchronization primitives and can therefore be safely performed
+/// concurrently.
 
 namespace psr {
 
@@ -71,14 +105,21 @@ public:
 
   [[nodiscard]] constexpr llvm::StringRef name() const noexcept { return Name; }
 
-  [[nodiscard]] constexpr auto isEnabled() const noexcept { return IsEnabled; }
+  [[nodiscard]] constexpr bool isEnabled() const noexcept {
+    return IsEnabled.load(std::memory_order_relaxed);
+  }
 
   constexpr void disable() noexcept { IsEnabled = false; }
   constexpr void enable() noexcept { IsEnabled = true; }
 
 private:
   llvm::StringRef Name;
-  bool IsEnabled = true;
+#ifdef PHASAR_THREAD_SAFE_PAMM
+  std::atomic_bool
+#else
+  bool
+#endif
+      IsEnabled = true;
 };
 
 template <> class Category<false> {
@@ -111,38 +152,172 @@ namespace detail {
 struct PAMMBase {
   std::source_location Loc{};
 };
+#ifdef PHASAR_THREAD_SAFE_PAMM
+struct CounterBase : PAMMBase {
+  std::atomic_ptrdiff_t Ctr{};
+
+  constexpr void add(ptrdiff_t Offset) noexcept {
+    Ctr.fetch_add(Offset, std::memory_order_relaxed);
+  }
+
+  [[nodiscard]] constexpr ptrdiff_t value() const noexcept {
+    return Ctr.load(std::memory_order_relaxed);
+  }
+};
+
+struct MinMaxCounterBase : PAMMBase {
+  std::atomic_size_t Min = SIZE_MAX;
+  std::atomic_size_t Max = 0;
+  std::atomic_size_t Sum{};
+  std::atomic_size_t NumSamples{};
+
+  constexpr void add(size_t Offset) noexcept {
+    Sum.fetch_add(Offset, std::memory_order_relaxed);
+    NumSamples.fetch_add(1, std::memory_order_relaxed);
+
+    {
+      auto PrevMin = Min.load(std::memory_order_relaxed);
+      while (PrevMin > Offset &&
+             Min.compare_exchange_weak(PrevMin, Offset,
+                                       std::memory_order_relaxed)) {
+      }
+    }
+    {
+      auto PrevMax = Max.load(std::memory_order_relaxed);
+      while (PrevMax < Offset &&
+             Max.compare_exchange_weak(PrevMax, Offset,
+                                       std::memory_order_relaxed)) {
+      }
+    }
+  };
+
+  [[nodiscard]] double getAverage() noexcept {
+    return double(Sum.load(std::memory_order_relaxed)) /
+           double(getNumSamples());
+  }
+  [[nodiscard]] size_t getNumSamples() noexcept {
+    return NumSamples.load(std::memory_order_relaxed);
+  }
+
+  void clear() noexcept {
+    Min = SIZE_MAX;
+    Max = 0;
+    Sum = 0;
+    NumSamples = 0;
+  }
+};
+
+struct TimerBase : PAMMBase {
+
+  static constexpr std::chrono::steady_clock::time_point None =
+      std::chrono::steady_clock::time_point::max();
+
+  std::atomic<std::chrono::steady_clock::time_point> StartPoint = None;
+  // no atomic arithmetic with nanoseconds, so use int64_t here:
+  std::atomic<int64_t> Acc{};
+
+  [[nodiscard]] constexpr bool isStarted() const noexcept {
+    // XXX: Revisit the memory-order here: Can it be relaxed?
+    return StartPoint.load(std::memory_order_acquire) != None;
+  }
+
+  void start() noexcept {
+    assert(!isStarted() && "Starting an already running timer is not allowed");
+    StartPoint.store(std::chrono::steady_clock::now(),
+                     std::memory_order_release);
+  }
+
+  void stop() noexcept {
+    auto EndPoint = std::chrono::steady_clock::now();
+    auto StartPoint =
+        this->StartPoint.exchange(None, std::memory_order_acq_rel);
+    assert(StartPoint != None && "Stopping a not-running timer is not allowed");
+    Acc.fetch_add((EndPoint - StartPoint).count(), std::memory_order_relaxed);
+  }
+
+  void reset() noexcept {
+    Acc = 0;
+    StartPoint = None;
+  }
+
+  [[nodiscard]] constexpr auto elapsedNanos() const noexcept {
+    return std::chrono::nanoseconds(Acc.load(std::memory_order_relaxed));
+  }
+
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  pendingNanos() const noexcept {
+    auto StartPoint = this->StartPoint.load(std::memory_order_relaxed);
+    if (StartPoint == None) {
+      return {};
+    }
+    auto EndPoint = std::chrono::steady_clock::now();
+    return EndPoint - StartPoint;
+  }
+
+  [[nodiscard]] hms elapsed() const noexcept { return elapsedNanos(); }
+};
+
+#else
 struct CounterBase : PAMMBase {
   ptrdiff_t Ctr{};
-  // TODO: Add thread-safe counter
+
+  constexpr void add(ptrdiff_t Offset) noexcept { Ctr += Offset; }
+
+  [[nodiscard]] constexpr ptrdiff_t value() const noexcept { return Ctr; }
 };
+
 struct MinMaxCounterBase : PAMMBase {
   size_t Min = SIZE_MAX;
   size_t Max = 0;
   Sampler Avg{};
+
+  constexpr void add(size_t Offset) noexcept {
+    Avg.addSample(Offset);
+    if (Offset > Max) {
+      Max = Offset;
+    }
+    if (Offset < Min) {
+      Min = Offset;
+    }
+  };
+
+  [[nodiscard]] double getAverage() noexcept { return Avg.getAverage(); }
+  [[nodiscard]] size_t getNumSamples() noexcept { return Avg.getNumSamples(); }
+
+  void clear() noexcept {
+    Min = SIZE_MAX;
+    Max = 0;
+    Avg = {};
+  }
 };
 
-struct HistogramBase : PAMMBase {
-  llvm::StringMap<uint64_t> HistData{};
-};
 struct TimerBase : PAMMBase {
-  std::optional<SimpleTimer> Tm{};
+
+  static constexpr std::chrono::steady_clock::time_point None =
+      std::chrono::steady_clock::time_point::max();
+
+  std::chrono::steady_clock::time_point StartPoint = None;
   std::chrono::nanoseconds Acc{};
 
+  [[nodiscard]] constexpr bool isStarted() const noexcept {
+    return StartPoint != None;
+  }
+
   void start() noexcept {
-    assert(!Tm.has_value() &&
-           "Starting an already running timer is not allowed");
-    Tm.emplace();
+    assert(!isStarted() && "Starting an already running timer is not allowed");
+    StartPoint = std::chrono::steady_clock::now();
   }
 
   void stop() noexcept {
-    assert(Tm.has_value() && "Stopping a not-running timer is not allowed");
-    Acc += Tm->elapsedNanos();
-    Tm.reset();
+    assert(isStarted() && "Stopping a not-running timer is not allowed");
+    auto EndPoint = std::chrono::steady_clock::now();
+    Acc += (EndPoint - StartPoint);
+    StartPoint = None;
   }
 
   void reset() noexcept {
     Acc = {};
-    Tm.reset();
+    StartPoint = None;
   }
 
   [[nodiscard]] constexpr std::chrono::nanoseconds
@@ -150,7 +325,25 @@ struct TimerBase : PAMMBase {
     return Acc;
   }
 
+  [[nodiscard]] constexpr std::chrono::nanoseconds
+  pendingNanos() const noexcept {
+    if (!isStarted()) {
+      return {};
+    }
+    auto EndPoint = std::chrono::steady_clock::now();
+    return EndPoints - StartPoint;
+  }
+
   [[nodiscard]] hms elapsed() const noexcept { return Acc; }
+};
+
+#endif
+
+struct HistogramBase : PAMMBase {
+  llvm::StringMap<uint64_t> HistData{};
+#ifdef PHASAR_THREAD_SAFE_PAMM
+  std::mutex Mx{};
+#endif
 };
 
 template <TemplateString Name, const auto *Cat> struct Qualified {
@@ -176,17 +369,18 @@ public:
   inline explicit Counter(
       std::source_location Loc = std::source_location::current()) noexcept;
 
-  constexpr void add(ptrdiff_t Offset) noexcept { Ctr += Offset; }
-  constexpr void operator++() noexcept { ++Ctr; }
-  constexpr void operator++(int) noexcept { ++Ctr; }
-  constexpr void operator+=(ptrdiff_t Offset) noexcept { Ctr += Offset; }
-  constexpr void operator-=(ptrdiff_t Offset) noexcept { Ctr -= Offset; }
+  using detail::CounterBase::add;
+  using detail::CounterBase::value;
 
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Counter C) {
+  constexpr void operator++() noexcept { add(1); }
+  constexpr void operator++(int) noexcept { add(1); }
+  constexpr void operator+=(ptrdiff_t Offset) noexcept { add(Offset); }
+  constexpr void operator-=(ptrdiff_t Offset) noexcept { add(-Offset); }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const Counter &C) {
     return OS << Cat->name() << "::" << Name << ": " << C.Ctr;
   }
-
-  [[nodiscard]] constexpr ptrdiff_t value() const noexcept { return Ctr; }
 
 private:
   [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
@@ -217,13 +411,14 @@ public:
 namespace detail {
 struct IsCounterImpl {
   template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
-  static std::true_type test(Counter<Enabled, Name, Cat>);
+  static std::true_type test(const Counter<Enabled, Name, Cat> &);
 
   static std::false_type test(...);
 };
 
 template <typename T>
-concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
+concept IsCounter =
+    decltype(IsCounterImpl::test(std::declval<const T &>()))::value;
 } // namespace detail
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
@@ -237,24 +432,17 @@ public:
   inline explicit MinMaxCounter(
       std::source_location Loc = std::source_location::current()) noexcept;
 
-  constexpr void add(size_t Offset) noexcept {
-    Avg.addSample(Offset);
-    if (Offset > Max) {
-      Max = Offset;
-    }
-    if (Offset < Min) {
-      Min = Offset;
-    }
-  };
+  using detail::MinMaxCounterBase::add;
 
   constexpr void operator++() noexcept { add(1); }
   constexpr void operator++(int) noexcept { add(1); }
   constexpr void operator+=(size_t Offset) noexcept { add(Offset); }
 
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, MinMaxCounter C) {
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       const MinMaxCounter &C) {
     return OS << Cat->name() << "::" << Name << ": min(" << C.Min << "), max("
-              << C.Max << "), avg: " << llvm::format("%g", C.Avg.getAverage())
-              << ", #samples(" << C.Avg.getNumSamples() << ')';
+              << C.Max << "), avg: " << llvm::format("%g", C.getAverage())
+              << ", #samples(" << C.getNumSamples() << ')';
   }
 
 private:
@@ -294,6 +482,9 @@ public:
                                        const Histogram &H) {
     OS << Cat->name() << "::" << Name << ":\n";
     OS << "Value\t| #Occurrences\n";
+#ifdef PHASAR_THREAD_SAFE_PAMM
+    std::lock_guard Lck(H.Mx);
+#endif
     for (const auto &[Dat, Val] : H.HistData) {
       OS << Dat << "\t| " << Val << '\n';
     }
@@ -302,6 +493,9 @@ public:
 
   void add(llvm::StringRef DataPointId, uint64_t Increment) {
     if (Cat->isEnabled()) {
+#ifdef PHASAR_THREAD_SAFE_PAMM
+      std::lock_guard Lck(Mx);
+#endif
       this->HistData[DataPointId] += Increment;
     }
   }
@@ -397,7 +591,7 @@ public:
   }
 
   ~ScopedTimer() {
-    if (Tm->Tm.has_value()) {
+    if (Tm->isStarted()) {
       Tm->stop();
     }
   }

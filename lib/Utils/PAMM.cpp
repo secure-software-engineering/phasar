@@ -99,8 +99,8 @@ static void printMMCountersImpl(
   OS << Cat.name() << ":\n";
   for (const auto &[Name, C] : CatCtrs) {
     OS << "  " << Name << ": min(" << C->Min << "), max(" << C->Max
-       << "), avg: " << llvm::format("%g", C->Avg.getAverage()) << ", #samples("
-       << C->Avg.getNumSamples() << ")\n";
+       << "), avg: " << llvm::format("%g", C->getAverage()) << ", #samples("
+       << C->getNumSamples() << ")\n";
   }
   OS << '\n';
 }
@@ -155,11 +155,11 @@ static void printTimersImpl(
     const llvm::DenseMap<llvm::StringRef, pamm::detail::TimerBase *> &CatTms) {
   OS << Cat.name() << ":\n";
   for (const auto &[Name, Tm] : CatTms) {
-    auto Time = Tm->Acc;
-    bool StillRunning = Tm->Tm.has_value();
+    auto Time = Tm->elapsedNanos();
+    bool StillRunning = Tm->isStarted();
     OS << "  " << Name << ":\t";
     if (StillRunning) {
-      Time += Tm->Tm->elapsedNanos();
+      Time += Tm->pendingNanos();
       OS << hms{Time} << " (still running)\n";
     } else {
       OS << hms{Time} << '\n';
@@ -217,9 +217,7 @@ void pamm::Registry::reset() noexcept {
 
   for (const auto &[Cat, Ctrs] : MMCounters) {
     for (const auto &[_, Ctr] : Ctrs) {
-      Ctr->Min = SIZE_MAX;
-      Ctr->Max = 0;
-      Ctr->Avg = {};
+      Ctr->clear();
     }
   }
 

@@ -21,6 +21,7 @@
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/PAMM.h"
 
+// optional second parameter: boolean whether the category is enabled by default
 #define PAMM_CATEGORY(NAME, ...)                                               \
   static inline ::psr::pamm::Category<> PAMMCategory {                         \
     #NAME __VA_OPT__(, ) __VA_ARGS__                                           \

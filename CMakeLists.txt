@@ -199,6 +199,7 @@ endif (PHASAR_ENABLE_PIC)
 # PAMM
 set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')")
 set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
+option(PHASAR_THREAD_SAFE_PAMM "Use a thread-safe version of PAMM, if PAMM is enabled" ON)
 
 if(PHASAR_ENABLE_PAMM STREQUAL "Core")
   set(PAMM_CORE ON)
