@@ -456,7 +456,6 @@ public:
 
   void print() {
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
-      PAMM_GET_INSTANCE;
       PHASAR_LOG_LEVEL(INFO, "=== Flow-Edge-Function Cache Statistics ===");
       PHASAR_LOG_LEVEL(INFO, "Normal-flow function cache hits: "
                                  << NormalFF_CacheHit.value());

@@ -80,7 +80,7 @@
 #define PRINT_TIMER(TIMER_ID)                                                  \
   pamm.getPrintableDuration(pamm.elapsedTime(TIMER_ID))
 
-#define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
+#define GET_SUM_COUNT(...) ::psr::pamm::getSumCount(__VA_ARGS__)
 
 #define PRINT_MEASURED_DATA(OUTPUT_STREAM) pamm.printMeasuredData(OUTPUT_STREAM)
 #define EXPORT_MEASURED_DATA(PATH) pamm.exportMeasuredData(PATH)

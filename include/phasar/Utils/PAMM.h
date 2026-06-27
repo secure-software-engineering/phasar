@@ -567,6 +567,11 @@ void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category<true> &Cat);
 inline void printMeasuredData(llvm::raw_ostream &OS,
                               const pamm::Category<false> &Cat) {}
 
+[[nodiscard]] inline ptrdiff_t
+getSumCount(pamm::detail::IsCounter auto const &...Counters) noexcept {
+  return (Counters.value() + ...);
+}
+
 } // namespace pamm
 
 /// This class offers functionality to measure different performance metrics.
@@ -589,7 +594,8 @@ inline void printMeasuredData(llvm::raw_ostream &OS,
 /// @note This class implements the Singleton Pattern - use the
 /// PAMM_GET_INSTANCE macro to retrieve an instance of PAMM before you use any
 /// other macro from this class.
-class PAMM final {
+class [[deprecated("Use the new PAMM functionality from the psr::pamm "
+                   "namespace instead")]] PAMM final {
 public:
   using TimePoint_t = std::chrono::steady_clock::time_point;
   using Duration_t = std::chrono::nanoseconds;
