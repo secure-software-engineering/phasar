@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "phasar/Config/phasar-config.h"
+#include "phasar/Utils/Average.h"
 #include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/TemplateString.h"
@@ -23,11 +24,13 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/Format.h"
 #include "llvm/Support/WithColor.h"
 
 #include <chrono> // high_resolution_clock::time_point, milliseconds
 #include <concepts>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <source_location>
 #include <string> // string
@@ -112,6 +115,12 @@ struct CounterBase : PAMMBase {
   ptrdiff_t Ctr{};
   // TODO: Add thread-safe counter
 };
+struct MinMaxCounterBase : PAMMBase {
+  size_t Min = SIZE_MAX;
+  size_t Max = 0;
+  Sampler Avg{};
+};
+
 struct HistogramBase : PAMMBase {
   llvm::StringMap<uint64_t> HistData{};
 };
@@ -214,6 +223,68 @@ struct IsCounterImpl {
 template <typename T>
 concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
 } // namespace detail
+
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+class MinMaxCounter : private detail::MinMaxCounterBase {
+  friend Registry;
+
+public:
+  inline explicit MinMaxCounter(
+      std::source_location Loc = std::source_location::current()) noexcept;
+
+  constexpr void add(size_t Offset) noexcept {
+    Avg.addSample(Offset);
+    if (Offset > Max) {
+      Max = Offset;
+    }
+    if (Offset < Min) {
+      Min = Offset;
+    }
+  };
+
+  constexpr void operator++() noexcept { add(1); }
+  constexpr void operator++(int) noexcept { add(1); }
+  constexpr void operator+=(size_t Offset) noexcept { add(Offset); }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, MinMaxCounter C) {
+    return OS << Cat->name() << "::" << Name << ": min(" << C.Min << "), max("
+              << C.Max << "), avg: " << llvm::format("%g", C.Avg.getAverage())
+              << ", #samples(" << C.Avg.getNumSamples() << ')';
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += "::";
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+
+private:
+  [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
+};
+
+template <TemplateString Name, const Category<false> *Cat>
+class MinMaxCounter<false, Name, Cat> {
+public:
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(size_t Offset) noexcept {}
+
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
+  operator+=(size_t Offset) noexcept {}
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       MinMaxCounter /*C*/) {
+    return OS << Cat->name() << "::" << Name;
+  }
+
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += "::";
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+};
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 class Histogram : private detail::HistogramBase {
@@ -390,6 +461,12 @@ public:
   void printCounters(llvm::raw_ostream &OS, const Category<true> &Cat) const;
   void printCounters(llvm::raw_ostream &OS, const Category<false> &Cat) const {}
 
+  void printMinMaxCounters(llvm::raw_ostream &OS) const;
+  void printMinMaxCounters(llvm::raw_ostream &OS,
+                           const Category<true> &Cat) const;
+  void printMinMaxCounters(llvm::raw_ostream &OS,
+                           const Category<false> &Cat) const {}
+
   void printHistograms(llvm::raw_ostream &OS) const;
   void printHistograms(llvm::raw_ostream &OS, const Category<true> &Cat) const;
   void printHistograms(llvm::raw_ostream &OS,
@@ -435,6 +512,13 @@ private:
   }
 
   template <TemplateString Name, const Category<true> *Cat>
+  void registerMMCounter(
+      MinMaxCounter<true, Name, Cat> *Ctr,
+      std::source_location Loc = std::source_location::current()) noexcept {
+    registerImpl(Ctr, MMCounters, Cat, Name, "MinMaxCounter", Loc);
+  }
+
+  template <TemplateString Name, const Category<true> *Cat>
   void registerHistogram(
       Histogram<true, Name, Cat> *Hist,
       std::source_location Loc = std::source_location::current()) noexcept {
@@ -453,6 +537,10 @@ private:
       Counters;
 
   llvm::DenseMap<const Category<true> *,
+                 llvm::DenseMap<llvm::StringRef, detail::MinMaxCounterBase *>>
+      MMCounters;
+
+  llvm::DenseMap<const Category<true> *,
                  llvm::DenseMap<llvm::StringRef, detail::HistogramBase *>>
       Histograms;
 
@@ -468,6 +556,14 @@ inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
   Registry::instance().registerCounter(this, Loc);
+}
+
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+inline MinMaxCounter<Enabled, Name, Cat>::MinMaxCounter(
+    std::source_location Loc) noexcept {
+  static_assert(Cat != nullptr);
+  this->Loc = Loc;
+  Registry::instance().registerMMCounter(this, Loc);
 }
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>

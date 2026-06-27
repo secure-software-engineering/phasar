@@ -25,10 +25,8 @@ using namespace psr;
 
 PAMM_CATEGORY(CallGraphBuilder);
 
-PAMM_COUNTER(CGFunctions, CGBuilder.viewCallGraph().getNumVertexFunctions(),
-             Full);
-PAMM_COUNTER(CGCallSites, CGBuilder.viewCallGraph().getNumVertexCallSites(),
-             Full);
+PAMM_COUNTER(CGFunctions, Full);
+PAMM_COUNTER(CGCallSites, Full);
 
 struct Builder {
   const LLVMProjectIRDB *IRDB = nullptr;

@@ -26,10 +26,16 @@
     #NAME __VA_OPT__(, ) __VA_ARGS__                                           \
   }
 
-#define PAMM_COUNTER(COUNTER_ID, INIT_VALUE, SEV_LVL)                          \
+#define PAMM_COUNTER(COUNTER_ID, SEV_LVL)                                      \
   static inline ::psr::pamm::Counter<PAMM_CURR_SEV_LEVEL >=                    \
                                          PAMM_SEVERITY_LEVEL::SEV_LVL,         \
                                      #COUNTER_ID, &PAMMCategory>               \
+      COUNTER_ID
+
+#define PAMM_MINMAX_COUNTER(COUNTER_ID, SEV_LVL)                               \
+  static inline ::psr::pamm::MinMaxCounter<PAMM_CURR_SEV_LEVEL >=              \
+                                               PAMM_SEVERITY_LEVEL::SEV_LVL,   \
+                                           #COUNTER_ID, &PAMMCategory>         \
       COUNTER_ID
 
 #define PAMM_HISTOGRAM(HISTOGRAM_ID, SEV_LVL)                                  \

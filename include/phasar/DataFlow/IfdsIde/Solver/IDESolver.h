@@ -78,22 +78,21 @@ class IDESolver
   PAMM_CATEGORY(IDESolver);
 
   // NOLINTBEGIN
-  PAMM_COUNTER(Genfacts, 0, Core);
-  PAMM_COUNTER(Killfacts, 0, Core);
-  PAMM_COUNTER(Summaryreuse, 0, Core);
-  PAMM_COUNTER(IntraPathEdges, 0, Core);
-  PAMM_COUNTER(InterPathEdges, 0, Core);
-  PAMM_COUNTER(FFQueries, 0, Full);
-  PAMM_COUNTER(EFQueries, 0, Full);
-  PAMM_COUNTER(ValuePropagation, 0, Full);
-  PAMM_COUNTER(ValueComputation, 0, Full);
-  PAMM_COUNTER(SpecialSummaryFF_Application, 0, Full);
-  PAMM_COUNTER(SpecialSummaryEF_Queries, 0, Full);
-  PAMM_COUNTER(JumpFnConstruction, 0, Full);
-  PAMM_COUNTER(ProcessCall, 0, Full);
-  PAMM_COUNTER(ProcessNormal, 0, Full);
-  PAMM_COUNTER(ProcessExit, 0, Full);
-  PAMM_COUNTER(Calls_getAliasSet, 0, Full);
+  PAMM_COUNTER(Genfacts, Core);
+  PAMM_COUNTER(Killfacts, Core);
+  PAMM_COUNTER(Summaryreuse, Core);
+  PAMM_COUNTER(IntraPathEdges, Core);
+  PAMM_COUNTER(InterPathEdges, Core);
+  PAMM_COUNTER(FFQueries, Full);
+  PAMM_COUNTER(EFQueries, Full);
+  PAMM_COUNTER(ValuePropagation, Full);
+  PAMM_COUNTER(ValueComputation, Full);
+  PAMM_COUNTER(SpecialSummaryFF_Application, Full);
+  PAMM_COUNTER(SpecialSummaryEF_Queries, Full);
+  PAMM_COUNTER(JumpFnConstruction, Full);
+  PAMM_COUNTER(ProcessCall, Full);
+  PAMM_COUNTER(ProcessNormal, Full);
+  PAMM_COUNTER(ProcessExit, Full);
 
   PAMM_HISTOGRAM(DataFlowFacts, Full);
   PAMM_HISTOGRAM(PointsTo, Full);

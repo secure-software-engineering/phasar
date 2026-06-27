@@ -26,6 +26,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstdint>
 
 using namespace psr;
 
@@ -80,6 +81,50 @@ void pamm::Registry::printCounters(llvm::raw_ostream &OS,
   printCountersImpl(OS, Cat, *CatCtrs);
 }
 
+static void printMMCountersImpl(
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
+    const llvm::DenseMap<llvm::StringRef, pamm::detail::MinMaxCounterBase *>
+        &CatCtrs) {
+  OS << Cat.name() << ":\n";
+  for (const auto &[Name, C] : CatCtrs) {
+    OS << "  " << Name << ": min(" << C->Min << "), max(" << C->Max
+       << "), avg: " << llvm::format("%g", C->Avg.getAverage()) << ", #samples("
+       << C->Avg.getNumSamples() << ")\n";
+  }
+  OS << '\n';
+}
+
+void pamm::Registry::printMinMaxCounters(llvm::raw_ostream &OS) const {
+  OS << "\nMin-Max-Counters\n";
+  OS << "--------\n";
+
+  for (const auto &[Cat, CatCtrs] : MMCounters) {
+    if (Cat->isEnabled()) {
+      printMMCountersImpl(OS, *Cat, CatCtrs);
+    }
+  }
+  if (Counters.empty()) {
+    OS << "No MinMax-Counter registered!\n";
+  }
+}
+void pamm::Registry::printMinMaxCounters(llvm::raw_ostream &OS,
+                                         const Category<true> &Cat) const {
+  if (!Cat.isEnabled()) {
+    OS << "Category '" << Cat.name() << "' is disabled\n";
+    return;
+  }
+  const auto *CatCtrs = getOrNull(MMCounters, &Cat);
+  if (!CatCtrs || CatCtrs->empty()) {
+    OS << "No Min-Max-Counters for category '" << Cat.name()
+       << "' registered!\n";
+    return;
+  }
+
+  OS << "\nMin-Max-Counters\n";
+  OS << "--------\n";
+  printMMCountersImpl(OS, Cat, *CatCtrs);
+}
+
 void PAMM::printCounters(llvm::raw_ostream &OS) {
   pamm::Registry::instance().printCounters(OS);
 }
@@ -92,6 +137,14 @@ void pamm::Registry::reset() noexcept {
   for (const auto &[Cat, Ctrs] : Counters) {
     for (const auto &[_, Ctr] : Ctrs) {
       Ctr->Ctr = 0;
+    }
+  }
+
+  for (const auto &[Cat, Ctrs] : MMCounters) {
+    for (const auto &[_, Ctr] : Ctrs) {
+      Ctr->Min = SIZE_MAX;
+      Ctr->Max = 0;
+      Ctr->Avg = {};
     }
   }
 
@@ -110,6 +163,7 @@ void pamm::Registry::reset() noexcept {
 
 void pamm::Registry::clear() noexcept {
   Counters.clear();
+  MMCounters.clear();
   Histograms.clear();
   Timers.clear();
   RegisteredCategories.clear();
@@ -213,6 +267,7 @@ void pamm::printMeasuredData(llvm::raw_ostream &OS) {
   auto &Reg = pamm::Registry::instance();
   Reg.printTimers(OS);
   Reg.printCounters(OS);
+  Reg.printMinMaxCounters(OS);
   Reg.printHistograms(OS);
   OS << "\n----- END OF EVALUATION DATA -----\n\n";
 }
@@ -228,6 +283,7 @@ void pamm::printMeasuredData(llvm::raw_ostream &OS,
   auto &Reg = pamm::Registry::instance();
   Reg.printTimers(OS, Cat);
   Reg.printCounters(OS, Cat);
+  Reg.printMinMaxCounters(OS, Cat);
   Reg.printHistograms(OS, Cat);
 }
 

@@ -93,35 +93,35 @@ class FlowEdgeFunctionCache {
   PAMM_CATEGORY(FlowEdgeFunctionCache);
 
   // NOLINTBEGIN
-  PAMM_COUNTER(NormalFF_Construction, 0, Full);
-  PAMM_COUNTER(NormalFF_CacheHit, 0, Full);
+  PAMM_COUNTER(NormalFF_Construction, Full);
+  PAMM_COUNTER(NormalFF_CacheHit, Full);
   // Counters for the call flow functions
-  PAMM_COUNTER(CallFF_Construction, 0, Full);
-  PAMM_COUNTER(CallFF_CacheHit, 0, Full);
+  PAMM_COUNTER(CallFF_Construction, Full);
+  PAMM_COUNTER(CallFF_CacheHit, Full);
   // Counters for return flow functions
-  PAMM_COUNTER(ReturnFF_Construction, 0, Full);
-  PAMM_COUNTER(ReturnFF_CacheHit, 0, Full);
+  PAMM_COUNTER(ReturnFF_Construction, Full);
+  PAMM_COUNTER(ReturnFF_CacheHit, Full);
   // Counters for the call to return flow functions
-  PAMM_COUNTER(CallToRetFF_Construction, 0, Full);
-  PAMM_COUNTER(CallToRetFF_CacheHit, 0, Full);
+  PAMM_COUNTER(CallToRetFF_Construction, Full);
+  PAMM_COUNTER(CallToRetFF_CacheHit, Full);
   // Counters for the summary flow functions
-  PAMM_COUNTER(SummaryFF_Construction, 0, Full);
-  PAMM_COUNTER(SummaryFF_CacheHit, 0, Full);
+  PAMM_COUNTER(SummaryFF_Construction, Full);
+  PAMM_COUNTER(SummaryFF_CacheHit, Full);
   // Counters for the normal edge functions
-  PAMM_COUNTER(NormalEF_Construction, 0, Full);
-  PAMM_COUNTER(NormalEF_CacheHit, 0, Full);
+  PAMM_COUNTER(NormalEF_Construction, Full);
+  PAMM_COUNTER(NormalEF_CacheHit, Full);
   // Counters for the call edge functions
-  PAMM_COUNTER(CallEF_Construction, 0, Full);
-  PAMM_COUNTER(CallEF_CacheHit, 0, Full);
+  PAMM_COUNTER(CallEF_Construction, Full);
+  PAMM_COUNTER(CallEF_CacheHit, Full);
   // Counters for the return edge functions
-  PAMM_COUNTER(ReturnEF_Construction, 0, Full);
-  PAMM_COUNTER(ReturnEF_CacheHit, 0, Full);
+  PAMM_COUNTER(ReturnEF_Construction, Full);
+  PAMM_COUNTER(ReturnEF_CacheHit, Full);
   // Counters for the call to return edge functions
-  PAMM_COUNTER(CallToRetEF_Construction, 0, Full);
-  PAMM_COUNTER(CallToRetEF_CacheHit, 0, Full);
+  PAMM_COUNTER(CallToRetEF_Construction, Full);
+  PAMM_COUNTER(CallToRetEF_CacheHit, Full);
   // Counters for the summary edge functions
-  PAMM_COUNTER(SummaryEF_Construction, 0, Full);
-  PAMM_COUNTER(SummaryEF_CacheHit, 0, Full);
+  PAMM_COUNTER(SummaryEF_Construction, Full);
+  PAMM_COUNTER(SummaryEF_CacheHit, Full);
 
   // NOLINTEND
 

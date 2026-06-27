@@ -36,7 +36,7 @@ using namespace psr;
 namespace {
 PAMM_CATEGORY(IFDSConstAnalysis);
 
-PAMM_COUNTER(Calls_getContextRelevantAliasSet, 0, Full); // NOLINT
+PAMM_COUNTER(Calls_getContextRelevantAliasSet, Full); // NOLINT
 PAMM_HISTOGRAM(ContextRelevantPointer, Full);
 PAMM_TIMER(ContextRelevantAliasComputationTm, Full);
 } // namespace
