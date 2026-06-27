@@ -152,15 +152,27 @@ struct TimerBase : PAMMBase {
 
   [[nodiscard]] hms elapsed() const noexcept { return Acc; }
 };
+
+template <TemplateString Name, const auto *Cat> struct Qualified {
+  [[nodiscard]] constexpr std::string qualifier() const {
+    auto Ret = std::string(Cat->name());
+    Ret += "::";
+    Ret += llvm::StringRef(Name);
+    return Ret;
+  }
+};
 } // namespace detail
 
 class Registry;
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
-class Counter : private detail::CounterBase {
+class Counter : private detail::CounterBase,
+                private detail::Qualified<Name, Cat> {
   friend Registry;
 
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   inline explicit Counter(
       std::source_location Loc = std::source_location::current()) noexcept;
 
@@ -173,13 +185,6 @@ public:
     return OS << Cat->name() << "::" << Name << ": " << C.Ctr;
   }
 
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
-  }
-
   [[nodiscard]] constexpr ptrdiff_t value() const noexcept { return Ctr; }
 
 private:
@@ -187,8 +192,10 @@ private:
 };
 
 template <TemplateString Name, const Category<false> *Cat>
-class Counter<false, Name, Cat> {
+class Counter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
@@ -198,13 +205,6 @@ public:
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Counter /*C*/) {
     return OS << Cat->name() << "::" << Name;
-  }
-
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
   }
 
   [[nodiscard]] constexpr std::nullopt_t value() const noexcept {
@@ -225,10 +225,13 @@ concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
 } // namespace detail
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
-class MinMaxCounter : private detail::MinMaxCounterBase {
+class MinMaxCounter : private detail::MinMaxCounterBase,
+                      private detail::Qualified<Name, Cat> {
   friend Registry;
 
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   inline explicit MinMaxCounter(
       std::source_location Loc = std::source_location::current()) noexcept;
 
@@ -252,20 +255,15 @@ public:
               << ", #samples(" << C.Avg.getNumSamples() << ')';
   }
 
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
-  }
-
 private:
   [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
 };
 
 template <TemplateString Name, const Category<false> *Cat>
-class MinMaxCounter<false, Name, Cat> {
+class MinMaxCounter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(size_t Offset) noexcept {}
 
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
@@ -277,20 +275,16 @@ public:
                                        MinMaxCounter /*C*/) {
     return OS << Cat->name() << "::" << Name;
   }
-
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
-  }
 };
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
-class Histogram : private detail::HistogramBase {
+class Histogram : private detail::HistogramBase,
+                  private detail::Qualified<Name, Cat> {
   friend Registry;
 
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   inline explicit Histogram(
       std::source_location Loc = std::source_location::current()) noexcept;
 
@@ -302,13 +296,6 @@ public:
       OS << Dat << "\t| " << Val << '\n';
     }
     return OS;
-  }
-
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
   }
 
   void add(llvm::StringRef DataPointId, uint64_t Increment) {
@@ -334,19 +321,14 @@ private:
 };
 
 template <TemplateString Name, const Category<false> *Cat>
-class Histogram<false, Name, Cat> {
+class Histogram<false, Name, Cat> : private detail::Qualified<Name, Cat> {
   friend Registry;
 
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Histogram /*H*/) {
     return OS << Cat->name() << "::" << Name << "\n";
-  }
-
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
   }
 
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void
@@ -359,11 +341,13 @@ public:
 };
 
 template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
-class Timer : private detail::TimerBase {
+class Timer : private detail::TimerBase, private detail::Qualified<Name, Cat> {
   friend Registry;
   template <bool Enabled2> friend class ScopedTimer;
 
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   inline explicit Timer(
       std::source_location Loc = std::source_location::current()) noexcept;
 
@@ -377,20 +361,15 @@ public:
     return OS << Cat->name() << "::" << Name << ": " << T.elapsed();
   }
 
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
-  }
-
 private:
   [[nodiscard]] constexpr detail::TimerBase *base() noexcept { return this; }
 };
 
 template <TemplateString Name, const Category<false> *Cat>
-class Timer<false, Name, Cat> {
+class Timer<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
+  using detail::Qualified<Name, Cat>::qualifier;
+
   LLVM_ATTRIBUTE_ALWAYS_INLINE void start() noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE void stop() noexcept {}
 
@@ -403,13 +382,6 @@ public:
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Timer /*T*/) {
     return OS << Cat->name() << "::" << Name;
-  }
-
-  [[nodiscard]] constexpr std::string qualifier() const {
-    auto Ret = std::string(Cat->name());
-    Ret += "::";
-    Ret += llvm::StringRef(Name);
-    return Ret;
   }
 };
 
@@ -446,6 +418,8 @@ public:
 class Registry {
   template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
   friend class Counter;
+  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+  friend class MinMaxCounter;
   template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
   friend class Histogram;
   template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
