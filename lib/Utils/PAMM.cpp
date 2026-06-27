@@ -39,7 +39,7 @@ void PAMM::printTimers(llvm::raw_ostream &OS) {
 }
 
 static void printCountersImpl(
-    llvm::raw_ostream &OS, const pamm::Category &Cat,
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
     const llvm::DenseMap<llvm::StringRef, pamm::detail::CounterBase *>
         &CatCtrs) {
   OS << Cat.name() << ":\n";
@@ -64,7 +64,7 @@ void pamm::Registry::printCounters(llvm::raw_ostream &OS) const {
 }
 
 void pamm::Registry::printCounters(llvm::raw_ostream &OS,
-                                   const Category &Cat) const {
+                                   const Category<true> &Cat) const {
   if (!Cat.isEnabled()) {
     OS << "Category '" << Cat.name() << "' is disabled\n";
     return;
@@ -88,8 +88,35 @@ void PAMM::printHistograms(llvm::raw_ostream &OS) {
   pamm::Registry::instance().printHistograms(OS);
 }
 
+void pamm::Registry::reset() noexcept {
+  for (const auto &[Cat, Ctrs] : Counters) {
+    for (const auto &[_, Ctr] : Ctrs) {
+      Ctr->Ctr = 0;
+    }
+  }
+
+  for (const auto &[Cat, Hists] : Histograms) {
+    for (const auto &[_, Hist] : Hists) {
+      Hist->HistData.clear();
+    }
+  }
+
+  for (const auto &[Cat, Tms] : Timers) {
+    for (const auto &[_, Tm] : Tms) {
+      Tm->reset();
+    }
+  }
+}
+
+void pamm::Registry::clear() noexcept {
+  Counters.clear();
+  Histograms.clear();
+  Timers.clear();
+  RegisteredCategories.clear();
+}
+
 static void printHistogramsImpl(
-    llvm::raw_ostream &OS, const pamm::Category &Cat,
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
     const llvm::DenseMap<llvm::StringRef, pamm::detail::HistogramBase *>
         &Hists) {
   for (const auto &[Name, H] : Hists) {
@@ -117,7 +144,7 @@ void pamm::Registry::printHistograms(llvm::raw_ostream &OS) const {
 }
 
 void pamm::Registry::printHistograms(llvm::raw_ostream &OS,
-                                     const Category &Cat) const {
+                                     const Category<true> &Cat) const {
   if (!Cat.isEnabled()) {
     OS << "Category '" << Cat.name() << "' is disabled\n";
     return;
@@ -134,7 +161,7 @@ void pamm::Registry::printHistograms(llvm::raw_ostream &OS,
 }
 
 static void printTimersImpl(
-    llvm::raw_ostream &OS, const pamm::Category &Cat,
+    llvm::raw_ostream &OS, const pamm::Category<true> &Cat,
     const llvm::DenseMap<llvm::StringRef, pamm::detail::TimerBase *> &CatTms) {
   OS << Cat.name() << ":\n";
   for (const auto &[Name, Tm] : CatTms) {
@@ -165,7 +192,7 @@ void pamm::Registry::printTimers(llvm::raw_ostream &OS) const {
 }
 
 void pamm::Registry::printTimers(llvm::raw_ostream &OS,
-                                 const Category &Cat) const {
+                                 const Category<true> &Cat) const {
   if (!Cat.isEnabled()) {
     OS << "Category '" << Cat.name() << "' is disabled\n";
     return;
@@ -190,7 +217,8 @@ void pamm::printMeasuredData(llvm::raw_ostream &OS) {
   OS << "\n----- END OF EVALUATION DATA -----\n\n";
 }
 
-void pamm::printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
+void pamm::printMeasuredData(llvm::raw_ostream &OS,
+                             const pamm::Category<true> &Cat) {
   OS << "\n----- START OF EVALUATION DATA -----\n\n";
   scope_exit Pop = [&] { OS << "\n----- END OF EVALUATION DATA -----\n\n"; };
   if (!Cat.isEnabled()) {
@@ -204,6 +232,6 @@ void pamm::printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
 }
 
 auto pamm::Registry::findCategory(llvm::StringRef Name) const
-    -> const Category * {
+    -> const Category<true> * {
   return RegisteredCategories.lookup(Name);
 }

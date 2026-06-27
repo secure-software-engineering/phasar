@@ -40,20 +40,29 @@ class raw_ostream;
 
 namespace psr {
 
+/// Defines the different level of severity of PAMM's performance evaluation
+enum class PAMM_SEVERITY_LEVEL { Off = 0, Core, Full }; // NOLINT
+
+// NOLINTNEXTLINE
+inline constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
+#if defined(PAMM_FULL)
+    PAMM_SEVERITY_LEVEL::Full;
+#elif defined(PAMM_CORE)
+    PAMM_SEVERITY_LEVEL::Core;
+#else
+    PAMM_SEVERITY_LEVEL::Off;
+#endif
+
 namespace pamm {
 
 class Registry;
+
+template <bool Enabled = PAMM_CURR_SEV_LEVEL != PAMM_SEVERITY_LEVEL::Off>
 class Category {
 public:
   explicit constexpr Category(llvm::StringLiteral Name,
                               bool IsEnabled = true) noexcept
-      : Name(Name)
-#if defined(PAMM_FULL) || defined(PAMM_CORE)
-        ,
-        IsEnabled(IsEnabled)
-#endif
-  {
-  }
+      : Name(Name), IsEnabled(IsEnabled) {}
 
   constexpr operator llvm::StringRef() const noexcept { return Name; }
 
@@ -61,34 +70,42 @@ public:
 
   [[nodiscard]] constexpr auto isEnabled() const noexcept { return IsEnabled; }
 
-  constexpr void disable() noexcept {
-#if defined(PAMM_FULL) || defined(PAMM_CORE)
-    IsEnabled = false;
-#endif
+  constexpr void disable() noexcept { IsEnabled = false; }
+  constexpr void enable() noexcept { IsEnabled = true; }
+
+private:
+  llvm::StringRef Name;
+  bool IsEnabled = true;
+};
+
+template <> class Category<false> {
+public:
+  explicit constexpr Category(llvm::StringLiteral Name,
+                              bool /*IsEnabled*/ = true) noexcept
+      : Name(Name) {}
+
+  constexpr operator llvm::StringRef() const noexcept { return Name; }
+
+  [[nodiscard]] constexpr llvm::StringRef name() const noexcept { return Name; }
+
+  [[nodiscard]] constexpr auto isEnabled() const noexcept {
+    return std::false_type{};
   }
 
+  constexpr void disable() noexcept {}
+
   void enable() noexcept {
-#if defined(PAMM_FULL) || defined(PAMM_CORE)
-    IsEnabled = true;
-#else
     llvm::WithColor::warning()
         << "Cannot enable PAMM category '" << Name
         << "', because PAMM is disabled at compile time\n";
-#endif
   }
 
 private:
   llvm::StringRef Name;
-#if defined(PAMM_FULL) || defined(PAMM_CORE)
-  bool IsEnabled = true;
-#else
-  [[no_unique_address]] std::false_type IsEnabled{};
-#endif
 };
 
 namespace detail {
 struct PAMMBase {
-  const Category *TheCategory{};
   std::source_location Loc{};
 };
 struct CounterBase : PAMMBase {
@@ -130,7 +147,7 @@ struct TimerBase : PAMMBase {
 
 class Registry;
 
-template <bool Enabled, TemplateString Name, const Category *Cat>
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 class Counter : private detail::CounterBase {
   friend Registry;
 
@@ -160,7 +177,7 @@ private:
   [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
 };
 
-template <TemplateString Name, const Category *Cat>
+template <TemplateString Name, const Category<false> *Cat>
 class Counter<false, Name, Cat> {
 public:
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
@@ -188,7 +205,7 @@ public:
 
 namespace detail {
 struct IsCounterImpl {
-  template <bool Enabled, TemplateString Name, const Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
   static std::true_type test(Counter<Enabled, Name, Cat>);
 
   static std::false_type test(...);
@@ -198,7 +215,7 @@ template <typename T>
 concept IsCounter = decltype(IsCounterImpl::test(std::declval<T>()))::value;
 } // namespace detail
 
-template <bool Enabled, TemplateString Name, const Category *Cat>
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 class Histogram : private detail::HistogramBase {
   friend Registry;
 
@@ -234,13 +251,18 @@ public:
     add(psr::adl_to_string(PSR_FWD(DataPointId)), Increment);
   }
 
+  // For unit-tests
+  [[nodiscard]] const auto &internalRawData() const noexcept {
+    return HistData;
+  }
+
 private:
   [[nodiscard]] constexpr detail::HistogramBase *base() noexcept {
     return this;
   }
 };
 
-template <TemplateString Name, const Category *Cat>
+template <TemplateString Name, const Category<false> *Cat>
 class Histogram<false, Name, Cat> {
   friend Registry;
 
@@ -265,7 +287,7 @@ public:
                                                   uint64_t /*Increment*/) {}
 };
 
-template <bool Enabled, TemplateString Name, const Category *Cat>
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 class Timer : private detail::TimerBase {
   friend Registry;
   template <bool Enabled2> friend class ScopedTimer;
@@ -295,7 +317,7 @@ private:
   [[nodiscard]] constexpr detail::TimerBase *base() noexcept { return this; }
 };
 
-template <TemplateString Name, const Category *Cat>
+template <TemplateString Name, const Category<false> *Cat>
 class Timer<false, Name, Cat> {
 public:
   LLVM_ATTRIBUTE_ALWAYS_INLINE void start() noexcept {}
@@ -322,14 +344,18 @@ public:
 
 template <bool Enabled> class ScopedTimer {
 public:
-  template <TemplateString Name, const Category *Cat>
+  template <TemplateString Name, const Category<Enabled> *Cat>
   constexpr ScopedTimer(Timer<Enabled, Name, Cat> &Tm) : Tm(&Tm) {
     if (Cat->isEnabled()) {
       Tm.start();
     }
   }
 
-  ~ScopedTimer() { Tm->stop(); }
+  ~ScopedTimer() {
+    if (Tm->Tm.has_value()) {
+      Tm->stop();
+    }
+  }
 
   ScopedTimer(const ScopedTimer &) = delete;
   ScopedTimer &operator=(const ScopedTimer &) = delete;
@@ -342,16 +368,16 @@ private:
 
 template <> class ScopedTimer<false> {
 public:
-  template <TemplateString Name, const Category *Cat>
+  template <TemplateString Name, const Category<false> *Cat>
   constexpr ScopedTimer(Timer<false, Name, Cat> &Tm) {}
 };
 
 class Registry {
-  template <bool Enabled, TemplateString Name, const Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
   friend class Counter;
-  template <bool Enabled, TemplateString Name, const Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
   friend class Histogram;
-  template <bool Enabled, TemplateString Name, const Category *Cat>
+  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
   friend class Timer;
 
 public:
@@ -361,18 +387,28 @@ public:
   }
 
   void printCounters(llvm::raw_ostream &OS) const;
-  void printCounters(llvm::raw_ostream &OS, const Category &Cat) const;
+  void printCounters(llvm::raw_ostream &OS, const Category<true> &Cat) const;
+  void printCounters(llvm::raw_ostream &OS, const Category<false> &Cat) const {}
 
   void printHistograms(llvm::raw_ostream &OS) const;
-  void printHistograms(llvm::raw_ostream &OS, const Category &Cat) const;
+  void printHistograms(llvm::raw_ostream &OS, const Category<true> &Cat) const;
+  void printHistograms(llvm::raw_ostream &OS,
+                       const Category<false> &Cat) const {}
 
   void printTimers(llvm::raw_ostream &OS) const;
-  void printTimers(llvm::raw_ostream &OS, const Category &Cat) const;
+  void printTimers(llvm::raw_ostream &OS, const Category<true> &Cat) const;
+  void printTimers(llvm::raw_ostream &OS, const Category<false> &Cat) const {}
 
-  [[nodiscard]] const Category *findCategory(llvm::StringRef Name) const;
+  [[nodiscard]] const Category<true> *findCategory(llvm::StringRef Name) const;
+
+  // Sets all counters, histograms and timers back to 0. Useful for unit-tests
+  void reset() noexcept;
+
+  // Erases all registered PAMM-elements. Useful for unit-tests
+  void clear() noexcept;
 
 private:
-  void registerImpl(auto *Elem, auto &Into, const Category *Cat,
+  void registerImpl(auto *Elem, auto &Into, const Category<true> *Cat,
                     llvm::StringRef Name, llvm::StringRef ElemKind,
                     std::source_location Loc) {
     assert(Elem != nullptr);
@@ -391,64 +427,61 @@ private:
     }
   }
 
-  template <TemplateString Name, const Category *Cat>
+  template <TemplateString Name, const Category<true> *Cat>
   void registerCounter(
       Counter<true, Name, Cat> *Ctr,
       std::source_location Loc = std::source_location::current()) noexcept {
     registerImpl(Ctr, Counters, Cat, Name, "Counter", Loc);
   }
 
-  template <TemplateString Name, const Category *Cat>
+  template <TemplateString Name, const Category<true> *Cat>
   void registerHistogram(
       Histogram<true, Name, Cat> *Hist,
       std::source_location Loc = std::source_location::current()) noexcept {
     registerImpl(Hist, Histograms, Cat, Name, "Histogram", Loc);
   }
 
-  template <TemplateString Name, const Category *Cat>
+  template <TemplateString Name, const Category<true> *Cat>
   void registerTimer(
       Timer<true, Name, Cat> *Tm,
       std::source_location Loc = std::source_location::current()) noexcept {
     registerImpl(Tm, Timers, Cat, Name, "Timer", Loc);
   }
 
-  llvm::DenseMap<const Category *,
+  llvm::DenseMap<const Category<true> *,
                  llvm::DenseMap<llvm::StringRef, detail::CounterBase *>>
       Counters;
 
-  llvm::DenseMap<const Category *,
+  llvm::DenseMap<const Category<true> *,
                  llvm::DenseMap<llvm::StringRef, detail::HistogramBase *>>
       Histograms;
 
-  llvm::DenseMap<const Category *,
+  llvm::DenseMap<const Category<true> *,
                  llvm::DenseMap<llvm::StringRef, detail::TimerBase *>>
       Timers;
 
-  llvm::StringMap<const Category *> RegisteredCategories;
+  llvm::StringMap<const Category<true> *> RegisteredCategories;
 };
 
-template <bool Enabled, TemplateString Name, const Category *Cat>
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
-  this->TheCategory = Cat;
   Registry::instance().registerCounter(this, Loc);
 }
 
-template <bool Enabled, TemplateString Name, const Category *Cat>
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 inline Histogram<Enabled, Name, Cat>::Histogram(
     std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
-  this->TheCategory = Cat;
   Registry::instance().registerHistogram(this, Loc);
 }
 
-template <bool Enabled, TemplateString Name, const Category *Cat>
+template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
 inline Timer<Enabled, Name, Cat>::Timer(std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
-  this->TheCategory = Cat;
   Registry::instance().registerTimer(this, Loc);
 }
 
@@ -458,7 +491,9 @@ void printMeasuredData(llvm::raw_ostream &OS);
 
 /// \brief Prints the measured data from the given category into the given
 /// output stream
-void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat);
+void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category<true> &Cat);
+inline void printMeasuredData(llvm::raw_ostream &OS,
+                              const pamm::Category<false> &Cat) {}
 
 } // namespace pamm
 
@@ -512,7 +547,8 @@ public:
 
   /// \brief Prints the measured data to the commandline
   void printMeasuredData(llvm::raw_ostream &OS) { pamm::printMeasuredData(OS); }
-  void printMeasuredData(llvm::raw_ostream &OS, const pamm::Category &Cat) {
+  void printMeasuredData(llvm::raw_ostream &OS,
+                         const pamm::Category<true> &Cat) {
     pamm::printMeasuredData(OS, Cat);
   }
 };

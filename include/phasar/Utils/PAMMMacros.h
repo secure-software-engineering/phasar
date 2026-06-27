@@ -21,24 +21,8 @@
 #include "phasar/Utils/Macros.h"
 #include "phasar/Utils/PAMM.h"
 
-namespace psr {
-/// Defines the different level of severity of PAMM's performance evaluation
-enum class PAMM_SEVERITY_LEVEL { Off = 0, Core, Full }; // NOLINT
-
-// NOLINTNEXTLINE
-inline constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
-#if defined(PAMM_FULL)
-    PAMM_SEVERITY_LEVEL::Full;
-#elif defined(PAMM_CORE)
-    PAMM_SEVERITY_LEVEL::Core;
-#else
-    PAMM_SEVERITY_LEVEL::Off;
-#endif
-
-} // namespace psr
-
 #define PAMM_CATEGORY(NAME, ...)                                               \
-  static inline ::psr::pamm::Category PAMMCategory {                           \
+  static inline ::psr::pamm::Category<> PAMMCategory {                         \
     #NAME __VA_OPT__(, ) __VA_ARGS__                                           \
   }
 
@@ -61,7 +45,10 @@ inline constexpr PAMM_SEVERITY_LEVEL PAMM_CURR_SEV_LEVEL =
       TIMER_ID
 
 #define PAMM_SCOPED_TIMER(TIMER_ID)                                            \
-  ::psr::pamm::ScopedTimer PSR_CONCAT(PAMMScopedTimer, __COUNTER__) { TIMER_ID }
+  [[maybe_unused]] ::psr::pamm::ScopedTimer PSR_CONCAT(PAMMScopedTimer,        \
+                                                       __COUNTER__) {          \
+    TIMER_ID                                                                   \
+  }
 
 #if defined(PAMM_FULL) || defined(PAMM_CORE)
 
