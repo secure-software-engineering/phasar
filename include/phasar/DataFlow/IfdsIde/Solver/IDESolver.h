@@ -65,16 +65,8 @@
 
 namespace psr {
 
-/// Solves the given IDETabulationProblem as described in the 1996 paper by
-/// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
-/// can then be queried by using resultAt() and resultsAt().
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>,
-          ICFG ICFGTy = typename AnalysisDomainTy::i_t>
-class IDESolver
-    : public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
-  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>>;
-
+namespace detail {
+struct IDESolverPerf {
   PAMM_CATEGORY(IDESolver);
 
   // NOLINTBEGIN
@@ -99,8 +91,20 @@ class IDESolver
 
   PAMM_TIMER(DFAPhase1, Full);
   PAMM_TIMER(DFAPhase2, Full);
-
   // NOLINTEND
+};
+} // namespace detail
+
+/// Solves the given IDETabulationProblem as described in the 1996 paper by
+/// Sagiv, Horwitz and Reps. To solve the problem, call solve(). Results
+/// can then be queried by using resultAt() and resultsAt().
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>,
+          ICFG ICFGTy = typename AnalysisDomainTy::i_t>
+class IDESolver
+    : private detail::IDESolverPerf,
+      public IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>> {
+  friend IDESolverAPIMixin<IDESolver<AnalysisDomainTy, Container, ICFGTy>>;
 
 public:
   using ProblemTy = IDETabulationProblem<AnalysisDomainTy, Container>;

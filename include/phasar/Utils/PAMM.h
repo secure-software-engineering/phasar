@@ -176,6 +176,7 @@ public:
   inline explicit Counter(
       std::source_location Loc = std::source_location::current()) noexcept;
 
+  constexpr void add(ptrdiff_t Offset) noexcept { Ctr += Offset; }
   constexpr void operator++() noexcept { ++Ctr; }
   constexpr void operator++(int) noexcept { ++Ctr; }
   constexpr void operator+=(ptrdiff_t Offset) noexcept { Ctr += Offset; }
@@ -196,6 +197,7 @@ class Counter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
   using detail::Qualified<Name, Cat>::qualifier;
 
+  LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void add(ptrdiff_t Offset) noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++() noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void operator++(int) noexcept {}
   LLVM_ATTRIBUTE_ALWAYS_INLINE constexpr void

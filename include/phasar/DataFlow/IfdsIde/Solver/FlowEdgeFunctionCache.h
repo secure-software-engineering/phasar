@@ -69,27 +69,8 @@ private:
   llvm::DenseMap<KeyType, CompressedType> Map{};
 };
 
-/**
- * This class caches flow and edge functions to avoid their reconstruction.
- * When a flow or edge function must be applied to multiple times, a cached
- * version is used if existend, otherwise a new one is created and inserted
- * into the cache.
- */
-template <typename AnalysisDomainTy,
-          typename Container = std::set<typename AnalysisDomainTy::d_t>>
-class FlowEdgeFunctionCache {
-  using IDEProblemType = IDETabulationProblem<AnalysisDomainTy, Container>;
-  using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
-
-  using n_t = typename AnalysisDomainTy::n_t;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using f_t = typename AnalysisDomainTy::f_t;
-  using t_t = typename AnalysisDomainTy::t_t;
-  using l_t = typename AnalysisDomainTy::l_t;
-
-  using FlowFunctionType = FlowFunction<d_t, Container>;
-  using EdgeFunctionType = EdgeFunction<l_t>;
-
+namespace detail {
+struct FlowEdgeFunctionCachePerf {
   PAMM_CATEGORY(FlowEdgeFunctionCache);
 
   // NOLINTBEGIN
@@ -124,6 +105,29 @@ class FlowEdgeFunctionCache {
   PAMM_COUNTER(SummaryEF_CacheHit, Full);
 
   // NOLINTEND
+};
+} // namespace detail
+
+/**
+ * This class caches flow and edge functions to avoid their reconstruction.
+ * When a flow or edge function must be applied to multiple times, a cached
+ * version is used if existend, otherwise a new one is created and inserted
+ * into the cache.
+ */
+template <typename AnalysisDomainTy,
+          typename Container = std::set<typename AnalysisDomainTy::d_t>>
+class FlowEdgeFunctionCache : private detail::FlowEdgeFunctionCachePerf {
+  using IDEProblemType = IDETabulationProblem<AnalysisDomainTy, Container>;
+  using FlowFunctionPtrType = typename IDEProblemType::FlowFunctionPtrType;
+
+  using n_t = typename AnalysisDomainTy::n_t;
+  using d_t = typename AnalysisDomainTy::d_t;
+  using f_t = typename AnalysisDomainTy::f_t;
+  using t_t = typename AnalysisDomainTy::t_t;
+  using l_t = typename AnalysisDomainTy::l_t;
+
+  using FlowFunctionType = FlowFunction<d_t, Container>;
+  using EdgeFunctionType = EdgeFunction<l_t>;
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
