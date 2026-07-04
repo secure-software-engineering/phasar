@@ -617,6 +617,118 @@ bool psr::isVarAnnotationIntrinsic(const llvm::Function *F) {
   return F->getName() == KVarAnnotationName;
 }
 
+const llvm::DIType *psr::stripMemberAndTypedef(const llvm::DIType *Ty) {
+  while (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(Ty)) {
+    if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef ||
+        DerivedTy->getTag() == llvm::dwarf::DW_TAG_member) {
+      Ty = DerivedTy->getBaseType();
+      continue;
+    }
+    break;
+  }
+  return Ty;
+}
+
+static const llvm::DICompositeType *isCompositeTy(const llvm::DIType *Ty) {
+  return llvm::dyn_cast<llvm::DICompositeType>(stripMemberAndTypedef(Ty));
+}
+
+BitSet<uint32_t, llvm::SmallBitVector> &
+psr::getPointerIndicesOfType(const llvm::DIType *Ty, const llvm::DataLayout &DL,
+                             PointerIndicesCache &PIC) {
+  auto [It, Inserted] = PIC.Cache.try_emplace(Ty);
+  auto &Ret = It->second;
+
+  if (!Inserted) {
+    return Ret;
+  }
+
+  // XXX: Does every type provide a meaningful getSizeInBits?
+  auto PointerSize = DL.getPointerSizeInBits();
+  auto MaxNumPointers = Ty->getSizeInBits() / PointerSize;
+  if (!MaxNumPointers) {
+    return Ret;
+  }
+
+  if (isPointerTy(Ty)) {
+    Ret.insert(0);
+    return Ret;
+  }
+
+  const auto *CompTy = isCompositeTy(Ty);
+  if (!CompTy) {
+    return Ret;
+  }
+
+  Ret.reserve(MaxNumPointers);
+
+  auto Tag = CompTy->getTag();
+
+  if (Tag == llvm::dwarf::DW_TAG_array_type) {
+    auto *ElemTy = CompTy->getBaseType();
+    const auto *ArrayLenRange =
+        llvm::cast<llvm::DISubrange>(CompTy->getElements()[0]);
+    auto ArrayLenBound = ArrayLenRange->getCount();
+    if (const auto *ArrayLenCInt =
+            ArrayLenBound.dyn_cast<llvm::ConstantInt *>()) {
+      auto ArrayLen = ArrayLenCInt->getSExtValue();
+      // Count is -1 for flexible array members;
+      if (ArrayLen < 0) {
+        return Ret;
+      }
+
+      auto ElemSize = int64_t(ElemTy->getSizeInBits());
+      auto ElemPtrs = getPointerIndicesOfType(ElemTy, DL, PIC);
+      if (ElemPtrs.empty()) {
+        return Ret;
+      }
+
+      // XXX: Optimize:
+      for (int64_t I = 0, Offs = 0; I < ArrayLen; ++I, Offs += ElemSize) {
+        ElemPtrs.foreach ([&](uint32_t Idx) { Ret.insert(Offs + Idx); });
+      }
+    }
+
+    return Ret;
+  }
+
+  if (Tag == llvm::dwarf::DW_TAG_structure_type ||
+      Tag == llvm::dwarf::DW_TAG_class_type) {
+
+    auto Elems = CompTy->getElements();
+    uint64_t Offs = 0;
+    for (auto *Elem : Elems) {
+      auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elem);
+      if (!ElemTy) {
+        continue;
+      }
+
+      scope_exit IncOffs = [&] { Offs += ElemTy->getSizeInBits(); };
+
+      if (Elem->getTag() != llvm::dwarf::DW_TAG_inheritance &&
+          Elem->getTag() != llvm::dwarf::DW_TAG_member) {
+        continue;
+      }
+
+      auto &ElemPtrs = getPointerIndicesOfType(ElemTy, DL, PIC);
+      if (!ElemPtrs.empty()) {
+        ElemPtrs.foreach ([&](uint32_t Idx) { Ret.insert(Offs + Idx); });
+      }
+    }
+    return Ret;
+  }
+
+  // fallback
+  return Ret;
+}
+
+BitSet<uint32_t, llvm::SmallBitVector>
+psr::getPointerIndicesOfType(const llvm::DIType *Ty,
+                             const llvm::DataLayout &DL) {
+  PointerIndicesCache PIC;
+  return std::move(getPointerIndicesOfType(Ty, DL, PIC));
+}
+
 llvm::StringRef
 psr::getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   const int KPointerGlobalStringIdx = 1;

@@ -168,9 +168,10 @@ template <typename GraphNodeId> struct SCCOrder {
 /// to single nodes. The resulting graph is always a DAG, i.e., it contains no
 /// cycles
 template <typename G>
-#if __cplusplus >= 202002L
-  requires is_const_graph<G>
-#endif
+// TODO: is_const_graph is too restrictive!
+// #if __cplusplus >= 202002L
+//   requires is_const_graph<G>
+// #endif
 SCCDependencyGraph<typename GraphTraits<G>::vertex_t> computeSCCDependencies(
     const G &Graph, const SCCHolder<typename GraphTraits<G>::vertex_t> &SCCs) {
 

@@ -19,6 +19,7 @@
 #include "phasar/Utils/IO.h"
 #include "phasar/Utils/Timer.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
 
 #include "AnalysisController.h"
@@ -33,6 +34,7 @@ LLVM_LIBRARY_VISIBILITY void executeIFDSUninitVar(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSConst(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSTaint(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSCFLEnvTaint(AnalysisController &Data);
+LLVM_LIBRARY_VISIBILITY void executeMonoIFDSTaint(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSType(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void executeIFDSSolverTest(AnalysisController &Data);
 LLVM_LIBRARY_VISIBILITY void
@@ -62,7 +64,9 @@ static constexpr unsigned K = 3;
 makeTaintConfig(AnalysisController &Data);
 
 template <typename T>
-static void statsEmitter(llvm::raw_ostream & /*OS*/, const T & /*Solver*/) {}
+static void statsEmitter(llvm::raw_ostream &OS, const T & /*Solver*/) {
+  OS << "No solver-stats available!\n";
+}
 template <typename T, typename U, typename I>
 static void statsEmitter(llvm::raw_ostream &OS,
                          const IDESolver<T, U, I> &Solver);
@@ -72,41 +76,39 @@ static void emitRequestedDataFlowResults(AnalysisController &Data, T &Solver) {
   auto EmitterOptions = Data.EmitterOptions;
   const auto &ResultDirectory = Data.ResultDirectory;
 
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
+  const auto PrintResult = [&ResultDirectory](llvm::StringRef Suffix,
+                                              auto WithStream) {
     if (!ResultDirectory.empty()) {
       if (auto OFS =
-              openFileStream(ResultDirectory.string() + "/psr-report.txt")) {
-        Solver.emitTextReport(*OFS);
+              openFileStream(llvm::Twine(ResultDirectory.string()) + Suffix)) {
+        WithStream(*OFS);
       }
     } else {
-      Solver.emitTextReport(llvm::outs());
+      WithStream(llvm::outs());
     }
+  };
+
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
+    PrintResult("/psr-report.txt",
+                [&](auto &OS) { Solver.emitTextReport(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitGraphicalReport) {
-    if (!ResultDirectory.empty()) {
-      if (auto OFS =
-              openFileStream(ResultDirectory.string() + "/psr-report.html")) {
-        Solver.emitGraphicalReport(*OFS);
+    PrintResult("/psr-report.html", [&](auto &OS) {
+      if constexpr (requires() { Solver.emitGraphicalReport(llvm::outs()); }) {
+        Solver.emitGraphicalReport(OS);
+      } else {
+        OS << "Graphical report not available!\n";
       }
-    } else {
-      Solver.emitGraphicalReport(llvm::outs());
-    }
+    });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
-    if (!ResultDirectory.empty()) {
-      if (auto OFS = openFileStream(ResultDirectory.string() +
-                                    "/psr-raw-results.txt")) {
-        Solver.dumpResults(*OFS);
-      }
-    } else {
-      Solver.dumpResults(llvm::outs());
-    }
+    PrintResult("/psr-raw-results.txt",
+                [&](auto &OS) { Solver.dumpResults(OS); });
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
     llvm::outs() << "Front-end support for 'EmitESGAsDot' to be implemented\n";
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitStatisticsAsText) {
-
     statsEmitter(llvm::outs(), Solver);
   }
 }

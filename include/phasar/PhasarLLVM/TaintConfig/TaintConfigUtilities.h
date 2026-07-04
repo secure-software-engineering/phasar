@@ -12,7 +12,9 @@
 
 #include "phasar/PhasarLLVM/TaintConfig/LLVMTaintConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
+#include "phasar/Utils/TypeTraits.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 
@@ -22,6 +24,28 @@
 #include <type_traits>
 
 namespace psr {
+
+void forallGeneratedFacts(
+    const LLVMTaintConfig &Config, const llvm::CallBase *CB,
+    const llvm::Function *Callee,
+    std::invocable<const llvm::Value *> auto WithGenFact) {
+  const auto &Callback = Config.getRegisteredSourceCallBack();
+  if (Callback) {
+    auto CBFacts = Callback(CB);
+    llvm::for_each(CBFacts, WithGenFact);
+  }
+
+  if (Config.isSource(CB)) {
+    std::invoke(WithGenFact, CB);
+  }
+
+  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+    if (Config.isSource(Callee->getArg(I))) {
+      std::invoke(WithGenFact, CB->getArgOperand(I));
+    }
+  }
+}
+
 template <typename ContainerTy>
   requires std::is_same_v<typename ContainerTy::value_type, const llvm::Value *>
 void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
@@ -40,6 +64,26 @@ void collectGeneratedFacts(ContainerTy &Dest, const LLVMTaintConfig &Config,
   for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
     if (Config.isSource(Callee->getArg(I))) {
       Dest.insert(CB->getArgOperand(I));
+    }
+  }
+}
+
+template <std::invocable<const llvm::Value *> LeakIfFn = TrueFn>
+void forallLeakedFacts(const LLVMTaintConfig &Config, const llvm::CallBase *CB,
+                       const llvm::Function *Callee,
+                       std::invocable<const llvm::Value *> auto WithLeakFact,
+                       LeakIfFn LeakIf = {}) {
+
+  const auto &Callback = Config.getRegisteredSinkCallBack();
+  if (Callback) {
+    auto CBLeaks = Callback(CB);
+    llvm::for_each(llvm::make_filter_range(CBLeaks, LeakIf), WithLeakFact);
+  }
+
+  for (unsigned I = 0, End = Callee->arg_size(); I < End; ++I) {
+    if (Config.isSink(Callee->getArg(I)) &&
+        std::invoke(LeakIf, CB->getArgOperand(I))) {
+      std::invoke(WithLeakFact, CB->getArgOperand(I));
     }
   }
 }

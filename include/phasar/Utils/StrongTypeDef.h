@@ -42,6 +42,13 @@
       return Id1 == Id2;                                                       \
     }                                                                          \
   };                                                                           \
+  }                                                                            \
+  namespace std {                                                              \
+  template <> struct hash<NAMESPACE::NAME> {                                   \
+    auto operator()(::psr::ByConstRef<NAMESPACE::NAME> Id) const noexcept {    \
+      return llvm::hash_value(TYPE(Id));                                       \
+    }                                                                          \
+  };                                                                           \
   }
 
 #define PHASAR_DERIVE_ENUM_DMI(QUAL_NAME, TYPE, TYPE_PARAM)                    \
@@ -64,6 +71,13 @@
       return Id1 == Id2;                                                       \
     }                                                                          \
   };                                                                           \
+  }                                                                            \
+  namespace std {                                                              \
+  template <> struct hash<QUAL_NAME> {                                         \
+    auto operator()(::psr::ByConstRef<QUAL_NAME> Id) const noexcept {          \
+      return llvm::hash_value(TYPE(Id));                                       \
+    }                                                                          \
+  };                                                                           \
   }
 
 #define PHASAR_DERIVE_DMI(QUAL_TYPE)                                           \
@@ -79,6 +93,14 @@
     static auto getHashValue(::psr::ByConstRef<Type> Val) noexcept {           \
       using llvm::hash_value;                                                  \
       return hash_value(Val);                                                  \
+    }                                                                          \
+  };                                                                           \
+  }                                                                            \
+  namespace std {                                                              \
+  template <> struct hash<QUAL_NAME> {                                         \
+    auto operator()(::psr::ByConstRef<::QUAL_NAME> Id) const noexcept {        \
+      using llvm::hash_value;                                                  \
+      return hash_value(TYPE(Id));                                             \
     }                                                                          \
   };                                                                           \
   }

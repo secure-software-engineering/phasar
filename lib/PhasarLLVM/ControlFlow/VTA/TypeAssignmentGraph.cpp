@@ -56,118 +56,6 @@ void vta::printNode(llvm::raw_ostream &OS, TAGNode TN) {
   std::visit([&OS](auto Nod) { printNodeImpl(OS, Nod); }, TN.Label);
 }
 
-static const llvm::DIType *stripMemberAndTypedef(const llvm::DIType *Ty) {
-  while (const auto *DerivedTy = llvm::dyn_cast<llvm::DIDerivedType>(Ty)) {
-    if (DerivedTy->getTag() == llvm::dwarf::DW_TAG_typedef ||
-        DerivedTy->getTag() == llvm::dwarf::DW_TAG_member) {
-      Ty = DerivedTy->getBaseType();
-      continue;
-    }
-    break;
-  }
-  return Ty;
-}
-
-static bool isPointerTy(const llvm::DIType *Ty) {
-  if (const auto *DerivedTy =
-          llvm::dyn_cast<llvm::DIDerivedType>(stripMemberAndTypedef(Ty))) {
-    return DerivedTy->getTag() == llvm::dwarf::DW_TAG_pointer_type ||
-           DerivedTy->getTag() == llvm::dwarf::DW_TAG_reference_type;
-  }
-  return false;
-}
-
-static const llvm::DICompositeType *isCompositeTy(const llvm::DIType *Ty) {
-  return llvm::dyn_cast<llvm::DICompositeType>(stripMemberAndTypedef(Ty));
-}
-
-static llvm::SmallBitVector
-getPointerIndicesOfType(llvm::DICompositeType *Ty, const llvm::DataLayout &DL) {
-  llvm::SmallBitVector Ret;
-
-  auto PointerSize = DL.getPointerSizeInBits();
-
-  // XXX: Does every type provide a meaningful getSizeInBits?
-  auto MaxNumPointers = Ty->getSizeInBits() / PointerSize;
-  if (!MaxNumPointers) {
-    return Ret;
-  }
-  Ret.resize(MaxNumPointers);
-
-  llvm::SmallVector<std::pair<llvm::DIType *, ptrdiff_t>> WorkList = {{Ty, 0}};
-
-  while (!WorkList.empty()) {
-    auto [CurrTy, CurrBitOffs] = WorkList.pop_back_val();
-
-    if (isPointerTy(CurrTy)) {
-      size_t Idx = CurrBitOffs / PointerSize;
-      if (CurrBitOffs % PointerSize) [[unlikely]] {
-        PHASAR_LOG_LEVEL(WARNING, "Unaligned pointer..");
-      }
-      assert(Ret.size() > Idx &&
-             "reserved unsufficient space for pointer indices");
-      Ret.set(Idx);
-      continue;
-    }
-
-    const auto *CompTy = isCompositeTy(CurrTy);
-    if (!CompTy) {
-      continue;
-    }
-
-    auto Tag = CompTy->getTag();
-
-    if (Tag == llvm::dwarf::DW_TAG_array_type) {
-      auto *ElemTy = CompTy->getBaseType();
-      const auto *ArrayLenRange =
-          llvm::cast<llvm::DISubrange>(CompTy->getElements()[0]);
-      auto ArrayLenBound = ArrayLenRange->getCount();
-      if (const auto *ArrayLenCInt =
-              ArrayLenBound.dyn_cast<llvm::ConstantInt *>()) {
-        auto ArrayLen = ArrayLenCInt->getSExtValue();
-        // Count is -1 for flexible array members;
-        if (ArrayLen < 0) {
-          continue;
-        }
-
-        auto ElemSize = int64_t(ElemTy->getSizeInBits());
-        for (int64_t I = 0, Offs = CurrBitOffs; I < ArrayLen;
-             ++I, Offs += ElemSize) {
-          WorkList.emplace_back(ElemTy, Offs);
-        }
-      }
-
-      continue;
-    }
-
-    if (Tag == llvm::dwarf::DW_TAG_structure_type ||
-        Tag == llvm::dwarf::DW_TAG_class_type) {
-
-      auto Elems = CompTy->getElements();
-      uint64_t Offs = CurrBitOffs;
-      for (auto *Elem : Elems) {
-        auto *ElemTy = llvm::dyn_cast<llvm::DIType>(Elem);
-        if (!ElemTy) {
-          continue;
-        }
-
-        scope_exit IncOffs = [&] { Offs += ElemTy->getSizeInBits(); };
-
-        if (Elem->getTag() != llvm::dwarf::DW_TAG_inheritance &&
-            Elem->getTag() != llvm::dwarf::DW_TAG_member) {
-          continue;
-        }
-
-        WorkList.emplace_back(ElemTy, Offs);
-      }
-
-      continue;
-    }
-  }
-
-  return Ret;
-}
-
 static void addTAGNode(TAGNode TN, TypeAssignmentGraph &TAG) {
   TAG.Nodes.getOrInsert(TN);
 }
@@ -180,12 +68,14 @@ static void addFields(const LLVMProjectIRDB &IRDB, TypeAssignmentGraph &TAG,
   llvm::DebugInfoFinder DIF;
   DIF.processModule(*IRDB.getModule());
 
+  PointerIndicesCache PIC{};
+
   for (auto *DITy : DIF.types()) {
     if (auto *CompTy = llvm::dyn_cast<llvm::DICompositeType>(DITy)) {
-      auto Offsets = getPointerIndicesOfType(CompTy, DL);
-      for (auto Offs : Offsets.set_bits()) {
+      auto &&Offsets = getPointerIndicesOfType(CompTy, DL, PIC);
+      Offsets.foreach ([&](uint32_t Offs) {
         addTAGNode({Field{CompTy, Offs * PointerSize}}, TAG);
-      }
+      });
       addTAGNode({Field{CompTy, SIZE_MAX}}, TAG);
     }
   }
