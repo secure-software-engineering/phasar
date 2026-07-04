@@ -99,84 +99,84 @@ Inheritance diagram for psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1ce30264a9d68bcb9a9ff8d131016f87" id="r_a1ce30264a9d68bcb9a9ff8d131016f87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a1ce30264a9d68bcb9a9ff8d131016f87">MaybeUniquePtr</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
+<tr class="memitem:a1ce30264a9d68bcb9a9ff8d131016f87" id="r_a1ce30264a9d68bcb9a9ff8d131016f87"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a1ce30264a9d68bcb9a9ff8d131016f87">MaybeUniquePtr</a> () noexcept=default</td></tr>
 <tr class="separator:a1ce30264a9d68bcb9a9ff8d131016f87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b551b19d5cea248a57b5f731fa33007" id="r_a6b551b19d5cea248a57b5f731fa33007"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a6b551b19d5cea248a57b5f731fa33007">MaybeUniquePtr</a> (T *Pointer, <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Owns</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a6b551b19d5cea248a57b5f731fa33007" id="r_a6b551b19d5cea248a57b5f731fa33007"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a6b551b19d5cea248a57b5f731fa33007">MaybeUniquePtr</a> (T *Pointer, <a class="el" href="classbool.html">bool</a> Owns=false) noexcept</td></tr>
 <tr class="separator:a6b551b19d5cea248a57b5f731fa33007"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8823d6ad7c221496372cbf0dee84c450" id="r_a8823d6ad7c221496372cbf0dee84c450"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a8823d6ad7c221496372cbf0dee84c450">MaybeUniquePtr</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a8823d6ad7c221496372cbf0dee84c450" id="r_a8823d6ad7c221496372cbf0dee84c450"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a8823d6ad7c221496372cbf0dee84c450">MaybeUniquePtr</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) noexcept</td></tr>
 <tr class="separator:a8823d6ad7c221496372cbf0dee84c450"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3e74a7e613ef2b022e9c3b529203035" id="r_af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
-requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</td></tr>
-<tr class="memitem:af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af3e74a7e613ef2b022e9c3b529203035">MaybeUniquePtr</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:af3e74a7e613ef2b022e9c3b529203035" id="r_af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplParams" colspan="2">template&lt;typename TT &gt; <br />
+requires (!std::is_same_v&lt;T, TT&gt; &amp;&amp; std::is_convertible_v&lt;TT *, T *&gt;)</td></tr>
+<tr class="memitem:af3e74a7e613ef2b022e9c3b529203035"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af3e74a7e613ef2b022e9c3b529203035">MaybeUniquePtr</a> (std::unique_ptr&lt; TT &gt; &amp;&amp;Owner) noexcept</td></tr>
 <tr class="separator:af3e74a7e613ef2b022e9c3b529203035"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a154e7a211785137f662090c35dd0dbc0" id="r_a154e7a211785137f662090c35dd0dbc0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a154e7a211785137f662090c35dd0dbc0">MaybeUniquePtr</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a154e7a211785137f662090c35dd0dbc0" id="r_a154e7a211785137f662090c35dd0dbc0"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a154e7a211785137f662090c35dd0dbc0">MaybeUniquePtr</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&amp;Other) noexcept</td></tr>
 <tr class="separator:a154e7a211785137f662090c35dd0dbc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8173a197619c95ac02c95f931a78ac7" id="r_af8173a197619c95ac02c95f931a78ac7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af8173a197619c95ac02c95f931a78ac7">MaybeUniquePtr</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; std::remove_const_t&lt; T &gt; &gt; &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:af8173a197619c95ac02c95f931a78ac7" id="r_af8173a197619c95ac02c95f931a78ac7"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af8173a197619c95ac02c95f931a78ac7">MaybeUniquePtr</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; std::remove_const_t&lt; T &gt; &gt; &amp;&amp;Other) noexcept</td></tr>
 <tr class="separator:af8173a197619c95ac02c95f931a78ac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8b261b096337d40aa1df7130261c747" id="r_ad8b261b096337d40aa1df7130261c747"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ad8b261b096337d40aa1df7130261c747">swap</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:ad8b261b096337d40aa1df7130261c747" id="r_ad8b261b096337d40aa1df7130261c747"><td class="memItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ad8b261b096337d40aa1df7130261c747">swap</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;Other) noexcept</td></tr>
 <tr class="separator:ad8b261b096337d40aa1df7130261c747"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af364d4247b00af650d8aaecef8c767e8" id="r_af364d4247b00af650d8aaecef8c767e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af364d4247b00af650d8aaecef8c767e8">operator=</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:af364d4247b00af650d8aaecef8c767e8" id="r_af364d4247b00af650d8aaecef8c767e8"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#af364d4247b00af650d8aaecef8c767e8">operator=</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&amp;Other) noexcept</td></tr>
 <tr class="separator:af364d4247b00af650d8aaecef8c767e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19678b143e15af8c39bbd60f344d8979" id="r_a19678b143e15af8c39bbd60f344d8979"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a19678b143e15af8c39bbd60f344d8979">operator=</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a19678b143e15af8c39bbd60f344d8979" id="r_a19678b143e15af8c39bbd60f344d8979"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a19678b143e15af8c39bbd60f344d8979">operator=</a> (std::unique_ptr&lt; T &gt; &amp;&amp;Owner) noexcept</td></tr>
 <tr class="separator:a19678b143e15af8c39bbd60f344d8979"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac887fa92f587c8e350c19e17b95138d5" id="r_ac887fa92f587c8e350c19e17b95138d5"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
-requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</td></tr>
-<tr class="memitem:ac887fa92f587c8e350c19e17b95138d5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ac887fa92f587c8e350c19e17b95138d5">operator=</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;Owner) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:ac887fa92f587c8e350c19e17b95138d5" id="r_ac887fa92f587c8e350c19e17b95138d5"><td class="memTemplParams" colspan="2">template&lt;typename TT &gt; <br />
+requires (!std::is_same_v&lt;T, TT&gt; &amp;&amp; std::is_convertible_v&lt;TT *, T *&gt;)</td></tr>
+<tr class="memitem:ac887fa92f587c8e350c19e17b95138d5"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ac887fa92f587c8e350c19e17b95138d5">operator=</a> (std::unique_ptr&lt; TT &gt; &amp;&amp;Owner) noexcept</td></tr>
 <tr class="separator:ac887fa92f587c8e350c19e17b95138d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc8b616a5ac12e2a70307eec380063f4" id="r_acc8b616a5ac12e2a70307eec380063f4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#acc8b616a5ac12e2a70307eec380063f4">MaybeUniquePtr</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;)=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">delete</a></td></tr>
+<tr class="memitem:acc8b616a5ac12e2a70307eec380063f4" id="r_acc8b616a5ac12e2a70307eec380063f4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#acc8b616a5ac12e2a70307eec380063f4">MaybeUniquePtr</a> (const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;)=delete</td></tr>
 <tr class="separator:acc8b616a5ac12e2a70307eec380063f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad266b715b0b690772f1abc92ee50135a" id="r_ad266b715b0b690772f1abc92ee50135a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ad266b715b0b690772f1abc92ee50135a">operator=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;)=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">delete</a></td></tr>
+<tr class="memitem:ad266b715b0b690772f1abc92ee50135a" id="r_ad266b715b0b690772f1abc92ee50135a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ad266b715b0b690772f1abc92ee50135a">operator=</a> (const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;)=delete</td></tr>
 <tr class="separator:ad266b715b0b690772f1abc92ee50135a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a341a5033c3c628b9f0c3d13d4bc80489" id="r_a341a5033c3c628b9f0c3d13d4bc80489"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a341a5033c3c628b9f0c3d13d4bc80489">~MaybeUniquePtr</a> ()</td></tr>
+<tr class="memitem:a341a5033c3c628b9f0c3d13d4bc80489" id="r_a341a5033c3c628b9f0c3d13d4bc80489"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a341a5033c3c628b9f0c3d13d4bc80489">~MaybeUniquePtr</a> ()</td></tr>
 <tr class="separator:a341a5033c3c628b9f0c3d13d4bc80489"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c6da076e6b53088a6b319e4ecfcfddd" id="r_a3c6da076e6b53088a6b319e4ecfcfddd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a3c6da076e6b53088a6b319e4ecfcfddd">get</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a3c6da076e6b53088a6b319e4ecfcfddd" id="r_a3c6da076e6b53088a6b319e4ecfcfddd"><td class="memItemLeft" align="right" valign="top">constexpr T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a3c6da076e6b53088a6b319e4ecfcfddd">get</a> () const noexcept</td></tr>
 <tr class="separator:a3c6da076e6b53088a6b319e4ecfcfddd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac91c726334054211ad92c967d6aef07" id="r_aac91c726334054211ad92c967d6aef07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#aac91c726334054211ad92c967d6aef07">operator-&gt;</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:aac91c726334054211ad92c967d6aef07" id="r_aac91c726334054211ad92c967d6aef07"><td class="memItemLeft" align="right" valign="top">constexpr T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#aac91c726334054211ad92c967d6aef07">operator-&gt;</a> () const noexcept</td></tr>
 <tr class="separator:aac91c726334054211ad92c967d6aef07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a987494c5c6c796f323ee1ab5ee690d3e" id="r_a987494c5c6c796f323ee1ab5ee690d3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a987494c5c6c796f323ee1ab5ee690d3e">operator*</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a987494c5c6c796f323ee1ab5ee690d3e" id="r_a987494c5c6c796f323ee1ab5ee690d3e"><td class="memItemLeft" align="right" valign="top">constexpr T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a987494c5c6c796f323ee1ab5ee690d3e">operator*</a> () const noexcept</td></tr>
 <tr class="separator:a987494c5c6c796f323ee1ab5ee690d3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae81759a42da0c2650207e210716b0245" id="r_ae81759a42da0c2650207e210716b0245"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ae81759a42da0c2650207e210716b0245">release</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:ae81759a42da0c2650207e210716b0245" id="r_ae81759a42da0c2650207e210716b0245"><td class="memItemLeft" align="right" valign="top">constexpr T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#ae81759a42da0c2650207e210716b0245">release</a> () noexcept</td></tr>
 <tr class="separator:ae81759a42da0c2650207e210716b0245"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a668ff5ebcda0ab95b3874401c0f8eb4a" id="r_a668ff5ebcda0ab95b3874401c0f8eb4a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a668ff5ebcda0ab95b3874401c0f8eb4a">reset</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a668ff5ebcda0ab95b3874401c0f8eb4a" id="r_a668ff5ebcda0ab95b3874401c0f8eb4a"><td class="memItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a668ff5ebcda0ab95b3874401c0f8eb4a">reset</a> () noexcept</td></tr>
 <tr class="separator:a668ff5ebcda0ab95b3874401c0f8eb4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf92445db5f085a359f1be87d281bd36" id="r_adf92445db5f085a359f1be87d281bd36"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; </td></tr>
-<tr class="memitem:adf92445db5f085a359f1be87d281bd36"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#adf92445db5f085a359f1be87d281bd36">reset</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:adf92445db5f085a359f1be87d281bd36" id="r_adf92445db5f085a359f1be87d281bd36"><td class="memTemplParams" colspan="2">template&lt;typename TT &gt; </td></tr>
+<tr class="memitem:adf92445db5f085a359f1be87d281bd36"><td class="memTemplItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#adf92445db5f085a359f1be87d281bd36">reset</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; TT &gt; &amp;&amp;Other) noexcept</td></tr>
 <tr class="separator:adf92445db5f085a359f1be87d281bd36"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d437b3b5fb40a52d7d1738ec02a6089" id="r_a9d437b3b5fb40a52d7d1738ec02a6089"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; </td></tr>
-<tr class="memitem:a9d437b3b5fb40a52d7d1738ec02a6089"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a9d437b3b5fb40a52d7d1738ec02a6089">reset</a> (std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Other</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a9d437b3b5fb40a52d7d1738ec02a6089" id="r_a9d437b3b5fb40a52d7d1738ec02a6089"><td class="memTemplParams" colspan="2">template&lt;typename TT &gt; </td></tr>
+<tr class="memitem:a9d437b3b5fb40a52d7d1738ec02a6089"><td class="memTemplItemLeft" align="right" valign="top">constexpr void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a9d437b3b5fb40a52d7d1738ec02a6089">reset</a> (std::unique_ptr&lt; TT &gt; &amp;&amp;Other) noexcept</td></tr>
 <tr class="separator:a9d437b3b5fb40a52d7d1738ec02a6089"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc39a32d4123f4769163fe98e55493a9" id="r_acc39a32d4123f4769163fe98e55493a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#acc39a32d4123f4769163fe98e55493a9">owns</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:acc39a32d4123f4769163fe98e55493a9" id="r_acc39a32d4123f4769163fe98e55493a9"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#acc39a32d4123f4769163fe98e55493a9">owns</a> () const noexcept</td></tr>
 <tr class="separator:acc39a32d4123f4769163fe98e55493a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bf539f3b89ecfea5d2b6047d0de321c" id="r_a7bf539f3b89ecfea5d2b6047d0de321c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a7bf539f3b89ecfea5d2b6047d0de321c">operator bool</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a7bf539f3b89ecfea5d2b6047d0de321c" id="r_a7bf539f3b89ecfea5d2b6047d0de321c"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a7bf539f3b89ecfea5d2b6047d0de321c">operator bool</a> () const noexcept</td></tr>
 <tr class="separator:a7bf539f3b89ecfea5d2b6047d0de321c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:a770d28f33f9661a6a34878cf80d76c2f" id="r_a770d28f33f9661a6a34878cf80d76c2f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">U</a> , <a class="el" href="classbool.html">bool</a> Align&gt; </td></tr>
-<tr class="memitem:a770d28f33f9661a6a34878cf80d76c2f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">class</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a770d28f33f9661a6a34878cf80d76c2f">MaybeUniquePtr</a></td></tr>
+<tr class="memitem:a770d28f33f9661a6a34878cf80d76c2f" id="r_a770d28f33f9661a6a34878cf80d76c2f"><td class="memTemplParams" colspan="2">template&lt;typename U , <a class="el" href="classbool.html">bool</a> Align&gt; </td></tr>
+<tr class="memitem:a770d28f33f9661a6a34878cf80d76c2f"><td class="memTemplItemLeft" align="right" valign="top">class&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a770d28f33f9661a6a34878cf80d76c2f">MaybeUniquePtr</a></td></tr>
 <tr class="separator:a770d28f33f9661a6a34878cf80d76c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1bea4127129797786f206a9f77705985" id="r_a1bea4127129797786f206a9f77705985"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a1bea4127129797786f206a9f77705985">swap</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a1bea4127129797786f206a9f77705985" id="r_a1bea4127129797786f206a9f77705985"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a1bea4127129797786f206a9f77705985">swap</a> (<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;LHS, <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;RHS) noexcept</td></tr>
 <tr class="separator:a1bea4127129797786f206a9f77705985"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb7d663216b5b2f0427fb784a4de10f8" id="r_afb7d663216b5b2f0427fb784a4de10f8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#afb7d663216b5b2f0427fb784a4de10f8">operator==</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:afb7d663216b5b2f0427fb784a4de10f8" id="r_afb7d663216b5b2f0427fb784a4de10f8"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#afb7d663216b5b2f0427fb784a4de10f8">operator==</a> (const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;LHS, const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;RHS) noexcept</td></tr>
 <tr class="separator:afb7d663216b5b2f0427fb784a4de10f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38f6b7f375ada5184b78d2ca65ecb8aa" id="r_a38f6b7f375ada5184b78d2ca65ecb8aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a38f6b7f375ada5184b78d2ca65ecb8aa">operator!=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a38f6b7f375ada5184b78d2ca65ecb8aa" id="r_a38f6b7f375ada5184b78d2ca65ecb8aa"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a38f6b7f375ada5184b78d2ca65ecb8aa">operator!=</a> (const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;LHS, const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;RHS) noexcept</td></tr>
 <tr class="separator:a38f6b7f375ada5184b78d2ca65ecb8aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb3daa0d97609dff572ab5f29021456f" id="r_afb3daa0d97609dff572ab5f29021456f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#afb3daa0d97609dff572ab5f29021456f">operator==</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:afb3daa0d97609dff572ab5f29021456f" id="r_afb3daa0d97609dff572ab5f29021456f"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#afb3daa0d97609dff572ab5f29021456f">operator==</a> (const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;LHS, const T *RHS) noexcept</td></tr>
 <tr class="separator:afb3daa0d97609dff572ab5f29021456f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5458f691a8be9c8a3707af7b9379d0c6" id="r_a5458f691a8be9c8a3707af7b9379d0c6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a5458f691a8be9c8a3707af7b9379d0c6">operator!=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a5458f691a8be9c8a3707af7b9379d0c6" id="r_a5458f691a8be9c8a3707af7b9379d0c6"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a5458f691a8be9c8a3707af7b9379d0c6">operator!=</a> (const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;LHS, const T *RHS) noexcept</td></tr>
 <tr class="separator:a5458f691a8be9c8a3707af7b9379d0c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0bf453e727d18d9f0c9517bbb8af49dc" id="r_a0bf453e727d18d9f0c9517bbb8af49dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a0bf453e727d18d9f0c9517bbb8af49dc">operator==</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a0bf453e727d18d9f0c9517bbb8af49dc" id="r_a0bf453e727d18d9f0c9517bbb8af49dc"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a0bf453e727d18d9f0c9517bbb8af49dc">operator==</a> (const T *LHS, const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;RHS) noexcept</td></tr>
 <tr class="separator:a0bf453e727d18d9f0c9517bbb8af49dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c375d4642159005100eb71b4fd3d272" id="r_a6c375d4642159005100eb71b4fd3d272"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a6c375d4642159005100eb71b4fd3d272">operator!=</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a6c375d4642159005100eb71b4fd3d272" id="r_a6c375d4642159005100eb71b4fd3d272"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1MaybeUniquePtr.html#a6c375d4642159005100eb71b4fd3d272">operator!=</a> (const T *LHS, const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp;RHS) noexcept</td></tr>
 <tr class="separator:a6c375d4642159005100eb71b4fd3d272"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T, <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename T, <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt;<br />
 class psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;</div><p>A smart-pointer, similar to std::unique_ptr, that can optionally own an object.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The pointee type </td></tr>
-    <tr><td class="paramname">RequireAlignment</td><td>If true, the datastructure only works if <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">alignof(T)</a> &gt; 1 holds. Enables incomplete T types </td></tr>
+    <tr><td class="paramname">RequireAlignment</td><td>If true, the datastructure only works if alignof(T) &gt; 1 holds. Enables incomplete T types </td></tr>
   </table>
   </dd>
 </dl>
@@ -189,13 +189,13 @@ class psr::MaybeUniquePtr&lt; T, RequireAlignment &gt;</div><p>A smart-pointer, 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -216,13 +216,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
           <td class="paramtype">T *&#160;</td>
           <td class="paramname"><em>Pointer</em>, </td>
@@ -231,7 +231,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classbool.html">bool</a>&#160;</td>
-          <td class="paramname"><em>Owns</em> = <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">false</a></code>&#160;</td>
+          <td class="paramname"><em>Owns</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -256,13 +256,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
           <td class="paramtype">std::unique_ptr&lt; T &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Owner</em></td><td>)</td>
@@ -286,18 +286,18 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
-requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</div>
+template&lt;typename TT &gt; <br />
+requires (!std::is_same_v&lt;T, TT&gt; &amp;&amp; std::is_convertible_v&lt;TT *, T *&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
-          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype">std::unique_ptr&lt; TT &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Owner</em></td><td>)</td>
           <td></td>
         </tr>
@@ -319,15 +319,15 @@ requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Other</em></td><td>)</td>
           <td></td>
         </tr>
@@ -349,13 +349,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; std::remove_const_t&lt; T &gt; &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Other</em></td><td>)</td>
@@ -379,15 +379,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::MaybeUniquePtr </td>
+          <td class="memname"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::MaybeUniquePtr </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -407,13 +407,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::~<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::~<a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -437,13 +437,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T * <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::get </td>
+          <td class="memname">constexpr T * <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::get </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -468,13 +468,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a> <a class="el" href="classbool.html">bool</a> </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator <a class="el" href="classbool.html">bool</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -497,13 +497,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>* </td>
+          <td class="memname">constexpr T &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator* </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -526,13 +526,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T * <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>-&gt; </td>
+          <td class="memname">constexpr T * <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator-&gt; </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -555,15 +555,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>= </td>
+          <td class="memname"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -583,15 +583,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>= </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Other</em></td><td>)</td>
           <td></td>
         </tr>
@@ -613,13 +613,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>= </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator= </td>
           <td>(</td>
           <td class="paramtype">std::unique_ptr&lt; T &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Owner</em></td><td>)</td>
@@ -645,18 +645,18 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; <br />
-requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a>&gt; &amp;&amp; std::is_convertible_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> *, T *&gt;)</div>
+template&lt;typename TT &gt; <br />
+requires (!std::is_same_v&lt;T, TT&gt; &amp;&amp; std::is_convertible_v&lt;TT *, T *&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>= </td>
+          <td class="memname">constexpr <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a> &amp; <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype">std::unique_ptr&lt; TT &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Owner</em></td><td>)</td>
           <td></td>
         </tr>
@@ -680,13 +680,13 @@ requires (!std::is_same_v&lt;T, <a class="el" href="namespacepsr.html#ab1fa2b63d
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::owns </td>
+          <td class="memname">constexpr <a class="el" href="classbool.html">bool</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::owns </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -709,13 +709,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T * <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::release </td>
+          <td class="memname">constexpr T * <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::release </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -740,13 +740,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::reset </td>
+          <td class="memname">constexpr void <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::reset </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -769,17 +769,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; </div>
+template&lt;typename TT &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::reset </td>
+          <td class="memname">constexpr void <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::reset </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; TT &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Other</em></td><td>)</td>
           <td></td>
         </tr>
@@ -801,17 +801,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; </div>
+template&lt;typename TT &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::reset </td>
+          <td class="memname">constexpr void <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::reset </td>
           <td>(</td>
-          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">TT</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype">std::unique_ptr&lt; TT &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>Other</em></td><td>)</td>
           <td></td>
         </tr>
@@ -833,15 +833,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt;::swap </td>
+          <td class="memname">constexpr void <a class="el" href="classpsr_1_1MaybeUniquePtr.html">psr::MaybeUniquePtr</a>&lt; T, RequireAlignment &gt;::swap </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>Other</em></td><td>)</td>
           <td></td>
         </tr>
@@ -864,15 +864,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">U</a> , <a class="el" href="classbool.html">bool</a> Align&gt; </div>
+template&lt;typename U , <a class="el" href="classbool.html">bool</a> Align&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classfriend.html">friend</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">class</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a></td>
+          <td class="memname"><a class="el" href="classfriend.html">friend</a> class <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a></td>
         </tr>
       </table>
   </td>
@@ -892,21 +892,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> operator!= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -932,21 +932,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> operator!= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *&#160;</td>
+          <td class="paramtype">const T *&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -972,21 +972,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator!</a>= </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> operator!= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *&#160;</td>
+          <td class="paramtype">const T *&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -1012,21 +1012,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> operator== </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -1052,21 +1052,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> operator== </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *&#160;</td>
+          <td class="paramtype">const T *&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -1092,21 +1092,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">operator</a>== </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> <a class="el" href="classbool.html">bool</a> operator== </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T *&#160;</td>
+          <td class="paramtype">const T *&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -1132,21 +1132,21 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
+template&lt;typename T , <a class="el" href="classbool.html">bool</a> RequireAlignment = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classfriend.html">friend</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> swap </td>
+          <td class="memname">constexpr <a class="el" href="classfriend.html">friend</a> void swap </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RequireAlignment</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1MaybeUniquePtr.html">MaybeUniquePtr</a>&lt; T, RequireAlignment &gt; &amp;&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -1172,7 +1172,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -126,12 +126,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>};</div>
 </div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespacepsr.html#aaa9d9ea3f32a26147b977415412f6fb6">   35</a></span>std::string <a class="code hl_function" href="namespacepsr.html#a85580458254c5f40fda2fcf82f26affe">toString</a>(<a class="code hl_enumeration" href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">SpecialMemberFunctionType</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SMFT</a>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespacepsr.html#aaa9d9ea3f32a26147b977415412f6fb6">   35</a></span>std::string <a class="code hl_function" href="namespacepsr.html#a85580458254c5f40fda2fcf82f26affe">toString</a>(<a class="code hl_enumeration" href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">SpecialMemberFunctionType</a> SMFT);</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespacepsr.html#a89644cf859a35420d8c96e69c941451c">   37</a></span><a class="code hl_enumeration" href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">SpecialMemberFunctionType</a> <a class="code hl_function" href="namespacepsr.html#a89644cf859a35420d8c96e69c941451c">toSpecialMemberFunctionType</a>(llvm::StringRef <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SMFT</a>);</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespacepsr.html#a89644cf859a35420d8c96e69c941451c">   37</a></span><a class="code hl_enumeration" href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">SpecialMemberFunctionType</a> <a class="code hl_function" href="namespacepsr.html#a89644cf859a35420d8c96e69c941451c">toSpecialMemberFunctionType</a>(llvm::StringRef SMFT);</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespacepsr.html#a45fe2a006b2bfb5f3fecebca110ee06e">   39</a></span>llvm::raw_ostream &amp;<a class="code hl_function" href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">operator&lt;&lt;</a>(llvm::raw_ostream &amp;OS,</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                              <a class="code hl_enumeration" href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">SpecialMemberFunctionType</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SMFT</a>);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                              <a class="code hl_enumeration" href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">SpecialMemberFunctionType</a> SMFT);</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#endif </span><span class="comment">// PHASAR_CONTROLFLOW_SPECIALMEMBERFUNCTIONTYPE_H</span></div>
@@ -141,12 +141,11 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacepsr_html_a85580458254c5f40fda2fcf82f26affe"><div class="ttname"><a href="namespacepsr.html#a85580458254c5f40fda2fcf82f26affe">psr::toString</a></div><div class="ttdeci">std::string toString(const AnalysisStrategy &amp;S)</div></div>
 <div class="ttc" id="anamespacepsr_html_a89644cf859a35420d8c96e69c941451c"><div class="ttname"><a href="namespacepsr.html#a89644cf859a35420d8c96e69c941451c">psr::toSpecialMemberFunctionType</a></div><div class="ttdeci">SpecialMemberFunctionType toSpecialMemberFunctionType(llvm::StringRef SMFT)</div></div>
 <div class="ttc" id="anamespacepsr_html_aaf51d0e816794e17404d95f3c3f773ea"><div class="ttname"><a href="namespacepsr.html#aaf51d0e816794e17404d95f3c3f773ea">psr::operator&lt;&lt;</a></div><div class="ttdeci">llvm::raw_ostream &amp; operator&lt;&lt;(llvm::raw_ostream &amp;OS, AnalysisStrategy S)</div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_aed47dced6c7b8e76ceae631ad567501d"><div class="ttname"><a href="namespacepsr.html#aed47dced6c7b8e76ceae631ad567501d">psr::SpecialMemberFunctionType</a></div><div class="ttdeci">SpecialMemberFunctionType</div><div class="ttdef"><b>Definition</b> <a href="SpecialMemberFunctionType_8h_source.html#l00030">SpecialMemberFunctionType.h:30</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:56 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:10 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

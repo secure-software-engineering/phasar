@@ -89,31 +89,30 @@ $(function() {
 <p><code>#include &quot;<a class="el" href="RawAliasSet_8h_source.html">phasar/Pointer/RawAliasSet.h</a>&quot;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ASet&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1IsRawAliasSet.html">psr::IsRawAliasSet</a> =  <span class="keyword">requires</span>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ASet</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ASet</a> &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>,</div>
-<div class="line">                                 <span class="keyword">typename</span> ASet::value_type <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ValId</a>) {</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ASet</a>();</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ASet</a>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>);</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ASet</a>(std::move(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>));</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a> = <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>;</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a> = std::move(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>);</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>.insert(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ValId</a>);</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>.tryInsert(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ValId</a>) } -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>.contains(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ValId</a>) } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1IsRawAliasSet.html">psr::IsRawAliasSet</a> =  <span class="keyword">requires</span>(ASet &amp;MutSet, <span class="keyword">const</span> ASet &amp;ConstSet,</div>
+<div class="line">                                 <span class="keyword">typename</span> ASet::value_type ValId) {</div>
+<div class="line">  ASet();</div>
+<div class="line">  ASet(ConstSet);</div>
+<div class="line">  ASet(std::move(MutSet));</div>
+<div class="line">  MutSet = ConstSet;</div>
+<div class="line">  MutSet = std::move(MutSet);</div>
+<div class="line">  MutSet.insert(ValId);</div>
+<div class="line">  { MutSet.tryInsert(ValId) } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { ConstSet.contains(ValId) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  </div>
 <div class="line">  </div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>.foreach (<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DummyFn&lt;typename ASet::value_type&gt;</a>{});</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a> |= <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>;</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a> &amp;= <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>;</div>
-<div class="line">  <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a> -= <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a> == <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a> } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a> != <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a> } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>.tryMergeWith(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>) } -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutSet</a>.clear() } <span class="keyword">noexcept</span>;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>.empty() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line">  { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ConstSet</a>.size() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;size_t&gt;;</div>
+<div class="line">  ConstSet.foreach (DummyFn&lt;typename ASet::value_type&gt;{});</div>
+<div class="line">  MutSet |= ConstSet;</div>
+<div class="line">  MutSet &amp;= ConstSet;</div>
+<div class="line">  MutSet -= ConstSet;</div>
+<div class="line">  { ConstSet == ConstSet } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { ConstSet != ConstSet } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { MutSet.tryMergeWith(ConstSet) } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { MutSet.clear() } <span class="keyword">noexcept</span>;</div>
+<div class="line">  { ConstSet.empty() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { ConstSet.size() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;size_t&gt;;</div>
 <div class="line">}</div>
 <div class="ttc" id="aconceptpsr_1_1IsRawAliasSet_html"><div class="ttname"><a href="conceptpsr_1_1IsRawAliasSet.html">psr::IsRawAliasSet</a></div><div class="ttdef"><b>Definition</b> <a href="RawAliasSet_8h_source.html#l00024">RawAliasSet.h:24</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Concept for alias-set containers used inside the union-find analyses. The container must support set insertion, membership test, bitwise union/intersection/difference, a <code>foreach()</code> visitor, and comparison. </p>
 
@@ -121,7 +120,7 @@ $(function() {
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

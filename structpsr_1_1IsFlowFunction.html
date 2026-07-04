@@ -94,19 +94,19 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ac0e22c13780fcbeeb4c1d088ffee4e18" id="r_ac0e22c13780fcbeeb4c1d088ffee4e18"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </td></tr>
-<tr class="memitem:ac0e22c13780fcbeeb4c1d088ffee4e18"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> std::true_type&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1IsFlowFunction.html#ac0e22c13780fcbeeb4c1d088ffee4e18">test</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1FlowFunction.html">FlowFunction</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;)</td></tr>
+<tr class="memitem:ac0e22c13780fcbeeb4c1d088ffee4e18" id="r_ac0e22c13780fcbeeb4c1d088ffee4e18"><td class="memTemplParams" colspan="2">template&lt;typename D , typename Container &gt; </td></tr>
+<tr class="memitem:ac0e22c13780fcbeeb4c1d088ffee4e18"><td class="memTemplItemLeft" align="right" valign="top">static std::true_type&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1IsFlowFunction.html#ac0e22c13780fcbeeb4c1d088ffee4e18">test</a> (const <a class="el" href="classpsr_1_1FlowFunction.html">FlowFunction</a>&lt; D, Container &gt; &amp;)</td></tr>
 <tr class="separator:ac0e22c13780fcbeeb4c1d088ffee4e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aacae2ea1f2bbc734712005a7fe486e9c" id="r_aacae2ea1f2bbc734712005a7fe486e9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> std::false_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IsFlowFunction.html#aacae2ea1f2bbc734712005a7fe486e9c">test</a> (...)</td></tr>
+<tr class="memitem:aacae2ea1f2bbc734712005a7fe486e9c" id="r_aacae2ea1f2bbc734712005a7fe486e9c"><td class="memItemLeft" align="right" valign="top">static std::false_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IsFlowFunction.html#aacae2ea1f2bbc734712005a7fe486e9c">test</a> (...)</td></tr>
 <tr class="separator:aacae2ea1f2bbc734712005a7fe486e9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:af5c9d3e92834080ac2f0a563543d1d2f" id="r_af5c9d3e92834080ac2f0a563543d1d2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IsFlowFunction.html#af5c9d3e92834080ac2f0a563543d1d2f">value</a></td></tr>
+<tr class="memitem:af5c9d3e92834080ac2f0a563543d1d2f" id="r_af5c9d3e92834080ac2f0a563543d1d2f"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IsFlowFunction.html#af5c9d3e92834080ac2f0a563543d1d2f">value</a></td></tr>
 <tr class="separator:af5c9d3e92834080ac2f0a563543d1d2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> FF&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename FF&gt;<br />
 struct psr::IsFlowFunction&lt; FF &gt;</div><p>Helper template to check at compile-time whether a type implements the <a class="el" href="classpsr_1_1FlowFunction.html">FlowFunction</a> interface, no matter which data-flow fact type it uses.</p>
 <p>Use is_flowfunction_v instead. </p>
 
@@ -118,13 +118,13 @@ struct psr::IsFlowFunction&lt; FF &gt;</div><p>Helper template to check at compi
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> FF &gt; </div>
+template&lt;typename FF &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> std::false_type <a class="el" href="structpsr_1_1IsFlowFunction.html">psr::IsFlowFunction</a>&lt; FF &gt;::test </td>
+          <td class="memname">static std::false_type <a class="el" href="structpsr_1_1IsFlowFunction.html">psr::IsFlowFunction</a>&lt; FF &gt;::test </td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname"><em>...</em></td><td>)</td>
@@ -146,17 +146,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> FF &gt; </div>
+template&lt;typename FF &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> D , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </div>
+template&lt;typename D , typename Container &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> std::true_type <a class="el" href="structpsr_1_1IsFlowFunction.html">psr::IsFlowFunction</a>&lt; FF &gt;::test </td>
+          <td class="memname">static std::true_type <a class="el" href="structpsr_1_1IsFlowFunction.html">psr::IsFlowFunction</a>&lt; FF &gt;::test </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1FlowFunction.html">FlowFunction</a>&lt; D, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1FlowFunction.html">FlowFunction</a>&lt; D, Container &gt; &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -177,13 +177,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> FF &gt; </div>
+template&lt;typename FF &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a> <a class="el" href="structpsr_1_1IsFlowFunction.html">psr::IsFlowFunction</a>&lt; FF &gt;::value</td>
+          <td class="memname">constexpr <a class="el" href="classbool.html">bool</a> <a class="el" href="structpsr_1_1IsFlowFunction.html">psr::IsFlowFunction</a>&lt; FF &gt;::value</td>
         </tr>
       </table>
   </td>
@@ -207,7 +207,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

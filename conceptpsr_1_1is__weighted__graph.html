@@ -89,20 +89,19 @@ $(function() {
 <p><code>#include &quot;<a class="el" href="GraphTraits_8h_source.html">phasar/Utils/GraphTraits.h</a>&quot;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Graph&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1is__weighted__graph.html">psr::is_weighted_graph</a> =  <span class="keyword">requires</span>(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Graph</a> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a>) {</div>
-<div class="line">  <span class="keyword">typename</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">GraphTraits&lt;std::decay_t&lt;Graph&gt;</a>&gt;;</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1is__weighted__graph.html">psr::is_weighted_graph</a> =  <span class="keyword">requires</span>(Graph G) {</div>
+<div class="line">  <span class="keyword">typename</span> GraphTraits&lt;std::decay_t&lt;Graph&gt;&gt;;</div>
 <div class="line">  <span class="keyword">requires</span> <a class="code hl_concept" href="conceptpsr_1_1is__weighted__graph__trait.html">is_weighted_graph_trait&lt;GraphTraits&lt;std::decay_t&lt;Graph&gt;</a>&gt;&gt;;</div>
 <div class="line">}</div>
 <div class="ttc" id="aconceptpsr_1_1is__weighted__graph__trait_html"><div class="ttname"><a href="conceptpsr_1_1is__weighted__graph__trait.html">psr::is_weighted_graph_trait</a></div><div class="ttdef"><b>Definition</b> <a href="GraphTraits_8h_source.html#l00107">GraphTraits.h:107</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1is__weighted__graph_html"><div class="ttname"><a href="conceptpsr_1_1is__weighted__graph.html">psr::is_weighted_graph</a></div><div class="ttdef"><b>Definition</b> <a href="GraphTraits_8h_source.html#l00129">GraphTraits.h:129</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="GraphTraits_8h_source.html#l00129">129</a> of file <a class="el" href="GraphTraits_8h_source.html">GraphTraits.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -102,11 +102,11 @@ Inheritance diagram for psr::fn_t&lt; F &gt;:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a580c1724afc1bc5749610c5416275f1c" id="r_a580c1724afc1bc5749610c5416275f1c"><td class="memTemplParams" colspan="2">template&lt;typename... ArgsT&gt; </td></tr>
-<tr class="memitem:a580c1724afc1bc5749610c5416275f1c"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> std::invoke_result_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(F), ArgsT... &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1fn__t.html#a580c1724afc1bc5749610c5416275f1c">operator()</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a> &amp;&amp;...<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Args</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(std::is_nothrow_invocable_v&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(F), ArgsT... &gt;)</td></tr>
+<tr class="memitem:a580c1724afc1bc5749610c5416275f1c"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::invoke_result_t&lt; decltype(F), ArgsT... &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1fn__t.html#a580c1724afc1bc5749610c5416275f1c">operator()</a> (ArgsT &amp;&amp;...Args) const noexcept(std::is_nothrow_invocable_v&lt; decltype(F), ArgsT... &gt;)</td></tr>
 <tr class="separator:a580c1724afc1bc5749610c5416275f1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> F&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;auto F&gt;<br />
 struct psr::fn_t&lt; F &gt;</div><p>A helper that transforms a statically known function pointer into a type. </p>
 <p>Useful for passing functions as callbacks, while avoiding either the indirect call overhead or wrapping a lambda around </p>
 
@@ -118,7 +118,7 @@ struct psr::fn_t&lt; F &gt;</div><p>A helper that transforms a statically known 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> F&gt; </div>
+template&lt;auto F&gt; </div>
 <div class="memtemplate">
 template&lt;typename... ArgsT&gt; </div>
 <table class="mlabels">
@@ -126,9 +126,9 @@ template&lt;typename... ArgsT&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> std::invoke_result_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(F), ArgsT... &gt; <a class="el" href="structpsr_1_1fn__t.html">psr::fn_t</a>&lt; F &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>() </td>
+          <td class="memname">constexpr std::invoke_result_t&lt; decltype(F), ArgsT... &gt; <a class="el" href="structpsr_1_1fn__t.html">psr::fn_t</a>&lt; F &gt;::operator() </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ArgsT</a> &amp;&amp;...&#160;</td>
+          <td class="paramtype">ArgsT &amp;&amp;...&#160;</td>
           <td class="paramname"><em>Args</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -152,7 +152,7 @@ template&lt;typename... ArgsT&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

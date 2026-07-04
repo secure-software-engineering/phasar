@@ -1,0 +1,5 @@
+<map id="psr::SmallArraySet&lt; T, N &gt;" name="psr::SmallArraySet&lt; T, N &gt;">
+<area shape="rect" id="Node000001" title="Simple set container similar to the upcoming std::flat_set but only uses sorting+binary&#45;search,..." alt="" coords="272,20,415,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,224,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,37,272,37,272,43,238,43"/>
+</map>

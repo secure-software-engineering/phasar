@@ -94,14 +94,14 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac150687259fe3eba788423b40dbca103" id="r_ac150687259fe3eba788423b40dbca103"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1monoifds_1_1AliasCache.html#ac150687259fe3eba788423b40dbca103">AliasCache</a> (<a class="el" href="namespacepsr.html#a3c1552869e9fb75d14f0aefbd844aed2">LLVMAliasIteratorRef</a> AI, llvm::function_ref&lt; <a class="el" href="classbool.html">bool</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *)&gt; SkipSeedsCallBack, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable * &gt;::GlobalSet *PermittedGlobals, std::pmr::memory_resource *MRes)</td></tr>
+<tr class="memitem:ac150687259fe3eba788423b40dbca103" id="r_ac150687259fe3eba788423b40dbca103"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1monoifds_1_1AliasCache.html#ac150687259fe3eba788423b40dbca103">AliasCache</a> (<a class="el" href="namespacepsr.html#a3c1552869e9fb75d14f0aefbd844aed2">LLVMAliasIteratorRef</a> AI, llvm::function_ref&lt; <a class="el" href="classbool.html">bool</a>(const llvm::Value *)&gt; SkipSeedsCallBack, const <a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; const llvm::GlobalVariable * &gt;::GlobalSet *PermittedGlobals, std::pmr::memory_resource *MRes)</td></tr>
 <tr class="separator:ac150687259fe3eba788423b40dbca103"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a465669b217b31a11a933fa083f677877" id="r_a465669b217b31a11a933fa083f677877"><td class="memItemLeft" align="right" valign="top">llvm::ArrayRef&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1monoifds_1_1AliasCache.html#a465669b217b31a11a933fa083f677877">getAliasSet</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *Fact, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">At</a>)</td></tr>
+<tr class="memitem:a465669b217b31a11a933fa083f677877" id="r_a465669b217b31a11a933fa083f677877"><td class="memItemLeft" align="right" valign="top">llvm::ArrayRef&lt; const llvm::Value * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1monoifds_1_1AliasCache.html#a465669b217b31a11a933fa083f677877">getAliasSet</a> (const llvm::Value *Fact, const llvm::Instruction *At)</td></tr>
 <tr class="separator:a465669b217b31a11a933fa083f677877"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a7bb9d153fe222be0da4a5619e35dcd02" id="r_a7bb9d153fe222be0da4a5619e35dcd02"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> llvm::StringLiteral&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1monoifds_1_1AliasCache.html#a7bb9d153fe222be0da4a5619e35dcd02">LogCategory</a> = &quot;monoifds::AliasCache&quot;</td></tr>
+<tr class="memitem:a7bb9d153fe222be0da4a5619e35dcd02" id="r_a7bb9d153fe222be0da4a5619e35dcd02"><td class="memItemLeft" align="right" valign="top">static constexpr llvm::StringLiteral&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1monoifds_1_1AliasCache.html#a7bb9d153fe222be0da4a5619e35dcd02">LogCategory</a> = &quot;monoifds::AliasCache&quot;</td></tr>
 <tr class="separator:a7bb9d153fe222be0da4a5619e35dcd02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -126,13 +126,13 @@ Static Public Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">llvm::function_ref&lt; <a class="el" href="classbool.html">bool</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *)&gt;&#160;</td>
+          <td class="paramtype">llvm::function_ref&lt; <a class="el" href="classbool.html">bool</a>(const llvm::Value *)&gt;&#160;</td>
           <td class="paramname"><em>SkipSeedsCallBack</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::GlobalVariable * &gt;::GlobalSet *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structpsr_1_1UsedGlobalsHolder.html">UsedGlobalsHolder</a>&lt; const llvm::GlobalVariable * &gt;::GlobalSet *&#160;</td>
           <td class="paramname"><em>PermittedGlobals</em>, </td>
         </tr>
         <tr>
@@ -166,15 +166,15 @@ Static Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">llvm::ArrayRef&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value * &gt; psr::monoifds::AliasCache::getAliasSet </td>
+          <td class="memname">llvm::ArrayRef&lt; const llvm::Value * &gt; psr::monoifds::AliasCache::getAliasSet </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *&#160;</td>
+          <td class="paramtype">const llvm::Value *&#160;</td>
           <td class="paramname"><em>Fact</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *&#160;</td>
+          <td class="paramtype">const llvm::Instruction *&#160;</td>
           <td class="paramname"><em>At</em>&#160;</td>
         </tr>
         <tr>
@@ -198,7 +198,7 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> llvm::StringLiteral psr::monoifds::AliasCache::LogCategory = &quot;monoifds::AliasCache&quot;</td>
+          <td class="memname">constexpr llvm::StringLiteral psr::monoifds::AliasCache::LogCategory = &quot;monoifds::AliasCache&quot;</td>
         </tr>
       </table>
   </td>
@@ -218,7 +218,7 @@ Static Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -90,13 +90,12 @@ $(function() {
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1pag_1_1CanGetNumPossibleValues.html">psr::pag::CanGetNumPossibleValues</a> = </div>
-<div class="line">    <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CStrategy</a>, <span class="keyword">const</span> T::db_t &amp;IRDB) {</div>
+<div class="line">    <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;CStrategy, <span class="keyword">const</span> T::db_t &amp;IRDB) {</div>
 <div class="line">      {</div>
-<div class="line">        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CStrategy</a>.getNumPossibleValues(IRDB)</div>
+<div class="line">        CStrategy.getNumPossibleValues(IRDB)</div>
 <div class="line">      } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;size_t&gt;;</div>
 <div class="line">    }</div>
 <div class="ttc" id="aconceptpsr_1_1pag_1_1CanGetNumPossibleValues_html"><div class="ttname"><a href="conceptpsr_1_1pag_1_1CanGetNumPossibleValues.html">psr::pag::CanGetNumPossibleValues</a></div><div class="ttdef"><b>Definition</b> <a href="PointerAssignmentGraph_8h_source.html#l00157">PointerAssignmentGraph.h:157</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A PAG-strategy that can provide a capacity hint for the number of PAG nodes (used to pre-allocate internal buffers). </p>
 
@@ -104,7 +103,7 @@ $(function() {
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

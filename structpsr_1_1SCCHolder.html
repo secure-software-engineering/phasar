@@ -102,14 +102,14 @@ Inheritance diagram for psr::SCCHolder&lt; GraphNodeId &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a880352a810df0d1d705c741431931816" id="r_a880352a810df0d1d705c741431931816"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html#a880352a810df0d1d705c741431931816">size</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a880352a810df0d1d705c741431931816" id="r_a880352a810df0d1d705c741431931816"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html#a880352a810df0d1d705c741431931816">size</a> () const noexcept</td></tr>
 <tr class="memdesc:a880352a810df0d1d705c741431931816"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of SCCs.  <br /></td></tr>
 <tr class="separator:a880352a810df0d1d705c741431931816"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a813b66eccf584295f6a44441f17c9165" id="r_a813b66eccf584295f6a44441f17c9165"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html#a813b66eccf584295f6a44441f17c9165">empty</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a813b66eccf584295f6a44441f17c9165" id="r_a813b66eccf584295f6a44441f17c9165"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html#a813b66eccf584295f6a44441f17c9165">empty</a> () const noexcept</td></tr>
 <tr class="separator:a813b66eccf584295f6a44441f17c9165"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78f7f17bddb7bc54ca2eab46319c41c2" id="r_a78f7f17bddb7bc54ca2eab46319c41c2"><td class="memTemplParams" colspan="2">template&lt;is_const_graph G, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a>  = DefaultNodeTransform&gt; <br />
-requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="structpsr_1_1GraphTraits.html">GraphTraits</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a>&gt;::vertex_t, GraphNodeId&gt;</td></tr>
-<tr class="memitem:a78f7f17bddb7bc54ca2eab46319c41c2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html#a78f7f17bddb7bc54ca2eab46319c41c2">print</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a> &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Graph</a>, llvm::raw_ostream &amp;OS, llvm::StringRef Name=&quot;&quot;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeToString</a>={}) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="memitem:a78f7f17bddb7bc54ca2eab46319c41c2" id="r_a78f7f17bddb7bc54ca2eab46319c41c2"><td class="memTemplParams" colspan="2">template&lt;is_const_graph G, typename NodeTransform  = DefaultNodeTransform&gt; <br />
+requires std::is_same_v&lt;typename <a class="el" href="structpsr_1_1GraphTraits.html">GraphTraits</a>&lt;G&gt;::vertex_t, GraphNodeId&gt;</td></tr>
+<tr class="memitem:a78f7f17bddb7bc54ca2eab46319c41c2"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1SCCHolder.html#a78f7f17bddb7bc54ca2eab46319c41c2">print</a> (const G &amp;Graph, llvm::raw_ostream &amp;OS, llvm::StringRef Name=&quot;&quot;, NodeTransform NodeToString={}) const</td></tr>
 <tr class="memdesc:a78f7f17bddb7bc54ca2eab46319c41c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints the given Graph as dot, highlighting the SCCs in the graph.  <br /></td></tr>
 <tr class="separator:a78f7f17bddb7bc54ca2eab46319c41c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -121,7 +121,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a42b1d74da8fb7314ca5bed72065ad772"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename GraphNodeId&gt;<br />
 struct psr::SCCHolder&lt; GraphNodeId &gt;</div><p>Holds the SCCs of a given graph. Each SCC is assigned a unique sequential id. </p>
 
 <p class="definition">Definition at line <a class="el" href="SCCGeneric_8h_source.html#l00034">34</a> of file <a class="el" href="SCCGeneric_8h_source.html">SCCGeneric.h</a>.</p>
@@ -132,7 +132,7 @@ struct psr::SCCHolder&lt; GraphNodeId &gt;</div><p>Holds the SCCs of a given gra
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId &gt; </div>
+template&lt;typename GraphNodeId &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -163,18 +163,18 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId &gt; </div>
+template&lt;typename GraphNodeId &gt; </div>
 <div class="memtemplate">
-template&lt;is_const_graph G, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a>  = DefaultNodeTransform&gt; <br />
-requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="structpsr_1_1GraphTraits.html">GraphTraits</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a>&gt;::vertex_t, GraphNodeId&gt;</div>
+template&lt;is_const_graph G, typename NodeTransform  = DefaultNodeTransform&gt; <br />
+requires std::is_same_v&lt;typename <a class="el" href="structpsr_1_1GraphTraits.html">GraphTraits</a>&lt;G&gt;::vertex_t, GraphNodeId&gt;</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="structpsr_1_1SCCHolder.html">psr::SCCHolder</a>&lt; GraphNodeId &gt;::print </td>
+          <td class="memname">void <a class="el" href="structpsr_1_1SCCHolder.html">psr::SCCHolder</a>&lt; GraphNodeId &gt;::print </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">G</a> &amp;&#160;</td>
+          <td class="paramtype">const G &amp;&#160;</td>
           <td class="paramname"><em>Graph</em>, </td>
         </tr>
         <tr>
@@ -192,7 +192,7 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">NodeTransform</a>&#160;</td>
+          <td class="paramtype">NodeTransform&#160;</td>
           <td class="paramname"><em>NodeToString</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
@@ -229,7 +229,7 @@ requires std::is_same_v&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId &gt; </div>
+template&lt;typename GraphNodeId &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -254,7 +254,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="reference">References <a class="el" href="SCCGeneric_8h_source.html#l00037">psr::SCCHolder&lt; GraphNodeId &gt;::NodesInSCC</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="CGSCCs_8h_source.html#l00126">psr::computeCGSCCCallers()</a>, <a class="el" href="CGSCCs_8h_source.html#l00029">psr::computeCGSCCs()</a>, and <a class="el" href="SCCGeneric_8h_source.html#l00212">psr::computeSCCOrder()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="CGSCCs_8h_source.html#l00126">psr::computeCGSCCCallers()</a>, and <a class="el" href="SCCGeneric_8h_source.html#l00212">psr::computeSCCOrder()</a>.</p>
 
 </div>
 </div>
@@ -265,7 +265,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId &gt; </div>
+template&lt;typename GraphNodeId &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;<a class="el" href="structpsr_1_1SCCId.html">SCCId</a>&lt;GraphNodeId&gt;, llvm::SmallVector&lt;GraphNodeId, 1&gt; &gt; <a class="el" href="structpsr_1_1SCCHolder.html">psr::SCCHolder</a>&lt; GraphNodeId &gt;::NodesInSCC {}</td>
@@ -285,7 +285,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> GraphNodeId &gt; </div>
+template&lt;typename GraphNodeId &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;GraphNodeId, <a class="el" href="structpsr_1_1SCCId.html">SCCId</a>&lt;GraphNodeId&gt; &gt; <a class="el" href="structpsr_1_1SCCHolder.html">psr::SCCHolder</a>&lt; GraphNodeId &gt;::SCCOfNode</td>
@@ -306,7 +306,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

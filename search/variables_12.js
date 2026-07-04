@@ -6,7 +6,7 @@ var searchData=
   ['targetfact_3',['TargetFact',['../structpsr_1_1IterativeIDESolverBase_1_1SummaryEdge.html#abfc6718e1fc6b5679ae1f8f018327c11',1,'psr::IterativeIDESolverBase::SummaryEdge']]],
   ['th_4',['TH',['../classpsr_1_1CHAResolver.html#ad6da9bdee94c6c65275bf54c7634b0fc',1,'psr::CHAResolver']]],
   ['to_5',['To',['../structpsr_1_1XTaint_1_1TransferEdgeFunction.html#ac824829b33121bafdaa2d328da1ab517',1,'psr::XTaint::TransferEdgeFunction']]],
-  ['topoffset_6',['TopOffset',['../structpsr_1_1cfl__fieldsens_1_1AccessPath.html#aa8fa04ad6b5c57e22a00656acfb4a2c6',1,'psr::cfl_fieldsens::AccessPath']]],
+  ['topoffset_6',['topoffset',['../classpsr_1_1cfl__fieldsens_1_1FieldStringManager.html#a97155d0747f5fd30831feb38a3d6ba77',1,'psr::cfl_fieldsens::FieldStringManager::TopOffset'],['../structpsr_1_1cfl__fieldsens_1_1AccessPath.html#aa8fa04ad6b5c57e22a00656acfb4a2c6',1,'psr::cfl_fieldsens::AccessPath::TopOffset']]],
   ['topvalue_7',['topvalue',['../structpsr_1_1AllTop.html#aa852f435c1164ce6151b7ca5a3fd5622',1,'psr::AllTop::TopValue'],['../classpsr_1_1glca_1_1EdgeValue.html#aeb2daf91c1d482d016aacd7db4ac77f9',1,'psr::glca::EdgeValue::TopValue']]],
   ['totalnumlinearsearchforsummary_8',['TotalNumLinearSearchForSummary',['../structpsr_1_1IterativeIDESolverStats.html#a9ceb83f987d5a9f3066c003fdaf40b3b',1,'psr::IterativeIDESolverStats']]],
   ['totalnumoperands_9',['TotalNumOperands',['../structpsr_1_1GeneralStatistics.html#a0d9ba42bb3261aea4fbc39c8e85a7f5d',1,'psr::GeneralStatistics']]],
@@ -14,8 +14,9 @@ var searchData=
   ['totalnumrelevantcalls_11',['TotalNumRelevantCalls',['../structpsr_1_1IterativeIDESolverStats.html#a7da80eb9bc0e1d8b322c22d739c3c50c',1,'psr::IterativeIDESolverStats']]],
   ['totalnumsuccessorbbs_12',['TotalNumSuccessorBBs',['../structpsr_1_1GeneralStatistics.html#a94c556798bc61cc838da50e1b617b3d5',1,'psr::GeneralStatistics']]],
   ['totalnumuses_13',['TotalNumUses',['../structpsr_1_1GeneralStatistics.html#a220fe35ca2210930ddb13ec916bc715a',1,'psr::GeneralStatistics']]],
-  ['transitivederivedindex_14',['TransitiveDerivedIndex',['../structpsr_1_1DIBasedTypeHierarchyData.html#a909d7085214a903910bb5d0711ee9957',1,'psr::DIBasedTypeHierarchyData']]],
-  ['tsf_15',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]],
-  ['typeentrypoints_16',['TypeEntryPoints',['../structpsr_1_1vta_1_1TypeAssignmentGraph.html#ae810885c5f6a7f22ebcca780890c5220',1,'psr::vta::TypeAssignmentGraph']]],
-  ['typesperscc_17',['TypesPerSCC',['../structpsr_1_1vta_1_1TypeAssignment.html#adf2bc0708c727b6a700972202d840cba',1,'psr::vta::TypeAssignment']]]
+  ['transform_14',['Transform',['../structpsr_1_1cfl__fieldsens_1_1CFLFieldSensEdgeFunctionImpl.html#af0b52d06888d488aee912c285af1df52',1,'psr::cfl_fieldsens::CFLFieldSensEdgeFunctionImpl']]],
+  ['transitivederivedindex_15',['TransitiveDerivedIndex',['../structpsr_1_1DIBasedTypeHierarchyData.html#a909d7085214a903910bb5d0711ee9957',1,'psr::DIBasedTypeHierarchyData']]],
+  ['tsf_16',['TSF',['../classpsr_1_1XTaint_1_1AnalysisBase.html#a91ad2abbf943b3a104ff77068955b691',1,'psr::XTaint::AnalysisBase']]],
+  ['typeentrypoints_17',['TypeEntryPoints',['../structpsr_1_1vta_1_1TypeAssignmentGraph.html#ae810885c5f6a7f22ebcca780890c5220',1,'psr::vta::TypeAssignmentGraph']]],
+  ['typesperscc_18',['TypesPerSCC',['../structpsr_1_1vta_1_1TypeAssignment.html#adf2bc0708c727b6a700972202d840cba',1,'psr::vta::TypeAssignment']]]
 ];

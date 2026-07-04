@@ -206,32 +206,32 @@ Concepts</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a6cc99285b5058131accd52ece38b2cc1" id="r_a6cc99285b5058131accd52ece38b2cc1"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt; </td></tr>
-<tr class="memitem:a6cc99285b5058131accd52ece38b2cc1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6cc99285b5058131accd52ece38b2cc1">psr::ElementType</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> detail::ElementType&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a> &gt;::type</td></tr>
+<tr class="memitem:a6cc99285b5058131accd52ece38b2cc1" id="r_a6cc99285b5058131accd52ece38b2cc1"><td class="memTemplParams" colspan="2">template&lt;typename Container &gt; </td></tr>
+<tr class="memitem:a6cc99285b5058131accd52ece38b2cc1"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a6cc99285b5058131accd52ece38b2cc1">psr::ElementType</a> = typename detail::ElementType&lt; Container &gt;::type</td></tr>
 <tr class="separator:a6cc99285b5058131accd52ece38b2cc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aed729e099bf598be2128544639dc9f6d" id="r_aed729e099bf598be2128544639dc9f6d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:aed729e099bf598be2128544639dc9f6d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aed729e099bf598be2128544639dc9f6d">psr::reserveIfPossible</a> (T &amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Container</a>, <a class="el" href="classsize__t.html">size_t</a> Capacity)</td></tr>
+<tr class="memitem:aed729e099bf598be2128544639dc9f6d" id="r_aed729e099bf598be2128544639dc9f6d"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:aed729e099bf598be2128544639dc9f6d"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#aed729e099bf598be2128544639dc9f6d">psr::reserveIfPossible</a> (T &amp;Container, <a class="el" href="classsize__t.html">size_t</a> Capacity)</td></tr>
 <tr class="separator:aed729e099bf598be2128544639dc9f6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cc220ee4e33dc7e81fc267972154c1c" id="r_a2cc220ee4e33dc7e81fc267972154c1c"><td class="memTemplParams" colspan="2">template&lt;has_adl_to_string_v T&gt; </td></tr>
-<tr class="memitem:a2cc220ee4e33dc7e81fc267972154c1c"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2cc220ee4e33dc7e81fc267972154c1c">psr::adl_to_string</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;Val)</td></tr>
+<tr class="memitem:a2cc220ee4e33dc7e81fc267972154c1c"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a2cc220ee4e33dc7e81fc267972154c1c">psr::adl_to_string</a> (const T &amp;Val)</td></tr>
 <tr class="separator:a2cc220ee4e33dc7e81fc267972154c1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf04eb6956cc62d2cda8579ddb23f0ae" id="r_adf04eb6956cc62d2cda8579ddb23f0ae"><td class="memTemplParams" colspan="2">template&lt;has_adl_join T&gt; </td></tr>
-<tr class="memitem:adf04eb6956cc62d2cda8579ddb23f0ae"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">decltype</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#adf04eb6956cc62d2cda8579ddb23f0ae">psr::adl_join</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;L, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::type_identity_t&lt; T &gt; &amp;R)</td></tr>
+<tr class="memitem:adf04eb6956cc62d2cda8579ddb23f0ae"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#adf04eb6956cc62d2cda8579ddb23f0ae">psr::adl_join</a> (const T &amp;L, const std::type_identity_t&lt; T &gt; &amp;R)</td></tr>
 <tr class="separator:adf04eb6956cc62d2cda8579ddb23f0ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a4827f229706791e03bd460c7e39e3a91" id="r_a4827f229706791e03bd460c7e39e3a91"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:a4827f229706791e03bd460c7e39e3a91"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4827f229706791e03bd460c7e39e3a91">psr::has_llvm_dense_map_info</a></td></tr>
+<tr class="memitem:a4827f229706791e03bd460c7e39e3a91" id="r_a4827f229706791e03bd460c7e39e3a91"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a4827f229706791e03bd460c7e39e3a91"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a4827f229706791e03bd460c7e39e3a91">psr::has_llvm_dense_map_info</a></td></tr>
 <tr class="separator:a4827f229706791e03bd460c7e39e3a91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2" id="r_a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7441705fb5051f9f8c2b934f3307cac2">psr::variant_idx</a> = detail::variant_idx&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>, T&gt;::value</td></tr>
+<tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2" id="r_a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplParams" colspan="2">template&lt;typename Var , typename T &gt; </td></tr>
+<tr class="memitem:a7441705fb5051f9f8c2b934f3307cac2"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7441705fb5051f9f8c2b934f3307cac2">psr::variant_idx</a> = detail::variant_idx&lt;Var, T&gt;::value</td></tr>
 <tr class="separator:a7441705fb5051f9f8c2b934f3307cac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24" id="r_a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a06a011dfd124da09b4bf8b06c926bb24">psr::IsTriviallyRelocatable</a></td></tr>
+<tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24" id="r_a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a06a011dfd124da09b4bf8b06c926bb24"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a06a011dfd124da09b4bf8b06c926bb24">psr::IsTriviallyRelocatable</a></td></tr>
 <tr class="separator:a06a011dfd124da09b4bf8b06c926bb24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -241,7 +241,7 @@ Variables</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

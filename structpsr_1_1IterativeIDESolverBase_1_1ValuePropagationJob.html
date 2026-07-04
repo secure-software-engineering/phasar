@@ -97,11 +97,11 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a39315c0206aa2280fcec2eb6b61f9e5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5693337516d963108541b3b0f167e44c" id="r_a5693337516d963108541b3b0f167e44c"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IterativeIDESolverBase_1_1ValuePropagationJob.html#a5693337516d963108541b3b0f167e44c">Fact</a> {}</td></tr>
 <tr class="separator:a5693337516d963108541b3b0f167e44c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a828bbb7dfe356b93f45d6c5fc51eb72b" id="r_a828bbb7dfe356b93f45d6c5fc51eb72b"><td class="memItemLeft" align="right" valign="top">std::conditional_t&lt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html#a15636eda77166e1b651113fae9dc5891">ComputeValues</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> std::decay_t&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt;::l_t, <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IterativeIDESolverBase_1_1ValuePropagationJob.html#a828bbb7dfe356b93f45d6c5fc51eb72b">Value</a> {}</td></tr>
+<tr class="memitem:a828bbb7dfe356b93f45d6c5fc51eb72b" id="r_a828bbb7dfe356b93f45d6c5fc51eb72b"><td class="memItemLeft" align="right" valign="top">std::conditional_t&lt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html#a15636eda77166e1b651113fae9dc5891">ComputeValues</a>, typename std::decay_t&lt; EdgeFunPtrTy &gt;::l_t, <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1IterativeIDESolverBase_1_1ValuePropagationJob.html#a828bbb7dfe356b93f45d6c5fc51eb72b">Value</a> {}</td></tr>
 <tr class="separator:a828bbb7dfe356b93f45d6c5fc51eb72b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a>&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename StaticSolverConfigTy, typename EdgeFunPtrTy&gt;<br />
 struct psr::IterativeIDESolverBase&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;::ValuePropagationJob</div>
 <p class="definition">Definition at line <a class="el" href="IterativeIDESolverBase_8h_source.html#l00137">137</a> of file <a class="el" href="IterativeIDESolverBase_8h_source.html">IterativeIDESolverBase.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
@@ -111,10 +111,10 @@ struct psr::IterativeIDESolverBase&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;::
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt; </div>
+template&lt;typename StaticSolverConfigTy , typename EdgeFunPtrTy &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt;::ValuePropagationJob::Fact {}</td>
+          <td class="memname">uint32_t <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase</a>&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;::ValuePropagationJob::Fact {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -129,10 +129,10 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt; </div>
+template&lt;typename StaticSolverConfigTy , typename EdgeFunPtrTy &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt;::ValuePropagationJob::Inst {}</td>
+          <td class="memname">uint32_t <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase</a>&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;::ValuePropagationJob::Inst {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -147,10 +147,10 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a> , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt; </div>
+template&lt;typename StaticSolverConfigTy , typename EdgeFunPtrTy &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">std::conditional_t&lt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html#a15636eda77166e1b651113fae9dc5891">ComputeValues</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a>&gt;::l_t, <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a>&gt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StaticSolverConfigTy</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeFunPtrTy</a> &gt;::ValuePropagationJob::Value {}</td>
+          <td class="memname">std::conditional_t&lt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html#a15636eda77166e1b651113fae9dc5891">ComputeValues</a>, typename std::decay_t&lt;EdgeFunPtrTy&gt;::l_t, <a class="el" href="structpsr_1_1EmptyType.html">EmptyType</a>&gt; <a class="el" href="classpsr_1_1IterativeIDESolverBase.html">psr::IterativeIDESolverBase</a>&lt; StaticSolverConfigTy, EdgeFunPtrTy &gt;::ValuePropagationJob::Value {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -165,7 +165,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

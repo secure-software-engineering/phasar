@@ -92,14 +92,13 @@ $(function() {
 <p><code>#include &quot;<a class="el" href="UnionFindAA_8h_source.html">phasar/Pointer/UnionFindAA.h</a>&quot;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1UnionFindAAResult.html">psr::UnionFindAAResult</a> =  <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;Result, ValueId <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>) {</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1UnionFindAAResult.html">psr::UnionFindAAResult</a> =  <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;Result, ValueId Var) {</div>
 <div class="line">  { T::isCached() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line">  { Result.getRawAliasSet(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>) } -&gt; std::convertible_to&lt;RawAliasSet&lt;ValueId&gt;&gt;;</div>
-<div class="line">  { Result.mayAlias(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>) } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { Result.getRawAliasSet(Var) } -&gt; std::convertible_to&lt;RawAliasSet&lt;ValueId&gt;&gt;;</div>
+<div class="line">  { Result.mayAlias(Var, Var) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">  { Result.size() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;size_t&gt;;</div>
 <div class="line">}</div>
 <div class="ttc" id="aconceptpsr_1_1UnionFindAAResult_html"><div class="ttname"><a href="conceptpsr_1_1UnionFindAAResult.html">psr::UnionFindAAResult</a></div><div class="ttdoc">Base interface for results of a union-find alias-analysis.</div><div class="ttdef"><b>Definition</b> <a href="UnionFindAA_8h_source.html#l00044">UnionFindAA.h:44</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classBase.html">Base</a> interface for results of a union-find alias-analysis. </p>
 
@@ -107,7 +106,7 @@ $(function() {
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

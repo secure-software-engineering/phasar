@@ -103,33 +103,33 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ad1d0602a9eee1460c855d6b3ce61201a" id="r_ad1d0602a9eee1460c855d6b3ce61201a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </td></tr>
-<tr class="memitem:ad1d0602a9eee1460c855d6b3ce61201a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">psr::Nullable</a> = std::conditional_t&lt; std::is_convertible_v&lt; T, <a class="el" href="classbool.html">bool</a> &gt;, T, std::optional&lt; T &gt; &gt;</td></tr>
+<tr class="memitem:ad1d0602a9eee1460c855d6b3ce61201a" id="r_ad1d0602a9eee1460c855d6b3ce61201a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ad1d0602a9eee1460c855d6b3ce61201a"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ad1d0602a9eee1460c855d6b3ce61201a">psr::Nullable</a> = std::conditional_t&lt; std::is_convertible_v&lt; T, <a class="el" href="classbool.html">bool</a> &gt;, T, std::optional&lt; T &gt; &gt;</td></tr>
 <tr class="separator:ad1d0602a9eee1460c855d6b3ce61201a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a7ae4682925592184eb9c8b37ccda386d" id="r_a7ae4682925592184eb9c8b37ccda386d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+<tr class="memitem:a7ae4682925592184eb9c8b37ccda386d" id="r_a7ae4682925592184eb9c8b37ccda386d"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
 requires std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;</td></tr>
-<tr class="memitem:a7ae4682925592184eb9c8b37ccda386d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">psr::unwrapNullable</a> (T &amp;&amp;Val) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a7ae4682925592184eb9c8b37ccda386d"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a7ae4682925592184eb9c8b37ccda386d">psr::unwrapNullable</a> (T &amp;&amp;Val) noexcept</td></tr>
 <tr class="separator:a7ae4682925592184eb9c8b37ccda386d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe5d106f755d33afd9b485a74886fd47" id="r_abe5d106f755d33afd9b485a74886fd47"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+<tr class="memitem:abe5d106f755d33afd9b485a74886fd47" id="r_abe5d106f755d33afd9b485a74886fd47"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
 requires (!std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;)</td></tr>
-<tr class="memitem:abe5d106f755d33afd9b485a74886fd47"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#abe5d106f755d33afd9b485a74886fd47">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;&amp;Val) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:abe5d106f755d33afd9b485a74886fd47"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#abe5d106f755d33afd9b485a74886fd47">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;&amp;Val) noexcept</td></tr>
 <tr class="separator:abe5d106f755d33afd9b485a74886fd47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a7c1c9e9cf2f66c6746b48dfd31ed08" id="r_a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+<tr class="memitem:a5a7c1c9e9cf2f66c6746b48dfd31ed08" id="r_a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
 requires (!std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;)</td></tr>
-<tr class="memitem:a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a5a7c1c9e9cf2f66c6746b48dfd31ed08">psr::unwrapNullable</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> std::optional&lt; T &gt; &amp;Val) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memTemplItemLeft" align="right" valign="top">constexpr const T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a5a7c1c9e9cf2f66c6746b48dfd31ed08">psr::unwrapNullable</a> (const std::optional&lt; T &gt; &amp;Val) noexcept</td></tr>
 <tr class="separator:a5a7c1c9e9cf2f66c6746b48dfd31ed08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae430b25f765168712d9c3ec35d36f4dd" id="r_ae430b25f765168712d9c3ec35d36f4dd"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; <br />
+<tr class="memitem:ae430b25f765168712d9c3ec35d36f4dd" id="r_ae430b25f765168712d9c3ec35d36f4dd"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; <br />
 requires (!std::is_convertible_v&lt;T, <a class="el" href="classbool.html">bool</a>&gt;)</td></tr>
-<tr class="memitem:ae430b25f765168712d9c3ec35d36f4dd"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae430b25f765168712d9c3ec35d36f4dd">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;Val) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:ae430b25f765168712d9c3ec35d36f4dd"><td class="memTemplItemLeft" align="right" valign="top">constexpr T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ae430b25f765168712d9c3ec35d36f4dd">psr::unwrapNullable</a> (std::optional&lt; T &gt; &amp;Val) noexcept</td></tr>
 <tr class="separator:ae430b25f765168712d9c3ec35d36f4dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

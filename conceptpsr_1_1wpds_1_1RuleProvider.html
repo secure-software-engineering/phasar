@@ -89,30 +89,30 @@ $(function() {
 <p><code>#include &quot;<a class="el" href="RuleProvider_8h_source.html">phasar/DataFlow/WPDS/RuleProvider.h</a>&quot;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1wpds_1_1RuleProvider.html">psr::wpds::RuleProvider</a> =  <span class="keyword">requires</span>(T &amp;RP, <span class="keyword">typename</span> T::control_location_type <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CL</a>,</div>
-<div class="line">                                <span class="keyword">typename</span> T::stack_element_type <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>) {</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1wpds_1_1RuleProvider.html">psr::wpds::RuleProvider</a> =  <span class="keyword">requires</span>(T &amp;RP, <span class="keyword">typename</span> T::control_location_type CL,</div>
+<div class="line">                                <span class="keyword">typename</span> T::stack_element_type SE) {</div>
 <div class="line">  <span class="keyword">typename</span> T::control_location_type;</div>
 <div class="line">  <span class="keyword">typename</span> T::stack_element_type;</div>
 <div class="line">  <span class="keyword">typename</span> T::weight_type;</div>
 <div class="line">  {</div>
-<div class="line">    RP.getNormalRules(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CL</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>)</div>
+<div class="line">    RP.getNormalRules(CL, SE)</div>
 <div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a>&lt;</div>
 <div class="line">      std::tuple&lt;<span class="keyword">typename</span> T::control_location_type,</div>
 <div class="line">                 <span class="keyword">typename</span> T::stack_element_type, <span class="keyword">typename</span> T::weight_type&gt;&gt;;</div>
 <div class="line"> </div>
 <div class="line">  {</div>
-<div class="line">    RP.getPushRules(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CL</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>)</div>
+<div class="line">    RP.getPushRules(CL, SE)</div>
 <div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a>&lt;std::tuple&lt;</div>
 <div class="line">      <span class="keyword">typename</span> T::control_location_type, <span class="keyword">typename</span> T::stack_element_type,</div>
 <div class="line">      <span class="keyword">typename</span> T::stack_element_type, <span class="keyword">typename</span> T::weight_type&gt;&gt;;</div>
 <div class="line"> </div>
 <div class="line">  {</div>
 <div class="line">    </div>
-<div class="line">    RP.getPopRules(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CL</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>)</div>
+<div class="line">    RP.getPopRules(CL, SE, SE, SE)</div>
 <div class="line">  } -&gt; <a class="code hl_concept" href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a>&lt;</div>
 <div class="line">      std::tuple&lt;typename T::control_location_type, typename T::weight_type&gt;&gt;;</div>
 <div class="line"> </div>
-<div class="line">  { RP.hasPopRules(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CL</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">SE</a>) } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">  { RP.hasPopRules(CL, SE) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line"> </div>
 <div class="line">  {</div>
 <div class="line">    RP.initialSeeds()</div>
@@ -122,14 +122,13 @@ $(function() {
 <div class="line">}</div>
 <div class="ttc" id="aconceptpsr_1_1is__iterable__over__v_html"><div class="ttname"><a href="conceptpsr_1_1is__iterable__over__v.html">psr::is_iterable_over_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00106">TypeTraits.h:106</a></div></div>
 <div class="ttc" id="aconceptpsr_1_1wpds_1_1RuleProvider_html"><div class="ttname"><a href="conceptpsr_1_1wpds_1_1RuleProvider.html">psr::wpds::RuleProvider</a></div><div class="ttdef"><b>Definition</b> <a href="RuleProvider_8h_source.html#l00020">RuleProvider.h:20</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="RuleProvider_8h_source.html#l00020">20</a> of file <a class="el" href="RuleProvider_8h_source.html">RuleProvider.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

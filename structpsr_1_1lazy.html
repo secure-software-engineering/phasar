@@ -94,11 +94,11 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a84d33e8a7f3100e1593973d8498b25bc" id="r_a84d33e8a7f3100e1593973d8498b25bc"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> FF &gt; <br />
+<tr class="memitem:a84d33e8a7f3100e1593973d8498b25bc" id="r_a84d33e8a7f3100e1593973d8498b25bc"><td class="memTemplParams" colspan="2">template&lt;typename FF &gt; <br />
 requires (!std::is_same_v&lt;std::remove_cvref_t&lt;FF&gt;, <a class="el" href="structpsr_1_1lazy.html">lazy</a>&gt;)</td></tr>
-<tr class="memitem:a84d33e8a7f3100e1593973d8498b25bc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1lazy.html#a84d33e8a7f3100e1593973d8498b25bc">lazy</a> (FF &amp;&amp;<a class="el" href="structpsr_1_1lazy.html#a0bb44cbbbad0446c87ba81a6fcb79baa">F</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(std::is_nothrow_constructible_v&lt; Fn, FF &amp;&amp; &gt;)</td></tr>
+<tr class="memitem:a84d33e8a7f3100e1593973d8498b25bc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structpsr_1_1lazy.html#a84d33e8a7f3100e1593973d8498b25bc">lazy</a> (FF &amp;&amp;<a class="el" href="structpsr_1_1lazy.html#a0bb44cbbbad0446c87ba81a6fcb79baa">F</a>) noexcept(std::is_nothrow_constructible_v&lt; Fn, FF &amp;&amp; &gt;)</td></tr>
 <tr class="separator:a84d33e8a7f3100e1593973d8498b25bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91c6f981593c9a6bf8f977658336a226" id="r_a91c6f981593c9a6bf8f977658336a226"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1lazy.html#a91c6f981593c9a6bf8f977658336a226">operator std::invoke_result_t&lt; Fn &gt;</a> () &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(std::is_nothrow_invocable_v&lt; Fn &gt;)</td></tr>
+<tr class="memitem:a91c6f981593c9a6bf8f977658336a226" id="r_a91c6f981593c9a6bf8f977658336a226"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1lazy.html#a91c6f981593c9a6bf8f977658336a226">operator std::invoke_result_t&lt; Fn &gt;</a> () &amp;&amp;noexcept(std::is_nothrow_invocable_v&lt; Fn &gt;)</td></tr>
 <tr class="separator:a91c6f981593c9a6bf8f977658336a226"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -107,7 +107,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a0bb44cbbbad0446c87ba81a6fcb79baa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename Fn&gt;<br />
 struct psr::lazy&lt; Fn &gt;</div>
 <p class="definition">Definition at line <a class="el" href="Lazy_8h_source.html#l00018">18</a> of file <a class="el" href="Lazy_8h_source.html">Lazy.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -117,9 +117,9 @@ struct psr::lazy&lt; Fn &gt;</div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn &gt; </div>
+template&lt;typename Fn &gt; </div>
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> FF &gt; <br />
+template&lt;typename FF &gt; <br />
 requires (!std::is_same_v&lt;std::remove_cvref_t&lt;FF&gt;, <a class="el" href="structpsr_1_1lazy.html">lazy</a>&gt;)</div>
 <table class="mlabels">
   <tr>
@@ -151,13 +151,13 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;FF&gt;, <a class="el" href="
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn &gt; </div>
+template&lt;typename Fn &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="structpsr_1_1lazy.html">psr::lazy</a>&lt; Fn &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a> std::invoke_result_t&lt; Fn &gt; </td>
+          <td class="memname">constexpr <a class="el" href="structpsr_1_1lazy.html">psr::lazy</a>&lt; Fn &gt;::operator std::invoke_result_t&lt; Fn &gt; </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> &amp;&amp;</td>
@@ -183,7 +183,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Fn &gt; </div>
+template&lt;typename Fn &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">Fn <a class="el" href="structpsr_1_1lazy.html">psr::lazy</a>&lt; Fn &gt;::F</td>
@@ -203,7 +203,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

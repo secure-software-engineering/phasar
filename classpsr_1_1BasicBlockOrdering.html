@@ -93,11 +93,11 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0f7f0c5fcb8669a317cafdff9e5a8eb7" id="r_a0f7f0c5fcb8669a317cafdff9e5a8eb7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DTA</a> &gt; <br />
-requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.html">BasicBlockOrdering</a>, std::remove_reference_t&lt;std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DTA</a>&gt;&gt;&gt;)</td></tr>
-<tr class="memitem:a0f7f0c5fcb8669a317cafdff9e5a8eb7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1BasicBlockOrdering.html#a0f7f0c5fcb8669a317cafdff9e5a8eb7">BasicBlockOrdering</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DTA</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Dta</a>)</td></tr>
+<tr class="memitem:a0f7f0c5fcb8669a317cafdff9e5a8eb7" id="r_a0f7f0c5fcb8669a317cafdff9e5a8eb7"><td class="memTemplParams" colspan="2">template&lt;typename DTA &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.html">BasicBlockOrdering</a>, std::remove_reference_t&lt;std::decay_t&lt;DTA&gt;&gt;&gt;)</td></tr>
+<tr class="memitem:a0f7f0c5fcb8669a317cafdff9e5a8eb7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1BasicBlockOrdering.html#a0f7f0c5fcb8669a317cafdff9e5a8eb7">BasicBlockOrdering</a> (DTA &amp;&amp;Dta)</td></tr>
 <tr class="separator:a0f7f0c5fcb8669a317cafdff9e5a8eb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b4276c04f84504bf6b2a08177bbdac9" id="r_a2b4276c04f84504bf6b2a08177bbdac9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1BasicBlockOrdering.html#a2b4276c04f84504bf6b2a08177bbdac9">mustComeBefore</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">LHS</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">RHS</a>)</td></tr>
+<tr class="memitem:a2b4276c04f84504bf6b2a08177bbdac9" id="r_a2b4276c04f84504bf6b2a08177bbdac9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1BasicBlockOrdering.html#a2b4276c04f84504bf6b2a08177bbdac9">mustComeBefore</a> (const llvm::Instruction *LHS, const llvm::Instruction *RHS)</td></tr>
 <tr class="separator:a2b4276c04f84504bf6b2a08177bbdac9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -111,8 +111,8 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DTA</a> &gt; <br />
-requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.html">BasicBlockOrdering</a>, std::remove_reference_t&lt;std::decay_t&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DTA</a>&gt;&gt;&gt;)</div>
+template&lt;typename DTA &gt; <br />
+requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.html">BasicBlockOrdering</a>, std::remove_reference_t&lt;std::decay_t&lt;DTA&gt;&gt;&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -120,7 +120,7 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.
         <tr>
           <td class="memname">psr::BasicBlockOrdering::BasicBlockOrdering </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DTA</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">DTA &amp;&amp;&#160;</td>
           <td class="paramname"><em>Dta</em></td><td>)</td>
           <td></td>
         </tr>
@@ -146,13 +146,13 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.
         <tr>
           <td class="memname"><a class="el" href="classbool.html">bool</a> psr::BasicBlockOrdering::mustComeBefore </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *&#160;</td>
+          <td class="paramtype">const llvm::Instruction *&#160;</td>
           <td class="paramname"><em>LHS</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *&#160;</td>
+          <td class="paramtype">const llvm::Instruction *&#160;</td>
           <td class="paramname"><em>RHS</em>&#160;</td>
         </tr>
         <tr>
@@ -171,7 +171,7 @@ requires (!std::is_same_v&lt;<a class="el" href="classpsr_1_1BasicBlockOrdering.
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

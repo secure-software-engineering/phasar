@@ -94,38 +94,38 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a5ac2f00acfcce51749fdcb40e2ff3238" id="r_a5ac2f00acfcce51749fdcb40e2ff3238"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a5ac2f00acfcce51749fdcb40e2ff3238">value_type</a> = T</td></tr>
+<tr class="memitem:a5ac2f00acfcce51749fdcb40e2ff3238" id="r_a5ac2f00acfcce51749fdcb40e2ff3238"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a5ac2f00acfcce51749fdcb40e2ff3238">value_type</a> = T</td></tr>
 <tr class="separator:a5ac2f00acfcce51749fdcb40e2ff3238"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af07137f3b1e6d0af8ce5443218a5677a" id="r_af07137f3b1e6d0af8ce5443218a5677a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#af07137f3b1e6d0af8ce5443218a5677a">id_type</a> = ValueId</td></tr>
+<tr class="memitem:af07137f3b1e6d0af8ce5443218a5677a" id="r_af07137f3b1e6d0af8ce5443218a5677a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#af07137f3b1e6d0af8ce5443218a5677a">id_type</a> = ValueId</td></tr>
 <tr class="separator:af07137f3b1e6d0af8ce5443218a5677a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afca9b77820ea763be519ea56142fcf1e" id="r_afca9b77820ea763be519ea56142fcf1e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#afca9b77820ea763be519ea56142fcf1e">var_aliases_type</a> = std::conditional_t&lt; detail::IsPointerWithAtleastOneFreeLowBit&lt; T &gt;, llvm::TinyPtrVector&lt; T &gt;, llvm::SmallVector&lt; T, std::max(<a class="el" href="classsize__t.html">size_t</a>(1), <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">sizeof</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> *)/<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">sizeof</a>(T))&gt; &gt;</td></tr>
+<tr class="memitem:afca9b77820ea763be519ea56142fcf1e" id="r_afca9b77820ea763be519ea56142fcf1e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#afca9b77820ea763be519ea56142fcf1e">var_aliases_type</a> = std::conditional_t&lt; detail::IsPointerWithAtleastOneFreeLowBit&lt; T &gt;, llvm::TinyPtrVector&lt; T &gt;, llvm::SmallVector&lt; T, std::max(<a class="el" href="classsize__t.html">size_t</a>(1), sizeof(void *)/sizeof(T))&gt; &gt;</td></tr>
 <tr class="separator:afca9b77820ea763be519ea56142fcf1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a9182a879c9decfa408507b80a1e74758" id="r_a9182a879c9decfa408507b80a1e74758"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a9182a879c9decfa408507b80a1e74758">id2vars</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a> <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a></td></tr>
+<tr class="memitem:a9182a879c9decfa408507b80a1e74758" id="r_a9182a879c9decfa408507b80a1e74758"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a9182a879c9decfa408507b80a1e74758">id2vars</a> () const noexcept <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a></td></tr>
 <tr class="separator:a9182a879c9decfa408507b80a1e74758"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a714a8241d4f98752201ecdf042d240ba" id="r_a714a8241d4f98752201ecdf042d240ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a714a8241d4f98752201ecdf042d240ba">id2vars</a> (ValueId Id) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a> <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a></td></tr>
+<tr class="memitem:a714a8241d4f98752201ecdf042d240ba" id="r_a714a8241d4f98752201ecdf042d240ba"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a714a8241d4f98752201ecdf042d240ba">id2vars</a> (ValueId Id) const noexcept <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a></td></tr>
 <tr class="separator:a714a8241d4f98752201ecdf042d240ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab1d7c35ba62f91c8a744f268d4c6111" id="r_aab1d7c35ba62f91c8a744f268d4c6111"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#aab1d7c35ba62f91c8a744f268d4c6111">var2id</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a> <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a></td></tr>
+<tr class="memitem:aab1d7c35ba62f91c8a744f268d4c6111" id="r_aab1d7c35ba62f91c8a744f268d4c6111"><td class="memItemLeft" align="right" valign="top">constexpr const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#aab1d7c35ba62f91c8a744f268d4c6111">var2id</a> () const noexcept <a class="el" href="Macros_8h.html#a40a2c0af46b8c6ff86d04f8401348f46">PSR_LIFETIMEBOUND</a></td></tr>
 <tr class="separator:aab1d7c35ba62f91c8a744f268d4c6111"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4df7eec16936b74f3043bfa3ac89c994" id="r_a4df7eec16936b74f3043bfa3ac89c994"><td class="memItemLeft" align="right" valign="top">std::pair&lt; ValueId, <a class="el" href="classbool.html">bool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a4df7eec16936b74f3043bfa3ac89c994">insert</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; T &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>)</td></tr>
+<tr class="memitem:a4df7eec16936b74f3043bfa3ac89c994" id="r_a4df7eec16936b74f3043bfa3ac89c994"><td class="memItemLeft" align="right" valign="top">std::pair&lt; ValueId, <a class="el" href="classbool.html">bool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a4df7eec16936b74f3043bfa3ac89c994">insert</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; T &gt; Var)</td></tr>
 <tr class="separator:a4df7eec16936b74f3043bfa3ac89c994"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5886af610581b9d0c5b88c1e5dcdd179" id="r_a5886af610581b9d0c5b88c1e5dcdd179"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a5886af610581b9d0c5b88c1e5dcdd179">addAlias</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; T &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>, ValueId Id)</td></tr>
+<tr class="memitem:a5886af610581b9d0c5b88c1e5dcdd179" id="r_a5886af610581b9d0c5b88c1e5dcdd179"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a5886af610581b9d0c5b88c1e5dcdd179">addAlias</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; T &gt; Var, ValueId Id)</td></tr>
 <tr class="separator:a5886af610581b9d0c5b88c1e5dcdd179"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5039cfca7bd03f6559c16c586ab5a27" id="r_af5039cfca7bd03f6559c16c586ab5a27"><td class="memItemLeft" align="right" valign="top">ValueId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#af5039cfca7bd03f6559c16c586ab5a27">addDummy</a> ()</td></tr>
 <tr class="separator:af5039cfca7bd03f6559c16c586ab5a27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06679e5ca394388c5526e94d3099f97d" id="r_a06679e5ca394388c5526e94d3099f97d"><td class="memItemLeft" align="right" valign="top">std::optional&lt; ValueId &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a06679e5ca394388c5526e94d3099f97d">getOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; T &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Var</a>) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="memitem:a06679e5ca394388c5526e94d3099f97d" id="r_a06679e5ca394388c5526e94d3099f97d"><td class="memItemLeft" align="right" valign="top">std::optional&lt; ValueId &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a06679e5ca394388c5526e94d3099f97d">getOrNull</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; T &gt; Var) const</td></tr>
 <tr class="separator:a06679e5ca394388c5526e94d3099f97d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ec358c95e387593e93e63d33eb0b9d7" id="r_a1ec358c95e387593e93e63d33eb0b9d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a1ec358c95e387593e93e63d33eb0b9d7">reserve</a> (<a class="el" href="classsize__t.html">size_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Capa</a>)</td></tr>
+<tr class="memitem:a1ec358c95e387593e93e63d33eb0b9d7" id="r_a1ec358c95e387593e93e63d33eb0b9d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a1ec358c95e387593e93e63d33eb0b9d7">reserve</a> (<a class="el" href="classsize__t.html">size_t</a> Capa)</td></tr>
 <tr class="separator:a1ec358c95e387593e93e63d33eb0b9d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76bd57b71207ee6d2929916e9b3c1e84" id="r_a76bd57b71207ee6d2929916e9b3c1e84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a76bd57b71207ee6d2929916e9b3c1e84">size</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a76bd57b71207ee6d2929916e9b3c1e84" id="r_a76bd57b71207ee6d2929916e9b3c1e84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsize__t.html">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a76bd57b71207ee6d2929916e9b3c1e84">size</a> () const noexcept</td></tr>
 <tr class="separator:a76bd57b71207ee6d2929916e9b3c1e84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e66c9c7a4242fdcdf611965c387386d" id="r_a2e66c9c7a4242fdcdf611965c387386d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a2e66c9c7a4242fdcdf611965c387386d">empty</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a></td></tr>
+<tr class="memitem:a2e66c9c7a4242fdcdf611965c387386d" id="r_a2e66c9c7a4242fdcdf611965c387386d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ValueCompressor.html#a2e66c9c7a4242fdcdf611965c387386d">empty</a> () const noexcept</td></tr>
 <tr class="separator:a2e66c9c7a4242fdcdf611965c387386d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename T&gt;<br />
 class psr::ValueCompressor&lt; T &gt;</div><p>A utility-class that assigns sequential integer-like ids (psr::ValueId) to every inserted value.</p>
 <p>In contrast to <a class="el" href="classpsr_1_1Compressor.html">psr::Compressor</a>, the <a class="el" href="classpsr_1_1ValueCompressor.html">ValueCompressor</a> can optionally assign the same id to multiple values, and it can even produce ids without corresponding values.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -143,10 +143,10 @@ class psr::ValueCompressor&lt; T &gt;</div><p>A utility-class that assigns seque
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::id_type =  ValueId</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::id_type =  ValueId</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -161,10 +161,10 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::value_type =  T</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::value_type =  T</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -179,10 +179,10 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::var_aliases_type =  std::conditional_t&lt; detail::IsPointerWithAtleastOneFreeLowBit&lt;T&gt;, llvm::TinyPtrVector&lt;T&gt;, llvm::SmallVector&lt;T, std::max(<a class="el" href="classsize__t.html">size_t</a>(1), <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">sizeof</a>(<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> *) / <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">sizeof</a>(T))&gt; &gt;</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::var_aliases_type =  std::conditional_t&lt; detail::IsPointerWithAtleastOneFreeLowBit&lt;T&gt;, llvm::TinyPtrVector&lt;T&gt;, llvm::SmallVector&lt;T, std::max(<a class="el" href="classsize__t.html">size_t</a>(1), sizeof(void *) / sizeof(T))&gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -198,7 +198,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -241,7 +241,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -273,7 +273,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -304,7 +304,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -334,13 +334,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp; <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::id2vars </td>
+          <td class="memname">constexpr const auto &amp; <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::id2vars </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -365,13 +365,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp; <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::id2vars </td>
+          <td class="memname">constexpr const auto &amp; <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::id2vars </td>
           <td>(</td>
           <td class="paramtype">ValueId&#160;</td>
           <td class="paramname"><em>Id</em></td><td>)</td>
@@ -395,7 +395,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -428,13 +428,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::reserve </td>
+          <td class="memname">void <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::reserve </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classsize__t.html">size_t</a>&#160;</td>
           <td class="paramname"><em>Capa</em></td><td>)</td>
@@ -460,7 +460,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -491,13 +491,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T &gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">constexpr</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp; <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::var2id </td>
+          <td class="memname">constexpr const auto &amp; <a class="el" href="classpsr_1_1ValueCompressor.html">psr::ValueCompressor</a>&lt; T &gt;::var2id </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -520,7 +520,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

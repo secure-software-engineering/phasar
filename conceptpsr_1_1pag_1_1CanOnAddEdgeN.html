@@ -90,18 +90,17 @@ $(function() {
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> N&gt;</div>
 <div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1pag_1_1CanOnAddEdgeN.html">psr::pag::CanOnAddEdgeN</a> = </div>
-<div class="line">    <span class="keyword">requires</span>(T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Strategy</a>, ValueId <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>, ValueId To, pag::Edge <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">E</a>) {</div>
-<div class="line">      <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Strategy</a>.onAddEdge(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">From</a>, To, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">E</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Nullable&lt;N&gt;</a>{});</div>
+<div class="line">    <span class="keyword">requires</span>(T &amp;Strategy, ValueId From, ValueId To, pag::Edge E) {</div>
+<div class="line">      Strategy.onAddEdge(From, To, E, Nullable&lt;N&gt;{});</div>
 <div class="line">    }</div>
 <div class="ttc" id="aconceptpsr_1_1pag_1_1CanOnAddEdgeN_html"><div class="ttname"><a href="conceptpsr_1_1pag_1_1CanOnAddEdgeN.html">psr::pag::CanOnAddEdgeN</a></div><div class="ttdef"><b>Definition</b> <a href="PointerAssignmentGraph_8h_source.html#l00118">PointerAssignmentGraph.h:118</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="PointerAssignmentGraph_8h_source.html#l00118">118</a> of file <a class="el" href="PointerAssignmentGraph_8h_source.html">PointerAssignmentGraph.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

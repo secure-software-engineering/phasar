@@ -90,18 +90,17 @@ $(function() {
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ProblemTy&gt;</div>
 <div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1has__isInteresting__v.html">psr::has_isInteresting_v</a> =  <span class="keyword">requires</span>(</div>
-<div class="line">    <span class="keyword">const</span> ProblemTy &amp;Val, <span class="keyword">typename</span> ProblemTy::ProblemAnalysisDomain::n_t <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Nod</a>) {</div>
-<div class="line">  { Val.isInteresting(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Nod</a>) } -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line">    <span class="keyword">const</span> ProblemTy &amp;Val, <span class="keyword">typename</span> ProblemTy::ProblemAnalysisDomain::n_t Nod) {</div>
+<div class="line">  { Val.isInteresting(Nod) } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line">}</div>
 <div class="ttc" id="aconceptpsr_1_1has__isInteresting__v_html"><div class="ttname"><a href="conceptpsr_1_1has__isInteresting__v.html">psr::has_isInteresting_v</a></div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00208">TypeTraits.h:208</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="TypeTraits_8h_source.html#l00208">208</a> of file <a class="el" href="TypeTraits_8h_source.html">TypeTraits.h</a>.</p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:58 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -99,9 +99,9 @@ Inheritance diagram for psr::CallingContextConstructor&lt; N, F, K &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:af60fef9f124cf0899b35db223409ee10" id="r_af60fef9f124cf0899b35db223409ee10"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a> = N</td></tr>
+<tr class="memitem:af60fef9f124cf0899b35db223409ee10" id="r_af60fef9f124cf0899b35db223409ee10"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a> = N</td></tr>
 <tr class="separator:af60fef9f124cf0899b35db223409ee10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba1defd2b7c10d9a6e9c6c2b21c207ee" id="r_aba1defd2b7c10d9a6e9c6c2b21c207ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> = F</td></tr>
+<tr class="memitem:aba1defd2b7c10d9a6e9c6c2b21c207ee" id="r_aba1defd2b7c10d9a6e9c6c2b21c207ee"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> = F</td></tr>
 <tr class="separator:aba1defd2b7c10d9a6e9c6c2b21c207ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -109,20 +109,20 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adaa04627f40b06681bbc7acd581fcb12" id="r_adaa04627f40b06681bbc7acd581fcb12"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#adaa04627f40b06681bbc7acd581fcb12">CallingContextConstructor</a> ()</td></tr>
 <tr class="separator:adaa04627f40b06681bbc7acd581fcb12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e6c6cb055a05860bd8c749474a95624" id="r_a7e6c6cb055a05860bd8c749474a95624"><td class="memTemplParams" colspan="2">template&lt;ProjectIRDB DBTy&gt; <br />
-requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</td></tr>
-<tr class="memitem:a7e6c6cb055a05860bd8c749474a95624"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#a7e6c6cb055a05860bd8c749474a95624">visitAllCallingContexts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; Fun, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;CG, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DBTy</a> &amp;IRDB, std::invocable&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CCVisitor</a>)</td></tr>
+requires (std::same_as&lt;typename DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;typename DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</td></tr>
+<tr class="memitem:a7e6c6cb055a05860bd8c749474a95624"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#a7e6c6cb055a05860bd8c749474a95624">visitAllCallingContexts</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; Fun, const <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;CG, const DBTy &amp;IRDB, std::invocable&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, CallingContextId &gt; auto CCVisitor)</td></tr>
 <tr class="separator:a7e6c6cb055a05860bd8c749474a95624"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5d1e4c7affad3aabbb815bbe28556d2" id="r_af5d1e4c7affad3aabbb815bbe28556d2"><td class="memTemplParams" colspan="2">template&lt;ProjectIRDB DBTy&gt; <br />
-requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</td></tr>
-<tr class="memitem:af5d1e4c7affad3aabbb815bbe28556d2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#af5d1e4c7affad3aabbb815bbe28556d2">visitContextsAtCall</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a> &gt; <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">Call</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;CG, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DBTy</a> &amp;IRDB, std::invocable&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CCVisitor</a>)</td></tr>
+requires (std::same_as&lt;typename DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;typename DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</td></tr>
+<tr class="memitem:af5d1e4c7affad3aabbb815bbe28556d2"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#af5d1e4c7affad3aabbb815bbe28556d2">visitContextsAtCall</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a> &gt; <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">Call</a>, const <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;CG, const DBTy &amp;IRDB, std::invocable&lt; CallingContextId &gt; auto CCVisitor)</td></tr>
 <tr class="separator:af5d1e4c7affad3aabbb815bbe28556d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac25ffa4015a5cb4677d1f90de20a4510" id="r_ac25ffa4015a5cb4677d1f90de20a4510"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#ac25ffa4015a5cb4677d1f90de20a4510">getOrInsert</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt; CC)</td></tr>
+<tr class="memitem:ac25ffa4015a5cb4677d1f90de20a4510" id="r_ac25ffa4015a5cb4677d1f90de20a4510"><td class="memItemLeft" align="right" valign="top">CallingContextId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#ac25ffa4015a5cb4677d1f90de20a4510">getOrInsert</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt; CC)</td></tr>
 <tr class="separator:ac25ffa4015a5cb4677d1f90de20a4510"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf77aa2efb5e086ee6fc2354252a0937" id="r_abf77aa2efb5e086ee6fc2354252a0937"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#abf77aa2efb5e086ee6fc2354252a0937">operator[]</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a> Ctx)</td></tr>
+<tr class="memitem:abf77aa2efb5e086ee6fc2354252a0937" id="r_abf77aa2efb5e086ee6fc2354252a0937"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1CallingContextConstructor.html#abf77aa2efb5e086ee6fc2354252a0937">operator[]</a> (CallingContextId Ctx)</td></tr>
 <tr class="separator:abf77aa2efb5e086ee6fc2354252a0937"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F, unsigned K = 1&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename N, typename F, unsigned K = 1&gt;<br />
 class psr::CallingContextConstructor&lt; N, F, K &gt;</div><p>Manages the set of calling contexts encountered for a given analysis and maps them to dense sequential <code>CallingContextId</code> values.</p>
 <p>Used by <code><a class="el" href="classpsr_1_1CallingContextSensUnionFindAA.html">CallingContextSensUnionFindAA</a></code> to enumerate all call-string prefixes of length ≤ K for each function. Contexts are interned in a <code><a class="el" href="classpsr_1_1Compressor.html">Compressor</a></code>; <code>CallingContextId::None</code> (id 0) always represents the "no calling context" (top-level / uncalled) entry.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -142,10 +142,10 @@ class psr::CallingContextConstructor&lt; N, F, K &gt;</div><p>Manages the set of
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::f_t =  F</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::f_t =  F</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -160,10 +160,10 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::n_t =  N</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::n_t =  N</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -179,7 +179,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -209,13 +209,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a> <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::getOrInsert </td>
+          <td class="memname">CallingContextId <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::getOrInsert </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt;&#160;</td>
           <td class="paramname"><em>CC</em></td><td>)</td>
@@ -239,15 +239,15 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt; <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">::operator</a>[] </td>
+          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="structpsr_1_1CallingContext.html">CallingContext</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, K &gt; &gt; <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::operator[] </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a>&#160;</td>
+          <td class="paramtype">CallingContextId&#160;</td>
           <td class="paramname"><em>Ctx</em></td><td>)</td>
           <td></td>
         </tr>
@@ -269,16 +269,16 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
 <div class="memtemplate">
 template&lt;ProjectIRDB DBTy&gt; <br />
-requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</div>
+requires (std::same_as&lt;typename DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;typename DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::visitAllCallingContexts </td>
+          <td class="memname">void <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::visitAllCallingContexts </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Fun</em>, </td>
@@ -286,19 +286,19 @@ requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>CG</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DBTy</a> &amp;&#160;</td>
+          <td class="paramtype">const DBTy &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::invocable&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td>
+          <td class="paramtype">std::invocable&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, CallingContextId &gt; auto&#160;</td>
           <td class="paramname"><em>CCVisitor</em>&#160;</td>
         </tr>
         <tr>
@@ -313,7 +313,7 @@ requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Enumerates all call-string prefixes of length ≤ K that lead to <code>Fun</code> and invokes <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CCVisitor(firstCallSite, contextId)</a></code> for each one. If <code>Fun</code> has no callers (or K is exhausted), the "None" context is used. </p>
+<p>Enumerates all call-string prefixes of length ≤ K that lead to <code>Fun</code> and invokes <code>CCVisitor(firstCallSite, contextId)</code> for each one. If <code>Fun</code> has no callers (or K is exhausted), the "None" context is used. </p>
 
 <p class="definition">Definition at line <a class="el" href="CallingContextConstructor_8h_source.html#l00120">120</a> of file <a class="el" href="CallingContextConstructor_8h_source.html">CallingContextConstructor.h</a>.</p>
 
@@ -325,16 +325,16 @@ requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> N , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> F , unsigned K = 1&gt; </div>
+template&lt;typename N , typename F , unsigned K = 1&gt; </div>
 <div class="memtemplate">
 template&lt;ProjectIRDB DBTy&gt; <br />
-requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</div>
+requires (std::same_as&lt;typename DBTy::f_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a>&gt; &amp;&amp; std::same_as&lt;typename DBTy::n_t, <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::visitContextsAtCall </td>
+          <td class="memname">void <a class="el" href="classpsr_1_1CallingContextConstructor.html">psr::CallingContextConstructor</a>&lt; N, F, K &gt;::visitContextsAtCall </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a> &gt;&#160;</td>
           <td class="paramname"><em>Call</em>, </td>
@@ -342,19 +342,19 @@ requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpsr_1_1CallGraph.html">CallGraph</a>&lt; <a class="el" href="classpsr_1_1CallingContextConstructor.html#af60fef9f124cf0899b35db223409ee10">n_t</a>, <a class="el" href="classpsr_1_1CallingContextConstructor.html#aba1defd2b7c10d9a6e9c6c2b21c207ee">f_t</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>CG</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DBTy</a> &amp;&#160;</td>
+          <td class="paramtype">const DBTy &amp;&#160;</td>
           <td class="paramname"><em>IRDB</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::invocable&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CallingContextId</a> &gt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td>
+          <td class="paramtype">std::invocable&lt; CallingContextId &gt; auto&#160;</td>
           <td class="paramname"><em>CCVisitor</em>&#160;</td>
         </tr>
         <tr>
@@ -369,11 +369,11 @@ requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Enumerates all calling contexts that include <code>Call</code> as their most recent call-site and invokes <code><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CCVisitor(contextId)</a></code> for each one. </p>
+<p>Enumerates all calling contexts that include <code>Call</code> as their most recent call-site and invokes <code>CCVisitor(contextId)</code> for each one. </p>
 
 <p class="definition">Definition at line <a class="el" href="CallingContextConstructor_8h_source.html#l00132">132</a> of file <a class="el" href="CallingContextConstructor_8h_source.html">CallingContextConstructor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">psr::Call</a>.</p>
+<p class="reference">References <a class="el" href="namespacepsr.html#a82d5602f1a01221f6825a0c8f980710bac3755e61202abd74da5885d2e9c9160e">psr::Call</a>, and <a class="el" href="CallingContextConstructor_8h_source.html#l00033">psr::CallingContext&lt; N, K &gt;::Callers</a>.</p>
 
 </div>
 </div>
@@ -383,7 +383,7 @@ requires (std::same_as&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

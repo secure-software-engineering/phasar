@@ -93,15 +93,15 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a5b4bb80ae7519fa8b52049969547eb1d" id="r_a5b4bb80ae7519fa8b52049969547eb1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, T, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a5b4bb80ae7519fa8b52049969547eb1d">Nodes</a> {}</td></tr>
+<tr class="memitem:a5b4bb80ae7519fa8b52049969547eb1d" id="r_a5b4bb80ae7519fa8b52049969547eb1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt; VtxId, T, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a5b4bb80ae7519fa8b52049969547eb1d">Nodes</a> {}</td></tr>
 <tr class="separator:a5b4bb80ae7519fa8b52049969547eb1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e0d9b19f953fd8b25e95fbed5afc0f5" id="r_a0e0d9b19f953fd8b25e95fbed5afc0f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, llvm::SmallVector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>, 2 &gt;, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a0e0d9b19f953fd8b25e95fbed5afc0f5">Adj</a> {}</td></tr>
+<tr class="memitem:a0e0d9b19f953fd8b25e95fbed5afc0f5" id="r_a0e0d9b19f953fd8b25e95fbed5afc0f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt; VtxId, llvm::SmallVector&lt; EdgeTy, 2 &gt;, 0 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a0e0d9b19f953fd8b25e95fbed5afc0f5">Adj</a> {}</td></tr>
 <tr class="separator:a0e0d9b19f953fd8b25e95fbed5afc0f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5926317ef6707edfa0fe4a5584a51da0" id="r_a5926317ef6707edfa0fe4a5584a51da0"><td class="memItemLeft" align="right" valign="top">llvm::SmallVector&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, 1 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a5926317ef6707edfa0fe4a5584a51da0">Roots</a> {}</td></tr>
+<tr class="memitem:a5926317ef6707edfa0fe4a5584a51da0" id="r_a5926317ef6707edfa0fe4a5584a51da0"><td class="memItemLeft" align="right" valign="top">llvm::SmallVector&lt; VtxId, 1 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1AdjacencyList.html#a5926317ef6707edfa0fe4a5584a51da0">Roots</a> {}</td></tr>
 <tr class="separator:a5926317ef6707edfa0fe4a5584a51da0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a> = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> = VtxId&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename T, typename VtxId = uint32_t, typename EdgeTy = VtxId&gt;<br />
 struct psr::AdjacencyList&lt; T, VtxId, EdgeTy &gt;</div>
 <p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00030">30</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
@@ -111,15 +111,17 @@ struct psr::AdjacencyList&lt; T, VtxId, EdgeTy &gt;</div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>  = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = VtxId&gt; </div>
+template&lt;typename T , typename VtxId  = uint32_t, typename EdgeTy  = VtxId&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, llvm::SmallVector&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>, 2&gt;, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Adj {}</td>
+          <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;VtxId, llvm::SmallVector&lt;EdgeTy, 2&gt;, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, VtxId, EdgeTy &gt;::Adj {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00032">32</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="AdjacencyList_8h_source.html#l00103">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::addEdge()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00082">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::addRoot()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00133">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::dedupOutEdges()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00184">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::node()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00193">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::node()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00154">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::nodes()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00161">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::nodes()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00122">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::outDegree()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00112">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::outEdges()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00240">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::pop()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00277">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::removeEdge()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00296">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::removeRoot()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00227">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::reserve()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00092">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::roots()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00219">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::roots_size()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00211">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::size()</a>, and <a class="el" href="AdjacencyList_8h_source.html#l00176">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::vertices()</a>.</p>
 
 </div>
 </div>
@@ -129,15 +131,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>  = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = VtxId&gt; </div>
+template&lt;typename T , typename VtxId  = uint32_t, typename EdgeTy  = VtxId&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, T, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Nodes {}</td>
+          <td class="memname"><a class="el" href="classpsr_1_1TypedVector.html">TypedVector</a>&lt;VtxId, T, 0&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, VtxId, EdgeTy &gt;::Nodes {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00031">31</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="AdjacencyList_8h_source.html#l00103">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::addEdge()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00082">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::addRoot()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00133">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::dedupOutEdges()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00184">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::node()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00193">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::node()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00154">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::nodes()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00161">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::nodes()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00122">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::outDegree()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00112">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::outEdges()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00240">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::pop()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00277">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::removeEdge()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00296">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::removeRoot()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00227">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::reserve()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00092">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::roots()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00219">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::roots_size()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00211">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::size()</a>, and <a class="el" href="AdjacencyList_8h_source.html#l00176">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::vertices()</a>.</p>
 
 </div>
 </div>
@@ -147,15 +151,17 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> T , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>  = uint32_t, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a>  = VtxId&gt; </div>
+template&lt;typename T , typename VtxId  = uint32_t, typename EdgeTy  = VtxId&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">llvm::SmallVector&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, 1&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">VtxId</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">EdgeTy</a> &gt;::Roots {}</td>
+          <td class="memname">llvm::SmallVector&lt;VtxId, 1&gt; <a class="el" href="structpsr_1_1AdjacencyList.html">psr::AdjacencyList</a>&lt; T, VtxId, EdgeTy &gt;::Roots {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="AdjacencyList_8h_source.html#l00033">33</a> of file <a class="el" href="AdjacencyList_8h_source.html">AdjacencyList.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="AdjacencyList_8h_source.html#l00082">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::addRoot()</a>, <a class="el" href="Z3BasedPathSensitvityManager_8h_source.html#l00106">psr::Z3BasedPathSensitivityManager&lt; AnalysisDomainTy &gt;::pathsTo()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00296">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::removeRoot()</a>, <a class="el" href="AdjacencyList_8h_source.html#l00092">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::roots()</a>, and <a class="el" href="AdjacencyList_8h_source.html#l00219">psr::GraphTraits&lt; AdjacencyList&lt; T, VtxId, EdgeTy &gt; &gt;::roots_size()</a>.</p>
 
 </div>
 </div>
@@ -165,7 +171,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

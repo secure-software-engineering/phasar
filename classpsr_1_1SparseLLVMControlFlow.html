@@ -94,17 +94,17 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a1612d8c9704942bb659d1aa9c0ff5fcc" id="r_a1612d8c9704942bb659d1aa9c0ff5fcc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *</td></tr>
+<tr class="memitem:a1612d8c9704942bb659d1aa9c0ff5fcc" id="r_a1612d8c9704942bb659d1aa9c0ff5fcc"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> = const llvm::Instruction *</td></tr>
 <tr class="separator:a1612d8c9704942bb659d1aa9c0ff5fcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f6a84dac29ce35f8c76fc2cd4c7b96f" id="r_a9f6a84dac29ce35f8c76fc2cd4c7b96f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a9f6a84dac29ce35f8c76fc2cd4c7b96f">v_t</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *</td></tr>
+<tr class="memitem:a9f6a84dac29ce35f8c76fc2cd4c7b96f" id="r_a9f6a84dac29ce35f8c76fc2cd4c7b96f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a9f6a84dac29ce35f8c76fc2cd4c7b96f">v_t</a> = const llvm::Value *</td></tr>
 <tr class="separator:a9f6a84dac29ce35f8c76fc2cd4c7b96f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a4b901e1d614b2262d754f3b8f3b63509" id="r_a4b901e1d614b2262d754f3b8f3b63509"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a4b901e1d614b2262d754f3b8f3b63509">advanceToNextUser</a> (<a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Succ</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;Fact, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> AI)</td></tr>
+<tr class="memitem:a4b901e1d614b2262d754f3b8f3b63509" id="r_a4b901e1d614b2262d754f3b8f3b63509"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a4b901e1d614b2262d754f3b8f3b63509">advanceToNextUser</a> (<a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> Succ, const auto &amp;Fact, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> AI)</td></tr>
 <tr class="memdesc:a4b901e1d614b2262d754f3b8f3b63509"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advances Succ to the unique next instruction that may use Fact, based on the given alias information. If Succ may use Fact itself, or if there are potentially many next users, returns Succ.  <br /></td></tr>
 <tr class="separator:a4b901e1d614b2262d754f3b8f3b63509"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68cda1f1f66a5c1c7dbfd5ffcbf5ff88" id="r_a68cda1f1f66a5c1c7dbfd5ffcbf5ff88"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a68cda1f1f66a5c1c7dbfd5ffcbf5ff88">shouldKeepInst</a> (<a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> Inst, <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a9f6a84dac29ce35f8c76fc2cd4c7b96f">v_t</a> Val, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> AI)</td></tr>
+<tr class="memitem:a68cda1f1f66a5c1c7dbfd5ffcbf5ff88" id="r_a68cda1f1f66a5c1c7dbfd5ffcbf5ff88"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a68cda1f1f66a5c1c7dbfd5ffcbf5ff88">shouldKeepInst</a> (<a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> Inst, <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a9f6a84dac29ce35f8c76fc2cd4c7b96f">v_t</a> Val, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> AI)</td></tr>
 <tr class="memdesc:a68cda1f1f66a5c1c7dbfd5ffcbf5ff88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether Inst may use Val, based on the given alias information.  <br /></td></tr>
 <tr class="separator:a68cda1f1f66a5c1c7dbfd5ffcbf5ff88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -119,7 +119,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">psr::SparseLLVMControlFlow::n_t</a> =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Instruction *</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">psr::SparseLLVMControlFlow::n_t</a> =  const llvm::Instruction *</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -135,7 +135,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a9f6a84dac29ce35f8c76fc2cd4c7b96f">psr::SparseLLVMControlFlow::v_t</a> =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::Value *</td>
+          <td class="memname">using <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a9f6a84dac29ce35f8c76fc2cd4c7b96f">psr::SparseLLVMControlFlow::v_t</a> =  const llvm::Value *</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -155,7 +155,7 @@ Static Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> psr::SparseLLVMControlFlow::advanceToNextUser </td>
+          <td class="memname">static <a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a> psr::SparseLLVMControlFlow::advanceToNextUser </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a>&#160;</td>
           <td class="paramname"><em>Succ</em>, </td>
@@ -163,7 +163,7 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&#160;</td>
+          <td class="paramtype">const auto &amp;&#160;</td>
           <td class="paramname"><em>Fact</em>, </td>
         </tr>
         <tr>
@@ -203,7 +203,7 @@ Static Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">static</a> <a class="el" href="classbool.html">bool</a> psr::SparseLLVMControlFlow::shouldKeepInst </td>
+          <td class="memname">static <a class="el" href="classbool.html">bool</a> psr::SparseLLVMControlFlow::shouldKeepInst </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classpsr_1_1SparseLLVMControlFlow.html#a1612d8c9704942bb659d1aa9c0ff5fcc">n_t</a>&#160;</td>
           <td class="paramname"><em>Inst</em>, </td>
@@ -243,7 +243,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

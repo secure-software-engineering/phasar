@@ -131,33 +131,33 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="foldopen" id="foldopen00038" data-start="{" data-end="}">
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="conceptpsr_1_1IsAliasInfo.html">   38</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptpsr_1_1IsAliasInfo.html">IsAliasInfo</a> =</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>, T &amp;<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutVal</a>, <span class="keyword">typename</span> AliasInfoTraits&lt;T&gt;::v_t <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>,</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">requires</span>(<span class="keyword">const</span> T &amp;CVal, T &amp;MutVal, <span class="keyword">typename</span> AliasInfoTraits&lt;T&gt;::v_t Ptr,</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>             <span class="keyword">typename</span> AliasInfoTraits&lt;T&gt;::n_t Inst) {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.print(llvm::outs());</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.printAsJson(llvm::outs());</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      CVal.print(llvm::outs());</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      CVal.printAsJson(llvm::outs());</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      <span class="comment">// MutVal.mergeWith(MutVal);</span></div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>      <span class="comment">// MutVal.introduceAlias(Ptr, Ptr, Inst, AliasResult{});</span></div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.isInterProcedural() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      { CVal.isInterProcedural() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      {</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.getAliasAnalysisType()</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        CVal.getAliasAnalysisType()</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;AliasAnalysisType&gt;;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutVal</a>.alias(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, Inst) } -&gt; std::same_as&lt;AliasResult&gt;;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      { MutVal.alias(Ptr, Ptr, Inst) } -&gt; std::same_as&lt;AliasResult&gt;;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>      {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutVal</a>.getAliasSet(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, Inst)</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        MutVal.getAliasSet(Ptr, Inst)</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      } -&gt; std::same_as&lt;typename AliasInfoTraits&lt;T&gt;::AliasSetPtrTy&gt;;</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutVal</a>.getReachableAllocationSites(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <span class="keywordtype">bool</span>{}, Inst)</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        MutVal.getReachableAllocationSites(Ptr, <span class="keywordtype">bool</span>{}, Inst)</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>      } -&gt; std::same_as&lt;typename AliasInfoTraits&lt;T&gt;::AllocationSiteSetPtrTy&gt;;</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      {</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">MutVal</a>.isInReachableAllocationSites(<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <span class="keywordtype">bool</span>{}, Inst)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        MutVal.isInReachableAllocationSites(Ptr, Ptr, <span class="keywordtype">bool</span>{}, Inst)</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      } -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      {</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.getAnalysisProperties()</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        CVal.getAnalysisProperties()</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;AnalysisProperties&gt;;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.isContextSensitive() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.isFieldSensitive() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      { <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CVal</a>.isFlowSensitive() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      { CVal.isContextSensitive() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      { CVal.isFieldSensitive() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      { CVal.isFlowSensitive() } <span class="keyword">noexcept</span> -&gt; std::convertible_to&lt;bool&gt;;</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    };</div>
 </div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
@@ -171,13 +171,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacellvm_html"><div class="ttname"><a href="namespacellvm.html">llvm</a></div><div class="ttdef"><b>Definition</b> <a href="Strategies_8h_source.html#l00018">Strategies.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a802871ae358a52662bc020884222f466"><div class="ttname"><a href="namespacepsr.html#a802871ae358a52662bc020884222f466">psr::AnalysisProperties</a></div><div class="ttdeci">AnalysisProperties</div><div class="ttdef"><b>Definition</b> <a href="AnalysisProperties_8h_source.html#l00019">AnalysisProperties.h:19</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacepsr_html_ad7cac0de91e70a0960ff6db0fa168499"><div class="ttname"><a href="namespacepsr.html#ad7cac0de91e70a0960ff6db0fa168499">psr::AliasResult</a></div><div class="ttdeci">AliasResult</div><div class="ttdef"><b>Definition</b> <a href="AliasResult_8h_source.html#l00018">AliasResult.h:18</a></div></div>
 <div class="ttc" id="anamespacepsr_html_afadf03970cb93e1afc369c320209ae7c"><div class="ttname"><a href="namespacepsr.html#afadf03970cb93e1afc369c320209ae7c">psr::AliasAnalysisType</a></div><div class="ttdeci">AliasAnalysisType</div><div class="ttdef"><b>Definition</b> <a href="AliasAnalysisType_8h_source.html#l00013">AliasAnalysisType.h:13</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:56 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

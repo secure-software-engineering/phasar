@@ -114,9 +114,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="comment">/// non-existing-T case</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="comment"></span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keyword">requires</span> std::is_default_constructible_v&lt;T&gt;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>[[<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">nodiscard</a>]] <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">ByConstRef&lt;T&gt;</a></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>[[nodiscard]] ByConstRef&lt;T&gt;</div>
 <div class="foldopen" id="foldopen00026" data-start="{" data-end="}">
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespacepsr.html#a30faccbcb8ea617fa0cd6417059a557a">   26</a></span><a class="code hl_function" href="namespacepsr.html#a30faccbcb8ea617fa0cd6417059a557a">getDefaultValue</a>() <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a>(<a class="code hl_namespace" href="namespacestd.html">std</a>::<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">is_nothrow_default_constructible_v</a>&lt;T&gt;) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespacepsr.html#a30faccbcb8ea617fa0cd6417059a557a">   26</a></span><a class="code hl_function" href="namespacepsr.html#a30faccbcb8ea617fa0cd6417059a557a">getDefaultValue</a>() noexcept(<a class="code hl_namespace" href="namespacestd.html">std</a>::is_nothrow_default_constructible_v&lt;T&gt;) {</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">auto</span> <a class="code hl_struct" href="structpsr_1_1DefaultConstruct.html">DefaultConstruct</a> = [] {</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_aggregate_v&lt;T&gt;) {</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>      <span class="keywordflow">return</span> T{};</div>
@@ -128,8 +128,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptpsr_1_1CanEfficientlyPassByValue.html">CanEfficientlyPassByValue&lt;T&gt;</a>) {</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordflow">return</span> <a class="code hl_struct" href="structpsr_1_1DefaultConstruct.html">DefaultConstruct</a>();</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">static</span> T <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DefaultVal</a> = <a class="code hl_struct" href="structpsr_1_1DefaultConstruct.html">DefaultConstruct</a>();</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">DefaultVal</a>;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">static</span> T DefaultVal = <a class="code hl_struct" href="structpsr_1_1DefaultConstruct.html">DefaultConstruct</a>();</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordflow">return</span> DefaultVal;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  }</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
 </div>
@@ -137,20 +137,20 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="keyword">namespace </span>detail {</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keyword">struct </span>DefaultCast {</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keyword">template</span> &lt;CanEfficientlyPassByValue To&gt; <span class="keyword">operator</span> To() &amp;&amp; {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::getDefaultValue&lt;To&gt;</a>();</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordflow">return</span> psr::getDefaultValue&lt;To&gt;();</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  }</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> To&gt;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keyword">requires</span>(!<a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">CanEfficientlyPassByValue&lt;To&gt;</a>)</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keyword">requires</span>(!CanEfficientlyPassByValue&lt;To&gt;)</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keyword">operator</span> <span class="keyword">const</span> To &amp;() &amp;&amp; {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">return</span> <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::getDefaultValue&lt;To&gt;</a>();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">return</span> psr::getDefaultValue&lt;To&gt;();</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  }</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>};</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>} <span class="comment">// namespace detail</span></div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="comment"></span> </div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="comment">/// Provides a value that automatically converts to (a const-ref to) the</span></div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="comment">/// default-constructed object of the expected receiver type.</span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment"></span><span class="keyword">static</span> <span class="keyword">constexpr</span> detail::DefaultCast default_value() <a class="code hl_typedef" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">noexcept</a> { <span class="keywordflow">return</span> {}; }</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment"></span><span class="keyword">static</span> <span class="keyword">constexpr</span> detail::DefaultCast default_value() noexcept { <span class="keywordflow">return</span> {}; }</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>} <span class="comment">// namespace psr</span></div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
@@ -159,13 +159,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aconceptpsr_1_1CanEfficientlyPassByValue_html"><div class="ttname"><a href="conceptpsr_1_1CanEfficientlyPassByValue.html">psr::CanEfficientlyPassByValue</a></div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00020">ByRef.h:20</a></div></div>
 <div class="ttc" id="anamespacepsr_html"><div class="ttname"><a href="namespacepsr.html">psr</a></div><div class="ttdef"><b>Definition</b> <a href="AnalysisSetup_8h_source.html#l00013">AnalysisSetup.h:13</a></div></div>
 <div class="ttc" id="anamespacepsr_html_a30faccbcb8ea617fa0cd6417059a557a"><div class="ttname"><a href="namespacepsr.html#a30faccbcb8ea617fa0cd6417059a557a">psr::getDefaultValue</a></div><div class="ttdeci">ByConstRef&lt; T &gt; getDefaultValue() noexcept(std::is_nothrow_default_constructible_v&lt; T &gt;)</div><div class="ttdef"><b>Definition</b> <a href="DefaultValue_8h_source.html#l00026">DefaultValue.h:26</a></div></div>
-<div class="ttc" id="anamespacepsr_html_ab1fa2b63d3a5ab4934961480f678afea"><div class="ttname"><a href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">psr::ByConstRef</a></div><div class="ttdeci">std::conditional_t&lt; CanEfficientlyPassByValue&lt; T &gt;, T, const T &amp; &gt; ByConstRef</div><div class="ttdef"><b>Definition</b> <a href="ByRef_8h_source.html#l00024">ByRef.h:25</a></div></div>
 <div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdoc">STL namespace.</div></div>
 <div class="ttc" id="astructpsr_1_1DefaultConstruct_html"><div class="ttname"><a href="structpsr_1_1DefaultConstruct.html">psr::DefaultConstruct</a></div><div class="ttdoc">Delegates to the ctor of T.</div><div class="ttdef"><b>Definition</b> <a href="TypeTraits_8h_source.html#l00257">TypeTraits.h:257</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

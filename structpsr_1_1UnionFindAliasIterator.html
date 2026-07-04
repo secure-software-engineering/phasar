@@ -97,7 +97,7 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6263558e71b5476dbd6f93fe55e3b9f6" id="r_a6263558e71b5476dbd6f93fe55e3b9f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAliasIterator.html#a6263558e71b5476dbd6f93fe55e3b9f6">forallAliasesOf</a> (<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&amp;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Ptr</a>, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&amp;, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Callback</a>)</td></tr>
+<tr class="memitem:a6263558e71b5476dbd6f93fe55e3b9f6" id="r_a6263558e71b5476dbd6f93fe55e3b9f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1UnionFindAliasIterator.html#a6263558e71b5476dbd6f93fe55e3b9f6">forallAliasesOf</a> (auto &amp;&amp;Ptr, auto &amp;&amp;, auto Callback)</td></tr>
 <tr class="separator:a6263558e71b5476dbd6f93fe55e3b9f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -110,7 +110,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a1c3fadb42655036ff5b2adf63d84793b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AAResT, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Var2IdMapper, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Id2VarMapper&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename AAResT, typename Var2IdMapper, typename Id2VarMapper&gt;<br />
 requires UnionFindAAResult&lt;std::remove_cvref_t&lt;AAResT&gt;&gt;<br />
 struct psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;</div><p>Implements the AliasIterator interface on union-find alias-analysis results. </p>
 
@@ -122,27 +122,27 @@ struct psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;</
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AAResT , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Var2IdMapper , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Id2VarMapper &gt; </div>
+template&lt;typename AAResT , typename Var2IdMapper , typename Id2VarMapper &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">void</a> <a class="el" href="structpsr_1_1UnionFindAliasIterator.html">psr::UnionFindAliasIterator</a>&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::forallAliasesOf </td>
+          <td class="memname">void <a class="el" href="structpsr_1_1UnionFindAliasIterator.html">psr::UnionFindAliasIterator</a>&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::forallAliasesOf </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">auto &amp;&amp;&#160;</td>
           <td class="paramname"><em>Ptr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">auto &amp;&amp;&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">auto</a>&#160;</td>
+          <td class="paramtype">auto&#160;</td>
           <td class="paramname"><em>Callback</em>&#160;</td>
         </tr>
         <tr>
@@ -160,7 +160,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 
 <p class="definition">Definition at line <a class="el" href="UnionFindAA_8h_source.html#l00166">166</a> of file <a class="el" href="UnionFindAA_8h_source.html">UnionFindAA.h</a>.</p>
 
-<p class="reference">References <a class="el" href="UnionFindAA_8h_source.html#l00162">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::AARes</a>, <a class="el" href="Utilities_8h_source.html#l00273">psr::copyOrRef()</a>, <a class="el" href="UnionFindAA_8h_source.html#l00164">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::Id2Var</a>, and <a class="el" href="UnionFindAA_8h_source.html#l00163">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::Var2Id</a>.</p>
+<p class="reference">References <a class="el" href="UnionFindAA_8h_source.html#l00162">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::AARes</a>, <a class="el" href="Utilities_8h_source.html#l00279">psr::copyOrRef()</a>, <a class="el" href="UnionFindAA_8h_source.html#l00164">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::Id2Var</a>, and <a class="el" href="UnionFindAA_8h_source.html#l00163">psr::UnionFindAliasIterator&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::Var2Id</a>.</p>
 
 </div>
 </div>
@@ -171,7 +171,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AAResT , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Var2IdMapper , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Id2VarMapper &gt; </div>
+template&lt;typename AAResT , typename Var2IdMapper , typename Id2VarMapper &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">AAResT <a class="el" href="structpsr_1_1UnionFindAliasIterator.html">psr::UnionFindAliasIterator</a>&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::AARes</td>
@@ -191,7 +191,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AAResT , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Var2IdMapper , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Id2VarMapper &gt; </div>
+template&lt;typename AAResT , typename Var2IdMapper , typename Id2VarMapper &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">Id2VarMapper <a class="el" href="structpsr_1_1UnionFindAliasIterator.html">psr::UnionFindAliasIterator</a>&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::Id2Var</td>
@@ -211,7 +211,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> AAResT , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Var2IdMapper , <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> Id2VarMapper &gt; </div>
+template&lt;typename AAResT , typename Var2IdMapper , typename Id2VarMapper &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">Var2IdMapper <a class="el" href="structpsr_1_1UnionFindAliasIterator.html">psr::UnionFindAliasIterator</a>&lt; AAResT, Var2IdMapper, Id2VarMapper &gt;::Var2Id</td>
@@ -231,7 +231,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

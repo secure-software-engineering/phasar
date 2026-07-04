@@ -99,49 +99,49 @@ Inheritance diagram for psr::TypeStateDescription&lt; StateTy &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ac753fc18813803a7f18105e22dc112a7" id="r_ac753fc18813803a7f18105e22dc112a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> = <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a></td></tr>
+<tr class="memitem:ac753fc18813803a7f18105e22dc112a7" id="r_ac753fc18813803a7f18105e22dc112a7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> = StateTy</td></tr>
 <tr class="memdesc:ac753fc18813803a7f18105e22dc112a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type for states of the finite state machine.  <br /></td></tr>
 <tr class="separator:ac753fc18813803a7f18105e22dc112a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aaf32c3be00fe09bd6683daa7af3fcf1e" id="r_aaf32c3be00fe09bd6683daa7af3fcf1e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#aaf32c3be00fe09bd6683daa7af3fcf1e">~TypeStateDescription</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">override</a>=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
+<tr class="memitem:aaf32c3be00fe09bd6683daa7af3fcf1e" id="r_aaf32c3be00fe09bd6683daa7af3fcf1e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#aaf32c3be00fe09bd6683daa7af3fcf1e">~TypeStateDescription</a> () override=default</td></tr>
 <tr class="separator:aaf32c3be00fe09bd6683daa7af3fcf1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a056d6fff5c821bab29d5c6d8edc9306b" id="r_a056d6fff5c821bab29d5c6d8edc9306b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a056d6fff5c821bab29d5c6d8edc9306b">getNextState</a> (llvm::StringRef <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Tok</a>, <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> S) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a056d6fff5c821bab29d5c6d8edc9306b" id="r_a056d6fff5c821bab29d5c6d8edc9306b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a056d6fff5c821bab29d5c6d8edc9306b">getNextState</a> (llvm::StringRef Tok, <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> S) const =0</td></tr>
 <tr class="memdesc:a056d6fff5c821bab29d5c6d8edc9306b"><td class="mdescLeft">&#160;</td><td class="mdescRight">For a given function name (as a string token) and a state, this function returns the next state.  <br /></td></tr>
 <tr class="separator:a056d6fff5c821bab29d5c6d8edc9306b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a515354259478dbc32029b4ff973481f8" id="r_a515354259478dbc32029b4ff973481f8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a515354259478dbc32029b4ff973481f8">getNextState</a> (llvm::StringRef <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">Tok</a>, <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> S, <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a></td></tr>
+<tr class="memitem:a515354259478dbc32029b4ff973481f8" id="r_a515354259478dbc32029b4ff973481f8"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a515354259478dbc32029b4ff973481f8">getNextState</a> (llvm::StringRef Tok, <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> S, const llvm::CallBase *) const</td></tr>
 <tr class="separator:a515354259478dbc32029b4ff973481f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6833c6c27c8fd8eb2782d21bf49c65b9" id="r_a6833c6c27c8fd8eb2782d21bf49c65b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a6833c6c27c8fd8eb2782d21bf49c65b9">bottom</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a6833c6c27c8fd8eb2782d21bf49c65b9" id="r_a6833c6c27c8fd8eb2782d21bf49c65b9"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a6833c6c27c8fd8eb2782d21bf49c65b9">bottom</a> () const =0</td></tr>
 <tr class="separator:a6833c6c27c8fd8eb2782d21bf49c65b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77a1b69b430f3daf8572eb5aee89a976" id="r_a77a1b69b430f3daf8572eb5aee89a976"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a77a1b69b430f3daf8572eb5aee89a976">top</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a77a1b69b430f3daf8572eb5aee89a976" id="r_a77a1b69b430f3daf8572eb5aee89a976"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a77a1b69b430f3daf8572eb5aee89a976">top</a> () const =0</td></tr>
 <tr class="separator:a77a1b69b430f3daf8572eb5aee89a976"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f8a3631acb5069ca1b4fc414ae1c118" id="r_a3f8a3631acb5069ca1b4fc414ae1c118"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a3f8a3631acb5069ca1b4fc414ae1c118">uninit</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a3f8a3631acb5069ca1b4fc414ae1c118" id="r_a3f8a3631acb5069ca1b4fc414ae1c118"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a3f8a3631acb5069ca1b4fc414ae1c118">uninit</a> () const =0</td></tr>
 <tr class="separator:a3f8a3631acb5069ca1b4fc414ae1c118"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a610363fecd8f127443329f669e029b83" id="r_a610363fecd8f127443329f669e029b83"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a610363fecd8f127443329f669e029b83">error</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a610363fecd8f127443329f669e029b83" id="r_a610363fecd8f127443329f669e029b83"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescription.html#a610363fecd8f127443329f669e029b83">error</a> () const =0</td></tr>
 <tr class="separator:a610363fecd8f127443329f669e029b83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structpsr_1_1TypeStateDescriptionBase"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structpsr_1_1TypeStateDescriptionBase')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structpsr_1_1TypeStateDescriptionBase.html">psr::TypeStateDescriptionBase</a></td></tr>
-<tr class="memitem:a4e51a9228d60901d5d049e282ca38f9c inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a4e51a9228d60901d5d049e282ca38f9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a4e51a9228d60901d5d049e282ca38f9c">~TypeStateDescriptionBase</a> ()=<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">default</a></td></tr>
+<tr class="memitem:a4e51a9228d60901d5d049e282ca38f9c inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a4e51a9228d60901d5d049e282ca38f9c"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a4e51a9228d60901d5d049e282ca38f9c">~TypeStateDescriptionBase</a> ()=default</td></tr>
 <tr class="separator:a4e51a9228d60901d5d049e282ca38f9c inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac03cc5765b00a9af8a3f4997ea0f1012 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_ac03cc5765b00a9af8a3f4997ea0f1012"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#ac03cc5765b00a9af8a3f4997ea0f1012">isFactoryFunction</a> (llvm::StringRef F) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:ac03cc5765b00a9af8a3f4997ea0f1012 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_ac03cc5765b00a9af8a3f4997ea0f1012"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#ac03cc5765b00a9af8a3f4997ea0f1012">isFactoryFunction</a> (llvm::StringRef F) const =0</td></tr>
 <tr class="separator:ac03cc5765b00a9af8a3f4997ea0f1012 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9821ef9bb0e54b0625541c19878fbf7 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_af9821ef9bb0e54b0625541c19878fbf7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#af9821ef9bb0e54b0625541c19878fbf7">isConsumingFunction</a> (llvm::StringRef F) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:af9821ef9bb0e54b0625541c19878fbf7 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_af9821ef9bb0e54b0625541c19878fbf7"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#af9821ef9bb0e54b0625541c19878fbf7">isConsumingFunction</a> (llvm::StringRef F) const =0</td></tr>
 <tr class="separator:af9821ef9bb0e54b0625541c19878fbf7 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeaf25e65948e7ad8ba13b223fe9c512a inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_aeaf25e65948e7ad8ba13b223fe9c512a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#aeaf25e65948e7ad8ba13b223fe9c512a">isAPIFunction</a> (llvm::StringRef F) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:aeaf25e65948e7ad8ba13b223fe9c512a inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_aeaf25e65948e7ad8ba13b223fe9c512a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#aeaf25e65948e7ad8ba13b223fe9c512a">isAPIFunction</a> (llvm::StringRef F) const =0</td></tr>
 <tr class="separator:aeaf25e65948e7ad8ba13b223fe9c512a inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c6601c981bfb0331cb6c8028aa221d5 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a9c6601c981bfb0331cb6c8028aa221d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a9c6601c981bfb0331cb6c8028aa221d5">getTypeNameOfInterest</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a9c6601c981bfb0331cb6c8028aa221d5 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a9c6601c981bfb0331cb6c8028aa221d5"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a9c6601c981bfb0331cb6c8028aa221d5">getTypeNameOfInterest</a> () const =0</td></tr>
 <tr class="separator:a9c6601c981bfb0331cb6c8028aa221d5 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a542ea89b58576575e4062dc8c875b267 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a542ea89b58576575e4062dc8c875b267"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> std::set&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a542ea89b58576575e4062dc8c875b267">getConsumerParamIdx</a> (llvm::StringRef F) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a542ea89b58576575e4062dc8c875b267 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a542ea89b58576575e4062dc8c875b267"><td class="memItemLeft" align="right" valign="top">virtual std::set&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a542ea89b58576575e4062dc8c875b267">getConsumerParamIdx</a> (llvm::StringRef F) const =0</td></tr>
 <tr class="separator:a542ea89b58576575e4062dc8c875b267 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8adf6175fa2586a001a6f9eab46ecb63 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a8adf6175fa2586a001a6f9eab46ecb63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> std::set&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a8adf6175fa2586a001a6f9eab46ecb63">getFactoryParamIdx</a> (llvm::StringRef F) <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a8adf6175fa2586a001a6f9eab46ecb63 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a8adf6175fa2586a001a6f9eab46ecb63"><td class="memItemLeft" align="right" valign="top">virtual std::set&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a8adf6175fa2586a001a6f9eab46ecb63">getFactoryParamIdx</a> (llvm::StringRef F) const =0</td></tr>
 <tr class="separator:a8adf6175fa2586a001a6f9eab46ecb63 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ad6a69681960db877275fb7904b36c3 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a8ad6a69681960db877275fb7904b36c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="namespacepsr.html#ae5f717dbbc929e4ab62af63a25de5169">DataFlowAnalysisType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a8ad6a69681960db877275fb7904b36c3">analysisType</a> () <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> =0</td></tr>
+<tr class="memitem:a8ad6a69681960db877275fb7904b36c3 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase" id="r_a8ad6a69681960db877275fb7904b36c3"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacepsr.html#ae5f717dbbc929e4ab62af63a25de5169">DataFlowAnalysisType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1TypeStateDescriptionBase.html#a8ad6a69681960db877275fb7904b36c3">analysisType</a> () const =0</td></tr>
 <tr class="separator:a8ad6a69681960db877275fb7904b36c3 inherit pub_methods_structpsr_1_1TypeStateDescriptionBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a>&gt;<br />
-struct psr::TypeStateDescription&lt; StateTy &gt;</div><p>Interface for a type state problem to be used with the <a class="el" href="classpsr_1_1IDETypeStateAnalysis.html">IDETypeStateAnalysis</a>. It needs to provide a finite state machine to handle state changes and a list of functions that are relevant to the analyzed api. Factory functions are those functions which generate objects/variables of target type, e.g. file handles generated by <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">fopen()</a>. Consuming functions operate on objects/variables of target type, e.g. <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">fwrite()</a>. Functions that are both factory and consumer, e.g. <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">freopen()</a>, cannot be modeled by this interface, since analyzing such functions correctly introduces dependencies that cannot be solved by a distributive framework such as IDE.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="classpsr_1_1CSTDFILEIOTypeStateDescription.html">CSTDFILEIOTypeStateDescription</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">as</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">an</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">example</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">of</a> type <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">state</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">description</a>. </dd></dl>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename StateTy&gt;<br />
+struct psr::TypeStateDescription&lt; StateTy &gt;</div><p>Interface for a type state problem to be used with the <a class="el" href="classpsr_1_1IDETypeStateAnalysis.html">IDETypeStateAnalysis</a>. It needs to provide a finite state machine to handle state changes and a list of functions that are relevant to the analyzed api. Factory functions are those functions which generate objects/variables of target type, e.g. file handles generated by fopen(). Consuming functions operate on objects/variables of target type, e.g. fwrite(). Functions that are both factory and consumer, e.g. freopen(), cannot be modeled by this interface, since analyzing such functions correctly introduces dependencies that cannot be solved by a distributive framework such as IDE.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classpsr_1_1CSTDFILEIOTypeStateDescription.html">CSTDFILEIOTypeStateDescription</a> as an example of type state description. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="TypeStateDescription_8h_source.html#l00053">53</a> of file <a class="el" href="TypeStateDescription_8h_source.html">TypeStateDescription.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
@@ -151,10 +151,10 @@ struct psr::TypeStateDescription&lt; StateTy &gt;</div><p>Interface for a type s
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">using</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::State =  <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a></td>
+          <td class="memname">using <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::State =  StateTy</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -172,13 +172,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::~<a class="el" href="structpsr_1_1TypeStateDescription.html">TypeStateDescription</a> </td>
+          <td class="memname"><a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::~<a class="el" href="structpsr_1_1TypeStateDescription.html">TypeStateDescription</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -200,13 +200,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::bottom </td>
+          <td class="memname">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::bottom </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -229,13 +229,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::error </td>
+          <td class="memname">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::error </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -259,13 +259,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::getNextState </td>
+          <td class="memname">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::getNextState </td>
           <td>(</td>
           <td class="paramtype">llvm::StringRef&#160;</td>
           <td class="paramname"><em>Tok</em>, </td>
@@ -303,13 +303,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::getNextState </td>
+          <td class="memname">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::getNextState </td>
           <td>(</td>
           <td class="paramtype">llvm::StringRef&#160;</td>
           <td class="paramname"><em>Tok</em>, </td>
@@ -323,7 +323,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">const</a> llvm::CallBase *&#160;</td>
+          <td class="paramtype">const llvm::CallBase *&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
@@ -353,13 +353,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::top </td>
+          <td class="memname">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::top </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -382,13 +382,13 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">typename</a> <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt; </div>
+template&lt;typename StateTy &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">virtual</a> <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; <a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678afea">StateTy</a> &gt;::uninit </td>
+          <td class="memname">virtual <a class="el" href="structpsr_1_1TypeStateDescription.html#ac753fc18813803a7f18105e22dc112a7">State</a> <a class="el" href="structpsr_1_1TypeStateDescription.html">psr::TypeStateDescription</a>&lt; StateTy &gt;::uninit </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -412,7 +412,7 @@ template&lt;<a class="el" href="namespacepsr.html#ab1fa2b63d3a5ab4934961480f678a
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 16:53:57 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Jul 4 2026 17:10:12 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
