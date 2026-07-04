@@ -13,7 +13,6 @@
 #include "phasar/Utils/ChronoUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
 #include "phasar/Utils/TemplateString.h"
-#include "phasar/Utils/Timer.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/Utilities.h"
 
