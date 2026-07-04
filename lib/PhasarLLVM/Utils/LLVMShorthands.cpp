@@ -729,6 +729,60 @@ psr::getPointerIndicesOfType(const llvm::DIType *Ty,
   return std::move(getPointerIndicesOfType(Ty, DL, PIC));
 }
 
+bool psr::walkLoadChainTo(const llvm::Value *Start, const llvm::Value *Target,
+                          const llvm::DataLayout &DL, uint32_t MaxDepth,
+                          llvm::function_ref<void(int64_t)> OnDeref) {
+  const llvm::Value *Cur = Start;
+  for (unsigned Depth = 0; Depth < MaxDepth && Cur != Target; ++Depth) {
+    const auto *LI = llvm::dyn_cast<llvm::LoadInst>(Cur);
+    if (!LI) {
+      break;
+    }
+
+    llvm::APInt Offset(64, 0);
+    const auto *Stripped =
+        LI->getPointerOperand()->stripAndAccumulateConstantOffsets(
+            DL, Offset, /*AllowNonInbounds=*/true);
+    const auto *Base = Stripped->stripPointerCastsAndAliases();
+    int64_t ByteOffset = llvm::isa<llvm::GEPOperator>(Stripped)
+                             ? INT64_MIN // non-constant GEP
+                             : Offset.getSExtValue();
+
+    // -O0 mem2reg artifact: clang copies every argument/local into an alloca
+    // and re-loads it at each use. If the alloca has exactly one store and
+    // that store holds Target, the load is a transparent SSA copy -- not a
+    // real dereference of Target. Skipping OnDeref here keeps the indirection
+    // depth consistent with post-mem2reg IR (where the alloca disappears).
+    // Require Offset==0 and no other stores to avoid spurious kills when the
+    // alloca is reassigned to a different pointer.
+    if (const auto *AI = llvm::dyn_cast<llvm::AllocaInst>(Base);
+        AI && Offset.isZero()) {
+      bool HasTargetStore = false;
+      bool HasOtherStore = false;
+      for (const auto *U : AI->users()) {
+        const auto *SI = llvm::dyn_cast<llvm::StoreInst>(U);
+        if (!SI || SI->getPointerOperand() != AI) {
+          continue;
+        }
+        if (SI->getValueOperand() == Target) {
+          HasTargetStore = true;
+        } else {
+          HasOtherStore = true;
+          break;
+        }
+      }
+      if (HasTargetStore && !HasOtherStore) {
+        Cur = Target;
+        break;
+      }
+    }
+
+    OnDeref(ByteOffset);
+    Cur = Base;
+  }
+  return Cur == Target;
+}
+
 llvm::StringRef
 psr::getVarAnnotationIntrinsicName(const llvm::CallInst *CallInst) {
   const int KPointerGlobalStringIdx = 1;
