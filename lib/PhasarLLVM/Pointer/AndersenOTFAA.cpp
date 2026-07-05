@@ -190,6 +190,17 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
         // explicitly in the code
         std::ignore = CGBuilder.addFunctionVertex(F);
       }
+      // Entry-function args have no caller to propagate pts through.
+      // Create an abstract object for each pointer arg so that loads through
+      // them produce non-empty pts sets and aliases are reported correctly.
+      for (const auto &Arg : F->args()) {
+        if (definitelyContainsNoPointer(&Arg)) {
+          continue;
+        }
+        const ValueId VarId = getOrInsertVar(PAGVariable(&Arg));
+        const ValueId ObjId = getOrInsertObj(PAGVariable(&Arg));
+        addPointee(VarId, ObjId);
+      }
     }
   }
 

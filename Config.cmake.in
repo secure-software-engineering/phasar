@@ -21,7 +21,7 @@ if (PHASAR_PROVIDE_CROARING)
   # TODO: Is that path portable?
   include("${CMAKE_CURRENT_LIST_DIR}/../roaring/roaring-targets.cmake")
 else()
-  find_dependency(roaring)
+  find_dependency(roaring REQUIRED CONFIG)
 endif()
 
 if (PHASAR_USE_Z3)

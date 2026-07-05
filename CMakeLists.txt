@@ -334,7 +334,7 @@ add_llvm()
 
 # Roaring
 
-find_package(roaring QUIET)
+find_package(roaring QUIET CONFIG)
 if(NOT TARGET roaring::roaring)
   set(ENABLE_ROARING_TESTS OFF)
   add_subdirectory(external/CRoaring)

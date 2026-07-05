@@ -9,10 +9,14 @@ find_package(phasar REQUIRED CONFIG)
 add_executable(create-alias-info main.cpp)
 target_link_libraries(create-alias-info PRIVATE phasar::phasar)
 
+add_executable(create-alias-info-andersen andersen.cpp)
+target_link_libraries(create-alias-info-andersen PRIVATE phasar::phasar)
+
 if (TARGET run_sample_programs)
   add_custom_target(run_create_alias_info
-    DEPENDS create-alias-info LLFileGeneration
+    DEPENDS create-alias-info create-alias-info-andersen LLFileGeneration
     COMMAND $<TARGET_FILE:create-alias-info> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/pointers_cpp_dbg.ll"
+    COMMAND $<TARGET_FILE:create-alias-info-andersen> "${CMAKE_CURRENT_BINARY_DIR}/../llvm-hello-world/target/pointers_cpp_dbg.ll"
   )
 
   add_dependencies(run_sample_programs run_create_alias_info)
