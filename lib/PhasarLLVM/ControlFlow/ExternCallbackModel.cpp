@@ -357,7 +357,7 @@ llvm::Value *adaptValue(llvm::IRBuilder<> &IRB, llvm::Value *Value,
   PHASAR_LOG_LEVEL(WARNING, "Cannot adapt extern callback argument "
                                 << psr::llvmIRToString(Value) << " to "
                                 << psr::llvmTypeToString(ExpectedTy, true));
-  return llvm::PoisonValue::get(ExpectedTy);
+  return llvm::UndefValue::get(ExpectedTy);
 }
 
 llvm::SmallVector<llvm::Value *, 4>
@@ -393,7 +393,7 @@ collectCallbackArgs(llvm::IRBuilder<> &IRB, llvm::Function &Model,
        Idx < End; ++Idx) {
     auto *ExpectedTy = CBTy.getParamType(Idx);
     if (!Args[Idx]) {
-      Args[Idx] = llvm::PoisonValue::get(ExpectedTy);
+      Args[Idx] = llvm::UndefValue::get(ExpectedTy);
       continue;
     }
 
@@ -443,9 +443,6 @@ llvm::Value *createOriginalBrokerCall(llvm::IRBuilder<> &IRB,
   Call->setAttributes(BrokerCall.getAttributes());
   Call->setDebugLoc(BrokerCall.getDebugLoc());
   Call->copyMetadata(BrokerCall);
-  if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(&BrokerCall)) {
-    Call->setTailCallKind(CallInst->getTailCallKind());
-  }
   return Call;
 }
 
@@ -539,6 +536,7 @@ size_t ExternCallbackModel::rewriteCalls(LLVMProjectIRDB &IRDB) {
     auto *Model =
         createModel(IRDB, *Candidate.Broker, *Candidate.Call, Candidate.Specs);
     Candidate.Call->setCalledFunction(Model->getFunctionType(), Model);
+    Candidate.Call->setAttributes(llvm::AttributeList{});
   }
 
   if (!BrokerCalls.empty()) {
