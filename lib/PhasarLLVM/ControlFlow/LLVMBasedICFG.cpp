@@ -12,6 +12,7 @@
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/CallGraphData.h"
+#include "phasar/PhasarLLVM/ControlFlow/ExternCallbackModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
@@ -37,11 +38,16 @@ namespace psr {
 void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                                llvm::ArrayRef<std::string> EntryPoints,
                                Soundness S, bool IncludeGlobals) {
+  ExternCallbackModel::rewriteCalls(*IRDB);
+
   if (IncludeGlobals) {
     auto *EntryFun = GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
-    this->CG = buildLLVMBasedCallGraph(*IRDB, CGResolver, {EntryFun}, S);
+    this->CG = buildLLVMBasedCallGraph(
+        static_cast<const LLVMProjectIRDB &>(*IRDB), CGResolver, {EntryFun}, S);
   } else {
-    this->CG = buildLLVMBasedCallGraph(*IRDB, CGResolver, EntryPoints, S);
+    this->CG =
+        buildLLVMBasedCallGraph(static_cast<const LLVMProjectIRDB &>(*IRDB),
+                                CGResolver, EntryPoints, S);
   }
 }
 
@@ -52,6 +58,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
+
+  ExternCallbackModel::rewriteCalls(*IRDB);
 
   LLVMAliasInfo PTOwn;
 

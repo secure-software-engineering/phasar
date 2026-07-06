@@ -24,6 +24,9 @@ class Resolver;
 /// Constructs a call-graph using the given CGResolver to resolve indirect
 /// calls.
 ///
+/// This overload does not mutate the IRDB. Use the non-const overload if
+/// PhASAR should insert its model functions first.
+///
 /// Uses a fixpoint iteration, if
 /// `CGResolver.mutatesHelperAnalysisInformation()` returns true and the
 /// soundness S is not Soundness::Unsound.
@@ -43,6 +46,19 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
 /// Constructs a call-graph using the given CGResolver to resolve indirect
 /// calls.
 ///
+/// May insert model functions for known external callback brokers before the
+/// call-graph is built.
+[[nodiscard]] LLVMBasedCallGraph
+buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+                        llvm::ArrayRef<const llvm::Function *> EntryPoints,
+                        Soundness S = Soundness::Soundy);
+
+/// Constructs a call-graph using the given CGResolver to resolve indirect
+/// calls.
+///
+/// This overload does not mutate the IRDB. Use the non-const overload if
+/// PhASAR should insert its model functions first.
+///
 /// Uses a fixpoint iteration, if
 /// `CGResolver.mutatesHelperAnalysisInformation()` returns true and the
 /// soundness S is not Soundness::Unsound.
@@ -56,6 +72,16 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
 /// performance.
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+                        llvm::ArrayRef<std::string> EntryPoints,
+                        Soundness S = Soundness::Soundy);
+
+/// Constructs a call-graph using the given CGResolver to resolve indirect
+/// calls.
+///
+/// May insert model functions for known external callback brokers before the
+/// call-graph is built.
+[[nodiscard]] LLVMBasedCallGraph
+buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<std::string> EntryPoints,
                         Soundness S = Soundness::Soundy);
 
