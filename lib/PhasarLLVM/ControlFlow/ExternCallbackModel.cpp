@@ -271,6 +271,16 @@ bool validateSpec(const llvm::Function &Broker,
     return false;
   }
 
+  auto CalleeArg = static_cast<unsigned>(Spec.CalleeArg);
+  if (!BrokerCall.getArgOperand(CalleeArg)->getType()->isPointerTy()) {
+    PHASAR_LOG_LEVEL(WARNING, "Cannot model extern callback broker "
+                                  << Broker.getName() << ": callback callee "
+                                  << "argument " << Spec.CalleeArg
+                                  << " is not a pointer in "
+                                  << psr::llvmIRToString(&BrokerCall));
+    return false;
+  }
+
   bool HasMissingCallbackArgs = false;
   for (int ArgNo : Spec.CallbackArgs) {
     if (ArgNo < 0) {
@@ -416,7 +426,6 @@ std::string createModelName(const psr::LLVMProjectIRDB &IRDB,
 
 llvm::Value *createOriginalBrokerCall(llvm::IRBuilder<> &IRB,
                                       llvm::Function &Model,
-                                      llvm::Function &Broker,
                                       llvm::CallBase &BrokerCall) {
   llvm::SmallVector<llvm::Value *, 8> Args;
   Args.reserve(BrokerCall.arg_size());
@@ -428,7 +437,8 @@ llvm::Value *createOriginalBrokerCall(llvm::IRBuilder<> &IRB,
   BrokerCall.getOperandBundlesAsDefs(OperandBundles);
 
   auto *Call =
-      IRB.CreateCall(Broker.getFunctionType(), &Broker, Args, OperandBundles);
+      IRB.CreateCall(BrokerCall.getFunctionType(),
+                     BrokerCall.getCalledOperand(), Args, OperandBundles);
   Call->setCallingConv(BrokerCall.getCallingConv());
   Call->setAttributes(BrokerCall.getAttributes());
   Call->setDebugLoc(BrokerCall.getDebugLoc());
@@ -472,7 +482,7 @@ llvm::Function *createModel(psr::LLVMProjectIRDB &IRDB, llvm::Function &Broker,
   auto *EntryBB = llvm::BasicBlock::Create(Model->getContext(), "entry", Model);
   llvm::IRBuilder<> IRB(EntryBB);
 
-  auto *BrokerRet = createOriginalBrokerCall(IRB, *Model, Broker, BrokerCall);
+  auto *BrokerRet = createOriginalBrokerCall(IRB, *Model, BrokerCall);
 
   for (const auto &Spec : Specs) {
     createCallbackCall(IRB, *Model, Broker, BrokerCall, Spec);

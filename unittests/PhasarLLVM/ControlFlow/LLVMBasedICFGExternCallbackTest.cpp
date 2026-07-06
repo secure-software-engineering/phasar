@@ -291,6 +291,21 @@ declare i32 @pthread_create(ptr, ptr)
                   "too-few-broker-args.ll", "pthread_create");
 }
 
+TEST(LLVMBasedICFGExternCallbackTest, NonPointerCallbackCalleeArg) {
+  expectNoRewrite(R"(
+define i32 @main() {
+  call void @callback_broker(i32 1, i32 42)
+  ret i32 0
+}
+
+declare !callback !0 void @callback_broker(i32, i32)
+
+!0 = !{!1}
+!1 = !{i64 0, i64 1, i1 false}
+)",
+                  "non-pointer-callback-callee-arg.ll", "callback_broker");
+}
+
 TEST(LLVMBasedICFGExternCallbackTest, MismatchedCallbackArity) {
   expectNoRewrite(R"(
 define void @sink(i32 %value, i32 %extra) {
