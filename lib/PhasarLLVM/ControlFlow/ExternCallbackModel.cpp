@@ -20,22 +20,34 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
+#include <algorithm>
 #include <iterator>
 #include <optional>
 #include <string>
 
 namespace {
 
+enum class CallbackTypeKind { Metadata, PthreadCreate, OpenMP };
+
 struct CallbackSpec {
   int CalleeArg = -1;
   llvm::SmallVector<int, 4> CallbackArgs;
   bool PassVarArgs = false;
+  CallbackTypeKind TypeKind = CallbackTypeKind::Metadata;
 };
 
 using CallbackSpecs = llvm::SmallVector<CallbackSpec, 1>;
+
+struct RewriteCandidate {
+  llvm::CallBase *Call = nullptr;
+  llvm::Function *Broker = nullptr;
+  CallbackSpecs Specs;
+};
 
 std::optional<int64_t> getIntFromMetadata(const llvm::Metadata *MD) {
   const auto *ConstMD = llvm::dyn_cast_or_null<llvm::ConstantAsMetadata>(MD);
@@ -120,14 +132,15 @@ CallbackSpecs getKnownCallbackSpecs(llvm::StringRef BrokerName) {
   switch (Known) {
   case 0:
     // int pthread_create(..., void *(*start_routine)(void *), void *arg)
-    Specs.push_back(CallbackSpec{2, {3}, false});
+    Specs.push_back(
+        CallbackSpec{2, {3}, false, CallbackTypeKind::PthreadCreate});
     break;
   case 1:
     // void __kmpc_fork_call/__kmpc_fork_teams(ident_t *, i32 argc,
     //                                         microtask_t, ...)
     //
     // OpenMP passes gtid and bound pointers before the user payload.
-    Specs.push_back(CallbackSpec{2, {-1, -1}, true});
+    Specs.push_back(CallbackSpec{2, {-1, -1}, true, CallbackTypeKind::OpenMP});
     break;
   default:
     break;
@@ -180,38 +193,28 @@ void appendCallbackParamTypes(llvm::SmallVectorImpl<llvm::Type *> &ParamTys,
   }
 }
 
-llvm::FunctionType *inferKnownCallbackType(const llvm::Function &Broker,
-                                           const llvm::CallBase &BrokerCall,
-                                           const CallbackSpec &Spec) {
-  auto Known = llvm::StringSwitch<int>(Broker.getName())
-                   .Case("pthread_create", 0)
-                   .Case("__kmpc_fork_call", 1)
-                   .Case("__kmpc_fork_teams", 1)
-                   .Default(-1);
-
-  switch (Known) {
-  case 0:
+llvm::FunctionType *inferFallbackCallbackType(const llvm::Function &Broker,
+                                              const llvm::CallBase &BrokerCall,
+                                              const CallbackSpec &Spec) {
+  switch (Spec.TypeKind) {
+  case CallbackTypeKind::PthreadCreate:
     return llvm::FunctionType::get(getPointerType(Broker.getContext()),
                                    {getPointerType(Broker.getContext())},
                                    /*isVarArg*/ false);
-  case 1: {
+  case CallbackTypeKind::OpenMP: {
     llvm::SmallVector<llvm::Type *, 8> ParamTys;
     appendCallbackParamTypes(ParamTys, BrokerCall, Spec);
     return llvm::FunctionType::get(llvm::Type::getVoidTy(Broker.getContext()),
                                    ParamTys, /*isVarArg*/ false);
   }
-  default:
-    return nullptr;
+  case CallbackTypeKind::Metadata: {
+    llvm::SmallVector<llvm::Type *, 8> ParamTys;
+    appendCallbackParamTypes(ParamTys, BrokerCall, Spec);
+    return llvm::FunctionType::get(llvm::Type::getVoidTy(Broker.getContext()),
+                                   ParamTys, /*isVarArg*/ false);
   }
-}
-
-llvm::FunctionType *inferMetadataCallbackType(const llvm::Function &Broker,
-                                              const llvm::CallBase &BrokerCall,
-                                              const CallbackSpec &Spec) {
-  llvm::SmallVector<llvm::Type *, 8> ParamTys;
-  appendCallbackParamTypes(ParamTys, BrokerCall, Spec);
-  return llvm::FunctionType::get(llvm::Type::getVoidTy(Broker.getContext()),
-                                 ParamTys, /*isVarArg*/ false);
+  }
+  llvm_unreachable("Unhandled callback type kind");
 }
 
 llvm::FunctionType *inferCallbackType(const llvm::Function &Broker,
@@ -225,14 +228,98 @@ llvm::FunctionType *inferCallbackType(const llvm::Function &Broker,
   const auto *CallbackFn =
       getDirectFunction(BrokerCall.getArgOperand(Spec.CalleeArg));
   if (!CallbackFn) {
-    if (auto *KnownCBTy = inferKnownCallbackType(Broker, BrokerCall, Spec)) {
-      return KnownCBTy;
-    }
-
-    return inferMetadataCallbackType(Broker, BrokerCall, Spec);
+    return inferFallbackCallbackType(Broker, BrokerCall, Spec);
   }
 
   return CallbackFn->getFunctionType();
+}
+
+bool hasBrokerArg(const llvm::CallBase &BrokerCall, int ArgNo) noexcept {
+  return ArgNo >= 0 && static_cast<unsigned>(ArgNo) < BrokerCall.arg_size();
+}
+
+unsigned getCallbackArgCount(const llvm::CallBase &BrokerCall,
+                             const CallbackSpec &Spec) {
+  unsigned Count = Spec.CallbackArgs.size();
+  if (!Spec.PassVarArgs) {
+    return Count;
+  }
+
+  unsigned FirstVarArg = BrokerCall.getFunctionType()->getNumParams();
+  if (FirstVarArg >= BrokerCall.arg_size()) {
+    return Count;
+  }
+  return Count + BrokerCall.arg_size() - FirstVarArg;
+}
+
+bool hasExpectedCallbackArgCount(const llvm::FunctionType &CBTy,
+                                 unsigned ArgCount) noexcept {
+  if (CBTy.isVarArg()) {
+    return ArgCount >= CBTy.getNumParams();
+  }
+  return ArgCount == CBTy.getNumParams();
+}
+
+bool validateSpec(const llvm::Function &Broker,
+                  const llvm::CallBase &BrokerCall, const CallbackSpec &Spec) {
+  if (!hasBrokerArg(BrokerCall, Spec.CalleeArg)) {
+    PHASAR_LOG_LEVEL(WARNING, "Cannot model extern callback broker "
+                                  << Broker.getName() << ": callback callee "
+                                  << "argument " << Spec.CalleeArg
+                                  << " is unavailable in "
+                                  << psr::llvmIRToString(&BrokerCall));
+    return false;
+  }
+
+  bool HasMissingCallbackArgs = false;
+  for (int ArgNo : Spec.CallbackArgs) {
+    if (ArgNo < 0) {
+      continue;
+    }
+
+    if (!hasBrokerArg(BrokerCall, ArgNo)) {
+      PHASAR_LOG_LEVEL(WARNING, "Cannot model extern callback broker "
+                                    << Broker.getName()
+                                    << ": callback argument " << ArgNo
+                                    << " is unavailable in "
+                                    << psr::llvmIRToString(&BrokerCall));
+      HasMissingCallbackArgs = true;
+    }
+  }
+  if (HasMissingCallbackArgs) {
+    return false;
+  }
+
+  auto *CBTy = inferCallbackType(Broker, BrokerCall, Spec);
+  if (!CBTy) {
+    PHASAR_LOG_LEVEL(WARNING, "Cannot infer callback function type for "
+                                  << psr::llvmIRToString(&BrokerCall));
+    return false;
+  }
+
+  unsigned ArgCount = getCallbackArgCount(BrokerCall, Spec);
+  if (!hasExpectedCallbackArgCount(*CBTy, ArgCount)) {
+    PHASAR_LOG_LEVEL(
+        WARNING, "Cannot model extern callback broker "
+                     << Broker.getName() << ": expected "
+                     << CBTy->getNumParams() << " callback argument(s), got "
+                     << ArgCount << " in " << psr::llvmIRToString(&BrokerCall));
+    return false;
+  }
+
+  return true;
+}
+
+bool validateSpecs(const llvm::Function &Broker,
+                   const llvm::CallBase &BrokerCall,
+                   llvm::ArrayRef<CallbackSpec> Specs) {
+  for (const auto &Spec : Specs) {
+    if (!validateSpec(Broker, BrokerCall, Spec)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 llvm::Value *adaptValue(llvm::IRBuilder<> &IRB, llvm::Value *Value,
@@ -291,9 +378,9 @@ collectCallbackArgs(llvm::IRBuilder<> &IRB, llvm::Function &Model,
     }
   }
 
-  Args.resize(CBTy.getNumParams(), nullptr);
-
-  for (unsigned Idx = 0; Idx < CBTy.getNumParams(); ++Idx) {
+  for (unsigned Idx = 0,
+                End = std::min<unsigned>(Args.size(), CBTy.getNumParams());
+       Idx < End; ++Idx) {
     auto *ExpectedTy = CBTy.getParamType(Idx);
     if (!Args[Idx]) {
       Args[Idx] = llvm::PoisonValue::get(ExpectedTy);
@@ -337,8 +424,18 @@ llvm::Value *createOriginalBrokerCall(llvm::IRBuilder<> &IRB,
     Args.push_back(&Arg);
   }
 
-  auto *Call = IRB.CreateCall(Broker.getFunctionType(), &Broker, Args);
+  llvm::SmallVector<llvm::OperandBundleDef, 2> OperandBundles;
+  BrokerCall.getOperandBundlesAsDefs(OperandBundles);
+
+  auto *Call =
+      IRB.CreateCall(Broker.getFunctionType(), &Broker, Args, OperandBundles);
   Call->setCallingConv(BrokerCall.getCallingConv());
+  Call->setAttributes(BrokerCall.getAttributes());
+  Call->setDebugLoc(BrokerCall.getDebugLoc());
+  Call->copyMetadata(BrokerCall);
+  if (const auto *CallInst = llvm::dyn_cast<llvm::CallInst>(&BrokerCall)) {
+    Call->setTailCallKind(CallInst->getTailCallKind());
+  }
   return Call;
 }
 
@@ -359,7 +456,8 @@ void createCallbackCall(llvm::IRBuilder<> &IRB, llvm::Function &Model,
     CallbackCallee = const_cast<llvm::Function *>(DirectCallback);
   }
   auto Args = collectCallbackArgs(IRB, Model, BrokerCall, *CBTy, Spec);
-  IRB.CreateCall(CBTy, CallbackCallee, Args);
+  auto *Call = IRB.CreateCall(CBTy, CallbackCallee, Args);
+  Call->setDebugLoc(BrokerCall.getDebugLoc());
 }
 
 llvm::Function *createModel(psr::LLVMProjectIRDB &IRDB, llvm::Function &Broker,
@@ -369,6 +467,7 @@ llvm::Function *createModel(psr::LLVMProjectIRDB &IRDB, llvm::Function &Broker,
   auto *Model = llvm::Function::Create(
       ModelTy, llvm::GlobalValue::PrivateLinkage,
       createModelName(IRDB, Broker, BrokerCall), IRDB.getModule());
+  Model->setCallingConv(BrokerCall.getCallingConv());
 
   auto *EntryBB = llvm::BasicBlock::Create(Model->getContext(), "entry", Model);
   llvm::IRBuilder<> IRB(EntryBB);
@@ -398,8 +497,7 @@ bool shouldSkipFunction(const llvm::Function &F) {
 namespace psr {
 
 size_t ExternCallbackModel::rewriteCalls(LLVMProjectIRDB &IRDB) {
-  llvm::SmallVector<std::pair<llvm::CallBase *, llvm::Function *>, 8>
-      BrokerCalls;
+  llvm::SmallVector<RewriteCandidate, 8> BrokerCalls;
 
   for (auto &F : *IRDB.getModule()) {
     if (shouldSkipFunction(F)) {
@@ -414,18 +512,23 @@ size_t ExternCallbackModel::rewriteCalls(LLVMProjectIRDB &IRDB) {
 
       auto *Broker = llvm::dyn_cast<llvm::Function>(
           Call->getCalledOperand()->stripPointerCastsAndAliases());
-      if (!Broker || getCallbackSpecs(*Broker).empty()) {
+      if (!Broker) {
         continue;
       }
 
-      BrokerCalls.emplace_back(Call, Broker);
+      auto Specs = getCallbackSpecs(*Broker);
+      if (Specs.empty() || !validateSpecs(*Broker, *Call, Specs)) {
+        continue;
+      }
+
+      BrokerCalls.push_back({Call, Broker, std::move(Specs)});
     }
   }
 
-  for (auto [Call, Broker] : BrokerCalls) {
-    auto Specs = getCallbackSpecs(*Broker);
-    auto *Model = createModel(IRDB, *Broker, *Call, Specs);
-    Call->setCalledFunction(Model->getFunctionType(), Model);
+  for (auto &Candidate : BrokerCalls) {
+    auto *Model =
+        createModel(IRDB, *Candidate.Broker, *Candidate.Call, Candidate.Specs);
+    Candidate.Call->setCalledFunction(Model->getFunctionType(), Model);
   }
 
   if (!BrokerCalls.empty()) {

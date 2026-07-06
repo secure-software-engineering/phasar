@@ -19,6 +19,7 @@
 
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/Support/MemoryBufferRef.h"
 
 #include "TestConfig.h"
 #include "gtest/gtest.h"
@@ -159,6 +160,15 @@ unsigned countCallbackModels(llvm::ArrayRef<const llvm::Function *> Models,
   return Count;
 }
 
+void expectNoRewrite(llvm::StringRef IR, llvm::StringRef TestName,
+                     llvm::StringRef BrokerName) {
+  LLVMProjectIRDB IRDB(llvm::MemoryBufferRef(IR, TestName));
+  ASSERT_TRUE(static_cast<bool>(IRDB));
+
+  EXPECT_EQ(0U, ExternCallbackModel::rewriteCalls(IRDB));
+  EXPECT_TRUE(getGeneratedModels(IRDB, BrokerName).empty());
+}
+
 } // namespace
 
 TEST(LLVMBasedICFGExternCallbackTest, PthreadCreate) {
@@ -228,6 +238,76 @@ TEST(LLVMBasedICFGExternCallbackTest, CallbackAttributeIndirect) {
 TEST(LLVMBasedICFGExternCallbackTest, CallGraphBuilderResolverOverload) {
   doExternCallbackCallGraphBuilderTest(
       "call_graphs/extern_callback_pthread_c.ll", "pthread_create", "worker");
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, CallGraphBuilderCGTypeOverloadIndirect) {
+  LLVMProjectIRDB IRDB(unittest::PathToLLTestFiles +
+                       "call_graphs/extern_callback_pthread_indirect_c.ll");
+  DIBasedTypeHierarchy TH(IRDB);
+  LLVMVFTableProvider VTP(IRDB);
+
+  auto CG = buildLLVMBasedCallGraph(IRDB, CallGraphAnalysisType::OTF, {"main"},
+                                    TH, VTP);
+
+  const auto *Model = getGeneratedModel(IRDB, "pthread_create");
+  ASSERT_NE(nullptr, Model);
+
+  const auto *Callback = IRDB.getFunctionDefinition("worker");
+  ASSERT_NE(nullptr, Callback);
+
+  const auto *CallbackCall = getCallbackCall(*Model, CG, *Callback);
+  ASSERT_NE(nullptr, CallbackCall);
+  EXPECT_TRUE(CallbackCall->isIndirectCall());
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, InvalidMetadataCallbackArg) {
+  expectNoRewrite(R"(
+define void @sink(i32 %value) {
+  ret void
+}
+
+define i32 @main() {
+  call void @callback_broker(ptr @sink, i32 42)
+  ret i32 0
+}
+
+declare !callback !0 void @callback_broker(ptr, i32)
+
+!0 = !{!1}
+!1 = !{i64 0, i64 2, i1 false}
+)",
+                  "invalid-metadata-callback-arg.ll", "callback_broker");
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, TooFewBrokerArgs) {
+  expectNoRewrite(R"(
+define i32 @main() {
+  %ret = call i32 @pthread_create(ptr null, ptr null)
+  ret i32 %ret
+}
+
+declare i32 @pthread_create(ptr, ptr)
+)",
+                  "too-few-broker-args.ll", "pthread_create");
+}
+
+TEST(LLVMBasedICFGExternCallbackTest, MismatchedCallbackArity) {
+  expectNoRewrite(R"(
+define void @sink(i32 %value, i32 %extra) {
+  ret void
+}
+
+define i32 @main() {
+  call void @callback_broker(ptr @sink, i32 42)
+  ret i32 0
+}
+
+declare !callback !0 void @callback_broker(ptr, i32)
+
+!0 = !{!1}
+!1 = !{i64 0, i64 1, i1 false}
+)",
+                  "mismatched-callback-arity.ll", "callback_broker");
 }
 
 int main(int Argc, char **Argv) {

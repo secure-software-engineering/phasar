@@ -38,8 +38,6 @@ namespace psr {
 void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                                llvm::ArrayRef<std::string> EntryPoints,
                                Soundness S, bool IncludeGlobals) {
-  ExternCallbackModel::rewriteCalls(*IRDB);
-
   if (IncludeGlobals) {
     auto *EntryFun = GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
     this->CG = buildLLVMBasedCallGraph(
@@ -78,6 +76,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
 
+  ExternCallbackModel::rewriteCalls(*IRDB);
   initialize(IRDB, CGResolver, EntryPoints, S, IncludeGlobals);
 }
 
@@ -87,6 +86,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(std::move(VTP)) {
   assert(IRDB != nullptr);
+  ExternCallbackModel::rewriteCalls(*IRDB);
   initialize(IRDB, CGResolver, EntryPoints, S, IncludeGlobals);
 }
 

@@ -48,6 +48,9 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
 ///
 /// May insert model functions for known external callback brokers before the
 /// call-graph is built.
+/// If CGResolver owns helper-analysis state that should include generated model
+/// functions, rewrite the IRDB before constructing that state or use a CGType
+/// overload.
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
@@ -80,6 +83,9 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
 ///
 /// May insert model functions for known external callback brokers before the
 /// call-graph is built.
+/// If CGResolver owns helper-analysis state that should include generated model
+/// functions, rewrite the IRDB before constructing that state or use a CGType
+/// overload.
 [[nodiscard]] LLVMBasedCallGraph
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<std::string> EntryPoints,
