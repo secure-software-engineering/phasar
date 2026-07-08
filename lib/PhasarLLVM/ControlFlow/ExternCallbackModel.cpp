@@ -171,18 +171,26 @@ llvm::Type *getPointerType(llvm::LLVMContext &Ctx) {
 }
 
 llvm::Type *getCallbackArgType(const llvm::CallBase &BrokerCall, int ArgNo) {
-  if (ArgNo < 0 || static_cast<unsigned>(ArgNo) >= BrokerCall.arg_size()) {
+  if (ArgNo < 0) {
     return getPointerType(BrokerCall.getContext());
+  }
+
+  if (static_cast<unsigned>(ArgNo) >= BrokerCall.arg_size()) {
+    return nullptr;
   }
 
   return BrokerCall.getArgOperand(static_cast<unsigned>(ArgNo))->getType();
 }
 
-void appendCallbackParamTypes(llvm::SmallVectorImpl<llvm::Type *> &ParamTys,
+bool appendCallbackParamTypes(llvm::SmallVectorImpl<llvm::Type *> &ParamTys,
                               const llvm::CallBase &BrokerCall,
                               const CallbackSpec &Spec) {
   for (int ArgNo : Spec.CallbackArgs) {
-    ParamTys.push_back(getCallbackArgType(BrokerCall, ArgNo));
+    auto *Ty = getCallbackArgType(BrokerCall, ArgNo);
+    if (!Ty) {
+      return false;
+    }
+    ParamTys.push_back(Ty);
   }
 
   if (Spec.PassVarArgs) {
@@ -191,6 +199,8 @@ void appendCallbackParamTypes(llvm::SmallVectorImpl<llvm::Type *> &ParamTys,
       ParamTys.push_back(BrokerCall.getArgOperand(ArgNo)->getType());
     }
   }
+
+  return true;
 }
 
 llvm::FunctionType *inferFallbackCallbackType(const llvm::Function &Broker,
@@ -203,13 +213,17 @@ llvm::FunctionType *inferFallbackCallbackType(const llvm::Function &Broker,
                                    /*isVarArg*/ false);
   case CallbackTypeKind::OpenMP: {
     llvm::SmallVector<llvm::Type *, 8> ParamTys;
-    appendCallbackParamTypes(ParamTys, BrokerCall, Spec);
+    if (!appendCallbackParamTypes(ParamTys, BrokerCall, Spec)) {
+      return nullptr;
+    }
     return llvm::FunctionType::get(llvm::Type::getVoidTy(Broker.getContext()),
                                    ParamTys, /*isVarArg*/ false);
   }
   case CallbackTypeKind::Metadata: {
     llvm::SmallVector<llvm::Type *, 8> ParamTys;
-    appendCallbackParamTypes(ParamTys, BrokerCall, Spec);
+    if (!appendCallbackParamTypes(ParamTys, BrokerCall, Spec)) {
+      return nullptr;
+    }
     return llvm::FunctionType::get(llvm::Type::getVoidTy(Broker.getContext()),
                                    ParamTys, /*isVarArg*/ false);
   }
@@ -336,10 +350,6 @@ llvm::Value *adaptValue(llvm::IRBuilder<> &IRB, llvm::Value *Value,
                         llvm::Type *ExpectedTy) {
   if (Value->getType() == ExpectedTy) {
     return Value;
-  }
-
-  if (Value->getType()->isPointerTy() && ExpectedTy->isPointerTy()) {
-    return IRB.CreatePointerCast(Value, ExpectedTy);
   }
 
   if (Value->getType()->isIntegerTy() && ExpectedTy->isIntegerTy()) {
@@ -549,7 +559,7 @@ size_t ExternCallbackModel::rewriteCalls(LLVMProjectIRDB &IRDB) {
 }
 
 bool ExternCallbackModel::isPhasarGenerated(const llvm::Function &F) noexcept {
-  return F.hasName() && F.getName().startswith(ModelPrefix);
+  return F.hasName() && F.getName().starts_with(ModelPrefix);
 }
 
 } // namespace psr

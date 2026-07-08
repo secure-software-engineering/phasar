@@ -366,7 +366,7 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   const auto *LoadFoo = findLoadFrom(GetFoo, FooStorage);
   ASSERT_NE(nullptr, LoadFoo);
-  const auto *FooGet = LoadFoo->getNextNonDebugInstruction();
+  const auto *FooGet = LoadFoo->getNextNode();
   ASSERT_NE(nullptr, FooGet);
 
   const auto *Main = IRDB.getFunctionDefinition("main");

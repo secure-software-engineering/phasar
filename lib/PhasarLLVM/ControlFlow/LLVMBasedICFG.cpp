@@ -12,7 +12,7 @@
 #include "phasar/ControlFlow/CallGraph.h"
 #include "phasar/ControlFlow/CallGraphAnalysisType.h"
 #include "phasar/ControlFlow/CallGraphData.h"
-#include "phasar/PhasarLLVM/ControlFlow/ExternCallbackModel.h"
+#include "phasar/PhasarLLVM/ControlFlow/GlobalCtorsDtorsModel.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraph.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCallGraphBuilder.h"
@@ -20,7 +20,6 @@
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
-#include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Utils/LLVMBasedContainerConfig.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Soundness.h"
@@ -40,12 +39,11 @@ void LLVMBasedICFG::initialize(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                                Soundness S, bool IncludeGlobals) {
   if (IncludeGlobals) {
     auto *EntryFun = GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
-    this->CG = buildLLVMBasedCallGraph(
-        static_cast<const LLVMProjectIRDB &>(*IRDB), CGResolver, {EntryFun}, S);
+    this->CG = buildLLVMBasedCallGraphWithExternCallbackModels(
+        *IRDB, CGResolver, {EntryFun}, S);
   } else {
-    this->CG =
-        buildLLVMBasedCallGraph(static_cast<const LLVMProjectIRDB &>(*IRDB),
-                                CGResolver, EntryPoints, S);
+    this->CG = buildLLVMBasedCallGraphWithExternCallbackModels(
+        *IRDB, CGResolver, EntryPoints, S);
   }
 }
 
@@ -57,17 +55,14 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB,
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
 
-  ExternCallbackModel::rewriteCalls(*IRDB);
-
-  LLVMAliasInfo PTOwn;
-
-  if (!PT && CGType == CallGraphAnalysisType::OTF) {
-    PTOwn = std::make_unique<LLVMAliasSet>(IRDB);
-    PT = PTOwn.asRef();
+  if (IncludeGlobals) {
+    auto *EntryFun = GlobalCtorsDtorsModel::buildModel(*IRDB, EntryPoints);
+    this->CG =
+        buildLLVMBasedCallGraph(*IRDB, CGType, {EntryFun}, TH, VTP, PT, S);
+  } else {
+    this->CG =
+        buildLLVMBasedCallGraph(*IRDB, CGType, EntryPoints, TH, VTP, PT, S);
   }
-
-  auto CGRes = Resolver::create(CGType, IRDB, &VTP, TH, PT);
-  initialize(IRDB, *CGRes, EntryPoints, S, IncludeGlobals);
 }
 
 LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
@@ -76,7 +71,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
     : IRDB(IRDB), VTP(*IRDB) {
   assert(IRDB != nullptr);
 
-  ExternCallbackModel::rewriteCalls(*IRDB);
   initialize(IRDB, CGResolver, EntryPoints, S, IncludeGlobals);
 }
 
@@ -86,7 +80,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *IRDB, Resolver &CGResolver,
                              Soundness S, bool IncludeGlobals)
     : IRDB(IRDB), VTP(std::move(VTP)) {
   assert(IRDB != nullptr);
-  ExternCallbackModel::rewriteCalls(*IRDB);
   initialize(IRDB, CGResolver, EntryPoints, S, IncludeGlobals);
 }
 

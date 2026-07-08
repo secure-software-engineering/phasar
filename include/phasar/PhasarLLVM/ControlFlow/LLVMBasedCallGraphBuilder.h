@@ -24,8 +24,9 @@ class Resolver;
 /// Constructs a call-graph using the given CGResolver to resolve indirect
 /// calls.
 ///
-/// This overload does not mutate the IRDB. Use the non-const overload if
-/// PhASAR should insert its model functions first.
+/// This overload does not mutate the IRDB. Use
+/// buildLLVMBasedCallGraphWithExternCallbackModels() if PhASAR should insert
+/// its model functions first.
 ///
 /// Uses a fixpoint iteration, if
 /// `CGResolver.mutatesHelperAnalysisInformation()` returns true and the
@@ -43,24 +44,23 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
                         Soundness S = Soundness::Soundy);
 
-/// Constructs a call-graph using the given CGResolver to resolve indirect
-/// calls.
-///
 /// May insert model functions for known external callback brokers before the
 /// call-graph is built.
 /// If CGResolver owns helper-analysis state that should include generated model
 /// functions, rewrite the IRDB before constructing that state or use a CGType
 /// overload.
 [[nodiscard]] LLVMBasedCallGraph
-buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
-                        llvm::ArrayRef<const llvm::Function *> EntryPoints,
-                        Soundness S = Soundness::Soundy);
+buildLLVMBasedCallGraphWithExternCallbackModels(
+    LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+    llvm::ArrayRef<const llvm::Function *> EntryPoints,
+    Soundness S = Soundness::Soundy);
 
 /// Constructs a call-graph using the given CGResolver to resolve indirect
 /// calls.
 ///
-/// This overload does not mutate the IRDB. Use the non-const overload if
-/// PhASAR should insert its model functions first.
+/// This overload does not mutate the IRDB. Use
+/// buildLLVMBasedCallGraphWithExternCallbackModels() if PhASAR should insert
+/// its model functions first.
 ///
 /// Uses a fixpoint iteration, if
 /// `CGResolver.mutatesHelperAnalysisInformation()` returns true and the
@@ -78,17 +78,25 @@ buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB, Resolver &CGResolver,
                         llvm::ArrayRef<std::string> EntryPoints,
                         Soundness S = Soundness::Soundy);
 
-/// Constructs a call-graph using the given CGResolver to resolve indirect
-/// calls.
-///
 /// May insert model functions for known external callback brokers before the
 /// call-graph is built.
 /// If CGResolver owns helper-analysis state that should include generated model
 /// functions, rewrite the IRDB before constructing that state or use a CGType
 /// overload.
 [[nodiscard]] LLVMBasedCallGraph
-buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
-                        llvm::ArrayRef<std::string> EntryPoints,
+buildLLVMBasedCallGraphWithExternCallbackModels(
+    LLVMProjectIRDB &IRDB, Resolver &CGResolver,
+    llvm::ArrayRef<std::string> EntryPoints, Soundness S = Soundness::Soundy);
+
+/// Kept for compatibility with LLVMBasedICFG. See the constructor of
+/// LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *, CallGraphAnalysisType,
+/// llvm::ArrayRef<std::string>, DIBasedTypeHierarchy *, LLVMAliasInfoRef,
+/// Soundness, bool) for more information.
+[[nodiscard]] LLVMBasedCallGraph
+buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                        llvm::ArrayRef<const llvm::Function *> EntryPoints,
+                        DIBasedTypeHierarchy *TH, LLVMVFTableProvider &VTP,
+                        LLVMAliasInfoRef PT = nullptr,
                         Soundness S = Soundness::Soundy);
 
 /// Kept for compatibility with LLVMBasedICFG. See the constructor of
@@ -99,6 +107,17 @@ buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, Resolver &CGResolver,
 buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                         llvm::ArrayRef<const llvm::Function *> EntryPoints,
                         DIBasedTypeHierarchy &TH, LLVMVFTableProvider &VTP,
+                        LLVMAliasInfoRef PT = nullptr,
+                        Soundness S = Soundness::Soundy);
+
+/// Kept for compatibility with LLVMBasedICFG. See the constructor of
+/// LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *, CallGraphAnalysisType,
+/// llvm::ArrayRef<std::string>, DIBasedTypeHierarchy *, LLVMAliasInfoRef,
+/// Soundness, bool) for more information.
+[[nodiscard]] LLVMBasedCallGraph
+buildLLVMBasedCallGraph(LLVMProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                        llvm::ArrayRef<std::string> EntryPoints,
+                        DIBasedTypeHierarchy *TH, LLVMVFTableProvider &VTP,
                         LLVMAliasInfoRef PT = nullptr,
                         Soundness S = Soundness::Soundy);
 
