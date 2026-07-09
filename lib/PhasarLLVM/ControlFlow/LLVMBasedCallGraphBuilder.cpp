@@ -323,7 +323,8 @@ auto psr::buildLLVMBasedCallGraph(const LLVMProjectIRDB &IRDB,
 
 auto psr::buildLLVMBasedCallGraphWithExternCallbackModels(
     LLVMProjectIRDB &IRDB, Resolver &CGResolver,
-    llvm::ArrayRef<std::string> EntryPoints, Soundness S) -> LLVMBasedCallGraph {
+    llvm::ArrayRef<std::string> EntryPoints, Soundness S)
+    -> LLVMBasedCallGraph {
   auto EntryPointFns = getEntryFunctions(IRDB, EntryPoints);
   return buildLLVMBasedCallGraphWithExternCallbackModels(IRDB, CGResolver,
                                                          EntryPointFns, S);
