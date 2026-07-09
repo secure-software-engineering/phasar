@@ -398,6 +398,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ExampleModulePass.html">ExampleModulePass</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1ExternCallbackModel.html">ExternCallbackModel</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides utilities to model calls through known external callback brokers.  <a href="classpsr_1_1ExternCallbackModel.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpsr_1_1FalseFn.html">FalseFn</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpsr_1_1FeatureTaintGenerator.html">FeatureTaintGenerator</a></td></tr>
@@ -1612,10 +1615,18 @@ requires (std::is_same_v&lt;<a class="el" href="namespacepsr.html#a951662fd4f90e
 <tr class="separator:a1accbf8d1cc8978eb4f3df3d1c650d53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29c1f87d914eb9df1b277073caa01660" id="r_a29c1f87d914eb9df1b277073caa01660"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a29c1f87d914eb9df1b277073caa01660">buildLLVMBasedCallGraph</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="classpsr_1_1Resolver.html">Resolver</a> &amp;CGResolver, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
 <tr class="separator:a29c1f87d914eb9df1b277073caa01660"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95ee249d7bcdf7195b5647dad07465a3" id="r_a95ee249d7bcdf7195b5647dad07465a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a95ee249d7bcdf7195b5647dad07465a3">buildLLVMBasedCallGraphWithExternCallbackModels</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="classpsr_1_1Resolver.html">Resolver</a> &amp;CGResolver, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
+<tr class="separator:a95ee249d7bcdf7195b5647dad07465a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc308152e2690243791791fb306bd76b" id="r_adc308152e2690243791791fb306bd76b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#adc308152e2690243791791fb306bd76b">buildLLVMBasedCallGraph</a> (const <a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="classpsr_1_1Resolver.html">Resolver</a> &amp;CGResolver, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
 <tr class="separator:adc308152e2690243791791fb306bd76b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ee1e5400ddfb22958dda7d697daa832" id="r_a0ee1e5400ddfb22958dda7d697daa832"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0ee1e5400ddfb22958dda7d697daa832">buildLLVMBasedCallGraphWithExternCallbackModels</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="classpsr_1_1Resolver.html">Resolver</a> &amp;CGResolver, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
+<tr class="separator:a0ee1e5400ddfb22958dda7d697daa832"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac18202a90d929088500930a760c7169e" id="r_ac18202a90d929088500930a760c7169e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#ac18202a90d929088500930a760c7169e">buildLLVMBasedCallGraph</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a> CGType, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> *TH, <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;VTP, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> PT=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
+<tr class="separator:ac18202a90d929088500930a760c7169e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9898e7f1d1d136f50a4578518c41f75b" id="r_a9898e7f1d1d136f50a4578518c41f75b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a9898e7f1d1d136f50a4578518c41f75b">buildLLVMBasedCallGraph</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a> CGType, llvm::ArrayRef&lt; const llvm::Function * &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> &amp;TH, <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;VTP, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> PT=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
 <tr class="separator:a9898e7f1d1d136f50a4578518c41f75b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77c68aaa0a7187bd83e189a1a439d59b" id="r_a77c68aaa0a7187bd83e189a1a439d59b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a77c68aaa0a7187bd83e189a1a439d59b">buildLLVMBasedCallGraph</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a> CGType, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> *TH, <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;VTP, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> PT=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
+<tr class="separator:a77c68aaa0a7187bd83e189a1a439d59b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08dddeb255d2c1456fa0dccb2b259296" id="r_a08dddeb255d2c1456fa0dccb2b259296"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a08dddeb255d2c1456fa0dccb2b259296">buildLLVMBasedCallGraph</a> (<a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;IRDB, <a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a> CGType, llvm::ArrayRef&lt; std::string &gt; <a class="el" href="namespacepsr.html#abee833e16ef749173730713d144c91b1">EntryPoints</a>, <a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> &amp;TH, <a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;VTP, <a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a> PT=nullptr, <a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a> S=Soundness::Soundy)</td></tr>
 <tr class="separator:a08dddeb255d2c1456fa0dccb2b259296"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c6959c1f4616b7ac0a3d1b31338091c" id="r_a0c6959c1f4616b7ac0a3d1b31338091c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classbool.html">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepsr.html#a0c6959c1f4616b7ac0a3d1b31338091c">isHeapAllocatingFunction</a> (const llvm::Function *F) noexcept</td></tr>
@@ -4192,7 +4203,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a29c1f87d914eb9df1b277073caa01660" name="a29c1f87d914eb9df1b277073caa01660"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29c1f87d914eb9df1b277073caa01660">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[1/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a29c1f87d914eb9df1b277073caa01660">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4229,6 +4240,7 @@ template&lt;typename T &gt; </div>
       </table>
 </div><div class="memdoc">
 <p>Constructs a call-graph using the given CGResolver to resolve indirect calls.</p>
+<p>This overload does not mutate the IRDB. Use <a class="el" href="namespacepsr.html#a95ee249d7bcdf7195b5647dad07465a3">buildLLVMBasedCallGraphWithExternCallbackModels()</a> if PhASAR should insert its model functions first.</p>
 <p>Uses a fixpoint iteration, if <code>CGResolver.mutatesHelperAnalysisInformation()</code> returns true and the soundness S is not Soundness::Unsound.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -4243,7 +4255,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="adc308152e2690243791791fb306bd76b" name="adc308152e2690243791791fb306bd76b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc308152e2690243791791fb306bd76b">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#adc308152e2690243791791fb306bd76b">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4280,6 +4292,7 @@ template&lt;typename T &gt; </div>
       </table>
 </div><div class="memdoc">
 <p>Constructs a call-graph using the given CGResolver to resolve indirect calls.</p>
+<p>This overload does not mutate the IRDB. Use <a class="el" href="namespacepsr.html#a95ee249d7bcdf7195b5647dad07465a3">buildLLVMBasedCallGraphWithExternCallbackModels()</a> if PhASAR should insert its model functions first.</p>
 <p>Uses a fixpoint iteration, if <code>CGResolver.mutatesHelperAnalysisInformation()</code> returns true and the soundness S is not Soundness::Unsound.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -4294,7 +4307,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a9898e7f1d1d136f50a4578518c41f75b" name="a9898e7f1d1d136f50a4578518c41f75b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9898e7f1d1d136f50a4578518c41f75b">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[3/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9898e7f1d1d136f50a4578518c41f75b">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[3/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4321,6 +4334,67 @@ template&lt;typename T &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> &amp;&#160;</td>
+          <td class="paramname"><em>TH</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;&#160;</td>
+          <td class="paramname"><em>VTP</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a>&#160;</td>
+          <td class="paramname"><em>PT</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a>&#160;</td>
+          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Kept for compatibility with <a class="el" href="classpsr_1_1LLVMBasedICFG.html" title="A class that implements a inter-procedural control flow graph. Conforms to the ICFGBase CRTP interfac...">LLVMBasedICFG</a>. See the constructor of <a class="el" href="classpsr_1_1LLVMBasedICFG.html#a3856befd4197e7cb355d293ebb22e2a7">LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *, CallGraphAnalysisType,
+llvm::ArrayRef&lt;std::string&gt;, DIBasedTypeHierarchy *, LLVMAliasInfoRef,
+Soundness, bool)</a> for more information. </p>
+
+</div>
+</div>
+<a id="ac18202a90d929088500930a760c7169e" name="ac18202a90d929088500930a760c7169e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac18202a90d929088500930a760c7169e">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[4/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> psr::buildLLVMBasedCallGraph </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a>&#160;</td>
+          <td class="paramname"><em>CGType</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">llvm::ArrayRef&lt; const llvm::Function * &gt;&#160;</td>
+          <td class="paramname"><em>EntryPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> *&#160;</td>
           <td class="paramname"><em>TH</em>, </td>
         </tr>
         <tr>
@@ -4355,7 +4429,7 @@ Soundness, bool)</a> for more information. </p>
 </div>
 </div>
 <a id="a08dddeb255d2c1456fa0dccb2b259296" name="a08dddeb255d2c1456fa0dccb2b259296"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a08dddeb255d2c1456fa0dccb2b259296">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[4/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a08dddeb255d2c1456fa0dccb2b259296">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[5/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4412,6 +4486,149 @@ Soundness, bool)</a> for more information. </p>
 <p>Kept for compatibility with <a class="el" href="classpsr_1_1LLVMBasedICFG.html" title="A class that implements a inter-procedural control flow graph. Conforms to the ICFGBase CRTP interfac...">LLVMBasedICFG</a>. See the constructor of <a class="el" href="classpsr_1_1LLVMBasedICFG.html#a3856befd4197e7cb355d293ebb22e2a7">LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *, CallGraphAnalysisType,
 llvm::ArrayRef&lt;std::string&gt;, DIBasedTypeHierarchy *, LLVMAliasInfoRef,
 Soundness, bool)</a> for more information. </p>
+
+</div>
+</div>
+<a id="a77c68aaa0a7187bd83e189a1a439d59b" name="a77c68aaa0a7187bd83e189a1a439d59b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77c68aaa0a7187bd83e189a1a439d59b">&#9670;&#160;</a></span>buildLLVMBasedCallGraph() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> psr::buildLLVMBasedCallGraph </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#a76428812da89e213e232a0a8924d7647">CallGraphAnalysisType</a>&#160;</td>
+          <td class="paramname"><em>CGType</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">llvm::ArrayRef&lt; std::string &gt;&#160;</td>
+          <td class="paramname"><em>EntryPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1DIBasedTypeHierarchy.html">DIBasedTypeHierarchy</a> *&#160;</td>
+          <td class="paramname"><em>TH</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMVFTableProvider.html">LLVMVFTableProvider</a> &amp;&#160;</td>
+          <td class="paramname"><em>VTP</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ae978c20a03ae03bd7b2c13119a2a0ab5">LLVMAliasInfoRef</a>&#160;</td>
+          <td class="paramname"><em>PT</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a>&#160;</td>
+          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Kept for compatibility with <a class="el" href="classpsr_1_1LLVMBasedICFG.html" title="A class that implements a inter-procedural control flow graph. Conforms to the ICFGBase CRTP interfac...">LLVMBasedICFG</a>. See the constructor of <a class="el" href="classpsr_1_1LLVMBasedICFG.html#a3856befd4197e7cb355d293ebb22e2a7">LLVMBasedICFG::LLVMBasedICFG(LLVMProjectIRDB *, CallGraphAnalysisType,
+llvm::ArrayRef&lt;std::string&gt;, DIBasedTypeHierarchy *, LLVMAliasInfoRef,
+Soundness, bool)</a> for more information. </p>
+
+</div>
+</div>
+<a id="a95ee249d7bcdf7195b5647dad07465a3" name="a95ee249d7bcdf7195b5647dad07465a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95ee249d7bcdf7195b5647dad07465a3">&#9670;&#160;</a></span>buildLLVMBasedCallGraphWithExternCallbackModels() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> psr::buildLLVMBasedCallGraphWithExternCallbackModels </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1Resolver.html">Resolver</a> &amp;&#160;</td>
+          <td class="paramname"><em>CGResolver</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">llvm::ArrayRef&lt; const llvm::Function * &gt;&#160;</td>
+          <td class="paramname"><em>EntryPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a>&#160;</td>
+          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>May insert model functions for known external callback brokers before the call-graph is built. If CGResolver owns helper-analysis state that should include generated model functions, rewrite the IRDB before constructing that state or use a CGType overload. </p>
+
+</div>
+</div>
+<a id="a0ee1e5400ddfb22958dda7d697daa832" name="a0ee1e5400ddfb22958dda7d697daa832"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ee1e5400ddfb22958dda7d697daa832">&#9670;&#160;</a></span>buildLLVMBasedCallGraphWithExternCallbackModels() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacepsr.html#a7ed5d2bc3d093f9da2f285ae3f8cc35b">LLVMBasedCallGraph</a> psr::buildLLVMBasedCallGraphWithExternCallbackModels </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1LLVMProjectIRDB.html">LLVMProjectIRDB</a> &amp;&#160;</td>
+          <td class="paramname"><em>IRDB</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpsr_1_1Resolver.html">Resolver</a> &amp;&#160;</td>
+          <td class="paramname"><em>CGResolver</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">llvm::ArrayRef&lt; std::string &gt;&#160;</td>
+          <td class="paramname"><em>EntryPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacepsr.html#ad4ab98da08f52ab38d81dd5206820318">Soundness</a>&#160;</td>
+          <td class="paramname"><em>S</em> = <code>Soundness::Soundy</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>May insert model functions for known external callback brokers before the call-graph is built. If CGResolver owns helper-analysis state that should include generated model functions, rewrite the IRDB before constructing that state or use a CGType overload. </p>
 
 </div>
 </div>
@@ -14065,7 +14282,7 @@ template&lt;typename Var , typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jul 4 2026 17:10:11 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Jul 9 2026 17:08:27 for PhASAR by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
