@@ -105,7 +105,11 @@ public:
   [[nodiscard]] constexpr llvm::StringRef name() const noexcept { return Name; }
 
   [[nodiscard]] constexpr bool isEnabled() const noexcept {
-    return IsEnabled.load(std::memory_order_relaxed);
+    return IsEnabled
+#ifdef PHASAR_THREAD_SAFE_PAMM
+        .load(std::memory_order_relaxed)
+#endif
+        ;
   }
 
   constexpr void disable() noexcept { IsEnabled = false; }
@@ -190,11 +194,11 @@ struct MinMaxCounterBase : PAMMBase {
     }
   };
 
-  [[nodiscard]] double getAverage() noexcept {
+  [[nodiscard]] double getAverage() const noexcept {
     return double(Sum.load(std::memory_order_relaxed)) /
            double(getNumSamples());
   }
-  [[nodiscard]] size_t getNumSamples() noexcept {
+  [[nodiscard]] size_t getNumSamples() const noexcept {
     return NumSamples.load(std::memory_order_relaxed);
   }
 
@@ -280,8 +284,10 @@ struct MinMaxCounterBase : PAMMBase {
     }
   };
 
-  [[nodiscard]] double getAverage() noexcept { return Avg.getAverage(); }
-  [[nodiscard]] size_t getNumSamples() noexcept { return Avg.getNumSamples(); }
+  [[nodiscard]] double getAverage() const noexcept { return Avg.getAverage(); }
+  [[nodiscard]] size_t getNumSamples() const noexcept {
+    return Avg.getNumSamples();
+  }
 
   void clear() noexcept {
     Min = SIZE_MAX;
@@ -330,7 +336,7 @@ struct TimerBase : PAMMBase {
       return {};
     }
     auto EndPoint = std::chrono::steady_clock::now();
-    return EndPoints - StartPoint;
+    return EndPoint - StartPoint;
   }
 
   [[nodiscard]] hms elapsed() const noexcept { return Acc; }
