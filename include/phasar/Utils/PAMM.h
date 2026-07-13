@@ -151,6 +151,14 @@ private:
   llvm::StringRef Name;
 };
 
+template <typename T>
+concept IsCategory =
+    std::same_as<T, Category<false>> || std::same_as<T, Category<true>>;
+
+template <const auto *Var>
+concept IsCategoryVar =
+    IsCategory<std::remove_const_t<std::remove_pointer_t<decltype(Var)>>>;
+
 namespace detail {
 struct PAMMBase {
   std::source_location Loc{};
@@ -363,7 +371,8 @@ template <TemplateString Name, const auto *Cat> struct Qualified {
 
 class Registry;
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class Counter : private detail::CounterBase,
                 private detail::Qualified<Name, Cat> {
   friend Registry;
@@ -391,7 +400,8 @@ private:
   [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
 };
 
-template <TemplateString Name, const Category<false> *Cat>
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class Counter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
   using detail::Qualified<Name, Cat>::qualifier;
@@ -415,7 +425,8 @@ public:
 
 namespace detail {
 struct IsCounterImpl {
-  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
   static std::true_type test(const Counter<Enabled, Name, Cat> &);
 
   static std::false_type test(...);
@@ -426,7 +437,8 @@ concept IsCounter =
     decltype(IsCounterImpl::test(std::declval<const T &>()))::value;
 } // namespace detail
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class MinMaxCounter : private detail::MinMaxCounterBase,
                       private detail::Qualified<Name, Cat> {
   friend Registry;
@@ -454,7 +466,8 @@ private:
   [[nodiscard]] constexpr detail::CounterBase *base() noexcept { return this; }
 };
 
-template <TemplateString Name, const Category<false> *Cat>
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class MinMaxCounter<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
   using detail::Qualified<Name, Cat>::qualifier;
@@ -472,7 +485,8 @@ public:
   }
 };
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class Histogram : private detail::HistogramBase,
                   private detail::Qualified<Name, Cat> {
   friend Registry;
@@ -521,7 +535,8 @@ private:
   }
 };
 
-template <TemplateString Name, const Category<false> *Cat>
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class Histogram<false, Name, Cat> : private detail::Qualified<Name, Cat> {
   friend Registry;
 
@@ -541,7 +556,8 @@ public:
                                                   uint64_t /*Increment*/) {}
 };
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class Timer : private detail::TimerBase, private detail::Qualified<Name, Cat> {
   friend Registry;
   template <bool Enabled2> friend class ScopedTimer;
@@ -566,7 +582,8 @@ private:
   [[nodiscard]] constexpr detail::TimerBase *base() noexcept { return this; }
 };
 
-template <TemplateString Name, const Category<false> *Cat>
+template <TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 class Timer<false, Name, Cat> : private detail::Qualified<Name, Cat> {
 public:
   using detail::Qualified<Name, Cat>::qualifier;
@@ -588,7 +605,7 @@ public:
 
 template <bool Enabled> class ScopedTimer {
 public:
-  template <TemplateString Name, const Category<Enabled> *Cat>
+  template <TemplateString Name, const auto *Cat>
   constexpr ScopedTimer(Timer<Enabled, Name, Cat> &Tm) : Tm(&Tm) {
     if (Cat->isEnabled()) {
       Tm.start();
@@ -612,18 +629,22 @@ private:
 
 template <> class ScopedTimer<false> {
 public:
-  template <TemplateString Name, const Category<false> *Cat>
+  template <TemplateString Name, const auto *Cat>
   constexpr ScopedTimer(Timer<false, Name, Cat> &Tm) {}
 };
 
 class Registry {
-  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
   friend class Counter;
-  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
   friend class MinMaxCounter;
-  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
   friend class Histogram;
-  template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+  template <bool Enabled, TemplateString Name, const auto *Cat>
+    requires IsCategoryVar<Cat>
   friend class Timer;
 
 public:
@@ -726,14 +747,16 @@ private:
   llvm::StringMap<const Category<true> *> RegisteredCategories;
 };
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 inline Counter<Enabled, Name, Cat>::Counter(std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
   Registry::instance().registerCounter(this, Loc);
 }
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 inline MinMaxCounter<Enabled, Name, Cat>::MinMaxCounter(
     std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
@@ -741,7 +764,8 @@ inline MinMaxCounter<Enabled, Name, Cat>::MinMaxCounter(
   Registry::instance().registerMMCounter(this, Loc);
 }
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 inline Histogram<Enabled, Name, Cat>::Histogram(
     std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
@@ -749,7 +773,8 @@ inline Histogram<Enabled, Name, Cat>::Histogram(
   Registry::instance().registerHistogram(this, Loc);
 }
 
-template <bool Enabled, TemplateString Name, const Category<Enabled> *Cat>
+template <bool Enabled, TemplateString Name, const auto *Cat>
+  requires IsCategoryVar<Cat>
 inline Timer<Enabled, Name, Cat>::Timer(std::source_location Loc) noexcept {
   static_assert(Cat != nullptr);
   this->Loc = Loc;
