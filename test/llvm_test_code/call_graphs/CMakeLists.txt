@@ -1,5 +1,16 @@
 set(NoMem2regSources
 	function_object_1.cpp
+	extern_callback_attribute.c
+	extern_callback_attribute_indirect.c
+	extern_callback_invalid_metadata_arg.c
+	extern_callback_kmpc_fork_call.c
+	extern_callback_kmpc_fork_teams.c
+	extern_callback_mismatched_callback_arity.c
+	extern_callback_non_pointer_callee_arg.c
+	extern_callback_pthread.c
+	extern_callback_pthread_indirect.c
+	extern_callback_pthread_multiple.c
+	extern_callback_too_few_broker_args.c
 	function_pointer_1.c
 	function_pointer_2.cpp
 	function_pointer_3.cpp

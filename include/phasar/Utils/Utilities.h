@@ -17,6 +17,7 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <functional>
 #include <optional>
 #include <set>
 #include <source_location>
@@ -136,7 +137,12 @@ void intersectWith(ContainerTy &Dest, const OtherContainerTy &Src) {
     if (Src.count(*It)) {
       ++It;
     } else {
-      It = Dest.erase(It);
+      if constexpr (std::is_void_v<decltype(Dest.erase(It))>) {
+        auto OldIt = It++;
+        Dest.erase(OldIt);
+      } else {
+        It = Dest.erase(It);
+      }
     }
   }
 }
@@ -337,6 +343,24 @@ template <typename T> void assertAllNotNull([[maybe_unused]] const T &Range) {
 }
 
 [[nodiscard]] std::string locToString(std::source_location Loc);
+
+template <typename CompareFn = std::less<>>
+constexpr void sortUnique(auto &Range, CompareFn Cmp = {}) {
+  auto It = llvm::adl_begin(Range);
+  auto End = llvm::adl_end(Range);
+  std::sort(It, End, std::move(Cmp));
+  Range.erase(std::unique(It, End), End);
+}
+
+/// \brief Similar to std::minmax, but returns by value
+template <typename T>
+[[nodiscard]] constexpr std::pair<T, T> minmaxVal(T First, T Second) noexcept {
+  if (std::less<T>{}(Second, First)) {
+    return {std::move(Second), std::move(First)};
+  }
+
+  return {std::move(First), std::move(Second)};
+}
 
 } // namespace psr
 

@@ -54,6 +54,13 @@ ninja -j $(nproc) # or use a different number of cores to compile it
 sudo ninja install # only if you wish to install PhASAR system wide
 ```
 
+To uninstall PhASAR from the same install location, invoke the `uninstall` target
+from the build directory:
+
+```bash
+sudo ninja uninstall
+```
+
 When you have used the `bootstrap.sh` script to install PhASAR, the above steps are already done.
 Use them as a reference if you wish to modify PhASAR and recompile it.
 
@@ -131,4 +138,10 @@ Done!
 If You have already built phasar, you can just invoke
 ```bash
 sudo ninja install
+```
+
+To uninstall PhASAR again, invoke the uninstall target from the same build directory:
+
+```bash
+sudo ninja uninstall
 ```
