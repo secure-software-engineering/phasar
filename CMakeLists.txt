@@ -528,6 +528,20 @@ install(
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
 )
 
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT TARGET uninstall)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    @ONLY
+  )
+
+  add_custom_target(uninstall
+    COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    COMMENT "Uninstalling PhASAR"
+    VERBATIM
+  )
+endif()
+
 # If the Phasar shared object libraries are not installed into a system folder
 # the so libs must be added manually to the linker search path and the linker
 # config must be updated as follows:

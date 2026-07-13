@@ -503,6 +503,24 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   return false;
 }
 
+static bool isGuardVariableLoadOperand(const llvm::Value *V) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+    return Load->isAtomic() && psr::isGuardVariable(Load->getPointerOperand());
+  }
+
+  if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(V)) {
+    return isGuardVariableLoadOperand(Cast->getOperand(0));
+  }
+
+  if (const auto *BinOp = llvm::dyn_cast<llvm::BinaryOperator>(V);
+      BinOp && BinOp->getOpcode() == llvm::Instruction::And) {
+    return isGuardVariableLoadOperand(BinOp->getOperand(0)) ||
+           isGuardVariableLoadOperand(BinOp->getOperand(1));
+  }
+
+  return false;
+}
+
 static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     return Arg->hasStructRetAttr();
@@ -578,13 +596,11 @@ bool psr::isStaticVariableLazyInitializationBranch(
   if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
       Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
     for (auto *Op : Cmp->operand_values()) {
-      if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(Op);
-          Load && Load->isAtomic()) {
+      if (isGuardVariableLoadOperand(Op)) {
+        return true;
+      }
 
-        if (isGuardVariable(Load->getPointerOperand())) {
-          return true;
-        }
-      } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
+      if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
         auto *CalledFunction = Call->getCalledFunction();
         if (CalledFunction &&
             CalledFunction->getName() == "__cxa_guard_acquire") {
@@ -727,6 +743,60 @@ psr::getPointerIndicesOfType(const llvm::DIType *Ty,
                              const llvm::DataLayout &DL) {
   PointerIndicesCache PIC;
   return std::move(getPointerIndicesOfType(Ty, DL, PIC));
+}
+
+bool psr::walkLoadChainTo(const llvm::Value *Start, const llvm::Value *Target,
+                          const llvm::DataLayout &DL, uint32_t MaxDepth,
+                          llvm::function_ref<void(int64_t)> OnDeref) {
+  const llvm::Value *Cur = Start;
+  for (unsigned Depth = 0; Depth < MaxDepth && Cur != Target; ++Depth) {
+    const auto *LI = llvm::dyn_cast<llvm::LoadInst>(Cur);
+    if (!LI) {
+      break;
+    }
+
+    llvm::APInt Offset(64, 0);
+    const auto *Stripped =
+        LI->getPointerOperand()->stripAndAccumulateConstantOffsets(
+            DL, Offset, /*AllowNonInbounds=*/true);
+    const auto *Base = Stripped->stripPointerCastsAndAliases();
+    int64_t ByteOffset = llvm::isa<llvm::GEPOperator>(Stripped)
+                             ? INT64_MIN // non-constant GEP
+                             : Offset.getSExtValue();
+
+    // -O0 mem2reg artifact: clang copies every argument/local into an alloca
+    // and re-loads it at each use. If the alloca has exactly one store and
+    // that store holds Target, the load is a transparent SSA copy -- not a
+    // real dereference of Target. Skipping OnDeref here keeps the indirection
+    // depth consistent with post-mem2reg IR (where the alloca disappears).
+    // Require Offset==0 and no other stores to avoid spurious kills when the
+    // alloca is reassigned to a different pointer.
+    if (const auto *AI = llvm::dyn_cast<llvm::AllocaInst>(Base);
+        AI && Offset.isZero()) {
+      bool HasTargetStore = false;
+      bool HasOtherStore = false;
+      for (const auto *U : AI->users()) {
+        const auto *SI = llvm::dyn_cast<llvm::StoreInst>(U);
+        if (!SI || SI->getPointerOperand() != AI) {
+          continue;
+        }
+        if (SI->getValueOperand() == Target) {
+          HasTargetStore = true;
+        } else {
+          HasOtherStore = true;
+          break;
+        }
+      }
+      if (HasTargetStore && !HasOtherStore) {
+        Cur = Target;
+        break;
+      }
+    }
+
+    OnDeref(ByteOffset);
+    Cur = Base;
+  }
+  return Cur == Target;
 }
 
 llvm::StringRef

@@ -19,9 +19,13 @@
 #include "phasar/PhasarLLVM/Domain/LLVMAnalysisDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/Utils/Compressor.h"
+#include "phasar/Utils/Fn.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/MapUtils.h"
 #include "phasar/Utils/NonNullPtr.h"
+#include "phasar/Utils/SmallArraySet.h"
+#include "phasar/Utils/StrongTypeDef.h"
+#include "phasar/Utils/TableWrappers.h"
 #include "phasar/Utils/TypeTraits.h"
 #include "phasar/Utils/TypedVector.h"
 #include "phasar/Utils/Utilities.h"
@@ -29,6 +33,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Operator.h"
@@ -38,21 +43,16 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace psr::cfl_fieldsens {
-
 /// \file
 /// Implements field-sensitivity after the paper "Boosting the performance
 /// of alias-aware IFDS analysis with CFL-based environment transformers" by Li
 /// et al. <https://doi.org/10.1145/3689804>
 
-// NOLINTNEXTLINE(performance-enum-size)
-enum class FieldStringNodeId : uint32_t {
-  None = 0,
-};
+PHASAR_STRONG_TYPEDEF(psr::cfl_fieldsens, uint32_t, FieldStringNodeId,
+                      None = 0);
 
-[[nodiscard]] inline llvm::hash_code hash_value(FieldStringNodeId NId) {
-  return llvm::hash_value(std::underlying_type_t<FieldStringNodeId>(NId));
-}
+PHASAR_STRONG_TYPEDEF(psr::cfl_fieldsens, uint32_t, KillSetId, Empty = 0);
+namespace psr::cfl_fieldsens {
 
 struct FieldStringNode {
   FieldStringNodeId Next{};
@@ -94,6 +94,8 @@ namespace cfl_fieldsens {
 /// Interns the Store- and Load field-strings
 class FieldStringManager {
 public:
+  static constexpr int32_t TopOffset = INT32_MIN;
+
   FieldStringManager();
 
   [[nodiscard]] FieldStringNodeId intern(FieldStringNode Nod) {
@@ -128,43 +130,74 @@ public:
     return Depth[NId];
   }
 
+  [[nodiscard]] KillSetId internKills(SmallArraySet<int32_t, 2> &&Kills) {
+    return KillsCompressor.getOrInsert(std::move(Kills));
+  }
+
+  [[nodiscard]] KillSetId addKill(KillSetId KS, int32_t Offs) {
+    if (Offs == TopOffset || KillsCompressor[KS].contains(Offs)) {
+      return KS;
+    }
+
+    auto Kills = KillsCompressor[KS];
+    Kills.insert(Offs);
+    return KillsCompressor.getOrInsert(std::move(Kills));
+  }
+
+  [[nodiscard]] bool isKilledBy(KillSetId KS, int32_t Offs) const {
+    if (Offs == TopOffset || KS == KillSetId::Empty) {
+      return false;
+    }
+    if (!KillsCompressor.inbounds(KS)) [[unlikely]] {
+      return false;
+    }
+
+    return KillsCompressor[KS].contains(Offs);
+  }
+
+  [[nodiscard]] const auto &kills(KillSetId KS) const {
+    return KillsCompressor[KS];
+  }
+
+  void reserve(size_t ExpectedCapacity) {
+    NodeCompressor.reserve(ExpectedCapacity);
+    Depth.reserve(ExpectedCapacity);
+  }
+
 private:
   Compressor<FieldStringNode, FieldStringNodeId> NodeCompressor{};
   TypedVector<FieldStringNodeId, uint32_t> Depth{};
+  Compressor<SmallArraySet<int32_t, 2>, KillSetId> KillsCompressor{};
 };
 
 /// A single CFL Field-Access String consisting of: gep, loads, kills, and
 /// stores
 struct AccessPath {
-  static constexpr int32_t TopOffset = INT32_MIN;
+  static constexpr int32_t TopOffset = FieldStringManager::TopOffset;
 
   FieldStringNodeId Loads{};
   FieldStringNodeId Stores{};
-  llvm::SmallDenseSet<int32_t, 2> Kills{};
+  KillSetId Kills{};
   // Add an offset for pending GEPs; INT32_MIN is Top
-  int32_t Offset = {0};
-  int32_t EmptyTombstone = 0;
+  int32_t Offset{};
 
   [[nodiscard]] bool empty() const noexcept {
     return Loads == FieldStringNodeId::None &&
-           Stores == FieldStringNodeId::None && Kills.empty() && Offset == 0;
-  }
-
-  [[nodiscard]] bool kills(int32_t Off) const {
-    return Off != TopOffset && Kills.contains(Off);
+           Stores == FieldStringNodeId::None && Kills == KillSetId::Empty &&
+           Offset == 0;
   }
 
   [[nodiscard]] constexpr bool
-  operator==(const AccessPath &Other) const noexcept {
-    return EmptyTombstone == Other.EmptyTombstone && Loads == Other.Loads &&
-           Stores == Other.Stores && Kills == Other.Kills;
-  }
+  operator==(const AccessPath &Other) const noexcept = default;
 
-  bool operator!=(const AccessPath &Other) const noexcept {
-    return !(*this == Other);
+  friend constexpr size_t hash_value(const AccessPath &FieldString) noexcept {
+    size_t HC = 37;
+    HC = HC * 31 + size_t(FieldString.Loads);
+    HC = HC * 31 + size_t(FieldString.Stores);
+    HC = HC * 31 + size_t(FieldString.Kills);
+    HC = HC * 31 + size_t(FieldString.Offset);
+    return HC;
   }
-
-  friend size_t hash_value(const AccessPath &FieldString) noexcept;
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                        const AccessPath &FieldString);
@@ -175,32 +208,27 @@ struct AccessPath {
 struct AccessPathDMI {
   static AccessPath getEmptyKey() {
     AccessPath Ret{};
-    Ret.EmptyTombstone = 1;
+    Ret.Loads = FieldStringNodeId(UINT32_MAX);
     return Ret;
   }
   static AccessPath getTombstoneKey() {
     AccessPath Ret{};
-    Ret.EmptyTombstone = 2;
+    Ret.Loads = FieldStringNodeId(UINT32_MAX);
+    Ret.Stores = FieldStringNodeId(UINT32_MAX);
     return Ret;
   }
-  static auto getHashValue(const AccessPath &FieldString) noexcept {
+  static auto getHashValue(AccessPath FieldString) noexcept {
     return hash_value(FieldString);
   }
-  static bool isEqual(const AccessPath &L, const AccessPath &R) noexcept {
-    if (L.EmptyTombstone != R.EmptyTombstone) {
-      return false;
-    }
-    if (L.EmptyTombstone) {
-      return true;
-    }
-    return L == R;
-  }
+  static bool isEqual(AccessPath L, AccessPath R) noexcept { return L == R; }
 };
 
 /// An edge-value consisting of a set if CFL field access strings.
 struct IFDSEdgeValue {
+  using container_type = llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI>;
+
   [[clang::require_explicit_initialization]] FieldStringManager *Mgr{};
-  llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI> Paths;
+  container_type Paths;
 
   static constexpr llvm::StringLiteral LogCategory = "IFDSEdgeValue";
 
@@ -356,6 +384,68 @@ bool filterFieldSensFacts(
   return true;
 }
 
+struct CFLFieldSensEdgeFunctionImpl {
+  using l_t = LatticeDomain<IFDSEdgeValue>;
+  [[clang::require_explicit_initialization]] IFDSEdgeValue Transform;
+  [[clang::require_explicit_initialization]] uint8_t DepthKLimit{};
+
+  bool operator==(const CFLFieldSensEdgeFunctionImpl &Other) const noexcept {
+    assert(DepthKLimit == Other.DepthKLimit);
+    return Transform == Other.Transform;
+  }
+
+  friend auto hash_value(const CFLFieldSensEdgeFunctionImpl &EF) noexcept {
+    return hash_value(EF.Transform);
+  }
+
+  [[nodiscard]] static auto from(IFDSEdgeValue &&Txn, uint8_t DepthKLimit) {
+    return CFLFieldSensEdgeFunctionImpl{
+        .Transform = std::move(Txn),
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+
+  [[nodiscard]] static auto from(AccessPath Txn, FieldStringManager &Mgr,
+                                 uint8_t DepthKLimit) {
+    return CFLFieldSensEdgeFunctionImpl{
+        .Transform = {.Mgr = &Mgr, .Paths = {Txn}},
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+
+  [[nodiscard]] static auto fromEpsilon(uint8_t DepthKLimit,
+                                        FieldStringManager &Mgr) {
+    return CFLFieldSensEdgeFunctionImpl{
+        .Transform = IFDSEdgeValue::epsilon(&Mgr),
+        .DepthKLimit = DepthKLimit,
+    };
+  }
+};
+
+struct CFLFieldSensEdgeFunction {
+  using l_t = LatticeDomain<IFDSEdgeValue>;
+  [[clang::require_explicit_initialization]] const CFLFieldSensEdgeFunctionImpl
+      *Impl{};
+
+  [[nodiscard]] l_t computeTarget(l_t Source) const {
+    assert(Impl != nullptr);
+    Source.onValue(fn<&IFDSEdgeValue::applyTransforms>, Impl->Transform,
+                   Impl->DepthKLimit);
+    return Source;
+  }
+
+  constexpr friend bool
+  operator==(CFLFieldSensEdgeFunction L,
+             CFLFieldSensEdgeFunction R) noexcept = default;
+
+  friend auto hash_value(CFLFieldSensEdgeFunction EF) noexcept {
+    return llvm::hash_value(EF.Impl);
+  }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
+                                       CFLFieldSensEdgeFunction EF);
+};
+
 class CFLFieldSensEdgeFunctions
     : public IfdsIdeProblemMixin<cfl_fieldsens::IFDSDomain> {
 public:
@@ -365,6 +455,10 @@ public:
                                          d_t PointerOp, d_t ValueOp,
                                          uint8_t DepthKLimit,
                                          const llvm::DataLayout &DL);
+
+  EdgeFunction<l_t> getLoadEdgeFunction(d_t CurrNode, d_t PointerOp,
+                                        uint8_t DepthKLimit,
+                                        const llvm::DataLayout &DL);
 
   EdgeFunction<l_t> getNormalEdgeFunction(n_t Curr, d_t CurrNode, n_t Succ,
                                           d_t SuccNode);
@@ -398,7 +492,10 @@ protected:
       // CFLFieldSensIFDSProblem
       : psr::IfdsIdeProblemMixin<IFDSDomain>(Problem.getProjectIRDB(), {},
                                              Problem.getZeroValue()),
-        Config(std::move(Config)), DepthKLimit(DepthKLimit) {}
+        Config(std::move(Config)), DepthKLimit(DepthKLimit) {
+    Mgr.reserve(Problem.getProjectIRDB()->getNumInstructions());
+    regCounters();
+  }
 
   /// Transforms user-defined seeds from usual IFDS seeds to field-sensitive
   /// IFDS seeds
@@ -408,22 +505,37 @@ protected:
                                       BinaryDomain> &UserSeeds);
 
 private:
-  FieldStringManager Mgr{};
-  IFDSProblemConfig Config{};
+  using EFConstPtr = const cfl_fieldsens::CFLFieldSensEdgeFunctionImpl *;
+  using EFResultPtr = llvm::PointerIntPair<EFConstPtr, 2>;
+
+  static void regCounters() noexcept;
+
+  [[nodiscard]] EdgeFunction<l_t>
+  makeEF(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
+  [[nodiscard]] EFResultPtr
+  makeEFPtr(cfl_fieldsens::CFLFieldSensEdgeFunctionImpl &&EF);
+
+  cfl_fieldsens::FieldStringManager Mgr{};
+  cfl_fieldsens::IFDSProblemConfig Config{};
+
+  UnorderedSet<cfl_fieldsens::CFLFieldSensEdgeFunctionImpl> EFInternCache{};
+
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> ExtendCache{};
+  llvm::DenseMap<std::pair<EFConstPtr, EFConstPtr>, EFResultPtr> CombineCache{};
+
   uint8_t DepthKLimit = 5; // Original from the paper
 };
 
 } // namespace cfl_fieldsens
 
 /// An IFDS-Problem adaptor that makes any field-insensitive IFDS analysis
-/// field-sensitive. Just wrap your IFDS problem with
-/// FieldSensAllocSitesAwareIFDSProblem and use the IterativeIDESolver instead
-/// of the IFDSSolver.
+/// field-sensitive. Just wrap your IFDS problem with CFLFieldSensIFDSProblem
+/// and use the IterativeIDESolver instead of the IFDSSolver.
 ///
 /// The only thing to change in your usual IFDS problem is not to kill data-flow
 /// facts when only parts of the fields should be killed. This is now handled by
-/// the FieldSensAllocSitesAwareIFDSProblem. For that, provide a
-/// FieldSensAllocSitesAwareIFDSProblemConfig with a proper KillsAt
+/// the CFLFieldSensIFDSProblem. For that, provide a
+/// problem definition with a proper killsAt()
 /// implementation.
 template <IFDSProblem ProblemTy>
   requires std::same_as<LLVMIFDSAnalysisDomainDefault,
@@ -534,7 +646,7 @@ public:
   [[nodiscard]] const auto &base() const noexcept { return *UserProblem; }
 
 private:
-  NonNullPtr<ProblemTy> UserProblem{};
+  NonNullPtr<ProblemTy> UserProblem;
 };
 } // namespace psr
 
