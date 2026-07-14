@@ -46,6 +46,7 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include <cassert>
+#include <memory>
 #include <optional>
 #include <utility>
 
@@ -152,7 +153,14 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
   library_summary::LLVMFunctionDataFlowFacts LibFacts;
 
   llvm::TargetLibraryInfoWrapperPass TLA{};
-  std::optional<MemSSABundle> MSSABundle{};
+  // Per-function MemSSA cache: shared between processFunction() (which needs
+  // the MemorySSA of whichever function is currently being translated) and
+  // the allocation-wrapper classifier (which needs the MemorySSA of an
+  // arbitrary callee at classification time). Building at most once per
+  // function avoids redundant dominator-tree/AA construction for functions
+  // that are both classified and later processed.
+  llvm::DenseMap<const llvm::Function *, std::unique_ptr<MemSSABundle>>
+      MemSSACache;
   llvm::MemorySSA *CurrentMemSSA = nullptr;
 
   llvm::SmallVector<const llvm::Function *, 8> FunctionWorklist;
@@ -525,9 +533,17 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     propagate();
   }
 
+  MemSSABundle &getOrCreateMemSSA(const llvm::Function *F) {
+    auto &Bundle = MemSSACache[F];
+    if (!Bundle) {
+      Bundle = std::make_unique<MemSSABundle>(const_cast<llvm::Function &>(*F),
+                                              &TLA.getTLI(*F));
+    }
+    return *Bundle;
+  }
+
   void processFunction(const llvm::Function *F) {
-    MSSABundle.emplace(const_cast<llvm::Function &>(*F), &TLA.getTLI(*F));
-    CurrentMemSSA = &MSSABundle->MSSA;
+    CurrentMemSSA = &getOrCreateMemSSA(F).MSSA;
     for (const auto &Arg : F->args()) {
       if (!definitelyContainsNoPointer(&Arg)) {
         (void)getOrInsertVar(PAGVariable(&Arg));
@@ -690,6 +706,99 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
                 [&](ValueId ValId) { addAssignEdge(ValId, RetSlotId); });
   }
 
+  // ---- Allocation-wrapper classification -------------------------------
+  //
+  // Recognizes functions whose returned pointer, on every return path,
+  // provably traces back to a fresh heap allocation (directly, or through
+  // another such wrapper).  Calls to a classified wrapper are then treated
+  // like direct calls to malloc(): each call SITE gets its own fresh
+  // abstract object instead of merging through the wrapper's single,
+  // context-insensitively-shared internal allocation site.
+
+  enum class WrapperState : uint8_t { InProgress, IsWrapper, NotWrapper };
+  llvm::DenseMap<const llvm::Function *, WrapperState> WrapperCache;
+
+  // Does V, after stripping pointer casts, provably denote a freshly
+  // allocated object (a direct call to a heap allocator or to another
+  // classified wrapper, possibly reached through a load with exactly one
+  // reaching store, or a PHI merge of such values)?  MSSA must be the
+  // MemorySSA of the function containing V.  Visited guards against
+  // self-/mutually-referencing PHIs and load/store cycles introduced by
+  // loops (e.g. a loop-carried pointer that is unchanged around the back
+  // edge produces a self-referencing PHI); a revisit conservatively means
+  // "not provably fresh" rather than recursing forever.
+  bool traceIsFreshAlloc(const llvm::Value *V, llvm::MemorySSA &MSSA,
+                         llvm::SmallPtrSetImpl<const llvm::Value *> &Visited) {
+    V = V->stripPointerCasts();
+    if (!Visited.insert(V).second) {
+      return false;
+    }
+    if (const auto *CB = llvm::dyn_cast<llvm::CallBase>(V)) {
+      const auto *Callee = llvm::dyn_cast_or_null<llvm::Function>(
+          CB->getCalledOperand()->stripPointerCastsAndAliases());
+      return Callee &&
+             (psr::isHeapAllocatingFunction(Callee) || isAllocWrapper(Callee));
+    }
+    if (const auto *L = llvm::dyn_cast<llvm::LoadInst>(V)) {
+      llvm::SmallPtrSet<const llvm::StoreInst *, 4> Defs;
+      const bool HasLiveOnEntry = collectReachingDefs(L, MSSA, Defs);
+      if (HasLiveOnEntry || Defs.size() != 1) {
+        // Ambiguous (multiple reaching stores), or the value may come from
+        // outside the function (parameter/global-backed memory): not
+        // provably fresh.
+        return false;
+      }
+      return traceIsFreshAlloc((*Defs.begin())->getValueOperand(), MSSA,
+                               Visited);
+    }
+    if (const auto *P = llvm::dyn_cast<llvm::PHINode>(V)) {
+      return llvm::all_of(P->incoming_values(), [&](const llvm::Use &Op) {
+        return traceIsFreshAlloc(Op.get(), MSSA, Visited);
+      });
+    }
+    return false; // argument, global, GEP, unresolved call, ...
+  }
+
+  bool computeIsAllocWrapper(const llvm::Function *F) {
+    if (definitelyContainsNoPointer(F->getReturnType())) {
+      return false;
+    }
+    llvm::MemorySSA &MSSA = getOrCreateMemSSA(F).MSSA;
+    bool SawQualifyingReturn = false;
+    for (const auto &BB : *F) {
+      // ReturnInst is always a terminator; only check block terminators
+      // instead of scanning every instruction.
+      const auto *R = llvm::dyn_cast<llvm::ReturnInst>(BB.getTerminator());
+      if (!R) {
+        continue;
+      }
+      const auto *RetVal = R->getReturnValue();
+      llvm::SmallPtrSet<const llvm::Value *, 8> Visited;
+      if (!RetVal || definitelyContainsNoPointer(RetVal) ||
+          !traceIsFreshAlloc(RetVal, MSSA, Visited)) {
+        return false;
+      }
+      SawQualifyingReturn = true;
+    }
+    return SawQualifyingReturn;
+  }
+
+  bool isAllocWrapper(const llvm::Function *F) {
+    if (F->isDeclaration()) {
+      return false; // real allocators are handled via isHeapAllocatingFunction
+    }
+    auto [It, Inserted] = WrapperCache.try_emplace(F, WrapperState::InProgress);
+    if (!Inserted) {
+      // InProgress means F is on the current recursion stack (a cycle):
+      // conservatively not a wrapper.
+      return It->second == WrapperState::IsWrapper;
+    }
+    const bool Result = computeIsAllocWrapper(F);
+    WrapperCache[F] =
+        Result ? WrapperState::IsWrapper : WrapperState::NotWrapper;
+    return Result;
+  }
+
   // ---- Call-graph co-refinement ---------------------------------------
 
   // For each argument, add every function in pts(ArgId) to the worklist
@@ -781,8 +890,16 @@ struct [[clang::internal_linkage]] AndersenOTFSolver::SolverData {
     }
 
     if (CSRetVal && !Callee->getReturnType()->isVoidTy()) {
-      const ValueId RetSlotId = getOrInsertVar(PAGVariable::Return{Callee});
-      addAssignEdge(RetSlotId, *CSRetVal);
+      if (isAllocWrapper(Callee)) {
+        // Give this call SITE its own fresh object instead of merging
+        // through Callee's shared internal allocation site, which would
+        // spuriously alias every call to this wrapper.
+        const ValueId ObjId = getOrInsertObj(PAGVariable(CS));
+        addPointee(*CSRetVal, ObjId);
+      } else {
+        const ValueId RetSlotId = getOrInsertVar(PAGVariable::Return{Callee});
+        addAssignEdge(RetSlotId, *CSRetVal);
+      }
     }
 
     for (const auto &[Param, ArgIds] : llvm::zip(Callee->args(), Args)) {

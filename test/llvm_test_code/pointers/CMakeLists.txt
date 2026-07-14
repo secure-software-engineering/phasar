@@ -14,6 +14,7 @@ set(lca_files
   basic_04.c
   call_01.cpp
   dynamic_01.cpp
+  factory_01.c
   global_01.cpp
   inter_dynamic_01.cpp
   inter_dynamic_02.cpp

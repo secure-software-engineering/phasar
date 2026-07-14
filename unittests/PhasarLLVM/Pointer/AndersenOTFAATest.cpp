@@ -1113,6 +1113,25 @@ TEST(AndersenOTFAATest, StructVtableDispatch) {
       << "myRead must not be a callee of ops->write(...) (field 1, not 0)";
 }
 
+TEST(AndersenOTFAATest, AllocWrapperCallSitesDontAlias) {
+  // factory_01: factory_fun mallocs and returns Mem. Two call sites in
+  // main must get distinct abstract objects, not the wrapper's shared
+  // internal allocation site.
+  const TSL Call1 = TSL(LineColFunOp{.Line = 18,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const TSL Call2 = TSL(LineColFunOp{.Line = 19,
+                                     .Col = 0,
+                                     .InFunction = "main",
+                                     .OpCode = llvm::Instruction::Call});
+  const GTMap ExpectedResults = {
+      {Call1, {Call1}},
+      {Call2, {Call2}},
+  };
+  doAnalysisAndCheckExact("factory_01_c_dbg.ll", ExpectedResults);
+}
+
 } // namespace
 
 int main(int Argc, char **Argv) {
