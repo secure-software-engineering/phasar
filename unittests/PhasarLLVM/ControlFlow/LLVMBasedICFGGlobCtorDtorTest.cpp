@@ -25,7 +25,9 @@
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/TinyPtrVector.h"
 #include "llvm/IR/Dominators.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Linker/Linker.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -78,6 +80,28 @@ protected:
             Dom.dominates(CSByCalleeName[First], CSByCalleeName[Second]));
       }
     }
+  }
+
+  static const llvm::AllocaInst *findAlloca(const llvm::Function *F,
+                                            llvm::StringRef Name) {
+    for (const auto &Inst : llvm::instructions(F)) {
+      const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(&Inst);
+      if (Alloca && Alloca->getName() == Name) {
+        return Alloca;
+      }
+    }
+    return nullptr;
+  }
+
+  static const llvm::LoadInst *findLoadFrom(const llvm::Function *F,
+                                            const llvm::Value *Pointer) {
+    for (const auto &Inst : llvm::instructions(F)) {
+      const auto *Load = llvm::dyn_cast<llvm::LoadInst>(&Inst);
+      if (Load && Load->getPointerOperand()->stripPointerCasts() == Pointer) {
+        return Load;
+      }
+    }
+    return nullptr;
   }
 };
 
@@ -335,10 +359,25 @@ TEST_F(LLVMBasedICFGGlobCtorDtorTest, LCATest4_1) {
 
   Solver.dumpResults();
 
-  const auto *FooGet = IRDB.getInstruction(15);
-  const auto *LoadFoo = IRDB.getInstruction(14);
-  const auto *LoadX = IRDB.getInstruction(20);
-  const auto *End = IRDB.getInstruction(22);
+  const auto *GetFoo = IRDB.getFunctionDefinition("_Z6getFoov");
+  ASSERT_NE(nullptr, GetFoo);
+  const auto *FooStorage = IRDB.getGlobalVariableDefinition("_ZZ6getFoovE3foo");
+  ASSERT_NE(nullptr, FooStorage);
+
+  const auto *LoadFoo = findLoadFrom(GetFoo, FooStorage);
+  ASSERT_NE(nullptr, LoadFoo);
+  const auto *FooGet = LoadFoo->getNextNode();
+  ASSERT_NE(nullptr, FooGet);
+
+  const auto *Main = IRDB.getFunctionDefinition("main");
+  ASSERT_NE(nullptr, Main);
+  const auto *X = findAlloca(Main, "x");
+  ASSERT_NE(nullptr, X);
+
+  const auto *LoadX = findLoadFrom(Main, X);
+  ASSERT_NE(nullptr, LoadX);
+  const auto *End = Main->back().getTerminator();
+  ASSERT_NE(nullptr, End);
 
   auto FooValueAfterGet = Solver.resultAt(FooGet, LoadFoo);
 

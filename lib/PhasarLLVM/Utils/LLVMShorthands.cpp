@@ -503,6 +503,24 @@ bool psr::isGuardVariable(const llvm::Value *V) {
   return false;
 }
 
+static bool isGuardVariableLoadOperand(const llvm::Value *V) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+    return Load->isAtomic() && psr::isGuardVariable(Load->getPointerOperand());
+  }
+
+  if (const auto *Cast = llvm::dyn_cast<llvm::CastInst>(V)) {
+    return isGuardVariableLoadOperand(Cast->getOperand(0));
+  }
+
+  if (const auto *BinOp = llvm::dyn_cast<llvm::BinaryOperator>(V);
+      BinOp && BinOp->getOpcode() == llvm::Instruction::And) {
+    return isGuardVariableLoadOperand(BinOp->getOperand(0)) ||
+           isGuardVariableLoadOperand(BinOp->getOperand(1));
+  }
+
+  return false;
+}
+
 static bool isAllocationSiteOrSimilar(const llvm::Value *V) {
   if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     return Arg->hasStructRetAttr();
@@ -578,13 +596,11 @@ bool psr::isStaticVariableLazyInitializationBranch(
   if (auto *Cmp = llvm::dyn_cast<llvm::ICmpInst>(Condition);
       Cmp && llvm::ICmpInst::isEquality(Cmp->getPredicate())) {
     for (auto *Op : Cmp->operand_values()) {
-      if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(Op);
-          Load && Load->isAtomic()) {
+      if (isGuardVariableLoadOperand(Op)) {
+        return true;
+      }
 
-        if (isGuardVariable(Load->getPointerOperand())) {
-          return true;
-        }
-      } else if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
+      if (auto *Call = llvm::dyn_cast<llvm::CallBase>(Op)) {
         auto *CalledFunction = Call->getCalledFunction();
         if (CalledFunction &&
             CalledFunction->getName() == "__cxa_guard_acquire") {
