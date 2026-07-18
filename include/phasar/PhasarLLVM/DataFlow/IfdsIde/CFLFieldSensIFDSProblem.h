@@ -227,7 +227,7 @@ struct AccessPathDMI {
 struct IFDSEdgeValue {
   using container_type = llvm::SmallDenseSet<AccessPath, 2, AccessPathDMI>;
 
-  [[clang::require_explicit_initialization]] FieldStringManager *Mgr{};
+  PSR_REQUIRE_EXPLICIT_INITIALIZATION FieldStringManager *Mgr{};
   container_type Paths;
 
   static constexpr llvm::StringLiteral LogCategory = "IFDSEdgeValue";
@@ -386,8 +386,8 @@ bool filterFieldSensFacts(
 
 struct CFLFieldSensEdgeFunctionImpl {
   using l_t = LatticeDomain<IFDSEdgeValue>;
-  [[clang::require_explicit_initialization]] IFDSEdgeValue Transform;
-  [[clang::require_explicit_initialization]] uint8_t DepthKLimit{};
+  PSR_REQUIRE_EXPLICIT_INITIALIZATION IFDSEdgeValue Transform;
+  PSR_REQUIRE_EXPLICIT_INITIALIZATION uint8_t DepthKLimit{};
 
   bool operator==(const CFLFieldSensEdgeFunctionImpl &Other) const noexcept {
     assert(DepthKLimit == Other.DepthKLimit);
@@ -424,7 +424,7 @@ struct CFLFieldSensEdgeFunctionImpl {
 
 struct CFLFieldSensEdgeFunction {
   using l_t = LatticeDomain<IFDSEdgeValue>;
-  [[clang::require_explicit_initialization]] const CFLFieldSensEdgeFunctionImpl
+  PSR_REQUIRE_EXPLICIT_INITIALIZATION const CFLFieldSensEdgeFunctionImpl
       *Impl{};
 
   [[nodiscard]] l_t computeTarget(l_t Source) const {

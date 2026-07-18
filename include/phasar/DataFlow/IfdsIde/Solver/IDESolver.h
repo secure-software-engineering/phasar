@@ -699,7 +699,7 @@ protected:
       auto CallFlowFunction =
           CachedFlowEdgeFunctions.getCallFlowFunction(Stmt, Callee);
       INC_COUNTER("FF Queries", 1, Full);
-      for (const d_t dPrime : CallFlowFunction->computeTargets(Fact)) {
+      for (const d_t &dPrime : CallFlowFunction->computeTargets(Fact)) {
         auto EdgeFn = CachedFlowEdgeFunctions.getCallEdgeFunction(
             Stmt, Fact, Callee, dPrime);
         PHASAR_LOG_LEVEL(DEBUG, "Queried Call Edge Function: " << EdgeFn);

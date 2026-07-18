@@ -194,9 +194,7 @@ struct BasicUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, ObjectRepId> Var2Rep;
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return true; }
-  [[nodiscard]] constexpr size_t size() const noexcept {
-    return Var2Rep.size();
-  }
+  [[nodiscard]] size_t size() const noexcept { return Var2Rep.size(); }
 
   [[nodiscard]] const RawAliasSet<ValueId> &
   getRawAliasSet(ValueId Var) const noexcept {
@@ -230,9 +228,7 @@ struct CallingContextSensUnionFindAAResult : UnionFindAAResultBase {
   TypedVector<ValueId, llvm::SmallVector<ObjectRepId, 2>> Var2Rep{};
 
   [[nodiscard]] static constexpr bool isCached() noexcept { return false; }
-  [[nodiscard]] constexpr size_t size() const noexcept {
-    return Var2Rep.size();
-  }
+  [[nodiscard]] size_t size() const noexcept { return Var2Rep.size(); }
 
   [[nodiscard]] RawAliasSet<ValueId> getRawAliasSet(ValueId Var) const {
     RawAliasSet<ValueId> ResultSet;

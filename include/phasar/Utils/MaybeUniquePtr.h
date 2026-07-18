@@ -10,6 +10,8 @@
 #ifndef PHASAR_UTILS_MAYBEUNIQUEPTR_H_
 #define PHASAR_UTILS_MAYBEUNIQUEPTR_H_
 
+#include "phasar/Utils/Macros.h"
+
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/Support/PointerLikeTypeTraits.h"
 
@@ -59,7 +61,7 @@ protected:
 /// \tparam RequireAlignment If true, the datastructure only works if
 /// alignof(T) > 1 holds. Enables incomplete T types
 template <typename T, bool RequireAlignment = false>
-class [[clang::trivial_abi]] MaybeUniquePtr
+class PSR_TRIVIAL_ABI MaybeUniquePtr
     : detail::MaybeUniquePtrBase<T, RequireAlignment> {
   template <typename U, bool Align> friend class MaybeUniquePtr;
 
