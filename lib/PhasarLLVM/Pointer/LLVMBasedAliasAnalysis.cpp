@@ -121,6 +121,8 @@ static AliasResult translateAAResult(llvm::AliasResult Res) noexcept {
   case llvm::AliasResult::MustAlias:
     return AliasResult::MustAlias;
   }
+
+  llvm_unreachable("All alias result types handled in the switch above");
 }
 
 static llvm::Type *getPointeeTypeOrNull(const llvm::Value *Ptr) {

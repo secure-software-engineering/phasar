@@ -61,6 +61,7 @@ public:
   using typename IfdsIdeProblemMixin<AnalysisDomainTy>::f_t;
   using typename IfdsIdeProblemMixin<AnalysisDomainTy>::FlowFunctionPtrType;
   using typename IfdsIdeProblemMixin<AnalysisDomainTy>::n_t;
+  using typename IfdsIdeProblemMixin<AnalysisDomainTy>::d_t;
 
   [[nodiscard]] FlowFunctionPtrType getNormalFlowFunction(n_t Curr, n_t Succ) {
     return getNormalFlowFunctionImpl(Curr, Succ);

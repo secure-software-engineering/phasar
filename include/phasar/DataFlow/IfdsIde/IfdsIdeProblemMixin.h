@@ -27,11 +27,11 @@ template <IfdsAnalysisDomain AnalysisDomainTy,
 class IfdsIdeProblemMixin
     : protected FlowFunctionTemplates<typename AnalysisDomainTy::d_t,
                                       Container>,
-      public AnalysisDomainTy,
       public DerivedJoinLattice<
           typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t>,
       public DefaultSemiRing<
-          typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t> {
+          typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t>,
+      public detail::ValueDomainAdder<AnalysisDomainTy> {
 protected:
   using FFTemplates =
       FlowFunctionTemplates<typename AnalysisDomainTy::d_t, Container>;

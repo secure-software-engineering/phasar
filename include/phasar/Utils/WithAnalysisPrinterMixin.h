@@ -18,9 +18,9 @@
 
 namespace psr {
 template <typename AnalysisDomainTy> class WithAnalysisPrinterMixin {
-  using n_t = typename AnalysisDomainTy::n_t;
-  using d_t = typename AnalysisDomainTy::d_t;
-  using l_t = typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t;
+  // NOTE: Don't add type-aliases for n_t,d_t, ... here; this will break the
+  // compilation with gcc; gcc apparently ignores private visibility when
+  // checking for ambiguous declarations. clang instead behaves as expected.
 
 public:
   WithAnalysisPrinterMixin()
@@ -51,23 +51,26 @@ public:
     return *Printer;
   }
 
-  void
-  emitTextReport([[maybe_unused]] GenericSolverResults<n_t, d_t, l_t> Results,
-                 llvm::raw_ostream &OS = llvm::outs()) {
+  void emitTextReport(
+      [[maybe_unused]] GenericSolverResultsFor<AnalysisDomainTy> Results,
+      llvm::raw_ostream &OS = llvm::outs()) {
     Printer->onFinalize(OS);
   }
 
 protected:
-  template <typename D = d_t, typename L = l_t>
-  void onResult(n_t Instr, D &&DfFact, L &&LatticeElement,
+  template <typename D = AnalysisDomainTy::d_t,
+            typename L = detail::ValueDomainAdder<AnalysisDomainTy>::l_t>
+  void onResult(AnalysisDomainTy::n_t Instr, D &&DfFact, L &&LatticeElement,
                 DataFlowAnalysisType AnalysisType) {
     Printer->onResult(Instr, PSR_FWD(DfFact), PSR_FWD(LatticeElement),
                       AnalysisType);
   }
 
-  template <typename D = d_t>
-    requires std::is_same_v<l_t, BinaryDomain>
-  void onResult(n_t Instr, D &&DfFact, DataFlowAnalysisType AnalysisType) {
+  template <typename D = AnalysisDomainTy::d_t>
+    requires std::is_same_v<
+        typename detail::ValueDomainAdder<AnalysisDomainTy>::l_t, BinaryDomain>
+  void onResult(AnalysisDomainTy::n_t Instr, D &&DfFact,
+                DataFlowAnalysisType AnalysisType) {
     Printer->onResult(Instr, PSR_FWD(DfFact), AnalysisType);
   }
 
