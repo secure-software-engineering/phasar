@@ -54,7 +54,7 @@ namespace psr {
 /// Applications: An Experience Report"
 /// (<https://doi.org/10.4230/LIPIcs.ECOOP.2024.36>) by Schiebel, Sattler,
 /// Schubert, Apel, and Bodden.
-template <IDEProblem ProblemTy,
+template <IFDSProblem ProblemTy,
           typename StaticSolverConfigTy = DefaultIDESolverConfig<ProblemTy>,
           ICFG ICFGTy = typename ProblemTy::ProblemAnalysisDomain::i_t>
 class IterativeIDESolver
