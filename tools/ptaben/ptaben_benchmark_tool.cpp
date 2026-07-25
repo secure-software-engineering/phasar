@@ -4,9 +4,11 @@
 #include "phasar/PhasarLLVM/ControlFlow/LLVMVFTableProvider.h"
 #include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
 #include "phasar/PhasarLLVM/DB/LLVMProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/AndersenOTFAA.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasInfo.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMAliasSet.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointerAssignmentGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAA.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMUnionFindAliasSet.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/DIBasedTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/LLVMShorthands.h"
@@ -14,58 +16,74 @@
 #include "phasar/Pointer/AliasResult.h"
 #include "phasar/Pointer/UnionFindAliasAnalysisType.h"
 #include "phasar/Utils/IO.h"
+#include "phasar/Utils/Macros.h"
+#include "phasar/Utils/TypedArray.h"
+#include "phasar/Utils/ValueCompressor.h"
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "PTAResult.h"
 #include "PTAUtils.h"
+#include "QueryId.h"
+#include "QueryLocation.h"
 #include "QuerySer.h"
 #include "ResultsCollector.h"
+#include "SupportedAnalysisTypes.h"
 
+#include <memory>
 #include <string>
 
 namespace cl = llvm::cl;
 
-static cl::OptionCategory PTABenCat("PTABen Benhchmark Tool");
+static cl::OptionCategory PTABenCat("PTABen Benchmark Tool");
+
+static cl::SubCommand
+    CheckFileCmd("check-file", "Check a single file instead of a directory");
 
 static cl::opt<std::string> IRPath(cl::Positional, cl::Required,
                                    cl::desc("ptaben-ir-directory"),
-                                   cl::cat(PTABenCat));
+                                   cl::cat(PTABenCat),
+                                   cl::sub(cl::SubCommand::getAll()));
 static cl::opt<std::string>
     QueryTablePath("queries-table",
                    cl::desc("The Output-Path to the queries table"),
                    cl::init("queries.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string>
-    AndersTablePath("anders-table",
-                    cl::desc("The Output-Path to the anders output table"),
-                    cl::init("anders-results.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string>
-    SteensTablePath("steens-table",
-                    cl::desc("The Output-Path to the steens output table"),
-                    cl::init("steens-results.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string>
-    CtxTablePath("ctx-table",
-                 cl::desc("The Output-Path to the ctx output table"),
-                 cl::init("ctx-results.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string>
-    BotTablePath("bot-table",
-                 cl::desc("The Output-Path to the bot output table"),
-                 cl::init("bot-results.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string>
-    IndTablePath("ind-table",
-                 cl::desc("The Output-Path to the ind output table"),
-                 cl::init("ind-results.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string>
-    CtxIndTablePath("ctx-ind-table",
-                    cl::desc("The Output-Path to the ctx-ind output table"),
-                    cl::init("ctx-ind-results.csv"), cl::cat(PTABenCat));
-static cl::opt<std::string> BotCtxIndTablePath(
-    "bot-ctx-ind-table",
-    cl::desc("The Output-Path to the bot-ctx-ind output table"),
-    cl::init("bot-ctx-ind-results.csv"), cl::cat(PTABenCat));
+
+#define PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(NAME, CMD, CSV)                    \
+  static cl::opt<std::string> NAME##TablePath(                                 \
+      CMD, cl::desc("The output-path to the " #NAME " table"), cl::init(CSV),  \
+      cl::cat(PTABenCat));
+#include "SupportedAnalysisTypes.def"
+
+using psr::ptaben::SupportedAnalysisTypes;
+
+static constexpr psr::UnionFindAliasAnalysisType
+ufaaTypeFromSupported(SupportedAnalysisTypes AT) {
+  switch (AT) {
+  case SupportedAnalysisTypes::CFLAnders:
+  case SupportedAnalysisTypes::CFLSteens:
+  case SupportedAnalysisTypes::AndersOTF:
+    llvm::report_fatal_error("Not a union-find analysis");
+  case SupportedAnalysisTypes::UFAACtx:
+    return psr::UnionFindAliasAnalysisType::CtxSens;
+  case SupportedAnalysisTypes::UFAAInd:
+    return psr::UnionFindAliasAnalysisType::IndSens;
+  case SupportedAnalysisTypes::UFAACtxInd:
+    return psr::UnionFindAliasAnalysisType::CtxIndSens;
+  case SupportedAnalysisTypes::UFAABotCtx:
+    return psr::UnionFindAliasAnalysisType::BotCtxSens;
+  case SupportedAnalysisTypes::UFAABotCtxInd:
+    return psr::UnionFindAliasAnalysisType::BotCtxIndSens;
+  }
+}
 
 static psr::AliasResult
 checkLLVMQueryLoc(psr::LLVMAliasInfoRef ComputedAliasResult,
@@ -76,10 +94,20 @@ checkLLVMQueryLoc(psr::LLVMAliasInfoRef ComputedAliasResult,
   return ComputedAliasResult.alias(Ptr1, Ptr2, QueryInst);
 }
 
+template <typename AAResT>
+static psr::AliasResult
+checkLLVMQueryLoc(psr::LLVMUnionFindAliasIterator<AAResT> &ComputedAliasResult,
+                  const llvm::Instruction *QueryInst) {
+  const auto *Ptr1 = QueryInst->getOperand(0);
+  const auto *Ptr2 = QueryInst->getOperand(1);
+
+  return ComputedAliasResult.alias(Ptr1, Ptr2, QueryInst);
+}
+
 static void
 performAndersAnalysis(psr::LLVMProjectIRDB &IRDB,
                       llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs,
-                      psr::ptaben::ResultCollector &RC) {
+                      auto &&RC) {
   psr::LLVMAliasSet AliasSet(&IRDB, false, psr::AliasAnalysisType::CFLAnders);
 
   for (const auto &Loc : QueryLocs) {
@@ -91,7 +119,7 @@ performAndersAnalysis(psr::LLVMProjectIRDB &IRDB,
 static void
 performSteensAnalysis(psr::LLVMProjectIRDB &IRDB,
                       llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs,
-                      psr::ptaben::ResultCollector &RC) {
+                      auto &&RC) {
   psr::LLVMAliasSet AliasSet(&IRDB, false, psr::AliasAnalysisType::CFLSteens);
 
   for (const auto &Loc : QueryLocs) {
@@ -102,8 +130,8 @@ performSteensAnalysis(psr::LLVMProjectIRDB &IRDB,
 
 static void performUnionFindAliasAnalysis(
     psr::LLVMProjectIRDB &IRDB, const psr::LLVMBasedCallGraph &BaseCG,
-    llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs,
-    psr::ptaben::ResultCollector &RC, psr::UnionFindAliasAnalysisType AType) {
+    llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs, auto &&RC,
+    psr::UnionFindAliasAnalysisType AType) {
   auto AliasSet = psr::LLVMUnionFindAliasSet(
       &IRDB, BaseCG,
       psr::LLVMUnionFindAliasSet::Config{
@@ -117,6 +145,43 @@ static void performUnionFindAliasAnalysis(
   }
 }
 
+static void
+performAndersenOTFAA(psr::LLVMProjectIRDB &IRDB,
+                     llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs,
+                     auto &&RC) {
+  auto EntryFunctions =
+      getEntryFunctions(IRDB, psr::getDefaultEntryPoints(IRDB));
+  auto VC = psr::ValueCompressor<psr::PAGVariable>();
+  auto AARes = psr::computeAndersenOTF(IRDB, EntryFunctions, &VC);
+
+  for (const auto &Loc : QueryLocs) {
+    auto Res = checkLLVMQueryLoc(AARes, Loc.Inst);
+    RC.handleResult(psr::ptaben::PTAResult{.Query = Loc.Id, .Result = Res});
+  }
+}
+
+static void
+performAnalysis(psr::LLVMProjectIRDB &IRDB,
+                const psr::LLVMBasedCallGraph &BaseCG,
+                llvm::ArrayRef<psr::ptaben::QueryLocation> QueryLocs, auto &&RC,
+                SupportedAnalysisTypes AType) {
+  switch (AType) {
+  case SupportedAnalysisTypes::CFLAnders:
+    return performAndersAnalysis(IRDB, QueryLocs, PSR_FWD(RC));
+  case SupportedAnalysisTypes::CFLSteens:
+    return performSteensAnalysis(IRDB, QueryLocs, PSR_FWD(RC));
+  case SupportedAnalysisTypes::UFAACtx:
+  case SupportedAnalysisTypes::UFAAInd:
+  case SupportedAnalysisTypes::UFAACtxInd:
+  case SupportedAnalysisTypes::UFAABotCtx:
+  case SupportedAnalysisTypes::UFAABotCtxInd:
+    return performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, PSR_FWD(RC),
+                                         ufaaTypeFromSupported(AType));
+  case SupportedAnalysisTypes::AndersOTF:
+    return performAndersenOTFAA(IRDB, QueryLocs, PSR_FWD(RC));
+  }
+}
+
 static auto openFileOrExit(llvm::StringRef Filepath) {
   auto File = psr::openFileForWrite(Filepath);
   if (!File) {
@@ -125,46 +190,123 @@ static auto openFileOrExit(llvm::StringRef Filepath) {
   return File;
 }
 
-int main(int Argc, char *Argv[]) {
-  cl::HideUnrelatedOptions(PTABenCat);
-  cl::ParseCommandLineOptions(Argc, Argv);
+static int checkSingleFile() {
+  llvm::WithColor::note() << "Analyzing " << IRPath << '\n';
 
+  auto IRDB = psr::LLVMProjectIRDB::loadOrExit(IRPath);
+  auto *Mod = IRDB.getModule();
+  assert(Mod != nullptr);
+  llvm::SmallVector<psr::ptaben::QueryLocation, 4> QueryLocs;
+  llvm::SmallVector<psr::ptaben::QuerySrcCodeLocation> QuerySrcLocs;
+  psr::ptaben::findAllQueryLocations(*Mod, QueryLocs, &QuerySrcLocs);
+
+  if (QueryLocs.empty()) {
+    llvm::WithColor::warning()
+        << "File does not contain any alias queries. Skip it.\n";
+    return true;
+  }
+
+  struct ResultEntry {
+    psr::AliasResult Result;
+    uint32_t Align;
+  };
+  llvm::SmallDenseMap<psr::ptaben::QueryId,
+                      std::map<llvm::StringRef, ResultEntry>>
+      ResultTable;
+  struct ResEntryCollector {
+    llvm::StringRef Analysis;
+    llvm::SmallDenseMap<psr::ptaben::QueryId,
+                        std::map<llvm::StringRef, ResultEntry>> &Res; // NOLINT
+
+    void handleResult(psr::ptaben::PTAResult Result) {
+      Res[Result.Query][Analysis] = ResultEntry{
+          .Result = Result.Result,
+          .Align = uint32_t(Analysis.size()),
+      };
+    }
+  };
+
+  auto VTP = psr::LLVMVFTableProvider(IRDB);
+  auto TH = psr::DIBasedTypeHierarchy(IRDB);
+  auto RTARes = psr::RTAResolver(&IRDB, &VTP, &TH);
+  const auto BaseCG = buildLLVMBasedCallGraph(
+      IRDB, RTARes, getEntryFunctions(IRDB, psr::getDefaultEntryPoints(IRDB)));
+
+  for (auto AType : psr::ptaben::AllSupportedAnalysisTypes) {
+    performAnalysis(
+        IRDB, BaseCG, QueryLocs,
+        ResEntryCollector{.Analysis = to_string(AType), .Res = ResultTable},
+        AType);
+  }
+
+  llvm::outs() << "QueryId,\t\tQuery,  \t";
+
+  llvm::interleaveComma(ResultTable.begin()->second, llvm::outs(),
+                        [](const auto &Entry) { llvm::outs() << Entry.first; });
+  llvm::outs() << '\n';
+
+  for (const auto &[QId, QRes] : ResultTable) {
+    auto *QType = llvm::find_if(
+        QueryLocs, [&](const auto &QLoc) { return QLoc.Id == QId; });
+    assert(QType != nullptr);
+    llvm::outs() << uint64_t(QId) << ",\t" << to_string(QType->QueryType)
+                 << ",\t";
+
+    size_t Last = QRes.size() - 1;
+    size_t Ctr = 0;
+    for (const auto &Entry : QRes) {
+      auto Str = to_string(Entry.second.Result);
+      llvm::outs() << Str;
+
+      if (Ctr++ != Last) {
+        auto Len = Str.size();
+        auto Align = Entry.second.Align;
+        auto Diff = -(Len < Align) & (Align - Len);
+
+        llvm::outs() << ',';
+        llvm::outs().indent(Diff) << ' ';
+      }
+    }
+    llvm::outs() << '\n';
+  }
+
+  return 0;
+}
+
+static int performCompleteExperiment() {
   auto QFile = openFileOrExit(QueryTablePath);
-  auto AndersFile = openFileOrExit(AndersTablePath);
-  auto SteensFile = openFileOrExit(SteensTablePath);
-  auto CtxFile = openFileOrExit(CtxTablePath);
-  auto BotFile = openFileOrExit(BotTablePath);
-  auto IndFile = openFileOrExit(IndTablePath);
-  auto CtxIndFile = openFileOrExit(CtxIndTablePath);
-  auto BotCtxIndFile = openFileOrExit(BotCtxIndTablePath);
-
   psr::ptaben::QuerySerializer QSer(QFile.get());
-  psr::ptaben::ResultCollector AndersSer(AndersFile.get(), "AndersResult");
-  psr::ptaben::ResultCollector SteensSer(SteensFile.get(), "SteensResult");
-  psr::ptaben::ResultCollector CtxSer(CtxFile.get(), "CtxResult");
-  psr::ptaben::ResultCollector BotSer(BotFile.get(), "BotResult");
-  psr::ptaben::ResultCollector IndSer(IndFile.get(), "IndResult");
-  psr::ptaben::ResultCollector CtxIndSer(CtxIndFile.get(), "CtxIndResult");
-  psr::ptaben::ResultCollector BotCtxIndSer(BotCtxIndFile.get(),
-                                            "BotCtxIndResult");
+
+  psr::TypedArray<SupportedAnalysisTypes, std::unique_ptr<llvm::raw_ostream>,
+                  psr::ptaben::NumSupportedAnalysisTypes>
+      ResultFiles;
+
+#define PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(NAME, CMD, CSV)                    \
+  ResultFiles[SupportedAnalysisTypes::NAME] = openFileOrExit(NAME##TablePath);
+#include "SupportedAnalysisTypes.def"
+
+  psr::TypedArray<SupportedAnalysisTypes, psr::ptaben::ResultCollector,
+                  psr::ptaben::NumSupportedAnalysisTypes>
+      ResultSer{psr::generate_tag, [&](auto AType) {
+                  return psr::ptaben::ResultCollector(ResultFiles[AType].get(),
+                                                      to_string(AType));
+                }};
 
   llvm::SmallVector<std::string, 4> Failures;
   psr::ptaben::checkDir(IRPath, Failures, [&](llvm::StringRef FileName) {
-    llvm::errs() << "Analyzing " << FileName << '\n';
+    llvm::WithColor::note() << "Analyzing " << FileName << '\n';
 
-    psr::LLVMProjectIRDB IRDB(FileName);
+    auto IRDB = psr::LLVMProjectIRDB::loadOrExit(FileName);
     auto *Mod = IRDB.getModule();
-    if (!Mod) {
-      return false;
-    }
+    assert(Mod != nullptr);
 
     llvm::SmallVector<psr::ptaben::QueryLocation, 4> QueryLocs;
     llvm::SmallVector<psr::ptaben::QuerySrcCodeLocation> QuerySrcLocs;
     psr::ptaben::findAllQueryLocations(*Mod, QueryLocs, &QuerySrcLocs);
 
     if (QueryLocs.empty()) {
-      llvm::errs()
-          << "[NOTE]: File does not contain any alias queries. Skip it.\n";
+      llvm::WithColor::warning()
+          << "File does not contain any alias queries. Skip it.\n";
       return true;
     }
 
@@ -172,28 +314,26 @@ int main(int Argc, char *Argv[]) {
       QSer.handleQuery(QLoc, QSrcLoc);
     }
 
-    using psr::UnionFindAliasAnalysisType;
-
-    performAndersAnalysis(IRDB, QueryLocs, AndersSer);
-    performSteensAnalysis(IRDB, QueryLocs, SteensSer);
-
     auto VTP = psr::LLVMVFTableProvider(IRDB);
     auto TH = psr::DIBasedTypeHierarchy(IRDB);
     auto Res = psr::RTAResolver(&IRDB, &VTP, &TH);
     const auto BaseCG = buildLLVMBasedCallGraph(
         IRDB, Res, getEntryFunctions(IRDB, psr::getDefaultEntryPoints(IRDB)));
-
-    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, CtxSer,
-                                  UnionFindAliasAnalysisType::CtxSens);
-    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, BotSer,
-                                  UnionFindAliasAnalysisType::BotCtxSens);
-    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, IndSer,
-                                  UnionFindAliasAnalysisType::IndSens);
-    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, CtxIndSer,
-                                  UnionFindAliasAnalysisType::CtxIndSens);
-    performUnionFindAliasAnalysis(IRDB, BaseCG, QueryLocs, BotCtxIndSer,
-                                  UnionFindAliasAnalysisType::BotCtxIndSens);
+    for (const auto &[AType, ASer] : ResultSer.enumerate()) {
+      performAnalysis(IRDB, BaseCG, QueryLocs, ASer, AType);
+    }
 
     return true;
   });
+  return 0;
+}
+
+int main(int Argc, char *Argv[]) {
+  cl::HideUnrelatedOptions(PTABenCat);
+  cl::ParseCommandLineOptions(Argc, Argv);
+
+  if (CheckFileCmd) {
+    return checkSingleFile();
+  }
+  return performCompleteExperiment();
 }

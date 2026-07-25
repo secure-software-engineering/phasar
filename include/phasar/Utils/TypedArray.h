@@ -40,13 +40,11 @@ public:
   explicit constexpr TypedArray(
       generate_tag_t /*unused*/,
       std::invocable<IdT> auto
-          Gen) noexcept(std::is_nothrow_invocable_v<decltype(Gen) &, IdT>) {
-    [this, Gen = copyOrRef(Gen)]<size_t... I>(std::index_sequence<I...>) {
-      ((this->Base::operator[](I) =
-            std::invoke(Gen, std::integral_constant<IdT, IdT(I)>())),
-       ...);
-    }(std::make_index_sequence<N>());
-  }
+          Gen) noexcept(std::is_nothrow_invocable_v<decltype(Gen) &, IdT>)
+      : Base([Gen = copyOrRef(Gen)]<size_t... I>(
+                 std::index_sequence<I...>) -> Base {
+          return {std::invoke(Gen, std::integral_constant<IdT, IdT(I)>())...};
+        }(std::make_index_sequence<N>())) {}
 
   [[nodiscard]] constexpr bool inbounds(IdT Id) const noexcept {
     return size_t(Id) < N;

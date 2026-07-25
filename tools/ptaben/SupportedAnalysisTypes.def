@@ -1,0 +1,23 @@
+/******************************************************************************
+ * Copyright (c) 2026 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
+#ifndef PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES
+#error "Define PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(NAME, CMD, CSV) before including this file"
+#endif
+
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(CFLAnders, "anders-table", "anders-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(CFLSteens, "steens-table", "steens-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAACtx, "ctx-table", "ctx-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAAInd, "ind-table", "ind-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAACtxInd, "ctx-ind-table", "ctx-ind-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAABotCtx, "bot-table", "bot-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(UFAABotCtxInd, "bot-ctx-ind-table", "bot-ctx-ind-results.csv")
+PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES(AndersOTF, "anders-otf-table", "anders-otf-results.csv")
+
+#undef PSR_PTABEN_SUPPORTED_ANALYSIS_TYPES
