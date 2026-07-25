@@ -77,7 +77,7 @@ public:
     });
   }
   [[nodiscard]] auto enumerate() noexcept {
-    return llvm::map_range(llvm::enumerate(*this), [](auto &IndexAndVal) {
+    return llvm::map_range(llvm::enumerate(*this), [](auto &&IndexAndVal) {
       return std::pair<IdT, ValueT &>{IdT(IndexAndVal.index()),
                                       IndexAndVal.value()};
     });
